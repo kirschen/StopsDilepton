@@ -28,10 +28,10 @@ class Cache:
   def get(self, key):
     return self._cache[key]
  
-  def add(self, key, val, save=True):
+  def add(self, key, val, save):
     self._cache[key] = val 
     if save==True:
-      if self.verbosity>=2: print "Writing new result %r to key %r"%(val, key)
+      if self.verbosity>=2: print "Storing new result %r to key %r"%(val, key)
       self.save()
     return self._cache[key]
 

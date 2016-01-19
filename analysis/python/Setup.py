@@ -73,6 +73,7 @@ class Setup:
     '''Clone setup and change systematic if provided'''
     res     = copy.copy(self)
     res.sys = copy.deepcopy(self.sys)
+    res.parameters = copy.deepcopy(self.parameters)
     if sys:
       for k in sys.keys():
         if k=='reweight':

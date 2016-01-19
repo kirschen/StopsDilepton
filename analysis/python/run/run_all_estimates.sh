@@ -1,5 +1,5 @@
 #!/bin/sh
-#python run_all_estimates.py --multiIsoWP=$1
+python run_all_estimates.py --multiIsoWP=$1
 #python run_all_estimates.py --multiIsoWP=L
 #python run_all_estimates.py --multiIsoWP=M
 #python run_all_estimates.py --multiIsoWP=T

@@ -8,7 +8,7 @@ parser.add_option("--multiIsoWP", dest="multiIsoWP", default="", type="string", 
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.defaultAnalysis import setup, regions, bkgEstimators
-setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test3'
+setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test5'
 setup.parameters['metMin'] = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
@@ -26,14 +26,16 @@ setup.verbose=True
 #from multi_estimate import multi_estimate
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_1l_postProcessed import *
+#signalEstimators = [ MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in [T2tt_450_0] ] #signals_T2tt ]
 signalEstimators = [ MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals_T2tt ]
+signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, parameters={'useTriggers':False})
 
 #estimate = signals_T2tt[0]['estimator']
 #isSignal=True
 #regions=regions[:1]
 #bkgEstimators=[]
 #signalEstimators = signalEstimators[:1]
-#regions=regions[:1]
+regions=regions[:1]
 
 def wrapper(args):
     r,channel,setup = args
@@ -41,18 +43,19 @@ def wrapper(args):
 #    res = estimate._estimate(r, channel, setup)
     return (estimate.uniqueKey(r, channel, setup), res )
 
-for isSignal, bkgEstimators_ in [ [ True, signalEstimators ], [ False, bkgEstimators ] ]:
-  for estimate in bkgEstimators_:
+for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, bkgEstimators ] ]:
+  for estimate in estimators_:
+    setup_ = signalSetup if isSignal else setup
     if not options.dontSkipIfCachefileExists and estimate.cache.cacheFileLoaded: 
       print "Cache file %s was loaded -> Skipping."%estimate.cache.filename
       continue
     jobs=[]
     for channel in ['MuMu' ,'EE', 'EMu']:
       for r in regions:
-        jobs.append((r, channel, setup))
-        jobs.extend(estimate.getBkgSysJobs(r, channel, setup))
+        jobs.append((r, channel, setup_))
+        jobs.extend(estimate.getBkgSysJobs(r, channel, setup_))
         if isSignal:
-          jobs.extend(estimate.getSigSysJobs(r, channel, setup))
+          jobs.extend(estimate.getSigSysJobs(r, channel, setup_))
 
     from multiprocessing import Pool
     pool = Pool(processes=20)
@@ -66,9 +69,8 @@ for isSignal, bkgEstimators_ in [ [ True, signalEstimators ], [ False, bkgEstima
 
     for channel in ['all']:
       for r in regions:
-        estimate.cachedEstimate(r, channel, setup, save=False)
-        map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getBkgSysJobs(r, channel, setup))
+        estimate.cachedEstimate(r, channel, setup_, save=False)
+        map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getBkgSysJobs(r, channel, setup_))
         if isSignal:
-          map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getSigSysJobs(r, channel, setup))
-
+          map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getSigSysJobs(r, channel, setup_))
     estimate.cache.save()

@@ -95,28 +95,29 @@ def wrapper(s):
 
         #signal
         e = eSignal
-        signal = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSF']}))
+        signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, parameters={'useTriggers':False})
+        signal = e.cachedEstimate(r, channel, signalSetup)
 
         c.specifyExpectation(binname, 'signal', signal.val )
 
         if signal.val>0:
 
           #PU signal
-          c.specifyUncertainty('PU', binname, 'signal', 1 + e.PUSystematic(r, channel, setup).val )
+          c.specifyUncertainty('PU', binname, 'signal', 1 + e.PUSystematic(r, channel, signalSetup).val )
 
           #JEC signal
-          c.specifyUncertainty('JEC', binname, 'signal', 1 + e.JECSystematic(r, channel, setup).val )
+          c.specifyUncertainty('JEC', binname, 'signal', 1 + e.JECSystematic(r, channel, signalSetup).val )
 
           #JER signal
-          c.specifyUncertainty('JER', binname, 'signal', 1 + e.JERSystematic(r, channel, setup).val )
+          c.specifyUncertainty('JER', binname, 'signal', 1 + e.JERSystematic(r, channel, signalSetup).val )
 
           #lepton FastSim SF uncertainty
-          c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonFSSystematic(r, channel, setup).val )
+          c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonFSSystematic(r, channel, signalSetup).val )
 
           #b-tagging SF (including FastSim SF)
-          c.specifyUncertainty('SFb', binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, setup).val )
-          c.specifyUncertainty('SFl', binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, setup).val )
-          c.specifyUncertainty('SFFS', binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, setup).val )
+          c.specifyUncertainty('SFb', binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
+          c.specifyUncertainty('SFl', binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
+          c.specifyUncertainty('SFFS', binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
 
           #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated
           uname = 'Stat_'+binname+'_signal'

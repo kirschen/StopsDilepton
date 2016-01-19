@@ -14,7 +14,7 @@ setup.verbose=True
 #signalEstimators = [ MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in [T2tt_450_0] ]
 signalEstimators = [ MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=None ) for s in [T2tt_450_0] ]
 
-channel = 'EMu'
+channel = 'MuMu'
 sigEstimate = signalEstimators[0] 
 from StopsDilepton.analysis.Region import Region
 region=Region('dl_mt2ll', (140,-1))
@@ -23,6 +23,9 @@ region=Region('dl_mt2ll', (140,-1))
 #  e.initCache(setup.defaultCacheDir())
 #bkgExample = bkgEstimators[1].cachedEstimate(region, channel, setup)
 
+signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, parameters={'useTriggers':False})
+
 sigExampleTrig = sigEstimate.cachedEstimate(region, channel, setup)
 sigExample     = sigEstimate.cachedEstimate(region, channel, setup.sysClone(parameters={'useTriggers':False}))
-print "Region %s Channel %s sig (trig) %s sig (no trig) %s"%(region, channel, sigExampleTrig, sigExample)
+sigExampleFSim     = sigEstimate.cachedEstimate(region, channel, signalSetup)
+print "Region %s Channel %s sig (trig) %s sig (no trig) %s (FSim) %s"%(region, channel, sigExampleTrig, sigExample, sigExampleFSim)
