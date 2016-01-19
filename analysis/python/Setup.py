@@ -135,7 +135,7 @@ hadronicSelection: whether to return only the hadronic selection
       assert not (self.sys['selectionModifier'] and self.sys['useBTagWeights']), "Can't use both, selectionModifier and useBTagWeights!"
       #btag prefix string
       bPrefix = "nbtag"+str(nBTags[0])
-      if nBTags[1]>0: 
+      if nBTags[1]>=0: 
         if nBTags[1]!=nBTags[0]: bPrefix+=str(nBTags[1]) 
       if nBTags[1]<0: bPrefix+='p'
       res['prefixes'].append(bPrefix)
@@ -143,7 +143,7 @@ hadronicSelection: whether to return only the hadronic selection
       if not self.sys['useBTagWeights']: 
         assert nBTags[0]>=0 and (nBTags[1]>=nBTags[0] or nBTags[1]<0), "Not a good nBTags selection: %r, useBTagWeights %s"%(nBTags, self.sys['useBTagWeights'])
         nbtstr = "nBTags"+sysStr+">="+str(nBTags[0])
-        if nBTags[1]>0: 
+        if nBTags[1]>=0: 
           nbtstr+= "&&nBTags"+sysStr+"<="+str(nBTags[1])
         res['cuts'].append(nbtstr)
       else: #if we're using weights (-> no cuts)
@@ -207,5 +207,6 @@ hadronicSelection: whether to return only the hadronic selection
       res['cuts'].append(filterCut)
 
     res['cuts'].extend(self.externalCuts)
+
     return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr':"*".join([self.sys['weight']]+res['reweight'])} 
 

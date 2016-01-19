@@ -3,7 +3,7 @@ if os.environ['USER'] in ['wvandrie']:
   #plotDir = "/afs/cern.ch/user/w/wvandrie/www/Stops/"
   plotDir = "/user/wvandrie/public_html/"
   analysisOutputDir = '/user/wvandrie/STOPS/ANALYSIS/CMSSW_7_4_12_patch4/src/results/' #Path to analysis results
-  dataDir = "/user/wvandrie/STOPS/ANALYSIS/CMSSW_7_4_12_patch4/src/tuples_2016_01_11/dilep/"
+  dataDir = "/user/wvandrie/STOPS/ANALYSIS/CMSSW_7_4_12_patch4/src/tuples_2016_01_18/dilep/"
 if os.environ['USER'] in ['didar']:
   plotDir = "."
   dataDir = "~/eos/cms/store/cmst3/group/susy/schoef/postProcessed_Phys14V3_diLep" #needs EOS mount on lxplus at ~/eos 

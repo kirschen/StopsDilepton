@@ -73,15 +73,15 @@ mllbinning = "(50,0,150)"
 plots = {\
   'dl_mt2ll':{\
     '_onZ_0b': {'title':'MT2ll (GeV)', 'name':'MT2ll_onZ_b==0b',"legend":"(onZ,0 b-tag)", 'binning': mt2llbinning, 'histo':{}},
-    #'_offZ_0b': {'title':'MT2ll (GeV)', 'name':'MT2ll_offZ_b==0b',"legend":"(offZ,0 b-tag)",'binning': mt2llbinning, 'histo':{}},
-    #'_onZ_1mb': {'title':'MT2ll (GeV)', 'name':'MT2ll_onZ_b>=1', "legend":"(onZ,>0 b-tag)", 'binning': mt2llbinning, 'histo':{}},
-    #'_offZ_1mb': {'title':'MT2ll (GeV)', 'name':'MT2ll_offZ_b>=1', "legend":"(offZ,>0 b-tag)", 'binning': mt2llbinning, 'histo':{}},
+    '_offZ_0b': {'title':'MT2ll (GeV)', 'name':'MT2ll_offZ_b==0b',"legend":"(offZ,0 b-tag)",'binning': mt2llbinning, 'histo':{}},
+    '_onZ_1mb': {'title':'MT2ll (GeV)', 'name':'MT2ll_onZ_b>=1', "legend":"(onZ,>0 b-tag)", 'binning': mt2llbinning, 'histo':{}},
+    '_offZ_1mb': {'title':'MT2ll (GeV)', 'name':'MT2ll_offZ_b>=1', "legend":"(offZ,>0 b-tag)", 'binning': mt2llbinning, 'histo':{}},
     },
   'dl_mass':{\
     '_onZ_0b': {'title':'m_{ll} (GeV)', 'name':'Mll_onZ_b==0b', "legend":"(onZ,0 b-tag)",'binning': mllbinning, 'histo':{}},
-  #   '_offZ_0b': {'title':'m_{ll} (GeV)', 'name':'Mll_offZ_b==0b', "legend":"(offZ,0 b-tag)", 'binning': mllbinning, 'histo':{}},
-  #   '_onZ_1mb': {'title':'m_{ll} (GeV)', 'name':'Mll_onZ_b>=1', "legend":"(onZ,>0 b-tag)", 'binning': mllbinning, 'histo':{}},
-  #   '_offZ_1mb': {'title':'m_{ll} (GeV)', 'name':'Mll_offZ_b>=1', "legend":"(offZ,>0 b-tag)", 'binning': mllbinning, 'histo':{}},
+    '_offZ_0b': {'title':'m_{ll} (GeV)', 'name':'Mll_offZ_b==0b', "legend":"(offZ,0 b-tag)", 'binning': mllbinning, 'histo':{}},
+    '_onZ_1mb': {'title':'m_{ll} (GeV)', 'name':'Mll_onZ_b>=1', "legend":"(onZ,>0 b-tag)", 'binning': mllbinning, 'histo':{}},
+    '_offZ_1mb': {'title':'m_{ll} (GeV)', 'name':'Mll_offZ_b>=1', "legend":"(offZ,>0 b-tag)", 'binning': mllbinning, 'histo':{}},
     },
   }
 
@@ -91,13 +91,36 @@ plots = {\
 #######################################################
 weight = str(luminosity/1000.)+'*weightPU'+'*reweightTopPt'
 
-datayield = getYieldFromChain(getChain(data[0],histname=""), cutString = "&&".join([preselection, datacut]), weight="1.") 
-bkgyield  = 0. 
+datayield_onZ_0b = getYieldFromChain(getChain(data[0],histname=""), cutString = "&&".join([preselection, datacut,'abs(dl_mass-91.2)<=15&&nBTags==0']), weight="1.") 
+bkgyield_onZ_0b  = 0. 
 for s in backgrounds:
-  bkgyield+= getYieldFromChain(getChain(s,histname=""), preselection, weight=weight)
+  bkgyield_onZ_0b+= getYieldFromChain(getChain(s,histname=""), "&&".join([preselection,'abs(dl_mass-91.2)<=15&&nBTags==0']), weight=weight)
+
+datayield_offZ_0b = getYieldFromChain(getChain(data[0],histname=""), cutString = "&&".join([preselection, datacut,'abs(dl_mass-91.2)>15&&nBTags==0']), weight="1.") 
+bkgyield_offZ_0b  = 0. 
+for s in backgrounds:
+  bkgyield_offZ_0b+= getYieldFromChain(getChain(s,histname=""), "&&".join([preselection,'abs(dl_mass-91.2)>15&&nBTags==0']), weight=weight)
+
+datayield_onZ_1mb = getYieldFromChain(getChain(data[0],histname=""), cutString = "&&".join([preselection, datacut,'abs(dl_mass-91.2)<=15&&nBTags>=1']), weight="1.") 
+bkgyield_onZ_1mb  = 0. 
+for s in backgrounds:
+  bkgyield_onZ_1mb+= getYieldFromChain(getChain(s,histname=""), "&&".join([preselection,'abs(dl_mass-91.2)<=15&&nBTags>=1']), weight=weight)
+
+datayield_offZ_1mb = getYieldFromChain(getChain(data[0],histname=""), cutString = "&&".join([preselection, datacut,'abs(dl_mass-91.2)>15&&nBTags>=1']), weight="1.") 
+bkgyield_offZ_1mb  = 0. 
+for s in backgrounds:
+  bkgyield_offZ_1mb+= getYieldFromChain(getChain(s,histname=""), "&&".join([preselection,'abs(dl_mass-91.2)>15&&nBTags>=1']), weight=weight)
   
-scaleFac = datayield/bkgyield
-print "scaleFac is ", scaleFac, datayield, bkgyield
+
+scaleFac_onZ_0b   = datayield_onZ_0b/bkgyield_onZ_0b
+scaleFac_offZ_0b  = datayield_offZ_0b/bkgyield_offZ_0b
+scaleFac_onZ_1mb  = datayield_onZ_1mb/bkgyield_onZ_1mb
+scaleFac_offZ_1mb = datayield_offZ_1mb/bkgyield_offZ_1mb
+
+print "scaleFac onZ,0b is ", scaleFac_onZ_0b, datayield_onZ_0b, bkgyield_onZ_0b
+print "scaleFac offZ,0b is ", scaleFac_offZ_0b, datayield_offZ_0b, bkgyield_offZ_0b
+print "scaleFac onZ,1mb is ", scaleFac_onZ_1mb, datayield_onZ_1mb, bkgyield_onZ_1mb
+print "scaleFac offZ,1mb is ", scaleFac_offZ_1mb, datayield_offZ_1mb, bkgyield_offZ_1mb
   
 
 for s in backgrounds+data:
@@ -110,20 +133,19 @@ for s in backgrounds+data:
     chain.Draw(plot+">>"+plot+"_onZ_0b"+s["name"]+plots[plot]['_onZ_0b']['binning'],'('+weight+')*('+preselection+'&&abs(dl_mass-91.2)<=15&&nBTags==0)')
     plots[plot]['_onZ_0b']['histo'][s["name"]] = ROOT.gDirectory.Get(plot+"_onZ_0b"+s["name"])
 
-    print "preselection: ", '('+weight+')*('+preselection+'&&abs(dl_mass-91.2)<=15&&nBTags==0)'
+    chain.Draw(plot+">>"+plot+"_offZ_0b"+s["name"]+plots[plot]['_offZ_0b']['binning'],'('+weight+')*('+preselection+'&&abs(dl_mass-91.2)>15&&nBTags==0)')
+    plots[plot]['_offZ_0b']['histo'][s["name"]] = ROOT.gDirectory.Get(plot+"_offZ_0b"+s["name"])
 
-    # chain.Draw(plot+">>"+plot+"_offZ_0b"+s["name"]+plots[plot]['_offZ_0b']['binning'],preselection+'&&abs(dl_mass-91.2)>15&&nBTags==0')
-    # plots[plot]['_offZ_0b']['histo'][s["name"]] = ROOT.gDirectory.Get(plot+"_offZ_0b"+s["name"])
-
-    # chain.Draw(plot+">>"+plot+"_onZ_1mb"+s["name"]+plots[plot]['_onZ_1mb']['binning'],preselection+'&&abs(dl_mass-91.2)<=15&&nBTags>=1')
-    # plots[plot]['_onZ_1mb']['histo'][s["name"]] = ROOT.gDirectory.Get(plot+"_onZ_1mb"+s["name"])
+    chain.Draw(plot+">>"+plot+"_onZ_1mb"+s["name"]+plots[plot]['_onZ_1mb']['binning'],'('+weight+')*('+preselection+'&&abs(dl_mass-91.2)<=15&&nBTags>=1)')
+    plots[plot]['_onZ_1mb']['histo'][s["name"]] = ROOT.gDirectory.Get(plot+"_onZ_1mb"+s["name"])
  
-    # chain.Draw(plot+">>"+plot+"_offZ_1mb"+s["name"]+plots[plot]['_offZ_1mb']['binning'],preselection+'&&abs(dl_mass-91.2)>15&&nBTags>=1')
-    # plots[plot]['_offZ_1mb']['histo'][s["name"]] = ROOT.gDirectory.Get(plot+"_offZ_1mb"+s["name"])
+    chain.Draw(plot+">>"+plot+"_offZ_1mb"+s["name"]+plots[plot]['_offZ_1mb']['binning'],'('+weight+')*('+preselection+'&&abs(dl_mass-91.2)>15&&nBTags>=1)')
+    plots[plot]['_offZ_1mb']['histo'][s["name"]] = ROOT.gDirectory.Get(plot+"_offZ_1mb"+s["name"])
     
 
     for selection in plots[plot].keys():
       #plots[plot][selection]['histo'][s['name']].Sumw2()
+
       nbinsx        = plots[plot][selection]['histo'][s['name']].GetNbinsX()
       lastbin       = plots[plot][selection]['histo'][s['name']].GetBinContent(nbinsx)
       error         = plots[plot][selection]['histo'][s['name']].GetBinError(nbinsx)
@@ -170,7 +192,10 @@ if makedraw1D:
       
       for b in sorted(backgrounds,key=lambda sort:plots[plot][selection]['histo'][sort['name']].Integral()):
         #plots[plot][selection]['histo'][b["name"]].SetLineColor(b['color'])
-        plots[plot][selection]['histo'][b["name"]].Scale(scaleFac)
+        if selection == "_onZ_0b": plots[plot][selection]['histo'][b["name"]].Scale(scaleFac_onZ_0b)
+        elif selection == "_offZ_0b": plots[plot][selection]['histo'][b["name"]].Scale(scaleFac_offZ_0b)
+        elif selection == "_onZ_1mb": plots[plot][selection]['histo'][b["name"]].Scale(scaleFac_onZ_1mb)
+        elif selection == "_offZ_1mb": plots[plot][selection]['histo'][b["name"]].Scale(scaleFac_offZ_1mb)
         plots[plot][selection]['histo'][b["name"]].SetFillColor(b["color"])
         plots[plot][selection]['histo'][b["name"]].SetMarkerColor(b["color"])
         plots[plot][selection]['histo'][b["name"]].SetMarkerSize(0)      
@@ -192,7 +217,10 @@ if makedraw1D:
       scaletag = ROOT.TPaveText(scalepos[0],scalepos[1],scalepos[2],scalepos[3],"NDC")
       channeltag.AddText(flavour)
       lumitag.AddText("lumi: "+str(luminosity)+' pb^{-1}')
-      scaletag.AddText("Scale Factor: " +str(round(scaleFac,2)))
+      if selection == "_onZ_0b": scaletag.AddText("Scale Factor: " +str(round(scaleFac_onZ_0b,2)))
+      elif selection == "_offZ_0b": scaletag.AddText("Scale Factor: " +str(round(scaleFac_offZ_0b,2)))
+      elif selection == "_onZ_1mb": scaletag.AddText("Scale Factor: " +str(round(scaleFac_onZ_1mb,2)))
+      elif selection == "_offZ_1mb": scaletag.AddText("Scale Factor: " +str(round(scaleFac_offZ_1mb,2)))
       channeltag.SetFillColor(ROOT.kWhite)
       channeltag.SetShadowColor(ROOT.kWhite)
       channeltag.SetBorderSize(0)
@@ -210,7 +238,7 @@ if makedraw1D:
       ROOT.gPad.RedrawAxis()
       path = plotDir+'/test/DYstudy/njet_2m_isOS'+'_ngoodlep_'+str(ngoodleptons)+'_dPhi_0.25_met_'+str(int(metcut))+'_metsig_'+str(int(metsignifcut))+'_mll_'+str(int(mllcut))+'/'
       if not os.path.exists(path): os.makedirs(path)
-      c1.Print(path+flavour+"_"+selection+"_"+plot+".png")
+      c1.Print(path+flavour+selection+"_"+plot+".png")
 
 makeplotstime = datetime.now()
 

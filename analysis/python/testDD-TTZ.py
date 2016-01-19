@@ -12,6 +12,6 @@ estimateTTZ = DataDrivenTTZEstimate(name='TTZ-DD', cacheDir=None)
 
 regionTTZ = Region('dl_mt2ll', (0,-1))
 
-for channel in ['MuMu','EE','EMu']:
+for channel in ['MuMu']:
   res = estimateTTZ.cachedEstimate(regionTTZ,channel,setup)
   print "\n Result in ", channel," for estimate ", estimateTTZ.name, regionTTZ,":", res#, 'jer',jer, 'jec', jec

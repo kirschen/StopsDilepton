@@ -17,8 +17,8 @@ from StopsDilepton.tools.helpers import getChain, getYieldFromChain, getVarValue
 from StopsDilepton.samples.cmgTuples_Spring15_mAODv2_25ns_1l_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
-#backgrounds = [DY_HT_LO,TTJets_Lep,TTZ,singleTop, diBoson, triBoson, TTXNoZ, WJetsToLNu_HT, QCD_HT]
-backgrounds = [DY_HT_LO,TTZ]
+backgrounds = [DY_HT_LO,TTJets_Lep,TTZ,singleTop, diBoson, triBoson, TTXNoZ, WJetsToLNu_HT, QCD_HT]
+#backgrounds = [TTZ,DY_HT_LO]
 
 #######################################################
 #        SELECT WHAT YOU WANT TO DO HERE              #
@@ -121,13 +121,11 @@ for s in backgrounds:
       yield_2mj_0bj = getYieldFromChain(getChain(s,histname=""), cutString = '&&'.join([preselection,"nGoodJets>=2","nBTags==0","dl_mt2ll>="+cut,flavourcut]),weight=weight)
       yield_2mj_1mbj = getYieldFromChain(getChain(s,histname=""), cutString = '&&'.join([preselection,"nGoodJets>=2","nBTags>=1","dl_mt2ll>="+cut,flavourcut]),weight=weight)
 
-      piechart[cut][flavor]["(0,0)"][s["name"]] ==     yield_0j_0bj
-      piechart[cut][flavor]["(1,0)"][s["name"]] ==     yield_1j_0bj
-      piechart[cut][flavor]["(1,1)"][s["name"]] ==     yield_1j_1bj
-      piechart[cut][flavor]["(>=2,0)"][s["name"]] ==   yield_2mj_0bj
-      piechart[cut][flavor]["(>=2,>=1)"][s["name"]] == yield_2mj_1mbj
-
-print piechart
+      piechart[cut][flavor]["(0,0)"][s["name"]] =     yield_0j_0bj
+      piechart[cut][flavor]["(1,0)"][s["name"]] =     yield_1j_0bj
+      piechart[cut][flavor]["(1,1)"][s["name"]] =     yield_1j_1bj
+      piechart[cut][flavor]["(>=2,0)"][s["name"]] =   yield_2mj_0bj
+      piechart[cut][flavor]["(>=2,>=1)"][s["name"]] = yield_2mj_1mbj
 
 def makefigure(piechart,mt2llcut):
 
@@ -171,7 +169,7 @@ def makefigure(piechart,mt2llcut):
   plt.subplot(gridx,gridy,1)
   plt.text(0.5,0.5,"mt2ll>"+str(mt2llcut), fontsize=13)
   plt.axis('off')
-  plt.subplot(gridx,gridy,gridy+4)
+  plt.subplot(gridx,gridy,2*gridy)
   
   # yellow_patch       = mpatches.Patch(color="yellow",label=bkgs[0])
   # grey_patch         = mpatches.Patch(color='0.75',label=)
