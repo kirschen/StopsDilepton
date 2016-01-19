@@ -1,17 +1,10 @@
 import ROOT
 import sys, ctypes, os
 from StopsDilepton.tools.helpers import getObjFromFile
-#from StopsDilepton.tools.tdrStyle import tdrStyle
-#tdrStyle(padRightMargin=0.15)
 from StopsDilepton.tools.interpolate import interpolate, rebin
 from StopsDilepton.tools.niceColorPalette import niceColorPalette
 from StopsDilepton.tools.localInfo import plotDir
-
-#ifile = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test/isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20/limits/T2tt.root'
-
-limitPosFix='2'
-#ifile = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test/isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20/limits/flavSplit_almostAllReg/T2tt_limitResults.root"
-#ifile = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test/isOS-nJets2p-nbtag1p-met60-metSig3-dPhiJet0-dPhiJet-mll20/limits/flavSplit_almostAllReg/T2tt_limitResults.root"
+from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -86,27 +79,6 @@ T2tt_exp_up_smooth.SetName("T2tt_exp_up_smooth")
 T2tt_exp_down_smooth.SetName("T2tt_exp_down_smooth")
 
 
-def getContours(h):
-  _h = h.Clone()
-  contlist = [0.5,1.0,1.5]
-  idx = contlist.index(1.0)
-  c_contlist = ((ctypes.c_double)*(len(contlist)))(*contlist)
-  ctmp = ROOT.TCanvas()
-  _h.SetContour(len(contlist),c_contlist)
-  _h.Draw("contzlist")
-  ctmp.Update()
-  contours = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
-  graph_list = contours.At(idx)
-  contours = []
-  np = 0
-  idx_graph = 0
-  for i in range(graph_list.GetEntries()):
-      contours.append( graph_list.At(i).Clone("cont_"+str(i)) )
-      if contours[i].GetN()>np:
-          np=contours[i].GetN()
-          idx_graph = i
-  del ctmp
-  return contours
 
 ROOT.gStyle.SetPadRightMargin(0.15)
 c1 = ROOT.TCanvas()
@@ -130,16 +102,6 @@ T2tt_obs.GetZaxis().SetRangeUser(0.02, 99)
 T2tt_obs.Draw('COLZ')
 c1.SetLogz()
 
-def cleanContour(g):
-  x, y = ROOT.Double(), ROOT.Double()
-  remove=[]
-  for i in range(g.GetN()):
-    g.GetPoint(i, x, y)
-    if  x>650 or (x<410) or y>250:
-      remove.append(i)
-  for i in reversed(remove):
-    g.RemovePoint(i)
-  
 cleanContour(contour_exp)
 cleanContour(contour_exp_up)
 cleanContour(contour_exp_down)

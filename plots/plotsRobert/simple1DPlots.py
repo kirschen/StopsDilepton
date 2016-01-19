@@ -19,10 +19,13 @@ import itertools
 
 from StopsDilepton.samples.cmgTuples_Spring15_mAODv2_25ns_1l_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_1l_postProcessed import *
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons
 from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain, getChain, mZ
 from StopsDilepton.tools.localInfo import plotDir
 from StopsDilepton.plots.simplePlotHelpers import plot, stack, loopAndFill, drawNMStacks
+
+signal = T2tt_450_0
 
 #from StopsDilepton.tools.puReweighting import getReweightingFunction
 #puReweighting = lambda c:puReweightingFunc(getVarValue(c, "nVert"))
@@ -38,7 +41,7 @@ cutBranches = ["weight*", "leptonPt", "met*", "nVert",'run',\
                 ]
 
 doPU = "official"
-subdir = "png25ns_2l_mAODv2_2100_officialPU"
+subdir = "png25ns_2l_mAODv2_10fb_officialPU"
 
 preprefixes = [] if not opts.small else ['small']
 maxN = 1 if opts.small else -1
@@ -64,15 +67,15 @@ triggerMuEle = "HLT_mue"
 cuts=[
  ("njet2", "(Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))>=2"),
  ("nbtag1", "Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.890)>=1"),
- ("nbtag0", "Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.890)==0"),
+# ("nbtag0", "Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.890)==0"),
  ("mll20", "dl_mass>20"),
  ("met80", "met_pt>80"),
  ("metSig5", "met_pt/sqrt(Sum$(Jet_pt*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id)))>5"),
  ("dPhiJet0-dPhiJet1", "cos(met_phi-Jet_phi[0])<cos(0.25)&&cos(met_phi-Jet_phi[1])<cos(0.25)"),
   ]
 #for i in range(len(cuts)+1):
-for i in reversed(range(len(cuts)+1)):
-#for i in [len(cuts)]:
+#for i in reversed(range(len(cuts)+1)):
+for i in [len(cuts)]:
   for comb in itertools.combinations(cuts,i):
     if opts.isSS:
       presel = [("isSS","l1_pdgId==l2_pdgId"),]# ("mRelIso01", "LepGood_miniRelIso[l1_index]<0.1&&LepGood_miniRelIso[l2_index]<0.1")]
@@ -106,46 +109,52 @@ for i in reversed(range(len(cuts)+1)):
     wf = topPtReweighting if opts.doTopPtReweighting else None
     cutFunc = None
     
-    lumiScaleFac = dataSample["lumi"]/1000.
-    backgrounds = [TTJets, WJetsToLNu, DY_HT_LO, singleTop, QCDSample, TTX, diBoson] 
-    data = getYieldFromChain(getChain(dataSample,histname="",maxN=maxN), cutString = "&&".join([cutString, dataCut]), weight='weight') 
-    bkg  = 0. 
-    for s in backgrounds:
-      bkg+= getYieldFromChain(getChain(s,histname="", maxN=maxN), cutString, weight=w)
-    scaleFac = data/(bkg*lumiScaleFac)
-    print "After lumiscale %3.3f there is bkg %7.1f and data %7.1f: re-normalizing scaleFac by %3.3f"%(lumiScaleFac, lumiScaleFac*bkg, data, scaleFac)
-     
-    ratioOps = {'yLabel':'Data/MC', 'numIndex':1, 'denIndex':0 ,'yRange':None, 'logY':False, 'color':ROOT.kBlack, 'yRange':(0.1, 2.1)}
-    #ratioOps = None
+#    targetLumi = dataSample["lumi"]
+    targetLumi = 10000
+    lumiScaleFac = targetLumi/1000.
+#    backgrounds = [TTJets, WJetsToLNu, DY_HT_LO, singleTop, QCDSample, TTX, diBoson] 
+#    data = getYieldFromChain(getChain(dataSample,histname="",maxN=maxN), cutString = "&&".join([cutString, dataCut]), weight='weight') 
+#    bkg  = 0. 
+#    for s in backgrounds:
+#      bkg+= getYieldFromChain(getChain(s,histname="", maxN=maxN), cutString, weight=w)
+#    scaleFac = data/(bkg*lumiScaleFac)
+#    print "After lumiscale %3.3f there is bkg %7.1f and data %7.1f: re-normalizing scaleFac by %3.3f"%(lumiScaleFac, lumiScaleFac*bkg, data, scaleFac)
+    scaleFac=1.     
+#    ratioOps = {'yLabel':'Data/MC', 'numIndex':1, 'denIndex':0 ,'yRange':None, 'logY':False, 'color':ROOT.kBlack, 'yRange':(0.1, 2.1)}
+    ratioOps = None
 
     def getStack(labels, var, binning, cut, options={}):
 
       style_Data         = {'legendText':dataSample['name'],      'style':"e", 'lineThickness':0, 'errorBars':True, 'color':ROOT.kBlack, 'markerStyle':20, 'markerSize':1}
-      style_WJets        = {'legendText':'W + Jets',         'style':"f", 'lineThickness':0, 'errorBars':False, 'color':42, 'markerStyle':None, 'markerSize':None}
-      style_TTJets       = {'legendText':'t#bar{t} + Jets',  'style':"f", 'linethickNess':0, 'errorBars':False, 'color':7, 'markerStyle':None, 'markerSize':None}
-      style_DY           = {'legendText':'DY + Jets',  'style':"f", 'linethickNess':0, 'errorBars':False,       'color':8, 'markerStyle':None, 'markerSize':None}
-      style_TTX          = {'legendText':'t#bar{t} + W/Z/H',  'style':"f", 'linethickNess':0, 'errorBars':False, 'color':ROOT.kYellow+2, 'markerStyle':None, 'markerSize':None}
-      style_diBoson         = {'legendText':'WW/WZ/ZZ',  'style':"f", 'linethickNess':0, 'errorBars':False, 'color':ROOT.kGreen-5, 'markerStyle':None, 'markerSize':None}
-      style_QCD          = {'legendText':'QCD',  'style':"f", 'linethickNess':0, 'errorBars':False,             'color':46, 'markerStyle':None, 'markerSize':None}
-      style_singleTop    = {'legendText':'single top',  'style':"f", 'linethickNess':0, 'errorBars':False,      'color':40, 'markerStyle':None, 'markerSize':None}
+      style_WJets        = {'legendText':'W + Jets',         'style':"f", 'lineThickness':0, 'errorBars':False, 'color':WJetsToLNu['color'], 'markerStyle':None, 'markerSize':None}
+      style_TTJets       = {'legendText':'t#bar{t} + Jets',  'style':"f", 'linethickNess':0, 'errorBars':False, 'color':TTJets_Lep['color'], 'markerStyle':None, 'markerSize':None}
+      style_DY           = {'legendText':'DY + Jets',  'style':"f", 'linethickNess':0, 'errorBars':False,       'color':DY_HT_LO['color'], 'markerStyle':None, 'markerSize':None}
+      style_TTX          = {'legendText':'t#bar{t} + W/Z/H',  'style':"f", 'linethickNess':0, 'errorBars':False, 'color':TTX['color'], 'markerStyle':None, 'markerSize':None}
+      style_diBoson         = {'legendText':'WW/WZ/ZZ',  'style':"f", 'linethickNess':0, 'errorBars':False, 'color':diBoson['color'], 'markerStyle':None, 'markerSize':None}
+      style_triBoson         = {'legendText':'WWZ/WZZ/ZZZ',  'style':"f", 'linethickNess':0, 'errorBars':False, 'color':triBoson['color'], 'markerStyle':None, 'markerSize':None}
+      style_QCD          = {'legendText':'QCD',  'style':"f", 'linethickNess':0, 'errorBars':False,             'color':QCDSample['color'], 'markerStyle':None, 'markerSize':None}
+      style_singleTop    = {'legendText':'single top',  'style':"f", 'linethickNess':0, 'errorBars':False,      'color':singleTop['color'], 'markerStyle':None, 'markerSize':None}
       
       data               = plot(var, binning, cut, sample=dataSample,       style=style_Data)
-      MC_TTJets          = plot(var, binning, cut, sample=TTJets,       style=style_TTJets,    weightString=weightMC, weightFunc=wf)
+      MC_TTJets          = plot(var, binning, cut, sample=TTJets_Lep,       style=style_TTJets,    weightString=weightMC, weightFunc=wf)
       MC_WJetsToLNu      = plot(var, binning, cut, sample=WJetsToLNu,   style=style_WJets,     weightString=weightMC, weightFunc=wf)
       MC_DY              = plot(var, binning, cut, sample=DY_HT_LO,           style=style_DY,  weightString=weightMC, weightFunc=wf)
       MC_singleTop       = plot(var, binning, cut, sample=singleTop,    style=style_singleTop, weightString=weightMC, weightFunc=wf)
       MC_QCD             = plot(var, binning, cut, sample=QCDSample,        style=style_QCD,   weightString=weightMC, weightFunc=wf)
       MC_TTX             = plot(var, binning, cut, sample=TTX,          style=style_TTX,       weightString=weightMC, weightFunc=wf)
       MC_diBoson         = plot(var, binning, cut, sample=diBoson,     style=style_diBoson,    weightString=weightMC, weightFunc=wf)
-      #FIXME triBoson
-      mcStack = [MC_TTJets, MC_DY,  MC_QCD, MC_singleTop, MC_WJetsToLNu, MC_diBoson, MC_TTX]
+      MC_triBoson         = plot(var, binning, cut, sample=triBoson,     style=style_triBoson,    weightString=weightMC, weightFunc=wf)
+      mcStack = [MC_TTJets, MC_DY,  MC_QCD, MC_singleTop, MC_TTX, MC_diBoson, MC_triBoson, MC_WJetsToLNu]
       for s in mcStack:
-    #    print s,s.sample
         s.sample['scale'] = lumiScaleFac*scaleFac if opts.scaleToData else lumiScaleFac
 
-      plotLists = [mcStack, [data]]
-#      plotLists = [mcStack]
+      if signal:
+        style_signal    = {'legendText':signal['texName'],  'style':"l", 'linethickNess':2, 'errorBars':False,      'color':signal['color'], 'markerStyle':None, 'markerSize':None}
+        MC_signal         = plot(var, binning, cut, sample=signal,     style=style_signal,    weightString=weightMC, weightFunc=wf)
+        MC_signal.sample['scale'] = lumiScaleFac*scaleFac if opts.scaleToData else lumiScaleFac
 
+      plotLists = [mcStack, [MC_signal]] if signal else [mcStack]
+      
       for pL in plotLists:
         for p in pL:
           p.sample['small']=opts.small
@@ -155,11 +164,11 @@ for i in reversed(range(len(cuts)+1)):
 
       if opt.has_key('ratio') and opt['ratio']:
         opt['texLines'] = [{'pos':(0.15, 0.95),'text':'CMS Preliminary', 'options':{'size':0.052}},\
-                           {'pos':(0.47, 0.95), 'text':'L='+str(int(dataSample['lumi']/1)*1)+' pb{}^{-1} (13 TeV) Scale %3.2f'%scaleFac, 'options':{'size':0.052}}]
+                           {'pos':(0.47, 0.95), 'text':'L='+str(int(targetLumi/100)/10.)+' fb{}^{-1} (13 TeV) Scale %3.2f'%scaleFac, 'options':{'size':0.052}}]
         opt['legend'] = {'coordinates':[0.55,0.90 - len(mcStack)*0.05,.98,.93],'boxed':True}
       else:
         opt['texLines'] = [{'pos':(0.16, 0.965), 'text':'CMS Preliminary',       'options':{'size':0.038}},\
-                           {'pos':(0.47, 0.965),  'text':'L='+str(int(dataSample['lumi']/1)*1)+' pb{}^{-1} (13 TeV) Scale %3.2f'%scaleFac,'options':{'size':0.038}}]
+                           {'pos':(0.47, 0.965),  'text':'L='+str(int(targetLumi/100)/10.)+' fb{}^{-1} (13 TeV) Scale %3.2f'%scaleFac,'options':{'size':0.038}}]
         opt['legend'] = {'coordinates':[0.55,0.90 - len(mcStack)*0.05,.98,.95],'boxed':True}
 
       opt.update(options)
@@ -315,7 +324,7 @@ for i in reversed(range(len(cuts)+1)):
     allStacks.append(met_stack)
 
     JZB_stack  = getStack(
-        labels={'x':'JZB (GeV})','y':'Number of Events / 32 GeV'},
+        labels={'x':'JZB (GeV)','y':'Number of Events / 32 GeV'},
         var={'name':'JZB','TTreeFormula':'sqrt((met_pt*cos(met_phi)+dl_pt*cos(dl_phi))**2 + (met_pt*sin(met_phi)+dl_pt*sin(dl_phi))**2) - dl_pt', 'overFlow':'both'},
         binning={'binning':[25,-200,600]},
         cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})

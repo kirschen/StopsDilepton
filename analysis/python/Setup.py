@@ -45,7 +45,7 @@ class Setup:
     self.externalCuts = [] 
 
     #Default cuts and requirements. Those three things below are used to determine the key in the cache!
-    self.parameters      = {'mllMin':default_mllMin, 'metMin':default_metMin, 'metSigMin':default_metSigMin, 'dPhiJetMet':default_dPhiJetMet, 'nJets': default_nJets, 'nBTags': default_nBTags, 'leptonCharges': default_leptonCharges, 'useTriggers':True}
+    self.parameters   = {'mllMin':default_mllMin, 'metMin':default_metMin, 'metSigMin':default_metSigMin, 'dPhiJetMet':default_dPhiJetMet, 'nJets': default_nJets, 'nBTags': default_nBTags, 'leptonCharges': default_leptonCharges, 'useTriggers':default_useTriggers}
     self.sys          = {'weight':'weightPU', 'reweight':[], 'selectionModifier':None, 'useBTagWeights':None}
     self.lumi=lumi
 
@@ -69,7 +69,7 @@ class Setup:
     return os.path.join(self.analysisOutputDir, self.prefix(), 'cacheFiles')
 
   #Clone the setup and optinally modify the systematic variation
-  def sysClone(self, sys=None):
+  def sysClone(self, sys=None, parameters=None):
     '''Clone setup and change systematic if provided'''
     res     = copy.copy(self)
     res.sys = copy.deepcopy(self.sys)
@@ -81,6 +81,9 @@ class Setup:
           if len(res.sys[k])!=len(list(set(res.sys[k]))): print "Warning! non-exclusive list of reweights: %s"% ",".join(res.sys['k'])
         else:
           res.sys[k]=sys[k]# if sys[k] else res.sys[k]
+    if parameters:
+      for k in parameters.keys():
+        res.parameters[k]=parameters[k]# if parameters[k] else res.parameters[k]
     return res
 
   def defaultParameters(self, update={}):
@@ -90,7 +93,7 @@ class Setup:
     return res
       
 
-  def preselection(self, dataMC , channel='all', zWindow = 'offZ'):
+  def preselection(self, dataMC , zWindow, channel='all'):
     '''Get preselection  cutstring.'''
     return self.selection(dataMC, channel = channel, zWindow = zWindow, hadronicSelection = False, **self.parameters)
 

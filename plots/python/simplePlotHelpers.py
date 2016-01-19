@@ -159,14 +159,16 @@ def loopAndFill(stacks, mode="loop"):
     sampleScaleFac = 1 if not s.has_key('scale') else s['scale']
     if sampleScaleFac!=1:
       print "Using sampleScaleFac", sampleScaleFac ,"for sample",s["name"]
-    for b in s['bins']:
+
+    bins = s['bins'] if s.has_key('bins') else ['default']
+    for b in bins:
       treeName = 'Events' if not s.has_key('treeName') else s['treeName']
       maxN = -1 if not (s.has_key('small') and s['small']) else 1
-#      c = getChain(b, treeName=treeName, maxN=maxN)
       c = ROOT.TChain(treeName)
       counter=0
       dir = s['dirname'] if s.has_key('dirname') else s['dir']
-      for f in getFileList(dir+'/'+b, maxN=maxN, histname=""):#, minAgeDPM, histname, xrootPrefix, maxN):
+      fileList = getFileList(dir+'/'+b, maxN=maxN, histname="") if s.has_key('bins') else [s['file']]
+      for f in fileList:
         if not f[-5:]=='.root':continue
 #        counter+=1
 #        c.Add(f)

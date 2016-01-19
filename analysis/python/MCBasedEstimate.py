@@ -16,7 +16,8 @@ class MCBasedEstimate(SystematicBaseClass):
     if channel=='all':
       return sum( [ self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE', 'EMu'] ], u_float(0., 0.) )
     else:
-      preSelection = setup.preselection('MC', channel=channel)
+      zWindow= 'allZ' if channel=='EMu' else 'offZ'
+      preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel)
       cut = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
       weight = preSelection['weightStr']
 

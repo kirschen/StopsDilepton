@@ -199,7 +199,7 @@ TZQ={\
 "tZq_nunu",
 ],
 'dir' : dir,
-'isData':False,
+'isDta':False,
 'color': ROOT.kPink-7,
 'texName':"tZq",
 }

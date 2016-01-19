@@ -18,7 +18,7 @@ class DataDrivenDYEstimate(SystematicBaseClass):
 
     #MC based for 'EMu'
     elif channel=='EMu':
-      preSelection = setup.preselection('MC', channel=channel)
+      preSelection = setup.preselection('MC', zWindow='allZ', channel=channel)
       cut = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut'] ])
       weight = preSelection['weightStr']
 
@@ -28,7 +28,7 @@ class DataDrivenDYEstimate(SystematicBaseClass):
 
     #Data driven for EE and MuMu
     else:
-      preSelection = setup.preselection('MC', channel=channel)
+      preSelection = setup.preselection('MC', zWindow='offZ', channel=channel)
       weight = preSelection['weightStr']
 
       assert abs(1.-setup.lumi[channel]/setup.sample['Data'][channel]['lumi'])<0.01, "Lumi specified in setup %f does not match lumi in data sample %f in channel %s"%(setup.lumi[channel], setup.sample['Data'][channel]['lumi'], channel)
