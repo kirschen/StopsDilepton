@@ -63,7 +63,7 @@ class Setup:
       loadChain(s)# if not type(s)==type([]) else [loadChain(t) for t in s]
 
   def prefix(self):
-    return '_'.join(self.prefixes+[self.preselection('MC')['prefix']])
+    return '_'.join(self.prefixes+[self.preselection('MC', zWindow='allZ')['prefix']])
 
   def defaultCacheDir(self):
     return os.path.join(self.analysisOutputDir, self.prefix(), 'cacheFiles')
