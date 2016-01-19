@@ -10,8 +10,8 @@ class DataDrivenTTZEstimate(SystematicBaseClass):
   def __init__(self, name, cacheDir=None):
     super(DataDrivenTTZEstimate, self).__init__(name, cacheDir=cacheDir)
     self.nJets = (4,-1) #jet selection
-    self.nMediumBTags = (1,-1) #bjet selection
     self.nLooseBTags = (2,-1) #loose bjet selection
+    self.nMediumBTags = (1,-1) #bjet selection
 #Concrete implementation of abstract method 'estimate' as defined in Systematic
   def _estimate(self, region, channel, setup):
     printHeader("DD TTZ prediction for '%s' channel %s" %(self.name, channel))
@@ -27,6 +27,9 @@ class DataDrivenTTZEstimate(SystematicBaseClass):
       assert abs(1.-setup.lumi[channel]/setup.sample['Data'][channel]['lumi'])<0.01, "Lumi specified in setup %f does not match lumi in data sample %f in channel %s"%(setup.lumi[channel], setup.sample['Data'][channel]['lumi'], channel)
       selection_MC_2l = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
       weight = preSelection['weightStr']
+      
+      print "weight: ", weight
+
       yield_MC_2l =  setup.lumi[channel]/1000.*u_float(getYieldFromChain(setup.sample['TTZ'][channel]['chain'], cutString = selection_MC_2l, weight=weight, returnError = True) )
       if setup.verbose: print "yield_MC_2l: %s"%yield_MC_2l 
       
@@ -47,50 +50,61 @@ class DataDrivenTTZEstimate(SystematicBaseClass):
       if setup.parameters['useTriggers']: MuMuESelection += '&&HLT_2mu1e'
       
       MC_hadronSelection    = setup.selection('MC', hadronicSelection = True, 
-          **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 50., 'metSigMin':0., 'dPhiJetMet':0.25 })
+          **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 0., 'metSigMin':0., 'dPhiJetMet':0. })
         )['cut']
       data_hadronSelection  = setup.selection('Data', hadronicSelection = True, 
-          **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 50., 'metSigMin':0., 'dPhiJetMet':0.25 })
+          **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 0., 'metSigMin':0., 'dPhiJetMet':0. })
         )['cut']
 
       #loose bjet selection added here
-      MC_hadronSelection += '&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.605)'
-      data_hadronSelection += '&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.605)'
+      MC_hadronSelection += '&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.605)>='+str(self.nLooseBTags[0])
+      data_hadronSelection += '&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.605)>='+str(self.nLooseBTags[0])
+      if self.nLooseBTags[1]>0:  
+        MC_hadronSelection += '&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.605)<='+str(self.nLooseBTags[1])
+        data_hadronSelection += '&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.605)<='+str(self.nLooseBTags[1])
 
-      MC_MuMuMu = "&&".join([ ####STILL NEED SOMETHING TO LOOK AT Z-PEAK-> GET Z_PT FROM 3 LEPTONS
+      MC_MuMuMu = "&&".join([
         MC_hadronSelection,
-        MuMuMuSelection
+        MuMuMuSelection,
+        "abs(mlmZ_mass-91.2)<10"
       ])
-      MC_EEE = "&&".join([ ####STILL NEED SOMETHING TO LOOK AT Z-PEAK-> GET Z_PT FROM 3 LEPTONS
+      MC_EEE = "&&".join([
         MC_hadronSelection,
-        EEESelection
+        EEESelection,
+        "abs(mlmZ_mass-91.2)<10"
       ])
-      MC_EEMu = "&&".join([ ####STILL NEED SOMETHING TO LOOK AT Z-PEAK-> GET Z_PT FROM 3 LEPTONS
+      MC_EEMu = "&&".join([
         MC_hadronSelection,
-        EEMuSelection
+        EEMuSelection,
+        "abs(mlmZ_mass-91.2)<10"
       ])
-      MC_MuMuE = "&&".join([ ####STILL NEED SOMETHING TO LOOK AT Z-PEAK-> GET Z_PT FROM 3 LEPTONS
+      MC_MuMuE = "&&".join([
         MC_hadronSelection,
-        MuMuESelection
+        MuMuESelection,
+        "abs(mlmZ_mass-91.2)<10"
       ])
 
       MC_3l = "(("+MC_MuMuMu+")||("+MC_EEE+")||("+MC_EEMu+")||("+MC_MuMuE+"))"
       
-      data_MuMuMu = "&&".join([ ####STILL NEED SOMETHING TO LOOK AT Z-PEAK-> GET Z_PT FROM 3 LEPTONS
+      data_MuMuMu = "&&".join([
         data_hadronSelection,
-        MuMuMuSelection
+        MuMuMuSelection,
+        "abs(mlmZ_mass-91.2)<10"
       ])
-      data_EEE = "&&".join([ ####STILL NEED SOMETHING TO LOOK AT Z-PEAK-> GET Z_PT FROM 3 LEPTONS
+      data_EEE = "&&".join([
         data_hadronSelection,
-        EEESelection
+        EEESelection,
+        "abs(mlmZ_mass-91.2)<10"
       ])
-      data_EEMu = "&&".join([ ####STILL NEED SOMETHING TO LOOK AT Z-PEAK-> GET Z_PT FROM 3 LEPTONS
+      data_EEMu = "&&".join([
         data_hadronSelection,
-        EEMuSelection
+        EEMuSelection,
+        "abs(mlmZ_mass-91.2)<10"
       ])
-      data_MuMuE = "&&".join([ ####STILL NEED SOMETHING TO LOOK AT Z-PEAK-> GET Z_PT FROM 3 LEPTONS
+      data_MuMuE = "&&".join([
         data_hadronSelection,
-        MuMuESelection
+        MuMuESelection,
+        "abs(mlmZ_mass-91.2)<10"
       ])
 
 
