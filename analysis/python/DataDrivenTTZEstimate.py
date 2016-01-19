@@ -21,7 +21,8 @@ class DataDrivenTTZEstimate(SystematicBaseClass):
       return sum( [ self.cachedEstimate(region, c, channel, setup) for c in ['MuMu', 'EE', 'EMu'] ] )
     else:
       #Data driven for EE, EMu and  MuMu. 
-      preSelection = setup.preselection('MC', channel=channel)
+      zWindow= 'allZ' if channel=='EMu' else 'offZ'
+      preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel)
 
       #check lumi consistency
       assert abs(1.-setup.lumi[channel]/setup.sample['Data'][channel]['lumi'])<0.01, "Lumi specified in setup %f does not match lumi in data sample %f in channel %s"%(setup.lumi[channel], setup.sample['Data'][channel]['lumi'], channel)
