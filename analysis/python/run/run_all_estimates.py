@@ -35,7 +35,7 @@ signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, param
 #regions=regions[:1]
 #bkgEstimators=[]
 #signalEstimators = signalEstimators[:1]
-regions=regions[:1]
+#regions=regions[:1]
 
 def wrapper(args):
     r,channel,setup = args

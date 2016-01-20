@@ -18,7 +18,7 @@ otherEWKBkgs   = combineSamples([singleTop, diBoson, triBoson, TTXNoZ, WJetsToLN
 otherEWKBkgs['name'] = 'otherBkgs'
 otherEWKBkgs['texName'] = 'other bkgs.'
 
-from StopsDilepton.analysis.systematics import jmeVariations
+from StopsDilepton.analysis.SystematicEstimator import jmeVariations
 from StopsDilepton.analysis.SetupHelpers import getZCut, loadChain, allChannels
 
 #to run on data

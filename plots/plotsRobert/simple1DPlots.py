@@ -91,16 +91,19 @@ for i in [len(cuts)]:
 
     if opts.mode=="doubleMu":
       cutString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", triggerMuMu, getZCut(opts.zMode)] + preselCuts)
+      signalCutString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(opts.zMode)] + preselCuts)
       dataCut = "&&".join([filterCut])
       dataSample = DoubleMuon_Run2015D
       QCDSample = QCD_Mu5
     if opts.mode=="doubleEle":
       cutString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", triggerEleEle, getZCut(opts.zMode)] + preselCuts)
+      signalCutString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(opts.zMode)] + preselCuts)
       dataCut = "&&".join([filterCut])
       dataSample = DoubleEG_Run2015D
       QCDSample = QCD_EMbcToE
     if opts.mode=="muEle":
       cutString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1",triggerMuEle,  getZCut(opts.zMode)] + preselCuts)
+      signalCutString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(opts.zMode)] + preselCuts)
       dataCut = "&&".join([filterCut])
       dataSample = MuonEG_Run2015D
       QCDSample = QCD_Mu5EMbcToE
@@ -123,7 +126,7 @@ for i in [len(cuts)]:
 #    ratioOps = {'yLabel':'Data/MC', 'numIndex':1, 'denIndex':0 ,'yRange':None, 'logY':False, 'color':ROOT.kBlack, 'yRange':(0.1, 2.1)}
     ratioOps = None
 
-    def getStack(labels, var, binning, cut, options={}):
+    def getStack(labels, var, binning, cut, signalCut, options={}):
 
       style_Data         = {'legendText':dataSample['name'],      'style':"e", 'lineThickness':0, 'errorBars':True, 'color':ROOT.kBlack, 'markerStyle':20, 'markerSize':1}
       style_WJets        = {'legendText':'W + Jets',         'style':"f", 'lineThickness':0, 'errorBars':False, 'color':WJetsToLNu['color'], 'markerStyle':None, 'markerSize':None}
@@ -150,7 +153,7 @@ for i in [len(cuts)]:
 
       if signal:
         style_signal    = {'legendText':signal['texName'],  'style':"l", 'linethickNess':2, 'errorBars':False,      'color':signal['color'], 'markerStyle':None, 'markerSize':None}
-        MC_signal         = plot(var, binning, cut, sample=signal,     style=style_signal,    weightString=weightMC, weightFunc=wf)
+        MC_signal         = plot(var, binning, signalCut, sample=signal,     style=style_signal,    weightString=weightMC, weightFunc=wf)
         MC_signal.sample['scale'] = lumiScaleFac*scaleFac if opts.scaleToData else lumiScaleFac
 
       plotLists = [mcStack, [MC_signal]] if signal else [mcStack]
@@ -184,6 +187,7 @@ for i in [len(cuts)]:
         var={'name':'dl_mass','leaf':"dl_mass", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[150/3,0,150]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(dl_mass_stack)
 
@@ -193,6 +197,7 @@ for i in [len(cuts)]:
         var={'name':'dl_pt','leaf':"dl_pt", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[40,0,400]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(dl_pt_stack)
 
@@ -202,6 +207,7 @@ for i in [len(cuts)]:
         var={'name':'dl_eta','leaf':"dl_eta", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[30,-3,3]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(dl_eta_stack)
 
@@ -211,6 +217,7 @@ for i in [len(cuts)]:
         var={'name':'dl_phi','leaf':"dl_phi", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[30,-pi,pi]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(dl_phi_stack)
 
@@ -220,6 +227,7 @@ for i in [len(cuts)]:
         var={'name':'dl_mt2ll','leaf':"dl_mt2ll", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[300/20,0,300]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(dl_mt2ll_stack)
     dl_mt2bb_stack  = getStack(
@@ -228,6 +236,7 @@ for i in [len(cuts)]:
         var={'name':'dl_mt2bb','leaf':"dl_mt2bb", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[(400-80)/20,80,400]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(dl_mt2bb_stack)
     dl_mt2blbl_stack  = getStack(
@@ -236,6 +245,7 @@ for i in [len(cuts)]:
         var={'name':'dl_mt2blbl','leaf':"dl_mt2blbl", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[300/20,0,300]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(dl_mt2blbl_stack)
 
@@ -245,6 +255,7 @@ for i in [len(cuts)]:
 #        var={'name':'dl_mtautau','leaf':"dl_mtautau", 'overFlow':'upper', 'branches':[]},
 #        binning={'binning':[20,0,400]},
 #        cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+#        signalCut={'string':signalCutString,'func':cutFunc},
 #        )
 #    allStacks.append(dl_mtautau_stack)
 
@@ -254,6 +265,7 @@ for i in [len(cuts)]:
         var={'name':'l1_pt','leaf':"l1_pt", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[60,0,300]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(l1_pt_stack)
     l1_eta_stack  = getStack(
@@ -261,6 +273,7 @@ for i in [len(cuts)]:
         var={'name':'l1_eta','leaf':"l1_eta", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[36,-3.3,3.3]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(l1_eta_stack)
     l1_phi_stack  = getStack(
@@ -268,6 +281,7 @@ for i in [len(cuts)]:
         var={'name':'l1_phi','leaf':"l1_phi", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[30,-pi,pi]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(l1_phi_stack)
     l1_pdgId_stack  = getStack(
@@ -275,6 +289,7 @@ for i in [len(cuts)]:
         var={'name':'l1_pdgId','leaf':"l1_pdgId", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[32,-16,16]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(l1_pdgId_stack)
     l2_pt_stack  = getStack(
@@ -283,6 +298,7 @@ for i in [len(cuts)]:
         var={'name':'l2_pt','leaf':"l2_pt", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[60,0,300]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(l2_pt_stack)
     l2_eta_stack  = getStack(
@@ -290,6 +306,7 @@ for i in [len(cuts)]:
         var={'name':'l2_eta','leaf':"l2_eta", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[30,-3,3]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(l2_eta_stack)
     l2_phi_stack  = getStack(
@@ -297,6 +314,7 @@ for i in [len(cuts)]:
         var={'name':'l2_phi','leaf':"l2_phi", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[30,-pi,pi]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(l2_phi_stack)
     l2_pdgId_stack  = getStack(
@@ -304,6 +322,7 @@ for i in [len(cuts)]:
         var={'name':'l2_pdgId','leaf':"l2_pdgId", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[32,-16,16]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(l2_pdgId_stack)
 
@@ -312,6 +331,7 @@ for i in [len(cuts)]:
         var={'name':'metZoomed','leaf':'met_pt', 'overFlow':'upper'},
         binning={'binning':[22,0,220]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(metZoomed_stack)
 
@@ -320,6 +340,7 @@ for i in [len(cuts)]:
         var={'name':'met','leaf':'met_pt', 'overFlow':'upper'},
         binning={'binning':[1050/50,0,1050]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc},
         )
     allStacks.append(met_stack)
 
@@ -327,7 +348,8 @@ for i in [len(cuts)]:
         labels={'x':'JZB (GeV)','y':'Number of Events / 32 GeV'},
         var={'name':'JZB','TTreeFormula':'sqrt((met_pt*cos(met_phi)+dl_pt*cos(dl_phi))**2 + (met_pt*sin(met_phi)+dl_pt*sin(dl_phi))**2) - dl_pt', 'overFlow':'both'},
         binning={'binning':[25,-200,600]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(JZB_stack)
 
     metSig_stack  = getStack(
@@ -335,7 +357,8 @@ for i in [len(cuts)]:
     #    var={'name':'ht','leaf':'htJet40ja', 'overFlow':'upper'},
         var={'name':'metSig','TTreeFormula':'met_pt/sqrt(Sum$(Jet_pt*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id)))', 'overFlow':'upper'},
         binning={'binning':[20,0,20]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(metSig_stack)
 
     ht_stack  = getStack(
@@ -343,7 +366,8 @@ for i in [len(cuts)]:
     #    var={'name':'ht','leaf':'htJet40ja', 'overFlow':'upper'},
         var={'name':'ht','TTreeFormula':'Sum$(Jet_pt*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))', 'overFlow':'upper'},
         binning={'binning':[2600/100,0,2600]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(ht_stack)
 
     ht_zoomed_stack  = getStack(
@@ -351,7 +375,8 @@ for i in [len(cuts)]:
     #    var={'name':'ht_zoomed','leaf':'ht_zoomedJet40ja', 'overFlow':'upper'},
         var={'name':'ht_zoomed','TTreeFormula':'Sum$(Jet_pt*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))', 'overFlow':'upper'},
         binning={'binning':[390/15,0,390]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(ht_zoomed_stack)
 
     cosMetJet0phi_stack  = getStack(
@@ -360,7 +385,7 @@ for i in [len(cuts)]:
         var={'name':'cosMetJet0phi','TTreeFormula':"cos(met_phi-Jet_phi[0])", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[30,-1,1]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
-        )
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(cosMetJet0phi_stack)
 
     cosMetJet1phi_stack  = getStack(
@@ -369,14 +394,15 @@ for i in [len(cuts)]:
         var={'name':'cosMetJet1phi','TTreeFormula':"cos(met_phi-Jet_phi[1])", 'overFlow':'upper', 'branches':[]},
         binning={'binning':[30,-1,1]},
         cut={'string':cutString,'func':cutFunc,'dataCut':dataCut},
-        )
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(cosMetJet1phi_stack)
 
     lepGood_pt0_stack  = getStack(
         labels={'x':'p_{T}(l) (GeV)','y':'Number of Events / 25 GeV'},
         var={'name':'LepGood_pt0','leaf':'LepGood_pt','ind':0, 'overFlow':'upper'},
         binning={'binning':[975/25,0,975]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(lepGood_pt0_stack)
 
 
@@ -384,52 +410,60 @@ for i in [len(cuts)]:
         labels={'x':'p_{T}(leading jet) (GeV)','y':'Number of Events / 20 GeV'},
         var={'name':'jet0pt','leaf':'Jet_pt','ind':0, 'overFlow':'upper'},
         binning={'binning':[980/20,0,980]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(jet0pt_stack)
     jet1pt_stack  = getStack(
         labels={'x':'p_{T}(2^{nd.} leading jet) (GeV)','y':'Number of Events / 20 GeV'},
         var={'name':'jet1pt','leaf':'Jet_pt','ind':1, 'overFlow':'upper'},
         binning={'binning':[980/20,0,980]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(jet1pt_stack)
     jet2pt_stack  = getStack(
         labels={'x':'p_{T}(3^{rd.} leading jet) (GeV)','y':'Number of Events / 20 GeV'},
         var={'name':'jet2pt','leaf':'Jet_pt','ind':2, 'overFlow':'upper'},
         binning={'binning':[400/20,0,400]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(jet2pt_stack)
     jet3pt_stack  = getStack(
         labels={'x':'p_{T}(4^{th.} leading jet) (GeV)','y':'Number of Events / 20 GeV'},
         var={'name':'jet3pt','leaf':'Jet_pt','ind':3, 'overFlow':'upper'},
         binning={'binning':[400/20,0,400]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(jet3pt_stack)
     jet4pt_stack  = getStack(
         labels={'x':'p_{T}(5^{th.} leading jet) (GeV)','y':'Number of Events / 20 GeV'},
         var={'name':'jet4pt','leaf':'Jet_pt','ind':4, 'overFlow':'upper'},
         binning={'binning':[400/20,0,400]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(jet4pt_stack)
 
     nbtags_stack  = getStack(
         labels={'x':'number of b-tags (CSVM)','y':'Number of Events'},
         var={'name':'nBTags','TTreeFormula':"Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.890)", 'overFlow':'upper'},
         binning={'binning':[8,0,8]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(nbtags_stack)
 
     njets_stack  = getStack(
         labels={'x':'number of jets','y':'Number of Events'},
         var={'name':'njets','TTreeFormula':'Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id)', 'overFlow':'upper'},
         binning={'binning':[14,0,14]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(njets_stack)
 
     nVert_stack  = getStack(
         labels={'x':'vertex multiplicity','y':'Number of Events'},
         var={'name':'nVert','leaf':"nVert", 'overFlow':'upper'},
         binning={'binning':[50,0,50]},
-        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut})
+        cut={'string':cutString,'func':cutFunc, 'dataCut':dataCut},
+        signalCut={'string':signalCutString,'func':cutFunc})
     allStacks.append(nVert_stack)
 
 

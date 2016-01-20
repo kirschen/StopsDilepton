@@ -1,34 +1,11 @@
 jmeVariations = ["JER", "JERUp", "JERDown", "JECUp", "JECDown"]
 
-btagVariationWeights = [
-'reweightBTag_central',
-'reweightBTag_up_hfstats1',
-'reweightBTag_down_hfstats1',
-'reweightBTag_up_hfstats2',
-'reweightBTag_down_hfstats2',
-'reweightBTag_up_hf',
-'reweightBTag_down_hf',
-'reweightBTag_up_lfstats1',
-'reweightBTag_down_lfstats1',
-'reweightBTag_up_lfstats2',
-'reweightBTag_down_lfstats2',
-'reweightBTag_up_lf',
-'reweightBTag_down_lf',
-'reweightBTag_up_cferr1',
-'reweightBTag_down_cferr1',
-'reweightBTag_up_cferr2',
-'reweightBTag_down_cferr2',
-#'reweightBTag_up_jes',
-#'reweightBTag_down_jes',
-]
-
-#Abstract base class for systematics
 import os
 import abc
 from math import sqrt
 from StopsDilepton.analysis.Cache import Cache
 import json
-class SystematicBaseClass:
+class SystematicEstimator:
   __metaclass__ = abc.ABCMeta
 
   def __init__(self, name, cacheDir=None):
@@ -147,6 +124,6 @@ class SystematicBaseClass:
       (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']})),
       (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
 
-      (region, channel, setup.sysClone({'useBTagWeights':'SF_FS_Up'})),
-      (region, channel, setup.sysClone({'useBTagWeights':'SF_FS_Down'})),
+      (region, channel, setup.sysClone({'useBTagWeights':'SF_FS_Up', 'reweight':['reweightLeptonFastSimSF']})),
+      (region, channel, setup.sysClone({'useBTagWeights':'SF_FS_Down', 'reweight':['reweightLeptonFastSimSF']})),
     ]

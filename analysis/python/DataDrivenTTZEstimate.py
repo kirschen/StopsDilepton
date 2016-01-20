@@ -1,12 +1,12 @@
 from StopsDilepton.tools.helpers import getYieldFromChain
 from math import sqrt
-from StopsDilepton.analysis.systematics import SystematicBaseClass
+from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.tools.helpers import printHeader
 from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
 
 
-class DataDrivenTTZEstimate(SystematicBaseClass):
+class DataDrivenTTZEstimate(SystematicEstimator):
   def __init__(self, name, cacheDir=None):
     super(DataDrivenTTZEstimate, self).__init__(name, cacheDir=cacheDir)
     self.nJets = (4,-1) #jet selection

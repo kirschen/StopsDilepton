@@ -2,10 +2,10 @@ from StopsDilepton.tools.helpers import getYieldFromChain
 from StopsDilepton.analysis.SetupHelpers import loadChain
 from StopsDilepton.analysis.Region import Region
 from StopsDilepton.analysis.u_float import u_float 
-from StopsDilepton.analysis.systematics import SystematicBaseClass
+from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.tools.helpers import printHeader
 
-class MCBasedEstimate(SystematicBaseClass):
+class MCBasedEstimate(SystematicEstimator):
   def __init__(self, name, sample, cacheDir=None):
     super(MCBasedEstimate, self).__init__(name, cacheDir=cacheDir)
     self.sample=sample

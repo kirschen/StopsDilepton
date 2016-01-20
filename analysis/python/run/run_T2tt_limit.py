@@ -9,7 +9,7 @@ parser.add_option("--multiIsoWP", dest="multiIsoWP", default="", type="string", 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.defaultAnalysis import setup, regions, bkgEstimators
 setup.verbose = False
-setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test3'
+setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test5'
 setup.parameters['metMin'] = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 if options.multiIsoWP!="":
@@ -33,7 +33,7 @@ from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 limitPrefix = 'flavSplit_almostAllReg'
 overWrite = True
-verbose   = False
+verbose   = True
 
 def wrapper(s):
   c = cardFileWriter.cardFileWriter()
@@ -124,7 +124,7 @@ def wrapper(s):
           c.addUncertainty(uname, 'lnN') 
           c.specifyUncertainty(uname, binname, 'signal', 1 + sqrt(0.1**2 + signal.sigma/signal.val) )
 
-        if signal.val<=0.01 and total_exp_bkg<=0.01:# or (total_exp_bkg>300 and signal.val<0.05):
+        if signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg==0:# or (total_exp_bkg>300 and signal.val<0.05):
           if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
           c.muted[binname] = True 
         else:
