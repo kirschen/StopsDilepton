@@ -3,7 +3,8 @@ parser = OptionParser()
 parser.add_option("--dontSkipIfCachefileExists", dest="dontSkipIfCachefileExists", default = False, action="store_true", help="dontSkipIfCachefileExists?")
 parser.add_option("--metSigMin", dest="metSigMin", default=5, type="int", action="store", help="metSigMin?")
 parser.add_option("--metMin", dest="metMin", default=80, type="int", action="store", help="metMin?")
-parser.add_option("--multiIsoWP", dest="multiIsoWP", default="", type="string", action="store", help="multiIsoWP?")
+parser.add_option("--multiIsoWP", dest="multiIsoWP", default="", type="string", action="store", help="wpMu,wpEle")
+parser.add_option("--relIso04", dest="relIso04", default=-1, type=float, action="store", help="relIso04 cut?")
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
@@ -14,10 +15,14 @@ setup.parameters['metSigMin'] = options.metSigMin
 
 if options.multiIsoWP!="":
   multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
-  assert options.multiIsoWP in multiIsoWPs, "MultiIsoWP not defined. Use one of %s"%",".join(multiIsoWPs)
+  wpMu, wpEle=options.multiIsoWP.split(',')
   from StopsDilepton.tools.objectSelection import multiIsoLepString
-  setup.externalCuts.append(multiIsoLepString(options.multiIsoWP, ('l1_index','l2_index')))
-  setup.prefixes.append('multiIso'+options.multiIsoWP)
+  setup.externalCuts.append(multiIsoLepString(wpMu, wpEle, ('l1_index','l2_index')))
+  setup.prefixes.append('multiIso'+options.multiIsoWP.replace(',',''))
+
+if options.relIso04>0:
+  setup.externalCuts.append("&&".join(["LepGood_relIso04["+ist+"]<"+str(options.relIso04) for ist in ('l1_index','l2_index')]))
+  setup.prefixes.append('relIso04sm'+str(int(100*options.relIso04)))
 
 for e in bkgEstimators:
   e.initCache(setup.defaultCacheDir())

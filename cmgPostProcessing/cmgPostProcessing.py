@@ -24,8 +24,8 @@ ROOT.AutoLibraryLoader.enable()
 
 targetLumi = 1000 #pb-1 Which lumi to normalize to
 
-#defSampleStr = "SMS_T2tt_mStop200_mLSP1to125"
-defSampleStr = "DYJetsToLL_M50"
+defSampleStr = "SMS_T2tt_mStop200_mLSP1to125"
+#defSampleStr = "DYJetsToLL_M50"
 
 subDir = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/postProcessed_mAODv2" #Output directory -> The first path should go to localInfo (e.g. 'dataPath' or something)
 
@@ -48,10 +48,10 @@ parser.add_option("--signal", dest="signal", default = False, action="store_true
 skimCond = "(1)"
 interactive = sys.argv[0].count('ipython')
 if interactive:
-  options.small=True
-  options.signal=False
+  options.small=False
+  options.signal=True
   options.overwrite=False
-  options.fastSim=False  
+  options.fastSim=True  
 
 #Loading samples
 if options.signal:

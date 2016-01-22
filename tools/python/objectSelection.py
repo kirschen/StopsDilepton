@@ -57,19 +57,21 @@ def looseMuIDString(ptCut=20, absEtaCut=2.4):
   string = 'Sum$('+'&&'.join(string)+')'
   return string
 
+#https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF
+#https://www.dropbox.com/s/fsfw0gummwsc61v/lepawareJECv2_bkg_wp_300915.pdf?dl=0
 multiIsoWP = {'VL':{'mRelIso':0.25, 'ptRatiov2':0.67, 'ptRelv2':4.4},
               'L' :{'mRelIso':0.20, 'ptRatiov2':0.69, 'ptRelv2':6.0},
               'M' :{'mRelIso':0.16, 'ptRatiov2':0.76, 'ptRelv2':7.2},
               'T' :{'mRelIso':0.12, 'ptRatiov2':0.80, 'ptRelv2':7.2},
               'VT':{'mRelIso':0.09, 'ptRatiov2':0.84, 'ptRelv2':7.2},
               }
-def multiIsoLepString(wp, i):
-  assert wp in multiIsoWP.keys(), "Unknown MultiIso WP. Use one of %s"%",".join(multiIsoWP.keys())
+def multiIsoLepString(wpMu, wpEle, i):
+  assert all([wp in multiIsoWP.keys() for wp in [wpMu, wpEle]]),  "Unknown MultiIso WP %s or %s. Use one of %s"%(wpMu, wpEle, ",".join(multiIsoWP.keys()))
   if type(i)==type(()) or type(i)==type([]):
-    return "&&".join([multiIsoLepString(wp,j) for j in i])
+    return "&&".join([multiIsoLepString(wpMu, wpEle, j) for j in i])
   stri = str(i) if type(i)==type("") else i
-  return "LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wp]['mRelIso'])+"&&"\
-        +"(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wp]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wp]['ptRelv2'])+")"
+  return "((abs(LepGood_pdgId)==13&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpMu]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRelv2'])+"))"\
+       +"|| (abs(LepGood_pdgId)==11&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpEle]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRelv2'])+")))"
 
 def cmgMVAEleID(l,mva_cuts):
   aeta = abs(l["eta"])

@@ -1,0 +1,9 @@
+<use   name="root"/>
+<use   name="lhapdf"/>
+<use   name="FWCore/Framework"/>
+<use   name="FWCore/ParameterSet"/>
+<use   name="FWCore/ServiceRegistry"/>
+<use   name="SimGeneral/HepPDTRecord"/>
+<library   file="LHEHelper.cc" name="StopsDileptonLHEHelper">
+  <flags   EDM_PLUGIN="1"/>
+</library>

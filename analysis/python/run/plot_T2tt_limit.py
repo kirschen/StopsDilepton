@@ -6,9 +6,11 @@ from StopsDilepton.tools.niceColorPalette import niceColorPalette
 from StopsDilepton.tools.localInfo import plotDir
 from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
+defFile="/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test5/isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20/limits/flavSplit_almostAllReg/T2tt_limitResults.root"
+
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--file", dest="filename", default="", type="string", action="store", help="Which file?")
+parser.add_option("--file", dest="filename", default=defFile, type="string", action="store", help="Which file?")
 (options, args) = parser.parse_args()
 
 #ofilename = '/afs/hephy.at/user/r/rschoefbeck/www/etc/T2tt_flavSplit_almostAllReg_'+limitPosFix+'_'
@@ -57,12 +59,6 @@ T2tt_exp_smooth = T2tt_exp_int.Clone("T2tt_exp_smooth")
 T2tt_exp_up_smooth = T2tt_exp_up_int.Clone("T2tt_exp_up_smooth")
 T2tt_exp_down_smooth = T2tt_exp_down_int.Clone("T2tt_exp_down_smooth")
 for i in range(1):
-  T2tt_obs_smooth.Smooth()
-  T2tt_obs_up_smooth.Smooth()
-  T2tt_obs_down_smooth.Smooth()
-  T2tt_exp_smooth.Smooth()
-  T2tt_exp_up_smooth.Smooth()
-  T2tt_exp_down_smooth.Smooth()
 
 #  T2tt_obs_smooth = rebin(T2tt_obs_smooth)
 #  T2tt_obs_up_smooth = rebin(T2tt_obs_up_smooth)
@@ -71,14 +67,19 @@ for i in range(1):
 #  T2tt_exp_up_smooth = rebin(T2tt_exp_up_smooth)
 #  T2tt_exp_down_smooth = rebin(T2tt_exp_down_smooth)
 
+  T2tt_obs_smooth.Smooth()
+  T2tt_obs_up_smooth.Smooth()
+  T2tt_obs_down_smooth.Smooth()
+  T2tt_exp_smooth.Smooth()
+  T2tt_exp_up_smooth.Smooth()
+  T2tt_exp_down_smooth.Smooth()
+
 T2tt_obs_smooth.SetName("T2tt_obs_smooth")
 T2tt_obs_up_smooth.SetName("T2tt_obs_up_smooth")
 T2tt_obs_down_smooth.SetName("T2tt_obs_down_smooth")
 T2tt_exp_smooth.SetName("T2tt_exp_smooth")
 T2tt_exp_up_smooth.SetName("T2tt_exp_up_smooth")
 T2tt_exp_down_smooth.SetName("T2tt_exp_down_smooth")
-
-
 
 ROOT.gStyle.SetPadRightMargin(0.15)
 c1 = ROOT.TCanvas()
@@ -90,13 +91,15 @@ contours_exp_down = getContours(T2tt_exp_down_smooth)
 contours_obs      = getContours(T2tt_obs_smooth)
 contours_obs_up   = getContours(T2tt_obs_up_smooth)
 contours_obs_down = getContours(T2tt_obs_down_smooth)
-  
+
+print contours_obs_up, contours_obs_down  
 contour_exp      = max(contours_exp     , key=lambda x:x.GetN()).Clone("contour_exp")   
 contour_exp_up   = max(contours_exp_up  , key=lambda x:x.GetN()).Clone("contour_exp_up")
 contour_exp_down = max(contours_exp_down, key=lambda x:x.GetN()).Clone("contour_exp_down")
 contour_obs      = max(contours_obs     , key=lambda x:x.GetN()).Clone("contour_obs")
 contour_obs_up   = max(contours_obs_up  , key=lambda x:x.GetN()).Clone("contour_obs_up")
 contour_obs_down = max(contours_obs_down, key=lambda x:x.GetN()).Clone("contour_obs_down")
+
 
 T2tt_obs.GetZaxis().SetRangeUser(0.02, 99)
 T2tt_obs.Draw('COLZ')

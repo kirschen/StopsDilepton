@@ -1,0 +1,13 @@
+<use name="hepmc"/>
+<use name="root"/>
+<use name="clhep"/>
+<use name="boost"/>
+<use name="lhapdf"/>
+<use name="FWCore/Framework"/>
+<use name="FWCore/ParameterSet"/>
+<use name="FWCore/Utilities"/>
+<use name="FWCore/ServiceRegistry"/>
+<use name="MagneticField/Engine"/>
+<export>
+  <lib   name="1"/>
+</export>
