@@ -1,3 +1,3 @@
 import FWCore.ParameterSet.Config as cms
 
-LHEHelper = cms.EDProducer ( "StopsDileptonLHEHelper" ) 
+LHEHelper = cms.EDAnalyzer ( "LHEHelper" ) 
