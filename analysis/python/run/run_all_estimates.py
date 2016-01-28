@@ -9,7 +9,7 @@ parser.add_option("--relIso04", dest="relIso04", default=-1, type=float, action=
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.defaultAnalysis import setup, regions, bkgEstimators
-setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test5'
+setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test6'
 setup.parameters['metMin'] = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
@@ -46,6 +46,8 @@ def wrapper(args):
     r,channel,setup = args
     res = estimate.cachedEstimate(r, channel, setup, save=False)
 #    res = estimate._estimate(r, channel, setup)
+#    ROOT.gROOT.GetListOfClasses().ls()
+#    ROOT.gROOT.GetListOfDataSets().ls()
     return (estimate.uniqueKey(r, channel, setup), res )
 
 for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, bkgEstimators ] ]:

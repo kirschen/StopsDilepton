@@ -70,8 +70,8 @@ def multiIsoLepString(wpMu, wpEle, i):
   if type(i)==type(()) or type(i)==type([]):
     return "&&".join([multiIsoLepString(wpMu, wpEle, j) for j in i])
   stri = str(i) if type(i)==type("") else i
-  return "((abs(LepGood_pdgId)==13&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpMu]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRelv2'])+"))"\
-       +"|| (abs(LepGood_pdgId)==11&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpEle]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRelv2'])+")))"
+  return "((abs(LepGood_pdgId["+stri+"])==13&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpMu]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRelv2'])+"))"\
+       +"|| (abs(LepGood_pdgId["+stri+"])==11&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpEle]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRelv2'])+")))"
 
 def cmgMVAEleID(l,mva_cuts):
   aeta = abs(l["eta"])
@@ -130,6 +130,8 @@ leptonVars=['eta','pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'mi
 
 def getLeptons(c, collVars=leptonVars):
   return [getObjDict(c, 'LepGood_', collVars, i) for i in range(int(getVarValue(c, 'nLepGood')))]
+def getOtherLeptons(c, collVars=leptonVars):
+  return [getObjDict(c, 'LepOther_', collVars, i) for i in range(int(getVarValue(c, 'nLepOther')))]
 def getMuons(c, collVars=leptonVars):
   return [getObjDict(c, 'LepGood_', collVars, i) for i in range(int(getVarValue(c, 'nLepGood'))) if abs(getVarValue(c,"LepGood_pdgId",i))==13]
 def getElectrons(c, collVars=leptonVars):

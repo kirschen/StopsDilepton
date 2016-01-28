@@ -10,7 +10,7 @@ parser.add_option("--relIso04", dest="relIso04", default=-1, type=float, action=
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.defaultAnalysis import setup, regions, bkgEstimators
 setup.verbose = False
-setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test5'
+setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test6'
 setup.parameters['metMin'] = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
@@ -168,19 +168,19 @@ T2tt_obs      = T2tt_exp.Clone("T2tt_obs")
 for r in results:
   mStop, mNeu, res = r
   try:
-    T2tt_exp      .Fill(mStop, mNeu, res['0.500'])
+    T2tt_exp        .Fill(mStop, mNeu, res['0.500'])
   except:
     print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
   try:
-    T2tt_exp_down .Fill(mStop, mNeu, res['0.160'])
+    T2tt_exp_up     .Fill(mStop, mNeu, res['0.160'])
   except:
     print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
   try:
-    T2tt_exp_up   .Fill(mStop, mNeu, res['0.840'])
+    T2tt_exp_down   .Fill(mStop, mNeu, res['0.840'])
   except:
     print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
   try:
-    T2tt_obs      .Fill(mStop, mNeu, res['-1.000'])
+    T2tt_obs        .Fill(mStop, mNeu, res['-1.000'])
   except:
     print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
 

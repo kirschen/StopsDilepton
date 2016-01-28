@@ -3,27 +3,27 @@ import ctypes
 
 def getContours(h):
   _h = h.Clone()
-  contlist = [0.8,1.0,1.2]
-  idx = contlist.index(1.0)
+  contlist = [0.5,1,2]
+  idx = contlist.index(1)
   c_contlist = ((ctypes.c_double)*(len(contlist)))(*contlist)
   ctmp = ROOT.TCanvas()
   _h.SetContour(len(contlist),c_contlist)
   _h.Draw("contzlist")
   _h.GetZaxis().SetRangeUser(0.01,3)
   ctmp.Update()
-  ctmp.Print("/afs/hephy.at/user/r/rschoefbeck/www/etc/"+h.GetName()+".png")
-  _h.Draw("colz")
-  ctmp.Print("/afs/hephy.at/user/r/rschoefbeck/www/etc/"+h.GetName()+"_colz.png")
   contours = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
   graph_list = contours.At(idx)
   contours = []
   np = 0
-  idx_graph = 0
   for i in range(graph_list.GetEntries()):
       contours.append( graph_list.At(i).Clone("cont_"+str(i)) )
-      if contours[i].GetN()>np:
-          np=contours[i].GetN()
-          idx_graph = i
+  for c in contours:
+    c.Draw('same')
+  ctmp.Print("/afs/hephy.at/user/r/rschoefbeck/www/etc/"+h.GetName()+".png")
+  _h.Draw("colz")
+  for c in contours:
+    c.Draw('same')
+  ctmp.Print("/afs/hephy.at/user/r/rschoefbeck/www/etc/"+h.GetName()+"_colz.png")
   del ctmp
   return contours
 

@@ -31,8 +31,9 @@ for i in range(5):
 #  c.addUncertainty('ratio'+str(i), 'lnN')
 #  c.specifyUncertainty('ratio'+str(i), 'Bin'+str(i), 'bkg', 2)
 
-c.writeToFile('test.txt')
+#c.writeToFile('test.txt')
 
-#print c.calcLimit()
+res= c.calcLimit()
+print "Limit",res
 #print c.calcSignif()
 

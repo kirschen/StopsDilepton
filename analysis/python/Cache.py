@@ -11,8 +11,8 @@ class Cache:
       self._cache = pickle.load(open(filename, 'r'))
       if self.verbosity>=1: print "Loaded cache file %s"%filename
       self.cacheFileLoaded = True
-    except (IOError, ValueError):
-      if self.verbosity>=2: print "File %s not found or could not be loaded. Starting new cache."%filename
+    except:# (IOError, ValueError, EOFError):
+      if self.verbosity>=2: print "File %s not found or corrupted. Starting new cache."%filename
       self._cache = {}
 
 #  def restartCache(self):

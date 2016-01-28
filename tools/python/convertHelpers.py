@@ -30,6 +30,7 @@ def printHeader(s):
 #    assert n=='float' or n=='int', "From branchname %s I deduce the type %s -> not understood."%(name, n)
 #  except:
 #    raise Exception("Can not find type from branchname "+name)
+
 edmVecTypes = {'Float_t':'float', 'Int_t':'int', 'F':'float', 'I':'int'} 
 def createClassString(className, vars, vectors, nameKey, typeKey, stdVectors=False):
   classString =  "#ifndef __"+className+"__\n#define __"+className+'__\n\n#include<vector>\n#include<TMath.h>\n\n'
@@ -75,7 +76,7 @@ def compileClass(className, classString, tmpDir):
   print "new Class Name" , newClassName
   exec("from ROOT import "+newClassName)
   exec("s = "+newClassName+"()")
-#  os.system('rm '+tmpFileName)
+  os.system('rm '+tmpFileName)
   print " -> done."
   return s
 

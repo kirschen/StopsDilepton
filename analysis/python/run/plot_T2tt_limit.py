@@ -92,7 +92,10 @@ contours_obs      = getContours(T2tt_obs_smooth)
 contours_obs_up   = getContours(T2tt_obs_up_smooth)
 contours_obs_down = getContours(T2tt_obs_down_smooth)
 
-print contours_obs_up, contours_obs_down  
+for cs in [contours_exp, contours_exp_up, contours_exp_down, contours_obs, contours_obs_up, contours_obs_down]:
+  for css in cs:
+    cleanContour(css)  
+
 contour_exp      = max(contours_exp     , key=lambda x:x.GetN()).Clone("contour_exp")   
 contour_exp_up   = max(contours_exp_up  , key=lambda x:x.GetN()).Clone("contour_exp_up")
 contour_exp_down = max(contours_exp_down, key=lambda x:x.GetN()).Clone("contour_exp_down")
@@ -105,12 +108,6 @@ T2tt_obs.GetZaxis().SetRangeUser(0.02, 99)
 T2tt_obs.Draw('COLZ')
 c1.SetLogz()
 
-cleanContour(contour_exp)
-cleanContour(contour_exp_up)
-cleanContour(contour_exp_down)
-cleanContour(contour_obs)
-cleanContour(contour_obs_up)
-cleanContour(contour_obs_down)
 
 for g in [contour_exp, contour_exp_up, contour_exp_down, contour_obs_up, contour_obs_down]:
   g.Draw('same')

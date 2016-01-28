@@ -14,9 +14,14 @@ parser.add_option("--outfile", dest="outfile", default="", type="string", action
 
 ROOT_colors = [ROOT.kBlack, ROOT.kRed-7, ROOT.kBlue-2, ROOT.kGreen+3, ROOT.kOrange+1,ROOT.kRed-3, ROOT.kAzure+6, ROOT.kCyan+3, ROOT.kOrange , ROOT.kRed-10]
 
-ofilename = os.path.join(plotDir, options.outfile)
-if not os.path.exists(os.path.dirname(ofilename)):
-  os.makedirs(os.path.dirname(ofilename))
+if ',' in options.outfile:
+  ofilenames = [os.path.join(plotDir, f) for f in options.outfile.split(',')]
+else:
+  ofilenames = [os.path.join(plotDir, options.outfile)]
+
+for ofilename in ofilenames:
+  if not os.path.exists(os.path.dirname(ofilename)):
+    os.makedirs(os.path.dirname(ofilename))
 
 files = []
 legendNames={}
@@ -45,20 +50,20 @@ for i, f in enumerate(files):
 
 
 ROOT.gStyle.SetPadRightMargin(0.15)
-#niceColorPalette(255)
+c1 = ROOT.TCanvas()
+niceColorPalette(255)
 
 l=ROOT.TLegend(0.16,0.13,0.4,0.5)
 l.SetFillColor(0)
 l.SetShadowColor(ROOT.kWhite)
 l.SetBorderSize(1)
 
-c1 = ROOT.TCanvas()
 #T2tt_exp.Reset()
 opt=''
 for i, f in enumerate(files):
   if contours.has_key(f):
-#    contours[f].GetXaxis().SetRangeUser(520,560)
-#    contours[f].GetYaxis().SetRangeUser(140,160)
+    contours[f].GetXaxis().SetRangeUser(300,800)
+    contours[f].GetYaxis().SetRangeUser(0,350)
     contours[f].GetXaxis().SetTitle("m_{#tilde{t}_{1}} (GeV)")
     contours[f].GetYaxis().SetTitle("m_{#tilde{#chi}_{1}^{0}} (GeV)")
     if legendNames.has_key(f):
@@ -71,4 +76,5 @@ for i, f in enumerate(files):
 #T2tt_exp.Draw('same')
 l.Draw()
 c1.Update()
-c1.Print(ofilename)
+for ofilename in ofilenames:
+  c1.Print(ofilename)
