@@ -29,6 +29,3 @@ nohup krenew -t -K 10 -- bash -c "python cmgPostProcessing.py --skim=$1 $2 --sam
 nohup krenew -t -K 10 -- bash -c "python cmgPostProcessing.py --skim=$1 $2 --samples=TTbarDMJets_scalar_Mchi50_Mphi200" &
 nohup krenew -t -K 10 -- bash -c "python cmgPostProcessing.py --skim=$1 $2 --samples=TTbarDMJets_scalar_Mchi50_Mphi300" &
 nohup krenew -t -K 10 -- bash -c "python cmgPostProcessing.py --skim=$1 $2 --samples=TTbarDMJets_scalar_Mchi500_Mphi500" &
-##python cmgPostProcessing.py --skim=dilepTiny  --samples=TTbarDMJets_scalar_Mchi1_Mphi50 &
-##python cmgPostProcessing.py --skim=dilepTiny  --samples=TTbarDMJets_scalar_Mchi10_Mphi50 &
-##python cmgPostProcessing.py --skim=dilepTiny  --samples=TTbarDMJets_scalar_Mchi150_Mphi200 &

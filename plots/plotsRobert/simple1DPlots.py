@@ -1,7 +1,7 @@
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--mode", dest="mode", default="doubleMu", type="string", action="store", help="doubleMu, doubleEle, muEle")
-parser.add_option("--zMode", dest="zMode", default="onZ", type="string", action="store", help="onZ, offZ, allZ")
+parser.add_option("--mode", dest="mode", default="doubleEle", type="string", action="store", help="doubleMu, doubleEle, muEle")
+parser.add_option("--zMode", dest="zMode", default="allZ", type="string", action="store", help="onZ, offZ, allZ")
 parser.add_option("--small", dest="small", default = False, action="store_true", help="small?")
 parser.add_option("--doTopPtReweighting", dest="doTopPtReweighting", default = False, action="store_true", help="doTopPtReweighting?")
 parser.add_option("--scaleToData", dest="scaleToData", default = False, action="store_true", help="scaleToData?")
@@ -25,7 +25,8 @@ from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain, getChain
 from StopsDilepton.tools.localInfo import plotDir
 from StopsDilepton.plots.simplePlotHelpers import plot, stack, loopAndFill, drawNMStacks
 
-signal = T2tt_450_0
+#signal = T2tt_450_0
+signal = None
 
 #from StopsDilepton.tools.puReweighting import getReweightingFunction
 #puReweighting = lambda c:puReweightingFunc(getVarValue(c, "nVert"))
@@ -41,7 +42,7 @@ cutBranches = ["weight*", "leptonPt", "met*", "nVert",'run',\
                 ]
 
 doPU = "official"
-subdir = "png25ns_2l_mAODv2_10fb_officialPU"
+subdir = "png25ns_2l_mAODv2_2100_officialPU"
 
 preprefixes = [] if not opts.small else ['small']
 maxN = 1 if opts.small else -1
@@ -66,8 +67,8 @@ triggerMuEle = "HLT_mue"
 
 cuts=[
  ("njet2", "(Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))>=2"),
- ("nbtag1", "Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.890)>=1"),
-# ("nbtag0", "Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.890)==0"),
+# ("nbtag1", "Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.890)>=1"),
+ ("nbtag0", "Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.890)==0"),
  ("mll20", "dl_mass>20"),
  ("met80", "met_pt>80"),
  ("metSig5", "met_pt/sqrt(Sum$(Jet_pt*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id)))>5"),
@@ -82,13 +83,17 @@ for i in [len(cuts)]:
     else:
       presel = [("isOS","isOS"),              ]# ("mRelIso01", "LepGood_miniRelIso[l1_index]<0.1&&LepGood_miniRelIso[l2_index]<0.1")]
     presel.extend( comb )
-
+    
     prefix = '_'.join(preprefixes+[opts.mode, opts.zMode, '-'.join([p[0] for p in presel])]) 
     path = '/'.join([plotDir, subdir, prefix])
-    if os.path.exists(path) and not opts.overwrite:continue
+    if os.path.exists(path) and not opts.overwrite:
+      print "Path %s not empty. Skipping."%path
+      continue
+
     if "nbtag1" in prefix and "nbtag0" in prefix: continue
     preselCuts = [p[1] for p in presel]
 
+    
     if opts.mode=="doubleMu":
       cutString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", triggerMuMu, getZCut(opts.zMode)] + preselCuts)
       signalCutString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(opts.zMode)] + preselCuts)
@@ -111,20 +116,25 @@ for i in [len(cuts)]:
     w = weightMC+'*reweightTopPt' if opts.doTopPtReweighting else weightMC
     wf = topPtReweighting if opts.doTopPtReweighting else None
     cutFunc = None
+
+#    scaleFac=1.     
+#    ratioOps = None
+#    targetLumi = 10000
+#    lumiScaleFac = targetLumi/1000.
     
-#    targetLumi = dataSample["lumi"]
-    targetLumi = 10000
+    targetLumi = dataSample["lumi"]
     lumiScaleFac = targetLumi/1000.
-#    backgrounds = [TTJets, WJetsToLNu, DY_HT_LO, singleTop, QCDSample, TTX, diBoson] 
-#    data = getYieldFromChain(getChain(dataSample,histname="",maxN=maxN), cutString = "&&".join([cutString, dataCut]), weight='weight') 
-#    bkg  = 0. 
-#    for s in backgrounds:
-#      bkg+= getYieldFromChain(getChain(s,histname="", maxN=maxN), cutString, weight=w)
-#    scaleFac = data/(bkg*lumiScaleFac)
-#    print "After lumiscale %3.3f there is bkg %7.1f and data %7.1f: re-normalizing scaleFac by %3.3f"%(lumiScaleFac, lumiScaleFac*bkg, data, scaleFac)
-    scaleFac=1.     
-#    ratioOps = {'yLabel':'Data/MC', 'numIndex':1, 'denIndex':0 ,'yRange':None, 'logY':False, 'color':ROOT.kBlack, 'yRange':(0.1, 2.1)}
-    ratioOps = None
+    backgrounds = [TTJets, WJetsToLNu, DY_HT_LO, singleTop, QCDSample, TTX, diBoson] 
+    data = getYieldFromChain(getChain(dataSample,histname="",maxN=maxN), cutString = "&&".join([cutString, dataCut]), weight='weight') 
+    bkg  = 0. 
+    for s in backgrounds:
+      bkg+= getYieldFromChain(getChain(s,histname="", maxN=maxN), cutString, weight=w)
+    scaleFac = data/(bkg*lumiScaleFac)
+    print "After lumiscale %3.3f there is bkg %7.1f and data %7.1f: re-normalizing scaleFac by %3.3f"%(lumiScaleFac, lumiScaleFac*bkg, data, scaleFac)
+
+    ratioOps = {'yLabel':'Data/MC', 'numIndex':1, 'denIndex':0 ,'yRange':None, 'logY':False, 'color':ROOT.kBlack, 'yRange':(0.1, 2.1)}
+
+
 
     def getStack(labels, var, binning, cut, signalCut, options={}):
 
@@ -147,7 +157,7 @@ for i in [len(cuts)]:
       MC_TTX             = plot(var, binning, cut, sample=TTX,          style=style_TTX,       weightString=weightMC, weightFunc=wf)
       MC_diBoson         = plot(var, binning, cut, sample=diBoson,     style=style_diBoson,    weightString=weightMC, weightFunc=wf)
       MC_triBoson         = plot(var, binning, cut, sample=triBoson,     style=style_triBoson,    weightString=weightMC, weightFunc=wf)
-      mcStack = [MC_TTJets, MC_DY,  MC_QCD, MC_singleTop, MC_TTX, MC_diBoson, MC_triBoson, MC_WJetsToLNu]
+      mcStack = [ MC_DY, MC_TTJets,  MC_QCD, MC_singleTop, MC_TTX, MC_diBoson, MC_triBoson, MC_WJetsToLNu]
       for s in mcStack:
         s.sample['scale'] = lumiScaleFac*scaleFac if opts.scaleToData else lumiScaleFac
 
@@ -156,7 +166,7 @@ for i in [len(cuts)]:
         MC_signal         = plot(var, binning, signalCut, sample=signal,     style=style_signal,    weightString=weightMC, weightFunc=wf)
         MC_signal.sample['scale'] = lumiScaleFac*scaleFac if opts.scaleToData else lumiScaleFac
 
-      plotLists = [mcStack, [MC_signal]] if signal else [mcStack]
+      plotLists = [mcStack, [MC_signal]] if signal else [mcStack, [data]]
       
       for pL in plotLists:
         for p in pL:

@@ -58,6 +58,7 @@ if interactive:
 if options.signal:
     from StopsDilepton.samples.cmgTuples_Signals_mAODv2_25ns_0l import *
 else:
+    from StopsDilepton.samples.cmgTuples_Spring15_mAODv2_25ns_TTbar_DM_0l import *
     from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2 import *
     if options.skim.lower().startswith("dilep"):
         from StopsDilepton.samples.cmgTuples_Spring15_mAODv2_25ns_1l import *

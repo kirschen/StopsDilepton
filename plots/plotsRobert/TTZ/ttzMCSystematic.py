@@ -145,11 +145,12 @@ for i in lhe.keys():
   lhe[i].Scale(central.Integral()/lhe[i].Integral())
 
 for j, b in enumerate(bins):
-  sumsq=0
+  maxQ2=0.
   for i in [1001,1002,1003,1004,1005,1007,1009]:
-    sumsq += (lhe[i].GetBinContent(j+1) - central.GetBinContent(j+1))**2
-  q2.SetBinError(j+1, sqrt(sumsq) )
-
+    diff = abs(lhe[i].GetBinContent(j+1) - central.GetBinContent(j+1))
+    if diff>maxQ2:maxQ2=diff
+    print j, getBinName(b), lhe[i].GetBinContent(j+1), central.GetBinContent(j+1), maxQ2
+  q2.SetBinError(j+1, diff )
   mean = sum([lhe[i].GetBinContent(j+1) for i in pdfKeys])/float(len(pdfKeys))
   var  = sum([(lhe[i].GetBinContent(j+1) - mean)**2 for i in pdfKeys])/(float(len(pdfKeys)) - 1.)
   pdf.SetBinError(j+1, sqrt(var) ) 
@@ -182,20 +183,16 @@ c1.Print("/afs/hephy.at/user/r/rschoefbeck/www/etc/TTZ"+postfix+".pdf")
 c1.Print("/afs/hephy.at/user/r/rschoefbeck/www/etc/TTZ"+postfix+".root")
 del c1
 
-for j in range(len(bins)):
-  central.SetBinError(j+1, 0)
-
-pdf.Divide(central)
-q2.Divide(central)  
-#  q2.SetBinContent(j+1, 1.)  
-#  pdf.SetBinContent(j+1, 1.)  
-#  central.SetBinError(j+1, central.GetBinError(j+1)/central.GetBinContent(j+1))  
-#  q2.SetBinError(j+1, q2.GetBinError(j+1)/central.GetBinContent(j+1))  
-#  pdf.SetBinError(j+1, pdf.GetBinError(j+1)/central.GetBinContent(j+1))  
+for i in range(len(bins)):
+  central.SetBinError(i+1, 0)
+  pdf.SetBinError(i+1,pdf.GetBinError(i+1)/central.GetBinContent(i+1))
+  q2.SetBinError(i+1,q2.GetBinError(i+1)/central.GetBinContent(i+1))
+  pdf.SetBinContent(i+1,1)
+  q2.SetBinContent(i+1,1)
 
 unc={}
 for k  in ["center", "jesUp", "jesDown", "jer", "jerUp", "jerDown", "btag_bq", "btag_bqUp", "btag_bqDown", "btag_lq", "btag_lqUp", "btag_lqDown"]:
-  unc[k] = getObjFromFile("systematics_corrected.root", k)  
+  unc[k] = getObjFromFile("systematics_updated.root", k)  
 
 jes = unc['jesUp'].Clone("unc_jes")
 unc['jesDown'].Scale(-1)
@@ -227,7 +224,12 @@ for j in range(len(bins)):
     h.SetBinError(j+1, abs(h.GetBinContent(j+1)))
     h.SetBinContent(j+1, 1)
 
-sys = [ ["JES", jes, ROOT.kYellow], ["JER", jer, ROOT.kOrange], ["B-tag SF(l)", btag_lq, ROOT.kGreen-7], ["B-tag SF(b)", btag_bq, ROOT.kCyan], ["PDF", pdf, ROOT.kRed], ["Q^{2}", q2, ROOT.kBlue]]
+sys = [ ["PDF", pdf, ROOT.kRed], ["Q^{2}", q2, ROOT.kBlue], ["JES", jes, ROOT.kYellow], ["JER", jer, ROOT.kOrange], ["B-tag SF(l)", btag_lq, ROOT.kGreen-7], ["B-tag SF(b)", btag_bq, ROOT.kCyan]]
+
+
+print 15*" "+"  ".join(["%12s"%s[0] for s in sys])
+for i, b in enumerate(bins):
+  print "%20s  "%(getBinName(b))+"         ".join(["{:.1%}".format(s[1].GetBinError(i+1)).rjust(5) for s in sys]) 
 
 def addQuadrature(s1, s2):
   res = s1.Clone()
@@ -236,16 +238,16 @@ def addQuadrature(s1, s2):
     res.SetBinError(i+1, sqrt(s1.GetBinError(i+1)**2+s2.GetBinError(i+1)**2))
   return res
 
-for i in range(1,len(sys)):
+for i in reversed(range(1,len(sys))):
   for j in range(i-1):
     sys[i][1] = addQuadrature(sys[i][1], sys[j][1])
 
 c1 = ROOT.TCanvas()
-l1=ROOT.TLegend(0.2,0.76,0.4,0.9)
+l1=ROOT.TLegend(0.36,0.76,0.65,0.9)
 l1.SetBorderSize(0)
-l2=ROOT.TLegend(0.36,0.76,0.65,0.9)
+l2=ROOT.TLegend(0.65,0.76,0.85,0.9)
 l2.SetBorderSize(0)
-l3=ROOT.TLegend(0.65,0.76,0.85,0.9)
+l3=ROOT.TLegend(0.2,0.76,0.4,0.9)
 l3.SetBorderSize(0)
 
 opt=''
@@ -253,12 +255,13 @@ i=0
 stuff=[]
 empty = q2.Clone('empty')
 empty.Reset()
-empty.GetYaxis().SetRangeUser(0.6, 1.6)
+empty.GetYaxis().SetRangeUser(0.75, 1.4)
 empty.SetLineColor(0)
 empty.SetFillColor(0)
 empty.SetMarkerStyle(0)
 empty.SetMarkerSize(0)
 empty.Draw()
+empty.GetYaxis().SetTitle("Relative uncertainty")
 for  name, h, color in reversed(sys):
 #  h.GetYaxis().SetRangeUser(0.6, 1.6)
   h.SetLineColor(color)
