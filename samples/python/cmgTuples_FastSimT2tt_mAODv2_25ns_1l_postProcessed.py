@@ -1,27 +1,26 @@
 import copy, os, sys
 from StopsDilepton.tools.localInfo import dataDir
 import ROOT
+dir = dataDir 
 
-signals_ttbarDM=[]
+signals_T2tt=[]
 
-for d in os.listdir(dataDir):
-  if d.startswith('TTbarDMJets'):
-    name = d
-#    TTbarDMJets_scalar_Mchi10_Mphi10 
-    mode, mchistr, mphistr = d.split('_')[-3:]
-    mChi=int(mchistr.replace('Mchi',''))
-    mPhi=int(mphistr.replace('Mphi',''))
+for f in os.listdir(os.path.join(dataDir,'T2tt')):
+  if f.endswith('.root') and f.startswith('T2tt_'):
+    name = f.replace('.root','')
+    mStop, mNeu = name.replace('T2tt_','').split('_') 
     tmp={\
     "name" : name,
-    'dir' : dataDir,
+    "file" : os.path.join(os.path.join(dataDir,'T2tt',f)),
+    'dir' : os.path.join(os.path.join(dataDir,'T2tt')),
     'isData':False,
     'color': 8,
-    'mChi':mChi,
-    'mPhi':mPhi,
-    'texName':"t#overline{t}+Jets + DM(m_{#chi}="+str(mChi)+",m_{#phi}="+str(mPhi)+")"
+    'mStop':int(mStop),
+    'mNeu':int(mNeu),
+    'texName':"T2tt("+mStop+","+mNeu+")"
     }
     exec("%s=copy.deepcopy(tmp)"%name)
-    exec("signals_ttbarDM.append(%s)"%name)
+    exec("signals_T2tt.append(%s)"%name)
 
-print "Loaded %i ttbarDM signals: %s"%(len(signals_ttbarDM), ",".join([s['name'] for s in signals_ttbarDM]))
+print "Loaded %i T2tt signals: %s"%(len(signals_T2tt), ",".join([s['name'] for s in signals_T2tt]))
 
