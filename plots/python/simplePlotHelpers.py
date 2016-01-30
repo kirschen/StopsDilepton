@@ -23,245 +23,245 @@ from StopsDilepton.tools.helpers import getVarValue, getFileList, getPlotFromCha
 #middlerightlines=[[0.62,0.6,"#font[22]{CMS preliminary 2012}"],[0.62,0.55,"#sqrt{s} = 8TeV"]]
 
 class plot:
-  def __init__(self, var, binning, cut, sample, style, weightString = None, weightFunc=None, options=None):
-    if var:
-      self.leaf = var['leaf'] if var.has_key('leaf') else None
-      self.string = var['string'] if var.has_key('string') else None
-      self.func = var['func'] if var.has_key('func') else None
-      self.TTreeFormula = var['TTreeFormula'] if var.has_key('TTreeFormula') else None
-      assert not ( var.has_key('func') and not var.has_key('branches')), "Error: Need(!) to specify used branches in case of function in var %s" %repr(var)
-      self.usedBranches = var['branches'] if var.has_key('branches') else []
-      assert sum(bool(x) for x in [self.leaf, self.func, self.TTreeFormula, self.string])==1, "Error: Should specify exactly one of 'leaf', 'func', 'TTreeFormula' or 'string' in var %s" % repr(var)
-      if self.leaf:
-        assert type(self.leaf) == types.StringType, "Error: 'leaf' should be StringType in var %s" % repr(var)
-        self.title=self.leaf 
-      if self.func:
-        assert type(self.func) == types.FunctionType, "Error: 'func' should be FunctionType in var %s" % repr(var)
-        self.title="Functor_"+self.func.func_name
-      if self.TTreeFormula:
-        assert type(self.TTreeFormula) == types.StringType, "Error: 'TTreeFormula' should be StringType in var %s" % repr(var)
-        self.title="TTreeFormula"
-      if self.string:
-        assert type(self.string) == types.StringType, "Error: 'string' should be StringType in var %s" % repr(var)
-        self.title="DrawString"
-      assert not (weightFunc and self.string), "Can't use weightFunc when 'string' is specified in var %s"%repr(var)
-      self.name = "_".join([var['name'], self.title, sample['name']])
+    def __init__(self, var, binning, cut, sample, style, weightString = None, weightFunc=None, options=None):
+        if var:
+            self.leaf = var['leaf'] if var.has_key('leaf') else None
+            self.string = var['string'] if var.has_key('string') else None
+            self.func = var['func'] if var.has_key('func') else None
+            self.TTreeFormula = var['TTreeFormula'] if var.has_key('TTreeFormula') else None
+            assert not ( var.has_key('func') and not var.has_key('branches')), "Error: Need(!) to specify used branches in case of function in var %s" %repr(var)
+            self.usedBranches = var['branches'] if var.has_key('branches') else []
+            assert sum(bool(x) for x in [self.leaf, self.func, self.TTreeFormula, self.string])==1, "Error: Should specify exactly one of 'leaf', 'func', 'TTreeFormula' or 'string' in var %s" % repr(var)
+            if self.leaf:
+                assert type(self.leaf) == types.StringType, "Error: 'leaf' should be StringType in var %s" % repr(var)
+                self.title=self.leaf
+            if self.func:
+                assert type(self.func) == types.FunctionType, "Error: 'func' should be FunctionType in var %s" % repr(var)
+                self.title="Functor_"+self.func.func_name
+            if self.TTreeFormula:
+                assert type(self.TTreeFormula) == types.StringType, "Error: 'TTreeFormula' should be StringType in var %s" % repr(var)
+                self.title="TTreeFormula"
+            if self.string:
+                assert type(self.string) == types.StringType, "Error: 'string' should be StringType in var %s" % repr(var)
+                self.title="DrawString"
+            assert not (weightFunc and self.string), "Can't use weightFunc when 'string' is specified in var %s"%repr(var)
+            self.name = "_".join([var['name'], self.title, sample['name']])
 
-      self.ind = var['ind'] if var.has_key('ind') else -1
-      assert not (self.ind!=-1 and not self.leaf) , "Error: Use 'ind' with other than 'leaf' in var: %s" % repr(var)
-     
-      self.overFlow = var['overFlow'] if var.has_key('overFlow') else None
+            self.ind = var['ind'] if var.has_key('ind') else -1
+            assert not (self.ind!=-1 and not self.leaf) , "Error: Use 'ind' with other than 'leaf' in var: %s" % repr(var)
 
-    self.binning=None
-    self.binningIsExplicit=False
-    self.cut = cut
-    self.style=style
-    self.sample=sample
-    self.weightString=weightString
-    self.weightFunc=weightFunc
-    self.normalizeTo   = None
-    self.normalizeRef  = None
-    if hasattr(self, 'histo'):
-      if type(self.histo)==type(ROOT.TH1D()):
-        self.Reset()
-      del self.histo
+            self.overFlow = var['overFlow'] if var.has_key('overFlow') else None
 
-    rClass = ROOT.TProfile if options and options.has_key('isProfile') and options['isProfile'] else ROOT.TH1D
-    if binning:
-      binningArgs = binning['binning'] if not (binning.has_key('isExplicit') and binning['isExplicit']) else [len(binning['binning']) - 1, array('d',binning['binning'])]
-      self.binning = binning['binning'] 
-      self.binningIsExplicit = binning['isExplicit'] if binning.has_key('isExplicit') else False
-      self.histo = rClass(self.name, self.name, *binningArgs)
-      self.histo.Sumw2()
-      self.histo.Reset()
+        self.binning=None
+        self.binningIsExplicit=False
+        self.cut = cut
+        self.style=style
+        self.sample=sample
+        self.weightString=weightString
+        self.weightFunc=weightFunc
+        self.normalizeTo   = None
+        self.normalizeRef  = None
+        if hasattr(self, 'histo'):
+            if type(self.histo)==type(ROOT.TH1D()):
+                self.Reset()
+            del self.histo
 
-  @staticmethod
-  def fromHisto(histo,style,options=None):
-    p = plot(var=None,binning=None,cut='',sample=None,style=style,options=options)
-    p.histo = histo
-    return p
+        rClass = ROOT.TProfile if options and options.has_key('isProfile') and options['isProfile'] else ROOT.TH1D
+        if binning:
+            binningArgs = binning['binning'] if not (binning.has_key('isExplicit') and binning['isExplicit']) else [len(binning['binning']) - 1, array('d',binning['binning'])]
+            self.binning = binning['binning']
+            self.binningIsExplicit = binning['isExplicit'] if binning.has_key('isExplicit') else False
+            self.histo = rClass(self.name, self.name, *binningArgs)
+            self.histo.Sumw2()
+            self.histo.Reset()
+
+    @staticmethod
+    def fromHisto(histo,style,options=None):
+        p = plot(var=None,binning=None,cut='',sample=None,style=style,options=options)
+        p.histo = histo
+        return p
 
 class stack:
-  def __init__(self, plotLists, options):
-    self.plotLists = plotLists
-    self.options = options
-    try:
-      self.options['yRange'] = list(self.options['yRange'])
-    except:
-      pass
-    self.usedBranches = []
+    def __init__(self, plotLists, options):
+        self.plotLists = plotLists
+        self.options = options
+        try:
+            self.options['yRange'] = list(self.options['yRange'])
+        except:
+            pass
+        self.usedBranches = []
 #  def normalizeTo(self, plot, ref):
 #    for p in self.plotLists:
 #      y=p.Integral()
 #      t=plot.histo.Integral()
 #      if y>0:
 #        p.histo.Scale(t/p)
-    
-  def __getitem__(self, p):return self.plotLists[p]
+
+    def __getitem__(self, p):return self.plotLists[p]
 
 def switchOnBranches(c, usedBranches):
-      c.SetBranchStatus("*", 0)
+            c.SetBranchStatus("*", 0)
 #      print usedBranches
-      for br in usedBranches:
-        if "*" in br:
-          c.SetBranchStatus(br, 1)
-        else:
-          if c.GetBranch(br):
+            for br in usedBranches:
+                if "*" in br:
+                    c.SetBranchStatus(br, 1)
+                else:
+                    if c.GetBranch(br):
 #            print "Turning on branch", b
-            c.SetBranchStatus(br, 1)
-          else:
-            br2 = c.GetAlias(br)
+                        c.SetBranchStatus(br, 1)
+                    else:
+                        br2 = c.GetAlias(br)
 #            print "Not a branch",b,"alias",alias
-            if br2:
+                        if br2:
 #              br = c.GetBranch(alias)
-              c.SetBranchStatus(br2, 1)
+                            c.SetBranchStatus(br2, 1)
 #              print "Turning on branch", br,"(aliased from",b, ")"
 
 def loopAndFill(stacks, mode="loop"):
-  allSamples=[]
-  allSampleNames=[]
-  allPlots = []
-  usedBranches = []
-  for s in stacks:
-    usedBranches = list(set(usedBranches+s.usedBranches))
-    for l in s.plotLists:
-      for p in l:
-        allPlots.append(p)
-        if p.leaf:
-          if not p.leaf in usedBranches:
-            usedBranches.append(p.leaf)
-          if p.weightString  and not p.weightString in usedBranches:
-            usedBranches.append(p.weightString)
-        else:
-          usedBranches = list(set(usedBranches+p.usedBranches))
-        if not p.sample in allSamples:
-          assert p.sample.has_key('dir') or p.sample.has_key('dirname'), "Missing key dir or dirname in sample %s"%repr(p.sample)
-          allSamples.append(p.sample)
-  if mode=='loop':
-    assert not any ([p.string for p in allPlots]), "Loop mode is %s but specified 'string' for: %s"%(mode, ", ".join([p.name for p in allPlots if p.string]))
-  if mode=='draw': 
-    assert all([p.string for p in allPlots]), "Loop mode is %s but specified no 'string' for: %s"%(mode, ", ".join([p.name for p in allPlots if not p.string])) 
-  print "Found",len(allSamples),'different samples:',", ".join(s['name'] for s in allSamples)
-  for s in allSamples:
-    cutStringForSample=[]
-    plotsPerCutForSample={}
+    allSamples=[]
+    allSampleNames=[]
+    allPlots = []
+    usedBranches = []
+    for s in stacks:
+        usedBranches = list(set(usedBranches+s.usedBranches))
+        for l in s.plotLists:
+            for p in l:
+                allPlots.append(p)
+                if p.leaf:
+                    if not p.leaf in usedBranches:
+                        usedBranches.append(p.leaf)
+                    if p.weightString  and not p.weightString in usedBranches:
+                        usedBranches.append(p.weightString)
+                else:
+                    usedBranches = list(set(usedBranches+p.usedBranches))
+                if not p.sample in allSamples:
+                    assert p.sample.has_key('dir') or p.sample.has_key('dirname'), "Missing key dir or dirname in sample %s"%repr(p.sample)
+                    allSamples.append(p.sample)
+    if mode=='loop':
+        assert not any ([p.string for p in allPlots]), "Loop mode is %s but specified 'string' for: %s"%(mode, ", ".join([p.name for p in allPlots if p.string]))
+    if mode=='draw':
+        assert all([p.string for p in allPlots]), "Loop mode is %s but specified no 'string' for: %s"%(mode, ", ".join([p.name for p in allPlots if not p.string]))
+    print "Found",len(allSamples),'different samples:',", ".join(s['name'] for s in allSamples)
+    for s in allSamples:
+        cutStringForSample=[]
+        plotsPerCutForSample={}
 #    print s['name'], s.has_key('isData'), s.has_key('isData') and s['isData'], s.has_key('isData') and s['isData'] and s.has_key('dataCut')
-    for p in allPlots:
-      if p.sample==s:
-        cut = p.cut['string'] if not (s.has_key('isData') and s['isData'] and p.cut.has_key('dataCut')) else "("+p.cut['string']+")&&("+p.cut['dataCut']+")"
-        if not cut in cutStringForSample:
-          cutStringForSample.append(cut)
-          plotsPerCutForSample[cut]=[]
-        if not p in plotsPerCutForSample[cut]:
-          plotsPerCutForSample[cut].append(p)
-    s['plotsPerCutForSample'] = plotsPerCutForSample
-  for s in allSamples:
-    sampleScaleFac = 1 if not s.has_key('scale') else s['scale']
-    if sampleScaleFac!=1:
-      print "Using sampleScaleFac", sampleScaleFac ,"for sample",s["name"]
+        for p in allPlots:
+            if p.sample==s:
+                cut = p.cut['string'] if not (s.has_key('isData') and s['isData'] and p.cut.has_key('dataCut')) else "("+p.cut['string']+")&&("+p.cut['dataCut']+")"
+                if not cut in cutStringForSample:
+                    cutStringForSample.append(cut)
+                    plotsPerCutForSample[cut]=[]
+                if not p in plotsPerCutForSample[cut]:
+                    plotsPerCutForSample[cut].append(p)
+        s['plotsPerCutForSample'] = plotsPerCutForSample
+    for s in allSamples:
+        sampleScaleFac = 1 if not s.has_key('scale') else s['scale']
+        if sampleScaleFac!=1:
+            print "Using sampleScaleFac", sampleScaleFac ,"for sample",s["name"]
 
-    bins = s['bins'] if s.has_key('bins') else ['default']
-    for b in bins:
-      treeName = 'Events' if not s.has_key('treeName') else s['treeName']
-      maxN = -1 if not (s.has_key('small') and s['small']) else 1
-      c = ROOT.TChain(treeName)
-      counter=0
-      dir = s['dirname'] if s.has_key('dirname') else s['dir']
-      fileList = getFileList(dir+'/'+b, maxN=maxN, histname="") if s.has_key('bins') else [s['file']]
-      for f in fileList:
-        if not f[-5:]=='.root':continue
+        bins = s['bins'] if s.has_key('bins') else ['default']
+        for b in bins:
+            treeName = 'Events' if not s.has_key('treeName') else s['treeName']
+            maxN = -1 if not (s.has_key('small') and s['small']) else 1
+            c = ROOT.TChain(treeName)
+            counter=0
+            dir = s['dirname'] if s.has_key('dirname') else s['dir']
+            fileList = getFileList(dir+'/'+b, maxN=maxN, histname="") if s.has_key('bins') else [s['file']]
+            for f in fileList:
+                if not f[-5:]=='.root':continue
 #        counter+=1
 #        c.Add(f)
-        if checkRootFile(f, checkForObjects=[treeName]): 
-          counter+=1
-          c.Add(f)
-        else:
-          print "File %s looks broken."%f
-      ntot = c.GetEntries()
-      print "Added ",counter,'files from sample',s['name'],'dir',dir,'bin',b,'ntot',ntot
+                if checkRootFile(f, checkForObjects=[treeName]):
+                    counter+=1
+                    c.Add(f)
+                else:
+                    print "File %s looks broken."%f
+            ntot = c.GetEntries()
+            print "Added ",counter,'files from sample',s['name'],'dir',dir,'bin',b,'ntot',ntot
 
-      switchOnBranches(c, usedBranches)
-         
-      if ntot==0:
-        print "Warning! Found zero events in",s['name'],'bin',b," -> do nothing"
-        continue
-      if mode.lower()=='loop':
-        for ics, cutString in enumerate(s['plotsPerCutForSample'].keys()):
-          plotsToFill = s['plotsPerCutForSample'][cutString]
-          elistName = "eList_"+s['name']+'_'+b+'_'+str(ics)
-          elist = ROOT.TEventList(elistName)
-          c.Draw(">>"+elistName,cutString)
-  #        print "elist",elist,elist.GetN(),cutString,'plots',plotsToFill
-          number_events = elist.GetN()# if not (s.has_key('small')  and s['small']) else min(elist.GetN(), 100)
-          print "Reading: ", s["name"], b, "with",number_events,"events passing cutString", cutString, 'and will fill', len([p.name for p in plotsToFill]),'vars.'
-          for p in plotsToFill:
-            if not (p.cut.has_key('func') and p.cut['func']):
-              p.cut['func']=None
-            if p.TTreeFormula:
-              assert p.TTreeFormula and not (p.TTreeFormula==""), "Problem in TTreeFormula %s" % p.TTreeFormula
-              fString='ROOT.TTreeFormula("'+p.name+'","'+p.TTreeFormula+'",c)'
-              exec('p.ttreeFormula='+fString)
-              print "Created TTreeFormula:",fString
-          for i in range(0,number_events):
-            if (i%10000 == 0) and i>0 :
-              print i
-            c.GetEntry(elist.GetEntry(i))
-            for p in plotsToFill:
-  #            print p.cut['func'],  p.cut['func'](c)
-              if (not p.cut['func']) or p.cut['func'](c):
-                weight = c.GetLeaf(p.weightString).GetValue() if p.weightString else 1.
-                reWeight = p.weightFunc(c) if p.weightFunc else 1.
-  #              print c, p.weightFunc, p.weightFunc(c), getVarValue(c, "nVert"), c.GetLeaf("nVert").GetValue(), c.nVert
-                if p.leaf:
-                  val =  getVarValue(c, p.leaf, p.ind)
-  #                print "Fill leaf",p.leaf, p.ind, val, weight,sampleScaleFac
-                if p.TTreeFormula:
-                  p.ttreeFormula.UpdateFormulaLeaves()
-                  val = p.ttreeFormula.EvalInstance()
-                if p.func:
-                  val = p.func(c)
-  #              if val>170:print val, reWeight, weight, sampleScaleFac, p.leaf, p.ind, i, c.GetEntries(), elist.GetEntry(i),"x",c.GetLeaf('Jet_pt').GetValue(4), c.GetLeaf('met_pt').GetValue(), c.GetLeaf('lumi').GetValue(), c.GetLeaf('evt').GetValue()
-                if val<float('inf'):
-                  p.histo.Fill(val, reWeight*weight*sampleScaleFac)
-  #              print p.histo.GetName(), b, val, weight*sampleScaleFac, reWeight*weight*sampleScaleFac
-      elif mode.lower()=='draw':
-        for ics, cutString in enumerate(s['plotsPerCutForSample'].keys()):
-          plotsToFill = s['plotsPerCutForSample'][cutString]
-          print "Reading: ", s["name"], b, "with cutString", cutString, 'and will fill', len([p.name for p in plotsToFill]),'vars.'
-          for p in plotsToFill:
-            print c, "String", p.string, p.binning, "Cut", cutString, p.weightString, p.binningIsExplicit, sampleScaleFac
-            tmp = getPlotFromChain(c, p.string, p.binning, cutString, p.weightString, binningIsExplicit=p.binningIsExplicit)
-            tmp.Scale(sampleScaleFac)
-            p.histo.Add(tmp)
+            switchOnBranches(c, usedBranches)
+
+            if ntot==0:
+                print "Warning! Found zero events in",s['name'],'bin',b," -> do nothing"
+                continue
+            if mode.lower()=='loop':
+                for ics, cutString in enumerate(s['plotsPerCutForSample'].keys()):
+                    plotsToFill = s['plotsPerCutForSample'][cutString]
+                    elistName = "eList_"+s['name']+'_'+b+'_'+str(ics)
+                    elist = ROOT.TEventList(elistName)
+                    c.Draw(">>"+elistName,cutString)
+    #        print "elist",elist,elist.GetN(),cutString,'plots',plotsToFill
+                    number_events = elist.GetN()# if not (s.has_key('small')  and s['small']) else min(elist.GetN(), 100)
+                    print "Reading: ", s["name"], b, "with",number_events,"events passing cutString", cutString, 'and will fill', len([p.name for p in plotsToFill]),'vars.'
+                    for p in plotsToFill:
+                        if not (p.cut.has_key('func') and p.cut['func']):
+                            p.cut['func']=None
+                        if p.TTreeFormula:
+                            assert p.TTreeFormula and not (p.TTreeFormula==""), "Problem in TTreeFormula %s" % p.TTreeFormula
+                            fString='ROOT.TTreeFormula("'+p.name+'","'+p.TTreeFormula+'",c)'
+                            exec('p.ttreeFormula='+fString)
+                            print "Created TTreeFormula:",fString
+                    for i in range(0,number_events):
+                        if (i%10000 == 0) and i>0 :
+                            print i
+                        c.GetEntry(elist.GetEntry(i))
+                        for p in plotsToFill:
+    #            print p.cut['func'],  p.cut['func'](c)
+                            if (not p.cut['func']) or p.cut['func'](c):
+                                weight = c.GetLeaf(p.weightString).GetValue() if p.weightString else 1.
+                                reWeight = p.weightFunc(c) if p.weightFunc else 1.
+    #              print c, p.weightFunc, p.weightFunc(c), getVarValue(c, "nVert"), c.GetLeaf("nVert").GetValue(), c.nVert
+                                if p.leaf:
+                                    val =  getVarValue(c, p.leaf, p.ind)
+    #                print "Fill leaf",p.leaf, p.ind, val, weight,sampleScaleFac
+                                if p.TTreeFormula:
+                                    p.ttreeFormula.UpdateFormulaLeaves()
+                                    val = p.ttreeFormula.EvalInstance()
+                                if p.func:
+                                    val = p.func(c)
+    #              if val>170:print val, reWeight, weight, sampleScaleFac, p.leaf, p.ind, i, c.GetEntries(), elist.GetEntry(i),"x",c.GetLeaf('Jet_pt').GetValue(4), c.GetLeaf('met_pt').GetValue(), c.GetLeaf('lumi').GetValue(), c.GetLeaf('evt').GetValue()
+                                if val<float('inf'):
+                                    p.histo.Fill(val, reWeight*weight*sampleScaleFac)
+    #              print p.histo.GetName(), b, val, weight*sampleScaleFac, reWeight*weight*sampleScaleFac
+            elif mode.lower()=='draw':
+                for ics, cutString in enumerate(s['plotsPerCutForSample'].keys()):
+                    plotsToFill = s['plotsPerCutForSample'][cutString]
+                    print "Reading: ", s["name"], b, "with cutString", cutString, 'and will fill', len([p.name for p in plotsToFill]),'vars.'
+                    for p in plotsToFill:
+                        print c, "String", p.string, p.binning, "Cut", cutString, p.weightString, p.binningIsExplicit, sampleScaleFac
+                        tmp = getPlotFromChain(c, p.string, p.binning, cutString, p.weightString, binningIsExplicit=p.binningIsExplicit)
+                        tmp.Scale(sampleScaleFac)
+                        p.histo.Add(tmp)
 #      for ics, cutString in enumerate(s['plotsPerCutForSample'].keys()):
 #        plotsToFill = s['plotsPerCutForSample'][cutString]
 #        for p in plotsToFill:
 #          print c.GetEntries(), p.name,p.histo.Integral()
 #      c.GetListOfFiles().ls()
-      c.Reset()
-      del c
-      
+            c.Reset()
+            del c
+
 #do over-flow bins
-  for p in allPlots:
-    if p.overFlow and p.overFlow in [ "upper", "both"]:
-      nbins = p.histo.GetNbinsX()
-      p.histo.SetBinContent(nbins , p.histo.GetBinContent(nbins) + p.histo.GetBinContent(nbins + 1))
-      p.histo.SetBinError(nbins , sqrt(p.histo.GetBinError(nbins)**2 + p.histo.GetBinError(nbins + 1)**2))
-    if p.overFlow and p.overFlow in [ "lower", "both"]:
-      p.histo.SetBinContent(1 , p.histo.GetBinContent(0) + p.histo.GetBinContent(1))
-      p.histo.SetBinError(1 , sqrt(p.histo.GetBinError(0)**2 + p.histo.GetBinError(1)**2))
+    for p in allPlots:
+        if p.overFlow and p.overFlow in [ "upper", "both"]:
+            nbins = p.histo.GetNbinsX()
+            p.histo.SetBinContent(nbins , p.histo.GetBinContent(nbins) + p.histo.GetBinContent(nbins + 1))
+            p.histo.SetBinError(nbins , sqrt(p.histo.GetBinError(nbins)**2 + p.histo.GetBinError(nbins + 1)**2))
+        if p.overFlow and p.overFlow in [ "lower", "both"]:
+            p.histo.SetBinContent(1 , p.histo.GetBinContent(0) + p.histo.GetBinContent(1))
+            p.histo.SetBinError(1 , sqrt(p.histo.GetBinError(0)**2 + p.histo.GetBinError(1)**2))
 #sum stacks
-  for s in stacks:
-    sumStackHistos(s)   
+    for s in stacks:
+        sumStackHistos(s)
 #normalize
-  for p in allPlots:
-    if p.normalizeTo:
-      t = p.normalizeTo.histo.Integral()
-      y = p.histo.Integral()
-      r = p.normalizeRef.histo.Integral() if p.normalizeRef else y
-      if r>0:
-        p.histo.Scale(t/r)
-      
+    for p in allPlots:
+        if p.normalizeTo:
+            t = p.normalizeTo.histo.Integral()
+            y = p.histo.Integral()
+            r = p.normalizeRef.histo.Integral() if p.normalizeRef else y
+            if r>0:
+                p.histo.Scale(t/r)
+
 #                reweightFac = 1.
 #                if type(var.reweightVar) == types.FunctionType:
 #                    reweightFac = var.reweightVar(c)
@@ -284,50 +284,50 @@ def loopAndFill(stacks, mode="loop"):
 #                  weight = sample["weight"][bin]
 
 def sumStackHistos(stack):
-  for l in stack.plotLists:
-    n = len(l)
-    for i in range(n):
-      for j in range(i+1,n):
-        l[i].histo.Add(l[j].histo)
+    for l in stack.plotLists:
+        n = len(l)
+        for i in range(n):
+            for j in range(i+1,n):
+                l[i].histo.Add(l[j].histo)
 
 def drawStack(stk, maskedArea=None):
-  stuff=[]
-  if stk.options.has_key('legend') and  stk.options['legend']:
-    l = ROOT.TLegend(*(stk.options['legend']['coordinates']))
-    l.SetFillColor(0)
-    l.SetShadowColor(ROOT.kWhite)
-    l.SetBorderSize(0)
-    l.SetBorderSize(1)
-    stuff.append(l)
-  first=True
+    stuff=[]
+    if stk.options.has_key('legend') and  stk.options['legend']:
+        l = ROOT.TLegend(*(stk.options['legend']['coordinates']))
+        l.SetFillColor(0)
+        l.SetShadowColor(ROOT.kWhite)
+        l.SetBorderSize(0)
+        l.SetBorderSize(1)
+        stuff.append(l)
+    first=True
 #  print stk.options
-  try:
-    autoAdjustY = stk.options['yRange'][1].lower()=='auto' and isinstance(stk.options['yRange'][0], numbers.Number)
-  except:
-    autoAdjustY = False
-  if autoAdjustY and  stk.options.has_key('logY') and stk.options['logY']:
+    try:
+        autoAdjustY = stk.options['yRange'][1].lower()=='auto' and isinstance(stk.options['yRange'][0], numbers.Number)
+    except:
+        autoAdjustY = False
+    if autoAdjustY and  stk.options.has_key('logY') and stk.options['logY']:
 #    print "maskedArea",maskedArea
-    ymin = stk.options['yRange'][0]
-    logYMaxGlobal = log(ymin,10)
-    for s in stk.plotLists:
-      for p in s:
-        for iBin in range(1, 1 + p.histo.GetNbinsX()):
-          xLowAbs, xHighAbs = p.histo.GetBinLowEdge(iBin), p.histo.GetBinLowEdge(iBin)+p.histo.GetBinWidth(iBin)
-          xLow = (xLowAbs -  p.histo.GetXaxis().GetXmin())/(p.histo.GetXaxis().GetXmax() - p.histo.GetXaxis().GetXmin())
-          xHigh = (xHighAbs -  p.histo.GetXaxis().GetXmin())/(p.histo.GetXaxis().GetXmax() - p.histo.GetXaxis().GetXmin())
-          yFracMax =  maskedArea['yLow'] if maskedArea and xHigh>maskedArea['xLow'] and xLow<maskedArea['xHigh'] else 1
-          deltaLogY = 0.5 if yFracMax==1 else 0.3
-          y =  p.histo.GetBinContent(iBin)
+        ymin = stk.options['yRange'][0]
+        logYMaxGlobal = log(ymin,10)
+        for s in stk.plotLists:
+            for p in s:
+                for iBin in range(1, 1 + p.histo.GetNbinsX()):
+                    xLowAbs, xHighAbs = p.histo.GetBinLowEdge(iBin), p.histo.GetBinLowEdge(iBin)+p.histo.GetBinWidth(iBin)
+                    xLow = (xLowAbs -  p.histo.GetXaxis().GetXmin())/(p.histo.GetXaxis().GetXmax() - p.histo.GetXaxis().GetXmin())
+                    xHigh = (xHighAbs -  p.histo.GetXaxis().GetXmin())/(p.histo.GetXaxis().GetXmax() - p.histo.GetXaxis().GetXmin())
+                    yFracMax =  maskedArea['yLow'] if maskedArea and xHigh>maskedArea['xLow'] and xLow<maskedArea['xHigh'] else 1
+                    deltaLogY = 0.5 if yFracMax==1 else 0.3
+                    y =  p.histo.GetBinContent(iBin)
 #          print 'masked X:', maskedArea['xLow'], maskedArea['xHigh'], 'yFracMax', yFracMax, 'iBin',iBin, 'XHigh/Low', xHigh, xLow,  'y', y, logYMaxGlobal
-          if y>0:
-            logyMax = log(ymin,10) + (log(y/ymin, 10) + deltaLogY)/yFracMax
-            logYMaxGlobal = logyMax if logyMax>logYMaxGlobal else logYMaxGlobal
-  else:
-    logYMaxGlobal=None
-  if logYMaxGlobal: logYMaxGlobal = None if logYMaxGlobal == log(ymin,10) else logYMaxGlobal
-  for s in stk.plotLists:
-    for p in s:
-      hcopy = p.histo.Clone(p.histo.GetName()+'_Clone')
+                    if y>0:
+                        logyMax = log(ymin,10) + (log(y/ymin, 10) + deltaLogY)/yFracMax
+                        logYMaxGlobal = logyMax if logyMax>logYMaxGlobal else logYMaxGlobal
+    else:
+        logYMaxGlobal=None
+    if logYMaxGlobal: logYMaxGlobal = None if logYMaxGlobal == log(ymin,10) else logYMaxGlobal
+    for s in stk.plotLists:
+        for p in s:
+            hcopy = p.histo.Clone(p.histo.GetName()+'_Clone')
 #      print p.histo,p.histo.Integral()
 
 #      if p.style.has_key('errorBars') and not p.style['errorBars']:
@@ -335,206 +335,206 @@ def drawStack(stk, maskedArea=None):
 #          hcopy.SetBinError(nbin, 0.)
 
 #      if stk.options.has_key('labels'):
-      try:
-        hcopy.GetXaxis().SetTitle(stk.options['labels']['x'])
-        hcopy.GetYaxis().SetTitle(stk.options['labels']['y'])
-      except:pass
-      try: hcopy.GetYaxis().SetTitleOffset(stk.options['yTitleOffset'])
-      except:pass
-      hcopy.SetTitle("")
-      if p.style['style'] == "e":
-        hcopy.SetMarkerColor(p.style['color'])
-        hcopy.SetLineColor(p.style['color'])
+            try:
+                hcopy.GetXaxis().SetTitle(stk.options['labels']['x'])
+                hcopy.GetYaxis().SetTitle(stk.options['labels']['y'])
+            except:pass
+            try: hcopy.GetYaxis().SetTitleOffset(stk.options['yTitleOffset'])
+            except:pass
+            hcopy.SetTitle("")
+            if p.style['style'] == "e":
+                hcopy.SetMarkerColor(p.style['color'])
+                hcopy.SetLineColor(p.style['color'])
 #        if p.style.has_key('markerStyle') and p.style['markerStyle']:
-        try:
-          hcopy.SetMarkerStyle(p.style['markerStyle'])
-        except:
-          hcopy.SetMarkerStyle(20)
+                try:
+                    hcopy.SetMarkerStyle(p.style['markerStyle'])
+                except:
+                    hcopy.SetMarkerStyle(20)
 #        if p.style.has_key('markerSize') and p.style['markerSize']:
-        try:
-          hcopy.SetMarkerSize(p.style['markerSize'])
-        except:
-          hcopy.SetMarkerSize(1)
-      if p.style['style'] == "f":
-        hcopy.SetLineColor(ROOT.kBlack)
-        hcopy.SetLineStyle(0)
-        hcopy.SetLineWidth(0)
-        hcopy.SetFillColor(p.style['color'])
-        hcopy.SetMarkerColor(ROOT.kBlack)
-        hcopy.SetMarkerStyle(0)
-      if p.style['style'] == "l" or p.style['style'] == "d":
-        hcopy.SetLineColor(p.style['color'])
-        hcopy.SetLineWidth(0)
-        hcopy.SetMarkerColor(p.style['color'])
-        hcopy.SetMarkerStyle(0)
-        hcopy.SetMarkerSize(0)
-      if p.style['style'] == "l":
-        hcopy.SetLineStyle(0)
-      if p.style['style'] == "d":
-        hcopy.SetLineStyle(2)
+                try:
+                    hcopy.SetMarkerSize(p.style['markerSize'])
+                except:
+                    hcopy.SetMarkerSize(1)
+            if p.style['style'] == "f":
+                hcopy.SetLineColor(ROOT.kBlack)
+                hcopy.SetLineStyle(0)
+                hcopy.SetLineWidth(0)
+                hcopy.SetFillColor(p.style['color'])
+                hcopy.SetMarkerColor(ROOT.kBlack)
+                hcopy.SetMarkerStyle(0)
+            if p.style['style'] == "l" or p.style['style'] == "d":
+                hcopy.SetLineColor(p.style['color'])
+                hcopy.SetLineWidth(0)
+                hcopy.SetMarkerColor(p.style['color'])
+                hcopy.SetMarkerStyle(0)
+                hcopy.SetMarkerSize(0)
+            if p.style['style'] == "l":
+                hcopy.SetLineStyle(0)
+            if p.style['style'] == "d":
+                hcopy.SetLineStyle(2)
 #      if p.style.has_key('thickNess') and  p.style['thickNess']:
-      try:
-        hcopy.SetLineWidth(p.style['lineThickness'])
-      except:pass
-      stuff.append(hcopy)
-      if stk.options.has_key('logY') and stk.options['logY']:
-        yHeadRoomFac = 1.5 if not  stk.options.has_key('yHeadRoomFac') else stk.options['yHeadRoomFac']
-        defaultYRange = [0.7, yHeadRoomFac*hcopy.GetMaximum()]
-      else:
-        yHeadRoomFac = 1.2 if not  stk.options.has_key('yHeadRoomFac') else stk.options['yHeadRoomFac']
-        defaultYRange = [0, yHeadRoomFac*hcopy.GetMaximum()]
-      if stk.options and stk.options.has_key('yRange') and type(stk.options['yRange'])==type([]) and len(stk.options['yRange'])==2:
-        stk.options['yRange'][0]=defaultYRange[0] if not isinstance(stk.options['yRange'][0], numbers.Number) else stk.options['yRange'][0]#If yRange is 'None' use default
-        stk.options['yRange'][1]=defaultYRange[1] if not isinstance(stk.options['yRange'][1], numbers.Number) else stk.options['yRange'][1]#If yRange is 'None' use default
-      hcopy.GetYaxis().SetRangeUser(*defaultYRange)
-      if logYMaxGlobal:
-        stk.options['yRange'][1]=10**logYMaxGlobal
-      try:
-        hcopy.GetYaxis().SetRangeUser(*(stk.options['yRange']) )
-      except:pass
-      drawOpt='eh1'
-      if p.style.has_key('errorBars') and not p.style['errorBars']: 
-        drawOpt='hist'
-      if first:
-        if p.style['style'] == "e":
-          hcopy.Draw("e1")
-        if p.style['style'] == "f" or p.style['style'] == "l" or p.style['style'] == "d":
-          hcopy.Draw(drawOpt)
-        first=False
-      else:
-        if p.style['style'] == "e":
-          hcopy.Draw("e1same")
-        if p.style['style'] == "f" or p.style['style'] == "l" or p.style['style'] == "d":
-          hcopy.Draw(drawOpt+'same')
+            try:
+                hcopy.SetLineWidth(p.style['lineThickness'])
+            except:pass
+            stuff.append(hcopy)
+            if stk.options.has_key('logY') and stk.options['logY']:
+                yHeadRoomFac = 1.5 if not  stk.options.has_key('yHeadRoomFac') else stk.options['yHeadRoomFac']
+                defaultYRange = [0.7, yHeadRoomFac*hcopy.GetMaximum()]
+            else:
+                yHeadRoomFac = 1.2 if not  stk.options.has_key('yHeadRoomFac') else stk.options['yHeadRoomFac']
+                defaultYRange = [0, yHeadRoomFac*hcopy.GetMaximum()]
+            if stk.options and stk.options.has_key('yRange') and type(stk.options['yRange'])==type([]) and len(stk.options['yRange'])==2:
+                stk.options['yRange'][0]=defaultYRange[0] if not isinstance(stk.options['yRange'][0], numbers.Number) else stk.options['yRange'][0]#If yRange is 'None' use default
+                stk.options['yRange'][1]=defaultYRange[1] if not isinstance(stk.options['yRange'][1], numbers.Number) else stk.options['yRange'][1]#If yRange is 'None' use default
+            hcopy.GetYaxis().SetRangeUser(*defaultYRange)
+            if logYMaxGlobal:
+                stk.options['yRange'][1]=10**logYMaxGlobal
+            try:
+                hcopy.GetYaxis().SetRangeUser(*(stk.options['yRange']) )
+            except:pass
+            drawOpt='eh1'
+            if p.style.has_key('errorBars') and not p.style['errorBars']:
+                drawOpt='hist'
+            if first:
+                if p.style['style'] == "e":
+                    hcopy.Draw("e1")
+                if p.style['style'] == "f" or p.style['style'] == "l" or p.style['style'] == "d":
+                    hcopy.Draw(drawOpt)
+                first=False
+            else:
+                if p.style['style'] == "e":
+                    hcopy.Draw("e1same")
+                if p.style['style'] == "f" or p.style['style'] == "l" or p.style['style'] == "d":
+                    hcopy.Draw(drawOpt+'same')
 #      if p.style.has_key('legendText') and stk.options.has_key('legend') and stk.options['legend']:
-      if stk.options.has_key('legend') and  stk.options['legend']:
-        l.AddEntry(hcopy, p.style['legendText'])
-  ROOT.gPad.RedrawAxis()
-#  if  stk.options.has_key('legend') and stk.options['legend']:
-  try:
-    l.Draw()
-  except:pass
-  if stk.options['legend'] and (not (stk.options['legend'].has_key('boxed')) and stk.options['legend']['boxed']):
+            if stk.options.has_key('legend') and  stk.options['legend']:
+                l.AddEntry(hcopy, p.style['legendText'])
     ROOT.gPad.RedrawAxis()
-  latex = ROOT.TLatex()
-  latex.SetNDC()
-  latex.SetTextSize(0.04)
-  latex.SetTextAlign(11) # align right
+#  if  stk.options.has_key('legend') and stk.options['legend']:
+    try:
+        l.Draw()
+    except:pass
+    if stk.options['legend'] and (not (stk.options['legend'].has_key('boxed')) and stk.options['legend']['boxed']):
+        ROOT.gPad.RedrawAxis()
+    latex = ROOT.TLatex()
+    latex.SetNDC()
+    latex.SetTextSize(0.04)
+    latex.SetTextAlign(11) # align right
 #  if stk.options.has_key('texLines') and stk.options['texLines']:
-  try:
-    for line in stk.options['texLines']:
-      latex.SetTextSize(0.04)
-      try:#if line.has_key('options'):
+    try:
+        for line in stk.options['texLines']:
+            latex.SetTextSize(0.04)
+            try:#if line.has_key('options'):
 #        if line['options'].has_key('textSize'):
-          latex.SetTextSize(line['options']['size'])
-      except:pass
-      stuff.append(latex.DrawLatex(line['pos'][0],line['pos'][1],line['text']))
-  except:pass
-  return stuff
+                    latex.SetTextSize(line['options']['size'])
+            except:pass
+            stuff.append(latex.DrawLatex(line['pos'][0],line['pos'][1],line['text']))
+    except:pass
+    return stuff
 
 
 def bracket(x, interval=[0,1]):
-  return max(interval[0],min(interval[1],x))
+    return max(interval[0],min(interval[1],x))
 
 def calcTLegendMaskedArea(legendC, margins):
-  return {
-    'yLow': bracket(1.-(1.-legendC[1] - margins['top'])/(1.-margins['top']-margins['bottom']), interval=[0.3, 1]),
-    'xLow': bracket((legendC[0] - margins['left'])/(1.-margins['right']-margins['left'])),
-    'xHigh':bracket((legendC[2] - margins['left'])/(1.-margins['right']-margins['left']))
-    }
+    return {
+        'yLow': bracket(1.-(1.-legendC[1] - margins['top'])/(1.-margins['top']-margins['bottom']), interval=[0.3, 1]),
+        'xLow': bracket((legendC[0] - margins['left'])/(1.-margins['right']-margins['left'])),
+        'xHigh':bracket((legendC[2] - margins['left'])/(1.-margins['right']-margins['left']))
+        }
 
 
 from StopsDilepton.tools.localInfo import plotDir
 def drawNMStacks(intn, intm, stacks, filename, path = plotDir):
-  stuff=[]
-  yswidth = 500
-  ylwidth = 700
-  ywidth = yswidth
+    stuff=[]
+    yswidth = 500
+    ylwidth = 700
+    ywidth = yswidth
 #  if len(stacks[0][0].dataMCRatio)==2:
 #    ywidth = ylwidth
-  scaleFacBottomPad = yswidth/float((ylwidth-yswidth))
-  yBorder = (ylwidth-yswidth)/float(ylwidth)
-  c1 = ROOT.TCanvas("ROOT.c1","drawHistos",200,10,500*intn,ywidth*intm)
-  c1.SetFillColor(0)
-  if intn!=1 or intm!=1:
-    c1.Divide(intn,intm)
-  for istack in range(intn*intm):
-    stk=None
-    if istack<len(stacks):
-      stk = stacks[istack]
-    else:
-      print "Only",len(stacks),"stacks supplied, expected", intn*intm
-      continue
-    if not stk:
-      continue
-    if intn*intm!=1:
-      thisPad = c1.cd(istack+1)
-    else:
-      thisPad = c1
+    scaleFacBottomPad = yswidth/float((ylwidth-yswidth))
+    yBorder = (ylwidth-yswidth)/float(ylwidth)
+    c1 = ROOT.TCanvas("ROOT.c1","drawHistos",200,10,500*intn,ywidth*intm)
+    c1.SetFillColor(0)
+    if intn!=1 or intm!=1:
+        c1.Divide(intn,intm)
+    for istack in range(intn*intm):
+        stk=None
+        if istack<len(stacks):
+            stk = stacks[istack]
+        else:
+            print "Only",len(stacks),"stacks supplied, expected", intn*intm
+            continue
+        if not stk:
+            continue
+        if intn*intm!=1:
+            thisPad = c1.cd(istack+1)
+        else:
+            thisPad = c1
 #    setupLumiPlotInfo()
 #    ROOT.CMS_lumi(thisPad, 3, 22 )
 
-    if stk.options.has_key('ratio') and stk.options['ratio']:
-      rops = stk.options['ratio']
-      thisPad.Divide(1,2,0,0)
-      toppad = thisPad.cd(1)
-      if stk.options.has_key('logY'):
-        toppad.SetLogy(stk.options['logY'])
-      if stk.options.has_key('logX'):
-        toppad.SetLogx(stk.options['logX'])
-      toppad.SetBottomMargin(0)
-      toppad.SetLeftMargin(0.15)
-      toppad.SetTopMargin(topMargin)
-      toppad.SetRightMargin(0.02)
-      toppad.SetPad(toppad.GetX1(), yBorder, toppad.GetX2(), toppad.GetY2())
-      stk.options['yTitleOffset'] = 1.
+        if stk.options.has_key('ratio') and stk.options['ratio']:
+            rops = stk.options['ratio']
+            thisPad.Divide(1,2,0,0)
+            toppad = thisPad.cd(1)
+            if stk.options.has_key('logY'):
+                toppad.SetLogy(stk.options['logY'])
+            if stk.options.has_key('logX'):
+                toppad.SetLogx(stk.options['logX'])
+            toppad.SetBottomMargin(0)
+            toppad.SetLeftMargin(0.15)
+            toppad.SetTopMargin(topMargin)
+            toppad.SetRightMargin(0.02)
+            toppad.SetPad(toppad.GetX1(), yBorder, toppad.GetX2(), toppad.GetY2())
+            stk.options['yTitleOffset'] = 1.
 
-      maskedArea = calcTLegendMaskedArea(stk.options['legend']['coordinates'], margins={'top':topMargin, 'bottom':0.13,'right':0.02,'left':0.15}) if stk.options.has_key('legend') else None
-      stuff += drawStack(stk, maskedArea=maskedArea)
-      bottompad = thisPad.cd(2)
-      bottompad.SetTopMargin(0)
-      bottompad.SetRightMargin(0.02)
-      bottompad.SetLeftMargin(0.15)
-      bottompad.SetBottomMargin(scaleFacBottomPad*0.13)
-      bottompad.SetPad(bottompad.GetX1(), bottompad.GetY1(), bottompad.GetX2(), yBorder)
-      rp = copy.deepcopy(stk[stk.options['ratio']['numIndex']][0])
+            maskedArea = calcTLegendMaskedArea(stk.options['legend']['coordinates'], margins={'top':topMargin, 'bottom':0.13,'right':0.02,'left':0.15}) if stk.options.has_key('legend') else None
+            stuff += drawStack(stk, maskedArea=maskedArea)
+            bottompad = thisPad.cd(2)
+            bottompad.SetTopMargin(0)
+            bottompad.SetRightMargin(0.02)
+            bottompad.SetLeftMargin(0.15)
+            bottompad.SetBottomMargin(scaleFacBottomPad*0.13)
+            bottompad.SetPad(bottompad.GetX1(), bottompad.GetY1(), bottompad.GetX2(), yBorder)
+            rp = copy.deepcopy(stk[stk.options['ratio']['numIndex']][0])
 #      rp.style['style']=
-      rp.histo.Sumw2()
-      rp.histo.Divide(stk[stk.options['ratio']['denIndex']][0].histo)
-      rp.style['color'] = rops['color']
-      rp.histo.GetXaxis().SetTitleSize(scaleFacBottomPad*rp.histo.GetXaxis().GetTitleSize())
-      rp.histo.GetXaxis().SetLabelSize(scaleFacBottomPad*rp.histo.GetXaxis().GetLabelSize())
-      rp.histo.GetXaxis().SetTickLength(scaleFacBottomPad*rp.histo.GetXaxis().GetTickLength())
-      rp.histo.GetYaxis().SetTitleSize(scaleFacBottomPad*rp.histo.GetYaxis().GetTitleSize())
-      rp.histo.GetYaxis().SetLabelSize(scaleFacBottomPad*rp.histo.GetYaxis().GetLabelSize())
-      rp.histo.GetYaxis().SetNdivisions(505)
+            rp.histo.Sumw2()
+            rp.histo.Divide(stk[stk.options['ratio']['denIndex']][0].histo)
+            rp.style['color'] = rops['color']
+            rp.histo.GetXaxis().SetTitleSize(scaleFacBottomPad*rp.histo.GetXaxis().GetTitleSize())
+            rp.histo.GetXaxis().SetLabelSize(scaleFacBottomPad*rp.histo.GetXaxis().GetLabelSize())
+            rp.histo.GetXaxis().SetTickLength(scaleFacBottomPad*rp.histo.GetXaxis().GetTickLength())
+            rp.histo.GetYaxis().SetTitleSize(scaleFacBottomPad*rp.histo.GetYaxis().GetTitleSize())
+            rp.histo.GetYaxis().SetLabelSize(scaleFacBottomPad*rp.histo.GetYaxis().GetLabelSize())
+            rp.histo.GetYaxis().SetNdivisions(505)
 #      rp.histo.GetYaxis().SetTitleOffset(1. / scaleFacBottomPad)
 #      rp.histo.GetYaxis().SetTitle(stack[0].ratioVarName)
-      rs = stack([[rp]], options = {'labels':{'x':stk.options['labels']['x'],'y':rops['yLabel']}, \
-                                    'logX':stk.options['logX'], 'logY':rops['logY'], 'legend':None, 
-                                    'texLines':None, 'yRange':rops['yRange'] if rops.has_key('yRange') else [0.3,1.7], 'yTitleOffset':1./scaleFacBottomPad}) 
-      line = ROOT.TPolyLine(2)
-      line.SetPoint(0, rp.histo.GetXaxis().GetXmin(), 1.)
-      line.SetPoint(1, rp.histo.GetXaxis().GetXmax(), 1.)
-      line.SetLineWidth(1)
-      stuff += drawStack(rs)
-      line.Draw()
-      stuff.append(line)
+            rs = stack([[rp]], options = {'labels':{'x':stk.options['labels']['x'],'y':rops['yLabel']}, \
+                                                                        'logX':stk.options['logX'], 'logY':rops['logY'], 'legend':None,
+                                                                        'texLines':None, 'yRange':rops['yRange'] if rops.has_key('yRange') else [0.3,1.7], 'yTitleOffset':1./scaleFacBottomPad})
+            line = ROOT.TPolyLine(2)
+            line.SetPoint(0, rp.histo.GetXaxis().GetXmin(), 1.)
+            line.SetPoint(1, rp.histo.GetXaxis().GetXmax(), 1.)
+            line.SetLineWidth(1)
+            stuff += drawStack(rs)
+            line.Draw()
+            stuff.append(line)
+        else:
+            if stk.options.has_key('logY'):
+                thisPad.SetLogy(stk.options['logY'])
+            if stk.options.has_key('logX'):
+                thisPad.SetLogx(stk.options['logX'])
+            maskedArea = calcTLegendMaskedArea(stk.options['legend']['coordinates'], margins={'top':topMargin, 'bottom':0.13,'right':0.02,'left':0.15}) if stk.options.has_key('legend') else None
+            stuff += drawStack(stk, maskedArea=maskedArea)
+    if filename[-4:] not in [".png", ".pdf", "root"]:
+        c1.Print(path+'/'+filename+".png")
+        c1.Print(path+'/'+filename+".root")
+        c1.Print(path+'/'+filename+".pdf")
     else:
-      if stk.options.has_key('logY'):
-        thisPad.SetLogy(stk.options['logY'])
-      if stk.options.has_key('logX'):
-        thisPad.SetLogx(stk.options['logX'])
-      maskedArea = calcTLegendMaskedArea(stk.options['legend']['coordinates'], margins={'top':topMargin, 'bottom':0.13,'right':0.02,'left':0.15}) if stk.options.has_key('legend') else None
-      stuff += drawStack(stk, maskedArea=maskedArea)
-  if filename[-4:] not in [".png", ".pdf", "root"]:
-    c1.Print(path+'/'+filename+".png")
-    c1.Print(path+'/'+filename+".root")
-    c1.Print(path+'/'+filename+".pdf")
-  else:
-    c1.Print(path+'/'+filename)
-  del c1
-  return stuff
+        c1.Print(path+'/'+filename)
+    del c1
+    return stuff
 #class plot2D:
 #  cutstring=""
 #  lines=upperrightlines
@@ -621,4 +621,4 @@ def drawNMStacks(intn, intm, stacks, filename, path = plotDir):
 #  #histo.SetBinContent(1,falsebincont)
 #  #histo.SetBinContent(2,truebincont )
 #  #print "Bin with 0: ",histo.FindBin(0)," contains: ", histo.GetBinContent(1), " Bin with 1: ", histo.FindBin(1), " contains: ", histo.GetBinContent(2)
- 
+

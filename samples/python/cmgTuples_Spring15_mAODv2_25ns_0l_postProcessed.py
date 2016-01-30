@@ -1,6 +1,6 @@
 import copy, os, sys
 #from StopsDilepton.tools.localInfo import dataDir
-#dir = dataDir 
+#dir = dataDir
 #if anybody else wants to use this: please add a 0l data-directory to localInfo and remove the hard coded location
 dir = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/postProcessed_mAODv2/inclusive"
 

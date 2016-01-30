@@ -52,7 +52,7 @@ backgrounds = [DY_HT_LO]
 #            get the TChains for each sample          #
 #######################################################
 for s in backgrounds:
-  s['chain'] = getChain(s,histname="")
+    s['chain'] = getChain(s,histname="")
 
 
 mt2llbinning = "(10,0,400)"
@@ -60,13 +60,13 @@ mllbinning = "(10,0,800)"
 
 
 plots = {\
-  'dl_mt2ll':{\
-    '_ratio': {'title':'M^{2}_{T}(ll) (GeV)', 'name':'MT2ll', 'binning': mt2llbinning, 'histo':{}},
-    },
-  'dl_mass':{\
-    '_ratio': {'title':'M_{ll} (GeV)', 'name':'Mll', 'binning': mllbinning, 'histo':{}},
-    },
-  }
+    'dl_mt2ll':{\
+        '_ratio': {'title':'M^{2}_{T}(ll) (GeV)', 'name':'MT2ll', 'binning': mt2llbinning, 'histo':{}},
+        },
+    'dl_mass':{\
+        '_ratio': {'title':'M_{ll} (GeV)', 'name':'Mll', 'binning': mllbinning, 'histo':{}},
+        },
+    }
 
 
 #######################################################
@@ -74,18 +74,18 @@ plots = {\
 #######################################################
 
 for s in backgrounds:
-  chain = s["chain"]
-  for plot in plots.keys():
-  
-    chain.Draw(plot+">>"+plot+"_ratio"+s["name"]+plots[plot]['_ratio']['binning'],preselection)
-    plots[plot]['_ratio']['histo'][s["name"]] = ROOT.gDirectory.Get(plot+"_ratio"+s["name"])
+    chain = s["chain"]
+    for plot in plots.keys():
 
-    for selection in plots[plot].keys():
-      plots[plot][selection]['histo'][s['name']].Sumw2()
-      nbinsx= plots[plot][selection]['histo'][s['name']].GetNbinsX()
-      lastbin = plots[plot][selection]['histo'][s['name']].GetBinContent(nbinsx)
-      overflowbin = plots[plot][selection]['histo'][s['name']].GetBinContent(nbinsx)
-      plots[plot][selection]['histo'][s['name']].SetBinContent(nbinsx,lastbin+overflowbin)
+        chain.Draw(plot+">>"+plot+"_ratio"+s["name"]+plots[plot]['_ratio']['binning'],preselection)
+        plots[plot]['_ratio']['histo'][s["name"]] = ROOT.gDirectory.Get(plot+"_ratio"+s["name"])
+
+        for selection in plots[plot].keys():
+            plots[plot][selection]['histo'][s['name']].Sumw2()
+            nbinsx= plots[plot][selection]['histo'][s['name']].GetNbinsX()
+            lastbin = plots[plot][selection]['histo'][s['name']].GetBinContent(nbinsx)
+            overflowbin = plots[plot][selection]['histo'][s['name']].GetBinContent(nbinsx)
+            plots[plot][selection]['histo'][s['name']].SetBinContent(nbinsx,lastbin+overflowbin)
 
 
 processtime = datetime.now()
@@ -102,38 +102,38 @@ legendtextsize = 0.032
 ROOT.gStyle.SetErrorX(0.5)
 
 for i,b in enumerate(backgrounds):
-  for plot in plots.keys():
+    for plot in plots.keys():
 
-    #Make a stack for backgrounds
-    l=ROOT.TLegend(0.5,0.8,0.95,1.0)
-    l.SetFillColor(0)
-    l.SetShadowColor(ROOT.kWhite)
-    l.SetBorderSize(1)
-    l.SetTextSize(legendtextsize)
+        #Make a stack for backgrounds
+        l=ROOT.TLegend(0.5,0.8,0.95,1.0)
+        l.SetFillColor(0)
+        l.SetShadowColor(ROOT.kWhite)
+        l.SetBorderSize(1)
+        l.SetTextSize(legendtextsize)
 
-    #Plot!
-    c1 = ROOT.TCanvas()
+        #Plot!
+        c1 = ROOT.TCanvas()
 
-    for j,selection in enumerate(plots[plot].keys()):
+        for j,selection in enumerate(plots[plot].keys()):
 
-      integral = plots[plot][selection]['histo'][b["name"]].Integral()
-      plots[plot][selection]['histo'][b["name"]].Scale(1./integral)
+            integral = plots[plot][selection]['histo'][b["name"]].Integral()
+            plots[plot][selection]['histo'][b["name"]].Scale(1./integral)
 
-      print plot, selection, integral
+            print plot, selection, integral
 
-      plots[plot][selection]['histo'][b["name"]].SetLineColor(j+1)
-      plots[plot][selection]['histo'][b["name"]].SetLineWidth(1)
-      plots[plot][selection]['histo'][b["name"]].SetMarkerColor(j+1)
-      plots[plot][selection]['histo'][b["name"]].Draw("pe1same")
-      if j == 0: 
-        plots[plot][selection]['histo'][b["name"]].SetMaximum(3)
-        plots[plot][selection]['histo'][b["name"]].SetMinimum(10**-4)
-        plots[plot][selection]['histo'][b["name"]].GetXaxis().SetTitle(plots[plot][selection]['title'])
-        plots[plot][selection]['histo'][b["name"]].GetYaxis().SetTitle("Events (A.U.)")
-      l.AddEntry(plots[plot][selection]['histo'][b["name"]],plots[plot][selection]['name'])
-    c1.SetLogy()
-    l.Draw()
-    c1.Print(plotDir+"/test/DYstudy/"+plot+"_"+s["name"]+".png")
+            plots[plot][selection]['histo'][b["name"]].SetLineColor(j+1)
+            plots[plot][selection]['histo'][b["name"]].SetLineWidth(1)
+            plots[plot][selection]['histo'][b["name"]].SetMarkerColor(j+1)
+            plots[plot][selection]['histo'][b["name"]].Draw("pe1same")
+            if j == 0:
+                plots[plot][selection]['histo'][b["name"]].SetMaximum(3)
+                plots[plot][selection]['histo'][b["name"]].SetMinimum(10**-4)
+                plots[plot][selection]['histo'][b["name"]].GetXaxis().SetTitle(plots[plot][selection]['title'])
+                plots[plot][selection]['histo'][b["name"]].GetYaxis().SetTitle("Events (A.U.)")
+            l.AddEntry(plots[plot][selection]['histo'][b["name"]],plots[plot][selection]['name'])
+        c1.SetLogy()
+        l.Draw()
+        c1.Print(plotDir+"/test/DYstudy/"+plot+"_"+s["name"]+".png")
 
 makeplotstime = datetime.now()
 

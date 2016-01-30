@@ -1,5 +1,5 @@
 import ROOT
-ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C") 
+ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.setTDRStyle()
 import numpy
 
@@ -38,22 +38,22 @@ signals = []
 #            get the TChains for each sample          #
 #######################################################
 for s in backgrounds+signals:
-  s['chain'] = getChain(s,histname="") # A TChain is basically a TTree that contains a lot of data
+    s['chain'] = getChain(s,histname="") # A TChain is basically a TTree that contains a lot of data
 
 
 plots = {\
-  'met': {'title':'E^{miss}_{T} (GeV)', 'name':'MET', 'histo':{}},
-  }
+    'met': {'title':'E^{miss}_{T} (GeV)', 'name':'MET', 'histo':{}},
+    }
 
 
 #######################################################
 #            Start filling in the histograms          #
 #######################################################
 for i,s in enumerate(backgrounds+signals): #Enumerate returns a couple (index of key in array, dictionary)
-  chain = s["chain"]
+    chain = s["chain"]
 
-  chain.Draw("met_pt>>met"+str(i)+"(25,20,1020)",preselection)
-  plots['met']['histo'][s["name"]] = ROOT.gDirectory.Get("met"+str(i))
+    chain.Draw("met_pt>>met"+str(i)+"(25,20,1020)",preselection)
+    plots['met']['histo'][s["name"]] = ROOT.gDirectory.Get("met"+str(i))
 
 processtime = datetime.now()
 print "Time to process chains: ", processtime - start
@@ -74,34 +74,34 @@ WJetsToLNu_25ns['color']=ROOT.kRed-10
 legendtextsize = 0.032
 
 if makedraw1D:
-  for plot in plots.keys():
-    for s in backgrounds+signals:
-      integral = plots[plot]['histo'][s['name']].Integral()
-      plots[plot]['histo'][s['name']].Scale(1./integral)
-     
-      #Make a stack for backgrounds
-    l=ROOT.TLegend(0.6,0.8,1.0,1.0)
-    l.SetFillColor(0)
-    l.SetShadowColor(ROOT.kWhite)
-    l.SetBorderSize(1)
-    l.SetTextSize(legendtextsize)
+    for plot in plots.keys():
+        for s in backgrounds+signals:
+            integral = plots[plot]['histo'][s['name']].Integral()
+            plots[plot]['histo'][s['name']].Scale(1./integral)
 
-    #Plot!
-    c1 = ROOT.TCanvas()
-    for i,b in enumerate(backgrounds+signals):
-      plots[plot]['histo'][b["name"]].SetLineColor(b["color"])
-      plots[plot]['histo'][b["name"]].SetLineWidth(3)
-      plots[plot]['histo'][b["name"]].SetMarkerSize(0)
-      plots[plot]['histo'][b["name"]].Draw("same")
-      l.AddEntry(plots[plot]['histo'][b["name"]],b['name'])
-      if i == 0: 
-        plots[plot]['histo'][b["name"]].GetXaxis().SetTitle(plots[plot]['title'])
-        plots[plot]['histo'][b["name"]].GetYaxis().SetTitle("Events (A.U.)")
-        if plot!="met": plots[plot]['histo'][b["name"]].GetYaxis().SetRangeUser(0.001,2)
-        else:           plots[plot]['histo'][b["name"]].GetYaxis().SetRangeUser(0.00001,2)
-    c1.SetLogy()
-    l.Draw()
-    c1.Print("./"+plots[plot]['name']+".png")
+            #Make a stack for backgrounds
+        l=ROOT.TLegend(0.6,0.8,1.0,1.0)
+        l.SetFillColor(0)
+        l.SetShadowColor(ROOT.kWhite)
+        l.SetBorderSize(1)
+        l.SetTextSize(legendtextsize)
+
+        #Plot!
+        c1 = ROOT.TCanvas()
+        for i,b in enumerate(backgrounds+signals):
+            plots[plot]['histo'][b["name"]].SetLineColor(b["color"])
+            plots[plot]['histo'][b["name"]].SetLineWidth(3)
+            plots[plot]['histo'][b["name"]].SetMarkerSize(0)
+            plots[plot]['histo'][b["name"]].Draw("same")
+            l.AddEntry(plots[plot]['histo'][b["name"]],b['name'])
+            if i == 0:
+                plots[plot]['histo'][b["name"]].GetXaxis().SetTitle(plots[plot]['title'])
+                plots[plot]['histo'][b["name"]].GetYaxis().SetTitle("Events (A.U.)")
+                if plot!="met": plots[plot]['histo'][b["name"]].GetYaxis().SetRangeUser(0.001,2)
+                else:           plots[plot]['histo'][b["name"]].GetYaxis().SetRangeUser(0.00001,2)
+        c1.SetLogy()
+        l.Draw()
+        c1.Print("./"+plots[plot]['name']+".png")
 
 makeplotstime = datetime.now()
 

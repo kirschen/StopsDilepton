@@ -15,7 +15,7 @@ setup.verbose=True
 signalEstimators = [ MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=None ) for s in [T2tt_450_0] ]
 
 channel = 'MuMu'
-sigEstimate = signalEstimators[0] 
+sigEstimate = signalEstimators[0]
 from StopsDilepton.analysis.Region import Region
 region=Region('dl_mt2ll', (140,-1))
 

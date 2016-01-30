@@ -1,4 +1,4 @@
-import ROOT 
+import ROOT
 ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.setTDRStyle()
 
@@ -40,42 +40,42 @@ path = "/afs/cern.ch/work/w/wvandrie/public/STOPS/ANALYSIS/CMSSW_7_4_7_patch1/sr
 
 
 fttSF = ROOT.TFile.Open(path+"tt+Jets2L2Nu_SF.root")
-httSF =  fttSF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+httSF =  fttSF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 fttOF = ROOT.TFile.Open(path+"tt+Jets2L2Nu_emu.root")
-httOF =  fttOF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+httOF =  fttOF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 
 fwjetsSF = ROOT.TFile.Open(path+"W+Jets_SF.root")
-hwjetsSF =  fwjetsSF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hwjetsSF =  fwjetsSF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 fwjetsOF = ROOT.TFile.Open(path+"W+Jets_emu.root")
-hwjetsOF =  fwjetsOF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hwjetsOF =  fwjetsOF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 
 fttxSF = ROOT.TFile.Open(path+"TTX_SF.root")
-httxSF =  fttxSF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+httxSF =  fttxSF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 fttxOF = ROOT.TFile.Open(path+"TTX_emu.root")
-httxOF =  fttxOF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+httxOF =  fttxOF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 
 fsingletopSF = ROOT.TFile.Open(path+"singletop_SF.root")
-hsingletopSF =  fsingletopSF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hsingletopSF =  fsingletopSF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 fsingletopOF = ROOT.TFile.Open(path+"singletop_emu.root")
-hsingletopOF =  fsingletopOF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hsingletopOF =  fsingletopOF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 
 fdibosonsSF = ROOT.TFile.Open(path+"WW+WZ+ZZ_SF.root")
-hdibosonsSF =  fdibosonsSF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hdibosonsSF =  fdibosonsSF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 fdibosonsOF = ROOT.TFile.Open(path+"WW+WZ+ZZ_emu.root")
-hdibosonsOF =  fdibosonsOF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hdibosonsOF =  fdibosonsOF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 
 fdySF = ROOT.TFile.Open(path+"DY_SF.root")
-hdySF =  fdySF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hdySF =  fdySF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 fdyOF = ROOT.TFile.Open(path+"DY_emu.root")
-hdyOF =  fdyOF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hdyOF =  fdyOF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 
 fqcdSF = ROOT.TFile.Open(path+"QCD_Mu_SF.root")
-hqcdSF =  fqcdSF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hqcdSF =  fqcdSF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 fqcdOF = ROOT.TFile.Open(path+"QCD_Mu_emu.root")
-hqcdOF =  fqcdOF.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hqcdOF =  fqcdOF.Get("h3_mt2bbvsmt2blblvsmt2ll")
 
 fsig = ROOT.TFile.Open(path+"SMS_T2tt_2J_mStop650_mLSP325.root")
-hsig =  fsig.Get("h3_mt2bbvsmt2blblvsmt2ll") 
+hsig =  fsig.Get("h3_mt2bbvsmt2blblvsmt2ll")
 
 
 # unrolling
@@ -97,7 +97,7 @@ hsig1 = ThreeD(hsig)
 hsig1.Sumw2()
 
 
-# plots 
+# plots
 bkg_stack = ROOT.THStack("bkgs","bkgs")
 bkg_stack.Add(hwjetsSF1)
 bkg_stack.Add(hwjetsOF1)

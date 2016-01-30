@@ -38,21 +38,21 @@ signals = []
 #            get the TChains for each sample          #
 #######################################################
 for s in backgrounds+signals:
-  s['chain'] = getChain(s,histname="")
+    s['chain'] = getChain(s,histname="")
 
 plots = {\
-  'lheHTIncoming': {'title':'lheHTIncoming (GeV)', 'name':'lheHTIncoming', 'histo':{}},
-  }
+    'lheHTIncoming': {'title':'lheHTIncoming (GeV)', 'name':'lheHTIncoming', 'histo':{}},
+    }
 
 
 #######################################################
 #            Start filling in the histograms          #
 #######################################################
 for i,s in enumerate(backgrounds+signals):
-  chain = s["chain"]
+    chain = s["chain"]
 
-  chain.Draw("lheHTIncoming>>lheHTIncoming"+str(i)+"(25,0,1000)","(weight)*("+preselection+")")
-  plots['lheHTIncoming']['histo'][s["name"]] = ROOT.gDirectory.Get("lheHTIncoming"+str(i))
+    chain.Draw("lheHTIncoming>>lheHTIncoming"+str(i)+"(25,0,1000)","(weight)*("+preselection+")")
+    plots['lheHTIncoming']['histo'][s["name"]] = ROOT.gDirectory.Get("lheHTIncoming"+str(i))
 
 processtime = datetime.now()
 print "Time to process chains: ", processtime - start
@@ -63,32 +63,32 @@ print "Time to process chains: ", processtime - start
 legendtextsize = 0.032
 
 if makedraw1D:
-  for plot in plots.keys():
-    for s in backgrounds+signals:
-      integral = plots[plot]['histo'][s['name']].Integral()
-      #plots[plot]['histo'][s['name']].Scale(1./integral)
-     
-      #Make a stack for backgrounds
-    l=ROOT.TLegend(0.6,0.8,1.0,1.0)
-    l.SetFillColor(0)
-    l.SetShadowColor(ROOT.kWhite)
-    l.SetBorderSize(1)
-    l.SetTextSize(legendtextsize)
+    for plot in plots.keys():
+        for s in backgrounds+signals:
+            integral = plots[plot]['histo'][s['name']].Integral()
+            #plots[plot]['histo'][s['name']].Scale(1./integral)
 
-    #Plot!
-    c1 = ROOT.TCanvas()
-    for i,b in enumerate(backgrounds+signals):
-      plots[plot]['histo'][b["name"]].SetLineColor(b["color"])
-      plots[plot]['histo'][b["name"]].SetLineWidth(3)
-      plots[plot]['histo'][b["name"]].SetMarkerSize(0)
-      plots[plot]['histo'][b["name"]].Draw("HISTsame")
-      l.AddEntry(plots[plot]['histo'][b["name"]],b['name'])
-      if i == 0: 
-        plots[plot]['histo'][b["name"]].GetXaxis().SetTitle(plots[plot]['title'])
-        plots[plot]['histo'][b["name"]].GetYaxis().SetTitle("Events (A.U.)")
-    c1.SetLogy()
-    l.Draw()
-    c1.Print("./"+plots[plot]['name']+".png")
+            #Make a stack for backgrounds
+        l=ROOT.TLegend(0.6,0.8,1.0,1.0)
+        l.SetFillColor(0)
+        l.SetShadowColor(ROOT.kWhite)
+        l.SetBorderSize(1)
+        l.SetTextSize(legendtextsize)
+
+        #Plot!
+        c1 = ROOT.TCanvas()
+        for i,b in enumerate(backgrounds+signals):
+            plots[plot]['histo'][b["name"]].SetLineColor(b["color"])
+            plots[plot]['histo'][b["name"]].SetLineWidth(3)
+            plots[plot]['histo'][b["name"]].SetMarkerSize(0)
+            plots[plot]['histo'][b["name"]].Draw("HISTsame")
+            l.AddEntry(plots[plot]['histo'][b["name"]],b['name'])
+            if i == 0:
+                plots[plot]['histo'][b["name"]].GetXaxis().SetTitle(plots[plot]['title'])
+                plots[plot]['histo'][b["name"]].GetYaxis().SetTitle("Events (A.U.)")
+        c1.SetLogy()
+        l.Draw()
+        c1.Print("./"+plots[plot]['name']+".png")
 
 makeplotstime = datetime.now()
 

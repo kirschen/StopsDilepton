@@ -12,25 +12,25 @@ import string
 
 #background = ["TTJets2L2Nu", "WJets", "QCDMu", "DrellYan", "TTX", "singleTop"]
 background = ["DrellYanHT", "DrellYanInclusive"]
-signal = ["T2ttS425N325"] 
-data = ["DoubleElec", "DoubleMuon", "MuonElec"] 
+signal = ["T2ttS425N325"]
+data = ["DoubleElec", "DoubleMuon", "MuonElec"]
 
-#everything = signal + background + data 
-everything =  background 
+#everything = signal + background + data
+everything =  background
 
 for process in range(len(everything)):
 
 	print everything[process]
 	#f = ROOT.TFile.Open("~/public/4Nicolas/v5/"+ everything[process] +".root")
 	f = ROOT.TFile.Open("ntuples/"+ everything[process] +".root")
-	plot = TH1D("plot", "plot", 50, 0, 500) 
+	plot = TH1D("plot", "plot", 50, 0, 500)
 
 	for event in f.anaTree :
 
 		isSF=0
 		isOF=0
 
-		lumi = 10. 
+		lumi = 10.
 
 		if event.isElecElec or event.isMuonMuon:
 			isSF=1
@@ -44,7 +44,7 @@ for process in range(len(everything)):
 	
 			plot.Sumw2()
 
-			if event.isMC: 
+			if event.isMC:
 				plot.Fill( event.HT, event.xsecWeight*lumi/100)
 			else:
 				plot.Fill( event.HT)
@@ -55,7 +55,7 @@ for process in range(len(everything)):
 
 
 
-#plots 
+#plots
 
 	c1 = ROOT.TCanvas("c1","example",650,700)
 	#plot.SetMaximum(2*plot.GetMaximum())

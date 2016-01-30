@@ -3,14 +3,14 @@ ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/useNiceColorPalette.C")
 ROOT.setTDRStyle()
 if type(ROOT.tdrStyle)!=type(ROOT.gStyle):
-  del ROOT.tdrStyle
-  ROOT.setTDRStyle()
+    del ROOT.tdrStyle
+    ROOT.setTDRStyle()
 ROOT.useNiceColorPalette(255)
 ROOT.tdrStyle.SetPadRightMargin(0.15)
 
 from math import *
 from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue
-from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, getJets 
+from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, getJets
 from StopsDilepton.tools.localInfo import *
 
 #preselection: MET>50, HT>100, n_bjets>=2
@@ -28,22 +28,22 @@ samples = [TTJets_50ns, DoubleMuon_Run2015B]
 
 #get the TChains for each sample
 for s in samples:
-  s['chain'] = getChain(s,histname="")
+    s['chain'] = getChain(s,histname="")
 
 #plots
 plots = [\
-  {'name':'mt2ll_vs_mt2bb',   'varX':'dl_mt2ll', 'varY':'dl_mt2bb', 'binning': [25,25,275,25,25,275], 'histo':{}},
-  {'name':'mt2ll_vs_mt2blbl', 'varX':'dl_mt2ll', 'varY':'dl_mt2blbl', 'binning': [25,25,275,25,25,275], 'histo':{}},
-  {'name':'mt2blbl_vs_mt2bb', 'varX':'dl_mt2blbl', 'varY':'dl_mt2bb', 'binning': [25,25,275,25,25,275], 'histo':{}},
+    {'name':'mt2ll_vs_mt2bb',   'varX':'dl_mt2ll', 'varY':'dl_mt2bb', 'binning': [25,25,275,25,25,275], 'histo':{}},
+    {'name':'mt2ll_vs_mt2blbl', 'varX':'dl_mt2ll', 'varY':'dl_mt2blbl', 'binning': [25,25,275,25,25,275], 'histo':{}},
+    {'name':'mt2blbl_vs_mt2bb', 'varX':'dl_mt2blbl', 'varY':'dl_mt2bb', 'binning': [25,25,275,25,25,275], 'histo':{}},
 ]
 
-#make plot in each sample: 
+#make plot in each sample:
 for s in samples:
-  for p in plots:
-    p['histo'][s['name']] = ROOT.TH2F("met_"+s["name"], "met_"+s["name"], *(p['binning']))
-    s["chain"].Draw(p['varY']+":"+p['varX']+'>>'+p['histo'][s['name']].GetName(), preselection)
+    for p in plots:
+        p['histo'][s['name']] = ROOT.TH2F("met_"+s["name"], "met_"+s["name"], *(p['binning']))
+        s["chain"].Draw(p['varY']+":"+p['varX']+'>>'+p['histo'][s['name']].GetName(), preselection)
 #  print "Looping over %s" % s["name"]
-#  eList = getEList(chain, preselection) 
+#  eList = getEList(chain, preselection)
 #  nEvents = eList.GetN()/reduceStat
 #  print "Found %i events in %s after preselection %s, looping over %i" % (eList.GetN(),s["name"],preselection,nEvents)
 #  for ev in range(nEvents):
@@ -52,16 +52,16 @@ for s in samples:
 #    #event weight (L= 4fb^-1)
 #    weight = reduceStat*getVarValue(chain, "weight")
 #    #MET
-#        
+#
 #  del eList
 
 #Some coloring
 
 for p in plots:
-  #Make a stack for samples
-  for s in samples:
-    c1 = ROOT.TCanvas()
-    p['histo'][s['name']].Draw("COLZ")
-    c1.SetLogz()
-    c1.Print(plotDir+"/"+s['name']+'_'+p["name"]+".png")
-    print s['name'], p["name"], p['histo'][s['name']].GetCorrelationFactor()
+    #Make a stack for samples
+    for s in samples:
+        c1 = ROOT.TCanvas()
+        p['histo'][s['name']].Draw("COLZ")
+        c1.SetLogz()
+        c1.Print(plotDir+"/"+s['name']+'_'+p["name"]+".png")
+        print s['name'], p["name"], p['histo'][s['name']].GetCorrelationFactor()

@@ -35,4 +35,4 @@ deletefiles += [i for i in os.listdir('./') if ("Double" in i or "Muon" in i)]
 deletefiles = list(set(deletefiles))
 
 for f in deletefiles:
-    os.remove(f)
+        os.remove(f)

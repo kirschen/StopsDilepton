@@ -14,18 +14,18 @@ setup.parameters['metMin'] = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
 if options.multiIsoWP!="":
-  multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
-  wpMu, wpEle=options.multiIsoWP.split(',')
-  from StopsDilepton.tools.objectSelection import multiIsoLepString
-  setup.externalCuts.append(multiIsoLepString(wpMu, wpEle, ('l1_index','l2_index')))
-  setup.prefixes.append('multiIso'+options.multiIsoWP.replace(',',''))
+    multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
+    wpMu, wpEle=options.multiIsoWP.split(',')
+    from StopsDilepton.tools.objectSelection import multiIsoLepString
+    setup.externalCuts.append(multiIsoLepString(wpMu, wpEle, ('l1_index','l2_index')))
+    setup.prefixes.append('multiIso'+options.multiIsoWP.replace(',',''))
 
 if options.relIso04>0:
-  setup.externalCuts.append("&&".join(["LepGood_relIso04["+ist+"]<"+str(options.relIso04) for ist in ('l1_index','l2_index')]))
-  setup.prefixes.append('relIso04sm'+str(int(100*options.relIso04)))
+    setup.externalCuts.append("&&".join(["LepGood_relIso04["+ist+"]<"+str(options.relIso04) for ist in ('l1_index','l2_index')]))
+    setup.prefixes.append('relIso04sm'+str(int(100*options.relIso04)))
 
 for e in bkgEstimators:
-  e.initCache(setup.defaultCacheDir())
+    e.initCache(setup.defaultCacheDir())
 
 setup.verbose=True
 #from multi_estimate import multi_estimate
@@ -43,41 +43,41 @@ signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, param
 #regions=regions[:1]
 
 def wrapper(args):
-    r,channel,setup = args
-    res = estimate.cachedEstimate(r, channel, setup, save=False)
+        r,channel,setup = args
+        res = estimate.cachedEstimate(r, channel, setup, save=False)
 #    res = estimate._estimate(r, channel, setup)
 #    ROOT.gROOT.GetListOfClasses().ls()
 #    ROOT.gROOT.GetListOfDataSets().ls()
-    return (estimate.uniqueKey(r, channel, setup), res )
+        return (estimate.uniqueKey(r, channel, setup), res )
 
 for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, bkgEstimators ] ]:
-  for estimate in estimators_:
-    setup_ = signalSetup if isSignal else setup
-    if not options.dontSkipIfCachefileExists and estimate.cache.cacheFileLoaded: 
-      print "Cache file %s was loaded -> Skipping."%estimate.cache.filename
-      continue
-    jobs=[]
-    for channel in ['MuMu' ,'EE', 'EMu']:
-      for r in regions:
-        jobs.append((r, channel, setup_))
-        jobs.extend(estimate.getBkgSysJobs(r, channel, setup_))
-        if isSignal:
-          jobs.extend(estimate.getSigSysJobs(r, channel, setup_))
+    for estimate in estimators_:
+        setup_ = signalSetup if isSignal else setup
+        if not options.dontSkipIfCachefileExists and estimate.cache.cacheFileLoaded:
+            print "Cache file %s was loaded -> Skipping."%estimate.cache.filename
+            continue
+        jobs=[]
+        for channel in ['MuMu' ,'EE', 'EMu']:
+            for r in regions:
+                jobs.append((r, channel, setup_))
+                jobs.extend(estimate.getBkgSysJobs(r, channel, setup_))
+                if isSignal:
+                    jobs.extend(estimate.getSigSysJobs(r, channel, setup_))
 
-    from multiprocessing import Pool
-    pool = Pool(processes=20)
+        from multiprocessing import Pool
+        pool = Pool(processes=20)
 
-    results = pool.map(wrapper, jobs)
-    pool.close()
-    pool.join()
+        results = pool.map(wrapper, jobs)
+        pool.close()
+        pool.join()
 
-    for r in results:
-      estimate.cache.add(*r, save=False)
+        for r in results:
+            estimate.cache.add(*r, save=False)
 
-    for channel in ['all']:
-      for r in regions:
-        estimate.cachedEstimate(r, channel, setup_, save=False)
-        map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getBkgSysJobs(r, channel, setup_))
-        if isSignal:
-          map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getSigSysJobs(r, channel, setup_))
-    estimate.cache.save()
+        for channel in ['all']:
+            for r in regions:
+                estimate.cachedEstimate(r, channel, setup_, save=False)
+                map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getBkgSysJobs(r, channel, setup_))
+                if isSignal:
+                    map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getSigSysJobs(r, channel, setup_))
+        estimate.cache.save()

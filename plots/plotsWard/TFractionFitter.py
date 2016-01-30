@@ -7,16 +7,16 @@ mc1 = ROOT.TH1F("mc1","mc1",50,-5,5)
 r = ROOT.TRandom3()
 
 for i in range(100000):
-    data.Fill(r.Gaus(3,2.5))
-    data.Fill(r.Gaus(-3,2.5))
-    data.Fill(r.Gaus(-3,2.5))
-    mc0.Fill(r.Gaus(3,2.5))
-    mc1.Fill(r.Gaus(-3,2.5))
+        data.Fill(r.Gaus(3,2.5))
+        data.Fill(r.Gaus(-3,2.5))
+        data.Fill(r.Gaus(-3,2.5))
+        mc0.Fill(r.Gaus(3,2.5))
+        mc1.Fill(r.Gaus(-3,2.5))
 
 mc = ROOT.TObjArray(2)
 mc.Add(mc0);
 mc.Add(mc1);
-fit = ROOT.TFractionFitter(data, mc); 
+fit = ROOT.TFractionFitter(data, mc);
 fit.Constrain(1,0.0,1.0);
 
 fit.Fit()

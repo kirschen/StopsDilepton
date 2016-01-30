@@ -1,7 +1,7 @@
 import copy, os, sys
 from StopsDilepton.tools.localInfo import dataDir
 import ROOT
-dir = dataDir 
+dir = dataDir
 
 DY={\
 "name" : "DY",

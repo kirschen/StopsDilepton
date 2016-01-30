@@ -1,6 +1,6 @@
 import copy, os, sys
 from StopsDilepton.tools.localInfo import dataDir
-dir = dataDir 
+dir = dataDir
 
 DY_15={\
 "name": "DY_15",

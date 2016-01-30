@@ -10,7 +10,7 @@ import array
 
 from StopsDilepton.tools.mtautau import mtautau as mtautau_
 from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue, deltaPhi
-from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, looseEleID, getJets 
+from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, looseEleID, getJets
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()
 from StopsDilepton.tools.localInfo import *
@@ -33,21 +33,21 @@ from StopsDilepton.samples.cmgTuples_Spring15_25ns_postProcessed import *
 backgrounds = [TTLep_25ns]
 
 for b in backgrounds:
-  b['isData']=0
+    b['isData']=0
 
 signals = [SMS_T2tt_2J_mStop425_mLSP325, SMS_T2tt_2J_mStop500_mLSP325, SMS_T2tt_2J_mStop650_mLSP325, SMS_T2tt_2J_mStop850_mLSP100]
-#signals = [SMS_T2tt_2J_mStop425_mLSP325] 
+#signals = [SMS_T2tt_2J_mStop425_mLSP325]
 
 for s in signals:
-  s['isData']=0
+    s['isData']=0
 
 data = [DoubleEG_25ns,DoubleMuon_25ns,MuonEG_25ns]
 for d in data:
-  d['isData']=1
+    d['isData']=1
 
 #get the TChains for each sample
 for s in backgrounds+signals+data:
-  s['chain'] = getChain(s,histname="")
+    s['chain'] = getChain(s,histname="")
 
 #for s in backgrounds+signals+data:
 for s in backgrounds+signals:
@@ -157,13 +157,13 @@ for s in backgrounds+signals:
 		mt2ll[0] = 0
 		mt2bb[0] = 0
 		mt2blbl[0] = 0
-		MET[0] = met 
+		MET[0] = met
 		METPhi[0] = metPhi
 		xsecWeight[0] = weight
 		isMC[0] = 1-s['isData']
-		isElecElec[0] = 0 
-		isMuonMuon[0] = 0 
-		isMuonElec[0] = 0 
+		isElecElec[0] = 0
+		isMuonMuon[0] = 0
+		isMuonElec[0] = 0
 		if not s["name"].find("SMS"):
 			pileupWeight[0] = getVarValue(chain,"puWeight")
 
@@ -206,8 +206,8 @@ for s in backgrounds+signals:
 		Process[:200] = s["name"]
 		HT[0] = sum([j['pt'] for j in jets])
 		METSqrtHT[0] = met/HT[0]
-		ptLeadingBJet[0] = bjets[0]['pt'] 
-		etaLeadingBJet[0] = bjets[0]['eta'] 
+		ptLeadingBJet[0] = bjets[0]['pt']
+		etaLeadingBJet[0] = bjets[0]['eta']
 
 		PhiMetJet1 = deltaPhi(metPhi,getVarValue(chain, "Jet_phi",0))
 		PhiMetJet2 = deltaPhi(metPhi,getVarValue(chain, "Jet_phi",1))
@@ -218,32 +218,32 @@ for s in backgrounds+signals:
 		mindPhiMetJet12[0] = PhiMetJet_small
 
 
-		ptLeadingJet[0] = getVarValue(chain, "Jet_pt",0) 
-		ptSubLeadingJet[0] = getVarValue(chain, "Jet_pt",1) 
-		etaLeadingJet[0] = getVarValue(chain, "Jet_eta",0) 
+		ptLeadingJet[0] = getVarValue(chain, "Jet_pt",0)
+		ptSubLeadingJet[0] = getVarValue(chain, "Jet_pt",1)
+		etaLeadingJet[0] = getVarValue(chain, "Jet_eta",0)
 		etaSubLeadingJet[0] = getVarValue(chain, "Jet_eta",1)
 		phiLeadingJet[0] = getVarValue(chain, "Jet_phi",0)
-		phiSubLeadingJet[0] = getVarValue(chain, "Jet_phi",1) 
+		phiSubLeadingJet[0] = getVarValue(chain, "Jet_phi",1)
 
 
-		if len(leptons)>=2 and leptons[0]['pdgId']*leptons[1]['pdgId']<0: 
+		if len(leptons)>=2 and leptons[0]['pdgId']*leptons[1]['pdgId']<0:
 		
-			## OF SF choice 
+			## OF SF choice
 			if leptons[0]['pdgId']+leptons[1]['pdgId']==0 and abs(leptons[0]['pdgId'])==11:
 				isElecElec[0] = 1
 			if leptons[0]['pdgId']+leptons[1]['pdgId']==0 and abs(leptons[0]['pdgId'])==13:
 				isMuonMuon[0] = 1
-			if abs(leptons[0]['pdgId'])+abs(leptons[1]['pdgId'])==24: 
+			if abs(leptons[0]['pdgId'])+abs(leptons[1]['pdgId'])==24:
 				isMuonElec[0] = 1
 
 
 			l0pt, l0eta, l0phi, l0mass = leptons[0]['pt'],  leptons[0]['eta'],  leptons[0]['phi'],  leptons[0]['mass']
-			l1pt, l1eta, l1phi, l1mass = leptons[1]['pt'],  leptons[1]['eta'],  leptons[1]['phi'],  leptons[1]['mass'] 
+			l1pt, l1eta, l1phi, l1mass = leptons[1]['pt'],  leptons[1]['eta'],  leptons[1]['phi'],  leptons[1]['mass']
 
 			mll = sqrt(2.*l0pt*l1pt*(cosh(l0eta-l1eta)-cos(l0phi-l1phi)))
 
 			dileptonInvariantMass[0] = mll
-			ptLeadingLepton[0] = l0pt 
+			ptLeadingLepton[0] = l0pt
 			ptSubLeadingLepton[0] = l1pt
 
 			lepton1.SetPtEtaPhiM(l0pt, l0eta, l0phi, l0mass)
@@ -254,18 +254,18 @@ for s in backgrounds+signals:
 		mt2Calc.setMet(met,metPhi)
 		#mt2Calc.setLeptons(l0pt, l0eta, l0phi, l1pt, l1eta, l1phi)
 		#mt2ll[0] = mt2Calc.mt2ll()
-		mt2ll[0] = getVarValue(chain, "dl_mt2ll") 
+		mt2ll[0] = getVarValue(chain, "dl_mt2ll")
 
 		if len(bjets)>=2:
 			mt2Calc.setBJets(bjets[0]['pt'], bjets[0]['eta'], bjets[0]['phi'], bjets[1]['pt'], bjets[1]['eta'], bjets[1]['phi'])
 			#mt2bb[0]   = mt2Calc.mt2bb()
 			#mt2blbl[0] = mt2Calc.mt2blbl()
-			mt2bb[0]   = getVarValue(chain, "dl_mt2bb") 
+			mt2bb[0]   = getVarValue(chain, "dl_mt2bb")
 			mt2blbl[0] = getVarValue(chain, "dl_mt2blbl")
 		
 
 		if dileptonInvariantMass[0] > 20 and nbjets[0] >0 and nleptons[0]==2 and njets[0] > 1 and MET[0] > 80 and mindPhiMetJet12[0] > 0.25 and MET[0]/sqrt(HT[0]) > 5:
-#		if mll>20 and njets[0] > 0 and nleptons[0]==2 and trigger==1: 
+#		if mll>20 and njets[0] > 0 and nleptons[0]==2 and trigger==1:
 
 			t.Fill()
 

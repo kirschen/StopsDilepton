@@ -14,7 +14,7 @@ parser.add_option("--outfile", dest="outfile", default="", type="string", action
 
 ofilename = os.path.join(plotDir, options.outfile)
 if not os.path.exists(os.path.dirname(ofilename)):
-  os.makedirs(os.path.dirname(ofilename))
+    os.makedirs(os.path.dirname(ofilename))
 
 files=options.filenames.split(',')
 print files
@@ -22,7 +22,7 @@ assert len(files)==2, "Need two files"
 
 T2tt_exp = {}
 for i, f in enumerate(files):
-  T2tt_exp[i]= getObjFromFile(f, "T2tt_exp")
+    T2tt_exp[i]= getObjFromFile(f, "T2tt_exp")
 
 ROOT.gStyle.SetPadRightMargin(0.15)
 niceColorPalette(255)

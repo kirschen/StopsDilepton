@@ -3,9 +3,9 @@ from StopsDilepton.tools.mtautau import mtautau
 from math import cos, sin, sqrt, pi
 
 def scaleMomentum(v, scale):
-  res=v.Clone()
-  res.SetXYZM(scale * res.X(), scale * res.Y(), scale * res.Z(), res.M())
-  return res
+    res=v.Clone()
+    res.SetXYZM(scale * res.X(), scale * res.Y(), scale * res.Z(), res.M())
+    return res
 
 tau_m = 0.
 Z_m = 91.2
@@ -14,7 +14,7 @@ tau_phi=pi/4
 tau_eta=1.
 tau_pt = sqrt((Z_m**2/4. - tau_m**2)/cos(tau_phi)**2)
 
-frac_neu1 = 0.3 #fraction of momentum carried by neutrino1 
+frac_neu1 = 0.3 #fraction of momentum carried by neutrino1
 frac_neu2 = 0.7 #fraction of momentum carried by neutrino2
 
 tau1_p = ROOT.TLorentzVector()

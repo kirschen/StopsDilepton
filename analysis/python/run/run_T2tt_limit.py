@@ -15,18 +15,18 @@ setup.parameters['metMin'] = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
 if options.multiIsoWP!="":
-  multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
-  wpMu, wpEle=options.multiIsoWP.split(',')
-  from StopsDilepton.tools.objectSelection import multiIsoLepString
-  setup.externalCuts.append(multiIsoLepString(wpMu, wpEle, ('l1_index','l2_index')))
-  setup.prefixes.append('multiIso'+options.multiIsoWP.replace(',',''))
+    multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
+    wpMu, wpEle=options.multiIsoWP.split(',')
+    from StopsDilepton.tools.objectSelection import multiIsoLepString
+    setup.externalCuts.append(multiIsoLepString(wpMu, wpEle, ('l1_index','l2_index')))
+    setup.prefixes.append('multiIso'+options.multiIsoWP.replace(',',''))
 
 if options.relIso04>0:
-  setup.externalCuts.append("&&".join(["LepGood_relIso04["+ist+"]<"+str(options.relIso04) for ist in ('l1_index','l2_index')]))
-  setup.prefixes.append('relIso04sm'+str(int(100*options.relIso04)))
+    setup.externalCuts.append("&&".join(["LepGood_relIso04["+ist+"]<"+str(options.relIso04) for ist in ('l1_index','l2_index')]))
+    setup.prefixes.append('relIso04sm'+str(int(100*options.relIso04)))
 
 for e in bkgEstimators:
-  e.initCache(setup.defaultCacheDir())
+    e.initCache(setup.defaultCacheDir())
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_1l_postProcessed import *
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
@@ -34,7 +34,7 @@ from StopsDilepton.analysis.u_float import u_float
 from math import sqrt
 ##https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSYSignalSystematicsRun2
 from StopsDilepton.tools.btagEfficiency import btagWeightNames_FS_1b, btagWeightNames_1b
-from StopsDilepton.tools.localInfo import releaseLocation71XC 
+from StopsDilepton.tools.localInfo import releaseLocation71XC
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 limitPrefix = 'flavSplit_almostAllReg'
@@ -42,112 +42,112 @@ overWrite = True
 verbose   = True
 
 def wrapper(s):
-  c = cardFileWriter.cardFileWriter()
-  c.releaseLocation = releaseLocation71XC
+    c = cardFileWriter.cardFileWriter()
+    c.releaseLocation = releaseLocation71XC
 
-  counter=0
-  c.reset()
-  c.addUncertainty('PU', 'lnN')
-  c.addUncertainty('topPt', 'lnN')
-  c.addUncertainty('JEC', 'lnN')
-  c.addUncertainty('JER', 'lnN')
-  c.addUncertainty('SFb', 'lnN')
-  c.addUncertainty('SFl', 'lnN')
-  c.addUncertainty('SFFS', 'lnN')
-  c.addUncertainty('leptonSF', 'lnN')
+    counter=0
+    c.reset()
+    c.addUncertainty('PU', 'lnN')
+    c.addUncertainty('topPt', 'lnN')
+    c.addUncertainty('JEC', 'lnN')
+    c.addUncertainty('JER', 'lnN')
+    c.addUncertainty('SFb', 'lnN')
+    c.addUncertainty('SFl', 'lnN')
+    c.addUncertainty('SFFS', 'lnN')
+    c.addUncertainty('leptonSF', 'lnN')
 
-  eSignal = MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() )
-  cardFileName = os.path.join(setup.analysisOutputDir,  setup.prefix(), 'cardFiles', limitPrefix, s['name']+'.txt')
-  if not os.path.exists(cardFileName) or overWrite:
-    for r in regions:
-      for channel in ['MuMu', 'EE', 'EMu']:
+    eSignal = MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() )
+    cardFileName = os.path.join(setup.analysisOutputDir,  setup.prefix(), 'cardFiles', limitPrefix, s['name']+'.txt')
+    if not os.path.exists(cardFileName) or overWrite:
+        for r in regions:
+            for channel in ['MuMu', 'EE', 'EMu']:
 #      for channel in ['all']:
-        niceName = ' '.join([channel, r.__str__()])
-        binname = 'Bin'+str(counter)
-        counter += 1
-        total_exp_bkg = 0
-        c.addBin(binname, [e.name for e in bkgEstimators], niceName)
-        for e in bkgEstimators:
-          expected = e.cachedEstimate(r, channel, setup)
-          total_exp_bkg += expected.val
-          c.specifyExpectation(binname, e.name, expected.val )
+                niceName = ' '.join([channel, r.__str__()])
+                binname = 'Bin'+str(counter)
+                counter += 1
+                total_exp_bkg = 0
+                c.addBin(binname, [e.name for e in bkgEstimators], niceName)
+                for e in bkgEstimators:
+                    expected = e.cachedEstimate(r, channel, setup)
+                    total_exp_bkg += expected.val
+                    c.specifyExpectation(binname, e.name, expected.val )
 
-          if expected.val>0:
+                    if expected.val>0:
 
-            #PU bkg
-            c.specifyUncertainty('PU', binname, e.name, 1 + e.PUSystematic(r, channel, setup).val )
+                        #PU bkg
+                        c.specifyUncertainty('PU', binname, e.name, 1 + e.PUSystematic(r, channel, setup).val )
 
-            #JEC bkg
-            c.specifyUncertainty('JEC', binname, e.name, 1 + e.JECSystematic(r, channel, setup).val )
+                        #JEC bkg
+                        c.specifyUncertainty('JEC', binname, e.name, 1 + e.JECSystematic(r, channel, setup).val )
 
-            #JER bkg
-            c.specifyUncertainty('JER', binname, e.name, 1 + e.JERSystematic(r, channel, setup).val )
+                        #JER bkg
+                        c.specifyUncertainty('JER', binname, e.name, 1 + e.JERSystematic(r, channel, setup).val )
 
-            #topPt reweighting
-            c.specifyUncertainty('topPt', binname, e.name, 1 + e.topPtSystematic(r, channel, setup).val )
+                        #topPt reweighting
+                        c.specifyUncertainty('topPt', binname, e.name, 1 + e.topPtSystematic(r, channel, setup).val )
 
-            #b-tagging SF
-            c.specifyUncertainty('SFb', binname, e.name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
-            c.specifyUncertainty('SFl', binname, e.name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
+                        #b-tagging SF
+                        c.specifyUncertainty('SFb', binname, e.name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
+                        c.specifyUncertainty('SFl', binname, e.name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
 
-            #MC bkg stat (some condition to neglect the smaller ones?)
-            uname = 'Stat_'+binname+'_'+e.name
-            c.addUncertainty(uname, 'lnN') 
-            c.specifyUncertainty('Stat_'+binname+'_'+e.name, binname, e.name, 1+expected.sigma/expected.val )
+                        #MC bkg stat (some condition to neglect the smaller ones?)
+                        uname = 'Stat_'+binname+'_'+e.name
+                        c.addUncertainty(uname, 'lnN')
+                        c.specifyUncertainty('Stat_'+binname+'_'+e.name, binname, e.name, 1+expected.sigma/expected.val )
 
-  #      assert total_exp_bkg>=0, "Total background is negative. Don't know what to do."
+    #      assert total_exp_bkg>=0, "Total background is negative. Don't know what to do."
 
-        c.specifyObservation(binname, int(total_exp_bkg) )
+                c.specifyObservation(binname, int(total_exp_bkg) )
 
-        #signal
-        e = eSignal
-        signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, parameters={'useTriggers':False})
-        signal = e.cachedEstimate(r, channel, signalSetup)
+                #signal
+                e = eSignal
+                signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, parameters={'useTriggers':False})
+                signal = e.cachedEstimate(r, channel, signalSetup)
 
-        c.specifyExpectation(binname, 'signal', signal.val )
+                c.specifyExpectation(binname, 'signal', signal.val )
 
-        if signal.val>0:
+                if signal.val>0:
 
-          #PU signal
-          c.specifyUncertainty('PU', binname, 'signal', 1 + e.PUSystematic(r, channel, signalSetup).val )
+                    #PU signal
+                    c.specifyUncertainty('PU', binname, 'signal', 1 + e.PUSystematic(r, channel, signalSetup).val )
 
-          #JEC signal
-          c.specifyUncertainty('JEC', binname, 'signal', 1 + e.JECSystematic(r, channel, signalSetup).val )
+                    #JEC signal
+                    c.specifyUncertainty('JEC', binname, 'signal', 1 + e.JECSystematic(r, channel, signalSetup).val )
 
-          #JER signal
-          c.specifyUncertainty('JER', binname, 'signal', 1 + e.JERSystematic(r, channel, signalSetup).val )
+                    #JER signal
+                    c.specifyUncertainty('JER', binname, 'signal', 1 + e.JERSystematic(r, channel, signalSetup).val )
 
-          #lepton FastSim SF uncertainty
-          c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonFSSystematic(r, channel, signalSetup).val )
+                    #lepton FastSim SF uncertainty
+                    c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonFSSystematic(r, channel, signalSetup).val )
 
-          #b-tagging SF (including FastSim SF)
-          c.specifyUncertainty('SFb', binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
-          c.specifyUncertainty('SFl', binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
-          c.specifyUncertainty('SFFS', binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
+                    #b-tagging SF (including FastSim SF)
+                    c.specifyUncertainty('SFb', binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
+                    c.specifyUncertainty('SFl', binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
+                    c.specifyUncertainty('SFFS', binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
 
-          #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated
-          uname = 'Stat_'+binname+'_signal'
-          c.addUncertainty(uname, 'lnN') 
-          c.specifyUncertainty(uname, binname, 'signal', 1 + sqrt(0.1**2 + signal.sigma/signal.val) )
+                    #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated
+                    uname = 'Stat_'+binname+'_signal'
+                    c.addUncertainty(uname, 'lnN')
+                    c.specifyUncertainty(uname, binname, 'signal', 1 + sqrt(0.1**2 + signal.sigma/signal.val) )
 
-        if signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg==0:# or (total_exp_bkg>300 and signal.val<0.05):
-          if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
-          c.muted[binname] = True 
-        else:
-          if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
-    #
-    c.addUncertainty('Lumi', 'lnN')
-    c.specifyFlatUncertainty('Lumi', 1.046)
-    cardFileName = c.writeToFile(cardFileName)
-  else:
-    print "File %s found. Reusing."%cardFileName
-  res = c.calcLimit(cardFileName)
-  mStop, mNeu = s['mStop'], s['mNeu']
-  try:
-    if res: print "Result: mStop %i mNeu %i obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(mStop, mNeu, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
-  except:
-    print "Something wrong with the limit: %r"%res
-  return mStop, mNeu, res
+                if signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg==0:# or (total_exp_bkg>300 and signal.val<0.05):
+                    if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
+                    c.muted[binname] = True
+                else:
+                    if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
+        #
+        c.addUncertainty('Lumi', 'lnN')
+        c.specifyFlatUncertainty('Lumi', 1.046)
+        cardFileName = c.writeToFile(cardFileName)
+    else:
+        print "File %s found. Reusing."%cardFileName
+    res = c.calcLimit(cardFileName)
+    mStop, mNeu = s['mStop'], s['mNeu']
+    try:
+        if res: print "Result: mStop %i mNeu %i obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(mStop, mNeu, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
+    except:
+        print "Something wrong with the limit: %r"%res
+    return mStop, mNeu, res
 
 #jobs = [T2tt_400_0, T2tt_400_50, T2tt_650_250]
 jobs = signals_T2tt
@@ -166,32 +166,32 @@ T2tt_exp_up   = T2tt_exp.Clone("T2tt_exp_up")
 T2tt_obs      = T2tt_exp.Clone("T2tt_obs")
 
 for r in results:
-  mStop, mNeu, res = r
-  try:
-    T2tt_exp        .Fill(mStop, mNeu, res['0.500'])
-  except:
-    print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
-  try:
-    T2tt_exp_up     .Fill(mStop, mNeu, res['0.160'])
-  except:
-    print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
-  try:
-    T2tt_exp_down   .Fill(mStop, mNeu, res['0.840'])
-  except:
-    print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
-  try:
-    T2tt_obs        .Fill(mStop, mNeu, res['-1.000'])
-  except:
-    print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
+    mStop, mNeu, res = r
+    try:
+        T2tt_exp        .Fill(mStop, mNeu, res['0.500'])
+    except:
+        print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
+    try:
+        T2tt_exp_up     .Fill(mStop, mNeu, res['0.160'])
+    except:
+        print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
+    try:
+        T2tt_exp_down   .Fill(mStop, mNeu, res['0.840'])
+    except:
+        print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
+    try:
+        T2tt_obs        .Fill(mStop, mNeu, res['-1.000'])
+    except:
+        print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
 
 limitResultsFilename = os.path.join(os.path.join(setup.analysisOutputDir, setup.prefix(), 'limits', limitPrefix,'T2tt_limitResults.root'))
 if not os.path.exists(os.path.dirname(limitResultsFilename)):
-  os.makedirs(os.path.dirname(limitResultsFilename))
+    os.makedirs(os.path.dirname(limitResultsFilename))
 
 outfile = ROOT.TFile(limitResultsFilename, "recreate")
 T2tt_exp      .Write()
-T2tt_exp_down .Write() 
-T2tt_exp_up   .Write() 
-T2tt_obs      .Write() 
+T2tt_exp_down .Write()
+T2tt_exp_up   .Write()
+T2tt_obs      .Write()
 outfile.Close()
 print "Written %s"%limitResultsFilename

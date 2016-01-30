@@ -55,6 +55,6 @@ vals = [\
 import ROOT
 mcProfile = ROOT.TH1D('pileup','pileup',50,0,50)
 for i in range(51):
-  mcProfile.Fill(i, vals[i])
+    mcProfile.Fill(i, vals[i])
 
 mcProfile.Scale(1./mcProfile.Integral())
