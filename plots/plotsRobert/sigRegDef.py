@@ -4,7 +4,7 @@ import ROOT
 from StopsDilepton.samples.cmgTuples_Spring15_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_postProcessed import *
 from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain, getChain
-from StopsDilepton.tools.localInfo import plotDir
+from StopsDilepton.tools.user import plotDir
 
 #Helper: returns cut string for given variable and bin
 def cutString(varName, bin):

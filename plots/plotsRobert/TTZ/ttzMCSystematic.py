@@ -218,6 +218,15 @@ btag_lq.Divide(unc['btag_lq'])
 btag_lq.Scale(0.5)
 #btag_lq.Scale(0.5)
 
+fout = ROOT.TFile.Open("TTZSystematics.root", "recreate")
+pdf.Write()
+q2.Write()
+jes.Write()
+jer.Write()
+btag_lq.Write()
+btag_bq.Write()
+fout.Close()
+
 #Add in quadrature
 for j in range(len(bins)):
     for h in [jes, jer, btag_bq, btag_lq]:

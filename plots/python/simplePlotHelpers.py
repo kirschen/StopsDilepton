@@ -444,7 +444,7 @@ def calcTLegendMaskedArea(legendC, margins):
         }
 
 
-from StopsDilepton.tools.localInfo import plotDir
+from StopsDilepton.tools.user import plotDir
 def drawNMStacks(intn, intm, stacks, filename, path = plotDir):
     stuff=[]
     yswidth = 500

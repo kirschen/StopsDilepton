@@ -22,7 +22,7 @@ from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_1l_postProcessed import *
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons
 from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain, getChain, mZ
-from StopsDilepton.tools.localInfo import plotDir
+from StopsDilepton.tools.user import plotDir
 from StopsDilepton.plots.simplePlotHelpers import plot, stack, loopAndFill, drawNMStacks
 
 #signal = T2tt_450_0
@@ -55,12 +55,8 @@ def getZCut(mode):
     if mode.lower()=="offz": return zstr+">15"
     return "(1)"
 
-#filterCut = "(Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_goodVertices&&Flag_CSCTightHaloFilter&&Flag_eeBadScFilter)"
 filterCut = "(Flag_HBHENoiseFilter&&Flag_goodVertices&&Flag_CSCTightHaloFilter&&Flag_eeBadScFilter&&weight>0)"
-#filterCut = "(1)"
 
-#nMu = "Sum$(abs(LepGood_pdgId)==13&&LepGood_mediumMuonId==1&&LepGood_miniRelIso<0.1&&LepGood_sip3d<4.0&&abs(LepGood_dxy)<0.05&&abs(LepGood_dz)<0.1)"
-#nEle = "Sum$(abs(LepGood_pdgId)==11&&LepGood_convVeto==1&&LepGood_miniRelIso<0.2&&LepGood_sip3d<4.0&&abs(LepGood_dxy)<0.05&&abs(LepGood_dz)<0.1&&LepGood_lostHits==0)"
 triggerMuMu = "HLT_mumuIso"
 triggerEleEle = "HLT_ee_DZ"
 triggerMuEle = "HLT_mue"

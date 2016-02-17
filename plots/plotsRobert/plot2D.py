@@ -11,7 +11,7 @@ ROOT.tdrStyle.SetPadRightMargin(0.15)
 from math import *
 from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue
 from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, getJets
-from StopsDilepton.tools.localInfo import *
+from StopsDilepton.tools.user import *
 
 #preselection: MET>50, HT>100, n_bjets>=2
 preselection = 'abs(dl_mass-91.2)>15.&&(isMuMu)&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.814)>=0&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id)>=2'

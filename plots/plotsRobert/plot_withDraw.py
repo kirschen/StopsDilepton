@@ -3,8 +3,8 @@ import ROOT
 ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.setTDRStyle()
 
-## localInfo so that the code runs for different people
-from StopsDilepton.tools.localInfo import *
+## user so that the code runs for different people
+from StopsDilepton.tools.user import *
 
 ## preselection with >= 2 jets and >=1 b-jet
 preselectionHadronic = 'Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id)>=2&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.890)>=1'

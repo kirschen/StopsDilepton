@@ -3,7 +3,7 @@ import sys, ctypes, os
 from StopsDilepton.tools.helpers import getObjFromFile
 from StopsDilepton.tools.interpolate import interpolate, rebin
 from StopsDilepton.tools.niceColorPalette import niceColorPalette
-from StopsDilepton.tools.localInfo import plotDir
+from StopsDilepton.tools.user import plotDir
 from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 from optparse import OptionParser

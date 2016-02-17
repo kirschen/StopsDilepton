@@ -6,7 +6,7 @@ import numpy
 from math import *
 from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue, deltaPhi
 from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, looseEleID, getJets, getGenParts
-from StopsDilepton.tools.localInfo import *
+from StopsDilepton.tools.user import *
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()
 

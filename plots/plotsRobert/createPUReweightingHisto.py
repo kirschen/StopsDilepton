@@ -7,7 +7,7 @@ from StopsDilepton.tools.helpers import getChain, getObjFromFile, getObjDict, ge
 from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, looseEleID, getJets
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()
-from StopsDilepton.tools.localInfo import *
+from StopsDilepton.tools.user import *
 
 #preselection = 'met_pt>40&&Sum$((Jet_pt)*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))>100&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.814)==2&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id)>=2&&Sum$(LepGood_pt>20)>=2'
 preselection = 'isOS&&abs(dl_mass-91.2)<=15.&&isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0'

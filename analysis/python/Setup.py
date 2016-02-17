@@ -1,4 +1,4 @@
-from StopsDilepton.tools.localInfo import analysisOutputDir
+from StopsDilepton.tools.user import analysisOutputDir
 import copy
 
 #Numerical constants

@@ -4,7 +4,7 @@ from StopsDilepton.samples.cmgTuples_Spring15_mAODv2_25ns_1l_postProcessed impor
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_1l_postProcessed import *
 
 from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain, getChain
-from StopsDilepton.tools.localInfo import plotDir
+from StopsDilepton.tools.user import plotDir
 
 small = False
 

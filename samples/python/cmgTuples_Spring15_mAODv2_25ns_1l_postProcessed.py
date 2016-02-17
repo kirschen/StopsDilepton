@@ -1,5 +1,5 @@
 import copy, os, sys
-from StopsDilepton.tools.localInfo import dataDir
+from StopsDilepton.tools.user import dataDir
 import ROOT
 dir = dataDir
 

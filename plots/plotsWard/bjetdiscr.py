@@ -8,7 +8,7 @@ from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()
 from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue
 from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, looseEleID, getJets, ele_ID_eta, getGenParts
-from StopsDilepton.tools.localInfo import *
+from StopsDilepton.tools.user import *
 
 #preselection: MET>50, HT>100, n_bjets>=2
 #Once we decided in HT definition and b-tag WP we add those variables to the tuple.

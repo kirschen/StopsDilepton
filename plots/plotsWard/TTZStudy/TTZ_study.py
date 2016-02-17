@@ -8,7 +8,7 @@ mt2Calc = mt2Calculator()
 
 from math import *
 from StopsDilepton.tools.helpers import getChain,getWeight,getVarValue, getEList
-from StopsDilepton.tools.localInfo import *
+from StopsDilepton.tools.user import *
 from datetime import datetime
 from StopsDilepton.tools.puReweighting import getReweightingFunction
 from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, looseEleID, getJets, getGenParts, getGoodLeptons, getGoodElectrons, getGoodMuons, getGoodJets

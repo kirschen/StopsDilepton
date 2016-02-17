@@ -34,7 +34,7 @@ from StopsDilepton.analysis.u_float import u_float
 from math import sqrt
 ##https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSYSignalSystematicsRun2
 from StopsDilepton.tools.btagEfficiency import btagWeightNames_FS_1b, btagWeightNames_1b
-from StopsDilepton.tools.localInfo import releaseLocation71XC
+from StopsDilepton.tools.user import releaseLocation71XC
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 limitPrefix = 'flavSplit_almostAllReg'

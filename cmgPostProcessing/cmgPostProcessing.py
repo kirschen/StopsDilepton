@@ -1,48 +1,143 @@
+# standard imports
 import ROOT
-import sys, os, copy, random, subprocess, datetime, shutil
+import sys 
+import os 
+import copy 
+import random 
+import subprocess 
+import datetime 
+import shutil
+
 from array import array
 from operator import mul
-from StopsDilepton.tools.convertHelpers import compileClass, readVar, printHeader, typeStr, createClassString
+from math import sqrt, atan2, sin, cos
+
+# import of tools
 from StopsDilepton.tools.puReweighting import getReweightingFunction
-from math import *
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
-from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
-from StopsDilepton.tools.vetoList import vetoList
-mt2Calc = mt2Calculator()
-#from StopsDilepton.tools.mtautau import mtautau as mtautau_
-from StopsDilepton.tools.helpers import getChain, getChunks, getObjDict, writeObjToFile,  getEList, getVarValue, checkRootFile, getYieldFromChain, closestOSDLMassToMZ
-from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetVars, jetId, isBJet
+mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.leptonFastSimSF import leptonFastSimSF as leptonFastSimSF_
-from StopsDilepton.tools.localInfo import *
-from cmgPostProcessingHelpers import getTreeFromChunk
+from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
+from StopsDilepton.tools.vetoList import vetoList
+from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetVars, jetId, isBJet
+from StopsDilepton.tools.user import *
 
-ROOT.gSystem.Load("libFWCoreFWLite.so")
-ROOT.AutoLibraryLoader.enable()
+# not sure if needed
+#ROOT.gSystem.Load("libFWCoreFWLite.so")
+#ROOT.AutoLibraryLoader.enable()
 
-#from StopsDilepton.samples.xsec import xsec
 
+# central configuration 
 targetLumi = 1000 #pb-1 Which lumi to normalize to
 
-#defSampleStr = "SMS_T2tt_mStop200_mLSP1to125"
+# convinience
 defSampleStr = "ZZZ"
 
-subDir = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/postProcessed_mAODv2_fix" #Output directory -> The first path should go to localInfo (e.g. 'dataPath' or something)
-
+# option parser
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--samples", dest="allSamples", default=defSampleStr, type="string", action="store", help="samples:Which samples.")
-parser.add_option("--inputTreeName", dest="inputTreeName", default="treeProducerSusySingleLepton", type="string", action="store", help="samples:Which samples.")
-parser.add_option("--targetDir", dest="targetDir", default=subDir, type="string", action="store", help="target directory.")
-parser.add_option("--skim", dest="skim", default="dilep", type="string", action="store", help="any skim condition?")
-parser.add_option("--small", dest="small", default = False, action="store_true", help="Just do a small subset.")
-parser.add_option("--fastSim", dest="fastSim", default = False, action="store_true", help="FastSim?")
 parser.add_option("--keepPhotons", dest="keepPhotons", default = False, action="store_true", help="keep photons?")
 parser.add_option("--keepLHEWeights", dest="keepLHEWeights", default = False, action="store_true", help="keep LHEWeights?")
-parser.add_option("--overwrite", dest="overwrite", default = False, action="store_true", help="Overwrite?")
-parser.add_option("--lheHTCut", dest="lheHTCut", default="", type="string", action="store", help="upper cut on lheHTIncoming")
 parser.add_option("--skipVariations", dest="skipVariations", default = False, action="store_true", help="skipVariations: Don't calulcate JES and JER variations")
 parser.add_option("--signal", dest="signal", default = False, action="store_true", help="Is this T2tt signal?")
+
+def get_parser():
+    ''' Argument parser for post-processing module.
+    
+    '''
+     
+    argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
+        
+    argParser.add_argument('--logLevel', 
+        action='store',
+        nargs='?',
+        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],
+        default='INFO',
+        help="Log level for logging"
+        )
+    
+    argParser.add_argument('--overwriteOutputFiles',
+        action='store_true',
+        help="Overwrite existing output files, bool flag set to True  if used")
+    
+    argParser.add_argument('--cmgTuples',
+        dest='cmgTuples',
+        action='store',
+        nargs='?',
+        type=str,
+        default='RunIISpring15DR74_25ns',
+        help="CMG ntuples to be post-processed"
+        )
+       
+    argParser.add_argument('--processSamples',
+        action='store',
+        nargs='*',
+        type=str,
+        default='TTJets_LO',
+        help="List of samples to be post-processed, given as CMG component name"
+        )
+    
+    argParser.add_argument('--targetDir',
+        action='store',
+        nargs='?',
+        type=str,
+        default='/afs/hephy.at/data/' + user.afsDataName + '/cmgTuples',
+        help="Name of the directory the post-processed files will be saved"
+        )
+    
+    argParser.add_argument('--processingEra',
+        action='store',
+        nargs='?',
+        type=str,
+        default='postProcessed_mAODv2',
+        help="Name of the processing era"
+        )
+
+    argParser.add_argument('--processingTag',
+        action='store',
+        nargs='?',
+        type=str,
+        default='v0',
+        help="Name of the processing tag, preferably a tag for Workspace"
+        )
+
+    argParser.add_argument('--skim',
+        action='store',
+        nargs='?',
+        type=str,
+        default='',
+        help="Skim conditions to be applied for post-processing"
+        )
+    
+    argParser.add_argument('--leptonSelection',
+        action='store',
+        nargs='?',
+        type=str,
+        choices=['soft', 'hard', 'inc', 'dilep'],
+        default='inc',
+        help="Lepton selection to be applied for post-processing"
+        )
+    
+    argParser.add_argument('--preselect',
+        action='store_true',
+        help="Apply preselection for the post processing, bool flag set to True if used"
+        )
+    
+    argParser.add_argument('--runSmallSample',
+        action='store_true',
+        help="Run the file on a small sample (for test purpose), bool flag set to True if used"
+        )
+    
+    argParser.add_argument('--testMethods',
+        action='store_true',
+        help="Testing only the post-processing methods, without saving ROOT files, on runSmallSample files " + \
+        "\n bool flag set to True if used. \n runSmallSample will be set automatically to True"
+        )
+    # 
+    return argParser
+
+
 
 (options, args) = parser.parse_args()
 #assert options.skim.lower() in ['inclusive', 'dilep'], "Unknown skim: %s"%options.skim
@@ -109,13 +204,14 @@ if not options.skipVariations:
         maxMultBTagWeight = 2
         btagEff_1b = btagEfficiency(method='1b', fastSim = options.fastSim)
 
-if options.lheHTCut:
-        try:
-                float(options.lheHTCut)
-        except:
-                sys.exit("Float conversion of option lheHTCut failed. Got this: %s"%options.lheHTCut)
-        sample.name+="_lheHT"+options.lheHTCut
-        skimCond+="&&lheHTIncoming<"+options.lheHTCut
+# do the following with other parameters
+#if options.lheHTCut:
+#        try:
+#                float(options.lheHTCut)
+#        except:
+#                sys.exit("Float conversion of option lheHTCut failed. Got this: %s"%options.lheHTCut)
+#        sample.name+="_lheHT"+options.lheHTCut
+#        skimCond+="&&lheHTIncoming<"+options.lheHTCut
 
 if "Run2015D" in sample.name and not hasattr(sample, "vetoList"):
         sys.exit("ERROR. Sample %s seems to be data but no vetoList was provided!!" %sample.name)
@@ -190,16 +286,16 @@ if options.signal:
 if options.skim.lower().count('tiny'):
         #branches to be kept for data and MC
         branchKeepStrings_DATAMC = ["run", "lumi", "evt", "isData", "nVert",
-                                                                                            "met_pt", "met_phi",
-                                                                                            "puppiMet_pt","puppiMet_phi",
-                                                                                            "Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter", "Flag_goodVertices", "Flag_CSCTightHaloFilter", "Flag_eeBadScFilter",
-                                                                                            "HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
-                                                                                            "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
-                                                                                            'LepGood_eta','LepGood_pt','LepGood_phi', 'LepGood_dxy', 'LepGood_dz','LepGood_tightId', 'LepGood_pdgId', 'LepGood_mediumMuonId', 'LepGood_miniRelIso', 'LepGood_sip3d', 'LepGood_mvaIdSpring15', 'LepGood_convVeto', 'LepGood_lostHits',
-                                                                                            'Jet_eta','Jet_pt','Jet_phi','Jet_btagCSV', 'Jet_id' ,
+                                    "met_pt", "met_phi",
+                                    "puppiMet_pt","puppiMet_phi",
+                                    "Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter", "Flag_goodVertices", "Flag_CSCTightHaloFilter", "Flag_eeBadScFilter",
+                                    "HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
+                                    "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
+                                    'LepGood_eta','LepGood_pt','LepGood_phi', 'LepGood_dxy', 'LepGood_dz','LepGood_tightId', 'LepGood_pdgId', 'LepGood_mediumMuonId', 'LepGood_miniRelIso', 'LepGood_sip3d', 'LepGood_mvaIdSpring15', 'LepGood_convVeto', 'LepGood_lostHits',
+                                    'Jet_eta','Jet_pt','Jet_phi','Jet_btagCSV', 'Jet_id' ,
 #                       "nLepGood", "LepGood_*",
 #                       "nTauGood", "TauGood_*",
-                                                                                            ]
+                                ]
 
         #branches to be kept for MC samples only
         branchKeepStrings_MC = [ "nTrueInt", "genWeight", "xsec", "met_genPt", "met_genPhi", "lheHTIncoming"
@@ -209,27 +305,27 @@ if options.skim.lower().count('tiny'):
         #                     "ngenPartAll","genPartAll_*","ngenLep","genLep_*"
         #                     "ngenTau", "genTau_*",
         #                     "ngenLepFromTau", "genLepFromTau_*"
-                                                                                                ]
+                            ]
 
         #branches to be kept for data only
         branchKeepStrings_DATA = [
-                                                        ]
+                                ]
 
 else:
         #branches to be kept for data and MC
         branchKeepStrings_DATAMC = ["run", "lumi", "evt", "isData", "rho", "nVert",
-        #                     "nJet25", "nBJetLoose25", "nBJetMedium25", "nBJetTight25", "nJet40", "nJet40a", "nBJetLoose40", "nBJetMedium40", "nBJetTight40",
-        #                     "nLepGood20", "nLepGood15", "nLepGood10", "htJet25", "mhtJet25", "htJet40j", "htJet40", "mhtJet40", "nSoftBJetLoose25", "nSoftBJetMedium25", "nSoftBJetTight25",
-                                                                                            "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
-                                                                                            "metNoHF_pt", "metNoHF_phi",
-                                                                                            "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
-                                                                                            "Flag_*","HLT_*",
-        #                     "nFatJet","FatJet_*",
-                                                                                            "nJet", "Jet_*",
-                                                                                            "nLepGood", "LepGood_*",
-        #                     "nLepOther", "LepOther_*",
-                                                                                            "nTauGood", "TauGood_*",
-                                                                                            ]
+#                     "nJet25", "nBJetLoose25", "nBJetMedium25", "nBJetTight25", "nJet40", "nJet40a", "nBJetLoose40", "nBJetMedium40", "nBJetTight40",
+#                     "nLepGood20", "nLepGood15", "nLepGood10", "htJet25", "mhtJet25", "htJet40j", "htJet40", "mhtJet40", "nSoftBJetLoose25", "nSoftBJetMedium25", "nSoftBJetTight25",
+                                "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
+                                "metNoHF_pt", "metNoHF_phi",
+                                "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
+                                "Flag_*","HLT_*",
+#                     "nFatJet","FatJet_*",
+                                "nJet", "Jet_*",
+                                "nLepGood", "LepGood_*",
+#                     "nLepOther", "LepOther_*",
+                                "nTauGood", "TauGood_*",
+                                ]
 
         #branches to be kept for MC samples only
         branchKeepStrings_MC = [ "nTrueInt", "genWeight", "xsec", "met_gen*", "lheHTIncoming",
@@ -239,11 +335,11 @@ else:
                                                                                             "ngenPartAll","genPartAll_*","ngenLep","genLep_*"
         #                     "ngenTau", "genTau_*",
         #                     "ngenLepFromTau", "genLepFromTau_*"
-                                                                                                ]
+                            ]
 
         #branches to be kept for data only
         branchKeepStrings_DATA = [
-                                                        ]
+                                ]
 
 if options.keepPhotons:
         branchKeepStrings_DATAMC+=["ngamma", "gamma_idCutBased", "gamma_hOverE", "gamma_r9", "gamma_sigmaIetaIeta", "gamma_chHadIso04", "gamma_chHadIso", "gamma_phIso", "gamma_neuHadIso", "gamma_relIso", "gamma_pdgId", "gamma_pt", "gamma_eta", "gamma_phi", "gamma_mass", "gamma_chHadIsoRC04", "gamma_chHadIsoRC"]

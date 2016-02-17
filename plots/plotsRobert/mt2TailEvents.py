@@ -4,14 +4,14 @@ ROOT.setTDRStyle()
 
 from math import *
 import array, operator
-from StopsDilepton.tools.localInfo import plotDir
+from StopsDilepton.tools.user import plotDir
 from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue, deltaR, getObjFromFile
 from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getLeptons, looseMuID, looseEleID, getJets, leptonVars, jetVars, getGoodTaus
 from StopsDilepton.tools.genParticleTools import getDaughters, descendDecay, decaysTo, printDecay
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 from StopsDilepton.tools.pdgToName import pdgToName
 mt2Calc = mt2Calculator()
-from StopsDilepton.tools.localInfo import *
+from StopsDilepton.tools.user import *
 
 reduceStat = 1
 lumiScale = 10.

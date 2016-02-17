@@ -8,7 +8,7 @@ import matplotlib.patches as mpatches
 from math import *
 
 from StopsDilepton.tools.texHelpers import latexmaker_2
-from StopsDilepton.tools.localInfo import *
+from StopsDilepton.tools.user import *
 from StopsDilepton.tools.helpers import getChain, getYieldFromChain, getVarValue
 
 #######################################################

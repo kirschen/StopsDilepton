@@ -3,7 +3,7 @@ import sys, ctypes, os
 from StopsDilepton.tools.helpers import getObjFromFile
 from StopsDilepton.tools.interpolate import interpolate, rebin
 from StopsDilepton.tools.niceColorPalette import niceColorPalette
-from StopsDilepton.tools.localInfo import plotDir
+from StopsDilepton.tools.user import plotDir
 from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 defFile="/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test5/isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20/limits/flavSplit_almostAllReg/T2tt_limitResults.root"

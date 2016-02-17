@@ -5,7 +5,7 @@ import numpy
 
 from math import *
 from StopsDilepton.tools.helpers import getChain,getWeight,getVarValue
-from StopsDilepton.tools.localInfo import *
+from StopsDilepton.tools.user import *
 from datetime import datetime
 
 start = datetime.now()
