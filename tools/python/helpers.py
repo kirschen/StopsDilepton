@@ -117,6 +117,7 @@ def checkRootFile(f, checkForObjects=[]):
     try:
         good = (not rf.IsZombie()) and (not rf.TestBit(ROOT.TFile.kRecovered))
     except:
+        rf.Close()
         return False
     for o in checkForObjects:
         if not rf.GetListOfKeys().Contains(o):
