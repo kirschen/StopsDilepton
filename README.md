@@ -13,7 +13,7 @@ scram b -j9
 see here:
 https://twiki.cern.ch/twiki/bin/viewauth/CMS/CMGToolsReleasesExperimental#Git_MiniAOD_release_for_Summer_2
 
-Minimal fetch of central and ghent fork (add new branches with the -t option):
+[Untested in 76X] Minimal fetch of central and ghent fork (add new branches with the -t option):
 ```
 git remote add cmg-central https://github.com/CERN-PH-CMG/cmg-cmssw.git  -f  -t heppy_76X
 
@@ -32,7 +32,7 @@ git checkout -b 76X_StopsDilepton origin/76X_StopsDilepton
 
 #compile
 cd $CMSSW_BASE/src && scram b -j 8
-
+```
 
 
 # for limit setting
