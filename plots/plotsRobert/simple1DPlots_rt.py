@@ -144,10 +144,10 @@ for i in [len(cuts)]:
             selectionString = selectionString,
             weight = weight,
             texX = "cos(#phi(#slash{E}_{T}))",
-            texY = "Number of Events ",
+            texY = "Number of Events "
         )
 
         read_variables = ["weightPU/F"]
         plotting.fill([cosMetPhi], read_variables = read_variables)
         if not os.path.exists( plot_path ): os.makedirs( plot_path )
-        plotting.draw(cosMetPhi, plot_directory = plot_path, ratio = {}, logX = False, logY = True, sorting = True)
+        plotting.draw(cosMetPhi, plot_directory = plot_path, ratio = {'yRange':(0.1,1.9)}, logX = False, logY = True, sorting = True, yRange = (0.01, "auto") )
