@@ -4,7 +4,7 @@ cmsrel CMSSW_7_4_12_patch4
 cd CMSSW_7_4_12_patch4/src
 cmsenv
 git cms-init
-git clone https://github.com/GhentAnalysis/StopsDilepton
+git clone -b 74X https://github.com/GhentAnalysis/StopsDilepton
 git clone git@github.com:GhentAnalysis/PlotsSMS StopsDilepton/PlotsSMS #X-PAG code for limit
 scram b -j9
 ```
