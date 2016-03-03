@@ -28,6 +28,7 @@ cd CMGTools
 git remote add origin  git@github.com:GhentAnalysis/cmgtools-lite.git 
 git push -u origin 76X
 
+git fetch origin
 git checkout -b 76X_StopsDilepton origin/76X_StopsDilepton
 
 #compile
