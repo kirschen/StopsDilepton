@@ -1,4 +1,4 @@
-vals = [\
+spring15_vals = [\
 4.8551E-07,
 1.74806E-06,
 3.30868E-06,
@@ -53,8 +53,8 @@ vals = [\
 4.8551E-08,
 ]
 import ROOT
-mcProfile = ROOT.TH1D('pileup','pileup',50,0,50)
+spring15 = ROOT.TH1D('pileup','pileup',50,0,50)
 for i in range(51):
-    mcProfile.Fill(i, vals[i])
+    spring15.Fill(i, spring15_vals[i])
 
-mcProfile.Scale(1./mcProfile.Integral())
+spring15.Scale(1./spring15.Integral())
