@@ -15,13 +15,15 @@ from math import sqrt, atan2, sin, cos
 # RootTools
 from RootTools.core.standard import *
 
+# User specific
+import StopsDilepton.tools.user as user
+
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetVars, jetId, isBJet
-import StopsDilepton.tools.user as user
 
 # central configuration 
 targetLumi = 1000 #pb-1 Which lumi to normalize to
@@ -36,7 +38,7 @@ def get_parser():
         action='store',
         nargs='?',
         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],
-        default='DEBUG',
+        default='INFO',
         help="Log level for logging"
         )
     
@@ -101,15 +103,18 @@ def get_parser():
 
     argParser.add_argument('--keepPhotons',
         action='store_true',
-        help="Keep photons?")
+        help="Keep photons?"
+        )
 
     argParser.add_argument('--keepLHEWeights',
         action='store_true',
-        help="Keep LHEWeights?")
+        help="Keep LHEWeights?"
+        )
 
     argParser.add_argument('--skipSystematicsVariations',
         action='store_true',
-        help="Don't calulcate BTag, JES and JER variations.")
+        help="Don't calulcate BTag, JES and JER variations."
+        )
 
     # parser.add_option("--signal", dest="signal", default = False, action="store_true", help="Is this T2tt signal?")
     
@@ -130,15 +135,16 @@ if options.skim.lower().startswith('dilep'):
 #Samples: Check if can be combined
 from StopsDilepton.samples.helpers import fromHeppySample
 maxN = 2 if options.runSmallSample else -1
-samples = [fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples]
+samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
 
 isData = False not in [s.isData for s in samples]
 isMC   =  True not in [s.isData for s in samples]
 
+# Check that all samples which are concatenated have the same x-section.
 assert isData or len(set([s.heppy.xSection for s in samples]))==1, "Not all samples have the same xSection: %s !"%(",".join([s.name for s in samples]))
 assert isMC or len(samples)==1, "Don't concatenate data samples"
 
-#Samples: Combine
+#Samples: combine
 if len(samples)>1:
     sample_name =  samples[0].name+"_comb" 
     logger.info( "Combining samples %s to %s.", ",".join(s.name for s in samples), sample_name )
@@ -160,10 +166,12 @@ else:
 
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
+# Decision based on sample name -> whether TTJets or TTLep is in the sample name
 doTopPtReweighting = sample.name.startswith("TTJets") or sample.name.startswith("TTLep")
 if doTopPtReweighting:
     logger.info( "Sample will have top pt reweighting." ) 
     topPtReweightingFunc = getUnscaledTopPairPtReweightungFunction(selection = "dilep")
+    # Compute x-sec scale factor on unweighted events
     selectionString = "&&".join(skimConds)
     topScaleF = sample.getYieldFromDraw( selectionString = selectionString, weightString = getTopPtDrawString(selection = "dilep"))
     topScaleF = topScaleF['val']/float(sample.chain.GetEntries(selectionString))
@@ -179,7 +187,8 @@ else:
 fastSim = False
 
 # systematic variations
-if not options.skipSystematicsVariations:
+addSystematicVariations = not isData and not options.skipSystematicsVariations
+if addSystematicVariations:
     # B tagging SF
     from StopsDilepton.tools.btagEfficiency import btagEfficiency_1b, btagEfficiency_1d
     btagEff_1d = btagEfficiency_1d()
@@ -189,47 +198,18 @@ if not options.skipSystematicsVariations:
 # LHE cut (DY samples)
 if options.LHEHTCut>0:
 #    sample.name+="_lheHT"+options.LHEHTCut
-    logger.info( "Adding upprt LHE cut at %f", options.LHEHTCut )
+    logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
 
 # veto list
-from StopsDilepton.tools.vetoList import vetoList
-if sample.isData and not hasattr(sample, "vetoList"):
-    logger.warning("Sample %s seems is data but no vetoList was provided!", sample.name)
-#vetoList_ = vetoList(sample.vetoList) if hasattr(sample, "vetoList") else None
+if sample.isData:
+    import StopsDilepton.tools.vetoList as vetoList_
+    # MET group veto lists from 74X
+    fileNames  = ['Run2015D/csc2015_Dec01.txt.gz', 'Run2015D/ecalscn1043093_Dec01.txt.gz']
+    vetoList = vetoList_.vetoList( [os.path.join(user.veto_lists, f) for f in fileNames] )
 
 outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sample.name)
 if not os.path.exists(outDir): os.makedirs(outDir)
-
-#if options.signal:
-#        signalDir = os.path.join(options.targetDir, options.skim, "T2tt")
-#        if not os.path.exists(signalDir):
-#                os.makedirs(signalDir)
-#
-#if options.signal:
-#        from StopsDilepton.tools.xSecSusy import xSecSusy
-#        xSecSusy_ = xSecSusy()
-#        channel='stop13TeV'
-#        signalWeight={}
-#        c = ROOT.TChain("tree")
-#        for chunk in chunks:
-#                c.Add(chunk['file'])
-#        print "Fetching signal weights..."
-#        mMax = 1500
-#        bStr = str(mMax)+','+str(mMax)
-#        c.Draw("GenSusyMScan2:GenSusyMScan1>>hNEvents("+','.join([bStr, bStr])+")")
-#        hNEvents = ROOT.gDirectory.Get("hNEvents")
-#        for i in range (mMax):
-#                for j in range (mMax):
-#                        n = hNEvents.GetBinContent(hNEvents.FindBin(i,j))
-#                        if n>0:
-#                                signalWeight[(i,j)] = {'weight':targetLumi*xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)/n, 'xSecFacUp':xSecSusy_.getXSec(channel=channel,mass=i,sigma=1)/xSecSusy_.getXSec(channel=channel,mass=i,sigma=0), 'xSecFacDown':xSecSusy_.getXSec(channel=channel,mass=i,sigma=-1)/xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)}
-#                                print "Found mStop %5i mNeu %5i Number of events: %6i, xSec: %10.6f, weight: %6.6f (+1 sigma rel: %6.6f, -1 sigma rel: %6.6f)"%(i,j,n, xSecSusy_.getXSec(channel=channel,mass=i,sigma=0),  signalWeight[(i,j)]['weight'], signalWeight[(i,j)]['xSecFacUp'], signalWeight[(i,j)]['xSecFacDown'])
-#        c.IsA().Destructor(c)
-#        del c
-#        del hNEvents
-#        print "Done fetching signal weights."
-#
 
 if options.skim.lower().count('tiny'):
     #branches to be kept for data and MC
@@ -290,10 +270,13 @@ if options.keepPhotons:
 if sample.isData:
     lumiScaleFactor=1
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
+
     from FWCore.PythonUtilities.LumiList import LumiList
-    sample.lumiList = LumiList(os.path.expandvars(sample.heppy_sample.json))
+    # Apply golden JSON
+    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_v2.txt'
+    lumiList = LumiList(os.path.expandvars(sample.heppy.json))
     outputLumiList = {}
-    logger.info( "Loaded json %s", sample.heppy_sample.json )
+    logger.info( "Loaded json %s", sample.heppy.json )
 else:
     lumiScaleFactor = sample.heppy.xSection*targetLumi/float(sample.normalization)
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
@@ -302,12 +285,12 @@ else:
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
 if isMC: read_variables+= [Variable.fromString('nTrueInt/I')]
 
-jetMCInfo = ',mcMatchFlav/I,partonId/I,mcPt/F,corr/F,corr_JECUp/F,corr_JECDown/F,hadronFlavour/I' if isMC else ''
+jetMCInfo = ',mcMatchFlav/I,partonId/I,mcPt/F,hadronFlavour/I' if isMC else ''
 read_variables+= [\
     Variable.fromString('nLepGood/I'), 
     VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,charge/I,relIso03/F,tightId/I,miniRelIso/F,mass/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F]'),
     Variable.fromString('nJet/I'), 
-    VectorType.fromString('Jet[pt/F,eta/F,phi/F,id/I,btagCSV/F' + jetMCInfo+']')
+    VectorType.fromString('Jet[pt/F,eta/F,phi/F,id/I,btagCSV/F,corr/F,corr_JECUp/F,corr_JECDown/F' + jetMCInfo+']')
 ]
 if isMC: 
     read_variables.append( Variable.fromString('ngenPartAll/I') ) 
@@ -317,6 +300,7 @@ if isMC:
 new_variables = [ 'weight/F'] 
 #    'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 
 if isMC: new_variables.append('rereweightTopPt/F')
+if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
 new_variables.extend( ['nGoodJets/I', 'nBTags/I', 'ht/F'] )
 
 if options.skim.lower().startswith('dilep'):
@@ -327,7 +311,7 @@ if options.skim.lower().startswith('dilep'):
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
 
-if not options.skipSystematicsVariations:
+if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
         new_variables.extend( ['nGoodJets_'+var+'/I', 'nBTags_'+var+'/I','ht_'+var+'/F'] )
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F'] )
@@ -340,13 +324,10 @@ if not options.skipSystematicsVariations:
             new_variables.extend(['reweightBTag'+str(i)+'_'+var+'/F', 'reweightBTag'+str(i+1)+'p_'+var+'/F'])
 
 #if options.signal:
-#        aliases       +=  ["mStop:GenSusyMScan1", "mNeu:GenSusyMScan2"]
 #        read_variables += ['GenSusyMScan1/I', 'GenSusyMScan2/I']
 #        new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F']
-#        signalMassPoints = set()
 #if options.fastSim:
 #        new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
-
 
 # Define a reader
 reader = sample.treeReader( \
@@ -354,35 +335,58 @@ reader = sample.treeReader( \
     selectionString = "&&".join(skimConds)
     )
 
-## A simple eample
+jetVars_ = jetVars
+if isMC:
+    jetVars_ += ['mcPt']
+if addSystematicVariations:
+    jetVars_ += ['corr','corr_JECUp','corr_JECDown','hadronFlavour']    
+
 def filler(s): 
     # shortcut
     r = reader.data
     # weight
     s.weight = lumiScaleFactor*r.genWeight if isMC else 1
+
+    # lumi lists and vetos
+    if isData:  
+        if (r.run, r.lumi, r.evt) in vetoList.events:
+            s.vetoPassed = 0
+        else:
+            s.vetoPassed = 1
+        if not lumiList.contains(r.run, r.lumi):
+            s.jsonPassed = 0
+        else:
+            s.jsonPassed = 1
+        if r.run not in outputLumiList.keys():
+            outputLumiList[r.run] = [r.lumi]
+        else:
+            if r.lumi not in outputLumiList[r.run]:
+                outputLumiList[r.run].append(r.lumi)
+
     # top pt reweighting
     if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
 
-    # jet/met related quantities
-    allJets = getGoodJets(r, ptCut=0, jetVars=jetVars if options.skipSystematicsVariations else jetVars+['mcPt', 'corr','corr_JECUp','corr_JECDown','hadronFlavour'])
+    # jet/met related quantitie
+    allJets = getGoodJets(r, ptCut=0, jetVars=jetVars_)
     jets = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4), allJets)
     s.nGoodJets   = len(jets)
     s.ht          = sum([j['pt'] for j in jets])
     s.nBTags      = len(filter(isBJet, jets))
-    if not options.skipSystematicsVariations:
+
+    jets_      = {}
+    bJets_     = {}
+    nonBJets_  = {}
+    metShifts_ = {}
+
+    if addSystematicVariations:
         for j in allJets:
             j['pt_JECUp']   =j['pt']/j['corr']*j['corr_JECUp']
             j['pt_JECDown'] =j['pt']/j['corr']*j['corr_JECDown']
             addJERScaling(j)
-        jets_      = {}
-        bJets_     = {}
-        nonBJets_  = {}
-        metShifts_ = {}
-
         for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
             jets_[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt_'+var), allJets)
             bJets_[var]      = filter(isBJet, jets_[var])
-            nonBJets_[var]      = filter(lambda j: not isBJet(j), jets_[var])
+            nonBJets_[var]   = filter(lambda j: not isBJet(j), jets_[var])
             met_corr_px = r.met_pt*cos(r.met_phi) + sum([(j['pt']-j['pt_'+var])*cos(j['phi']) for j in jets_[var] ])
             met_corr_py = r.met_pt*sin(r.met_phi) + sum([(j['pt']-j['pt_'+var])*sin(j['phi']) for j in jets_[var] ])
 
@@ -392,59 +396,59 @@ def filler(s):
             setattr(s, "ht_"+var, sum([j['pt_'+var] for j in jets_[var]]))
             setattr(s, "nBTags_"+var, len(bJets_[var]))
 
-        if options.skim.lower().startswith('dilep'):
-            leptons_pt10 = getGoodLeptons(r, ptCut=10)
-            leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
+    if options.skim.lower().startswith('dilep'):
+        leptons_pt10 = getGoodLeptons(r, ptCut=10)
+        leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
 #            if options.fastSim:
 #                s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
 #                s.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
 #                s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
 
-            s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
-            s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
-            if len(leptons)>=2:# and leptons[0]['pdgId']*leptons[1]['pdgId']<0 and abs(leptons[0]['pdgId'])==abs(leptons[1]['pdgId']): #OSSF choice
-                mt2Calc.reset()
-                s.l1_pt  = leptons[0]['pt']
-                s.l1_eta = leptons[0]['eta']
-                s.l1_phi = leptons[0]['phi']
-                s.l1_pdgId  = leptons[0]['pdgId']
-                s.l1_index  = leptons[0]['index']
-                s.l2_pt  = leptons[1]['pt']
-                s.l2_eta = leptons[1]['eta']
-                s.l2_phi = leptons[1]['phi']
-                s.l2_pdgId  = leptons[1]['pdgId']
-                s.l2_index  = leptons[1]['index']
+        s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
+        s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
+        if len(leptons)>=2:# and leptons[0]['pdgId']*leptons[1]['pdgId']<0 and abs(leptons[0]['pdgId'])==abs(leptons[1]['pdgId']): #OSSF choice
+            mt2Calc.reset()
+            s.l1_pt  = leptons[0]['pt']
+            s.l1_eta = leptons[0]['eta']
+            s.l1_phi = leptons[0]['phi']
+            s.l1_pdgId  = leptons[0]['pdgId']
+            s.l1_index  = leptons[0]['index']
+            s.l2_pt  = leptons[1]['pt']
+            s.l2_eta = leptons[1]['eta']
+            s.l2_phi = leptons[1]['phi']
+            s.l2_pdgId  = leptons[1]['pdgId']
+            s.l2_index  = leptons[1]['index']
 
-                l_pdgs = [abs(leptons[0]['pdgId']), abs(leptons[1]['pdgId'])]
-                l_pdgs.sort()
-                s.isMuMu = l_pdgs==[13,13]
-                s.isEE = l_pdgs==[11,11]
-                s.isEMu = l_pdgs==[11,13]
-                s.isOS = s.l1_pdgId*s.l2_pdgId<0
+            l_pdgs = [abs(leptons[0]['pdgId']), abs(leptons[1]['pdgId'])]
+            l_pdgs.sort()
+            s.isMuMu = l_pdgs==[13,13]
+            s.isEE = l_pdgs==[11,11]
+            s.isEMu = l_pdgs==[11,13]
+            s.isOS = s.l1_pdgId*s.l2_pdgId<0
 
-                l1 = ROOT.TLorentzVector()
-                l1.SetPtEtaPhiM(leptons[0]['pt'], leptons[0]['eta'], leptons[0]['phi'], 0 )
-                l2 = ROOT.TLorentzVector()
-                l2.SetPtEtaPhiM(leptons[1]['pt'], leptons[1]['eta'], leptons[1]['phi'], 0 )
-                dl = l1+l2
-                s.dl_pt  = dl.Pt()
-                s.dl_eta = dl.Eta()
-                s.dl_phi = dl.Phi()
-                s.dl_mass   = dl.M()
-                s.mlmZ_mass = closestOSDLMassToMZ(leptons_pt10)
-                mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
-                mt2Calc.setMet(r.met_pt,r.met_phi)
-                s.dl_mt2ll = mt2Calc.mt2ll()
+            l1 = ROOT.TLorentzVector()
+            l1.SetPtEtaPhiM(leptons[0]['pt'], leptons[0]['eta'], leptons[0]['phi'], 0 )
+            l2 = ROOT.TLorentzVector()
+            l2.SetPtEtaPhiM(leptons[1]['pt'], leptons[1]['eta'], leptons[1]['phi'], 0 )
+            dl = l1+l2
+            s.dl_pt  = dl.Pt()
+            s.dl_eta = dl.Eta()
+            s.dl_phi = dl.Phi()
+            s.dl_mass   = dl.M()
+            s.mlmZ_mass = closestOSDLMassToMZ(leptons_pt10)
+            mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
+            mt2Calc.setMet(r.met_pt,r.met_phi)
+            s.dl_mt2ll = mt2Calc.mt2ll()
 
-                if len(jets)>=2:
-                    bJets = filter(lambda j:isBJet(j), jets)
-                    nonBJets = filter(lambda j:not isBJet(j), jets)
-                    bj0, bj1 = (bJets+nonBJets)[:2]
-                    mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                    s.dl_mt2bb   = mt2Calc.mt2bb()
-                    s.dl_mt2blbl = mt2Calc.mt2blbl()
+            if len(jets)>=2:
+                bJets = filter(lambda j:isBJet(j), jets)
+                nonBJets = filter(lambda j:not isBJet(j), jets)
+                bj0, bj1 = (bJets+nonBJets)[:2]
+                mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                s.dl_mt2bb   = mt2Calc.mt2bb()
+                s.dl_mt2blbl = mt2Calc.mt2blbl()
 
-                if not options.skipSystematicsVariations:
+                if addSystematicVariations:
                     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
                         mt2Calc.setMet( getattr(s, "met_pt_"+var), getattr(s, "met_phi_"+var) )
                         setattr(s, "dl_mt2ll_"+var,  mt2Calc.mt2ll())
@@ -454,7 +458,7 @@ def filler(s):
                             setattr(s, 'dl_mt2bb_'+var, mt2Calc.mt2bb())
                             setattr(s, 'dl_mt2blbl_'+var,mt2Calc.mt2blbl())
 
-        if not options.skipSystematicsVariations:
+        if addSystematicVariations:
             for j in jets:
                 btagEff_1d.addBTagEffToJet(j)
             for var in btagEff_1d.btagWeightNames:
@@ -477,15 +481,18 @@ treeMaker_parent = TreeMaker(
     )
     
 # Split input in ranges
-eventRanges = reader.getEventRanges( maxFileSizeMB = 1000)
+eventRanges = reader.getEventRanges( maxNEvents = 300000 )
+
 logger.info( "Splitting into %i ranges of %i events on average.",  len(eventRanges), (eventRanges[-1][1] - eventRanges[0][0])/len(eventRanges) )
 
 convertedEvents = 0
 clonedEvents = 0
 
+filename, ext = os.path.splitext( os.path.join(outDir, sample.name + '.root') )
+
 for ievtRange, eventRange in enumerate(eventRanges):
 
-    logger.info( "Now at range %i which has %i events.",  ievtRange, eventRange[1]-eventRange[0] )
+    logger.info( "Now at range %i (%i, %i) which has %i events.",  ievtRange, eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 
     # Set the reader to the event range
     reader.setEventRange( eventRange )
@@ -504,9 +511,8 @@ for ievtRange, eventRange in enumerate(eventRanges):
     convertedEvents += maker.tree.GetEntries()
 
     # Writing to file
-    filename, ext = os.path.splitext( os.path.join(outDir, 'histo.root') )
     outfilename = filename+'_'+str(ievtRange)+ext
-    f = ROOT.TFile.Open(filename+'_'+str(ievtRange)+ext, 'recreate')
+    f = ROOT.TFile.Open(outfilename, 'recreate')
     maker.tree.Write()
     f.Close()
     logger.info( "Written %s", outfilename)
@@ -515,6 +521,42 @@ for ievtRange, eventRange in enumerate(eventRanges):
     maker.clear()
 
 logger.info( "Converted %i events of %i, cloned %i",  convertedEvents, reader.nEvents , clonedEvents)
+
+# Storing JSON file of processed events
+if isData:
+    jsonFile = filename+'.json'
+    LumiList(runsAndLumis = outputLumiList).writeJSON(jsonFile)
+    logger.info( "Written JSON file %s",  jsonFile )
+
+
+#if options.signal:
+#        signalDir = os.path.join(options.targetDir, options.skim, "T2tt")
+#        if not os.path.exists(signalDir):
+#                os.makedirs(signalDir)
+#
+#if options.signal:
+#        from StopsDilepton.tools.xSecSusy import xSecSusy
+#        xSecSusy_ = xSecSusy()
+#        channel='stop13TeV'
+#        signalWeight={}
+#        c = ROOT.TChain("tree")
+#        for chunk in chunks:
+#                c.Add(chunk['file'])
+#        print "Fetching signal weights..."
+#        mMax = 1500
+#        bStr = str(mMax)+','+str(mMax)
+#        c.Draw("GenSusyMScan2:GenSusyMScan1>>hNEvents("+','.join([bStr, bStr])+")")
+#        hNEvents = ROOT.gDirectory.Get("hNEvents")
+#        for i in range (mMax):
+#                for j in range (mMax):
+#                        n = hNEvents.GetBinContent(hNEvents.FindBin(i,j))
+#                        if n>0:
+#                                signalWeight[(i,j)] = {'weight':targetLumi*xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)/n, 'xSecFacUp':xSecSusy_.getXSec(channel=channel,mass=i,sigma=1)/xSecSusy_.getXSec(channel=channel,mass=i,sigma=0), 'xSecFacDown':xSecSusy_.getXSec(channel=channel,mass=i,sigma=-1)/xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)}
+#                                print "Found mStop %5i mNeu %5i Number of events: %6i, xSec: %10.6f, weight: %6.6f (+1 sigma rel: %6.6f, -1 sigma rel: %6.6f)"%(i,j,n, xSecSusy_.getXSec(channel=channel,mass=i,sigma=0),  signalWeight[(i,j)]['weight'], signalWeight[(i,j)]['xSecFacUp'], signalWeight[(i,j)]['xSecFacDown'])
+#        c.IsA().Destructor(c)
+#        del c
+#        del hNEvents
+#        print "Done fetching signal weights."
 
 #                        if options.signal:
 #                                        s.weight=signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['weight']
@@ -549,39 +591,9 @@ logger.info( "Converted %i events of %i, cloned %i",  convertedEvents, reader.nE
 #                                        s.weightPUUp=0
 #                                        s.weightPUDown=0
 #                                        nVetoEvents+=1
-##        print "Found %i:%i:%i in %s"%(r.run, r.lumi, r.evt, vetoList.filename)
-##      else: print [r.run, r.lumi, r.evt], vetoList_.events[0]
-##        print "Found run %i lumi %i in json file %s"%(r.run, r.lumi, sample.json)
 #
 #
 #
-#print "Event loop end. Vetoed %i events."%nVetoEvents
-#
-#if not options.small:
-#        size=0
-#        counter=0
-#        files=[]
-#        ofiles=[]
-#        for f in filesForHadd:
-#                size+=os.path.getsize(tmpDir+'/'+f)
-#                files.append(f)
-#                if size>(0.5*(10**9)) or f==filesForHadd[-1] or len(files)>300:
-#                        ofile = outDir+'/'+sample.name+'_'+str(counter)+'.root'
-#                        print "Running hadd on", tmpDir, files
-#                        os.system('cd '+tmpDir+';hadd -f '+ofile+' '+' '.join(files))
-#                        print "Written output file %s" % ofile
-#                        ofiles.append(ofile)
-#                        size=0
-#                        counter+=1
-#                        files=[]
-#        shutil.rmtree(tmpDir)
-#        if allData:
-#                jsonFile = outDir+'/'+sample.name+'.json'
-#                LumiList(runsAndLumis = outputLumiList).writeJSON(jsonFile)
-#                print "Written JSON file %s" % jsonFile
-#        if options.signal:
-#                c = ROOT.TChain('Events')
-#                for f in ofiles:c.Add(f)
 #                for s in signalMassPoints:
 #                        cut = "GenSusyMScan1=="+str(s[0])+"&&GenSusyMScan2=="+str(s[1])
 #                        signalFile = signalDir+'/T2tt_'+str(s[0])+'_'+str(s[1])+'.root'
@@ -589,9 +601,3 @@ logger.info( "Converted %i events of %i, cloned %i",  convertedEvents, reader.nE
 #                                t = c.CopyTree(cut)
 #                                writeObjToFile(signalFile, t)
 #                                print "Written signal file for masses mStop %i mNeu %i to %s"%(s[0], s[1], signalFile)
-#        #      t.IsA().Destructor(c)
-#        #      del t
-#                        else:
-#                                print "Found file %s -> Skipping"%(signalFile)
-#                c.IsA().Destructor(c)
-#                del c
