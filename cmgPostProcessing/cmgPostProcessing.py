@@ -38,11 +38,11 @@ def get_parser():
         action='store',
         nargs='?',
         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],
-        default='INFO',
+        default='DEBUG',
         help="Log level for logging"
         )
     
-    argParser.add_argument('--overwriteOutputFiles',
+    argParser.add_argument('--overwrite',
         action='store_true',
         help="Overwrite existing output files, bool flag set to True  if used")
     
@@ -83,7 +83,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='dilep',
+        default='dilepTiny',
         help="Skim conditions to be applied for post-processing"
         )
 
@@ -126,6 +126,10 @@ options = get_parser().parse_args()
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile = None)
 
+#Set also RootTools loglevel
+#import logging
+#print getattr(logging, options.logLevel.upper(), None)
+#logging.getLogger('RootTools').setLevel(getattr(logging, options.logLevel.upper(), None))
 
 # Skim condition
 skimConds = []
@@ -187,7 +191,7 @@ else:
 fastSim = False
 
 # systematic variations
-addSystematicVariations = not isData and not options.skipSystematicsVariations
+addSystematicVariations = (not isData) and (not options.skipSystematicsVariations)
 if addSystematicVariations:
     # B tagging SF
     from StopsDilepton.tools.btagEfficiency import btagEfficiency_1b, btagEfficiency_1d
@@ -239,7 +243,7 @@ else:
         "run", "lumi", "evt", "isData", "rho", "nVert",
         "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
 #        "metNoHF_pt", "metNoHF_phi",
-#        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
+        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
         "nJet", "Jet_*",
         "nLepGood", "LepGood_*",
@@ -260,7 +264,7 @@ if options.keepPhotons:
         "ngamma", "gamma_idCutBased", "gamma_hOverE", "gamma_r9", "gamma_sigmaIetaIeta", "gamma_chHadIso04", "gamma_chHadIso", "gamma_phIso", 
         "gamma_neuHadIso", "gamma_relIso", "gamma_pdgId", "gamma_pt", "gamma_eta", "gamma_phi", "gamma_mass", 
         "gamma_chHadIsoRC04", "gamma_chHadIsoRC"]
-    if allMC: branchKeepStrings_DATAMC+=[ "gamma_mcMatchId", "gamma_mcPt", "gamma_genIso04", "gamma_genIso03", "gamma_drMinParton"]
+    if isMC: branchKeepStrings_DATAMC+=[ "gamma_mcMatchId", "gamma_mcPt", "gamma_genIso04", "gamma_genIso03", "gamma_drMinParton"]
 
 #if options.signal:
 #        branchKeepStrings_MC+=['GenSusyMScan1', 'GenSusyMScan2']
@@ -492,7 +496,13 @@ filename, ext = os.path.splitext( os.path.join(outDir, sample.name + '.root') )
 
 for ievtRange, eventRange in enumerate(eventRanges):
 
-    logger.info( "Now at range %i (%i, %i) which has %i events.",  ievtRange, eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
+    logger.info( "Now at range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
+
+    # Check whether file exists 
+    outfilename = filename+'_'+str(ievtRange)+ext
+    if os.path.isfile(outfilename) and not options.overwrite:
+        logger.info( "File %s already found. Skipping.", outfilename) 
+        continue
 
     # Set the reader to the event range
     reader.setEventRange( eventRange )
@@ -501,8 +511,10 @@ for ievtRange, eventRange in enumerate(eventRanges):
 
     # Clone the empty maker in order to avoid recompilation at every loop iteration
     maker = treeMaker_parent.cloneWithoutCompile( externalTree = clonedTree )
-    maker.start()
 
+    break
+
+    maker.start()
     # Do the thing
     reader.start()
     while reader.run():
@@ -510,8 +522,7 @@ for ievtRange, eventRange in enumerate(eventRanges):
 
     convertedEvents += maker.tree.GetEntries()
 
-    # Writing to file
-    outfilename = filename+'_'+str(ievtRange)+ext
+    # Write to file 
     f = ROOT.TFile.Open(outfilename, 'recreate')
     maker.tree.Write()
     f.Close()

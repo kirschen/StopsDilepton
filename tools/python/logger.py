@@ -14,6 +14,7 @@ def get_logger(logLevel, logFile = None):
     logging.trace = lambda msg, *args, **kwargs: logging.log(logging.TRACE, msg, *args, **kwargs)
 
     logger = logging.getLogger('StopsDilepton')
+#    logger = logging.getLogger('RootTools')
 
     numeric_level = getattr(logging, logLevel.upper(), None)
     if not isinstance(numeric_level, int):
