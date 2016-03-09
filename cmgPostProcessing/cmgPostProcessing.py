@@ -226,7 +226,7 @@ if options.skim.lower().count('tiny'):
         "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
         "LepGood_eta","LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId", 
         "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits",
-        "Jet_eta","Jet_pt","Jet_phi","Jet_btagCSV", "Jet_id" ,
+        "Jet_eta","Jet_pt","Jet_phi","Jet_btagCSV", "Jet_id"
         ]
 
     #branches to be kept for MC samples only
@@ -243,7 +243,7 @@ else:
         "run", "lumi", "evt", "isData", "rho", "nVert",
         "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
 #        "metNoHF_pt", "metNoHF_phi",
-        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
+#        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
         "nJet", "Jet_*",
         "nLepGood", "LepGood_*",
@@ -258,6 +258,14 @@ else:
 
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
+
+jetVars_ = jetVars
+if isMC:
+    jetVars_ += ['mcPt', 'hadronFlavour']
+if addSystematicVariations:
+    jetVars_ += ['corr','corr_JECUp','corr_JECDown']    
+for jv in jetVars:
+    branchKeepStrings_MC.append("Jet_%s"%jv)
 
 if options.keepPhotons:
     branchKeepStrings_DATAMC+=[
@@ -289,16 +297,17 @@ else:
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
 if isMC: read_variables+= [Variable.fromString('nTrueInt/I')]
 
-jetMCInfo = ',mcMatchFlav/I,partonId/I,mcPt/F,hadronFlavour/I' if isMC else ''
+#jetMCInfo = ',mcMatchFlav/I,partonId/I,mcPt/F,hadronFlavour/I' if isMC else ''
+jetMCInfo = ',mcPt/F,hadronFlavour/I' if isMC else ''
 read_variables+= [\
     Variable.fromString('nLepGood/I'), 
-    VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,charge/I,relIso03/F,tightId/I,miniRelIso/F,mass/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F]'),
+    VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F]'),
     Variable.fromString('nJet/I'), 
     VectorType.fromString('Jet[pt/F,eta/F,phi/F,id/I,btagCSV/F,corr/F,corr_JECUp/F,corr_JECDown/F' + jetMCInfo+']')
 ]
 if isMC: 
-    read_variables.append( Variable.fromString('ngenPartAll/I') ) 
-    read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
+#    read_variables.append( Variable.fromString('ngenPartAll/I') ) 
+#    read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
     read_variables.append( Variable.fromString('genWeight/I') ) 
 
 new_variables = [ 'weight/F'] 
@@ -338,12 +347,6 @@ reader = sample.treeReader( \
     variables = read_variables , 
     selectionString = "&&".join(skimConds)
     )
-
-jetVars_ = jetVars
-if isMC:
-    jetVars_ += ['mcPt']
-if addSystematicVariations:
-    jetVars_ += ['corr','corr_JECUp','corr_JECDown','hadronFlavour']    
 
 def filler(s): 
     # shortcut
@@ -512,11 +515,10 @@ for ievtRange, eventRange in enumerate(eventRanges):
     # Clone the empty maker in order to avoid recompilation at every loop iteration
     maker = treeMaker_parent.cloneWithoutCompile( externalTree = clonedTree )
 
-    break
-
     maker.start()
     # Do the thing
     reader.start()
+
     while reader.run():
         maker.run()
 
