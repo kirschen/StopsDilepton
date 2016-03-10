@@ -3,6 +3,7 @@
 
 # Standard imports
 import ROOT, pickle, itertools, os
+from operator import mul
 
 # Logging
 import logging
@@ -25,13 +26,13 @@ def toFlavourKey(pdgId):
 # get the combinatorical weights for jet efficiency list eff
 #Method 1ab
 effFile             = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTJets_DiLepton_comb_2j_2l.pkl'
-sfFile_1ab           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2.csv'
-sfFile_1ab_FastSim   = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSV_13TEV_Combined_20_11_2015.csv'
+sfFile           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2.csv'
+sfFile_FastSim   = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSV_13TEV_Combined_20_11_2015.csv'
 
-class btagEfficiency_1ab:
+class btagEfficiency:
 
     @staticmethod
-    def getWeightDict(effs, maxMultBTagWeight):
+    def getWeightDict_1b(effs, maxMultBTagWeight):
         '''Make Weight dictionary for jets
         '''
         zeroTagWeight = 1.
@@ -56,6 +57,13 @@ class btagEfficiency_1ab:
 
         return tagWeight
 
+    def getBTagSF_1a(self, var, bJets, nonBJets):
+        if var not in self.btagWeightNames:
+            raise ValueError( "Don't know what to do with b-tag variation %s" %var )
+        if var != 'MC':
+                ref = reduce(mul, [j['beff']['MC'] for j in bJets] + [1-j['beff']['MC'] for j in nonBJets], 1 )
+                return reduce(mul, [j['beff'][var] for j in bJets] + [1-j['beff'][var] for j in nonBJets], 1 )/ref
+
 
     def __init__(self,  WP = ROOT.BTagEntry.OP_MEDIUM, fastSim = False):
 
@@ -68,8 +76,8 @@ class btagEfficiency_1ab:
             self.btagWeightNames += [ 'SF_FS_Up', 'SF_FS_Down']
 
         # Input files
-        self.scaleFactorFile = sfFile_1ab
-        self.scaleFactorFileFS = sfFile_1ab_FastSim
+        self.scaleFactorFile = sfFile
+        self.scaleFactorFileFS = sfFile_FastSim
         self.mcEfficiencyFile = effFile
 
         logger.info ( "Loading scale factors from %s", os.path.expandvars(self.scaleFactorFile) )
