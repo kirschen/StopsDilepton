@@ -23,12 +23,12 @@ def toFlavourKey(pdgId):
     return ROOT.BTagEntry.FLAV_UDSG
 
 # get the combinatorical weights for jet efficiency list eff
-#Method 1b
+#Method 1ab
 effFile             = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTJets_DiLepton_comb_2j_2l.pkl'
-sfFile_1b           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2.csv'
-sfFile_1b_FastSim   = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSV_13TEV_Combined_20_11_2015.csv'
+sfFile_1ab           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2.csv'
+sfFile_1ab_FastSim   = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSV_13TEV_Combined_20_11_2015.csv'
 
-class btagEfficiency_1b:
+class btagEfficiency_1ab:
 
     @staticmethod
     def getWeightDict(effs, maxMultBTagWeight):
@@ -68,8 +68,8 @@ class btagEfficiency_1b:
             self.btagWeightNames += [ 'SF_FS_Up', 'SF_FS_Down']
 
         # Input files
-        self.scaleFactorFile = sfFile_1b
-        self.scaleFactorFileFS = sfFile_1b_FastSim
+        self.scaleFactorFile = sfFile_1ab
+        self.scaleFactorFileFS = sfFile_1ab_FastSim
         self.mcEfficiencyFile = effFile
 
         logger.info ( "Loading scale factors from %s", os.path.expandvars(self.scaleFactorFile) )

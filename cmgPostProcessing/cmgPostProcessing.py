@@ -50,7 +50,7 @@ def get_parser():
         action='store',
         nargs='*',
         type=str,
-#        default=['TTJets_LO'],
+#        default=['TTjets_sysLO'],
         default=['WZZ'],
         help="List of samples to be post-processed, given as CMG component name"
         )
@@ -200,10 +200,10 @@ fastSim = False
 addSystematicVariations = (not isData) and (not options.skipSystematicVariations)
 if addSystematicVariations:
     # B tagging SF
-    from StopsDilepton.tools.btagEfficiency import btagEfficiency_1b, btagEfficiency_1d
+    from StopsDilepton.tools.btagEfficiency import btagEfficiency_1ab, btagEfficiency_1d
     btagEff_1d = btagEfficiency_1d()
     maxMultBTagWeight = 2
-    btagEff_1b = btagEfficiency_1b( fastSim = fastSim )
+    btagEff_1ab = btagEfficiency_1ab( fastSim = fastSim )
 
 # LHE cut (DY samples)
 if options.LHEHTCut>0:
@@ -303,7 +303,6 @@ else:
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
 if isMC: read_variables+= [Variable.fromString('nTrueInt/I')]
 
-#jetMCInfo = ',mcMatchFlav/I,partonId/I,mcPt/F,hadronFlavour/I' if isMC else ''
 jetMCInfo = ',mcPt/F,hadronFlavour/I' if isMC else ''
 read_variables+= [\
     Variable.fromString('nLepGood/I'), 
@@ -312,8 +311,6 @@ read_variables+= [\
     VectorType.fromString('Jet[pt/F,eta/F,phi/F,id/I,btagCSV/F,corr/F,corr_JECUp/F,corr_JECDown/F' + jetMCInfo+']')
 ]
 if isMC: 
-#    read_variables.append( Variable.fromString('ngenPartAll/I') ) 
-#    read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
     read_variables.append( Variable.fromString('genWeight/I') ) 
 
 new_variables = [ 'weight/F' ] 
@@ -331,15 +328,21 @@ if options.skim.lower().startswith('dilep'):
 
 if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
-        new_variables.extend( ['nGoodJets_'+var+'/I', 'nBTags_'+var+'/I','ht_'+var+'/F'] )
+        new_variables.extend( ['nGoodjets_'+var+'/I', 'nBTags_'+var+'/I','ht_'+var+'/F'] )
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F'] )
         if options.skim.lower().startswith('dilep'):
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
-    for var in btagEff_1d.btagWeightNames:
-        new_variables.append('reweightBTag_'+var+'/F')
-    for i in range(maxMultBTagWeight+1):
-        for var in btagEff_1b.btagWeightNames:
-            new_variables.extend(['reweightBTag'+str(i)+'_'+var+'/F', 'reweightBTag'+str(i+1)+'p_'+var+'/F'])
+    # Btag weights Method 1a
+    for var in btagEff_1ab.btagWeightNames:
+        if var!='MC':
+            new_variables.append('reweightBTag_'+var+'/F')
+#   # Btag weights Method 1d
+#    for var in btagEff_1d.btagWeightNames:
+#        new_variables.append('reweightBTag_'+var+'/F')
+#   # Btag weights Method 1b
+#    for i in range(maxMultBTagWeight+1):
+#        for var in btagEff_1ab.btagWeightNames:
+#            new_variables.extend(['reweightBTag'+str(i)+'_'+var+'/F', 'reweightBTag'+str(i+1)+'p_'+var+'/F'])
 
 #if options.signal:
 #        read_variables += ['GenSusyMScan1/I', 'GenSusyMScan2/I']
@@ -384,14 +387,15 @@ def filler(s):
     # jet/met related quantitie
     allJets = getGoodJets(r, ptCut=0, jetVars=jetVars_)
     jets = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4), allJets)
+    bJets = filter(lambda j:isBJet(j), jets)
+    nonBJets = filter(lambda j:not isBJet(j), jets)
     s.nGoodJets   = len(jets)
     s.ht          = sum([j['pt'] for j in jets])
-    s.nBTags      = len(filter(isBJet, jets))
+    s.nBTags      = len(bJets)
 
-    jets_      = {}
-    bJets_     = {}
-    nonBJets_  = {}
-    metShifts_ = {}
+    jets_sys      = {}
+    bjets_sys     = {}
+    nonBjets_sys  = {}
 
     if addSystematicVariations:
         for j in allJets:
@@ -399,17 +403,17 @@ def filler(s):
             j['pt_JECDown'] =j['pt']/j['corr']*j['corr_JECDown']
             addJERScaling(j)
         for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
-            jets_[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt_'+var), allJets)
-            bJets_[var]      = filter(isBJet, jets_[var])
-            nonBJets_[var]   = filter(lambda j: not isBJet(j), jets_[var])
-            met_corr_px = r.met_pt*cos(r.met_phi) + sum([(j['pt']-j['pt_'+var])*cos(j['phi']) for j in jets_[var] ])
-            met_corr_py = r.met_pt*sin(r.met_phi) + sum([(j['pt']-j['pt_'+var])*sin(j['phi']) for j in jets_[var] ])
+            jets_sys[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt_'+var), allJets)
+            bjets_sys[var]      = filter(isBJet, jets_sys[var])
+            nonBjets_sys[var]   = filter(lambda j: not isBJet(j), jets_sys[var])
+            met_corr_px = r.met_pt*cos(r.met_phi) + sum([(j['pt']-j['pt_'+var])*cos(j['phi']) for j in jets_sys[var] ])
+            met_corr_py = r.met_pt*sin(r.met_phi) + sum([(j['pt']-j['pt_'+var])*sin(j['phi']) for j in jets_sys[var] ])
 
             setattr(s, "met_pt_"+var, sqrt(met_corr_px**2 + met_corr_py**2))
             setattr(s, "met_phi_"+var, atan2(met_corr_py, met_corr_px))
-            setattr(s, "nGoodJets_"+var, len(jets_[var]))
-            setattr(s, "ht_"+var, sum([j['pt_'+var] for j in jets_[var]]))
-            setattr(s, "nBTags_"+var, len(bJets_[var]))
+            setattr(s, "nGoodjets_"+var, len(jets_sys[var]))
+            setattr(s, "ht_"+var, sum([j['pt_'+var] for j in jets_sys[var]]))
+            setattr(s, "nBTags_"+var, len(bjets_sys[var]))
 
     if options.skim.lower().startswith('dilep'):
         leptons_pt10 = getGoodLeptons(r, ptCut=10)
@@ -456,8 +460,6 @@ def filler(s):
             s.dl_mt2ll = mt2Calc.mt2ll()
 
             if len(jets)>=2:
-                bJets = filter(lambda j:isBJet(j), jets)
-                nonBJets = filter(lambda j:not isBJet(j), jets)
                 bj0, bj1 = (bJets+nonBJets)[:2]
                 mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
                 s.dl_mt2bb   = mt2Calc.mt2bb()
@@ -467,25 +469,33 @@ def filler(s):
                     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
                         mt2Calc.setMet( getattr(s, "met_pt_"+var), getattr(s, "met_phi_"+var) )
                         setattr(s, "dl_mt2ll_"+var,  mt2Calc.mt2ll())
-                        if len(jets_[var])>=2:
-                            bj0, bj1 = (bJets_[var]+nonBJets_[var])[:2]
+                        if len(jets_sys[var])>=2:
+                            bj0, bj1 = (bjets_sys[var]+nonBjets_sys[var])[:2]
                             mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
                             setattr(s, 'dl_mt2bb_'+var, mt2Calc.mt2bb())
                             setattr(s, 'dl_mt2blbl_'+var,mt2Calc.mt2blbl())
 
         if addSystematicVariations:
+# Method 1d
+#            for j in jets:
+#                btagEff_1d.addBTagEffToJet(j)
+#            for var in btagEff_1d.btagWeightNames:
+#                setattr(s, 'reweightBTag_'+var, reduce(mul, [j['beff'][var] for j in jets], 1) )
+## Method 1b
+#            for j in jets:
+#                btagEff_1ab.addBTagEffToJet(j)
+#            for var in btagEff_1ab.btagWeightNames:
+#                res = btagEff_1ab.getWeightDict([j['beff'][var] for j in jets], maxMultBTagWeight)
+#                for i in range(maxMultBTagWeight+1):
+#                    setattr(s, 'reweightBTag'+str(i)+'_'+var, res[i])
+#                    setattr(s, 'reweightBTag'+str(i+1)+'p_'+var, 1-sum([res[j] for j in range(i+1)]))
+# Method 1a
             for j in jets:
-                btagEff_1d.addBTagEffToJet(j)
-            for var in btagEff_1d.btagWeightNames:
-                setattr(s, 'reweightBTag_'+var, reduce(mul, [j['beff'][var] for j in jets], 1) )
-            for j in jets:
-                btagEff_1b.addBTagEffToJet(j)
-            for var in btagEff_1b.btagWeightNames:
-                res = btagEff_1b.getWeightDict([j['beff'][var] for j in jets], maxMultBTagWeight)
-                for i in range(maxMultBTagWeight+1):
-                    setattr(s, 'reweightBTag'+str(i)+'_'+var, res[i])
-                    setattr(s, 'reweightBTag'+str(i+1)+'p_'+var, 1-sum([res[j] for j in range(i+1)]))
-
+                btagEff_1ab.addBTagEffToJet(j)
+            for var in btagEff_1ab.btagWeightNames:
+                ref = reduce(mul, [j['beff']['MC'] for j in bJets] + [1-j['beff']['MC'] for j in nonBJets], 1 )
+                if var!='MC':
+                    setattr(s, 'reweightBTag_'+var, reduce(mul, [j['beff'][var] for j in bJets] + [1-j['beff'][var] for j in nonBJets], 1 )/ref )
     return
     
 # Create a maker. Maker class will be compiled. This instance will be used as a parent in the loop
