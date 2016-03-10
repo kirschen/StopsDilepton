@@ -4,14 +4,17 @@ import os
 # RootTools
 from RootTools.core.standard import *
 
-def getSubDir(dataset):
+def getSubDir(dataset, path):
     import re
     m=re.match("\/(.*)\/(.*)\/(.*)",dataset)
     if not m :
         print "NO GOOD DATASET"
         return
-    sample=m.group(1)+"_"+m.group(2)
-    return sample
+    if os.environ['USER'] in ['tomc']: 
+      d=re.match("(.*)/cmgTuples/(.*)",path)
+      return m.group(1)+"/"+m.group(2)+'_'+d.group(2)
+    else :                             
+      return m.group(1)+"_"+m.group(2)
 
 def fromHeppySample(sample, data_path, module = None, maxN = None):
     ''' Load CMG tuple from local directory
@@ -31,12 +34,14 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
         raise ValueError( "Could not load sample '%s' from %s "%( sample, module_ ) )
 
     # helpers
-    from StopsDilepton.samples.helpers import getSubDir
-    subDir = getSubDir(heppy_sample.dataset)
+    subDir = getSubDir(heppy_sample.dataset, data_path)
     if not subDir:
         raise ValueError( "Not a good dataset name: '%s'"%heppy_sample.dataset )
 
     path = '/'.join([ data_path, subDir ] )
-    sample = Sample.fromCMGOutput(heppy_sample.name, path, treeFilename = 'tree.root', treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
+    if os.environ['USER'] in ['tomc']: sample = Sample.fromCMGCrabDirectory(heppy_sample.name, path, treeFilename = 'tree.root', treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
+    else:                              sample = Sample.fromCMGOutput(heppy_sample.name, path, treeFilename = 'tree.root', treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
     sample.heppy = heppy_sample
     return sample
+
+	
