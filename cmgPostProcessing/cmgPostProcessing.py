@@ -38,7 +38,7 @@ def get_parser():
         action='store',
         nargs='?',
         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],
-        default='DEBUG',
+        default='INFO',
         help="Log level for logging"
         )
     
@@ -111,10 +111,14 @@ def get_parser():
         help="Keep LHEWeights?"
         )
 
-    argParser.add_argument('--skipSystematicsVariations',
+    argParser.add_argument('--skipSystematicVariations',
         action='store_true',
         help="Don't calulcate BTag, JES and JER variations."
         )
+
+    argParser.add_argument('--noTopPtReweighting',
+        action='store_true',
+        help="Skip top pt reweighting.")
 
     # parser.add_option("--signal", dest="signal", default = False, action="store_true", help="Is this T2tt signal?")
     
@@ -125,6 +129,8 @@ options = get_parser().parse_args()
 # Logging
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile = None)
+import RootTools.core.logger as logger_rt
+logger_rt = logger_rt.get_logger(options.logLevel, logFile = None)
 
 #Set also RootTools loglevel
 #import logging
@@ -147,6 +153,7 @@ isMC   =  True not in [s.isData for s in samples]
 # Check that all samples which are concatenated have the same x-section.
 assert isData or len(set([s.heppy.xSection for s in samples]))==1, "Not all samples have the same xSection: %s !"%(",".join([s.name for s in samples]))
 assert isMC or len(samples)==1, "Don't concatenate data samples"
+xSection = samples[0].heppy.xSection if isMC else None
 
 #Samples: combine
 if len(samples)>1:
@@ -161,17 +168,16 @@ elif len(samples)==1:
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
 
-#PU reweighting -> disabled in 76X
-#if isMC:
-#    from StopsDilepton.tools.puReweighting import getReweightingFunction
-#    puRW        = getReweightingFunction(data="PU_2100_XSecCentral", mc="Spring15")
-#    puRWDown    = getReweightingFunction(data="PU_2100_XSecDown", mc="Spring15")
-#    puRWUp      = getReweightingFunction(data="PU_2100_XSecUp", mc="Spring15")
+if isMC:
+    from StopsDilepton.tools.puReweighting import getReweightingFunction
+    puRW        = getReweightingFunction(data="PU_2100_XSecCentral", mc="Fall15")
+    puRWDown    = getReweightingFunction(data="PU_2100_XSecDown", mc="Fall15")
+    puRWUp      = getReweightingFunction(data="PU_2100_XSecUp", mc="Fall15")
 
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
 # Decision based on sample name -> whether TTJets or TTLep is in the sample name
-doTopPtReweighting = sample.name.startswith("TTJets") or sample.name.startswith("TTLep")
+doTopPtReweighting = (sample.name.startswith("TTJets") or sample.name.startswith("TTLep")) and not options.noTopPtReweighting
 if doTopPtReweighting:
     logger.info( "Sample will have top pt reweighting." ) 
     topPtReweightingFunc = getUnscaledTopPairPtReweightungFunction(selection = "dilep")
@@ -191,7 +197,7 @@ else:
 fastSim = False
 
 # systematic variations
-addSystematicVariations = (not isData) and (not options.skipSystematicsVariations)
+addSystematicVariations = (not isData) and (not options.skipSystematicVariations)
 if addSystematicVariations:
     # B tagging SF
     from StopsDilepton.tools.btagEfficiency import btagEfficiency_1b, btagEfficiency_1d
@@ -290,7 +296,7 @@ if sample.isData:
     outputLumiList = {}
     logger.info( "Loaded json %s", sample.heppy.json )
 else:
-    lumiScaleFactor = sample.heppy.xSection*targetLumi/float(sample.normalization)
+    lumiScaleFactor = xSection*targetLumi/float(sample.normalization)
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
 
@@ -310,9 +316,8 @@ if isMC:
 #    read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
     read_variables.append( Variable.fromString('genWeight/I') ) 
 
-new_variables = [ 'weight/F'] 
-#    'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 
-if isMC: new_variables.append('rereweightTopPt/F')
+new_variables = [ 'weight/F' ] 
+if isMC: new_variables.extend([ 'rereweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
 if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
 new_variables.extend( ['nGoodJets/I', 'nBTags/I', 'ht/F'] )
 
@@ -353,7 +358,6 @@ def filler(s):
     r = reader.data
     # weight
     s.weight = lumiScaleFactor*r.genWeight if isMC else 1
-
     # lumi lists and vetos
     if isData:  
         if (r.run, r.lumi, r.evt) in vetoList.events:
@@ -369,6 +373,10 @@ def filler(s):
         else:
             if r.lumi not in outputLumiList[r.run]:
                 outputLumiList[r.run].append(r.lumi)
+    if isMC:
+        s.reweightPU     = puRW(r.nTrueInt)
+        s.reweightPUDown = puRWDown(r.nTrueInt)
+        s.reweightPUUp   = puRWUp(r.nTrueInt)
 
     # top pt reweighting
     if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
