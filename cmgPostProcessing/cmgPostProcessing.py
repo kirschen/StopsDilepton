@@ -59,7 +59,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=int,
-        default=20000,
+        default=300000,
         help="Maximum number of events per job (Approximate!)."
         )
 
@@ -67,7 +67,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=int,
-        default=20,
+        default=8,
         help="Maximum number of simultaneous jobs."
         )
     
