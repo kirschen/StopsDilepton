@@ -241,7 +241,7 @@ if options.skim.lower().count('tiny'):
     branchKeepStrings_DATAMC = \
        ["run", "lumi", "evt", "isData", "nVert",
         "met_pt", "met_phi",
-#        "puppiMet_pt","puppiMet_phi",
+        "puppiMet_pt","puppiMet_phi",
         "Flag_*",
         "HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
         "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
