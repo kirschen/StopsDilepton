@@ -12,3 +12,16 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
     # 715 release for limit calculation 
     releaseLocation71XC = '/afs/hephy.at/work/r/rschoefbeck/CMS/tmp/CMSSW_7_1_5/src'
+
+
+if os.environ['USER'] in ['tomc']:
+    # Where you store the data
+    data_directory             = "/user/tomc/StopsDileptonn/dilepTiny"
+    # Where postprocessed data goes 
+    data_output_directory      = "/user/tomc/StopsDilepton/data2"
+    # Where the plots go
+    plot_directory             = "/user/tomc/StopsDilepton/plots"
+    # Analysis result files
+    analysis_results           = "/user/tomc/StopsDilepton/results"
+    # directory with veto lists
+    veto_lists                 = "/user/tomc/StopsDilepton/vetoLists"
