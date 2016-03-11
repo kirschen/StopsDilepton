@@ -266,6 +266,10 @@ else:
 jetVars_ = jetVars
 if isMC:
     jetVars_ += ['mcPt', 'hadronFlavour']
+    # reading gen particles for top pt reweighting
+    read_variables.append( Variable.fromString('ngenPartAll/I') ) 
+    read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
+
 if addSystematicVariations:
     jetVars_ += ['corr','corr_JECUp','corr_JECDown']    
 for jv in jetVars:
