@@ -200,9 +200,7 @@ fastSim = False
 addSystematicVariations = (not isData) and (not options.skipSystematicVariations)
 if addSystematicVariations:
     # B tagging SF
-    from StopsDilepton.tools.btagEfficiency import btagEfficiency, btagEfficiency_1d
-    btagEff_1d = btagEfficiency_1d()
-    maxMultBTagWeight = 2
+    from StopsDilepton.tools.btagEfficiency import btagEfficiency
     btagEff = btagEfficiency( fastSim = fastSim )
 
 # LHE cut (DY samples)
@@ -336,13 +334,6 @@ if addSystematicVariations:
     for var in btagEff.btagWeightNames:
         if var!='MC':
             new_variables.append('reweightBTag_'+var+'/F')
-#   # Btag weights Method 1d
-#    for var in btagEff_1d.btagWeightNames:
-#        new_variables.append('reweightBTag_'+var+'/F')
-#   # Btag weights Method 1b
-#    for i in range(maxMultBTagWeight+1):
-#        for var in btagEff.btagWeightNames:
-#            new_variables.extend(['reweightBTag'+str(i)+'_'+var+'/F', 'reweightBTag'+str(i+1)+'p_'+var+'/F'])
 
 #if options.signal:
 #        read_variables += ['GenSusyMScan1/I', 'GenSusyMScan2/I']
@@ -476,20 +467,7 @@ def filler(s):
                             setattr(s, 'dl_mt2blbl_'+var,mt2Calc.mt2blbl())
 
         if addSystematicVariations:
-# Method 1d
-#            for j in jets:
-#                btagEff_1d.addBTagEffToJet(j)
-#            for var in btagEff_1d.btagWeightNames:
-#                setattr(s, 'reweightBTag_'+var, reduce(mul, [j['beff'][var] for j in jets], 1) )
-## Method 1b
-#            for j in jets:
-#                btagEff.addBTagEffToJet(j)
-#            for var in btagEff.btagWeightNames:
-#                res = btagEff.getWeightDict_1b([j['beff'][var] for j in jets], maxMultBTagWeight)
-#                for i in range(maxMultBTagWeight+1):
-#                    setattr(s, 'reweightBTag'+str(i)+'_'+var, res[i])
-#                    setattr(s, 'reweightBTag'+str(i+1)+'p_'+var, 1-sum([res[j] for j in range(i+1)]))
-# Method 1a
+            # B tagging weights method 1a
             for j in jets:
                 btagEff.addBTagEffToJet(j)
             for var in btagEff.btagWeightNames:
@@ -519,7 +497,9 @@ for ievtRange, eventRange in enumerate(eventRanges):
 
     # Check whether file exists 
     outfilename = filename+'_'+str(ievtRange)+ext
-    if os.path.isfile(outfilename) and not options.overwrite:
+    if os.path.isfile(outfilename) \
+            and checkRootFile(outfilename, checkForObjects=["Events"]) 
+            and not options.overwrite:
         logger.info( "File %s already found. Skipping.", outfilename) 
         continue
 
