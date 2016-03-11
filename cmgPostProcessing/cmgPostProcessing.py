@@ -147,7 +147,7 @@ options = get_parser().parse_args()
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile ='/tmp/%s.txt'%('_'.join(options.samples) ) )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger(options.logLevel, logFile = None ) )
+logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 # Skim condition
 skimConds = []
