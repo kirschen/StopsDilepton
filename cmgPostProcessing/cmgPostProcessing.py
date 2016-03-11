@@ -21,7 +21,7 @@ import StopsDilepton.tools.user as user
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ
+from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetVars, jetId, isBJet
 
@@ -498,7 +498,7 @@ for ievtRange, eventRange in enumerate(eventRanges):
     # Check whether file exists 
     outfilename = filename+'_'+str(ievtRange)+ext
     if os.path.isfile(outfilename) \
-            and checkRootFile(outfilename, checkForObjects=["Events"]) 
+            and checkRootFile(outfilename, checkForObjects=["Events"]) \
             and not options.overwrite:
         logger.info( "File %s already found. Skipping.", outfilename) 
         continue
