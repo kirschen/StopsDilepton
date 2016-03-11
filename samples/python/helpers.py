@@ -38,9 +38,21 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
     if not subDir:
         raise ValueError( "Not a good dataset name: '%s'"%heppy_sample.dataset )
 
-    path = '/'.join([ data_path, subDir ] )
-    if os.environ['USER'] in ['tomc']: sample = Sample.fromCMGCrabDirectory(heppy_sample.name, path, treeFilename = 'tree.root', treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
-    else:                              sample = Sample.fromCMGOutput(heppy_sample.name, path, treeFilename = 'tree.root', treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
+    path = os.path.join( data_path, subDir )
+    from StopsDilepton.tools.user import runOnGentT2
+    if runOnGentT2: 
+        sample = Sample.fromCMGCrabDirectory(
+            heppy_sample.name, 
+            path, 
+            treeFilename = 'tree.root', 
+            treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
+    else:                              
+        sample = Sample.fromCMGOutput(
+            heppy_sample.name, 
+            path, 
+            treeFilename = 'tree.root', 
+            treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
+
     sample.heppy = heppy_sample
     return sample
 

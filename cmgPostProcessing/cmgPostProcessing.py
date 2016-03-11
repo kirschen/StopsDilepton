@@ -21,7 +21,7 @@ import StopsDilepton.tools.user as user
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ
+from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetVars, jetId, isBJet
 
@@ -200,10 +200,8 @@ fastSim = False
 addSystematicVariations = (not isData) and (not options.skipSystematicVariations)
 if addSystematicVariations:
     # B tagging SF
-    from StopsDilepton.tools.btagEfficiency import btagEfficiency_1ab, btagEfficiency_1d
-    btagEff_1d = btagEfficiency_1d()
-    maxMultBTagWeight = 2
-    btagEff_1ab = btagEfficiency_1ab( fastSim = fastSim )
+    from StopsDilepton.tools.btagEfficiency import btagEfficiency
+    btagEff = btagEfficiency( fastSim = fastSim )
 
 # LHE cut (DY samples)
 if options.LHEHTCut>0:
@@ -268,6 +266,10 @@ else:
 jetVars_ = jetVars
 if isMC:
     jetVars_ += ['mcPt', 'hadronFlavour']
+    # reading gen particles for top pt reweighting
+    read_variables.append( Variable.fromString('ngenPartAll/I') ) 
+    read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
+
 if addSystematicVariations:
     jetVars_ += ['corr','corr_JECUp','corr_JECDown']    
 for jv in jetVars:
@@ -333,16 +335,9 @@ if addSystematicVariations:
         if options.skim.lower().startswith('dilep'):
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
     # Btag weights Method 1a
-    for var in btagEff_1ab.btagWeightNames:
+    for var in btagEff.btagWeightNames:
         if var!='MC':
             new_variables.append('reweightBTag_'+var+'/F')
-#   # Btag weights Method 1d
-#    for var in btagEff_1d.btagWeightNames:
-#        new_variables.append('reweightBTag_'+var+'/F')
-#   # Btag weights Method 1b
-#    for i in range(maxMultBTagWeight+1):
-#        for var in btagEff_1ab.btagWeightNames:
-#            new_variables.extend(['reweightBTag'+str(i)+'_'+var+'/F', 'reweightBTag'+str(i+1)+'p_'+var+'/F'])
 
 #if options.signal:
 #        read_variables += ['GenSusyMScan1/I', 'GenSusyMScan2/I']
@@ -476,27 +471,12 @@ def filler(s):
                             setattr(s, 'dl_mt2blbl_'+var,mt2Calc.mt2blbl())
 
         if addSystematicVariations:
-# Method 1d
-#            for j in jets:
-#                btagEff_1d.addBTagEffToJet(j)
-#            for var in btagEff_1d.btagWeightNames:
-#                setattr(s, 'reweightBTag_'+var, reduce(mul, [j['beff'][var] for j in jets], 1) )
-## Method 1b
-#            for j in jets:
-#                btagEff_1ab.addBTagEffToJet(j)
-#            for var in btagEff_1ab.btagWeightNames:
-#                res = btagEff_1ab.getWeightDict([j['beff'][var] for j in jets], maxMultBTagWeight)
-#                for i in range(maxMultBTagWeight+1):
-#                    setattr(s, 'reweightBTag'+str(i)+'_'+var, res[i])
-#                    setattr(s, 'reweightBTag'+str(i+1)+'p_'+var, 1-sum([res[j] for j in range(i+1)]))
-# Method 1a
+            # B tagging weights method 1a
             for j in jets:
-                btagEff_1ab.addBTagEffToJet(j)
-            for var in btagEff_1ab.btagWeightNames:
-                ref = reduce(mul, [j['beff']['MC'] for j in bJets] + [1-j['beff']['MC'] for j in nonBJets], 1 )
+                btagEff.addBTagEffToJet(j)
+            for var in btagEff.btagWeightNames:
                 if var!='MC':
-                    setattr(s, 'reweightBTag_'+var, reduce(mul, [j['beff'][var] for j in bJets] + [1-j['beff'][var] for j in nonBJets], 1 )/ref )
-    return
+                    setattr(s, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
     
 # Create a maker. Maker class will be compiled. This instance will be used as a parent in the loop
 treeMaker_parent = TreeMaker( 
@@ -521,7 +501,9 @@ for ievtRange, eventRange in enumerate(eventRanges):
 
     # Check whether file exists 
     outfilename = filename+'_'+str(ievtRange)+ext
-    if os.path.isfile(outfilename) and not options.overwrite:
+    if os.path.isfile(outfilename) \
+            and checkRootFile(outfilename, checkForObjects=["Events"]) \
+            and not options.overwrite:
         logger.info( "File %s already found. Skipping.", outfilename) 
         continue
 
@@ -558,77 +540,3 @@ if isData:
     jsonFile = filename+'.json'
     LumiList(runsAndLumis = outputLumiList).writeJSON(jsonFile)
     logger.info( "Written JSON file %s",  jsonFile )
-
-
-#if options.signal:
-#        signalDir = os.path.join(options.targetDir, options.skim, "T2tt")
-#        if not os.path.exists(signalDir):
-#                os.makedirs(signalDir)
-#
-#if options.signal:
-#        from StopsDilepton.tools.xSecSusy import xSecSusy
-#        xSecSusy_ = xSecSusy()
-#        channel='stop13TeV'
-#        signalWeight={}
-#        c = ROOT.TChain("tree")
-#        for chunk in chunks:
-#                c.Add(chunk['file'])
-#        print "Fetching signal weights..."
-#        mMax = 1500
-#        bStr = str(mMax)+','+str(mMax)
-#        c.Draw("GenSusyMScan2:GenSusyMScan1>>hNEvents("+','.join([bStr, bStr])+")")
-#        hNEvents = ROOT.gDirectory.Get("hNEvents")
-#        for i in range (mMax):
-#                for j in range (mMax):
-#                        n = hNEvents.GetBinContent(hNEvents.FindBin(i,j))
-#                        if n>0:
-#                                signalWeight[(i,j)] = {'weight':targetLumi*xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)/n, 'xSecFacUp':xSecSusy_.getXSec(channel=channel,mass=i,sigma=1)/xSecSusy_.getXSec(channel=channel,mass=i,sigma=0), 'xSecFacDown':xSecSusy_.getXSec(channel=channel,mass=i,sigma=-1)/xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)}
-#                                print "Found mStop %5i mNeu %5i Number of events: %6i, xSec: %10.6f, weight: %6.6f (+1 sigma rel: %6.6f, -1 sigma rel: %6.6f)"%(i,j,n, xSecSusy_.getXSec(channel=channel,mass=i,sigma=0),  signalWeight[(i,j)]['weight'], signalWeight[(i,j)]['xSecFacUp'], signalWeight[(i,j)]['xSecFacDown'])
-#        c.IsA().Destructor(c)
-#        del c
-#        del hNEvents
-#        print "Done fetching signal weights."
-
-#                        if options.signal:
-#                                        s.weight=signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['weight']
-#                                        s.reweightXSecUp    = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacUp']
-#                                        s.reweightXSecDown  = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacDown']
-#                        if not sample.isData:
-#                                s.weightPU     = s.weight*puRW(r.nTrueInt)
-#                                s.weightPUDown = s.weight*puRWDown(r.nTrueInt)
-#                                s.weightPUUp   = s.weight*puRWUp(r.nTrueInt)
-#                        else:
-#                                s.weightPU     = 1
-#                                s.weightPUDown = 1
-#                                s.weightPUUp   = 1
-#                        if sample.isData:
-#                                if not sample.lumiList.contains(r.run, r.lumi):
-#        #        print "Did not find run %i lumi %i in json file %s"%(r.run, r.lumi, sample.json)
-#                                        s.weight=0
-#                                        s.weightPU=0
-#                                        s.weightPUUp=0
-#                                        s.weightPUDown=0
-#                                else:
-#                                        if r.run not in outputLumiList.keys():
-#                                                outputLumiList[r.run] = [r.lumi]
-#                                        else:
-#                                                if r.lumi not in outputLumiList[r.run]:
-#                                                        outputLumiList[r.run].append(r.lumi)
-#                        if vetoList_:
-#                                if (r.run, r.lumi, r.evt) in vetoList_.events:
-##          print "Veto %i:%i:%i "%(r.run, r.lumi, r.evt)
-#                                        s.weight=0
-#                                        s.weightPU=0
-#                                        s.weightPUUp=0
-#                                        s.weightPUDown=0
-#                                        nVetoEvents+=1
-#
-#
-#
-#                for s in signalMassPoints:
-#                        cut = "GenSusyMScan1=="+str(s[0])+"&&GenSusyMScan2=="+str(s[1])
-#                        signalFile = signalDir+'/T2tt_'+str(s[0])+'_'+str(s[1])+'.root'
-#                        if not os.path.exists(signalFile) or options.overwrite:
-#                                t = c.CopyTree(cut)
-#                                writeObjToFile(signalFile, t)
-#                                print "Written signal file for masses mStop %i mNeu %i to %s"%(s[0], s[1], signalFile)
