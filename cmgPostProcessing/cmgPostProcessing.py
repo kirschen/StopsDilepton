@@ -145,14 +145,9 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger(options.logLevel, logFile = None)
+logger = logger.get_logger(options.logLevel, logFile ='/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) ) )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger(options.logLevel, logFile = None)
-
-#Set also RootTools loglevel
-#import logging
-#print getattr(logging, options.logLevel.upper(), None)
-#logging.getLogger('RootTools').setLevel(getattr(logging, options.logLevel.upper(), None))
+logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 # Skim condition
 skimConds = []
@@ -234,7 +229,12 @@ if sample.isData:
     vetoList = vetoList_.vetoList( [os.path.join(user.veto_lists, f) for f in fileNames] )
 
 outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sample.name)
-if not os.path.exists(outDir): os.makedirs(outDir)
+if os.path.exists(outDir) and options.overwrite:
+    logger.info( "Output directory %s exists. Deleting.", outDir )
+    shutil.rmtree(outDir)
+if not os.path.exists(outDir): 
+    os.makedirs(outDir)
+    logger.info( "Created output directory %s.", outDir )
 
 if options.skim.lower().count('tiny'):
     #branches to be kept for data and MC
@@ -504,10 +504,11 @@ logger.info( "Splitting into %i ranges of %i events on average.",  len(eventRang
 
 filename, ext = os.path.splitext( os.path.join(outDir, sample.name + '.root') )
 
+# Wrapper for multithreading
 def wrapper(arg):
     ievtRange, eventRange = arg
 
-    logger.info( "Now at range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
+    logger.info( "Processing range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 
     # Check whether file exists 
     outfilename = filename+'_'+str(ievtRange)+ext
