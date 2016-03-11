@@ -266,9 +266,6 @@ else:
 jetVars_ = jetVars
 if isMC:
     jetVars_ += ['mcPt', 'hadronFlavour']
-    # reading gen particles for top pt reweighting
-    read_variables.append( Variable.fromString('ngenPartAll/I') ) 
-    read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
 
 if addSystematicVariations:
     jetVars_ += ['corr','corr_JECUp','corr_JECDown']    
@@ -303,7 +300,11 @@ else:
 
 
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
-if isMC: read_variables+= [Variable.fromString('nTrueInt/I')]
+if isMC: 
+    read_variables+= [Variable.fromString('nTrueInt/I')]
+    # reading gen particles for top pt reweighting
+    read_variables.append( Variable.fromString('ngenPartAll/I') ) 
+    read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
 
 jetMCInfo = ',mcPt/F,hadronFlavour/I' if isMC else ''
 read_variables+= [\
@@ -501,11 +502,15 @@ for ievtRange, eventRange in enumerate(eventRanges):
 
     # Check whether file exists 
     outfilename = filename+'_'+str(ievtRange)+ext
-    if os.path.isfile(outfilename) \
-            and checkRootFile(outfilename, checkForObjects=["Events"]) \
-            and not options.overwrite:
-        logger.info( "File %s already found. Skipping.", outfilename) 
-        continue
+    if os.path.isfile(outfilename):
+        logger.info( "Output file %s found.", outfilename) 
+        if not checkRootFile(outfilename, checkForObjects=["Events"]):
+            logger.info( "File %s is broken. Overwriting.", outfilename)
+        elif options.overwrite:
+            logger.info( "Skipping.")
+            continue
+        else:
+            logger.info( "Overwriting.")
 
     # Set the reader to the event range
     reader.setEventRange( eventRange )

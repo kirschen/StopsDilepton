@@ -114,10 +114,11 @@ def getChain(sampleList, histname='', maxN=-1, treeName="Events"):
 
 def checkRootFile(f, checkForObjects=[]):
     rf = ROOT.TFile.Open(f)
+    if not rf: return False
     try:
         good = (not rf.IsZombie()) and (not rf.TestBit(ROOT.TFile.kRecovered))
     except:
-        rf.Close()
+        if rf: rf.Close()
         return False
     for o in checkForObjects:
         if not rf.GetListOfKeys().Contains(o):
