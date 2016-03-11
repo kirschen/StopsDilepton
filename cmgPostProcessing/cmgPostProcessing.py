@@ -50,10 +50,27 @@ def get_parser():
         action='store',
         nargs='*',
         type=str,
-#        default=['TTjets_sysLO'],
-        default=['WZZ'],
+        default=['MuonEG_Run2015D_16Dec'],
+#        default=['WZZ'],
         help="List of samples to be post-processed, given as CMG component name"
         )
+
+    argParser.add_argument('--eventsPerJob',
+        action='store',
+        nargs='?',
+        type=int,
+        default=20000,
+        help="Maximum number of events per job (Approximate!)."
+        )
+
+    argParser.add_argument('--nJobs',
+        action='store',
+        nargs='?',
+        type=int,
+        default=20,
+        help="Maximum number of simultaneous jobs."
+        )
+    
 
     argParser.add_argument('--dataDir',
         action='store',
@@ -94,7 +111,7 @@ def get_parser():
         default=-1,
         help="LHE cut."
         )
-    
+
     argParser.add_argument('--runSmallSample',
         action='store_true',
 #        default = True,
@@ -224,7 +241,7 @@ if options.skim.lower().count('tiny'):
     branchKeepStrings_DATAMC = \
        ["run", "lumi", "evt", "isData", "nVert",
         "met_pt", "met_phi",
-        "puppiMet_pt","puppiMet_phi",
+#        "puppiMet_pt","puppiMet_phi",
         "Flag_*",
         "HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
         "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
@@ -292,7 +309,6 @@ if sample.isData:
     # Apply golden JSON
     sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_v2.txt'
     lumiList = LumiList(os.path.expandvars(sample.heppy.json))
-    outputLumiList = {}
     logger.info( "Loaded json %s", sample.heppy.json )
 else:
     lumiScaleFactor = xSection*targetLumi/float(sample.normalization)
@@ -367,11 +383,6 @@ def filler(s):
             s.jsonPassed = 0
         else:
             s.jsonPassed = 1
-        if r.run not in outputLumiList.keys():
-            outputLumiList[r.run] = [r.lumi]
-        else:
-            if r.lumi not in outputLumiList[r.run]:
-                outputLumiList[r.run].append(r.lumi)
     if isMC:
         s.reweightPU     = puRW(r.nTrueInt)
         s.reweightPUDown = puRWDown(r.nTrueInt)
@@ -487,16 +498,14 @@ treeMaker_parent = TreeMaker(
     )
     
 # Split input in ranges
-eventRanges = reader.getEventRanges( maxNEvents = 300000 )
+eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob )
 
 logger.info( "Splitting into %i ranges of %i events on average.",  len(eventRanges), (eventRanges[-1][1] - eventRanges[0][0])/len(eventRanges) )
 
-convertedEvents = 0
-clonedEvents = 0
-
 filename, ext = os.path.splitext( os.path.join(outDir, sample.name + '.root') )
 
-for ievtRange, eventRange in enumerate(eventRanges):
+def wrapper(arg):
+    ievtRange, eventRange = arg
 
     logger.info( "Now at range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 
@@ -508,14 +517,14 @@ for ievtRange, eventRange in enumerate(eventRanges):
             logger.info( "File %s is broken. Overwriting.", outfilename)
         elif options.overwrite:
             logger.info( "Skipping.")
-            continue
+            return {'cloned':0, 'converted':0}
         else:
             logger.info( "Overwriting.")
 
     # Set the reader to the event range
     reader.setEventRange( eventRange )
     clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events" )
-    clonedEvents += clonedTree.GetEntries()
+    clonedEvents = clonedTree.GetEntries()
 
     # Clone the empty maker in order to avoid recompilation at every loop iteration
     maker = treeMaker_parent.cloneWithoutCompile( externalTree = clonedTree )
@@ -524,10 +533,17 @@ for ievtRange, eventRange in enumerate(eventRanges):
     # Do the thing
     reader.start()
 
+    outputLumiList = {}
     while reader.run():
         maker.run()
+        if isData:
+            if reader.data.run not in outputLumiList.keys():
+                outputLumiList[reader.data.run] = {reader.data.lumi}
+            else:
+                if reader.data.lumi not in outputLumiList[reader.data.run]:
+                    outputLumiList[reader.data.run].add(reader.data.lumi)
 
-    convertedEvents += maker.tree.GetEntries()
+    convertedEvents = maker.tree.GetEntries()
 
     # Write to file 
     f = ROOT.TFile.Open(outfilename, 'recreate')
@@ -537,11 +553,22 @@ for ievtRange, eventRange in enumerate(eventRanges):
 
   # Destroy the TTree
     maker.clear()
+    return {'cloned':clonedEvents, 'converted':convertedEvents, 'outputLumiList':outputLumiList}
 
-logger.info( "Converted %i events of %i, cloned %i",  convertedEvents, reader.nEvents , clonedEvents)
+from multiprocessing import Pool
+pool = Pool( processes=options.nJobs )
+jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
+results = pool.map(wrapper, jobs )
+pool.close()
+
+logger.info( "Converted %i events of %i, cloned %i",  sum([c['converted'] for c in results]), reader.nEvents , sum([c['cloned'] for c in results]))
 
 # Storing JSON file of processed events
 if isData:
+    # Concatenating all lumi lists
+    runs = set(sum([ r['outputLumiList'].keys() for r in results ],[]))
+    outputLumiList = { run:set.union( *[set(r['outputLumiList'][run]) if run in r['outputLumiList'].keys() else set() for r in results]) for run in runs}
+
     jsonFile = filename+'.json'
     LumiList(runsAndLumis = outputLumiList).writeJSON(jsonFile)
     logger.info( "Written JSON file %s",  jsonFile )
