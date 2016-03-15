@@ -217,7 +217,7 @@ if addSystematicVariations:
 
 # LHE cut (DY samples)
 if options.LHEHTCut>0:
-#    sample.name+="_lheHT"+options.LHEHTCut
+    sample.name+="_lheHT"+str(options.LHEHTCut)
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
 
