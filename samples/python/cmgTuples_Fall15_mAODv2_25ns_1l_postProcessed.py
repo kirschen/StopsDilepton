@@ -34,7 +34,7 @@ dirs['QCD_Mu5+EM+bcToE'] = ["QCD_Pt20to30_Mu5", "QCD_Pt50to80_Mu5", "QCD_Pt80to1
 dirs['QCD']              = ["QCD_Pt10to15", "QCD_Pt15to30", "QCD_Pt30to50", "QCD_Pt50to80", "QCD_Pt80to120", "QCD_Pt120to170", "QCD_Pt170to300", "QCD_Pt300to470", "QCD_Pt470to600", "QCD_Pt600to800", "QCD_Pt800to1000", "QCD_Pt1000to1400", "QCD_Pt1400to1800", "QCD_Pt1800to2400", "QCD_Pt2400to3200", "QCD_Pt3200"]
 
 for key in dirs:
-  dirs[key] = [data_output_directory + '/postProcessed_Fall15_mAODv2/dilepTiny/' + dir for dir in dirs[key]]
+  dirs[key] = [ os.path.join( data_output_directory, 'postProcessed_Fall15_mAODv2/dilepTiny', dir) for dir in dirs[key]]
 
 DY             = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=8,              texName="DY + Jets",                 directory=dirs['DY'])
 #DY_LO          = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=8,              texName="DY + Jets (LO)",            directory=dirs['DY_LO'])
