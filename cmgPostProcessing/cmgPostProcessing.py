@@ -286,8 +286,6 @@ if isMC:
 
 if addSystematicVariations:
     jetVars_ += ['corr','corr_JECUp','corr_JECDown']    
-for jv in jetVars:
-    branchKeepStrings_MC.append("Jet_%s"%jv)
 
 if options.keepPhotons:
     branchKeepStrings_DATAMC+=[
