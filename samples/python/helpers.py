@@ -55,5 +55,3 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
 
     sample.heppy = heppy_sample
     return sample
-
-	
