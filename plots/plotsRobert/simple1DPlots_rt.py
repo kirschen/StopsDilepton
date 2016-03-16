@@ -6,6 +6,9 @@ import ROOT
 from math import sqrt, cos
 import itertools
 
+#RootTools
+from RootTools.core.standard import *
+
 # argParser
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
@@ -18,7 +21,7 @@ argParser.add_argument('--logLevel',
 )
 
 argParser.add_argument('--mode',
-    default='doubleEle',
+    default='doubleMu',
     action='store',
     choices=['doubleMu', 'doubleEle',  'muEle'])
 
@@ -49,20 +52,14 @@ argParser.add_argument('--plot_directory',
 args = argParser.parse_args()
 
 # Logging
-from RootTools.core.logger import get_logger
-logger = get_logger(args.logLevel, logFile = None)
-
-# RootTools
-from RootTools.plot.Stack import Stack 
-from RootTools.plot.Plot import Plot 
-from RootTools.core.Sample import Sample 
-from RootTools.core.Variable import Variable
-import RootTools.core.helpers as helpers
-import RootTools.plot.styles as styles
-import RootTools.plot.plotting as plotting
+import StopsDilepton.tools.logger as logger
+logger = logger.get_logger(args.logLevel, logFile = None )
+import RootTools.core.logger as logger_rt
+logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 #make samples
-from StopsDilepton.samples.cmgTuples_postprocessed_1l import *
+from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_1l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
 def getZCut(mode):
     mZ = 91.2
@@ -74,7 +71,7 @@ def getZCut(mode):
 if args.mode=="doubleMu":
     leptonSelectionString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
     data_sample = DoubleMuon_Run2015D
-    qcd_sample = QCD_Mu5
+    qcd_sample = QCD_HT #FIXME
     trigger     = "HLT_mumuIso"
 elif args.mode=="doubleEle":
     leptonSelectionString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
@@ -90,12 +87,13 @@ else:
     raise ValueError( "Mode %s not known"%args.mode )
 
 # Extra requirements on data
-filterCut = "(Flag_HBHENoiseFilter&&Flag_goodVertices&&Flag_CSCTightHaloFilter&&Flag_eeBadScFilter&&weight>0)"
+filterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&vetoPassed&&jsonPassed&&weight>0)"
 
 data_sample.setSelectionString([filterCut, trigger])
 data_sample.style = styles.errorStyle( ROOT.kBlack )
 
-mc = [ DY_HT_LO, TTJets_Lep, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
+#mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
+mc = [ DY, TTJets, qcd_sample, TTZ]
 #mc = [ TTX]
 
 for sample in mc:
@@ -106,7 +104,7 @@ for sample in mc:
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
-weight = lambda data:data.weightPU 
+weight = lambda data:data.weight
 
 cuts=[
     ("njet2", "(Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))>=2"),
@@ -147,7 +145,7 @@ for i in [len(cuts)]:
             texY = "Number of Events "
         )
 
-        read_variables = ["weightPU/F"]
+        read_variables = ["weight/F"]
         plotting.fill([cosMetPhi], read_variables = read_variables)
         if not os.path.exists( plot_path ): os.makedirs( plot_path )
         plotting.draw(cosMetPhi, plot_directory = plot_path, ratio = {'yRange':(0.1,1.9)}, logX = False, logY = True, sorting = True, yRange = (0.01, "auto") )
