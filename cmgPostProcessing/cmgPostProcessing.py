@@ -247,7 +247,7 @@ if options.skim.lower().count('tiny'):
         "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
         "LepGood_eta","LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId", 
         "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits",
-        "Jet_eta","Jet_pt","Jet_phi","Jet_btagCSV", "Jet_id"
+#        "Jet_eta","Jet_pt","Jet_phi","Jet_btagCSV", "Jet_id"
         ]
 
     #branches to be kept for MC samples only
@@ -266,7 +266,7 @@ else:
 #        "metNoHF_pt", "metNoHF_phi",
 #        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
-        "nJet", "Jet_*",
+#        "nJet", "Jet_*",
         "nLepGood", "LepGood_*",
         "nTauGood", "TauGood_*",
     ]
@@ -316,26 +316,32 @@ else:
 
 
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
+new_variables = [ 'weight/F' ] 
 if isMC: 
     read_variables+= [Variable.fromString('nTrueInt/F')]
     # reading gen particles for top pt reweighting
     read_variables.append( Variable.fromString('ngenPartAll/I') ) 
     read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
+    read_variables.append( Variable.fromString('genWeight/I') ) 
+
+    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
 
 jetMCInfo = ',mcPt/F,hadronFlavour/I' if isMC else ''
-read_variables+= [\
+read_variables += [\
     Variable.fromString('nLepGood/I'), 
     VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F]'),
     Variable.fromString('nJet/I'), 
     VectorType.fromString('Jet[pt/F,eta/F,phi/F,id/I,btagCSV/F,corr/F,corr_JECUp/F,corr_JECDown/F' + jetMCInfo+']')
 ]
-if isMC: 
-    read_variables.append( Variable.fromString('genWeight/I') ) 
+jetBranchString = 'pt/F,eta/F,phi/F,id/I,btagCSV/F,corr/F,corr_JECUp/F,corr_JECDown/F' + jetMCInfo
+new_variables += [\
+    'JetGood['+jetBranchString+']'
+]
+# Branches to be filled
+jetBranches = [b.split('/')[0] for b in jetBranchString.split(',')]
 
-new_variables = [ 'weight/F' ] 
-if isMC: new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
 if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
-new_variables.extend( ['nGoodJets/I', 'nBTags/I', 'ht/F'] )
+new_variables.extend( ['nBTag/I', 'ht/F'] )
 
 if options.skim.lower().startswith('dilep'):
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
@@ -347,7 +353,7 @@ if options.skim.lower().startswith('dilep'):
 
 if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
-        new_variables.extend( ['nGoodjets_'+var+'/I', 'nBTags_'+var+'/I','ht_'+var+'/F'] )
+        new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F'] )
         if options.skim.lower().startswith('dilep'):
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
@@ -396,9 +402,14 @@ def filler(s):
     jets = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4), allJets)
     bJets = filter(lambda j:isBJet(j), jets)
     nonBJets = filter(lambda j:not isBJet(j), jets)
-    s.nGoodJets   = len(jets)
+    # Filling jets
+    s.nJetGood   = len(jets)
+    for iJet, jet in enumerate(jets):
+        for b in jetBranches:
+            getattr(s, "JetGood_"+b)[iJet] = jet[b]
+
     s.ht          = sum([j['pt'] for j in jets])
-    s.nBTags      = len(bJets)
+    s.nBTag      = len(bJets)
 
     jets_sys      = {}
     bjets_sys     = {}
@@ -418,9 +429,9 @@ def filler(s):
 
             setattr(s, "met_pt_"+var, sqrt(met_corr_px**2 + met_corr_py**2))
             setattr(s, "met_phi_"+var, atan2(met_corr_py, met_corr_px))
-            setattr(s, "nGoodjets_"+var, len(jets_sys[var]))
+            setattr(s, "nJetGood_"+var, len(jets_sys[var]))
             setattr(s, "ht_"+var, sum([j['pt_'+var] for j in jets_sys[var]]))
-            setattr(s, "nBTags_"+var, len(bjets_sys[var]))
+            setattr(s, "nBTag_"+var, len(bjets_sys[var]))
 
     if options.skim.lower().startswith('dilep'):
         leptons_pt10 = getGoodLeptons(r, ptCut=10)
