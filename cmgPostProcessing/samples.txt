@@ -1,0 +1,141 @@
+# Use "./doAllCmgPostProcessingGhent.sh samples.txt" to start postprocessing
+# of these files
+
+DoubleMuon_Run2015D_16Dec
+MuonEG_Run2015D_16Dec
+DoubleEG_Run2015D_16Dec
+SingleMuon_Run2015D_16Dec
+SingleElectron_Run2015D_16Dec
+
+TTJets TTJets_ext
+TTJets_LO
+TTJets_DiLepton TTJets_DiLepton_ext
+
+TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
+TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
+TTLep_pow
+
+TTJets_LO_HT600to800 TTJets_LO_HT600to800_ext
+TTJets_LO_HT800to1200
+TTJets_LO_HT1200to2500 TTJets_LO_HT1200to2500_ext
+TTJets_LO_HT2500toInf
+#TTHnobb
+#TTHnobb_pow
+TTHnobb_mWCutfix_ch0 TTHnobb_mWCutfix_ch1
+TTHbb TTHbb_ext1 TTHbb_ext2 TTHbb_ext3
+
+#TToLeptons_tch_amcatnlo TToLeptons_tch_amcatnlo_ext
+TBarToLeptons_tch_powheg
+TToLeptons_sch_amcatnlo
+TBar_tWch
+TBar_tWch_DS
+T_tWch
+T_tWch_DS
+
+tZq_ll
+tZq_nunu
+WJetsToLNu
+WJetsToLNu_LO
+
+DYJetsToLL_M10to50
+#DYJetsToLL_M5to50_LO
+#DYJetsToLL_M5to50_LO --LHEHTCut=100
+DYJetsToLL_M50
+DYJetsToLL_M50_LO
+DYJetsToLL_M50_LO --LHEHTCut=100
+DYJetsToLL_M50_HT100to200
+DYJetsToLL_M50_HT200to400
+DYJetsToLL_M50_HT400to600
+DYJetsToLL_M50_HT600toInf
+DYJetsToLL_M5to50_HT100to200
+DYJetsToLL_M5to50_HT200to400
+DYJetsToLL_M5to50_HT400to600
+DYJetsToLL_M5to50_HT600toInf
+WJetsToLNu_HT100to200 WJetsToLNu_HT100to200_ext
+WJetsToLNu_HT200to400 WJetsToLNu_HT200to400_ext
+WJetsToLNu_HT400to600
+WJetsToLNu_HT600toInf
+WJetsToLNu_HT600to800
+WJetsToLNu_HT800to1200
+WJetsToLNu_HT1200to2500
+WJetsToLNu_HT2500toInf
+
+#QCD_Pt10to15
+#QCD_Pt15to30
+QCD_Pt30to50
+QCD_Pt50to80
+QCD_Pt80to120
+QCD_Pt120to170
+QCD_Pt170to300
+QCD_Pt300to470
+QCD_Pt470to600
+QCD_Pt600to800
+QCD_Pt800to1000
+QCD_Pt1000to1400
+QCD_Pt1400to1800
+QCD_Pt1800to2400
+QCD_Pt2400to3200
+QCD_Pt3200toInf
+QCD_HT100to200
+QCD_HT200to300
+QCD_HT300to500
+QCD_HT500to700
+QCD_HT700to1000
+QCD_HT1000to1500
+QCD_HT1500to2000
+QCD_HT2000toInf
+
+QCD_Pt20to30_Mu5    
+QCD_Pt30to50_Mu5
+QCD_Pt50to80_Mu5    
+QCD_Pt80to120_Mu5   
+QCD_Pt120to170_Mu5  
+QCD_Pt170to300_Mu5
+QCD_Pt300to470_Mu5  
+QCD_Pt470to600_Mu5  
+QCD_Pt600to800_Mu5
+QCD_Pt800to1000_Mu5 
+QCD_Pt1000toInf_Mu5 
+QCD_Pt15to20_EMEnriched  
+QCD_Pt20to30_EMEnriched  
+QCD_Pt30to50_EMEnriched  
+QCD_Pt50to80_EMEnriched
+QCD_Pt80to120_EMEnriched 
+QCD_Pt120to170_EMEnriched
+QCD_Pt170to300_EMEnriched
+QCD_Pt300toInf_EMEnriched
+QCD_Pt_15to20_bcToE   
+QCD_Pt_20to30_bcToE   
+QCD_Pt_30to80_bcToE   
+QCD_Pt_80to170_bcToE  
+QCD_Pt_170to250_bcToE
+QCD_Pt_250toInf_bcToE 
+
+WW
+WZ
+ZZ
+WWTo2L2Nu
+WWToLNuQQ
+WWTo1L1Nu2Q
+ZZTo2L2Q
+ZZTo2Q2Nu
+ZZTo4L
+WZTo1L1Nu2Q
+WZTo2L2Q
+WZTo3LNu
+WZTo1L3Nu
+WZJets
+#VVTo2L2Nu
+WGToLNuG
+ZGTo2LG
+
+WWDouble
+WpWpJJ
+#WWZ
+WZZ
+#ZZZ
+TTWToLNu
+TTWToQQ
+TTZToQQ
+TTZToLLNuNu
+#TTGJets
