@@ -317,7 +317,7 @@ else:
 
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
 if isMC: 
-    read_variables+= [Variable.fromString('nTrueInt/I')]
+    read_variables+= [Variable.fromString('nTrueInt/F')]
     # reading gen particles for top pt reweighting
     read_variables.append( Variable.fromString('ngenPartAll/I') ) 
     read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def extendHistoTo(h, hc):
     "Extend histo h to nbins of hc"
-    res = ROOT.TH1D(h.GetName(),h.GetTitle(), hc.GetNbinsX(),hc.GetXaxis().GetXmin(),hc.GetXaxis().GetXmax())
+    res = ROOT.TH1D(h.GetName()+"_extended",h.GetTitle(), hc.GetNbinsX(),hc.GetXaxis().GetXmin(),hc.GetXaxis().GetXmax())
     assert  hc.GetXaxis().GetXmin()==h.GetXaxis().GetXmin() \
             and hc.GetNbinsX()==hc.GetXaxis().GetXmax()-hc.GetXaxis().GetXmin() \
             and h.GetNbinsX()==h.GetXaxis().GetXmax()-h.GetXaxis().GetXmin(), \
