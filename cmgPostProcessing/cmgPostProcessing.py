@@ -333,7 +333,7 @@ if isMC:
     read_variables.append( Variable.fromString('genWeight/I') ) 
 
 new_variables = [ 'weight/F' ] 
-if isMC: new_variables.extend([ 'rereweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
+if isMC: new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
 if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
 new_variables.extend( ['nGoodJets/I', 'nBTags/I', 'ht/F'] )
 
