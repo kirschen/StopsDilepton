@@ -19,8 +19,6 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
 
 
 if os.environ['USER'] in ['tomc']:
-    # Where you store the data
-    data_directory             = "/user/tomc/StopsDileptonn/dilepTiny"
     # Where postprocessed data goes 
     data_output_directory      = "/user/tomc/StopsDilepton/data"
     # Where the plots go
