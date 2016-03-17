@@ -23,7 +23,7 @@ from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile
 from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetVars, jetId, isBJet
+from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet
 
 # central configuration 
 targetLumi = 1000 #pb-1 Which lumi to normalize to
@@ -45,6 +45,10 @@ def get_parser():
     argParser.add_argument('--overwrite',
         action='store_true',
         help="Overwrite existing output files, bool flag set to True  if used")
+
+    argParser.add_argument('--noMultiThreading',
+        action='store_true',
+        help="Don't do multi threading")
     
     argParser.add_argument('--samples',
         action='store',
@@ -264,7 +268,7 @@ else:
         "run", "lumi", "evt", "isData", "rho", "nVert",
         "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
 #        "metNoHF_pt", "metNoHF_phi",
-#        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
+        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
 #        "nJet", "Jet_*",
         "nLepGood", "LepGood_*",
@@ -280,12 +284,12 @@ else:
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
 
-jetVars_ = jetVars
-if isMC:
-    jetVars_ += ['mcPt', 'hadronFlavour']
-
-if addSystematicVariations:
-    jetVars_ += ['corr','corr_JECUp','corr_JECDown']    
+# Jet variables to be read from chain 
+jetCorrInfo = ['corr/F', 'corr_JECUp/F', 'corr_JECDown/F'] if addSystematicVariations else []
+jetMCInfo = ['mcPt/F', 'hadronFlavour/I'] if isMC else []
+jetVars = ['pt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F'] + jetCorrInfo + jetMCInfo
+# for convinience: List of jet variables to be read in the filler
+jetVarNames = [x.split('/')[0] for x in jetVars]
 
 if options.keepPhotons:
     branchKeepStrings_DATAMC+=[
@@ -324,19 +328,15 @@ if isMC:
 
     new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
 
-jetMCInfo = ',mcPt/F,hadronFlavour/I' if isMC else ''
 read_variables += [\
     Variable.fromString('nLepGood/I'), 
     VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F]'),
     Variable.fromString('nJet/I'), 
-    VectorType.fromString('Jet[pt/F,eta/F,phi/F,id/I,btagCSV/F,corr/F,corr_JECUp/F,corr_JECDown/F' + jetMCInfo+']')
+    VectorType.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
 ]
-jetBranchString = 'pt/F,eta/F,phi/F,id/I,btagCSV/F,corr/F,corr_JECUp/F,corr_JECDown/F' + jetMCInfo
 new_variables += [\
-    'JetGood['+jetBranchString+']'
+    'JetGood[%s]'% ( ','.join(jetVars) ) 
 ]
-# Branches to be filled
-jetBranches = [b.split('/')[0] for b in jetBranchString.split(',')]
 
 if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
 new_variables.extend( ['nBTag/I', 'ht/F'] )
@@ -396,14 +396,14 @@ def filler(s):
     if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
 
     # jet/met related quantitie
-    allJets = getGoodJets(r, ptCut=0, jetVars=jetVars_)
+    allJets = getGoodJets(r, ptCut=0, jetVars = jetVarNames )
     jets = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4), allJets)
     bJets = filter(lambda j:isBJet(j), jets)
     nonBJets = filter(lambda j:not isBJet(j), jets)
     # Filling jets
     s.nJetGood   = len(jets)
     for iJet, jet in enumerate(jets):
-        for b in jetBranches:
+        for b in jetVarNames:
             getattr(s, "JetGood_"+b)[iJet] = jet[b]
 
     s.ht          = sum([j['pt'] for j in jets])
@@ -565,11 +565,14 @@ def wrapper(arg):
     maker.clear()
     return {'cloned':clonedEvents, 'converted':convertedEvents, 'outputLumiList':outputLumiList}
 
-from multiprocessing import Pool
-pool = Pool( processes=options.nJobs )
-jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
-results = pool.map(wrapper, jobs )
-pool.close()
+if not options.noMultiThreading:
+    from multiprocessing import Pool
+    pool = Pool( processes=options.nJobs )
+    jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
+    results = pool.map(wrapper, jobs )
+    pool.close()
+else:
+    results = map(wrapper, jobs )
 
 logger.info( "Converted %i events of %i, cloned %i",  sum([c['converted'] for c in results]), reader.nEvents , sum([c['cloned'] for c in results]))
 
