@@ -14,6 +14,6 @@ python cmgPostProcessing.py --skim=$1 $2 --samples WZTo2L2Q
 python cmgPostProcessing.py --skim=$1 $2 --samples WZTo3LNu
 python cmgPostProcessing.py --skim=$1 $2 --samples WZTo1L3Nu
 python cmgPostProcessing.py --skim=$1 $2 --samples WZJets
-#nohup krenew -t -K 10 -- bash -c "python cmgPostProcessing.py --skim=$1 $2 --samples=VVTo2L2Nu"  
+python cmgPostProcessing.py --skim=$1 $2 --samples VVTo2L2Nu
 python cmgPostProcessing.py --skim=$1 $2 --samples WGToLNuG
 python cmgPostProcessing.py --skim=$1 $2 --samples ZGTo2LG

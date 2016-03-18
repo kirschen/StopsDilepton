@@ -324,7 +324,7 @@ if isMC:
     # reading gen particles for top pt reweighting
     read_variables.append( Variable.fromString('ngenPartAll/I') ) 
     read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
-    read_variables.append( Variable.fromString('genWeight/I') ) 
+    read_variables.append( Variable.fromString('genWeight/F') ) 
 
     new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
 
