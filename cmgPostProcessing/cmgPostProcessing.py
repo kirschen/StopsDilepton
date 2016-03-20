@@ -80,7 +80,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='/scratch/rschoefbeck/cmgTuples/763/',
+        default=user.cmg_directory,
         help="Name of the directory the post-processed files will be saved"
         )
     
@@ -339,7 +339,7 @@ new_variables += [\
 ]
 
 if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
-new_variables.extend( ['nBTag/I', 'ht/F'] )
+new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
 
 if options.skim.lower().startswith('dilep'):
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
@@ -351,7 +351,7 @@ if options.skim.lower().startswith('dilep'):
 
 if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
-        new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
+        new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F', 'metSig_'+var+'/F'] )
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F'] )
         if options.skim.lower().startswith('dilep'):
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
@@ -379,14 +379,11 @@ def filler(s):
     s.weight = lumiScaleFactor*r.genWeight if isMC else 1
     # lumi lists and vetos
     if isData:  
-        if (r.run, r.lumi, r.evt) in vetoList.events:
-            s.vetoPassed = 0
-        else:
-            s.vetoPassed = 1
-        if not lumiList.contains(r.run, r.lumi):
-            s.jsonPassed = 0
-        else:
-            s.jsonPassed = 1
+        s.vetoPassed  = (r.run, r.lumi, r.evt) in vetoList.events
+        s.jsonPassed  = lumiList.contains(r.run, r.lumi)
+        # store decision to use after filler has been executed
+        s.jsonPassed_ = s.jsonPassed 
+
     if isMC:
         s.reweightPU     = puRW(r.nTrueInt)
         s.reweightPUDown = puRWDown(r.nTrueInt)
@@ -406,7 +403,8 @@ def filler(s):
         for b in jetVarNames:
             getattr(s, "JetGood_"+b)[iJet] = jet[b]
 
-    s.ht          = sum([j['pt'] for j in jets])
+    s.ht         = sum([j['pt'] for j in jets])
+    s.metSig     = r.met_pt/sqrt(s.ht) if s.ht>0 else float('nan') 
     s.nBTag      = len(bJets)
 
     jets_sys      = {}
@@ -429,6 +427,7 @@ def filler(s):
             setattr(s, "met_phi_"+var, atan2(met_corr_py, met_corr_px))
             setattr(s, "nJetGood_"+var, len(jets_sys[var]))
             setattr(s, "ht_"+var, sum([j['pt_'+var] for j in jets_sys[var]]))
+            setattr(s, "metSig_"+var, getattr(s, "met_pt_"+var)/sqrt( getattr(s, "met_pt_"+var) ) )
             setattr(s, "nBTag_"+var, len(bjets_sys[var]))
 
     if options.skim.lower().startswith('dilep'):
@@ -547,11 +546,14 @@ def wrapper(arg):
     while reader.run():
         maker.run()
         if isData:
-            if reader.data.run not in outputLumiList.keys():
-                outputLumiList[reader.data.run] = {reader.data.lumi}
-            else:
-                if reader.data.lumi not in outputLumiList[reader.data.run]:
-                    outputLumiList[reader.data.run].add(reader.data.lumi)
+            if maker.data.jsonPassed_:
+                if reader.data.run not in outputLumiList.keys():
+                    outputLumiList[reader.data.run] = {reader.data.lumi}
+                else:
+                    if reader.data.lumi not in outputLumiList[reader.data.run]:
+                        outputLumiList[reader.data.run].add(reader.data.lumi)
+#            else:
+#                logger.debug( "NOT adding %i %i jsonPassed: %r", reader.data.run, reader.data.lumi, maker.data.jsonPassed )
 
     convertedEvents = maker.tree.GetEntries()
 
