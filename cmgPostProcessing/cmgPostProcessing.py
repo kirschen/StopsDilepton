@@ -111,7 +111,7 @@ def get_parser():
     argParser.add_argument('--LHEHTCut',
         action='store',
         nargs='?',
-        type=float,
+        type=int,
         default=-1,
         help="LHE cut."
         )
