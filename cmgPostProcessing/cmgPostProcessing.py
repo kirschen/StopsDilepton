@@ -379,7 +379,7 @@ def filler(s):
     s.weight = lumiScaleFactor*r.genWeight if isMC else 1
     # lumi lists and vetos
     if isData:  
-        s.vetoPassed  = (r.run, r.lumi, r.evt) in vetoList.events
+        s.vetoPassed  = (r.run, r.lumi, r.evt) not in vetoList.events
         s.jsonPassed  = lumiList.contains(r.run, r.lumi)
         # store decision to use after filler has been executed
         s.jsonPassed_ = s.jsonPassed 

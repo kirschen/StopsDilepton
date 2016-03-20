@@ -26,11 +26,11 @@ MuonEG_Run2015D         = Sample.fromDirectory(name="MuonEG_Run2015D",         t
 SingleElectron_Run2015D = Sample.fromDirectory(name="SingleElectron_Run2015D", treeName="Events", texName="SingleElectron (Run2015D)", directory=dirs["SingleElectron"])
 SingleMuon_Run2015D     = Sample.fromDirectory(name="SingleMuon_Run2015D",     treeName="Events", texName="SingleMuon (Run2015D)",     directory=dirs["SingleMuon"])
 
-DoubleEG_Run2015D      .lumi =  1000*(2.517)
-DoubleMuon_Run2015D    .lumi =  1000*(2.109)
-MuonEG_Run2015D        .lumi =  1000*(2.474)
-SingleElectron_Run2015D.lumi =  1000*(2.359)
-SingleMuon_Run2015D    .lumi =  1000*(2.514)
+DoubleEG_Run2015D      .lumi =  1000*(2.165)
+DoubleMuon_Run2015D    .lumi =  1000*(2.136)
+MuonEG_Run2015D        .lumi =  1000*(2.137)
+SingleElectron_Run2015D.lumi =  1000*(2.165)
+SingleMuon_Run2015D    .lumi =  1000*(2.129)
 
 allSamples_Data25ns = [DoubleEG_Run2015D, MuonEG_Run2015D, DoubleMuon_Run2015D, SingleElectron_Run2015D, SingleMuon_Run2015D]
 for s in allSamples_Data25ns:

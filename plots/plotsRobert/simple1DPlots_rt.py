@@ -129,8 +129,8 @@ stack = Stack(mc, [data_sample])
 
 ##for i_comb in [0]:
 #for i_comb in [len(cuts)]:
-#for i_comb in reversed( range( len(cuts)+1 ) ):
-for i_comb in range(len(cuts)+1):
+for i_comb in reversed( range( len(cuts)+1 ) ):
+#for i_comb in range(len(cuts)+1):
     for comb in itertools.combinations( cuts, i_comb ):
 
         data_sample.setSelectionString([filterCut, trigger])
