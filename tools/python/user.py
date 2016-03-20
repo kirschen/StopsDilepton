@@ -22,6 +22,8 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
 
 
 if os.environ['USER'] in ['tomc']:
+    # Where you store cmg output
+    cmg_directory              = "/pnfs/iihe/cms/store/user/tomc/cmgTuples/763_4"
     # Where postprocessed data goes 
     data_output_directory      = "/user/tomc/StopsDilepton/data"
     # Where the plots go
