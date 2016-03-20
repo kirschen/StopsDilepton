@@ -14,12 +14,7 @@ for s in samples:
     path = '/'.join([ data_path, subDir ] )
     s.skimAnalyzerDir = ""
     s.rootFileLocation = "tree.root"
-##for production with heppy_batch
-#  s.rootFileLocation = "treeProducerSusySingleLepton/tree.root"
-#  s.skimAnalyzerDir = "skimAnalyzerCount"
-#  subDir = s.name
-#  path = data_path
-##for production with crab
+
     s.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt'
     if not subDir:
         print "Warning: Not a good dataset name: %s"%s.dataset
