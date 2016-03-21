@@ -13,12 +13,12 @@ dirs['SingleMuon']     = ["SingleMuon_Run2015D_16Dec"]
 for key in dirs:
   dirs[key] = [ os.path.join( data_directory, 'postProcessed_Fall15_mAODv2/dilepTiny', dir) for dir in dirs[key]]
 
-#lumi = {}
-#lumi['DoubleEG']       = 1000*(2.517)
-#lumi['DoubleMuon']     = 1000*(2.109)
-#lumi['MuonEG']         = 1000*(2.474)
-#lumi['SingleElectron'] = 1000*(2.359)
-#lumi['SingleMuon']     = 1000*(2.514)
+lumi = {}
+lumi['DoubleEG']       = 1000*(2.165)
+lumi['DoubleMuon']     = 1000*(2.165)
+lumi['MuonEG']         = 1000*(2.137)
+lumi['SingleElectron'] = 1000*(2.162)
+lumi['SingleMuon']     = 1000*(2.024)
 
 DoubleEG_Run2015D       = Sample.fromDirectory(name="DoubleEG_Run2015D",       treeName="Events", texName="DoubleEG (Run2015D)",       directory=dirs["DoubleEG"])
 DoubleMuon_Run2015D     = Sample.fromDirectory(name="DoubleMuon_Run2015D",     treeName="Events", texName="DoubleMuon (Run2015D)",     directory=dirs["DoubleMuon"])
