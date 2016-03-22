@@ -7,7 +7,8 @@ import ROOT
 dirs = {}
 dirs['DY']               = ["DYJetsToLL_M10to50", "DYJetsToLL_M50"]
 dirs['DY_LO']            = ["DYJetsToLL_M5to50_LO", "DYJetsToLL_M50_LO"]
-dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100.0", "DYJetsToLL_M50_HT100to200", "DYJetsToLL_M50_HT200to400", "DYJetsToLL_M50_HT400to600", "DYJetsToLL_M50_HT600toInf", "DYJetsToLL_M5to50_LO_lheHT100.0", "DYJetsToLL_M5to50_HT100to200", "DYJetsToLL_M5to50_HT200to400", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf"]
+#dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200", "DYJetsToLL_M50_HT200to400", "DYJetsToLL_M50_HT400to600", "DYJetsToLL_M50_HT600toInf", "DYJetsToLL_M5to50_LO_lheHT100", "DYJetsToLL_M5to50_HT100to200", "DYJetsToLL_M5to50_HT200to400", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf"]
+dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200", "DYJetsToLL_M50_HT200to400", "DYJetsToLL_M50_HT400to600", "DYJetsToLL_M50_HT600toInf", "DYJetsToLL_M5to50_HT100to200", "DYJetsToLL_M5to50_HT200to400", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf"]
 dirs['TTJets']           = ["TTJets_comb"]
 dirs['TTJets_LO']        = ["TTJets_LO"]
 dirs['TTLep_pow']        = ["TTLep_pow"]
@@ -40,7 +41,7 @@ for key in dirs:
 
 DY             = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=8,              texName="DY + Jets",                 directory=dirs['DY'])
 #DY_LO          = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=8,              texName="DY + Jets (LO)",            directory=dirs['DY_LO'])
-#DY_HT_LO       = Sample.fromDirectory(name="DY_HT_LO",         treeName="Events", isData=False, color=8,              texName="DY + Jets (LO,HT)",         directory=dirs['DY_HT_LO'])
+DY_HT_LO       = Sample.fromDirectory(name="DY_HT_LO",         treeName="Events", isData=False, color=8,              texName="DY + Jets (LO,HT)",         directory=dirs['DY_HT_LO'])
 TTJets         = Sample.fromDirectory(name="TTJets",           treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets",           directory=dirs['TTJets'])
 TTJets_LO      = Sample.fromDirectory(name="TTJets_LO",        treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets (LO)",      directory=dirs['TTJets_LO'])
 TTLep_pow      = Sample.fromDirectory(name="TTLep_pow",        treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets (lep,pow)", directory=dirs['TTLep_pow'])

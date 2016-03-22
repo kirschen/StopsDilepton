@@ -3,7 +3,7 @@
 
 #Standard imports
 import ROOT
-from math import sqrt, cos, sin, pi
+from math import sqrt, cos, sin, pi, acos
 import itertools
 
 #RootTools
@@ -92,7 +92,8 @@ filterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFi
 data_sample.style = styles.errorStyle( ROOT.kBlack )
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
-mc = [ DY, TTJets, qcd_sample, TTZ]
+#mc = [ DY, TTJets, qcd_sample, TTZ]
+mc = [ DY_HT_LO, TTJets, qcd_sample, TTZ]
 #mc = [ TTX]
 lumi_scale = data_sample.lumi/1000
 for sample in mc:
@@ -203,6 +204,20 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
             )
         plots.append( dl_phi )
 
+#        dl_dphi  = Plot(
+#            texX = '#Delta#phi(l_{1},l_{2})', texY = 'Number of Events',
+#            stack = stack, 
+#            variable = Variable.fromString('dl_dphi/F').addFiller(
+#                helpers.uses( 
+#                    lambda data: acos(cos(l1_phi-l2_phi)), 
+#                    ["l1_phi/F", "l2_phi/F"])
+#            ), 
+#            binning=[60,-2*pi,2*pi],
+#            selectionString = selectionString,
+#            weight = weight,
+#            )
+#        plots.append( dl_dphi )
+
         dl_mt2ll  = Plot(
             texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
@@ -274,7 +289,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         plots.append( l1_pdgId )
 
         l2_pt  = Plot(
-            texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
+            texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 5 GeV',
             stack = stack, 
             variable = Variable.fromString( "l2_pt/F" ),
             binning=[60,0,300],
@@ -284,7 +299,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         plots.append( l2_pt )
 
         l2_eta  = Plot(
-            texX = '#eta(l_{1})', texY = 'Number of Events',
+            texX = '#eta(l_{2})', texY = 'Number of Events',
             stack = stack, 
             variable = Variable.fromString( "l2_eta/F" ),
             binning=[30,-3,3],
@@ -294,7 +309,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         plots.append( l2_eta )
 
         l2_phi  = Plot(
-            texX = '#phi(l_{1})', texY = 'Number of Events',
+            texX = '#phi(l_{2})', texY = 'Number of Events',
             stack = stack, 
             variable = Variable.fromString( "l2_phi/F" ),
             binning=[30,-pi,pi],
@@ -304,7 +319,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         plots.append( l2_phi )
 
         l2_pdgId  = Plot(
-            texX = 'pdgId(l_{1})', texY = 'Number of Events',
+            texX = 'pdgId(l_{2})', texY = 'Number of Events',
             stack = stack, 
             variable = Variable.fromString( "l2_pdgId/I" ),
             binning=[32,-16,16],
@@ -349,14 +364,14 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         plots.append( JZB )
 
         metSig  = Plot(
-            texX = '#slash{E}_{T}/#sqrt(H_{T}) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
+            texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
             stack = stack, 
             variable = Variable.fromString('metSig/F').addFiller (
                 helpers.uses( 
                     lambda data: data.met_pt/sqrt(data.ht) if data.ht>0 else float('nan') , 
                     ["met_pt/F", "ht/F"])
             ), 
-            binning=[20,0,20],
+            binning=[30,0,30],
             selectionString = selectionString,
             weight = weight,
             )
