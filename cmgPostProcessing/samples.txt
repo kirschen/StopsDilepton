@@ -24,7 +24,7 @@ TTJets_LO_HT2500toInf
 TTHnobb_mWCutfix_ch0 TTHnobb_mWCutfix_ch1
 TTHbb TTHbb_ext1 TTHbb_ext2 TTHbb_ext3
 
-#TToLeptons_tch_amcatnlo TToLeptons_tch_amcatnlo_ext
+TToLeptons_tch_amcatnlo TToLeptons_tch_amcatnlo_ext
 TBarToLeptons_tch_powheg
 TToLeptons_sch_amcatnlo
 TBar_tWch
@@ -60,8 +60,8 @@ WJetsToLNu_HT800to1200
 WJetsToLNu_HT1200to2500
 WJetsToLNu_HT2500toInf
 
-#QCD_Pt10to15
-#QCD_Pt15to30
+QCD_Pt10to15
+QCD_Pt15to30
 QCD_Pt30to50
 QCD_Pt50to80
 QCD_Pt80to120
@@ -125,7 +125,7 @@ WZTo2L2Q
 WZTo3LNu
 WZTo1L3Nu
 WZJets
-#VVTo2L2Nu
+VVTo2L2Nu
 WGToLNuG
 ZGTo2LG
 
@@ -138,4 +138,4 @@ TTWToLNu
 TTWToQQ
 TTZToQQ
 TTZToLLNuNu
-#TTGJets
+TTGJets
