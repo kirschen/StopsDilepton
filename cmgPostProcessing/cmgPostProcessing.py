@@ -317,6 +317,7 @@ else:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
 
+#read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I','ngamma/I','gamma_pt/F','gamma_eta/F','gamma_phi/F'] )
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
 new_variables = [ 'weight/F' ] 
 if isMC: 
@@ -378,8 +379,8 @@ def filler(s):
     # weight
     s.weight = lumiScaleFactor*r.genWeight if isMC else 1
     # lumi lists and vetos
-    if isData:  
-        s.vetoPassed  = (r.run, r.lumi, r.evt) not in vetoList.events
+    if isData:
+        s.vetoPassed  = vetoList.passesVeto(r.run, r.lumi, r.evt)
         s.jsonPassed  = lumiList.contains(r.run, r.lumi)
         # store decision to use after filler has been executed
         s.jsonPassed_ = s.jsonPassed 
@@ -574,6 +575,7 @@ if not options.noMultiThreading:
     results = pool.map(wrapper, jobs )
     pool.close()
 else:
+    jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
     results = map(wrapper, jobs )
 
 logger.info( "Converted %i events of %i, cloned %i",  sum([c['converted'] for c in results]), reader.nEvents , sum([c['cloned'] for c in results]))
