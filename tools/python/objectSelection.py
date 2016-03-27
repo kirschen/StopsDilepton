@@ -163,3 +163,7 @@ def looseTauID(l, ptCut=20, absEtaCut=2.4):
 
 def getGoodTaus(c, collVars=tauVars):
     return [l for l in getTaus(c,collVars=collVars) if looseTauID(l)]
+
+photonVars=['eta','pt','phi','mass','idCutBased']
+def getPhotons(c, collVars=photonVars):
+    return [getObjDict(c, 'gamma_', collVars, i) for i in range(int(getVarValue(c, 'ngamma')))]
