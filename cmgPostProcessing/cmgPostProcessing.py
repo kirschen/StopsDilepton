@@ -23,7 +23,7 @@ from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile
 from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet
+from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getPhotons
 
 # central configuration 
 targetLumi = 1000 #pb-1 Which lumi to normalize to
@@ -127,6 +127,11 @@ def get_parser():
         help="Keep photons?"
         )
 
+    argParser.add_argument('--photonAsMet',
+        action='store_true',
+        help="Treat photons as missing energy"
+        )
+
     argParser.add_argument('--keepLHEWeights',
         action='store_true',
         help="Keep LHEWeights?"
@@ -225,6 +230,10 @@ if options.LHEHTCut>0:
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
 
+if options.photonAsMet:
+    sample.name+="_photonAsMet"
+    logger.info( "Treating photon as additional MET")
+
 # veto list
 if sample.isData:
     import StopsDilepton.tools.vetoList as vetoList_
@@ -317,9 +326,12 @@ else:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
 
-#read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I','ngamma/I','gamma_pt/F','gamma_eta/F','gamma_phi/F'] )
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
-new_variables = [ 'weight/F' ] 
+if options.photonAsMet:
+  read_variables += [Variable.fromString('ngamma/I'),
+                     VectorType.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I]')]
+
+new_variables = [ 'weight/F', 'photonAsMet/O' ]
 if isMC: 
     read_variables+= [Variable.fromString('nTrueInt/F')]
     # reading gen particles for top pt reweighting
@@ -393,6 +405,22 @@ def filler(s):
     # top pt reweighting
     if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
 
+    # Treat photon as missing energy
+    if options.photonAsMet and r.ngamma > 0:
+       photons = getPhotons(r)
+       met = ROOT.TLorentzVector()
+       met.SetPtEtaPhiM(r.met_pt, 0, r.met_phi, 0 )
+       gamma = ROOT.TLorentzVector()
+       gamma.SetPtEtaPhiM(photons[0]['pt'], photons[0]['eta'], photons[0]['phi'], photons[0]['mass'] )
+       metGamma = met + gamma
+       s.met_pt = metGamma.Pt()
+       s.met_phi = metGamma.Phi()
+       s.photonAsMet = True
+    else:
+       s.met_pt = r.met_pt
+       s.met_phi = r.met_phi
+       s.photonAsMet = False
+
     # jet/met related quantitie
     allJets = getGoodJets(r, ptCut=0, jetVars = jetVarNames )
     jets = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4), allJets)
@@ -405,7 +433,7 @@ def filler(s):
             getattr(s, "JetGood_"+b)[iJet] = jet[b]
 
     s.ht         = sum([j['pt'] for j in jets])
-    s.metSig     = r.met_pt/sqrt(s.ht) if s.ht>0 else float('nan') 
+    s.metSig     = s.met_pt/sqrt(s.ht) if s.ht>0 else float('nan')
     s.nBTag      = len(bJets)
 
     jets_sys      = {}
@@ -421,8 +449,8 @@ def filler(s):
             jets_sys[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt_'+var), allJets)
             bjets_sys[var]      = filter(isBJet, jets_sys[var])
             nonBjets_sys[var]   = filter(lambda j: not isBJet(j), jets_sys[var])
-            met_corr_px = r.met_pt*cos(r.met_phi) + sum([(j['pt']-j['pt_'+var])*cos(j['phi']) for j in jets_sys[var] ])
-            met_corr_py = r.met_pt*sin(r.met_phi) + sum([(j['pt']-j['pt_'+var])*sin(j['phi']) for j in jets_sys[var] ])
+            met_corr_px = s.met_pt*cos(s.met_phi) + sum([(j['pt']-j['pt_'+var])*cos(j['phi']) for j in jets_sys[var] ])
+            met_corr_py = s.met_pt*sin(s.met_phi) + sum([(j['pt']-j['pt_'+var])*sin(j['phi']) for j in jets_sys[var] ])
 
             setattr(s, "met_pt_"+var, sqrt(met_corr_px**2 + met_corr_py**2))
             setattr(s, "met_phi_"+var, atan2(met_corr_py, met_corr_px))
@@ -472,7 +500,7 @@ def filler(s):
             s.dl_mass   = dl.M()
             s.mlmZ_mass = closestOSDLMassToMZ(leptons_pt10)
             mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
-            mt2Calc.setMet(r.met_pt,r.met_phi)
+            mt2Calc.setMet(s.met_pt,s.met_phi)
             s.dl_mt2ll = mt2Calc.mt2ll()
 
             if len(jets)>=2:
