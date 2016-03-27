@@ -4,8 +4,7 @@ ROOT.setTDRStyle()
 
 from math import *
 import array, operator
-from StopsDilepton.tools.user import plotDir
-from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue, deltaR, getObjFromFile
+from StopsDilepton.tools.helpers import getObjDict, getEList, getVarValue, deltaR, getObjFromFile
 from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getLeptons, looseMuID, looseEleID, getJets, leptonVars, jetVars, getGoodTaus
 from StopsDilepton.tools.genParticleTools import getDaughters, descendDecay, decaysTo, printDecay
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
@@ -19,13 +18,13 @@ lepPdgs = [11,13,15]
 nuPdgs = [12,14,16]
 
 #load all the samples
-from StopsDilepton.samples.cmgTuples_Spring15_mAODv2_25ns_1l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_1l_postProcessed import *
 small = False
-maxN=3 if small else -1
-ttjets = TTJets_Lep
-ttjets['name']="TTLep_1l2l"
-ttjets['chain'] = getChain(ttjets,histname="", maxN=maxN)
-prefix="mAODv2"
+#maxN=3 if small else -1
+#ttjets = TTJets_Lep
+#ttjets['name']="TTLep_1l2l"
+#ttjets['chain'] = getChain(ttjets,histname="", maxN=maxN)
+#prefix="mAODv2"
 #others={'name':'ST/VV/TTX', 'chain':getChain([WJetsToLNu,DY,singleTop,TTX,diBoson], histname="")}
 
 samples=[TTJets_Lep]
@@ -43,23 +42,23 @@ def bold(s):
 
 cuts=[
   ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
-  ("njet2", "(Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))>=2"),
-  ("nbtag1", "Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.890)>=1"),
+  ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
+  ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
   ("mll20", "dl_mass>20"),
   ("met80", "met_pt>80"),
-  ("metSig5", "met_pt/sqrt(Sum$(Jet_pt*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id)))>5"),
-  ("dPhiJet0-dPhiJet1", "cos(met_phi-Jet_phi[0])<cos(0.25)&&cos(met_phi-Jet_phi[1])<cos(0.25)"),
+  ("metSig5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
+  ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
   ("isOS","isOS==1"),
   ("SFZVeto","( (isMuMu==1||isEE==1)&&abs(dl_mass-91.2)>=15 || isEMu==1 )"),
-  ("tauVeto","Sum$(TauGood_pt>20 && abs(TauGood_eta)<2.4 && TauGood_idDecayModeNewDMs>=1 && TauGood_idCI3hit>=1 && TauGood_idAntiMu>=1 && TauGood_idAntiE>=1)==0"),
+#  ("tauVeto","Sum$(TauGood_pt>20 && abs(TauGood_eta)<2.4 && TauGood_idDecayModeNewDMs>=1 && TauGood_idCI3hit>=1 && TauGood_idAntiMu>=1 && TauGood_idAntiE>=1)==0"),
   ("mRelIso01", "LepGood_miniRelIso[l1_index]<0.1&&LepGood_miniRelIso[l2_index]<0.1"),
   ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
-  ("ecalDeadCellTPFilter", "(!(run==1&&lumi==45896&&evt==38047218))&&(!(run==1&&lumi==24231&&evt==20087421))&&(!(run==1&&lumi==63423&&evt==52577001))&&(!(run==1&&lumi==87234&&evt==72316782))&&(!(run==1&&lumi==30168&&evt==25009164))"),
+#  ("ecalDeadCellTPFilter", "(!(run==1&&lumi==45896&&evt==38047218))&&(!(run==1&&lumi==24231&&evt==20087421))&&(!(run==1&&lumi==63423&&evt==52577001))&&(!(run==1&&lumi==87234&&evt==72316782))&&(!(run==1&&lumi==30168&&evt==25009164))"),
 #("evt","evt==847303"),#lepton from a jet?
 #("evt", "evt==24638863") #fake lepton?
 #("evt","evt==3916824")
 #("evt","evt==5439514")#jet mism and photon radiation?
-("evt","evt==22105179") #electron from top???
+#("evt","evt==22105179") #electron from top???
 #("evt","evt==12255583")
 #("evt","evt==72477272")
 #("evt","evt==32462388")
@@ -90,13 +89,12 @@ def dRMatch(coll, dR=0.4, checkPdgId=False):
 
 for s in samples:
 #  for pk in plots.keys():
-#    plots[pk]['histo'][s['name']] = ROOT.TH1F("met_"+s["name"], "met_"+s["name"], *(plots[pk]['binning']))
+#    plots[pk]['histo'][s['name']] = ROOT.TH1F("met_"+s.name, "met_"+s.name, *(plots[pk]['binning']))
 
-    chain = s["chain"]
-    print "Looping over %s" % s["name"]
-    eList = getEList(chain, preselection+"&&dl_mt2ll>140")
+    print "Looping over %s" % s.name
+    eList = getEList(s.chain, preselection+"&&dl_mt2ll>140")
     nEvents = eList.GetN()/reduceStat
-    print "Found %i events in %s after preselection %s, looping over %i" % (eList.GetN(),s["name"],preselection,nEvents)
+    print "Found %i events in %s after preselection %s, looping over %i" % (eList.GetN(),s.name,preselection,nEvents)
     ntot=0
     counterReco={}
     counterRecoGen={}
@@ -140,21 +138,21 @@ for s in samples:
     for ev in range(nEvents):
         ntot+=1
         if ev%10000==0:print "At %i/%i"%(ev,nEvents)
-        chain.GetEntry(eList.GetEntry(ev))
+        s.chain.GetEntry(eList.GetEntry(ev))
         mt2Calc.reset()
-        weight = reduceStat*getVarValue(chain, "weight")*lumiScale if not s['isData'] else 1
-        mt2ll = getVarValue(chain, "dl_mt2ll")
-        met = getVarValue(chain, "met_pt")
-        metPhi = getVarValue(chain, "met_phi")
-        genMet = getVarValue(chain, "met_genPt")
-        genMetPhi = getVarValue(chain, "met_genPhi")
+        weight = reduceStat*getVarValue(s.chain, "weight")*lumiScale if not s['isData'] else 1
+        mt2ll = getVarValue(s.chain, "dl_mt2ll")
+        met = getVarValue(s.chain, "met_pt")
+        metPhi = getVarValue(s.chain, "met_phi")
+        genMet = getVarValue(s.chain, "met_genPt")
+        genMetPhi = getVarValue(s.chain, "met_genPhi")
         deltaMet = sqrt((met*cos(metPhi)-genMet*cos(genMetPhi))**2+(met*sin(metPhi)-genMet*sin(genMetPhi))**2)
-        jets = filter(lambda j:j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(chain))
+        jets = filter(lambda j:j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(s.chain))
 
-        allLeptons = getLeptons(chain, collVars=leptonVars+['mcMatchId','mcMatchAny','mcMatchTau','mcPt','ip3d', 'relIso03', 'relIso04', 'jetPtRatiov1', 'jetPtRelv1', 'jetPtRelv2', 'jetPtRatiov2', 'jetBTagCSV', 'jetDR'])
+        allLeptons = getLeptons(s.chain, collVars=leptonVars+['mcMatchId','mcMatchAny','mcMatchTau','mcPt','ip3d', 'relIso03', 'relIso04', 'jetPtRatiov1', 'jetPtRelv1', 'jetPtRelv2', 'jetPtRatiov2', 'jetBTagCSV', 'jetDR'])
         leptons = filter(lambda l: looseMuID(l) or looseEleID(l), allLeptons)
 
-#LepGood_mcMatchId Match to source from hard scatter (pdgId of heaviest particle in chain, 25 for H, 6 for t, 23/24 for W/Z), zero if non-prompt or fake for Leptons after the preselection
+#LepGood_mcMatchId Match to source from hard scatter (pdgId of heaviest particle in s.chain, 25 for H, 6 for t, 23/24 for W/Z), zero if non-prompt or fake for Leptons after the preselection
 #LepGood_mcMatchAny  Match to any final state leptons: 0 if unmatched, 1 if light flavour (including prompt), 4 if charm, 5 if bottom for Leptons after the preselection
 #LepGood_mcMatchTau True if the leptons comes from a tau for Leptons after the preselection
 
@@ -167,14 +165,14 @@ for s in samples:
         looseEle= filter(lambda l: abs(l['pdgId'])==11 and l['miniRelIso']<0.4 and l['pt']>15, allLeptons)
         mu      = filter(lambda l: abs(l['pdgId'])==13, leptons)
         ele     = filter(lambda l: abs(l['pdgId'])==11, leptons)
-        tau     = getGoodTaus(chain)
+        tau     = getGoodTaus(s.chain)
 
 #RECO mathes
         muMatched   = filter(lambda l: abs(l['mcMatchAny'])==1, mu)
         eleMatched  = filter(lambda l: abs(l['mcMatchAny'])==1, ele)
         tauMatched  = filter(lambda l: abs(l['mcMatchId'])>=1, tau)
 #GEN
-        genParts = getGenPartsAll(chain)
+        genParts = getGenPartsAll(s.chain)
         status1MuEle        =   filter(lambda p: abs(p['pdgId']) in [11,13] and p['status']==1 and p['pt']>10, genParts)
         genLeptons          =   [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId']) in [24] and abs(p['pdgId']) in lepPdgs, genParts)]
         genLeptonsFromTau   =   [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId']) in [15] and abs(p['pdgId']) in lepPdgs, genParts)]
@@ -218,7 +216,7 @@ for s in samples:
 #      print "Check genNuE %i genNuMu %i genNuTau %i"%(len(genNuE), len(genNuMu), len(genNuTau))
 #      print "  genTau decay:",[p['pdgId'] for p in genParts[gt['daughterIndex1']:gt['daughterIndex2']+1] ]
         for v in ['isMuMu','isEE','isEMu']:
-            exec(v+'=getVarValue(chain, "'+v+'")')
+            exec(v+'=getVarValue(s.chain, "'+v+'")')
 
         if isMuMu and not len(mu)==2 and len(ele)==0:
             print "Mode isMuMu but found mu/ele %i/%i"%(len(mu),len(ele))
@@ -279,10 +277,10 @@ for s in samples:
                 if len(mu)==len(muMatched) and len(ele)==len(eleMatched):counterRecoGen_allMatched[mode][gMode]+=1
                 if len(muMatchedToB)>0:
                     counterRecoGen_oneMuMatchedToB[mode][gMode]+=1
-#          print "Mu matched to b %i:%i:%i"%(getVarValue(chain, "run"), getVarValue(chain, "lumi"), getVarValue(chain, "evt"))
+#          print "Mu matched to b %i:%i:%i"%(getVarValue(s.chain, "run"), getVarValue(chain, "lumi"), getVarValue(chain, "evt"))
                 if len(eleMatchedToB)>0:
                     counterRecoGen_oneEleMatchedToB[mode][gMode]+=1
-#          print "Ele matched to b %i:%i:%i"%(getVarValue(chain, "run"), getVarValue(chain, "lumi"), getVarValue(chain, "evt"))
+#          print "Ele matched to b %i:%i:%i"%(getVarValue(s.chain, "run"), getVarValue(chain, "lumi"), getVarValue(chain, "evt"))
                 if len(muMatchedToTau)>0:   counterRecoGen_oneMuMatchedToTau[mode][gMode]+=1
                 if len(eleMatchedToTau)>0:   counterRecoGen_oneEleMatchedToTau[mode][gMode]+=1
                 if len(tau)>0:   counterRecoGen_recoTau[mode][gMode]+=1
@@ -306,7 +304,7 @@ for s in samples:
                 else:
                       neutrinoMotherString=""
                 allNeutrinoPt = vecPtSum(otherNeutrinos+genNeutrinosFromW+genNeutrinosFromTau)
-                jets = getJets(ttjets['chain'], jetVars+['mcPt'])
+                jets = getJets(ttjets['s.chain'], jetVars+['mcPt'])
                 dx, dy = 0., 0.
                 for j in jets:
                     if j['mcPt']>0:
@@ -319,7 +317,7 @@ for s in samples:
                     jetMismeasString=     "jet-mism:"+" %6.2f"%jetMismeas
 
                 print "%6s %12s %20s mt2ll %6.2f d-MET %6.2f met %6.2f genmet %6.2f (W-nu %6.2f tau-nu %6.2f other-nu %6.2f all-nu %6.2f%s)"\
-                    %(mode, gMode,  "%2i:%2i:%2i"%(getVarValue(chain, "run"), getVarValue(chain, "lumi"), getVarValue(chain, "evt")), mt2ll, deltaMet, met, genMet, neutrinoFromWPt, neutrinoFromTauPt, otherNeutrinoPt, allNeutrinoPt,neutrinoMotherString)\
+                    %(mode, gMode,  "%2i:%2i:%2i"%(getVarValue(s.chain, "run"), getVarValue(chain, "lumi"), getVarValue(chain, "evt")), mt2ll, deltaMet, met, genMet, neutrinoFromWPt, neutrinoFromTauPt, otherNeutrinoPt, allNeutrinoPt,neutrinoMotherString)\
                     +jetMismeasString
 
                 lepDMet = vecPtSum(leptons, genLeptons)

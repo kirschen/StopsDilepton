@@ -93,7 +93,7 @@ data_sample.style = styles.errorStyle( ROOT.kBlack )
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ DY_HT_LO, TTJets, qcd_sample, TTZ]
+mc = [ DY_HT_LO, TTJets, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, triBoson]
 #mc = [ TTX]
 lumi_scale = data_sample.lumi/1000
 for sample in mc:
