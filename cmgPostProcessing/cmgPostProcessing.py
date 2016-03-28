@@ -71,7 +71,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=int,
-        default=8,
+        default=12,
         help="Maximum number of simultaneous jobs."
         )
     
@@ -280,6 +280,8 @@ else:
         "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
 #        "nJet", "Jet_*",
+        "nDiscJet", "DiscJet_*",
+        "nJetFailId", "JetFailId_*",
         "nLepGood", "LepGood_*",
         "nTauGood", "TauGood_*",
     ]
