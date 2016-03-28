@@ -12,7 +12,6 @@ from StopsDilepton.tools.pdgToName import pdgToName
 mt2Calc = mt2Calculator()
 from StopsDilepton.tools.user import *
 
-reduceStat = 1
 lumiScale = 10.
 lepPdgs = [11,13,15]
 nuPdgs = [12,14,16]
@@ -93,7 +92,7 @@ for s in samples:
 
     print "Looping over %s" % s.name
     eList = getEList(s.chain, preselection+"&&dl_mt2ll>140")
-    nEvents = eList.GetN()/reduceStat
+    nEvents = eList.GetN()
     print "Found %i events in %s after preselection %s, looping over %i" % (eList.GetN(),s.name,preselection,nEvents)
     ntot=0
     counterReco={}
@@ -140,14 +139,14 @@ for s in samples:
         if ev%10000==0:print "At %i/%i"%(ev,nEvents)
         s.chain.GetEntry(eList.GetEntry(ev))
         mt2Calc.reset()
-        weight = reduceStat*getVarValue(s.chain, "weight")*lumiScale if not s['isData'] else 1
+        weight = getVarValue(s.chain, "weight")*lumiScale
         mt2ll = getVarValue(s.chain, "dl_mt2ll")
         met = getVarValue(s.chain, "met_pt")
         metPhi = getVarValue(s.chain, "met_phi")
         genMet = getVarValue(s.chain, "met_genPt")
         genMetPhi = getVarValue(s.chain, "met_genPhi")
         deltaMet = sqrt((met*cos(metPhi)-genMet*cos(genMetPhi))**2+(met*sin(metPhi)-genMet*sin(genMetPhi))**2)
-        jets = filter(lambda j:j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(s.chain))
+        jets = filter(lambda j:j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(s.chain, jetColl="JetGood"))
 
         allLeptons = getLeptons(s.chain, collVars=leptonVars+['mcMatchId','mcMatchAny','mcMatchTau','mcPt','ip3d', 'relIso03', 'relIso04', 'jetPtRatiov1', 'jetPtRelv1', 'jetPtRelv2', 'jetPtRatiov2', 'jetBTagCSV', 'jetDR'])
         leptons = filter(lambda l: looseMuID(l) or looseEleID(l), allLeptons)
@@ -304,7 +303,7 @@ for s in samples:
                 else:
                       neutrinoMotherString=""
                 allNeutrinoPt = vecPtSum(otherNeutrinos+genNeutrinosFromW+genNeutrinosFromTau)
-                jets = getJets(ttjets['s.chain'], jetVars+['mcPt'])
+                jets = getJets(ttjets['s.chain'], jetVars+['mcPt'], jetColl="JetGood")
                 dx, dy = 0., 0.
                 for j in jets:
                     if j['mcPt']>0:

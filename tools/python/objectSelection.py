@@ -3,8 +3,8 @@ from math import *
 
 jetVars = ['eta','pt','phi','btagCSV', 'id']
 
-def getJets(c, jetVars=jetVars):
-    return [getObjDict(c, 'Jet_', jetVars, i) for i in range(int(getVarValue(c, 'nJet')))]
+def getJets(c, jetVars=jetVars, jetColl="Jet"):
+    return [getObjDict(c, jetColl+'_', jetVars, i) for i in range(int(getVarValue(c, 'n'+jetColl)))]
 
 def jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt'):
   return j[ptVar]>ptCut and abs(j['eta'])<absEtaCut and j['id']
