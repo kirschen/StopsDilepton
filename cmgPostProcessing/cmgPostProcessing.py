@@ -535,7 +535,8 @@ treeMaker_parent = TreeMaker(
     )
     
 # Split input in ranges
-eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob )
+if options.noMultiThreading: eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob )
+else:                        eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs = options.nJobs )
 
 logger.info( "Splitting into %i ranges of %i events on average.",  len(eventRanges), (eventRanges[-1][1] - eventRanges[0][0])/len(eventRanges) )
 
