@@ -555,15 +555,19 @@ def wrapper(arg):
         logger.info( "Output file %s found.", outfilename) 
         if not checkRootFile(outfilename, checkForObjects=["Events"]):
             logger.info( "File %s is broken. Overwriting.", outfilename)
-        elif options.overwrite:
+        elif not options.overwrite:
             logger.info( "Skipping.")
             return {'cloned':0, 'converted':0}
         else:
             logger.info( "Overwriting.")
 
+    tmp_directory = ROOT.gDirectory
+    outputfile = ROOT.TFile.Open(outfilename, 'recreate')
+    tmp_directory.cd()
+
     # Set the reader to the event range
     reader.setEventRange( eventRange )
-    clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events" )
+    clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events", rootfile = outputfile )
     clonedEvents = clonedTree.GetEntries()
 
     # Clone the empty maker in order to avoid recompilation at every loop iteration
@@ -589,9 +593,10 @@ def wrapper(arg):
     convertedEvents = maker.tree.GetEntries()
 
     # Write to file 
-    f = ROOT.TFile.Open(outfilename, 'recreate')
+#    f = ROOT.TFile.Open(outfilename, 'recreate')
     maker.tree.Write()
-    f.Close()
+#    f.Close()
+    outputfile.Close()
     logger.info( "Written %s", outfilename)
 
   # Destroy the TTree
