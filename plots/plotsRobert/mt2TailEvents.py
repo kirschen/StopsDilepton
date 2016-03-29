@@ -26,9 +26,8 @@ small = False
 #prefix="mAODv2"
 #others={'name':'ST/VV/TTX', 'chain':getChain([WJetsToLNu,DY,singleTop,TTX,diBoson], histname="")}
 
-samples=[TTJets_Lep]
-
-##vetoed by patched CSC
+#samples=[TTJets_Lep]
+samples = [   Sample.fromDirectory(name="TTJets_Lep",       treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets (lep)",     directory=['/scratch/rschoefbeck/cmgTuples/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_ext/']) ]
 
 def vecPtSum(objs, subtract=[]):
     px = sum([o['pt']*cos(o['phi']) for o in objs])
@@ -38,6 +37,9 @@ def vecPtSum(objs, subtract=[]):
     return sqrt(px**2+py**2)
 def bold(s):
     return '\033[1m'+s+'\033[0m'
+
+from StopsDilepton.tools.objectSelection import multiIsoLepString
+multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 cuts=[
   ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
@@ -50,7 +52,8 @@ cuts=[
   ("isOS","isOS==1"),
   ("SFZVeto","( (isMuMu==1||isEE==1)&&abs(dl_mass-91.2)>=15 || isEMu==1 )"),
 #  ("tauVeto","Sum$(TauGood_pt>20 && abs(TauGood_eta)<2.4 && TauGood_idDecayModeNewDMs>=1 && TauGood_idCI3hit>=1 && TauGood_idAntiMu>=1 && TauGood_idAntiE>=1)==0"),
-  ("mRelIso01", "LepGood_miniRelIso[l1_index]<0.1&&LepGood_miniRelIso[l2_index]<0.1"),
+#  ("mRelIso01", "LepGood_miniRelIso[l1_index]<0.1&&LepGood_miniRelIso[l2_index]<0.1"),
+  ("multiIsoWP", multiIsoWP),
   ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
 #  ("ecalDeadCellTPFilter", "(!(run==1&&lumi==45896&&evt==38047218))&&(!(run==1&&lumi==24231&&evt==20087421))&&(!(run==1&&lumi==63423&&evt==52577001))&&(!(run==1&&lumi==87234&&evt==72316782))&&(!(run==1&&lumi==30168&&evt==25009164))"),
 #("evt","evt==847303"),#lepton from a jet?
@@ -83,8 +86,6 @@ def dRMatch(coll, dR=0.4, checkPdgId=False):
             if deltaR(l,o)<dR and (l['pdgId']==o['pdgId'] or not checkPdgId): return True
         return False
     return match
-
-
 
 for s in samples:
 #  for pk in plots.keys():
@@ -154,10 +155,6 @@ for s in samples:
 #LepGood_mcMatchId Match to source from hard scatter (pdgId of heaviest particle in s.chain, 25 for H, 6 for t, 23/24 for W/Z), zero if non-prompt or fake for Leptons after the preselection
 #LepGood_mcMatchAny  Match to any final state leptons: 0 if unmatched, 1 if light flavour (including prompt), 4 if charm, 5 if bottom for Leptons after the preselection
 #LepGood_mcMatchTau True if the leptons comes from a tau for Leptons after the preselection
-
-#    for l in leptons:
-#      if (l['mcMatchAny']==0 and (not (l['mcMatchId']==0))) or ( (not l['mcMatchAny']==0) and (l['mcMatchId']==0)):
-#        print "Match?",l
 
 #RECO
         looseMu = filter(lambda l: abs(l['pdgId'])==13 and l['miniRelIso']<0.4 and l['pt']>15, allLeptons)
