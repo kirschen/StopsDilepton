@@ -1,5 +1,5 @@
 import copy, os, sys
-from StopsDilepton.tools.user import data_output_directory
+from StopsDilepton.tools.user import data_directory
 from RootTools.core.Sample import Sample
 import ROOT
 
@@ -42,7 +42,7 @@ dirs['QCD']              = ["QCD_Pt10to15", "QCD_Pt15to30", "QCD_Pt30to50", "QCD
 dirs['TTGJets_photonAsMet'] = ["TTGJets_photonAsMet"]
 
 for key in dirs:
-  dirs[key] = [ os.path.join( data_output_directory, 'postProcessed_Fall15_mAODv2/dilepTiny', dir) for dir in dirs[key]]
+  dirs[key] = [ os.path.join( data_directory, 'postProcessed_Fall15_mAODv2/dilepTiny', dir) for dir in dirs[key]]
 
 DY             = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=8,              texName="DY + Jets",                 directory=dirs['DY'])
 DY_LO          = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=8,              texName="DY + Jets (LO)",            directory=dirs['DY_LO'])

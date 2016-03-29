@@ -3,13 +3,12 @@ import os
 runOnGentT2 = True
 
 if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
-    # Where you store the data
-#    data_directory      = "/scratch/rschoefbeck/cmgTuples/postProcessed_Fall15_mAODv2/dilepTiny"
-    data_directory      = "/scratch/rschoefbeck/cmgTuples/fromTom"
-    # Where postprocessed data goes 
-    data_output_directory      = "/scratch/rschoefbeck/cmgTuples/"
     # Where you store cmg output
     cmg_directory      = "/scratch/rschoefbeck/cmgTuples/763_1l"
+    # Where postprocessed data goes 
+    data_output_directory      = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+    # Where you store the data
+    data_directory      = "/scratch/rschoefbeck/cmgTuples/fromTom"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/r/rschoefbeck/www/"
     # Analysis result files
@@ -26,6 +25,7 @@ if os.environ['USER'] in ['tomc']:
     cmg_directory              = "/pnfs/iihe/cms/store/user/tomc/cmgTuples/763_4"
     # Where postprocessed data goes 
     data_output_directory      = "/user/tomc/StopsDilepton/data"
+    # Where you store the data for plotting, analysis etc.
     data_directory             = "/user/tomc/StopsDilepton/data"
     # Where the plots go
     plot_directory             = "/user/tomc/StopsDilepton/plots"
