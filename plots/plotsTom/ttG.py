@@ -28,12 +28,6 @@ argParser.add_argument('--mode',
     action='store',
     choices=['doubleMu', 'doubleEle',  'muEle'])
 
-argParser.add_argument('--zMode',
-    default='allZ',
-    action='store',
-    choices=['onZ', 'offZ', 'allZ']
-)
-
 argParser.add_argument('--small',
     action='store_true',
 #    default=True,
@@ -72,13 +66,13 @@ def getZCut(mode):
     return "(1)"
 
 if args.mode=="doubleMu":
-    leptonSelectionString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
+    leptonSelectionString = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0"
     trigger     = "HLT_mumuIso"
 elif args.mode=="doubleEle":
-    leptonSelectionString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
+    leptonSelectionString = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2"
     trigger   = "HLT_ee_DZ"
 elif args.mode=="muEle":
-    leptonSelectionString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
+    leptonSelectionString = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1"
     trigger    = "HLT_mue"
 else:
     raise ValueError( "Mode %s not known"%args.mode )
@@ -89,12 +83,13 @@ filterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFi
 
 # Use data points for TTG
 TTG_photonAsMet.style = styles.errorStyle( ROOT.kBlack )
-TTG_photonAsMet.setSelectionString(["photonAsMet", trigger])
+TTG_photonAsMet.setSelectionString(["photonAsMet&&gamma_pt>50", trigger])   # select on photons
 
-TTZ.style = styles.fillStyle( TTZ.color)
-TTZ.setSelectionString([trigger])
+for mc in [TTZtoLLNuNu, TTZtoQQ]:
+  mc.style = styles.fillStyle( mc.color)
+  mc.setSelectionString(["abs(dl_mass-91.1876)<15&&dl_pt>50", trigger])     # select on Z bosons
 
-stack = Stack(TTG_photonAsMet, TTZ)
+stack = Stack([TTZtoLLNuNu, TTZtoQQ], TTG_photonAsMet)
 
 # user data
 from StopsDilepton.tools.user import plot_directory
@@ -103,8 +98,6 @@ from StopsDilepton.tools.user import plot_directory
 weight = lambda data:data.weight
 
 cuts=[
-    ("photonHighPt", "(Sum$(gamma_pt>100&&abs(gamma_eta)<2.4))>=1"),
-    ("photonLowPt", "(Sum$(gamma_pt>50&&abs(gamma_eta)<2.4))>=1"),
     ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
     ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
     ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
@@ -131,29 +124,28 @@ def drawObjects( scale ):
 for i_comb in reversed( range( len(cuts)+1 ) ):
 #for i_comb in range(len(cuts)+1):
     for comb in itertools.combinations( cuts, i_comb ):
-        TTG_photonAsMet.clear()
-        TTZ.clear()
+        for sample in stack.samples():
+          sample.clear()  # Need a reload of the chain in order to avoid segFault
 
         presel = [("isOS","isOS")] 
         presel.extend( comb )
 
-        prefix = '_'.join([args.mode, args.zMode, '-'.join([p[0] for p in presel])])
+        prefix = '_'.join([args.mode, '-'.join([p[0] for p in presel])])
         plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
         if os.path.exists(plot_path) and not args.overwrite:
             logger.info( "Path %s not empty. Skipping."%path )
             continue
 
         if "nbtag1" in prefix and "nbtag0" in prefix: continue
-        if "photonLowPt" in prefix and "photonHighPt" in prefix: continue
-        if not "photon" in prefix: continue
 
         selectionString = "&&".join( [p[1] for p in presel] + [leptonSelectionString] )
         logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionString )
 
         logger.info( "Calculating normalization constants" )
-        yield_TTG = TTG_photonAsMet.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
-        yield_TTZ = TTZ.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
-        scale = yield_TTG/yield_TTZ
+        yield_TTG         = TTG_photonAsMet.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
+        yield_TTZtoLLNuNu = TTZtoLLNuNu.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
+        yield_TTZtoQQ     = TTZtoQQ.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
+        scale = yield_TTG/(yield_TTZtoLLNuNu+yield_TTZtoQQ)
 
 
         plots = []
@@ -228,6 +220,18 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
             ) 
         plots.append( dl_mt2blbl )
          
+        V_pt  = Plot(
+            texX = 'p_{T}(Z or #gamma) (GeV)', texY = 'Number of Events / 5 GeV',
+            stack = stack, 
+            variable = Variable.fromString( "V_pt/F" ).addFiller(
+                helpers.uses(lambda data: data.gamma_pt[0] if data.photonAsMet else data.dl_pt , ["gamma[pt/F]","photonAsMet/O", "dl_pt/F"] )
+            ), 
+            binning=[60,0,300],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( V_pt )
+
         l1_pt  = Plot(
             texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
             stack = stack, 
@@ -237,6 +241,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
             weight = weight,
             )
         plots.append( l1_pt )
+
 
         l1_eta  = Plot(
             texX = '#eta(l_{1})', texY = 'Number of Events',
