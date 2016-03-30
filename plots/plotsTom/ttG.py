@@ -131,6 +131,9 @@ def drawObjects( scale ):
 for i_comb in reversed( range( len(cuts)+1 ) ):
 #for i_comb in range(len(cuts)+1):
     for comb in itertools.combinations( cuts, i_comb ):
+        TTG_photonAsMet.clear()
+        TTZ.clear()
+
         presel = [("isOS","isOS")] 
         presel.extend( comb )
 
