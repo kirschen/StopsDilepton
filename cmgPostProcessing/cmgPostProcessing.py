@@ -356,7 +356,7 @@ if options.keepPhotons:
 #        branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
 
 if sample.isData:
-    lumiScaleFactor=1
+    lumiScaleFactor=None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
