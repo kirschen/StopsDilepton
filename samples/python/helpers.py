@@ -1,5 +1,6 @@
 # Standard imports 
 import os
+import ROOT
 
 # RootTools
 from RootTools.core.standard import *
@@ -55,3 +56,24 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
 
     sample.heppy = heppy_sample
     return sample
+
+def getT2ttSignalWeight(sample, lumi):
+    '''Get a dictionary for T2tt signal weights
+    '''
+    from StopsDilepton.tools.xSecSusy import xSecSusy
+    xSecSusy_ = xSecSusy()
+    channel='stop13TeV'
+    signalWeight={}
+    mMax = 1500
+    bStr = str(mMax)+','+str(mMax)
+    sample.chain.Draw("GenSusyMScan2:GenSusyMScan1>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
+    hNEvents = ROOT.gDirectory.Get("hNEvents")
+    for i in range (mMax):
+        for j in range (mMax):
+            n = hNEvents.GetBinContent(hNEvents.FindBin(i,j))
+            if n>0:
+                signalWeight[(i,j)] = {'weight':lumi*xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)/n, 'xSecFacUp':xSecSusy_.getXSec(channel=channel,mass=i,sigma=1)/xSecSusy_.getXSec(channel=channel,mass=i,sigma=0), 'xSecFacDown':xSecSusy_.getXSec(channel=channel,mass=i,sigma=-1)/xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)}
+    #            logger.info( "Found mStop %5i mNeu %5i Number of events: %6i, xSec: %10.6f, weight: %6.6f (+1 sigma rel: %6.6f, -1 sigma rel: %6.6f)", i,j,n, xSecSusy_.getXSec(channel=channel,mass=i,sigma=0),  signalWeight[(i,j)]['weight'], signalWeight[(i,j)]['xSecFacUp'], signalWeight[(i,j)]['xSecFacDown'] )
+    del hNEvents
+    return signalWeight
+

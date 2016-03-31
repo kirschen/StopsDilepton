@@ -34,7 +34,7 @@ def getReweightingFunction(data="PU_2100_XSecCentral", mc="Spring15"):
 
     # MC
     if mc=='Spring15':
-        from StopsDilepton.tools.spring15MCPUProfile import spring15 as mcProfile
+        from StopsDilepton.tools.puProfiles import spring15 as mcProfile
         logger.info("Loaded Spring15 MC Profile" )
     elif mc=="Fall15":
         mcProfile = extendHistoTo(getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/MCProfile_Fall15.root", 'MC'), histoData)

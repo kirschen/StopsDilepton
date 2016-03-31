@@ -21,7 +21,7 @@ import StopsDilepton.tools.user as user
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile
+from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getPhotons
 
@@ -74,7 +74,14 @@ def get_parser():
         default=12,
         help="Maximum number of simultaneous jobs."
         )
-    
+
+    argParser.add_argument('--minNJobs',
+        action='store',
+        nargs='?',
+        type=int,
+        default=1,
+        help="Minimum number of simultaneous jobs."
+        )
 
     argParser.add_argument('--dataDir',
         action='store',
@@ -118,8 +125,17 @@ def get_parser():
 
     argParser.add_argument('--runSmallSample',
         action='store_true',
-#        default = True,
         help="Run the file on a small sample (for test purpose), bool flag set to True if used"
+        )
+
+    argParser.add_argument('--T2tt',
+        action='store_true',
+        help="Is T2tt signal?"
+        )
+
+    argParser.add_argument('--fastSim',
+        action='store_true',
+        help="FastSim?"
         )
 
     argParser.add_argument('--keepPhotons',
@@ -146,8 +162,6 @@ def get_parser():
         action='store_true',
         help="Skip top pt reweighting.")
 
-    # parser.add_option("--signal", dest="signal", default = False, action="store_true", help="Is this T2tt signal?")
-    
     return argParser
 
 options = get_parser().parse_args()
@@ -163,20 +177,36 @@ skimConds = []
 if options.skim.lower().startswith('dilep'):
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=2" )
 
-#Samples: Check if can be combined
-from StopsDilepton.samples.helpers import fromHeppySample
-maxN = 2 if options.runSmallSample else -1
-samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
+#Samples: Load samples
+maxN = 2 if options.runSmallSample else None
+if options.T2tt:
+    from StopsDilepton.samples.cmgTuples_Signals_Spring15_mAODv2_25ns_0l import T2tt
+    from StopsDilepton.samples.helpers import getT2ttSignalWeight
+    samples = filter( lambda s:s.name in options.samples, T2tt)
+    logger.info( "T2tt signal samples to be processed: %s", ",".join(s.name for s in samples) )
+    # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
+    assert len(samples)==1, "Can only process one T2tt sample at a time."
+    samples[0].files = samples[0].files[:maxN] 
+    logger.debug( "Fetching signal weights..." )
+    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
+    logger.debug("Done fetching signal weights.")
+else:
+    from StopsDilepton.samples.helpers import fromHeppySample
+    samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
 
 isData = False not in [s.isData for s in samples]
 isMC   =  True not in [s.isData for s in samples]
 
-# Check that all samples which are concatenated have the same x-section.
-assert isData or len(set([s.heppy.xSection for s in samples]))==1, "Not all samples have the same xSection: %s !"%(",".join([s.name for s in samples]))
-assert isMC or len(samples)==1, "Don't concatenate data samples"
-xSection = samples[0].heppy.xSection if isMC else None
+if options.T2tt:
+    xSection = None
+else:
+    # Check that all samples which are concatenated have the same x-section.
+    assert isData or len(set([s.heppy.xSection for s in samples]))==1, "Not all samples have the same xSection: %s !"%(",".join([s.name for s in samples]))
+    assert isMC or len(samples)==1, "Don't concatenate data samples"
 
-#Samples: combine
+    xSection = samples[0].heppy.xSection if isMC else None
+
+#Samples: combine if more than one
 if len(samples)>1:
     sample_name =  samples[0].name+"_comb" 
     logger.info( "Combining samples %s to %s.", ",".join(s.name for s in samples), sample_name )
@@ -191,9 +221,15 @@ else:
 
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
-    puRW        = getReweightingFunction(data="PU_2100_XSecCentral", mc="Fall15")
-    puRWDown    = getReweightingFunction(data="PU_2100_XSecDown", mc="Fall15")
-    puRWUp      = getReweightingFunction(data="PU_2100_XSecUp", mc="Fall15")
+    if options.T2tt:
+        # T2tt signal is 74X with Spring15 profile!
+        puRW        = getReweightingFunction(data="PU_2100_XSecCentral", mc="Spring15")
+        puRWDown    = getReweightingFunction(data="PU_2100_XSecDown", mc="Spring15")
+        puRWUp      = getReweightingFunction(data="PU_2100_XSecUp", mc="Spring15")
+    else:
+        puRW        = getReweightingFunction(data="PU_2100_XSecCentral", mc="Fall15")
+        puRWDown    = getReweightingFunction(data="PU_2100_XSecDown", mc="Fall15")
+        puRWUp      = getReweightingFunction(data="PU_2100_XSecUp", mc="Fall15")
 
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
@@ -211,18 +247,16 @@ else:
     topScaleF = 1
     logger.info( "Sample will NOT have top pt reweighting. topScaleF=%f",topScaleF ) 
 
-## FastSim
-#if options.fastSim:
-#   from StopsDilepton.tools.leptonFastSimSF import leptonFastSimSF as leptonFastSimSF_
-#   leptonFastSimSF = leptonFastSimSF_()
-fastSim = False
+if options.fastSim:
+   from StopsDilepton.tools.leptonFastSimSF import leptonFastSimSF as leptonFastSimSF_
+   leptonFastSimSF = leptonFastSimSF_()
 
 # systematic variations
 addSystematicVariations = (not isData) and (not options.skipSystematicVariations)
 if addSystematicVariations:
     # B tagging SF
     from StopsDilepton.tools.btagEfficiency import btagEfficiency
-    btagEff = btagEfficiency( fastSim = fastSim )
+    btagEff = btagEfficiency( fastSim = options.fastSim )
 
 # LHE cut (DY samples)
 if options.LHEHTCut>0:
@@ -230,21 +264,30 @@ if options.LHEHTCut>0:
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
 
+#FIXME I think this is impractical ...
 if options.photonAsMet:
     sample.name+="_photonAsMet"
     logger.info( "Treating photon as additional MET")
 
-# veto list
+# MET group veto list
 if sample.isData:
     import StopsDilepton.tools.vetoList as vetoList_
     # MET group veto lists from 74X
     fileNames  = ['Run2015D/csc2015_Dec01.txt.gz', 'Run2015D/ecalscn1043093_Dec01.txt.gz']
     vetoList = vetoList_.vetoList( [os.path.join(user.veto_lists, f) for f in fileNames] )
 
+# output directory
 outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sample.name)
+
+# Directory for individual signal files
+if options.T2tt:
+    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T2tt")
+    if not os.path.exists(signalDir): os.makedirs(signalDir)
+
 if os.path.exists(outDir) and options.overwrite:
     logger.info( "Output directory %s exists. Deleting.", outDir )
     shutil.rmtree(outDir)
+
 if not os.path.exists(outDir): 
     os.makedirs(outDir)
     logger.info( "Created output directory %s.", outDir )
@@ -260,7 +303,6 @@ if options.skim.lower().count('tiny'):
         "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
         "LepGood_eta","LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId", 
         "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits",
-#        "Jet_eta","Jet_pt","Jet_phi","Jet_btagCSV", "Jet_id"
         ]
 
     #branches to be kept for MC samples only
@@ -279,7 +321,6 @@ else:
 #        "metNoHF_pt", "metNoHF_phi",
         "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
-#        "nJet", "Jet_*",
         "nDiscJet", "DiscJet_*",
         "nJetFailId", "JetFailId_*",
         "nLepGood", "LepGood_*",
@@ -295,6 +336,8 @@ else:
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
 
+if options.T2tt: branchKeepStrings_MC += ['GenSusyMScan1', 'GenSusyMScan2']
+
 # Jet variables to be read from chain 
 jetCorrInfo = ['corr/F', 'corr_JECUp/F', 'corr_JECDown/F'] if addSystematicVariations else []
 jetMCInfo = ['mcPt/F', 'hadronFlavour/I'] if isMC else []
@@ -309,22 +352,19 @@ if options.keepPhotons:
         "gamma_chHadIsoRC04", "gamma_chHadIsoRC"]
     if isMC: branchKeepStrings_DATAMC+=[ "gamma_mcMatchId", "gamma_mcPt", "gamma_genIso04", "gamma_genIso03", "gamma_drMinParton"]
 
-#if options.signal:
-#        branchKeepStrings_MC+=['GenSusyMScan1', 'GenSusyMScan2']
 #if options.keepLHEWeights:
 #        branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
 
 if sample.isData:
     lumiScaleFactor=1
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
-
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
     sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_v2.txt'
     lumiList = LumiList(os.path.expandvars(sample.heppy.json))
     logger.info( "Loaded json %s", sample.heppy.json )
 else:
-    lumiScaleFactor = xSection*targetLumi/float(sample.normalization)
+    lumiScaleFactor = xSection*targetLumi/float(sample.normalization) if xSection is not None else None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
 
@@ -375,11 +415,12 @@ if addSystematicVariations:
         if var!='MC':
             new_variables.append('reweightBTag_'+var+'/F')
 
-#if options.signal:
-#        read_variables += ['GenSusyMScan1/I', 'GenSusyMScan2/I']
-#        new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F']
-#if options.fastSim:
-#        new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
+if options.T2tt:
+    read_variables += map(Variable.fromString, ['GenSusyMScan1/I', 'GenSusyMScan2/I'] )
+    new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
+
+if options.fastSim and options.skim.lower().startswith('dilep'):
+    new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
 # Define a reader
 reader = sample.treeReader( \
@@ -390,8 +431,17 @@ reader = sample.treeReader( \
 def filler(s): 
     # shortcut
     r = reader.data
+
     # weight
-    s.weight = lumiScaleFactor*r.genWeight if isMC else 1
+    if options.T2tt:
+        s.weight=signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['weight']
+        s.mStop = r.GenSusyMScan1
+        s.mNeu  = r.GenSusyMScan2
+        s.reweightXSecUp    = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacUp']
+        s.reweightXSecDown  = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacDown']
+    else: 
+        s.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
+
     # lumi lists and vetos
     if isData:
         s.vetoPassed  = vetoList.passesVeto(r.run, r.lumi, r.evt)
@@ -464,10 +514,10 @@ def filler(s):
     if options.skim.lower().startswith('dilep'):
         leptons_pt10 = getGoodLeptons(r, ptCut=10)
         leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
-#            if options.fastSim:
-#                s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
-#                s.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
-#                s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
+        if options.fastSim:
+            s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
+            s.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
+            s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
 
         s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
         s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
@@ -537,8 +587,7 @@ treeMaker_parent = TreeMaker(
     )
     
 # Split input in ranges
-if options.noMultiThreading: eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob )
-else:                        eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs = options.nJobs )
+eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs = options.minNJobs )
 
 logger.info( "Splitting into %i ranges of %i events on average.",  len(eventRanges), (eventRanges[-1][1] - eventRanges[0][0])/len(eventRanges) )
 
@@ -588,15 +637,9 @@ def wrapper(arg):
                 else:
                     if reader.data.lumi not in outputLumiList[reader.data.run]:
                         outputLumiList[reader.data.run].add(reader.data.lumi)
-#            else:
-#                logger.debug( "NOT adding %i %i jsonPassed: %r", reader.data.run, reader.data.lumi, maker.data.jsonPassed )
 
     convertedEvents = maker.tree.GetEntries()
-
-    # Write to file 
-#    f = ROOT.TFile.Open(outfilename, 'recreate')
     maker.tree.Write()
-#    f.Close()
     outputfile.Close()
     logger.info( "Written %s", outfilename)
 
@@ -604,17 +647,20 @@ def wrapper(arg):
     maker.clear()
     return {'cloned':clonedEvents, 'converted':convertedEvents, 'outputLumiList':outputLumiList}
 
+#Define all jobs
+jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
+
 if not options.noMultiThreading:
+    # Use multiprocessing
     from multiprocessing import Pool
     pool = Pool( processes=options.nJobs )
-    jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
     results = pool.map(wrapper, jobs )
     pool.close()
 else:
-    jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
+    # Process one by one
     results = map(wrapper, jobs )
 
-logger.info( "Converted %i events of %i, cloned %i",  sum([c['converted'] for c in results]), reader.nEvents , sum([c['cloned'] for c in results]))
+logger.info( "Converted %i events of %i, cloned %i",  sum([c['converted'] for c in results]), reader.nEvents , sum([c['cloned'] for c in results]) )
 
 # Storing JSON file of processed events
 if isData:
@@ -625,3 +671,18 @@ if isData:
     jsonFile = filename+'.json'
     LumiList(runsAndLumis = outputLumiList).writeJSON(jsonFile)
     logger.info( "Written JSON file %s",  jsonFile )
+
+# Write one file per mass point for T2tt
+if options.T2tt:
+    output = Sample.fromDirectory("T2tt_output", outDir) 
+    for s in signalWeight.keys():
+        cut = "GenSusyMScan1=="+str(s[0])+"&&GenSusyMScan2=="+str(s[1])
+        signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
+        if not os.path.exists(signalFile) or options.overwrite:
+            t = output.chain.CopyTree(cut)
+            writeObjToFile(signalFile, t)
+            logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
+        else:
+            logger.info( "Found file %s -> Skipping"%(signalFile) )
+
+    output.clear() 
