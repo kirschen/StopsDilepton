@@ -1,10 +1,13 @@
+#Standard imports
 import ROOT
 from math import pi, sqrt, cos, sin, sinh, log, cosh
 from array import array
+import itertools
+
+#scripts
 ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.setTDRStyle()
 mZ=91.2
-from StopsDilepton.tools.convertHelpers import wrapStr, printHeader
 
 def deltaPhi(phi1, phi2):
     dphi = phi2-phi1
@@ -28,7 +31,6 @@ def getFileList(dir, histname='histo', maxN=-1):
         filelist = filelist[:maxN]
     return filelist
 
-import itertools
 def closestOSDLMassToMZ(leptons):
     inds = [i for i in range(len(leptons))]
     vecs = [ROOT.TLorentzVector() for i in range(len(leptons))]
@@ -36,6 +38,21 @@ def closestOSDLMassToMZ(leptons):
         v.SetPtEtaPhiM(leptons[i]['pt'], leptons[i]['eta'], leptons[i]['phi'], 0.)
     dlMasses = [(vecs[comb[0]] + vecs[comb[1]]).M()  for comb in itertools.combinations(inds, 2) if leptons[comb[0]]['pdgId']*leptons[comb[1]]['pdgId'] < 0 and abs(leptons[comb[0]]['pdgId']) == abs(leptons[comb[1]]['pdgId']) ]
     return min(dlMasses, key=lambda m:abs(m-mZ)) if len(dlMasses)>0 else float('nan')
+
+def m3( jets ):
+    if not len(jets)>=3: return float('nan'), -1, -1, -1
+    vecs = [(i, ROOT.TLorentzVector()) for i in range(len(jets))]
+    for i, v in enumerate(vecs):
+        v[1].SetPtEtaPhiM(jets[i]['pt'], jets[i]['eta'], jets[i]['phi'], 0.)
+    maxSumPt = 0
+    m3 = float('nan')
+    i1, i2, i3 = -1, -1, -1
+    for j3_comb in itertools.combinations(vecs, 3):
+        vecSum = sum( [v[1] for v in j3_comb], ROOT.TLorentzVector())
+        if vecSum.Pt()>maxSumPt:
+            m3 = vecSum.M()
+            i1, i2, i3 =  [v[0] for v in j3_comb]
+    return m3, i1, i2, i3
 
 def getChain(sampleList, histname='', maxN=-1, treeName="Events"):
     if not type(sampleList)==type([]):
@@ -72,45 +89,6 @@ def getChain(sampleList, histname='', maxN=-1, treeName="Events"):
 #      print sampleList
             print "Could not load chain from sampleList %s"%repr(sampleList)
     return c
-
-#def getChunks(sample,  maxN=-1):
-##  print "sample" , sample , maxN
-#  import os, subprocess
-#  #print "sample dir:" , sample['dir']
-#  chunks = [{'name':x} for x in os.listdir(sample['dir']) if x.startswith(sample['chunkString']+'_Chunk') or x==sample['name']]
-#  #print chunks
-#  chunks=chunks[:maxN] if maxN>0 else chunks
-#  sumWeights=0
-#  failedChunks=[]
-#  goodChunks  =[]
-#  const = 'All Events' if sample['isData'] else 'Sum Weights'
-#  for i, s in enumerate(chunks):
-#      if not sample.has_key("skimAnalyzerDir"):
-#        logfile = sample['dir']+'/'+s['name']+'/SkimReport.txt'
-#      else:
-#        logfile = sample['dir']+'/'+s['name']+"/"+sample["skimAnalyzerDir"]+'/SkimReport.txt'
-#      if os.path.isfile(logfile):
-#        line = [x for x in subprocess.check_output(["cat", logfile]).split('\n') if x.count(const)]
-#        assert len(line)==1,"Didn't find normalization constant '%s' in  number in file %s"%(const, logfile)
-#        #n = int(float(line[0].split()[2]))
-#        sumW = float(line[0].split()[2])
-#        inputFilename = sample['dir']+'/'+s['name']+'/'+sample['rootFileLocation']
-#        #print sumW, inputFilename
-#        if os.path.isfile(inputFilename):
-#          sumWeights+=sumW
-#          s['file']=inputFilename
-#          goodChunks.append(s)
-#        else:
-#          failedChunks.append(chunks[i])
-#      else:
-#        print "log file not found:  ", logfile
-#        failedChunks.append(chunks[i])
-##    except: print "Chunk",s,"could not be added"
-#  eff = round(100*len(failedChunks)/float(len(chunks)),3)
-#  print "Chunks: %i total, %i good (normalization constant %f), %i bad. Inefficiency: %f"%(len(chunks),len(goodChunks),sumWeights,len(failedChunks), eff)
-#  for s in failedChunks:
-#    print "Failed:",s
-#  return goodChunks, sumWeights
 
 def checkRootFile(f, checkForObjects=[]):
     rf = ROOT.TFile.Open(f)
@@ -193,17 +171,6 @@ def getVarValue(c, var, n=-1):
             return float('nan')
     return att
 
-
-#def getVarValue(c, var, n=-1):
-#  try:
-#    att = getattr(c, var)
-#    if n>=0:return att[n]
-#    return att
-#  except:
-#    l = c.GetLeaf(var)
-#    if l:return l.GetValue(n)
-#    return float('nan')
-
 def getEList(chain, cut, newname='eListTMP'):
     chain.Draw('>>eListTMP_t', cut)
     #elistTMP_t = ROOT.gROOT.Get('eListTMP_t')
@@ -216,15 +183,6 @@ def getObjDict(c, prefix, variables, i):
     res={var: getVarValue(c, prefix+var, i) for var in variables}
     res['index']=i
     return res
-#  return {var: c.GetLeaf(prefix+var).GetValue(i) for var in variables}
-
-## There are several problems with the function below and it seems not to be used
-#def getWeight(c,sample,lumi,n=0):
-#  genweight_value    = c.GetLeaf("genWeight").GetValue(n)
-#  lumi_value         = lumi
-#  xsec_value         = c.GetLeaf("xsec").GetValue(n)
-#  sumofweights_value = sum(sample['totalweight'])
-#  return (genweight_value*lumi_value*xsec_value)/sumofweights_value
 
 def getCutYieldFromChain(c, cutString = "(1)", cutFunc = None, weight = "weight", weightFunc = None, returnVar=False):
     c.Draw(">>eList", cutString)
@@ -283,13 +241,3 @@ def getPlotFromChain(c, var, binning, cutString = "(1)", weight = "weight", binn
         res.SetBinError(1 , sqrt(res.GetBinError(0)**2 + res.GetBinError(1)**2))
     return res
 
-## FIXME: Doesn't do what the name says ... plz move to private if really needed
-#def genmatching(lepton,genparticles):
-#  for gen in genparticles:
-#      deltaphi = abs(lepton['phi'] - gen['phi'])
-#      if (deltaphi > pi): deltaphi = 2*pi - deltaphi
-#      deltaeta = abs(lepton['eta'] - gen['eta'])
-#      deltar = sqrt(deltaphi**2 + deltaeta**2)
-#      if deltar<0.01:
-#        print deltar
-#        print gen['motherId']
