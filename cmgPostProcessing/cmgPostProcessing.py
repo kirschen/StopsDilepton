@@ -402,8 +402,8 @@ if options.skim.lower().startswith('dilep'):
 
 if options.keepPhotons:
     new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F'] )
-    new_variables.extend( ['met_pt_estimated/F','met_phi_estimated/F','metSig_estimated/F'] )
-    new_variables.extend( ['dl_mt2ll_estimated/F', 'dl_mt2bb_estimated/F', 'dl_mt2blbl_estimated/F' ] )
+    new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
+    new_variables.extend( ['dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
 
 if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
@@ -484,9 +484,9 @@ def filler(s):
          gamma = ROOT.TLorentzVector()
          gamma.SetPtEtaPhiM(photons[0]['pt'], photons[0]['eta'], photons[0]['phi'], photons[0]['mass'] )
          metGamma = met + gamma
-         s.met_pt_estimated  = metGamma.Pt()
-         s.met_phi_estimated = metGamma.Phi()
-         s.metSig_estimated  = s.met_pt_estimated/sqrt(s.ht) if s.ht>0 else float('nan')
+         s.met_pt_photonEstimated  = metGamma.Pt()
+         s.met_phi_photonEstimated = metGamma.Phi()
+         s.metSig_photonEstimated  = s.met_pt_photonEstimated/sqrt(s.ht) if s.ht>0 else float('nan')
 
 
     # Filling jets
@@ -525,18 +525,6 @@ def filler(s):
             setattr(s, "metSig_"+var, getattr(s, "met_pt_"+var)/sqrt( getattr(s, "met_pt_"+var) ) )
             setattr(s, "nBTag_"+var, len(bjets_sys[var]))
 
-            if options.keepPhotons and s.nPhotonGood > 0:
-              mt2Calc.reset()
-              mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
-              mt2Calc.setMet(s.met_pt_estimated,s.met_phi_estimated)
-              s.dl_mt2ll_estimated = mt2Calc.mt2ll()
-            
-              if len(jets)>=2:
-                bj0, bj1 = (bJets+nonBJets)[:2]
-                mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                s.dl_mt2bb_estimated   = mt2Calc.mt2bb()
-                s.dl_mt2blbl_estimated = mt2Calc.mt2blbl()
-
     if options.skim.lower().startswith('singlelep') or options.skim.lower().startswith('dilep'):
         leptons_pt10 = getGoodLeptons(r, ptCut=10)
         leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
@@ -548,6 +536,7 @@ def filler(s):
             s.l1_phi = leptons[0]['phi']
             s.l1_pdgId  = leptons[0]['pdgId']
             s.l1_index  = leptons[0]['index']
+
     if options.skim.lower().startswith('dilep'):
         if options.fastSim:
             s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
@@ -598,6 +587,19 @@ def filler(s):
                             mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
                             setattr(s, 'dl_mt2bb_'+var, mt2Calc.mt2bb())
                             setattr(s, 'dl_mt2blbl_'+var,mt2Calc.mt2blbl())
+
+            if options.keepPhotons and s.nPhotonGood > 0:
+              mt2Calc.reset()
+              mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
+              mt2Calc.setMet(s.met_pt_photonEstimated,s.met_phi_photonEstimated)
+              s.dl_mt2ll_photonEstimated = mt2Calc.mt2ll()
+
+              if len(jets)>=2:
+                bj0, bj1 = (bJets+nonBJets)[:2]
+                mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                s.dl_mt2bb_photonEstimated   = mt2Calc.mt2bb()
+                s.dl_mt2blbl_photonEstimated = mt2Calc.mt2blbl()
+
 
     if addSystematicVariations:
         # B tagging weights method 1a
