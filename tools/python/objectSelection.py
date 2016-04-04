@@ -164,6 +164,9 @@ def looseTauID(l, ptCut=20, absEtaCut=2.4):
 def getGoodTaus(c, collVars=tauVars):
     return [l for l in getTaus(c,collVars=collVars) if looseTauID(l)]
 
-photonVars=['eta','pt','phi','mass','idCutBased']
-def getPhotons(c, collVars=photonVars):
+idCutBased={'loose':1 ,'medium':2, 'tight':3}
+photonVars=['eta','pt','phi','mass','idCutBased','pdgId']
+def getPhotons(c, collVars=photonVars, idLevel='loose'):
     return [getObjDict(c, 'gamma_', collVars, i) for i in range(int(getVarValue(c, 'ngamma')))]
+def getGoodPhotons(c, ptCut=50, idLevel="loose", collVars=photonVars):
+    return [p for p in getPhotons(c, collVars) if p['idCutBased'] >= idCutBased[idLevel] and p['pt'] > ptCut and p['pdgId']==22]
