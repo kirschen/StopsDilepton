@@ -23,7 +23,7 @@ from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3
 from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getPhotons
+from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons
 
 # central configuration 
 targetLumi = 1000 #pb-1 Which lumi to normalize to
@@ -141,11 +141,6 @@ def get_parser():
     argParser.add_argument('--keepPhotons',
         action='store_true',
         help="Keep photons?"
-        )
-
-    argParser.add_argument('--photonAsMet',
-        action='store_true',
-        help="Treat photons as missing energy"
         )
 
     argParser.add_argument('--keepLHEWeights',
@@ -266,10 +261,6 @@ if options.LHEHTCut>0:
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
 
-#FIXME I think this is impractical ...
-if options.photonAsMet:
-    sample.name+="_photonAsMet"
-    logger.info( "Treating photon as additional MET")
 
 # MET group veto list
 if sample.isData:
@@ -371,11 +362,11 @@ else:
 
 
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
-if options.photonAsMet:
+if options.keepPhotons:
   read_variables += [Variable.fromString('ngamma/I'),
-                     VectorType.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I]')]
+                     VectorType.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I,pdgId/I]')]
 
-new_variables = [ 'weight/F', 'photonAsMet/O']
+new_variables = [ 'weight/F']
 if isMC: 
     read_variables+= [Variable.fromString('nTrueInt/F')]
     # reading gen particles for top pt reweighting
@@ -408,6 +399,11 @@ if options.skim.lower().startswith('dilep'):
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F' , 'mlmZ_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
+
+if options.keepPhotons:
+    new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F'] )
+    new_variables.extend( ['met_pt_estimated/F','met_phi_estimated/F','metSig_estimated/F'] )
+    new_variables.extend( ['dl_mt2ll_estimated/F', 'dl_mt2bb_estimated/F', 'dl_mt2blbl_estimated/F' ] )
 
 if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
@@ -466,27 +462,33 @@ def filler(s):
     # top pt reweighting
     if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
 
-    # Treat photon as missing energy
-    if options.photonAsMet and r.ngamma > 0:
-       photons = getPhotons(r)
-       met = ROOT.TLorentzVector()
-       met.SetPtEtaPhiM(r.met_pt, 0, r.met_phi, 0 )
-       gamma = ROOT.TLorentzVector()
-       gamma.SetPtEtaPhiM(photons[0]['pt'], photons[0]['eta'], photons[0]['phi'], photons[0]['mass'] )
-       metGamma = met + gamma
-       s.met_pt = metGamma.Pt()
-       s.met_phi = metGamma.Phi()
-       s.photonAsMet = True
-    else:
-       s.met_pt = r.met_pt
-       s.met_phi = r.met_phi
-       s.photonAsMet = False
-
     # jet/met related quantitie
     allJets = getGoodJets(r, ptCut=0, jetVars = jetVarNames )
     jets = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4), allJets)
     bJets = filter(lambda j:isBJet(j), jets)
     nonBJets = filter(lambda j:not isBJet(j), jets)
+
+    s.met_pt = r.met_pt
+    s.met_phi = r.met_phi
+
+    # Keep photons and estimate met including photon 
+    if options.keepPhotons:
+       photons = getGoodPhotons(r)
+       s.nPhotonGood = len(photons)
+       if s.nPhotonGood > 0:
+         s.photon_pt  = photons[0]['pt']
+         s.photon_eta = photons[0]['eta']
+         s.photon_phi = photons[0]['phi']
+         met = ROOT.TLorentzVector()
+         met.SetPtEtaPhiM(r.met_pt, 0, r.met_phi, 0 )
+         gamma = ROOT.TLorentzVector()
+         gamma.SetPtEtaPhiM(photons[0]['pt'], photons[0]['eta'], photons[0]['phi'], photons[0]['mass'] )
+         metGamma = met + gamma
+         s.met_pt_estimated  = metGamma.Pt()
+         s.met_phi_estimated = metGamma.Phi()
+         s.metSig_estimated  = s.met_pt_estimated/sqrt(s.ht) if s.ht>0 else float('nan')
+
+
     # Filling jets
     s.nJetGood   = len(jets)
     if options.skim.lower().startswith('singlelep'):
@@ -522,6 +524,18 @@ def filler(s):
             setattr(s, "ht_"+var, sum([j['pt_'+var] for j in jets_sys[var]]))
             setattr(s, "metSig_"+var, getattr(s, "met_pt_"+var)/sqrt( getattr(s, "met_pt_"+var) ) )
             setattr(s, "nBTag_"+var, len(bjets_sys[var]))
+
+            if options.keepPhotons and s.nPhotonGood > 0:
+              mt2Calc.reset()
+              mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
+              mt2Calc.setMet(s.met_pt_estimated,s.met_phi_estimated)
+              s.dl_mt2ll_estimated = mt2Calc.mt2ll()
+            
+              if len(jets)>=2:
+                bj0, bj1 = (bJets+nonBJets)[:2]
+                mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                s.dl_mt2bb_estimated   = mt2Calc.mt2bb()
+                s.dl_mt2blbl_estimated = mt2Calc.mt2blbl()
 
     if options.skim.lower().startswith('singlelep') or options.skim.lower().startswith('dilep'):
         leptons_pt10 = getGoodLeptons(r, ptCut=10)
