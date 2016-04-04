@@ -3,7 +3,6 @@ from StopsDilepton.tools.user import data_directory
 from RootTools.core.Sample import Sample
 import ROOT
 
-
 dirs = {}
 dirs['DY']               = ["DYJetsToLL_M10to50", "DYJetsToLL_M50"]
 dirs['DY_LO']            = ["DYJetsToLL_M5to50_LO", "DYJetsToLL_M50_LO"]

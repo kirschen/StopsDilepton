@@ -1,13 +1,13 @@
 #!/bin/sh
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M50
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M50_LO
-python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M50_LO --lheHTCut=100
+python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M50_LO --LHEHTCut=100
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M50_HT100to200
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M50_HT200to400
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M50_HT400to600
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M50_HT600toInf
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M10to50
-python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M10to50 --lheHTCut=100
+python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M10to50 --LHEHTCut=100
 #python cmgPostProcessing.py --skim=$1 $2 $3   --samples DYJetsToLL_M5to50_LO
 #python cmgPostProcessing.py --skim=$1 $2 $3   --samples DYJetsToLL_M5to50_LO --lheHTCut=100
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M5to50_HT100to200
