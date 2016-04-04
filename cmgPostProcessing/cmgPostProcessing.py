@@ -501,12 +501,14 @@ def filler(s):
     bjets_sys     = {}
     nonBjets_sys  = {}
 
+    metVariants = [''] # default
 
     # Keep photons and estimate met including photon
     if options.keepPhotons:
        photons = getGoodPhotons(r, ptCut=20, idLevel="loose")
        s.nPhotonGood = len(photons)
        if s.nPhotonGood > 0:
+         metVariants += ['_photonEstimated']  # do all met calculations also for the photonEstimated variant
          s.photon_pt         = photons[0]['pt']
          s.photon_eta        = photons[0]['eta']
          s.photon_phi        = photons[0]['phi']
@@ -534,7 +536,6 @@ def filler(s):
             setattr(s, "ht_"+var, sum([j['pt_'+var] for j in jets_sys[var]]))
             setattr(s, "nBTag_"+var, len(bjets_sys[var]))
 
-            metVariants = ['','_photonEstimated'] if options.keepPhotons and s.nPhotonGood > 0 else ['']
             for i in metVariants:
               (met_corr_pt, met_corr_phi) = getMetCorrected(getattr(s, "met_pt" + i), getattr(s,"met_phi" + i), jets_sys[var], var)
 
@@ -587,48 +588,26 @@ def filler(s):
             s.dl_mass   = dl.M()
             s.mlmZ_mass = closestOSDLMassToMZ(leptons_pt10)
             mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
-            mt2Calc.setMet(s.met_pt,s.met_phi)
-            s.dl_mt2ll = mt2Calc.mt2ll()
 
-            if len(jets)>=2:
-                bj0, bj1 = (bJets+nonBJets)[:2]
-                mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                s.dl_mt2bb   = mt2Calc.mt2bb()
-                s.dl_mt2blbl = mt2Calc.mt2blbl()
-
-            if addSystematicVariations:
-                for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
-                    mt2Calc.setMet( getattr(s, "met_pt_"+var), getattr(s, "met_phi_"+var) )
-                    setattr(s, "dl_mt2ll_"+var,  mt2Calc.mt2ll())
-                    if len(jets_sys[var])>=2:
-                        bj0, bj1 = (bjets_sys[var]+nonBjets_sys[var])[:2]
-                        mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                        setattr(s, 'dl_mt2bb_'+var, mt2Calc.mt2bb())
-                        setattr(s, 'dl_mt2blbl_'+var,mt2Calc.mt2blbl())
-
-            if options.keepPhotons and s.nPhotonGood > 0:
-                mt2Calc.reset()
-                mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
-                mt2Calc.setMet(s.met_pt_photonEstimated,s.met_phi_photonEstimated)
-                s.dl_mt2ll_photonEstimated = mt2Calc.mt2ll()
+            for i in metVariants:
+                mt2Calc.setMet(getattr(s, 'met_pt'+i), getattr(s, 'met_phi', i))
+                setattr(s, "dl_mt2ll"+i, mt2Calc.mt2ll())
 
                 if len(jets)>=2:
                     bj0, bj1 = (bJets+nonBJets)[:2]
                     mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                    s.dl_mt2bb_photonEstimated   = mt2Calc.mt2bb()
-                    s.dl_mt2blbl_photonEstimated = mt2Calc.mt2blbl()
- 
+                    setattr(s, "dl_mt2bb"+i,   mt2Calc.mt2bb())
+                    setattr(s, "dl_mt2blbl"+i, mt2Calc.mt2blbl())
+
                 if addSystematicVariations:
                     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
-                        mt2Calc.setMet( getattr(s, "met_pt_photonEstimated_"+var), getattr(s, "met_phi_photonEstimated_"+var) )
-                        setattr(s, "dl_mt2ll_photonEstimated_"+var,  mt2Calc.mt2ll())
+                        mt2Calc.setMet( getattr(s, "met_pt"+i+"_"+var), getattr(s, "met_phi"+i+"_"+var) )
+                        setattr(s, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
                         if len(jets_sys[var])>=2:
                             bj0, bj1 = (bjets_sys[var]+nonBjets_sys[var])[:2]
                             mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                            setattr(s, 'dl_mt2bb_photonEstimated_'+var, mt2Calc.mt2bb())
-                            setattr(s, 'dl_mt2blbl_photonEstimated_'+var,mt2Calc.mt2blbl())
-
-
+                            setattr(s, 'dl_mt2bb'+i+'_'+var,   mt2Calc.mt2bb())
+                            setattr(s, 'dl_mt2blbl'+i+'_'+var, mt2Calc.mt2blbl())
 
     if addSystematicVariations:
         # B tagging weights method 1a
