@@ -21,7 +21,7 @@ import StopsDilepton.tools.user as user
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile
+from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getPhotons
 
@@ -48,7 +48,7 @@ def get_parser():
 
     argParser.add_argument('--noMultiThreading',
         action='store_true',
-        help="Don't do multi threading")
+        help="Don't do multi threading. Use for stack tracing the filler function.")
     
     argParser.add_argument('--samples',
         action='store',
@@ -176,6 +176,8 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 skimConds = []
 if options.skim.lower().startswith('dilep'):
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=2" )
+if options.skim.lower().startswith('singlelep'):
+    skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=1" )
 
 #Samples: Load samples
 maxN = 2 if options.runSmallSample else None
@@ -373,7 +375,7 @@ if options.photonAsMet:
   read_variables += [Variable.fromString('ngamma/I'),
                      VectorType.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I]')]
 
-new_variables = [ 'weight/F', 'photonAsMet/O' ]
+new_variables = [ 'weight/F', 'photonAsMet/O']
 if isMC: 
     read_variables+= [Variable.fromString('nTrueInt/F')]
     # reading gen particles for top pt reweighting
@@ -396,13 +398,16 @@ new_variables += [\
 if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
 new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
 
-if options.skim.lower().startswith('dilep'):
+if options.skim.lower().startswith('singlelep'):
+    new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
+if options.skim.lower().startswith('dilep') or options.skim.lower().startswith('singlelep'):
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
-    new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F' , 'mlmZ_mass/F'] )
-    new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I' ] )
+if options.skim.lower().startswith('dilep'):
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
+    new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F' , 'mlmZ_mass/F'] )
+    new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
 
 if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
@@ -433,14 +438,18 @@ def filler(s):
     r = reader.data
 
     # weight
-    if options.T2tt:
+    if options.T2tt and isMC:
         s.weight=signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['weight']
         s.mStop = r.GenSusyMScan1
         s.mNeu  = r.GenSusyMScan2
         s.reweightXSecUp    = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacUp']
         s.reweightXSecDown  = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacDown']
-    else: 
+    elif isMC: 
         s.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
+    elif isData:
+        s.weight = 1
+    else:
+        raise NotImplementedError( "isMC %r isData %r T2tt? %r " % (isMC, isData, options.T2tt) )
 
     # lumi lists and vetos
     if isData:
@@ -480,6 +489,9 @@ def filler(s):
     nonBJets = filter(lambda j:not isBJet(j), jets)
     # Filling jets
     s.nJetGood   = len(jets)
+    if options.skim.lower().startswith('singlelep'):
+        # Compute M3 and the three indiced of the jets entering m3
+        s.m3, s.m3_ind1, s.m3_ind2, s.m3_ind3 = m3( jets )
     for iJet, jet in enumerate(jets):
         for b in jetVarNames:
             getattr(s, "JetGood_"+b)[iJet] = jet[b]
@@ -511,23 +523,25 @@ def filler(s):
             setattr(s, "metSig_"+var, getattr(s, "met_pt_"+var)/sqrt( getattr(s, "met_pt_"+var) ) )
             setattr(s, "nBTag_"+var, len(bjets_sys[var]))
 
-    if options.skim.lower().startswith('dilep'):
+    if options.skim.lower().startswith('singlelep') or options.skim.lower().startswith('dilep'):
         leptons_pt10 = getGoodLeptons(r, ptCut=10)
         leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
-        if options.fastSim:
-            s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
-            s.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
-            s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
-
         s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
         s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
-        if len(leptons)>=2:# and leptons[0]['pdgId']*leptons[1]['pdgId']<0 and abs(leptons[0]['pdgId'])==abs(leptons[1]['pdgId']): #OSSF choice
-            mt2Calc.reset()
+        if len(leptons)>=1:
             s.l1_pt  = leptons[0]['pt']
             s.l1_eta = leptons[0]['eta']
             s.l1_phi = leptons[0]['phi']
             s.l1_pdgId  = leptons[0]['pdgId']
             s.l1_index  = leptons[0]['index']
+    if options.skim.lower().startswith('dilep'):
+        if options.fastSim:
+            s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
+            s.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
+            s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
+
+        if len(leptons)>=2:# and leptons[0]['pdgId']*leptons[1]['pdgId']<0 and abs(leptons[0]['pdgId'])==abs(leptons[1]['pdgId']): #OSSF choice
+            mt2Calc.reset()
             s.l2_pt  = leptons[1]['pt']
             s.l2_eta = leptons[1]['eta']
             s.l2_phi = leptons[1]['phi']
@@ -571,13 +585,13 @@ def filler(s):
                             setattr(s, 'dl_mt2bb_'+var, mt2Calc.mt2bb())
                             setattr(s, 'dl_mt2blbl_'+var,mt2Calc.mt2blbl())
 
-        if addSystematicVariations:
-            # B tagging weights method 1a
-            for j in jets:
-                btagEff.addBTagEffToJet(j)
-            for var in btagEff.btagWeightNames:
-                if var!='MC':
-                    setattr(s, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
+    if addSystematicVariations:
+        # B tagging weights method 1a
+        for j in jets:
+            btagEff.addBTagEffToJet(j)
+        for var in btagEff.btagWeightNames:
+            if var!='MC':
+                setattr(s, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
     
 # Create a maker. Maker class will be compiled. This instance will be used as a parent in the loop
 treeMaker_parent = TreeMaker( 
