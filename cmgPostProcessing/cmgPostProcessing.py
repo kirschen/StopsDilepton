@@ -401,7 +401,7 @@ if options.skim.lower().startswith('dilep'):
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
 
 if options.keepPhotons:
-    new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F'] )
+    new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
     new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
     new_variables.extend( ['dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
 
@@ -507,9 +507,10 @@ def filler(s):
        photons = getGoodPhotons(r, ptCut=20, idLevel="loose")
        s.nPhotonGood = len(photons)
        if s.nPhotonGood > 0:
-         s.photon_pt  = photons[0]['pt']
-         s.photon_eta = photons[0]['eta']
-         s.photon_phi = photons[0]['phi']
+         s.photon_pt         = photons[0]['pt']
+         s.photon_eta        = photons[0]['eta']
+         s.photon_phi        = photons[0]['phi']
+         s.photon_idCutBased = photons[0]['idCutBased']
          met = ROOT.TLorentzVector()
          met.SetPtEtaPhiM(r.met_pt, 0, r.met_phi, 0 )
          gamma = ROOT.TLorentzVector()
