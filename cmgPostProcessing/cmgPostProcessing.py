@@ -337,7 +337,8 @@ else:
 
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
-
+if options.skim.lower().startswith('singlelep'):
+    branchKeepStrings_DATAMC += ['SingleMu', 'IsoMu27', 'IsoMu20', 'Mu45eta2p1', 'Mu50', 'MuHT350', 'MuHTMET', 'MuMET120', 'IsoEle32', 'IsoEle23', 'IsoEle22']
 if options.T2tt: branchKeepStrings_MC += ['GenSusyMScan1', 'GenSusyMScan2']
 
 # Jet variables to be read from chain 
