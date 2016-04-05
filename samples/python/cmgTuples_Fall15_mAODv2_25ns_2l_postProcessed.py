@@ -6,9 +6,7 @@ import ROOT
 dirs = {}
 dirs['DY']               = ["DYJetsToLL_M10to50", "DYJetsToLL_M50"]
 dirs['DY_LO']            = ["DYJetsToLL_M5to50_LO", "DYJetsToLL_M50_LO"]
-#dirs['DY_LO']            = ["DYJetsToLL_M50_LO"]
 dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200", "DYJetsToLL_M50_HT200to400", "DYJetsToLL_M50_HT400to600", "DYJetsToLL_M50_HT600toInf", "DYJetsToLL_M5to50_LO_lheHT100", "DYJetsToLL_M5to50_HT100to200", "DYJetsToLL_M5to50_HT200to400", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf"]
-#dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200", "DYJetsToLL_M50_HT200to400", "DYJetsToLL_M50_HT400to600", "DYJetsToLL_M50_HT600toInf", "DYJetsToLL_M5to50_HT100to200", "DYJetsToLL_M5to50_HT200to400", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf"]
 dirs['TTJets']           = ["TTJets_comb"]
 dirs['TTJets_LO']        = ["TTJets_LO"]
 dirs['TTLep_pow']        = ["TTLep_pow"]
@@ -20,6 +18,8 @@ dirs['TTXNoZ']           = ["TTHbb_comb", "TTHnobb_mWCutfix_ch0_comb", "TTWToLNu
 dirs['TTH']              = ["TTHbb_comb", "TTHnobb_mWCutfix_ch0_comb"]
 dirs['TTW']              = ["TTWToLNu", "TTWToQQ"]
 dirs['TTZ']              = ["TTZToLLNuNu", "TTZToQQ"]
+dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu"]
+dirs['TTZtoQQ']          = ["TTZToQQ"]
 dirs['TZQ']              = ["tZq_ll", "tZq_nunu"]
 dirs['TTGJets']	         = ["TTGJets"]
 dirs['WJetsToLNu']       = ["WJetsToLNu"]
@@ -57,6 +57,8 @@ TTXNoZ         = Sample.fromDirectory(name="TTXNoZ",           treeName="Events"
 TTH            = Sample.fromDirectory(name="TTH",              treeName="Events", isData=False, color=ROOT.kPink-4,   texName="t#bar{t}H",                 directory=dirs['TTH'])
 TTW            = Sample.fromDirectory(name="TTW",              treeName="Events", isData=False, color=ROOT.kPink-8,   texName="t#bar{t}W",                 directory=dirs['TTW'])
 TTZ            = Sample.fromDirectory(name="TTZ",              treeName="Events", isData=False, color=ROOT.kPink+9,   texName="t#bar{t}Z",                 directory=dirs['TTZ'])
+TTZtoLLNuNu    = Sample.fromDirectory(name="TTZtoNuNu",        treeName="Events", isData=False, color=6,              texName="t#bar{t}Z (l#bar{l}/#nu#bar{#nu})", directory=dirs['TTZtoLLNuNu'])
+TTZtoQQ        = Sample.fromDirectory(name="TTZtoQQ",          treeName="Events", isData=False, color=ROOT.kBlue,     texName="t#bar{t}Z (q#bar{q})",              directory=dirs['TTZtoQQ'])
 TTG            = Sample.fromDirectory(name="TTGJets",          treeName="Events", isData=False, color=ROOT.kRed,      texName="t#bar{t}#gamma + Jets",     directory=dirs['TTGJets'])
 TZQ            = Sample.fromDirectory(name="TZQ",              treeName="Events", isData=False, color=ROOT.kPink-7,   texName="tZq",                       directory=dirs['TZQ'])
 WJetsToLNu     = Sample.fromDirectory(name="WJetsToLNu",       treeName="Events", isData=False, color=ROOT.kRed-10,   texName="W(l,#nu) + Jets",           directory=dirs['WJetsToLNu'])
@@ -72,6 +74,3 @@ QCD_Mu5        = Sample.fromDirectory(name="QCD_Mu5",          treeName="Events"
 QCD_EMbcToE    = Sample.fromDirectory(name="QCD_EM+bcToE",     treeName="Events", isData=False, color=46,             texName="QCD (Em+bcToE)",            directory=dirs['QCD_EM+bcToE'])
 QCD_Mu5EMbcToE = Sample.fromDirectory(name="QCD_Mu5+EM+bcToE", treeName="Events", isData=False, color=46,             texName="QCD (Mu5+Em+bcToE)",        directory=dirs['QCD_Mu5+EM+bcToE'])
 QCD_Pt         = Sample.fromDirectory(name="QCD",              treeName="Events", isData=False, color=46,             texName="QCD",                       directory=dirs['QCD'])
-
-
-TTG_photonAsMet = Sample.fromDirectory(name="TTGJets (photon as MET)", treeName="Events", isData=False, color=ROOT.kRed, texName="t#bar{t}#gamma + Jets (#gamma as #slash{E}_{T})", directory=dirs['TTGJets_photonAsMet'])
