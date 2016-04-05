@@ -160,8 +160,24 @@ for i_comb in [len(cuts)]:
             binning=[400/20,0,400],
             selectionString = selectionString,
             weight = weight,
+            addOverFlowBin = "both",
             )
         plots.append( m3 )
+
+        maxM3BTag  = Plot(
+            texX = 'max. b-disc of M_{3} sub jets', texY = 'Number of Events',
+            stack = stack, 
+            variable = Variable.fromString('maxM3BTag/F').addFiller (
+                helpers.uses( 
+                    lambda data: max([ data.JetGood_btagCSV[k] for k in [data.m3_ind1, data.m3_ind2, data.m3_ind3] if k>0] + [-1]) , 
+                    ["m3_ind1/I", "m3_ind2/I", "m3_ind3/I", "JetGood[btagCSV/F]"])
+            ), 
+            binning=[30,-1,2],
+            selectionString = selectionString,
+            weight = weight,
+            addOverFlowBin = "both",
+            )
+        plots.append( maxM3BTag )
          
         l1_pt  = Plot(
             texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
@@ -375,8 +391,11 @@ for i_comb in [len(cuts)]:
         plots.append( nVert )
 
         read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]"]
+
         plotting.fill(plots, read_variables = read_variables)
+
         if not os.path.exists( plot_path ): os.makedirs( plot_path )
+
         for plot in plots:
             plotting.draw(plot, 
                 plot_directory = plot_path, ratio = {'yRange':(0.1,1.9)}, 
