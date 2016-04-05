@@ -17,7 +17,7 @@ lepPdgs = [11,13,15]
 nuPdgs = [12,14,16]
 
 #load all the samples
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_1l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 small = False
 #maxN=3 if small else -1
 #ttjets = TTJets_Lep

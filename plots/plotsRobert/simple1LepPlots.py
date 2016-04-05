@@ -21,15 +21,9 @@ argParser.add_argument('--logLevel',
 )
 
 argParser.add_argument('--mode',
-    default='doubleMu',
+    default='singleMu',
     action='store',
-    choices=['doubleMu', 'doubleEle',  'muEle'])
-
-argParser.add_argument('--zMode',
-    default='allZ',
-    action='store',
-    choices=['onZ', 'offZ', 'allZ']
-)
+    choices=['singleMu', 'singleEle'])
 
 argParser.add_argument('--small',
     action='store_true',
@@ -45,7 +39,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='png25ns_2l_mAODv2_2100_officialPU_new',
+    default='png25ns_1l',
     action='store',
 )
 
@@ -59,30 +53,25 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 #make samples
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_1l_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
-def getZCut(mode):
-    mZ = 91.2
-    zstr = "abs(dl_mass - "+str(mZ)+")"
-    if mode.lower()=="onz": return zstr+"<15"
-    if mode.lower()=="offz": return zstr+">15"
-    return "(1)"
+data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+SingleElectron_Run2015D = Sample.fromDirectory(name="SingleElectron_Run2015D", treeName="Events", texName="SingleElectron (Run2015D)", directory=os.path.join( data_directory, 'postProcessed_Fall15_mAODv2/singlelepTiny/SingleElectron_Run2015D_16Dec') ) 
+SingleMuon_Run2015D     = Sample.fromDirectory(name="SingleMuon_Run2015D",     treeName="Events", texName="SingleMuon (Run2015D)",     directory=os.path.join( data_directory, 'postProcessed_Fall15_mAODv2/singlelepTiny/SingleMuon_Run2015D_16Dec') )
+SingleElectron_Run2015D.lumi =  1000*(2.165)
+SingleMuon_Run2015D    .lumi =  1000*(2.129)
 
-if args.mode=="doubleMu":
-    leptonSelectionString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
-    data_sample = DoubleMuon_Run2015D
+if args.mode=="singleMu":
+    leptonSelectionString = "&&".join(["nGoodMuons==1&&nGoodElectrons==0"])
+    data_sample = SingleMuon_Run2015D
     qcd_sample = QCD_Mu5 #FIXME
-    trigger     = "HLT_mumuIso"
-elif args.mode=="doubleEle":
-    leptonSelectionString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
-    data_sample = DoubleEG_Run2015D
+#    trigger     = "HLT_SingleMu"
+    trigger     = "1"
+elif args.mode=="singleEle":
+    leptonSelectionString = "&&".join(["nGoodMuons==0&&nGoodElectrons==1"])
+    data_sample = SingleEG_Run2015D
     qcd_sample = QCD_EMbcToE
-    trigger   = "HLT_ee_DZ"
-elif args.mode=="muEle":
-    leptonSelectionString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
-    data_sample = MuonEG_Run2015D
-    qcd_sample = QCD_Mu5EMbcToE
-    trigger    = "HLT_mue"
+    trigger   = "1"
+#    trigger   = "HLT_IsoEle32"
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
@@ -91,10 +80,12 @@ filterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFi
 
 data_sample.style = styles.errorStyle( ROOT.kBlack )
 
-#mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
-#mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ DY_HT_LO, TTJets, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, triBoson]
-#mc = [ TTX]
+#mc = [ TTJets_Lep, WJetsToLNu, DY, qcd_sample]# diBoson, triBoson]
+TTJets.reduceFiles(10)
+DY.reduceFiles(3)
+WJetsToLNu.reduceFiles(2)
+mc = [ TTJets, WJetsToLNu, DY, qcd_sample]# diBoson, triBoson]
+
 lumi_scale = data_sample.lumi/1000
 for sample in mc:
     sample.style = styles.fillStyle(sample.color)
@@ -106,13 +97,9 @@ from StopsDilepton.tools.user import plot_directory
 weight = lambda data:data.weight
 
 cuts=[
-    ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
+    ("njet4", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=4"),
     ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
-    ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
-    ("mll20", "dl_mass>20"),
-    ("met80", "met_pt>80"),
-    ("metSig5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+    ("met30", "met_pt>30"),
 ]
                 
 def drawObjects( dataMCScale ):
@@ -129,8 +116,8 @@ def drawObjects( dataMCScale ):
 stack = Stack(mc, [data_sample])
 
 ##for i_comb in [0]:
-#for i_comb in [len(cuts)]:
-for i_comb in reversed( range( len(cuts)+1 ) ):
+for i_comb in [len(cuts)]:
+#for i_comb in reversed( range( len(cuts)+1 ) ):
 #for i_comb in range(len(cuts)+1):
     for comb in itertools.combinations( cuts, i_comb ):
 
@@ -138,115 +125,43 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         for sample in mc:
             sample.setSelectionString([ trigger ])
 
-        presel = [("isOS","isOS")] 
+        presel = [] 
         presel.extend( comb )
 
-        prefix = '_'.join([args.mode, args.zMode, '-'.join([p[0] for p in presel])])
+        prefix = '_'.join([args.mode, '-'.join([p[0] for p in presel])])
         plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
         if os.path.exists(plot_path) and not args.overwrite:
             logger.info( "Path %s not empty. Skipping."%path )
             continue
 
-        if "nbtag1" in prefix and "nbtag0" in prefix: continue
-
         selectionString = "&&".join( [p[1] for p in presel] + [leptonSelectionString] )
 
         logger.info( "Calculating normalization constants" )        
-        yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc)
+        yield_mc    = 0.
+        for sample in mc:
+            yield_s = sample.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
+            yield_mc += yield_s*sample.reduce_files_factor if hasattr(sample, "reduce_files_factor") else yield_s 
         yield_data  = data_sample.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
 
         for sample in mc:
             dataMCScale = yield_data/(yield_mc*lumi_scale)
             sample.scale = lumi_scale*dataMCScale
+            if hasattr(sample, "reduce_files_factor"): sample.scale*=sample.reduce_files_factor
 
         logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionString )
         logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
 
         plots = []
 
-        dl_mass  = Plot(
-            texX = 'm(ll) (GeV)', texY = 'Number of Events / 3 GeV',
+        m3  = Plot(
+            texX = 'M_{3} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString( "dl_mass/F" ),
-            binning=[150/3,0,150],
+            variable = Variable.fromString( "m3/F" ),
+            binning=[400/20,0,400],
             selectionString = selectionString,
             weight = weight,
             )
-        plots.append( dl_mass )
-
-        dl_pt  = Plot(
-            texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 10 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "dl_pt/F" ),
-            binning=[40,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_pt )
-
-        dl_eta  = Plot(
-            texX = '#eta(ll) ', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "dl_eta/F" ),
-            binning=[30,-3,3],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_eta )
-
-        dl_phi  = Plot(
-            texX = '#phi(ll) (GeV)', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "dl_phi/F" ),
-            binning=[30,-pi,pi],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_phi )
-
-#        dl_dphi  = Plot(
-#            texX = '#Delta#phi(l_{1},l_{2})', texY = 'Number of Events',
-#            stack = stack, 
-#            variable = Variable.fromString('dl_dphi/F').addFiller(
-#                helpers.uses( 
-#                    lambda data: acos(cos(l1_phi-l2_phi)), 
-#                    ["l1_phi/F", "l2_phi/F"])
-#            ), 
-#            binning=[60,-2*pi,2*pi],
-#            selectionString = selectionString,
-#            weight = weight,
-#            )
-#        plots.append( dl_dphi )
-
-        dl_mt2ll  = Plot(
-            texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "dl_mt2ll/F" ),
-            binning=[300/20,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_mt2ll )
-
-        dl_mt2bb  = Plot(
-            texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "dl_mt2bb/F" ),
-            binning=[300/20,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_mt2bb )
-
-        dl_mt2blbl  = Plot(
-            texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "dl_mt2blbl/F" ),
-            binning=[300/20,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            ) 
-        plots.append( dl_mt2blbl )
+        plots.append( m3 )
          
         l1_pt  = Plot(
             texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
@@ -288,45 +203,6 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
             )
         plots.append( l1_pdgId )
 
-        l2_pt  = Plot(
-            texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 5 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "l2_pt/F" ),
-            binning=[60,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l2_pt )
-
-        l2_eta  = Plot(
-            texX = '#eta(l_{2})', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "l2_eta/F" ),
-            binning=[30,-3,3],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l2_eta )
-
-        l2_phi  = Plot(
-            texX = '#phi(l_{2})', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "l2_phi/F" ),
-            binning=[30,-pi,pi],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l2_phi )
-
-        l2_pdgId  = Plot(
-            texX = 'pdgId(l_{2})', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "l2_pdgId/I" ),
-            binning=[32,-16,16],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l2_pdgId )
 
         metZoomed  = Plot(
             name = "met_pt_zoomed",
@@ -348,20 +224,6 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
             weight = weight,
             )
         plots.append( met )
-
-        JZB  = Plot(
-            texX = 'JZB (GeV)', texY = 'Number of Events / 32 GeV',
-            stack = stack, 
-            variable = Variable.fromString('JZB/F').addFiller (
-                helpers.uses( 
-                    lambda data: sqrt( (data.met_pt*cos(data.met_phi)+data.dl_pt*cos(data.dl_phi))**2 + (data.met_pt*sin(data.met_phi)+data.dl_pt*sin(data.dl_phi))**2) - data.dl_pt, 
-                    ["met_phi/F", "dl_phi/F", "met_pt/F", "dl_pt/F"])
-            ), 
-            binning=[25,-200,600],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( JZB )
 
         metSig  = Plot(
             texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
