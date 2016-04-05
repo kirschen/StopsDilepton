@@ -13,7 +13,7 @@ TTJets_DiLepton TTJets_DiLepton_ext
 
 TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
 TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
-TTLep_pow
+TTLep_pow TTLep_pow_ext
 
 TTJets_LO_HT600to800 TTJets_LO_HT600to800_ext
 TTJets_LO_HT800to1200
@@ -26,6 +26,7 @@ TTHbb TTHbb_ext1 TTHbb_ext2 TTHbb_ext3
 
 TToLeptons_tch_amcatnlo TToLeptons_tch_amcatnlo_ext
 TBarToLeptons_tch_powheg
+TToLeptons_tch_powheg
 TToLeptons_sch_amcatnlo
 TBar_tWch
 TBar_tWch_DS
@@ -139,4 +140,14 @@ TTWToQQ
 TTZToQQ
 TTZToLLNuNu
 TTGJets
-TTGJets --photonAsMet
+
+#SMS_T2tt_mStop_100_125_mLSP_1to50 --fastSim --T2tt
+#SMS_T2tt_mStop_150_175_mLSP_1to100 --fastSim --T2tt
+#SMS_T2tt_mStop_200_mLSP_1to125 --fastSim --T2tt
+#SMS_T2tt_mStop_225_mLSP_25to150 --fastSim --T2tt
+#SMS_T2tt_mStop_250_mLSP_1to175 --fastSim --T2tt
+#SMS_T2tt_mStop_275_mLSP_75to200 --fastSim --T2tt
+#SMS_T2tt_mStop_300to375_mLSP_1to300 --fastSim --T2tt
+#SMS_T2tt_mStop_400to475_mLSP_1to400 --fastSim --T2tt
+#SMS_T2tt_mStop_500_525_550_mLSP_1to425_325to450_1to475 --fastSim --T2tt
+#SMS_T2tt_mStop_600_950_mLSP_1to450 --fastSim --T2tt
