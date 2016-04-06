@@ -1,24 +1,25 @@
 # Use "./doAllCmgPostProcessingGhent.sh samples.txt" to start postprocessing
 # of these files
 
-DoubleMuon_Run2015D_16Dec
-MuonEG_Run2015D_16Dec
-DoubleEG_Run2015D_16Dec
+#DoubleMuon_Run2015D_16Dec
+#MuonEG_Run2015D_16Dec
+#DoubleEG_Run2015D_16Dec
 SingleMuon_Run2015D_16Dec
 SingleElectron_Run2015D_16Dec
 
-TTJets TTJets_ext
-TTJets_LO
-TTJets_DiLepton TTJets_DiLepton_ext
+TTGJets --checkTTGJetsOverlap
+TTJets TTJets_ext --checkTTGJetsOverlap
+#TTJets_LO
+#TTJets_DiLepton TTJets_DiLepton_ext
 
-TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
-TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
-TTLep_pow TTLep_pow_ext
+#TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
+#TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
+#TTLep_pow TTLep_pow_ext
 
-TTJets_LO_HT600to800 TTJets_LO_HT600to800_ext
-TTJets_LO_HT800to1200
-TTJets_LO_HT1200to2500 TTJets_LO_HT1200to2500_ext
-TTJets_LO_HT2500toInf
+#TTJets_LO_HT600to800 TTJets_LO_HT600to800_ext
+#TTJets_LO_HT800to1200
+#TTJets_LO_HT1200to2500 TTJets_LO_HT1200to2500_ext
+#TTJets_LO_HT2500toInf
 #TTHnobb
 #TTHnobb_pow
 TTHnobb_mWCutfix_ch0 TTHnobb_mWCutfix_ch1
@@ -139,7 +140,6 @@ TTWToLNu
 TTWToQQ
 TTZToQQ
 TTZToLLNuNu
-TTGJets
 
 #SMS_T2tt_mStop_100_125_mLSP_1to50 --fastSim --T2tt
 #SMS_T2tt_mStop_150_175_mLSP_1to100 --fastSim --T2tt
