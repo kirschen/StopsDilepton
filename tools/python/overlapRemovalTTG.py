@@ -26,6 +26,7 @@ def getParentIds(genParticles, g):
   return parents
 
 # Check if event qualifies as TTGJets events
+# Note: returns False for a few events in the TTGJets sample, probably when the photon goes undetected (mostly at lower pt's)
 # Recipe is based on AN2015-165
 # Gen photon pt/eta cuts taken from Madgraph card
 # https://github.com/cms-sw/genproductions/blob/b0427dd453eb682bba6a84d10b5e3b4ad752c380/bin/MadGraph5_aMCatNLO/cards/production/13TeV/TTGJets_5f_NLO_FXFX/TTGJets_5f_NLO_FXFX_run_card.dat
