@@ -41,5 +41,6 @@ def isTTGJetsEvent(r):
     parents = getParentIds(genparts, g)								# Get complete parentsList
     parents = filter(lambda x: abs(x) != 2212, parents)						# Remove the protons from the list
 
-    if len(parents) > 0:                         return True					# Rare, not sure what's happening here, apparently sometimes the photon has no parents or the proton as parent, assume it is signal
+    if len(parents) == 0:                        return True					# Rare, not sure what's happening here, apparently sometimes the photon has no parents or the proton as parent, assume it is signal
     if max(parents) < 37 and min(parents) > -37: return True					# Only quarks, leptons, gluons and bosons allowed in the parent list (i.e. we avoid photons from pions)
+  return False
