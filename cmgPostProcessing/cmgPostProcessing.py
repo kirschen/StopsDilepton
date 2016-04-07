@@ -177,10 +177,12 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 skimConds = []
 if options.skim.lower().startswith('dilep'):
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=2" )
+    if options.skim.lower().startswith('dilepMet80'):	  		    # Small skim when we only want to do stuff with two jets and met
+      skimConds.append( "Sum$(Jet_pt>30&&abs(Jet_eta)<2.5)>=1&&met_pt>80" ) # FIXME: should also save those events which pass after systematics
 if options.skim.lower().startswith('singlelep'):
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=1" )
-if 'reallytiny' in options.skim.lower():				    # Really tiny skim when we only want to do stuff with two jets and met
-    skimConds.append( "Sum$(Jet_pt>30&&abs(Jet_eta)<2.5)>=1&&met_pt>80" )   # FIXME: should also save those events which pass after systematics
+    if options.skim.lower().startswith('singlelepMet80'):		    # Small skim when we only want to do stuff with two jets and met
+      skimConds.append( "Sum$(Jet_pt>30&&abs(Jet_eta)<2.5)>=1&&met_pt>80" ) # FIXME: should also save those events which pass after systematics
 
 #Samples: Load samples
 maxN = 2 if options.runSmallSample else None
@@ -347,7 +349,7 @@ jetVars = ['pt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F'] + jetCorrInfo + jetMCI
 # for convinience: List of jet variables to be read in the filler
 jetVarNames = [x.split('/')[0] for x in jetVars]
 
-if options.keepPhotons and 'reallytiny' not in options.skim.lower():
+if options.keepPhotons and not options.skim.lower().count('tiny'):
     branchKeepStrings_DATAMC+=[
         "ngamma", "gamma_idCutBased", "gamma_hOverE", "gamma_r9", "gamma_sigmaIetaIeta", "gamma_chHadIso04", "gamma_chHadIso", "gamma_phIso", 
         "gamma_neuHadIso", "gamma_relIso", "gamma_pdgId", "gamma_pt", "gamma_eta", "gamma_phi", "gamma_mass", 
