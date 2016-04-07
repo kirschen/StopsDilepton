@@ -1,24 +1,25 @@
 # Use "./doAllCmgPostProcessingGhent.sh samples.txt" to start postprocessing
 # of these files
 
-DoubleMuon_Run2015D_16Dec
-MuonEG_Run2015D_16Dec
-DoubleEG_Run2015D_16Dec
+#DoubleMuon_Run2015D_16Dec
+#MuonEG_Run2015D_16Dec
+#DoubleEG_Run2015D_16Dec
 SingleMuon_Run2015D_16Dec
 SingleElectron_Run2015D_16Dec
 
-TTJets TTJets_ext
-TTJets_LO
-TTJets_DiLepton TTJets_DiLepton_ext
+TTGJets --checkTTGJetsOverlap
+TTJets TTJets_ext --checkTTGJetsOverlap
+#TTJets_LO
+#TTJets_DiLepton TTJets_DiLepton_ext
 
-TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
-TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
-TTLep_pow TTLep_pow_ext
+#TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
+#TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
+#TTLep_pow TTLep_pow_ext
 
-TTJets_LO_HT600to800 TTJets_LO_HT600to800_ext
-TTJets_LO_HT800to1200
-TTJets_LO_HT1200to2500 TTJets_LO_HT1200to2500_ext
-TTJets_LO_HT2500toInf
+#TTJets_LO_HT600to800 TTJets_LO_HT600to800_ext
+#TTJets_LO_HT800to1200
+#TTJets_LO_HT1200to2500 TTJets_LO_HT1200to2500_ext
+#TTJets_LO_HT2500toInf
 #TTHnobb
 #TTHnobb_pow
 TTHnobb_mWCutfix_ch0 TTHnobb_mWCutfix_ch1
@@ -36,30 +37,30 @@ T_tWch_DS
 tZq_ll
 tZq_nunu
 WJetsToLNu
-WJetsToLNu_LO
+#WJetsToLNu_LO
 
 DYJetsToLL_M10to50
-DYJetsToLL_M5to50_LO
-DYJetsToLL_M5to50_LO --LHEHTCut=100
+#DYJetsToLL_M5to50_LO
+#DYJetsToLL_M5to50_LO --LHEHTCut=100
 DYJetsToLL_M50
-DYJetsToLL_M50_LO
-DYJetsToLL_M50_LO --LHEHTCut=100
-DYJetsToLL_M50_HT100to200
-DYJetsToLL_M50_HT200to400
-DYJetsToLL_M50_HT400to600
-DYJetsToLL_M50_HT600toInf
-DYJetsToLL_M5to50_HT100to200
-DYJetsToLL_M5to50_HT200to400
-DYJetsToLL_M5to50_HT400to600
-DYJetsToLL_M5to50_HT600toInf
-WJetsToLNu_HT100to200 WJetsToLNu_HT100to200_ext
-WJetsToLNu_HT200to400 WJetsToLNu_HT200to400_ext
-WJetsToLNu_HT400to600
-WJetsToLNu_HT600toInf
-WJetsToLNu_HT600to800
-WJetsToLNu_HT800to1200
-WJetsToLNu_HT1200to2500
-WJetsToLNu_HT2500toInf
+#DYJetsToLL_M50_LO
+#DYJetsToLL_M50_LO --LHEHTCut=100
+#DYJetsToLL_M50_HT100to200
+#DYJetsToLL_M50_HT200to400
+#DYJetsToLL_M50_HT400to600
+#DYJetsToLL_M50_HT600toInf
+#DYJetsToLL_M5to50_HT100to200
+#DYJetsToLL_M5to50_HT200to400
+#DYJetsToLL_M5to50_HT400to600
+#DYJetsToLL_M5to50_HT600toInf
+#WJetsToLNu_HT100to200 WJetsToLNu_HT100to200_ext
+#WJetsToLNu_HT200to400 WJetsToLNu_HT200to400_ext
+#WJetsToLNu_HT400to600
+#WJetsToLNu_HT600toInf
+#WJetsToLNu_HT600to800
+#WJetsToLNu_HT800to1200
+#WJetsToLNu_HT1200to2500
+#WJetsToLNu_HT2500toInf
 
 QCD_Pt10to15
 QCD_Pt15to30
@@ -77,14 +78,14 @@ QCD_Pt1400to1800
 QCD_Pt1800to2400
 QCD_Pt2400to3200
 QCD_Pt3200toInf
-QCD_HT100to200
-QCD_HT200to300
-QCD_HT300to500
-QCD_HT500to700
-QCD_HT700to1000
-QCD_HT1000to1500
-QCD_HT1500to2000
-QCD_HT2000toInf
+#QCD_HT100to200
+#QCD_HT200to300
+#QCD_HT300to500
+#QCD_HT500to700
+#QCD_HT700to1000
+#QCD_HT1000to1500
+#QCD_HT1500to2000
+#QCD_HT2000toInf
 
 QCD_Pt20to30_Mu5    
 QCD_Pt30to50_Mu5
@@ -130,8 +131,8 @@ VVTo2L2Nu
 WGToLNuG
 ZGTo2LG
 
-WWDouble
-WpWpJJ
+#WWDouble
+#WpWpJJ
 #WWZ
 WZZ
 #ZZZ
@@ -139,7 +140,6 @@ TTWToLNu
 TTWToQQ
 TTZToQQ
 TTZToLLNuNu
-TTGJets
 
 #SMS_T2tt_mStop_100_125_mLSP_1to50 --fastSim --T2tt
 #SMS_T2tt_mStop_150_175_mLSP_1to100 --fastSim --T2tt
