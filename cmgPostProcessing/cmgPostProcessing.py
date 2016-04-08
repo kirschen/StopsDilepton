@@ -328,14 +328,23 @@ else:
 
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
+
 if options.skim.lower().startswith('singlelep'):
     branchKeepStrings_DATAMC += ['HLT_SingleMu', 'HLT_IsoMu27', 'HLT_IsoMu20', 'HLT_Mu45eta2p1', 'HLT_Mu50', 'HLT_MuHT350', 'HLT_MuHTMET', 'HLT_MuMET120', 'HLT_IsoEle32', 'HLT_IsoEle23', 'HLT_IsoEle22']
+
 if options.T2tt: branchKeepStrings_MC += ['GenSusyMScan1', 'GenSusyMScan2']
 
 # Jet variables to be read from chain 
 jetCorrInfo = ['corr/F', 'corr_JECUp/F', 'corr_JECDown/F'] if addSystematicVariations else []
-jetMCInfo = ['mcPt/F', 'hadronFlavour/I'] if isMC else []
-jetVars = ['pt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F'] + jetCorrInfo + jetMCInfo
+if isMC:
+    if options.skim.lower().count('tiny'):
+        jetMCInfo = ['mcPt/F', 'hadronFlavour/I']
+    else:
+        jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'partonFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
+else: 
+    jetMCInfo = []
+
+jetVars = ['pt/F', 'rawPt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F'] + jetCorrInfo + jetMCInfo
 # for convinience: List of jet variables to be read in the filler
 jetVarNames = [x.split('/')[0] for x in jetVars]
 
