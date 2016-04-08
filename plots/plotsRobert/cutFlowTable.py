@@ -9,9 +9,9 @@ small = False
 
 #Define chains for signals and backgrounds
 samples = [
-#    DY_HT_LO, TTJets_Lep, TTZ, TTXNoZ, singleTop, WJetsToLNu_HT, diBoson, triBoson, QCD_Mu5EMbcToE, T2tt_450_0
+    DY_HT_LO, TTJets_Lep, TTZ, TTXNoZ, singleTop, WJetsToLNu_HT, diBoson, triBoson, QCD_Mu5EMbcToE, T2tt_450_0
 #    DY_HT_LO, TTJets_Lep, TTZ, TTXNoZ, singleTop, diBoson, triBoson, QCD_Mu5EMbcToE
-   Sample.fromDirectory(name="TTJets_Lep",       treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets (lep)",     directory=['/scratch/rschoefbeck/cmgTuples/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_ext/']) 
+#   Sample.fromDirectory(name="TTJets_Lep",       treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets (lep)",     directory=['/scratch/rschoefbeck/cmgTuples/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_ext/']) 
 ]
 
 from StopsDilepton.tools.objectSelection import multiIsoLepString

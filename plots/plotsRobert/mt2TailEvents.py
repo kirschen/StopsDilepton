@@ -12,22 +12,20 @@ from StopsDilepton.tools.pdgToName import pdgToName
 mt2Calc = mt2Calculator()
 from StopsDilepton.tools.user import *
 
+from RootTools.core.standard import *
+
 lumiScale = 10.
 lepPdgs = [11,13,15]
 nuPdgs = [12,14,16]
 
 #load all the samples
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
-small = False
-#maxN=3 if small else -1
-#ttjets = TTJets_Lep
-#ttjets['name']="TTLep_1l2l"
-#ttjets['chain'] = getChain(ttjets,histname="", maxN=maxN)
-#prefix="mAODv2"
-#others={'name':'ST/VV/TTX', 'chain':getChain([WJetsToLNu,DY,singleTop,TTX,diBoson], histname="")}
+#from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
+
+maxN = -1
 
 #samples=[TTJets_Lep]
-samples = [   Sample.fromDirectory(name="TTJets_Lep",       treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets (lep)",     directory=['/scratch/rschoefbeck/cmgTuples/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_ext/']) ]
+samples = [ Sample.fromDirectory(name="TTJets_Lep", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (lep)", \
+            directory=['/scratch/rschoefbeck/cmgTuples/fromTom/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) ]
 
 def vecPtSum(objs, subtract=[]):
     px = sum([o['pt']*cos(o['phi']) for o in objs])
@@ -35,6 +33,7 @@ def vecPtSum(objs, subtract=[]):
     px -= sum([o['pt']*cos(o['phi']) for o in subtract])
     py -= sum([o['pt']*sin(o['phi']) for o in subtract])
     return sqrt(px**2+py**2)
+
 def bold(s):
     return '\033[1m'+s+'\033[0m'
 
@@ -51,7 +50,7 @@ cuts=[
   ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
   ("isOS","isOS==1"),
   ("SFZVeto","( (isMuMu==1||isEE==1)&&abs(dl_mass-91.2)>=15 || isEMu==1 )"),
-#  ("tauVeto","Sum$(TauGood_pt>20 && abs(TauGood_eta)<2.4 && TauGood_idDecayModeNewDMs>=1 && TauGood_idCI3hit>=1 && TauGood_idAntiMu>=1 && TauGood_idAntiE>=1)==0"),
+  ("tauVeto","Sum$(TauGood_pt>20 && abs(TauGood_eta)<2.4 && TauGood_idDecayModeNewDMs>=1 && TauGood_idCI3hit>=1 && TauGood_idAntiMu>=1 && TauGood_idAntiE>=1)==0"),
 #  ("mRelIso01", "LepGood_miniRelIso[l1_index]<0.1&&LepGood_miniRelIso[l2_index]<0.1"),
   ("multiIsoWP", multiIsoWP),
   ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
@@ -300,7 +299,7 @@ for s in samples:
                 else:
                       neutrinoMotherString=""
                 allNeutrinoPt = vecPtSum(otherNeutrinos+genNeutrinosFromW+genNeutrinosFromTau)
-                jets = getJets(ttjets['s.chain'], jetVars+['mcPt'], jetColl="JetGood")
+                jets = getJets(s.chain, jetVars+['mcPt'], jetColl="JetGood")
                 dx, dy = 0., 0.
                 for j in jets:
                     if j['mcPt']>0:
@@ -313,7 +312,7 @@ for s in samples:
                     jetMismeasString=     "jet-mism:"+" %6.2f"%jetMismeas
 
                 print "%6s %12s %20s mt2ll %6.2f d-MET %6.2f met %6.2f genmet %6.2f (W-nu %6.2f tau-nu %6.2f other-nu %6.2f all-nu %6.2f%s)"\
-                    %(mode, gMode,  "%2i:%2i:%2i"%(getVarValue(s.chain, "run"), getVarValue(chain, "lumi"), getVarValue(chain, "evt")), mt2ll, deltaMet, met, genMet, neutrinoFromWPt, neutrinoFromTauPt, otherNeutrinoPt, allNeutrinoPt,neutrinoMotherString)\
+                    %(mode, gMode,  "%2i:%2i:%2i"%(getVarValue(s.chain, "run"), getVarValue(s.chain, "lumi"), getVarValue(s.chain, "evt")), mt2ll, deltaMet, met, genMet, neutrinoFromWPt, neutrinoFromTauPt, otherNeutrinoPt, allNeutrinoPt,neutrinoMotherString)\
                     +jetMismeasString
 
                 lepDMet = vecPtSum(leptons, genLeptons)

@@ -222,7 +222,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
             texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
             variable = Variable.fromString( "dl_mt2ll/F" ),
-            binning=[300/20,0,300],
+            binning=[300/15,0,300],
             selectionString = selectionString,
             weight = weight,
             )
@@ -232,7 +232,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
             texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
             variable = Variable.fromString( "dl_mt2bb/F" ),
-            binning=[300/20,0,300],
+            binning=[300/15,0,300],
             selectionString = selectionString,
             weight = weight,
             )
@@ -242,7 +242,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
             texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
             variable = Variable.fromString( "dl_mt2blbl/F" ),
-            binning=[300/20,0,300],
+            binning=[300/15,0,300],
             selectionString = selectionString,
             weight = weight,
             ) 

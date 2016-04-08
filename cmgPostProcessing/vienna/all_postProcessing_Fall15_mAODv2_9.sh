@@ -8,4 +8,4 @@ python cmgPostProcessing.py --skim=$1 $2 --samples TTWToLNu
 python cmgPostProcessing.py --skim=$1 $2 --samples TTWToQQ
 python cmgPostProcessing.py --skim=$1 $2 --samples TTZToQQ
 python cmgPostProcessing.py --skim=$1 $2 --samples TTZToLLNuNu
-#nohup krenew -t -K 10 -- bash -c "python cmgPostProcessing.py --skim=$1 $2 --samples=TTGJets"  
+python cmgPostProcessing.py --skim=$1 $2 --samples TTGJets  

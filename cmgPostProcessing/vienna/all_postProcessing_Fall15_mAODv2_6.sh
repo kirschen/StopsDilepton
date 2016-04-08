@@ -1,6 +1,5 @@
 #!/bin/sh
-#nohup krenew -t -K 10 -- bash -c "python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt10to15" 
-#nohup krenew -t -K 10 -- bash -c "python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt15to30" 
+
 python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt30to50
 python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt50to80
 python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt80to120
@@ -14,7 +13,8 @@ python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt1000to1400
 python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt1400to1800
 python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt1800to2400
 python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt2400to3200
-python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt3200toInf
+#python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_Pt3200toInf
+
 python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_HT100to200
 python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_HT200to300
 python cmgPostProcessing.py --skim=$1 $2  --samples=QCD_HT300to500

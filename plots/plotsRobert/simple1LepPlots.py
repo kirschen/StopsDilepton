@@ -3,11 +3,14 @@
 
 #Standard imports
 import ROOT
-from math import sqrt, cos, sin, pi, acos
+from math import sqrt, cos, sin, pi, acos, cosh, atan2
 import itertools
 
 #RootTools
 from RootTools.core.standard import *
+
+from StopsDilepton.tools.mt2Calculator import mt2Calculator
+mt2Calc = mt2Calculator()
 
 # argParser
 import argparse
@@ -81,9 +84,11 @@ filterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFi
 data_sample.style = styles.errorStyle( ROOT.kBlack )
 
 #mc = [ TTJets_Lep, WJetsToLNu, DY, qcd_sample]# diBoson, triBoson]
+
 TTJets.reduceFiles(10)
 DY.reduceFiles(3)
 WJetsToLNu.reduceFiles(2)
+
 mc = [ TTJets, WJetsToLNu, DY, qcd_sample]# diBoson, triBoson]
 
 lumi_scale = data_sample.lumi/1000
@@ -98,8 +103,9 @@ weight = lambda data:data.weight
 
 cuts=[
     ("njet4", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=4"),
-    ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
+    ("nbtag2", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=2"),
     ("met30", "met_pt>30"),
+    ("m3peak", "abs(m3-174)<75."),
 ]
                 
 def drawObjects( dataMCScale ):
@@ -154,10 +160,10 @@ for i_comb in [len(cuts)]:
         plots = []
 
         m3  = Plot(
-            texX = 'M_{3} (GeV)', texY = 'Number of Events / 20 GeV',
+            texX = 'M_{3} (GeV)', texY = 'Number of Events / 10 GeV',
             stack = stack, 
             variable = Variable.fromString( "m3/F" ),
-            binning=[400/20,0,400],
+            binning=[400/10,0,400],
             selectionString = selectionString,
             weight = weight,
             addOverFlowBin = "both",
@@ -169,8 +175,8 @@ for i_comb in [len(cuts)]:
             stack = stack, 
             variable = Variable.fromString('maxM3BTag/F').addFiller (
                 helpers.uses( 
-                    lambda data: max([ data.JetGood_btagCSV[k] for k in [data.m3_ind1, data.m3_ind2, data.m3_ind3] if k>0] + [-1]) , 
-                    ["m3_ind1/I", "m3_ind2/I", "m3_ind3/I", "JetGood[btagCSV/F]"])
+                    lambda data: max([ data.JetGood_btagCSV[k] for k in [data.m3_ind1, data.m3_ind2, data.m3_ind3] if k>=0] + [-1]) , 
+                    ["m3_ind1/I", "m3_ind2/I", "m3_ind3/I"])
             ), 
             binning=[30,-1,2],
             selectionString = selectionString,
@@ -178,7 +184,60 @@ for i_comb in [len(cuts)]:
             addOverFlowBin = "both",
             )
         plots.append( maxM3BTag )
-         
+
+        def m3_mW(data):
+            subjets = [ (data.JetGood_btagCSV[k], k) for k in [data.m3_ind1, data.m3_ind2, data.m3_ind3] if k>=0]
+            if not len(subjets)==3:
+                print "len(subjets)",len(subjets) 
+                return float('nan')
+            subjets.sort()
+            bj  = subjets[0][1]
+            lj1 = subjets[1][1]
+            lj2 = subjets[2][1]
+            mW = sqrt(2.*data.JetGood_pt[lj1]*data.JetGood_pt[lj2]*(cosh(data.JetGood_eta[lj1] - data.JetGood_eta[lj2]) - cos(data.JetGood_phi[lj1] - data.JetGood_phi[lj2]) ) ) 
+            return mW
+ 
+        m3_mW  = Plot(
+            texX = 'm3_mW', texY = 'Number of Events / 10 GeV',
+            stack = stack, 
+            variable = Variable.fromString('m3_mW/F').addFiller ( m3_mW ),
+            binning=[400/10,0,400],
+            selectionString = selectionString,
+            weight = weight,
+            addOverFlowBin = "both",
+            )
+        plots.append( m3_mW )
+
+        def mt2ll_Pred(data):
+            subjets = [ (data.JetGood_btagCSV[k], k) for k in [data.m3_ind1, data.m3_ind2, data.m3_ind3] if k>=0]
+            if not len(subjets)==3:
+                print "len(subjets)",len(subjets) 
+                return float('nan')
+            subjets.sort()
+            bj  = subjets[0][1]
+            lj1 = subjets[1][1]
+            lj2 = subjets[2][1]
+            
+            mt2Calc.reset()
+            # treat one jet as a lepton
+            mt2Calc.setLeptons( data.l1_pt, data.l1_eta, data.l1_phi, data.JetGood_pt[lj1], data.JetGood_eta[lj1], data.JetGood_phi[lj1] )
+            # the other one as MET
+            met_Pred_x = data.met_pt*cos(data.met_phi) - data.JetGood_pt[lj2]*cos(data.JetGood_phi[lj2])
+            met_Pred_y = data.met_pt*sin(data.met_phi) - data.JetGood_pt[lj2]*sin(data.JetGood_phi[lj2])
+            mt2Calc.setMet( sqrt(met_Pred_x**2 + met_Pred_y**2), atan2( met_Pred_y, met_Pred_x ) )
+            return mt2Calc.mt2ll()
+
+        mt2ll_Pred  = Plot(
+            texX = 'mt2ll_Pred', texY = 'Number of Events / 20 GeV',
+            stack = stack, 
+            variable = Variable.fromString('mt2ll_Pred/F').addFiller ( mt2ll_Pred ),
+            binning=[300/15,0,300],
+            selectionString = selectionString,
+            weight = weight,
+            addOverFlowBin = "both",
+            )
+        plots.append( mt2ll_Pred )
+ 
         l1_pt  = Plot(
             texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
             stack = stack, 
@@ -280,7 +339,7 @@ for i_comb in [len(cuts)]:
             texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
             stack = stack, 
             variable = Variable.fromString('cosMetJet0phi/F').addFiller (
-                helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
+                helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F"] )
             ), 
             binning = [10,-1,1], 
             selectionString = selectionString,
@@ -292,7 +351,7 @@ for i_comb in [len(cuts)]:
             texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
             stack = stack, 
             variable = Variable.fromString('cosMetJet1phi/F').addFiller (
-                helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
+                helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F"] )
             ), 
             binning = [10,-1,1], 
             selectionString = selectionString,
@@ -303,9 +362,7 @@ for i_comb in [len(cuts)]:
         jet0pt  = Plot(
             texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet0pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[0], "JetGood[pt/F]" )
-            ), 
+            variable = Variable.fromString('jet0pt/F').addFiller ( lambda data: data.JetGood_pt[0] ), 
             binning=[980/20,0,980],
             selectionString = selectionString,
             weight = weight,
@@ -315,9 +372,7 @@ for i_comb in [len(cuts)]:
         jet1pt  = Plot(
             texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet1pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[1], "JetGood[pt/F]" )
-            ), 
+            variable = Variable.fromString('jet1pt/F').addFiller ( lambda data: data.JetGood_pt[1] ), 
             binning=[980/20,0,980],
             selectionString = selectionString,
             weight = weight,
@@ -327,9 +382,7 @@ for i_comb in [len(cuts)]:
         jet2pt  = Plot(
             texX = 'p_{T}(3^{rd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet2pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[2], "JetGood[pt/F]" )
-            ), 
+            variable = Variable.fromString('jet2pt/F').addFiller ( lambda data: data.JetGood_pt[2] ), 
             binning=[400/20,0,400],
             selectionString = selectionString,
             weight = weight,
@@ -339,9 +392,7 @@ for i_comb in [len(cuts)]:
         jet3pt  = Plot(
             texX = 'p_{T}(4^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet3pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[3], "JetGood[pt/F]" )
-            ), 
+            variable = Variable.fromString('jet3pt/F').addFiller ( lambda data: data.JetGood_pt[3] ), 
             binning=[400/20,0,400],
             selectionString = selectionString,
             weight = weight,
@@ -351,9 +402,7 @@ for i_comb in [len(cuts)]:
         jet4pt  = Plot(
             texX = 'p_{T}(5^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet4pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[4], "JetGood[pt/F]" )
-            ), 
+            variable = Variable.fromString('jet4pt/F').addFiller ( lambda data: data.JetGood_pt[4] ), 
             binning=[400/20,0,400],
             selectionString = selectionString,
             weight = weight,
@@ -390,7 +439,7 @@ for i_comb in [len(cuts)]:
             )
         plots.append( nVert )
 
-        read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]"]
+        read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F,btagCSV/F]"]
 
         plotting.fill(plots, read_variables = read_variables)
 
@@ -400,6 +449,13 @@ for i_comb in [len(cuts)]:
             plotting.draw(plot, 
                 plot_directory = plot_path, ratio = {'yRange':(0.1,1.9)}, 
                 logX = False, logY = True, sorting = True, 
+                yRange = (0.03, "auto"), 
+                drawObjects = drawObjects( dataMCScale )
+            )
+        for plot in plots:
+            plotting.draw(plot, 
+                plot_directory = plot_path+'/lin', ratio = {'yRange':(0.1,1.9)}, 
+                logX = False, logY = False, sorting = True, 
                 yRange = (0.03, "auto"), 
                 drawObjects = drawObjects( dataMCScale )
             )

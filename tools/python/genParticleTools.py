@@ -11,7 +11,7 @@ def getDaughters(particle_, genParts):
 def descendDecay(particle_, genParts):
     daughters = getDaughters(particle_, genParts)
     particles_ = filter(lambda p:abs(p['pdgId'])==abs(particle_['pdgId']), daughters)
-    assert len(particles_)<=1, "Found more than one particle with same pdgId %i in decay chain %r -> impossible."%(particle_['pdgId'], particles_)
+    if len(particles_)>1: print "Warning: Found more than one particle with same pdgId %i in decay chain %r -> %r -> impossible."%(particle_['pdgId'], particle_, particles_)
     if len(particles_)>0:
         if particles_[0]==particle_:return particle_
         return descendDecay(particles_[0], genParts)

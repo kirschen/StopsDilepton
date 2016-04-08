@@ -6,7 +6,8 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     # Where you store cmg output
     cmg_directory      = "/scratch/rschoefbeck/cmgTuples/763_1l"
     # Where postprocessed data goes 
-    data_output_directory      = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+    #data_output_directory      = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+    data_output_directory      = "/scratch/rschoefbeck/cmgTuples/"
     # Where you store the data
     data_directory      = "/scratch/rschoefbeck/cmgTuples/fromTom"
     # Where the plots go
