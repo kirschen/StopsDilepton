@@ -42,7 +42,7 @@ def looseMuID(l, ptCut=20, absEtaCut=2.4):
         and l["miniRelIso"]<Muon_miniRelIso \
         and l["sip3d"]<Muon_sip3d\
         and abs(l["dxy"])<Muon_dxy\
-        and abs(l["dz"])<Muon_dz\
+        and abs(l["dz"])<Muon_dz
 
 def looseMuIDString(ptCut=20, absEtaCut=2.4):
     string = []
@@ -65,6 +65,21 @@ multiIsoWP = {'VL':{'mRelIso':0.25, 'ptRatiov2':0.67, 'ptRelv2':4.4},
                             'T' :{'mRelIso':0.12, 'ptRatiov2':0.80, 'ptRelv2':7.2},
                             'VT':{'mRelIso':0.09, 'ptRatiov2':0.84, 'ptRelv2':7.2},
                             }
+
+def multiIsoMuId(WP, ptCut = 20, absEtaCut = 2.4):
+    def func(l):
+        return \
+            l["pt"]>=ptCut\
+            and abs(l["pdgId"])==13\
+            and abs(l["eta"])<absEtaCut\
+            and l["mediumMuonId"]==Muon_mediumMuonId \
+            and l["miniRelIso"]<multiIsoWP[WP]['mRelIso'] \
+            and (l["jetPtRatiov2"]>multiIsoWP[WP]['ptRatiov2'] or l['jetPtRelv2']>multiIsoWP[WP]['ptRelv2'] )\
+            and l["sip3d"]<Muon_sip3d\
+            and abs(l["dxy"])<Muon_dxy\
+            and abs(l["dz"])<Muon_dz
+    return func
+
 def multiIsoLepString(wpMu, wpEle, i):
     assert all([wp in multiIsoWP.keys() for wp in [wpMu, wpEle]]),  "Unknown MultiIso WP %s or %s. Use one of %s"%(wpMu, wpEle, ",".join(multiIsoWP.keys()))
     if type(i)==type(()) or type(i)==type([]):
@@ -109,6 +124,22 @@ def looseEleID(l, ptCut=20, absEtaCut=2.4):
         and l["sip3d"] < Ele_sip3d\
         and abs(l["dxy"]) < Ele_dxy\
         and abs(l["dz"]) < Ele_dz\
+
+def multiIsoEleId(WP, ptCut = 20, absEtaCut = 2.4):
+    def func(l):
+        return \
+            l["pt"]>=ptCut\
+            and abs(l["eta"])<absEtaCut\
+            and abs(l["pdgId"])==11\
+            and cmgMVAEleID(l, ele_MVAID_cuts_tight)\
+            and l["miniRelIso"]<multiIsoWP[WP]['mRelIso'] \
+            and (l["jetPtRatiov2"]>multiIsoWP[WP]['ptRatiov2'] or l['jetPtRelv2']>multiIsoWP[WP]['ptRelv2'] )\
+            and l["convVeto"]\
+            and l["lostHits"]==Ele_lostHits\
+            and l["sip3d"] < Ele_sip3d\
+            and abs(l["dxy"]) < Ele_dxy\
+            and abs(l["dz"]) < Ele_dz
+    return func
 
 def looseEleIDString(ptCut=20, absEtaCut=2.4):
     string = []
