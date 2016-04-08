@@ -1,7 +1,7 @@
 #PBS -l nodes=1:ppn=8
 #!/bin/zsh
-echo "cmgPostProcessing of sample ${sample} in $cmssw"
-echo "Id: $PBS_JOBID"
+echo "cmgPostProcessing of sample ${sample} in $cmssw" >&2
+echo "Id: $PBS_JOBID" >&2
 
 source $VO_CMS_SW_DIR/cmsset_default.sh
 cd "/localgrid/$USER/cmgPostProcessing/$skim/${sample// /}/$cmssw/src/StopsDilepton/cmgPostProcessing/"
@@ -10,4 +10,4 @@ python cmgPostProcessing.py --dataDir=/pnfs/iihe/cms/store/user/tomc/cmgTuples/7
 cd /localgrid/$USER
 rm -rf "/localgrid/$USER/cmgPostProcessing/$skim/${sample// /}"
 
-echo Done with walltime: $PBS_WALLTIME"
+echo "Done with walltime: $PBS_WALLTIME" >&2
