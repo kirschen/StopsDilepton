@@ -6,7 +6,7 @@ if [ ! -d "/localgrid/$USER/.cmgdataset" ]; then
   cp -r ~/.cmgdataset /localgrid/$USER
 fi
 
-skim="singlelepTiny"
+skim="singlelepReallyTiny"
 # Run over samples given in input file
 while read -r sample; do
     if [[ ${sample} = \#* || -z "${sample}" ]] ; then

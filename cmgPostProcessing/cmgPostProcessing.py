@@ -24,6 +24,7 @@ mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons
+from StopsDilepton.tools.overlapRemovalTTG import isTTGJetsEvent
 
 # central configuration 
 targetLumi = 1000 #pb-1 Which lumi to normalize to
@@ -148,6 +149,11 @@ def get_parser():
         help="Keep LHEWeights?"
         )
 
+    argParser.add_argument('--checkTTGJetsOverlap',
+        action='store_true',
+        help="Keep isTTGJetsOverlap boolean which can be used to clean TTG events from TTJets samples"
+        )
+
     argParser.add_argument('--skipSystematicVariations',
         action='store_true',
         help="Don't calulcate BTag, JES and JER variations."
@@ -171,8 +177,12 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 skimConds = []
 if options.skim.lower().startswith('dilep'):
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=2" )
+    if options.skim.lower().startswith('dilepMet80'):	  		    # Small skim when we only want to do stuff with two jets and met
+      skimConds.append( "Sum$(Jet_pt>30&&abs(Jet_eta)<2.5)>=1&&met_pt>80" ) # FIXME: should also save those events which pass after systematics
 if options.skim.lower().startswith('singlelep'):
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=1" )
+    if options.skim.lower().startswith('singlelepMet80'):		    # Small skim when we only want to do stuff with two jets and met
+      skimConds.append( "Sum$(Jet_pt>30&&abs(Jet_eta)<2.5)>=1&&met_pt>80" ) # FIXME: should also save those events which pass after systematics
 
 #Samples: Load samples
 maxN = 2 if options.runSmallSample else None
@@ -348,7 +358,7 @@ jetVars = ['pt/F', 'rawPt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F'] + jetCorrIn
 # for convinience: List of jet variables to be read in the filler
 jetVarNames = [x.split('/')[0] for x in jetVars]
 
-if options.keepPhotons:
+if options.keepPhotons and not options.skim.lower().count('tiny'):
     branchKeepStrings_DATAMC+=[
         "ngamma", "gamma_idCutBased", "gamma_hOverE", "gamma_r9", "gamma_sigmaIetaIeta", "gamma_chHadIso04", "gamma_chHadIso", "gamma_phIso", 
         "gamma_neuHadIso", "gamma_relIso", "gamma_pdgId", "gamma_pt", "gamma_eta", "gamma_phi", "gamma_mass", 
@@ -381,7 +391,7 @@ if isMC:
     read_variables+= [Variable.fromString('nTrueInt/F')]
     # reading gen particles for top pt reweighting
     read_variables.append( Variable.fromString('ngenPartAll/I') ) 
-    read_variables.append( VectorType.fromString('genPartAll[pt/F,pdgId/I,status/I,nDaughters/I]', nMax = 200) )
+    read_variables.append( VectorType.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( Variable.fromString('genWeight/F') ) 
 
     new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
@@ -404,6 +414,9 @@ if options.skim.lower().startswith('singlelep'):
 if options.skim.lower().startswith('dilep') or options.skim.lower().startswith('singlelep'):
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I' ] )
+    new_variables.extend( ['mt/F'] )
+    if options.keepPhotons:
+      new_variables.extend( ['mt_photonEstimated/F'] )
 if options.skim.lower().startswith('dilep'):
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
@@ -413,7 +426,11 @@ if options.skim.lower().startswith('dilep'):
 if options.keepPhotons:
     new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
     new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
-    new_variables.extend( ['dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
+    if options.skim.lower().startswith('dilep'):
+      new_variables.extend( ['dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
+
+if options.checkTTGJetsOverlap:
+    new_variables.extend( ['isTTGJetsEvent/O'] )
 
 if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
@@ -450,7 +467,6 @@ def getMetCorrected(met_pt, met_phi, jets, var):
   met_corr_pt  = sqrt(met_corr_px**2 + met_corr_py**2)
   met_corr_phi = atan2(met_corr_py, met_corr_px)
   return (met_corr_pt, met_corr_phi)
-
 
 def filler(s): 
     # shortcut
@@ -532,6 +548,9 @@ def filler(s):
          s.met_phi_photonEstimated = metGamma.Phi()
          s.metSig_photonEstimated  = s.met_pt_photonEstimated/sqrt(s.ht) if s.ht>0 else float('nan')
 
+    if options.checkTTGJetsOverlap and isMC:
+       s.isTTGJetsEvent = isTTGJetsEvent(r)
+
     if addSystematicVariations:
         for j in allJets:
             j['pt_JECUp']   =j['pt']/j['corr']*j['corr_JECUp']
@@ -565,6 +584,9 @@ def filler(s):
             s.l1_phi = leptons[0]['phi']
             s.l1_pdgId  = leptons[0]['pdgId']
             s.l1_index  = leptons[0]['index']
+
+            for i in metVariants:
+              setattr(s, "mt"+i, sqrt(2*s.l1_pt*getattr(s, "met_pt"+i)*(1-cos(s.l1_phi-getattr(s, "met_phi"+i)))))
 
     if options.skim.lower().startswith('dilep'):
         if options.fastSim:
