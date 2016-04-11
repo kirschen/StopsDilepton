@@ -17,6 +17,14 @@ def get_parser():
         help="Name of the directory to be re-hadded"
         )
 
+#    argParser.add_argument('--targetDir',
+#        action='store',
+#        nargs='?',
+#        type=str,
+#        default=None,
+#        help="Where to store output. Default is in the same place."
+#        )
+
     argParser.add_argument('--treeName',
         action='store',
         nargs='?',
@@ -102,9 +110,6 @@ for dirName, subdirList, fileList in os.walk(options.dir):
 basename_counter = {}
 for job in jobs:
 
-    if len(job)==1:
-        continue
-
     fnames = list(set([ '_'.join( os.path.splitext(fname)[0].split('_')[:-1] ) for fname in job]))
     if not len(fnames)==1:
         raise ValueError("Problem in job %r: Filenames are not consistent. Found %r", job, fnames)
@@ -121,38 +126,35 @@ for job in jobs:
     if targetFileName in job:
         raise ValueError( "Found file %s in job %r. Should not happen and can't hadd this way.", targetFileName, job )
 
-    if os.path.exists( targetFileName ):
-        if options.overwrite:
-            logger.info( "Found file %s. Overwriting.", targetFileName )
-        else:
-            logger.info( "File %s already exists. Skipping.", targetFileName )
-            continue
-   
-    from subprocess import call
-
     if options.really:
         cmd = ["hadd"]
     else:
         cmd = ["echo", "hadd"]
 #        logger.info("Use --really to do it really. Use --delete to delete the input files." )
 
-    if options.overwrite:
-        cmd.append( '-f' )
-
-    call(cmd + [targetFileName] + job) 
-    
-    if options.really:
-        isOK =  checkRootFile( targetFileName, checkForObjects = [options.treeName]) \
-                if options.treeName is not None else checkRootFile( targetFileName )
-        if options.delete:
-            if isOK:
-                for f in job:
-                    os.remove( f )
-                    logger.info( "Deleted input." )
-                else:
-                    logger.warning( "File %s does not look OK. Checked for tree: %r. Did not delete input", targetFileName, options.treeName )
+    if os.path.exists( targetFileName ):
+        if options.overwrite:
+            logger.info( "Found file %s. Overwriting.", targetFileName )
+            cmd.append( '-f' )
         else:
-            if not isOK: logger.warning( "File %s does not look OK. Checked for tree: %r.", targetFileName, options.treeName )
+            logger.info( "File %s already exists. Skipping.", targetFileName )
+            cmd = None
+   
+    from subprocess import call
+
+    if cmd is not None: call(cmd + [targetFileName] + job) 
+    
+    if options.delete:
+        isOK =  checkRootFile( targetFileName, checkForObjects = [options.treeName]) \
+            if options.treeName is not None else checkRootFile( targetFileName ) 
+        if isOK:
+            for f in job:
+                os.remove( f )
+                logger.debug( "Deleted input %s", f)
+        else:
+            logger.warning( "File %s does not look OK. Checked for tree: %r. Did not delete input.", targetFileName, options.treeName )
+    else:
+        if not isOK: logger.warning( "File %s does not look OK. Checked for tree: %r.", targetFileName, options.treeName )
             
 
     if options.really:
