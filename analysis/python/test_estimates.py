@@ -1,9 +1,10 @@
 from StopsDilepton.analysis.SetupHelpers import allChannels
+from StopsDilepton.analysis.mcAnalysis import setup, regions, bkgEstimators
 from StopsDilepton.analysis.defaultAnalysis import setup, regions, bkgEstimators
-#from multi_estimate import multi_estimate
+
 from MCBasedEstimate import MCBasedEstimate
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_1l_postProcessed import *
-setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test4'
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
+setup.analysis_results='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test4'
 setup.verbose=True
 
 #from StopsDilepton.tools.objectSelection import multiIsoLepString

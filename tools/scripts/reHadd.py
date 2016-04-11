@@ -86,6 +86,7 @@ for dirName, subdirList, fileList in os.walk(options.dir):
     rootFiles = []
     for f in fileList:
         if f.endswith('.root'):
+            full_filename = os.path.join(dirName, f)
             if not '_reHadd_' in f:
                 to_skip = False
                 for skip in options.skip:
@@ -94,24 +95,23 @@ for dirName, subdirList, fileList in os.walk(options.dir):
                         to_skip = True
                         break
                 if to_skip: continue
-                isOK =  checkRootFile( os.path.join(dirName, f), checkForObjects = [options.treeName]) \
-                        if options.treeName is not None else checkRootFile( os.path.join(dirName, f) )
+                isOK =  checkRootFile( full_filename, checkForObjects = [options.treeName]) \
+                        if options.treeName is not None else checkRootFile( full_filename )
                 if isOK:
                     rootFiles.append( f )
                 else:
-                    logger.warning( "File %s does not look OK. Checked for tree: %r", f, options.treeName )
+                    logger.warning( "File %s does not look OK. Checked for tree: %r", full_filename, options.treeName )
             else:
-                logger.info( "Found '_reHadd_' in file %s in %s. Skipping.", f, dirName )
+                logger.info( "Found '_reHadd_' in file %s in %s. Skipping.", full_filename, dirName )
     job = []
     jobsize = 0
     for fname in rootFiles:
-
         filename, file_extension = os.path.splitext(fname)
         n_str = filename.split('_')[-1]
         if n_str.isdigit():
-            fullfilename = os.path.join(dirName, fname)
-            jobsize += os.path.getsize( fullfilename  )
-            job.append( fullfilename )
+            full_filename = os.path.join(dirName, fname)
+            jobsize += os.path.getsize( full_filename  )
+            job.append( full_filename )
             if jobsize>1024**3*options.sizeGB:
                 jobs.append(job)
                 job = []

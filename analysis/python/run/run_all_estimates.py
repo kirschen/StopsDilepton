@@ -9,7 +9,7 @@ parser.add_option("--relIso04", dest="relIso04", default=-1, type=float, action=
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.defaultAnalysis import setup, regions, bkgEstimators
-setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test6'
+setup.analysis_results='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test6'
 setup.parameters['metMin'] = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
@@ -30,7 +30,7 @@ for e in bkgEstimators:
 setup.verbose=True
 #from multi_estimate import multi_estimate
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_1l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
 #signalEstimators = [ MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in [T2tt_450_0] ] #signals_T2tt ]
 signalEstimators = [ MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals_T2tt ]
 signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, parameters={'useTriggers':False})

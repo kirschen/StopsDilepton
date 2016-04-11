@@ -10,7 +10,7 @@ parser.add_option("--relIso04", dest="relIso04", default=-1, type=float, action=
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.defaultAnalysis import setup, regions, bkgEstimators
 setup.verbose = False
-setup.analysisOutputDir='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test6'
+setup.analysis_results='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test6'
 setup.parameters['metMin'] = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
@@ -28,7 +28,7 @@ if options.relIso04>0:
 for e in bkgEstimators:
     e.initCache(setup.defaultCacheDir())
 
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_1l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 from StopsDilepton.analysis.u_float import u_float
 from math import sqrt
@@ -57,7 +57,7 @@ def wrapper(s):
     c.addUncertainty('leptonSF', 'lnN')
 
     eSignal = MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() )
-    cardFileName = os.path.join(setup.analysisOutputDir,  setup.prefix(), 'cardFiles', limitPrefix, s['name']+'.txt')
+    cardFileName = os.path.join(setup.analysis_results,  setup.prefix(), 'cardFiles', limitPrefix, s['name']+'.txt')
     if not os.path.exists(cardFileName) or overWrite:
         for r in regions:
             for channel in ['MuMu', 'EE', 'EMu']:
@@ -184,7 +184,7 @@ for r in results:
     except:
         print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
 
-limitResultsFilename = os.path.join(os.path.join(setup.analysisOutputDir, setup.prefix(), 'limits', limitPrefix,'T2tt_limitResults.root'))
+limitResultsFilename = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), 'limits', limitPrefix,'T2tt_limitResults.root'))
 if not os.path.exists(os.path.dirname(limitResultsFilename)):
     os.makedirs(os.path.dirname(limitResultsFilename))
 

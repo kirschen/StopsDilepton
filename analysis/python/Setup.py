@@ -1,32 +1,33 @@
-from StopsDilepton.tools.user import analysisOutputDir
+#Standard import
 import copy
 
-#Numerical constants
-zMassRange=15
+# RootTools
+from RootTools.core.standard import *
+#user specific
+from StopsDilepton.tools.user import analysis_results
 
 #define samples
-from StopsDilepton.samples.helpers import combineSamples
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Spring15_mAODv2_25ns_1l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 
 #choices for specific samples
-#DYSample      = DY #NLO M10t050 + M50
-DYSample      = DY_HT_LO #LO, HT binned including a low HT bin starting from zero from the inclusive sample
-#TTJetsSample  = TTJets #NLO
-TTJetsSample  = TTJets_Lep #LO, very large dilep + single lep samples
-otherEWKBkgs   = combineSamples([singleTop, diBoson, triBoson, TTXNoZ, WJetsToLNu_HT])
-otherEWKBkgs['name'] = 'otherBkgs'
-otherEWKBkgs['texName'] = 'other bkgs.'
+DYSample      = DY 
+#DYSample      = DY_HT_LO #LO, HT binned including a low HT bin starting from zero from the inclusive sample
+TTJetsSample  = TTJets #NLO
+#TTJetsSample  = TTJets_Lep #LO, very large dilep + single lep samples
+WJetsSample = WJetsToLNu #WJetsToLNu_HT
+otherEWKBkgs   = Sample.combine("otherBkgs", [singleTop, diBoson, WZZ,  TTXNoZ, WJetsSample], texName = "other bkgs.")
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations
-from StopsDilepton.analysis.SetupHelpers import getZCut, loadChain, allChannels
+from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels
 
 #to run on data
 #lumi = {'EMu':MuonEG_Run2015D['lumi'], 'MuMu':DoubleMuon_Run2015D['lumi'], 'EE':DoubleEG_Run2015D['lumi']}
 #10/fb to run on MC
-lumi = {c:10000 for c in allChannels}
+lumi = {c:10000 for c in channels}
 
 #Define defaults here
+zMassRange=15
 default_mllMin = 20
 default_metMin = 80
 default_metSigMin = 5
@@ -36,37 +37,51 @@ default_nBTags = (1, -1)
 default_leptonCharges = "isOS"
 default_useTriggers = True
 
+filterCutData = filterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
+filterCutMC   = filterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
+
 class Setup:
     def __init__(self):
         self.verbose=False
-        self.analysisOutputDir = analysisOutputDir
+        self.analysis_results = analysis_results
         self.zMassRange   = zMassRange
         self.prefixes = []
         self.externalCuts = []
 
         #Default cuts and requirements. Those three things below are used to determine the key in the cache!
-        self.parameters   = {'mllMin':default_mllMin, 'metMin':default_metMin, 'metSigMin':default_metSigMin, 'dPhiJetMet':default_dPhiJetMet, 'nJets': default_nJets, 'nBTags': default_nBTags, 'leptonCharges': default_leptonCharges, 'useTriggers':default_useTriggers}
-        self.sys          = {'weight':'weightPU', 'reweight':[], 'selectionModifier':None, 'useBTagWeights':None}
+        self.parameters   = {
+            'mllMin':default_mllMin, 
+            'metMin':default_metMin, 
+            'metSigMin':default_metSigMin, 
+            'dPhiJetMet':default_dPhiJetMet, 
+            'nJets': default_nJets, 
+            'nBTags': default_nBTags, 
+            'leptonCharges': default_leptonCharges, 
+            'useTriggers':default_useTriggers}
+        self.sys          = {'weight':'weightPU', 'reweight':[], 'selectionModifier':None}
         self.lumi=lumi
 
         self.sample = {
-        'DY':         {c:DYSample for c in allChannels},
-        'TTJets' :    {c:TTJetsSample for c in allChannels},
-        'TTZ' :       {c:TTZ for c in allChannels},
-        'other'  :    {'MuMu':combineSamples([otherEWKBkgs, QCD_Mu5]), 'EE': combineSamples([otherEWKBkgs,QCD_EMbcToE]), 'EMu':combineSamples([otherEWKBkgs, QCD_Mu5EMbcToE]),
-                                      'all': combineSamples([otherEWKBkgs, QCD_Mu5EMbcToE])},
-        'Data'   :    {'MuMu':DoubleMuon_Run2015D, 'EE': DoubleEG_Run2015D, 'EMu':MuonEG_Run2015D},
+        'DY':         {c:DYSample for c in channels},
+        'TTJets' :    {c:TTJetsSample for c in channels},
+        'TTZ' :       {c:TTZ for c in channels},
+        'other'  :    {'MuMu':Sample.combine('other', [otherEWKBkgs, QCD_Mu5]), 
+                       'EE': Sample.combine('other', [otherEWKBkgs,QCD_EMbcToE]), 
+                       'EMu':Sample.combine('other', [otherEWKBkgs, QCD_Mu5EMbcToE])},
+        'Data'   :    {'MuMu':DoubleMuon_Run2015D, 
+                       'EE': DoubleEG_Run2015D, 
+                       'EMu':MuonEG_Run2015D},
         }
 
-    def loadChains(self):
-        for s in sum([s.values() for s in self.sample.values()],[]):
-            loadChain(s)# if not type(s)==type([]) else [loadChain(t) for t in s]
+#    def loadChains(self):
+#        for s in sum([s.values() for s in self.sample.values()],[]):
+#            loadChain(s)# if not type(s)==type([]) else [loadChain(t) for t in s]
 
     def prefix(self):
         return '_'.join(self.prefixes+[self.preselection('MC', zWindow='allZ')['prefix']])
 
     def defaultCacheDir(self):
-        return os.path.join(self.analysisOutputDir, self.prefix(), 'cacheFiles')
+        return os.path.join(self.analysis_results, self.prefix(), 'cacheFiles')
 
     #Clone the setup and optinally modify the systematic variation
     def sysClone(self, sys=None, parameters=None):
@@ -104,7 +119,7 @@ class Setup:
                                 channel = 'all', zWindow = 'offZ', hadronicSelection = False):
         '''Define full selection
 dataMC: 'Data' or 'MC'
-channel: EE, MuMu or EMu
+channel: all, EE, MuMu or EMu
 zWindow: offZ, onZ, or allZ
 hadronicSelection: whether to return only the hadronic selection
   '''
@@ -136,27 +151,17 @@ hadronicSelection: whether to return only the hadronic selection
             res['prefixes'].append(lstr)
 
         if nBTags and not ( nBTags[0]==0 and nBTags[1]<0):
-            assert not (self.sys['selectionModifier'] and self.sys['useBTagWeights']), "Can't use both, selectionModifier and useBTagWeights!"
             #btag prefix string
             bPrefix = "nbtag"+str(nBTags[0])
             if nBTags[1]>=0:
                 if nBTags[1]!=nBTags[0]: bPrefix+=str(nBTags[1])
             if nBTags[1]<0: bPrefix+='p'
             res['prefixes'].append(bPrefix)
-            #if we're using cuts...
-            if not self.sys['useBTagWeights']:
-                assert nBTags[0]>=0 and (nBTags[1]>=nBTags[0] or nBTags[1]<0), "Not a good nBTags selection: %r, useBTagWeights %s"%(nBTags, self.sys['useBTagWeights'])
-                nbtstr = "nBTags"+sysStr+">="+str(nBTags[0])
-                if nBTags[1]>=0:
-                    nbtstr+= "&&nBTags"+sysStr+"<="+str(nBTags[1])
-                res['cuts'].append(nbtstr)
-            else: #if we're using weights (-> no cuts)
-                assert self.sys['useBTagWeights'] in ['MC', 'SF', 'SF_b_Up', 'SF_b_Down', 'SF_l_Up', 'SF_l_Down', 'SF_FS_Up', 'SF_FS_Down'], 'Unknown b-tag weight: %r'%self.sys['useBTagWeights']
-                assert nBTags[0]>=0 and (nBTags[1]==nBTags[0] or nBTags[1]<0),    "Not a good nBTags selection: %r, useBTagWeights %s"%(nBTags, self.sys['useBTagWeights'])
-                rwstr = "reweightBTag"+str(nBTags[0])
-                if nBTags[1]<0: rwstr+='p'
-                rwstr += '_'+self.sys['useBTagWeights'] #append b-tag weight
-                res['reweight'].append(rwstr)
+            assert nBTags[0]>=0 and (nBTags[1]>=nBTags[0] or nBTags[1]<0), "Not a good nBTags selection: %r"% nBTags
+            nbtstr = "nBTags"+sysStr+">="+str(nBTags[0])
+            if nBTags[1]>=0:
+                nbtstr+= "&&nBTags"+sysStr+"<="+str(nBTags[1])
+            res['cuts'].append(nbtstr)
 
         if metMin and metMin>0:
           res['cuts'].append('met_pt'+sysStr+'>='+str(metMin))
@@ -207,8 +212,11 @@ hadronicSelection: whether to return only the hadronic selection
                 chStr = "("+pMuMu+'||'+pEE+'||'+pEMu+')'
             res['cuts'].append(chStr)
         if dataMC=='Data':
-            filterCut = "(Flag_HBHENoiseFilter&&Flag_goodVertices&&Flag_CSCTightHaloFilter&&Flag_eeBadScFilter&&weight>0)"
-            res['cuts'].append(filterCut)
+            filterCut = filterCutData
+        else:
+            filterCut = filterCutMC
+    
+        res['cuts'].append(filterCut)
 
         res['cuts'].extend(self.externalCuts)
 
