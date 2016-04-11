@@ -12,10 +12,10 @@ dirs['TTJets']           = ["TTJets_comb"]
 #dirs['TTLep_pow']        = ["TTLep_pow"]
 #dirs['TTJets_Lep']       = ["TTJets_DiLepton_comb", "TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT_comb"]
 #dirs['TTJets_HT_LO']     = ["TTJets_LO_HT600to800_comb", "TTJets_LO_HT800to1200", "TTJets_LO_HT1200to2500_comb", "TTJets_LO_HT2500toInf"]
-dirs['singleT']          = ["TBar_tWch", "TToLeptons_tch_amcatnlo_comb", "T_tWch"] # ["TBar_tWch_DS", "T_tWch_DS", "TToLeptons_sch"]
-dirs['TTX']              = ["TTHbb_ext1_comb", "TTHnobb_mWCutfix_ch0_comb", "TTWToLNu", "TTWToQQ",  "TTZToLLNuNu", "TTZToQQ", "tZq_ll", "tZq_nunu"]
-dirs['TTXNoZ']           = ["TTHbb_ext1_comb", "TTHnobb_mWCutfix_ch0_comb", "TTWToLNu", "TTWToQQ", "tZq_ll", "tZq_nunu"]
-dirs['TTH']              = ["TTHbb_ext1_comb", "TTHnobb_mWCutfix_ch0_comb"]
+dirs['singleTop']          = ["TBar_tWch", "TToLeptons_tch_amcatnlo_comb", "T_tWch"] # ["TBar_tWch_DS", "T_tWch_DS", "TToLeptons_sch"]
+dirs['TTX']              = ["TTHbb_comb", "TTHnobb_mWCutfix_ch0_comb", "TTWToLNu", "TTWToQQ",  "TTZToLLNuNu", "TTZToQQ", "tZq_ll", "tZq_nunu"]
+dirs['TTXNoZ']           = ["TTHbb_comb", "TTHnobb_mWCutfix_ch0_comb", "TTWToLNu", "TTWToQQ", "tZq_ll", "tZq_nunu"]
+dirs['TTH']              = ["TTHbb_comb", "TTHnobb_mWCutfix_ch0_comb"]
 dirs['TTW']              = ["TTWToLNu", "TTWToQQ"]
 dirs['TTZ']              = ["TTZToLLNuNu", "TTZToQQ"]
 dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu"]
@@ -49,7 +49,7 @@ TTJets         = Sample.fromDirectory(name="TTJets",           treeName="Events"
 #TTLep_pow      = Sample.fromDirectory(name="TTLep_pow",        treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets (lep,pow)", directory=dirs['TTLep_pow'])
 #TTJets_Lep     = Sample.fromDirectory(name="TTJets_Lep",       treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets (lep)",     directory=dirs['TTJets_Lep'])
 #TTJets_HT_LO   = Sample.fromDirectory(name="TTJets_HT_LO",     treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets (HT,LO)",   directory=dirs['TTJets_HT_LO'])
-singleTop      = Sample.fromDirectory(name="singleT",          treeName="Events", isData=False, color=40,             texName="single top",                directory=dirs['singleT'])
+singleTop      = Sample.fromDirectory(name="singleTop",          treeName="Events", isData=False, color=40,             texName="single top",                directory=dirs['singleTop'])
 TTX            = Sample.fromDirectory(name="TTX",              treeName="Events", isData=False, color=ROOT.kPink,     texName="t#bar{t}X",                 directory=dirs['TTX'])
 TTXNoZ         = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=ROOT.kPink,     texName="t#bar{t}H/W, tZq",          directory=dirs['TTXNoZ'])
 TTH            = Sample.fromDirectory(name="TTH",              treeName="Events", isData=False, color=ROOT.kPink-4,   texName="t#bar{t}H",                 directory=dirs['TTH'])
