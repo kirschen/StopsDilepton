@@ -9,7 +9,7 @@ python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M50_HT600toIn
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M10to50
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M10to50 --LHEHTCut=100
 #python cmgPostProcessing.py --skim=$1 $2 $3   --samples DYJetsToLL_M5to50_LO
-python cmgPostProcessing.py --skim=$1 $2 $3   --samples DYJetsToLL_M5to50_LO --lheHTCut=200
+python cmgPostProcessing.py --skim=$1 $2 $3   --samples DYJetsToLL_M5to50_LO --LHEHTCut=200
 #python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M5to50_HT100to200
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M5to50_HT200to400
 python cmgPostProcessing.py --skim=$1 $2  $3  --samples DYJetsToLL_M5to50_HT400to600

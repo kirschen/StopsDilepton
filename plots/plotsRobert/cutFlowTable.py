@@ -1,23 +1,23 @@
 import ROOT
 
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
+#from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 #from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_1l_postProcessed import *
+from RootTools.core.standard import *
 
 from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain
 
-small = False
-
+maxN = -1
 #Define chains for signals and backgrounds
 samples = [
-    DY_HT_LO, TTJets_Lep, TTZ, TTXNoZ, singleTop, WJetsToLNu_HT, diBoson, triBoson, QCD_Mu5EMbcToE, T2tt_450_0
 #    DY_HT_LO, TTJets_Lep, TTZ, TTXNoZ, singleTop, diBoson, triBoson, QCD_Mu5EMbcToE
-#   Sample.fromDirectory(name="TTJets_Lep",       treeName="Events", isData=False, color=7,              texName="t#bar{t} + Jets (lep)",     directory=['/scratch/rschoefbeck/cmgTuples/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_ext/']) 
+ Sample.fromFiles(name="T2tt_450_0", treeName="Events", isData=False, color=ROOT.kBlack, texName="T2tt(450,0)", files=['/scratch/rschoefbeck/cmgTuples/postProcessed_Fall15_mAODv2/dilep/T2tt/T2tt_450_0.root'], maxN = maxN), 
+ Sample.fromDirectory(name="TTJets_Lep", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (lep)", directory=['/scratch/rschoefbeck/cmgTuples/fromTom/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) 
 ]
 
 from StopsDilepton.tools.objectSelection import multiIsoLepString
-multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
+multiIsoWPVTVT = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
+multiIsoWPMT = multiIsoLepString('M','T', ('l1_index','l2_index'))
 relIso04sm12Cut =   "&&".join(["LepGood_relIso04["+ist+"]<0.12" for ist in ('l1_index','l2_index')])
-
 
 cuts=[
   ("==2 leptons", "nGoodMuons+nGoodElectrons==2"),
@@ -30,7 +30,10 @@ cuts=[
   ("MET/sqrt(HT)>5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
   ("dPhi(JetGood_1,2|MET)>0.25", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
   ("MT2(ll) > 140", "dl_mt2ll>140"),
-  ("multiIso M(Mu), T(Ele)", multiIsoWP),
+  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
+  ("multiIso M(Mu), T(Ele)", multiIsoWPMT),
+  ("multiIso VT(Mu), VT(Ele)", multiIsoWPVTVT),
+  ("filterCut", "Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter" ),
 # ("relIso04<0.12", relIso04sm12Cut),
 
 # ("MT2(ll) > 240", "dl_mt2ll>240"),

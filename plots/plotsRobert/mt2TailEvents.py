@@ -18,14 +18,14 @@ lumiScale = 10.
 lepPdgs = [11,13,15]
 nuPdgs = [12,14,16]
 
-#load all the samples
-#from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
-
 maxN = -1
 
-#samples=[TTJets_Lep]
 samples = [ Sample.fromDirectory(name="TTJets_Lep", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (lep)", \
             directory=['/scratch/rschoefbeck/cmgTuples/fromTom/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) ]
+
+from StopsDilepton.tools.objectSelection import multiIsoMuId, multiIsoEleId
+muID = multiIsoMuId("VT")
+eleID = multiIsoEleId("VT")
 
 def vecPtSum(objs, subtract=[]):
     px = sum([o['pt']*cos(o['phi']) for o in objs])
@@ -42,6 +42,7 @@ multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 cuts=[
   ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
+  ("filterCut", "Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter" ),
   ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
   ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
   ("mll20", "dl_mass>20"),
@@ -54,30 +55,11 @@ cuts=[
 #  ("mRelIso01", "LepGood_miniRelIso[l1_index]<0.1&&LepGood_miniRelIso[l2_index]<0.1"),
   ("multiIsoWP", multiIsoWP),
   ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
-#  ("ecalDeadCellTPFilter", "(!(run==1&&lumi==45896&&evt==38047218))&&(!(run==1&&lumi==24231&&evt==20087421))&&(!(run==1&&lumi==63423&&evt==52577001))&&(!(run==1&&lumi==87234&&evt==72316782))&&(!(run==1&&lumi==30168&&evt==25009164))"),
-#("evt","evt==847303"),#lepton from a jet?
-#("evt", "evt==24638863") #fake lepton?
-#("evt","evt==3916824")
-#("evt","evt==5439514")#jet mism and photon radiation?
-#("evt","evt==22105179") #electron from top???
-#("evt","evt==12255583")
-#("evt","evt==72477272")
-#("evt","evt==32462388")
-#("evt","evt==18695814")
-# ("evt","evt==6960642"), #high pt nu
-# ("evt","evt==7955897"), #700GeV genMet
-#("evt","evt==67750352"), #ele from hadron
-#("evt","evt==24638863"),#lep-mism 490.78
-#("evt","evt==7955897"),#lep-mism 312.65 (matched to l from -24,24)
-#("evt","evt==68529377")# muon with large pt error
-
+#  ("evt", "evt==68296914")
     ]
+
 #prefix+="_tauVeto_mRelIso01_looseLepVeto"
 preselection = "&&".join([c[1] for c in cuts])
-
-#ttjets['chain'].Scan('Sum$(abs(genPartAll_pdgId)==11&&abs(genPartAll_motherId)==24):Sum$(abs(genPartAll_pdgId)==13&&abs(genPartAll_motherId)==24):Sum$(abs(genPartAll_pdgId)==15&&abs(genPartAll_motherId)==24)', 'isEMu==1&&dl_mt2ll>140&&'+preselection)
-#ttjets['chain'].Scan('genPartAll_pdgId:genPartAll_motherId:genPartAll_pt:genPartAll_phi:genPartAll_eta:LepGood_pt:LepGood_eta:LepGood_phi', 'abs(genPartAll_pdgId)==13&&isMuMu==1&&dl_mt2ll>140&&'+preselection)
-
 
 def dRMatch(coll, dR=0.4, checkPdgId=False):
     def match(l):
@@ -87,8 +69,6 @@ def dRMatch(coll, dR=0.4, checkPdgId=False):
     return match
 
 for s in samples:
-#  for pk in plots.keys():
-#    plots[pk]['histo'][s['name']] = ROOT.TH1F("met_"+s.name, "met_"+s.name, *(plots[pk]['binning']))
 
     print "Looping over %s" % s.name
     eList = getEList(s.chain, preselection+"&&dl_mt2ll>140")
@@ -161,6 +141,10 @@ for s in samples:
         mu      = filter(lambda l: abs(l['pdgId'])==13, leptons)
         ele     = filter(lambda l: abs(l['pdgId'])==11, leptons)
         tau     = getGoodTaus(s.chain)
+
+#multi-iso minValues
+        min_jetPtRatiov2 = min(l['jetPtRatiov2'] for l in leptons)
+        min_jetPtRelv2   = min(l['jetPtRelv2'] for l in leptons)
 
 #RECO mathes
         muMatched   = filter(lambda l: abs(l['mcMatchAny'])==1, mu)
@@ -335,6 +319,7 @@ for s in samples:
                 if leptonsFailRelIso04: leptonsFailRelIso04Str=bold('>=1 lep fails relIso04<0.1!')
                 if leptonsFailRelIso04_012: leptonsFailRelIso04Str=bold('>=1 lep fails relIso04<0.12!')
                 print " "*41+"lep-m %i %s %6.2f %s. %s %s" %(len(lepMatched),lepStr, lepDMet, mmatch, leptonsFailRelIso03Str, leptonsFailRelIso04Str)
+                print " "*41, "min_jetPtRatiov2", min_jetPtRatiov2, "min_jetPtRelv2", min_jetPtRelv2
                 print
                 if deltaMet>100:  counterRecofake_fakeMet100[mode][gMode]+=1
                 if deltaMet>200:  counterRecofake_fakeMet200[mode][gMode]+=1

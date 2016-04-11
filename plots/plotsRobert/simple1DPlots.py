@@ -87,7 +87,8 @@ else:
     raise ValueError( "Mode %s not known"%args.mode )
 
 # Extra requirements on data
-filterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&vetoPassed&&jsonPassed&&weight>0)"
+dataFilterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
+mcFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
 
 data_sample.style = styles.errorStyle( ROOT.kBlack )
 
@@ -134,9 +135,9 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
 #for i_comb in range(len(cuts)+1):
     for comb in itertools.combinations( cuts, i_comb ):
 
-        data_sample.setSelectionString([filterCut, trigger])
+        data_sample.setSelectionString([dataFilterCut, trigger])
         for sample in mc:
-            sample.setSelectionString([ trigger ])
+            sample.setSelectionString([ mcFilterCut, trigger ])
 
         presel = [("isOS","isOS")] 
         presel.extend( comb )

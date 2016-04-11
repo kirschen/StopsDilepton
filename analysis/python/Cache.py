@@ -15,13 +15,6 @@ class Cache:
             if self.verbosity>=2: print "File %s not found or corrupted. Starting new cache."%filename
             self._cache = {}
 
-#  def restartCache(self):
-#    if self.verbosity>=1: print "Deleting results in memory"
-#    self._cache = {}
-#    if os.path.exists(self.filename):
-#      if self.verbosity>=1: print "Deleting old cache file %s"%self.filename
-#      os.remove(self.filename)
-
     def contains (self, key):
         return key in self._cache
 
