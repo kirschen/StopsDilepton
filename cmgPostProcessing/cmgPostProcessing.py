@@ -350,7 +350,9 @@ if isMC:
     if options.skim.lower().count('tiny'):
         jetMCInfo = ['mcPt/F', 'hadronFlavour/I']
     else:
-        jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'partonFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
+        jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
+        if not options.T2tt: 
+            jetMCInfo.append('partonFlavour/I')
 else: 
     jetMCInfo = []
 
