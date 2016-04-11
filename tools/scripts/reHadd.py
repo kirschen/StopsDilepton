@@ -17,6 +17,14 @@ def get_parser():
         help="Name of the directory to be re-hadded"
         )
 
+    argParser.add_argument('--skip',
+        action='store',
+        nargs='*',
+        type=str,
+        default=[ 'T2tt', 'TTbarDMJets' ],
+        help="Substrings in filename that should not be touched."
+        )
+
 #    argParser.add_argument('--targetDir',
 #        action='store',
 #        nargs='?',
@@ -79,15 +87,21 @@ for dirName, subdirList, fileList in os.walk(options.dir):
     for f in fileList:
         if f.endswith('.root'):
             if not '_reHadd_' in f:
+                to_skip = False
+                for skip in options.skip:
+                    if skip in f:
+                        logger.info( "Found skip string %s in %s. Skipping.", skip, f )
+                        to_skip = True
+                        break
+                if to_skip: continue
                 isOK =  checkRootFile( os.path.join(dirName, f), checkForObjects = [options.treeName]) \
                         if options.treeName is not None else checkRootFile( os.path.join(dirName, f) )
                 if isOK:
                     rootFiles.append( f )
                 else:
-                    
                     logger.warning( "File %s does not look OK. Checked for tree: %r", f, options.treeName )
             else:
-                logger.warning( "Found '_reHadd_' in file %s in %s. Skipping.", f, dirName )
+                logger.info( "Found '_reHadd_' in file %s in %s. Skipping.", f, dirName )
     job = []
     jobsize = 0
     for fname in rootFiles:
@@ -112,7 +126,8 @@ for job in jobs:
 
     fnames = list(set([ '_'.join( os.path.splitext(fname)[0].split('_')[:-1] ) for fname in job]))
     if not len(fnames)==1:
-        raise ValueError("Problem in job %r: Filenames are not consistent. Found %r", job, fnames)
+        logger.warning("Problem in job %r: Filenames are not consistent. Found %r. Do nothing.", job, fnames)
+        continue
     basename = fnames[0]
     if not basename_counter.has_key(basename): 
         basename_counter[basename] = 0
