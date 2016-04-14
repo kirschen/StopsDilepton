@@ -130,7 +130,7 @@ def wrapper(s):
                     c.addUncertainty(uname, 'lnN')
                     c.specifyUncertainty(uname, binname, 'signal', 1 + sqrt(0.1**2 + signal.sigma/signal.val) )
 
-                if signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg==0:# or (total_exp_bkg>300 and signal.val<0.05):
+                if signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg<=0:# or (total_exp_bkg>300 and signal.val<0.05):
                     if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
                     c.muted[binname] = True
                 else:

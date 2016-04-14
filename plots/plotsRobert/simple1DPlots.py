@@ -26,16 +26,28 @@ argParser.add_argument('--mode',
     choices=['doubleMu', 'doubleEle',  'muEle'])
 
 argParser.add_argument('--zMode',
-    default='allZ',
+    default='offZ',
     action='store',
     choices=['onZ', 'offZ', 'allZ']
 )
 
+argParser.add_argument('--noData',
+    action='store_true',
+    help='Skip data',
+)
+
 argParser.add_argument('--small',
     action='store_true',
-#    default=True,
-    help='Just a small subset?',
+    help='Small?',
 )
+
+argParser.add_argument('--signals',
+    action='store',
+    nargs='*',
+    type=str,
+    default=[],
+    help="Signals?"
+    )
 
 argParser.add_argument('--overwrite',
 #    default = False,
@@ -70,17 +82,17 @@ def getZCut(mode):
 
 if args.mode=="doubleMu":
     leptonSelectionString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
-    data_sample = DoubleMuon_Run2015D
+    data_sample = DoubleMuon_Run2015D if not args.noData else None
     qcd_sample = QCD_Mu5 #FIXME
     trigger     = "HLT_mumuIso"
 elif args.mode=="doubleEle":
     leptonSelectionString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
-    data_sample = DoubleEG_Run2015D
+    data_sample = DoubleEG_Run2015 if not args.noData else NoneD
     qcd_sample = QCD_EMbcToE
     trigger   = "HLT_ee_DZ"
 elif args.mode=="muEle":
     leptonSelectionString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
-    data_sample = MuonEG_Run2015D
+    data_sample = MuonEG_Run2015 if not args.noData else NoneD
     qcd_sample = QCD_Mu5EMbcToE
     trigger    = "HLT_mue"
 else:
@@ -90,17 +102,22 @@ else:
 dataFilterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
 mcFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
 
-data_sample.style = styles.errorStyle( ROOT.kBlack )
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ DY_HT_LO, TTJets, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, triBoson]
+mc = [ DY_HT_LO, TTJets, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
 #mc = [ TTX]
-lumi_scale = data_sample.lumi/1000
-for sample in mc:
-    sample.style = styles.fillStyle(sample.color)
+if args.small:
+    TTJets.reduceFiles(to = 1)
+    DY_HT_LO.reduceFiles(to = 1)
 
-# user data
+if not args.noData:
+    data_sample.style = styles.errorStyle( ROOT.kBlack )
+    lumi_scale = data_sample.lumi/1000
+
+for sample in mc:
+    sample.style = styles.fillStyle( sample.color)
+
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
@@ -109,7 +126,7 @@ weight = lambda data:data.weight
 cuts=[
     ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
     ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
-    ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
+#    ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
     ("mll20", "dl_mass>20"),
     ("met80", "met_pt>80"),
     ("metSig5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
@@ -121,21 +138,48 @@ def drawObjects( dataMCScale ):
     tex.SetNDC()
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
-    lines = [
-    (0.15, 0.95, 'CMS Preliminary'), 
-    (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(data_sample.lumi/100)/10., dataMCScale ) )
-    ]
+
+    lines = [ (0.15, 0.95, 'CMS Preliminary') ]
+    if dataMCScale is not None: 
+        lines.append( (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(data_sample.lumi/100)/10., dataMCScale ) ) )
+    else:
+        lines.append( (0.50, 0.95, '13 TeV' ) )
     return [tex.DrawLatex(*l) for l in lines] 
 
-stack = Stack(mc, [data_sample])
+stack = Stack(mc)
+if not args.noData:
+    stack.append( [data_sample] )
+
+if len(args.signals)>0:
+    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
+    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
+    for s in args.signals:
+        if "*" in s:
+            split = s.split("*")
+            sig, fac = split[0], int(split[1])
+        else:
+            sig, fac = s, 1
+        try:
+            stack.append( [eval(sig)] )
+            if hasattr(stack[-1][0], "scale"): 
+                stack[-1][0].scale*=fac
+            elif fac!=1:
+                stack[-1][0].scale = fac
+            else: pass
+
+            if fac!=1:
+                stack[-1][0].name+=" x"+str(fac)                
+            logger.info( "Adding sample %s with factor %3.2f", sig, fac)
+        except NameError:
+            logger.warning( "Could not add signal %s", s)
 
 ##for i_comb in [0]:
-#for i_comb in [len(cuts)]:
-for i_comb in reversed( range( len(cuts)+1 ) ):
+for i_comb in [len(cuts)]:
+#for i_comb in reversed( range( len(cuts)+1 ) ):
 #for i_comb in range(len(cuts)+1):
     for comb in itertools.combinations( cuts, i_comb ):
 
-        data_sample.setSelectionString([dataFilterCut, trigger])
+        if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
         for sample in mc:
             sample.setSelectionString([ mcFilterCut, trigger ])
 
@@ -152,16 +196,20 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
 
         selectionString = "&&".join( [p[1] for p in presel] + [leptonSelectionString] )
 
-        logger.info( "Calculating normalization constants" )        
-        yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc)
-        yield_data  = data_sample.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
-
-        for sample in mc:
-            dataMCScale = yield_data/(yield_mc*lumi_scale)
-            sample.scale = lumi_scale*dataMCScale
-
         logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionString )
-        logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
+
+        if not args.noData:
+            logger.info( "Calculating normalization constants" )        
+            yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc)
+            yield_data  = data_sample.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
+
+            for sample in mc:
+                dataMCScale = yield_data/(yield_mc*lumi_scale)
+                sample.scale = lumi_scale*dataMCScale
+
+            logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
+        else:
+            dataMCScale = None 
 
         plots = []
 
@@ -516,9 +564,12 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]"]
         plotting.fill(plots, read_variables = read_variables)
         if not os.path.exists( plot_path ): os.makedirs( plot_path )
+
+        ratio = {'yRange':(0.1,1.9)} if not args.noData else None
+
         for plot in plots:
             plotting.draw(plot, 
-                plot_directory = plot_path, ratio = {'yRange':(0.1,1.9)}, 
+                plot_directory = plot_path, ratio = ratio, 
                 logX = False, logY = True, sorting = True, 
                 yRange = (0.03, "auto"), 
                 drawObjects = drawObjects( dataMCScale )

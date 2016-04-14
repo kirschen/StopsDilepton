@@ -43,8 +43,8 @@ class SystematicEstimator:
 
     def PUSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'weight':'weightPUUp'}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'weight':'weightPUDown'}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUUp']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUDown']}))
         return 0.5*(up-down)/ref
 
     def topPtSystematic(self, region, channel, setup):
@@ -71,27 +71,27 @@ class SystematicEstimator:
         return 0.5*(up-down)/ref
 
     def btaggingSFbSystematic(self, region, channel, setup):
-        ref     = self.cachedEstimate(region, channel, setup.sysClone({'useBTagWeights':'SF'}))
-        up      = self.cachedEstimate(region, channel, setup.sysClone({'useBTagWeights':'SF_b_Up'}))
-        down    = self.cachedEstimate(region, channel, setup.sysClone({'useBTagWeights':'SF_b_Down'}))
+        ref     = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
+        up      = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']}))
+        down    = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']}))
         return 0.5*(up-down)/ref
 
     def btaggingSFlSystematic(self, region, channel, setup):
-        ref     = self.cachedEstimate(region, channel, setup.sysClone({'useBTagWeights':'SF'}))
-        up      = self.cachedEstimate(region, channel, setup.sysClone({'useBTagWeights':'SF_l_Up'}))
-        down    = self.cachedEstimate(region, channel, setup.sysClone({'useBTagWeights':'SF_l_Down'}))
+        ref     = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
+        up      = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']}))
+        down    = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']}))
         return 0.5*(up-down)/ref
 
     def btaggingSFFSSystematic(self, region, channel, setup):
-        ref     = self.cachedEstimate(region, channel, setup.sysClone({'useBTagWeights':'SF'}))
-        up      = self.cachedEstimate(region, channel, setup.sysClone({'useBTagWeights':'SF_FS_Up'}))
-        down    = self.cachedEstimate(region, channel, setup.sysClone({'useBTagWeights':'SF_FS_Down'}))
+        ref     = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
+        up      = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Up']}))
+        down    = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']}))
         return 0.5*(up-down)/ref
 
     def getBkgSysJobs(self, region, channel, setup):
-        return [
-            (region, channel, setup.sysClone({'weight':'weightPUUp'})),
-            (region, channel, setup.sysClone({'weight':'weightPUDown'})),
+        l = [
+            (region, channel, setup.sysClone({'reweight':['reweightPUUp']})),
+            (region, channel, setup.sysClone({'reweight':['reweightPUDown']})),
 
             (region, channel, setup.sysClone({'reweight':['reweightTopPt']})),
 
@@ -101,29 +101,24 @@ class SystematicEstimator:
             (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
             (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
 
-#      (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSF']})),
-#      (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']})),
-#      (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
 
-            (region, channel, setup.sysClone({'useBTagWeights':'SF'})),
-            (region, channel, setup.sysClone({'useBTagWeights':'SF_b_Up'})),
-            (region, channel, setup.sysClone({'useBTagWeights':'SF_b_Down'})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']})),
 
-            (region, channel, setup.sysClone({'useBTagWeights':'SF'})),
-            (region, channel, setup.sysClone({'useBTagWeights':'SF_l_Up'})),
-            (region, channel, setup.sysClone({'useBTagWeights':'SF_l_Down'})),
-
-            (region, channel, setup.sysClone({'useBTagWeights':'SF'})),
-#      (region, channel, setup.sysClone({'useBTagWeights':'SF_FS_Up'})),
-#      (region, channel, setup.sysClone({'useBTagWeights':'SF_FS_Down'})),
         ]
-    def getSigSysJobs(self, region, channel, setup):
-        return [
+        return l
 
-            (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSF']})),
-            (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']})),
-            (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
-
-            (region, channel, setup.sysClone({'useBTagWeights':'SF_FS_Up', 'reweight':['reweightLeptonFastSimSF']})),
-            (region, channel, setup.sysClone({'useBTagWeights':'SF_FS_Down', 'reweight':['reweightLeptonFastSimSF']})),
-        ]
+    def getSigSysJobs(self, region, channel, setup, isFastSim = False):
+        l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
+        if isFastSim:
+            l.extend( [\
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Up']})),
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']})),
+                (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSF']})),
+                (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']})),
+                (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
+            ] )
+        return l

@@ -2,8 +2,8 @@ from StopsDilepton.tools.helpers import getYieldFromChain
 from math import sqrt
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.analysis.u_float import u_float
-from StopsDilepton.tools.helpers import printHeader
 from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
+#from StopsDilepton.tools.helpers import printHeader
 
 
 class DataDrivenTTZEstimate(SystematicEstimator):
@@ -14,7 +14,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         self.nMediumBTags = (1,-1) #bjet selection
 #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup):
-        printHeader("DD TTZ prediction for '%s' channel %s" %(self.name, channel))
+#        printHeader("DD TTZ prediction for '%s' channel %s" %(self.name, channel))
 
         #Sum of all channels for 'all'
         if channel=='all':
@@ -58,11 +58,11 @@ class DataDrivenTTZEstimate(SystematicEstimator):
                 )['cut']
 
             #loose bjet selection added here
-            MC_hadronSelection += '&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.605)>='+str(self.nLooseBTags[0])
-            data_hadronSelection += '&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.605)>='+str(self.nLooseBTags[0])
+            MC_hadronSelection += '&&Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605)>='+str(self.nLooseBTags[0])
+            data_hadronSelection += '&&Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605)>='+str(self.nLooseBTags[0])
             if self.nLooseBTags[1]>0:
-                MC_hadronSelection += '&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.605)<='+str(self.nLooseBTags[1])
-                data_hadronSelection += '&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.605)<='+str(self.nLooseBTags[1])
+                MC_hadronSelection += '&&Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605)<='+str(self.nLooseBTags[1])
+                data_hadronSelection += '&&Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605)<='+str(self.nLooseBTags[1])
 
             MC_MuMuMu = "&&".join([
                 MC_hadronSelection,

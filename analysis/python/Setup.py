@@ -3,6 +3,11 @@ import copy
 
 # RootTools
 from RootTools.core.standard import *
+
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+
 #user specific
 from StopsDilepton.tools.user import analysis_results
 
@@ -10,11 +15,11 @@ from StopsDilepton.tools.user import analysis_results
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 
-#choices for specific samples
-DYSample      = DY 
-#DYSample      = DY_HT_LO #LO, HT binned including a low HT bin starting from zero from the inclusive sample
-TTJetsSample  = TTJets #NLO
-#TTJetsSample  = TTJets_Lep #LO, very large dilep + single lep samples
+#Choices for specific samples
+#DYSample      = DY 
+DYSample      = DY_HT_LO #LO, HT binned including a low HT bin starting from zero from the inclusive sample
+#TTJetsSample  = TTJets #NLO
+TTJetsSample  = TTJets_Lep #LO, very large dilep + single lep samples
 WJetsSample = WJetsToLNu #WJetsToLNu_HT
 otherEWKBkgs   = Sample.combine("otherBkgs", [singleTop, diBoson, WZZ,  TTXNoZ, WJetsSample], texName = "other bkgs.")
 
@@ -42,7 +47,6 @@ filterCutMC   = filterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Fla
 
 class Setup:
     def __init__(self):
-        self.verbose=False
         self.analysis_results = analysis_results
         self.zMassRange   = zMassRange
         self.prefixes = []
@@ -58,7 +62,8 @@ class Setup:
             'nBTags': default_nBTags, 
             'leptonCharges': default_leptonCharges, 
             'useTriggers':default_useTriggers}
-        self.sys          = {'weight':'weightPU', 'reweight':[], 'selectionModifier':None}
+#        self.sys          = {'weight':'weight', 'reweight':['reweightPU'], 'selectionModifier':None}
+        self.sys          = {'weight':'weight', 'reweight':[], 'selectionModifier':None}
         self.lumi=lumi
 
         self.sample = {
@@ -73,10 +78,6 @@ class Setup:
                        'EMu':MuonEG_Run2015D},
         }
 
-#    def loadChains(self):
-#        for s in sum([s.values() for s in self.sample.values()],[]):
-#            loadChain(s)# if not type(s)==type([]) else [loadChain(t) for t in s]
-
     def prefix(self):
         return '_'.join(self.prefixes+[self.preselection('MC', zWindow='allZ')['prefix']])
 
@@ -86,20 +87,24 @@ class Setup:
     #Clone the setup and optinally modify the systematic variation
     def sysClone(self, sys=None, parameters=None):
         '''Clone setup and change systematic if provided'''
+
         res     = copy.copy(self)
         res.sys = copy.deepcopy(self.sys)
         res.parameters = copy.deepcopy(self.parameters)
+
         if sys:
             for k in sys.keys():
                 if k=='reweight':
                     res.sys[k]=list(set(res.sys[k]+sys[k])) #Add with unique elements
-#          res.sys[k] = res.sys[k]+sys[k]
-                    if len(res.sys[k])!=len(list(set(res.sys[k]))): print "Warning! non-exclusive list of reweights: %s"% ",".join(res.sys['k'])
+                    #  res.sys[k] = res.sys[k]+sys[k] # <-- this line allows to have reweights multiple times
+                    if len(res.sys[k])!=len(list(set(res.sys[k]))): logger.warning( "Warning! non-exclusive list of reweights: %s", ",".join(res.sys['k']) )
                 else:
                     res.sys[k]=sys[k]# if sys[k] else res.sys[k]
+
         if parameters:
             for k in parameters.keys():
                 res.parameters[k]=parameters[k]# if parameters[k] else res.parameters[k]
+
         return res
 
     def defaultParameters(self, update={}):
@@ -140,10 +145,10 @@ hadronicSelection: whether to return only the hadronic selection
 
         if nJets and not ( nJets[0]==0 and nJets[1]<0):
             assert nJets[0]>=0 and (nJets[1]>=nJets[0] or nJets[1]<0), "Not a good nJets selection: %r"%nJets
-            njetsstr = "nGoodJets"+sysStr+">="+str(nJets[0])
+            njetsstr = "nJetGood"+sysStr+">="+str(nJets[0])
             lstr = "nJets"+str(nJets[0])
             if nJets[1]>=0:
-                njetsstr+= "&&"+"nGoodJets"+sysStr+"<="+str(nJets[1])
+                njetsstr+= "&&"+"nJetGood"+sysStr+"<="+str(nJets[1])
                 if nJets[1]!=nJets[0]: lstr+=str(nJets[1])
             else:
                 lstr+='p'
@@ -158,9 +163,9 @@ hadronicSelection: whether to return only the hadronic selection
             if nBTags[1]<0: bPrefix+='p'
             res['prefixes'].append(bPrefix)
             assert nBTags[0]>=0 and (nBTags[1]>=nBTags[0] or nBTags[1]<0), "Not a good nBTags selection: %r"% nBTags
-            nbtstr = "nBTags"+sysStr+">="+str(nBTags[0])
+            nbtstr = "nBTag"+sysStr+">="+str(nBTags[0])
             if nBTags[1]>=0:
-                nbtstr+= "&&nBTags"+sysStr+"<="+str(nBTags[1])
+                nbtstr+= "&&nBTag"+sysStr+"<="+str(nBTags[1])
             res['cuts'].append(nbtstr)
 
         if metMin and metMin>0:
@@ -170,7 +175,7 @@ hadronicSelection: whether to return only the hadronic selection
           res['cuts'].append('met_pt'+sysStr+'/sqrt(ht)'+sysStr+'>='+str(metSigMin))
           res['prefixes'].append('metSig'+str(metSigMin))
         if dPhiJetMet>=0.:
-          res['cuts'].append('cos(met_phi'+sysStr+'-Jet_phi[0])<cos('+str(dPhiJetMet)+')&&cos(met_phi'+sysStr+'-Jet_phi[1])<cos('+str(dPhiJetMet)+')')
+          res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<cos('+str(dPhiJetMet)+')&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos('+str(dPhiJetMet)+')')
           res['prefixes'].append('dPhiJet0-dPhiJet')
 
         if not hadronicSelection:
