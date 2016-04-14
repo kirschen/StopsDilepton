@@ -21,7 +21,7 @@ nuPdgs = [12,14,16]
 maxN = -1
 
 samples = [ Sample.fromDirectory(name="TTJets_Lep", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (lep)", \
-            directory=['/scratch/rschoefbeck/cmgTuples/fromTom/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) ]
+            directory=['/scratch/rschoefbeck/cmgTuples/fromTom_reHadd/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) ]
 
 from StopsDilepton.tools.objectSelection import multiIsoMuId, multiIsoEleId
 muID = multiIsoMuId("VT")

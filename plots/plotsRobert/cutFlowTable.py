@@ -1,7 +1,8 @@
 import ROOT
 
-#from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
-#from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_1l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
+#from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
 from RootTools.core.standard import *
 
 from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain
@@ -9,11 +10,15 @@ from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain
 maxN = -1
 #Define chains for signals and backgrounds
 samples = [
-#    DY_HT_LO, TTJets_Lep, TTZ, TTXNoZ, singleTop, diBoson, triBoson, QCD_Mu5EMbcToE
- Sample.fromFiles(name="T2tt_450_0", treeName="Events", isData=False, color=ROOT.kBlack, texName="T2tt(450,0)", files=['/scratch/rschoefbeck/cmgTuples/postProcessed_Fall15_mAODv2/dilep/T2tt/T2tt_450_0.root'], maxN = maxN), 
- Sample.fromDirectory(name="TTJets_Lep", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (lep)", directory=['/scratch/rschoefbeck/cmgTuples/fromTom/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) 
+    DY_HT_LO, TTJets_Lep, TTZ, TTXNoZ, singleTop, diBoson, WZZ, QCD_Mu5EMbcToE, 
+    TTbarDMJets_pseudoscalar_Mchi1_Mphi10,
+    TTbarDMJets_pseudoscalar_Mchi10_Mphi100
+# Sample.fromFiles(name="T2tt_450_0", treeName="Events", isData=False, color=ROOT.kBlack, texName="T2tt(450,0)", files=['/scratch/rschoefbeck/cmgTuples/postProcessed_Fall15_mAODv2/dilep/T2tt/T2tt_450_0.root'], maxN = maxN), 
+# Sample.fromDirectory(name="TTJets_Lep", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (lep)", directory=['/scratch/rschoefbeck/cmgTuples/fromTom/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) 
 ]
-
+QCD_Mu5EMbcToE.name = 'QCD'
+TTbarDMJets_pseudoscalar_Mchi1_Mphi10.name = "10/1"
+TTbarDMJets_pseudoscalar_Mchi10_Mphi100.name = "100/10"
 from StopsDilepton.tools.objectSelection import multiIsoLepString
 multiIsoWPVTVT = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 multiIsoWPMT = multiIsoLepString('M','T', ('l1_index','l2_index'))
@@ -30,10 +35,10 @@ cuts=[
   ("MET/sqrt(HT)>5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
   ("dPhi(JetGood_1,2|MET)>0.25", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
   ("MT2(ll) > 140", "dl_mt2ll>140"),
-  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
-  ("multiIso M(Mu), T(Ele)", multiIsoWPMT),
-  ("multiIso VT(Mu), VT(Ele)", multiIsoWPVTVT),
-  ("filterCut", "Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter" ),
+#  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
+#  ("multiIso M(Mu), T(Ele)", multiIsoWPMT),
+#  ("multiIso VT(Mu), VT(Ele)", multiIsoWPVTVT),
+#  ("filterCut", "Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter" ),
 # ("relIso04<0.12", relIso04sm12Cut),
 
 # ("MT2(ll) > 240", "dl_mt2ll>240"),

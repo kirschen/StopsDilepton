@@ -9,11 +9,11 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
     data_output_directory      = "/scratch/rschoefbeck/cmgTuples/"
     # Where you store the data
-    data_directory      = "/scratch/rschoefbeck/cmgTuples/"
+    data_directory      = "/scratch/rschoefbeck/cmgTuples/fromTom_reHadd/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/r/rschoefbeck/www/"
     # Analysis result files
-    analysis_results    = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test' #Path to analysis results
+    analysis_results    = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test6_noPu' #Path to analysis results
     # directory with veto lists
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
     # 715 release for limit calculation 

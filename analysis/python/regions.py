@@ -17,12 +17,13 @@ regions_mt2blbl = getRegionsFromThresholds('dl_mt2blbl', mt2blblThresholds)
 
 regions3D = []
 for r1 in regions_mt2ll:
-    for r2 in regions_mt2bb:
-        for r3 in regions_mt2blbl:
+    for r3 in regions_mt2blbl:
+        for r2 in regions_mt2bb:
             regions3D.append(r1+r2+r3)
 
 normReg = regions3D[0]
 regions3D = regions3D[1:]
+
 #{'name':'dl_mt2ll',   'thresholds':[0,100,200]},
 #{'name':'dl_mt2blbl', 'thresholds':[0,100,200]},
 #{'name':'dl_mt2bb',   'thresholds':[70,170,270]},

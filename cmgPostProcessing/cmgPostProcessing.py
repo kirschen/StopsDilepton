@@ -134,6 +134,11 @@ def get_parser():
         help="Is T2tt signal?"
         )
 
+    argParser.add_argument('--TTDM',
+        action='store_true',
+        help="Is TTDM signal?"
+        )
+
     argParser.add_argument('--fastSim',
         action='store_true',
         help="FastSim?"
@@ -197,6 +202,11 @@ if options.T2tt:
     logger.debug( "Fetching signal weights..." )
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
     logger.debug("Done fetching signal weights.")
+elif options.TTDM:
+    from StopsDilepton.samples.helpers import fromHeppySample
+    samples = [ fromHeppySample(s, data_path = "/data/rschoefbeck/cmgTuples/TTBar_DM/", \
+                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring15MiniAODv2",  maxN = maxN)\
+                for s in options.samples ]
 else:
     from StopsDilepton.samples.helpers import fromHeppySample
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
@@ -228,7 +238,7 @@ else:
 
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
-    if options.T2tt:
+    if options.T2tt or options.TTDM:
         # T2tt signal is 74X with Spring15 profile!
         puRW        = getReweightingFunction(data="PU_2100_XSecCentral", mc="Spring15")
         puRWDown    = getReweightingFunction(data="PU_2100_XSecDown", mc="Spring15")
@@ -475,7 +485,7 @@ def filler(s):
     r = reader.data
 
     # weight
-    if options.T2tt and isMC:
+    if options.T2tt:
         s.weight=signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['weight']
         s.mStop = r.GenSusyMScan1
         s.mNeu  = r.GenSusyMScan2
@@ -486,7 +496,7 @@ def filler(s):
     elif isData:
         s.weight = 1
     else:
-        raise NotImplementedError( "isMC %r isData %r T2tt? %r " % (isMC, isData, options.T2tt) )
+        raise NotImplementedError( "isMC %r isData %r T2tt? %r TTDM?" % (isMC, isData, options.T2tt, options.TTDM) )
 
     # lumi lists and vetos
     if isData:

@@ -2,7 +2,7 @@ from StopsDilepton.tools.helpers import getYieldFromChain
 from math import sqrt
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.analysis.u_float import u_float
-from StopsDilepton.tools.helpers import printHeader
+#from StopsDilepton.tools.helpers import printHeader
 
 class DataDrivenDYEstimate(SystematicEstimator):
     def __init__(self, name, cacheDir=None):
@@ -10,7 +10,7 @@ class DataDrivenDYEstimate(SystematicEstimator):
 #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup):
 
-        printHeader("DD DY prediction for %s channel %s" %(self.name, channel))
+#        printHeader("DD DY prediction for %s channel %s" %(self.name, channel))
 
         #Sum of all channels for 'all'
         if channel=='all':

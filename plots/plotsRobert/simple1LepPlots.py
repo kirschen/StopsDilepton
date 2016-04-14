@@ -28,12 +28,6 @@ argParser.add_argument('--mode',
     action='store',
     choices=['singleMu', 'singleEle'])
 
-argParser.add_argument('--small',
-    action='store_true',
-#    default=True,
-    help='Just a small subset?',
-)
-
 argParser.add_argument('--overwrite',
 #    default = False,
     default = True,
