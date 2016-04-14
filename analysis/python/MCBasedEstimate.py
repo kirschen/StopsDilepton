@@ -34,4 +34,4 @@ class MCBasedEstimate(SystematicEstimator):
 
             logger.debug( "Using cut %s and weight %s"%(cut, weight) )
 
-            return setup.lumi[channel]/1000.*u_float(self.sample[channel].getYieldFromChain(selectionString = cut, weightString = weight) )
+            return setup.lumi[channel]/1000.*u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = weight) )

@@ -1,6 +1,7 @@
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--dontSkipIfCachefileExists", dest="dontSkipIfCachefileExists", default = False, action="store_true", help="dontSkipIfCachefileExists?")
+parser.add_option("--noMultiThreading", dest="noMultiThreading", default = False, action="store_true", help="noMultiThreading?")
 parser.add_option("--metSigMin", dest="metSigMin", default=5, type="int", action="store", help="metSigMin?")
 parser.add_option("--metMin", dest="metMin", default=80, type="int", action="store", help="metMin?")
 parser.add_option("--multiIsoWP", dest="multiIsoWP", default="", type="string", action="store", help="wpMu,wpEle")
@@ -37,7 +38,9 @@ from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed
 #signalEstimators = [ MCBasedEstimate(name=s.name,    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals_T2tt ]
 #isFastSim = True
 
-signalEstimators = [ MCBasedEstimate(name=s.name,    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals_TTDM ]
+#signalEstimators = [ MCBasedEstimate(name=s.name,    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals_TTDM ]
+#isFastSim = False
+signalEstimators = [ ] 
 isFastSim = False
 
 signalSetup = setup.sysClone(parameters={'useTriggers':False})
@@ -62,13 +65,14 @@ for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, bkgEstimator
                 else:
                     jobs.extend(estimate.getBkgSysJobs(r, channel, setup_))
 
-        from multiprocessing import Pool
-        pool = Pool(processes=20)
-        results = pool.map(wrapper, jobs)
-        pool.close()
-        pool.join()
-
-#        results = map(wrapper, jobs)
+        if options.noMultiThreading: 
+            results = map(wrapper, jobs)
+        else:
+            from multiprocessing import Pool
+            pool = Pool(processes=20)
+            results = pool.map(wrapper, jobs)
+            pool.close()
+            pool.join()
 
         for r in results:
             estimate.cache.add(*r, save=False)

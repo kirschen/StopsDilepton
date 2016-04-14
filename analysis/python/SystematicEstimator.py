@@ -1,10 +1,18 @@
 jmeVariations = ["JER", "JERUp", "JERDown", "JECUp", "JECDown"]
 
+# Standard imports
 import os
 import abc
 from math import sqrt
-from StopsDilepton.analysis.Cache import Cache
 import json
+
+# StopsDilepton
+from StopsDilepton.analysis.Cache import Cache
+
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+
 class SystematicEstimator:
     __metaclass__ = abc.ABCMeta
 
@@ -29,7 +37,7 @@ class SystematicEstimator:
         key =  self.uniqueKey(region, channel, setup)
         if self.cache and self.cache.contains(key):
             res = self.cache.get(key)
-            if setup.verbose: print "Loading cached %s result for %r : %r"%(self.name, key, res)
+            logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
             return res
         elif self.cache:
             return self.cache.add( key, self._estimate( region, channel, setup), save=save)

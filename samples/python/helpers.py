@@ -5,6 +5,15 @@ import ROOT
 # RootTools
 from RootTools.core.standard import *
 
+def singleton(class_):
+  instances = {}
+  def getinstance(*args, **kwargs):
+    if class_ not in instances:
+        instances[class_] = class_(*args, **kwargs)
+    return instances[class_]
+  return getinstance
+
+
 def getSubDir(dataset, path):
     import re
     m=re.match("\/(.*)\/(.*)\/(.*)",dataset)
