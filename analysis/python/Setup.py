@@ -21,7 +21,8 @@ DYSample      = DY_HT_LO #LO, HT binned including a low HT bin starting from zer
 #TTJetsSample  = TTJets #NLO
 TTJetsSample  = TTJets_Lep #LO, very large dilep + single lep samples
 WJetsSample = WJetsToLNu #WJetsToLNu_HT
-otherEWKBkgs   = Sample.combine("otherBkgs", [singleTop, diBoson, WZZ,  TTXNoZ, WJetsSample], texName = "other bkgs.")
+otherEWKComponents = [singleTop, diBoson, WZZ,  TTXNoZ, WJetsSample]
+otherEWKBkgs   = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations
 from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels

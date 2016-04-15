@@ -53,6 +53,7 @@ class Region:
         return self.cutString()
 
     def __repr__(self):
+        ''' Sorry.'''
 #    return self.cutString()
         return "+".join([ "Region('%s', %r)"%(v, self.vals[v]) for v in self.variables()])
 
