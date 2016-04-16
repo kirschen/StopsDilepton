@@ -30,3 +30,7 @@ color.QCD_HT         = 46
 color.QCD_Mu5        = 46
 color.QCD_EMbcToE    = 46
 color.QCD_Mu5EMbcToE = 46
+
+color.other          = 46
+
+color.T2tt_450_0     = ROOT.kBlue
