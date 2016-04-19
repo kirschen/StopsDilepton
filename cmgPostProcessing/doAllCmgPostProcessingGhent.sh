@@ -13,9 +13,9 @@ while read -r sample; do
       continue
     fi
     echo "${sample}"
-    wallTime="02:00:00"
-    if [[ ${sample} = TTJets* ]]; then
-      wallTime="25:00:00"
+    wallTime="20:00:00"
+    if [[ ${sample} = TTJets* || ${sample} = TTLep* ]]; then
+      wallTime="168:00:00"
     fi
     mkdir -p "/localgrid/$USER/cmgPostProcessing/$skim/${sample// /}"
     rsync -rq --exclude=.git --exclude=plots --exclude=crab_with_das --exclude=logs $CMSSW_BASE "/localgrid/$USER/cmgPostProcessing/$skim/${sample// /}"
