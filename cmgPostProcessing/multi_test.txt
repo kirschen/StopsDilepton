@@ -1,0 +1,4 @@
+#!/bin/sh
+python cmgPostProcessing.py  --eventsPerJob=1000000 --checkTTGJetsOverlap --samples TTJets TTJets_ext
+python cmgPostProcessing.py  --eventsPerJob=1000000 --checkTTGJetsOverlap --samples TTJets_DiLepton TTJets_DiLepton_ext
+python cmgPostProcessing.py  --eventsPerJob=1000000 --checkTTGJetsOverlap --samples TTJets_LO
