@@ -236,12 +236,6 @@ elif len(samples)==1:
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
 
-# Should avoid parralel jobs accessing the same files
-if len(sample.files) < 4*options.nJobs:
-  options.nJobs = max(int(len(sample.files)/4), 1)
-  logger.info("Only " + str(len(sample.files)) + " input files, reducing multiThreading jobs to " + str(options.nJobs))
-
-
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
     if options.T2tt or options.TTDM:
