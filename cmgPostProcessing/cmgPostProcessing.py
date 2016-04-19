@@ -47,10 +47,6 @@ def get_parser():
         action='store_true',
         help="Overwrite existing output files, bool flag set to True  if used")
 
-    argParser.add_argument('--noMultiThreading',
-        action='store_true',
-        help="Don't do multi threading. Use for stack tracing the filler function.")
-    
     argParser.add_argument('--samples',
         action='store',
         nargs='*',
@@ -280,7 +276,6 @@ if options.LHEHTCut>0:
     sample.name+="_lheHT"+str(options.LHEHTCut)
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
-
 
 # MET group veto list
 if sample.isData:
@@ -673,11 +668,15 @@ eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs 
 
 logger.info( "Splitting into %i ranges of %i events on average.",  len(eventRanges), (eventRanges[-1][1] - eventRanges[0][0])/len(eventRanges) )
 
+#Define all jobs
+jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
+
 filename, ext = os.path.splitext( os.path.join(outDir, sample.name + '.root') )
 
-# Wrapper for multithreading
-def wrapper(arg):
-    ievtRange, eventRange = arg
+clonedEvents = 0
+convertedEvents = 0
+outputLumiList = {}
+for ievtRange, eventRange in enumerate( eventRanges ):
 
     logger.info( "Processing range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 
@@ -689,7 +688,7 @@ def wrapper(arg):
             logger.info( "File %s is broken. Overwriting.", outfilename)
         elif not options.overwrite:
             logger.info( "Skipping.")
-            return {'cloned':0, 'converted':0}
+            continue
         else:
             logger.info( "Overwriting.")
 
@@ -700,7 +699,7 @@ def wrapper(arg):
     # Set the reader to the event range
     reader.setEventRange( eventRange )
     clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events", rootfile = outputfile )
-    clonedEvents = clonedTree.GetEntries()
+    clonedEvents += clonedTree.GetEntries()
 
     # Clone the empty maker in order to avoid recompilation at every loop iteration
     maker = treeMaker_parent.cloneWithoutCompile( externalTree = clonedTree )
@@ -709,7 +708,6 @@ def wrapper(arg):
     # Do the thing
     reader.start()
 
-    outputLumiList = {}
     while reader.run():
         maker.run()
         if isData:
@@ -720,38 +718,21 @@ def wrapper(arg):
                     if reader.data.lumi not in outputLumiList[reader.data.run]:
                         outputLumiList[reader.data.run].add(reader.data.lumi)
 
-    convertedEvents = maker.tree.GetEntries()
+    convertedEvents += maker.tree.GetEntries()
     maker.tree.Write()
     outputfile.Close()
     logger.info( "Written %s", outfilename)
 
   # Destroy the TTree
     maker.clear()
-    return {'cloned':clonedEvents, 'converted':convertedEvents, 'outputLumiList':outputLumiList}
 
-#Define all jobs
-jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
 
-if not options.noMultiThreading:
-    # Use multiprocessing
-    from multiprocessing import Pool
-    pool = Pool( processes=options.nJobs )
-    results = pool.map(wrapper, jobs )
-    pool.close()
-else:
-    # Process one by one
-    results = map(wrapper, jobs )
-
-logger.info( "Converted %i events of %i, cloned %i",  sum([c['converted'] for c in results]), reader.nEvents , sum([c['cloned'] for c in results]) )
+logger.info( "Converted %i events of %i, cloned %i",  convertedEvents, reader.nEvents , clonedEvents )
 
 # Storing JSON file of processed events
 if isData:
-    # Concatenating all lumi lists
-    runs = set(sum([ r['outputLumiList'].keys() for r in results ],[]))
-    outputLumiList = { run:set.union( *[set(r['outputLumiList'][run]) if run in r['outputLumiList'].keys() else set() for r in results]) for run in runs}
-
     jsonFile = filename+'.json'
-    LumiList(runsAndLumis = outputLumiList).writeJSON(jsonFile)
+    LumiList( runsAndLumis = outputLumiList ).writeJSON(jsonFile)
     logger.info( "Written JSON file %s",  jsonFile )
 
 # Write one file per mass point for T2tt
