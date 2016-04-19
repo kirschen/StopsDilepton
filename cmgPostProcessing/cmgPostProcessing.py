@@ -236,6 +236,12 @@ elif len(samples)==1:
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
 
+# Should avoid parralel jobs accessing the same files
+if len(sample.files) < 4*options.nJobs:
+  options.nJobs = max(int(len(sample.files)/4), 1)
+  logger.info("Only " + str(len(sample.files)) + " input files, reducing multiThreading jobs to " + str(options.nJobs))
+
+
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
     if options.T2tt or options.TTDM:
@@ -419,25 +425,26 @@ new_variables += [\
 ]
 
 if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
-new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
+new_variables.extend( ['nJetGood/I','nBTag/I', 'ht/F', 'metSig/F'] )
 
 if options.skim.lower().startswith('singlelep'):
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
 if options.skim.lower().startswith('dilep') or options.skim.lower().startswith('singlelep'):
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I' ] )
-    new_variables.extend( ['mt/F'] )
+    new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     if options.keepPhotons:
       new_variables.extend( ['mt_photonEstimated/F'] )
 if options.skim.lower().startswith('dilep'):
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
-    new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F' , 'mlmZ_mass/F'] )
+    new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
 
 if options.keepPhotons:
     new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
     new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
+    new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
     if options.skim.lower().startswith('dilep'):
       new_variables.extend( ['dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
 
@@ -560,6 +567,8 @@ def filler(s):
          s.met_phi_photonEstimated = metGamma.Phi()
          s.metSig_photonEstimated  = s.met_pt_photonEstimated/sqrt(s.ht) if s.ht>0 else float('nan')
 
+         s.photonJetdR = min(sqrt((s.photon_eta-j['eta'])**2+(s.photon_phi-j['phi'])**2) for j in jets) if len(jets) > 0 else 999
+
     if options.checkTTGJetsOverlap and isMC:
        s.isTTGJetsEvent = isTTGJetsEvent(r)
 
@@ -588,8 +597,10 @@ def filler(s):
     if options.skim.lower().startswith('singlelep') or options.skim.lower().startswith('dilep'):
         leptons_pt10 = getGoodLeptons(r, ptCut=10)
         leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
+        if options.keepPhotons and s.nPhotonGood > 0: s.photonLepdR     = min(sqrt((s.photon_eta-l['eta'])**2+(s.photon_phi-l['phi'])**2) for l in leptons) if len(leptons) > 0 else 999
         s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
         s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
+        s.mlmZ_mass = closestOSDLMassToMZ(leptons_pt10)
         if len(leptons)>=1:
             s.l1_pt  = leptons[0]['pt']
             s.l1_eta = leptons[0]['eta']
@@ -630,7 +641,6 @@ def filler(s):
             s.dl_eta = dl.Eta()
             s.dl_phi = dl.Phi()
             s.dl_mass   = dl.M()
-            s.mlmZ_mass = closestOSDLMassToMZ(leptons_pt10)
             mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
 
             for i in metVariants:
