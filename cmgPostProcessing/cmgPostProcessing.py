@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # standard imports
 import ROOT
 import sys 
@@ -85,7 +87,7 @@ def get_parser():
         nargs='?',
         type=str,
         default=user.cmg_directory,
-        help="Name of the directory the post-processed files will be saved"
+        help="Name of the directory where the input data is stored (for samples read from Heppy)."
         )
     
     argParser.add_argument('--targetDir',

@@ -1,0 +1,11 @@
+
+python cmgPostProcessing.py  --samples WWDouble
+python cmgPostProcessing.py  --samples WpWpJJ
+
+python cmgPostProcessing.py  --samples WZZ
+
+python cmgPostProcessing.py  --samples TTWToLNu
+python cmgPostProcessing.py  --samples TTWToQQ
+python cmgPostProcessing.py  --samples TTZToQQ
+python cmgPostProcessing.py  --samples TTZToLLNuNu
+python cmgPostProcessing.py  --samples TTGJets  
