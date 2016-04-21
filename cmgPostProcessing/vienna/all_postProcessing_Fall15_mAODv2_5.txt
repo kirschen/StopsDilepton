@@ -1,24 +1,29 @@
+python cmgPostProcessing.py  --samples WWDouble
+python cmgPostProcessing.py  --samples WpWpJJ
 
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M50
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M50_LO
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M50_LO --LHEHTCut=100
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M50_HT100to200
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M50_HT200to400
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M50_HT400to600
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M50_HT600toInf
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M10to50
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M10to50 --LHEHTCut=100
-python cmgPostProcessing.py    --samples DYJetsToLL_M5to50_LO
-python cmgPostProcessing.py    --samples DYJetsToLL_M5to50_LO --LHEHTCut=200
+python cmgPostProcessing.py  --samples WZZ
 
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M5to50_HT200to400
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M5to50_HT400to600
-python cmgPostProcessing.py   $3  --samples DYJetsToLL_M5to50_HT600toInf
-python cmgPostProcessing.py   $3  --samples WJetsToLNu_HT100to200 WJetsToLNu_HT100to200_ext
-python cmgPostProcessing.py   $3  --samples WJetsToLNu_HT200to400 WJetsToLNu_HT200to400_ext
-python cmgPostProcessing.py   $3  --samples WJetsToLNu_HT400to600
-python cmgPostProcessing.py   $3  --samples WJetsToLNu_HT600toInf
-python cmgPostProcessing.py   $3  --samples WJetsToLNu_HT600to800
-python cmgPostProcessing.py   $3  --samples WJetsToLNu_HT800to1200
-python cmgPostProcessing.py   $3  --samples WJetsToLNu_HT1200to2500
-python cmgPostProcessing.py   $3  --samples WJetsToLNu_HT2500toInf
+python cmgPostProcessing.py  --samples TTWToLNu
+python cmgPostProcessing.py  --samples TTWToQQ
+python cmgPostProcessing.py  --samples TTZToQQ
+python cmgPostProcessing.py  --samples TTZToLLNuNu
+python cmgPostProcessing.py  --samples TTGJets  
+
+
+python cmgPostProcessing.py  --samples WW
+python cmgPostProcessing.py  --samples WZ
+python cmgPostProcessing.py  --samples ZZ
+python cmgPostProcessing.py  --samples WWTo2L2Nu
+python cmgPostProcessing.py  --samples WWToLNuQQ
+python cmgPostProcessing.py  --samples WWTo1L1Nu2Q
+python cmgPostProcessing.py  --samples ZZTo2L2Q
+python cmgPostProcessing.py  --samples ZZTo2Q2Nu
+python cmgPostProcessing.py  --samples ZZTo4L
+python cmgPostProcessing.py  --samples WZTo1L1Nu2Q
+python cmgPostProcessing.py  --samples WZTo2L2Q
+python cmgPostProcessing.py  --samples WZTo3LNu
+python cmgPostProcessing.py  --samples WZTo1L3Nu
+python cmgPostProcessing.py  --samples WZJets
+python cmgPostProcessing.py  --samples VVTo2L2Nu
+python cmgPostProcessing.py  --samples WGToLNuG
+python cmgPostProcessing.py  --samples ZGTo2LG

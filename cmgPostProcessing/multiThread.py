@@ -8,7 +8,8 @@ import sys
 processes = set()
 max_processes = 5
 
-command = "echo"
+#command = "echo"
+command = ""
 
 input_file = sys.argv[1]
 
@@ -27,9 +28,9 @@ else:
     extra_args = []
 
 for job in jobs:
-    
     cmds = job.split() + extra_args
-    print "Processing", cmds
+    if command!="": cmds = [command] + cmds
+    print "Processing:", " ".join(cmds)
     processes.add(subprocess.Popen( cmds ))
     if len(processes) >= max_processes:
         os.wait()

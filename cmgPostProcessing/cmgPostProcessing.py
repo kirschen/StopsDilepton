@@ -70,8 +70,15 @@ def get_parser():
         action='store',
         nargs='?',
         type=int,
-        default=12,
+        default=-1,
         help="Maximum number of simultaneous jobs."
+        )
+    argParser.add_argument('--job',
+        action='store',
+        nargs='*',
+        type=int,
+        default=-1,
+        help="Run only jobs i"
         )
 
     argParser.add_argument('--minNJobs',
@@ -307,7 +314,7 @@ if options.skim.lower().count('tiny'):
     branchKeepStrings_DATAMC = \
        ["run", "lumi", "evt", "isData", "nVert",
         "met_pt", "met_phi",
-        "puppiMet_pt","puppiMet_phi",
+#        "puppiMet_pt","puppiMet_phi",
         "Flag_*",
         "HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
         "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
@@ -329,7 +336,7 @@ else:
         "run", "lumi", "evt", "isData", "rho", "nVert",
         "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
 #        "metNoHF_pt", "metNoHF_phi",
-        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
+#        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
         "nDiscJet", "DiscJet_*",
         "nJetFailId", "JetFailId_*",
@@ -670,7 +677,10 @@ treeMaker_parent = TreeMaker(
     )
     
 # Split input in ranges
-eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs = options.minNJobs )
+if options.nJobs>0:
+    eventRanges = reader.getEventRanges( nJobs = options.nJobs )
+else:
+    eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs = options.minNJobs )
 
 logger.info( "Splitting into %i ranges of %i events on average.",  len(eventRanges), (eventRanges[-1][1] - eventRanges[0][0])/len(eventRanges) )
 
@@ -683,6 +693,8 @@ clonedEvents = 0
 convertedEvents = 0
 outputLumiList = {}
 for ievtRange, eventRange in enumerate( eventRanges ):
+
+    if not ievtRange in options.job: continue
 
     logger.info( "Processing range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 
