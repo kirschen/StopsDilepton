@@ -36,19 +36,26 @@ logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 #
-# Selections (at least two good leptons with pt > 20 GeV, third can be loose with pt > 10 GeV)
+# Selections (three leptons with pt > 30, 20, 10 GeV)
 #
 from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
 def getLooseLeptonString(nMu, nE):
   if args.leptonsExact: return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10) + "==" + str(nE)
   else:                 return looseMuIDString(ptCut=10) + ">=" + str(nMu) + "&&" + looseEleIDString(ptCut=10) + ">=" + str(nE)
 
-useTrigger      = True
-leadingLeptonPt = "30"
-mumumuSelection = "nGoodMuons>=2&&"                  + getLooseLeptonString(3, 0) + "&&Sum$(LepGood_pt>" + leadingLeptonPt + ")>=1" + ("&&HLT_3mu"   if useTrigger else "")
-mumueSelection  = "(nGoodMuons+nGoodElectrons)>=2&&" + getLooseLeptonString(2, 1) + "&&Sum$(LepGood_pt>" + leadingLeptonPt + ")>=1" + ("&&HLT_2mu1e" if useTrigger else "") 
-mueeSelection   = "(nGoodMuons+nGoodElectrons)>=2&&" + getLooseLeptonString(1, 2) + "&&Sum$(LepGood_pt>" + leadingLeptonPt + ")>=1" + ("&&HLT_2e1mu" if useTrigger else "") 
-eeeSelection    = "nGoodElectrons>=2&&"              + getLooseLeptonString(0, 3) + "&&Sum$(LepGood_pt>" + leadingLeptonPt + ")>=1" + ("&&HLT_3e"    if useTrigger else "") 
+def getLeptonString(nMu, nE):
+# if args.leptonsExact: return "nGoodMuons==" + str(nMu) + "&&Sum$(abs(LepGood_pdgId)==13&&LepGood_mediumMuonId)==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&Sum$(abs(LepGood_pdgId)==11&&<tight?>)==" + str(nE) 
+  if args.leptonsExact: return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
+  else:                 return "nGoodMuons>=" + str(nMu) + "&&nGoodElectrons>=" + str(nE)
+
+def getPtThresholdString(firstPt, secondPt, thirdPt):
+  return "(Sum$(LepGood_pt>" + str(firstPt) + ")>=1&&Sum$(LepGood_pt>" + str(secondPt) + ")>=2&&Sum$(LepGood_pt>" + str(thirdPt) + ")>=3)"
+
+useTrigger      = False
+mumumuSelection = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3mu"   if useTrigger else "")
+mumueSelection  = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2mu1e" if useTrigger else "") 
+mueeSelection   = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2e1mu" if useTrigger else "")
+eeeSelection    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3e"    if useTrigger else "")
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))>="
@@ -63,13 +70,12 @@ filterCut       = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTight
 cuts=[
     ("njet3",             jetSelection+"3"),
     ("njet4",             jetSelection+"4"),
-    ("nbtag0",            bJetSelectionM+"0"),
     ("nbtag1",            bJetSelectionM+"1"),
     ("nbtag2L",           bJetSelectionM+"1&&"+bJetSelectionL+"2"),
     ("nbtag2",            bJetSelectionM+"2"),
     ("mll20",             "dl_mass>20"),
     ("met50",             "met_pt>50"),
-    ("met80",             "met_pt>80"),
+#    ("met80",             "met_pt>80"),
 #    ("metSig5",           "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
 #    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
     ("onZ",               zMassSelection),
@@ -116,19 +122,19 @@ from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
 if args.mode=="3mu":
-  data_sample     = DoubleMuon_Run2015D
+  data_sample     = SingleMuon_Run2015D
   qcd_sample      = QCD_Mu5 #FIXME
   leptonSelection = mumumuSelection
 elif args.mode=="3e":
-  data_sample     = DoubleEG_Run2015D
+  data_sample     = SingleElectron_Run2015D
   qcd_sample      = QCD_EMbcToE
   leptonSelection = eeeSelection
 elif args.mode=="2mu1e":
-  data_sample     = MuonEG_Run2015D
+  data_sample     = SingleMuon_Run2015D
   qcd_sample      = QCD_Mu5EMbcToE
   leptonSelection = mumueSelection
 elif args.mode=="2e1mu":
-  data_sample     = MuonEG_Run2015D
+  data_sample     = SingleElectron_Run2015D
   qcd_sample      = QCD_Mu5EMbcToE
   leptonSelection = mueeSelection
 
@@ -195,7 +201,7 @@ plots.append( mlmZ_mass )
 dl_mt2ll  = Plot(
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2ll/F" ),
-    binning=[8,140,300],
+    binning=[300/20,0,300],
     )
 plots.append( dl_mt2ll )
 
@@ -236,7 +242,7 @@ dR_jetLep = Plot(
 plots.append( dR_jetLep )
 
 dR_lepLep = Plot(
-    texX = 'min(dR(j,l)) (GeV)', texY = 'Number of Events',
+    texX = 'min(dR(l,l)) (GeV)', texY = 'Number of Events',
     variable = Variable.fromString( "mindR_leplep/F" ).addFiller(
         helpers.uses(lambda data: min(
             sqrt((data.LepGood_eta[0]-data.LepGood_eta[1])**2 + (data.LepGood_phi[0]-data.JetGood_phi[1])**2),
@@ -269,7 +275,7 @@ plots.append( metSig )
 ht  = Plot(
     texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
     variable = Variable.fromString( "ht/F" ),
-    binning=[600/30,0,600],
+    binning=[510/30,90,600],
     )
 plots.append( ht )
 
@@ -323,7 +329,7 @@ jet0pt  = Plot(
     variable = Variable.fromString('jet0pt/F').addFiller (
         helpers.uses(lambda data: data.JetGood_pt[0], "JetGood[pt/F]" )
     ), 
-    binning=[980/20,0,980],
+    binning=[900/20,30,930],
     )
 plots.append( jet0pt )
 
@@ -332,7 +338,7 @@ jet1pt  = Plot(
     variable = Variable.fromString('jet1pt/F').addFiller (
         helpers.uses(lambda data: data.JetGood_pt[1], "JetGood[pt/F]" )
     ), 
-    binning=[980/20,0,980],
+    binning=[600/20,30,630],
     )
 plots.append( jet1pt )
 
@@ -341,7 +347,7 @@ jet2pt  = Plot(
     variable = Variable.fromString('jet2pt/F').addFiller (
         helpers.uses(lambda data: data.JetGood_pt[2], "JetGood[pt/F]" )
     ), 
-    binning=[400/20,0,400],
+    binning=[300/20,30,330],
     )
 plots.append( jet2pt )
 
@@ -350,7 +356,7 @@ jet3pt  = Plot(
     variable = Variable.fromString('jet3pt/F').addFiller (
         helpers.uses(lambda data: data.JetGood_pt[3], "JetGood[pt/F]" )
     ), 
-    binning=[400/20,0,400],
+    binning=[250/20,30,280],
     )
 plots.append( jet3pt )
 
@@ -359,7 +365,7 @@ jet4pt  = Plot(
     variable = Variable.fromString('jet4pt/F').addFiller (
         helpers.uses(lambda data: data.JetGood_pt[4], "JetGood[pt/F]" )
     ), 
-    binning=[400/20,0,400],
+    binning=[200/20,30,230],
     )
 plots.append( jet4pt )
 
@@ -394,7 +400,7 @@ read_variables = ["weight/F" , "met_phi/F", "JetGood[pt/F,eta/F,phi/F]", "LepGoo
 plotting.fill(plots, read_variables = read_variables)
 for plot in plots:
     plotting.draw(plot, 
-        plot_directory = os.path.join(plot_directory, args.plot_directory, args.selection),
+        plot_directory = os.path.join(plot_directory, args.plot_directory, args.mode, args.selection),
         ratio = {'yRange':(0.1,1.9)}, 
         logX = False, logY = False, sorting = True, 
         yRange = (0.003, "auto"), 
