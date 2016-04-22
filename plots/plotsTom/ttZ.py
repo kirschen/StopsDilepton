@@ -9,6 +9,7 @@ ROOT.gROOT.SetBatch(True)
 
 from math import sqrt, cos, sin, pi
 from RootTools.core.standard import *
+from StopsDilepton.tools.user import plot_directory
 
 
 #
@@ -84,12 +85,11 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
     for comb in itertools.combinations( cuts, i_comb ):
         presel = [] 
         presel.extend( comb )
-        prefix = '-'.join([p[0] for p in presel])
-        if prefix.count("nbtag") > 1: continue
-        if prefix.count("njet") != 1: continue
-        if prefix.count("met") > 1:   continue
-        selectionStrings[prefix] = "&&".join( [p[1] for p in presel])
-
+        selection = '-'.join([p[0] for p in presel])
+        if selection.count("nbtag") > 1: continue
+        if selection.count("njet") != 1: continue
+        if selection.count("met") > 1:   continue
+        selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
@@ -97,11 +97,11 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
 if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
-  for prefix in selectionStrings:
+  for selection in selectionStrings:
     for mode in allowedModes:
-      command = "./ttZ.py --mode=" + mode + " --selection=" + prefix + (" --leptonsExact" if args.leptonsExact else "")
-      logfile = "log/" + mode + "-" + prefix + ".log"
-      logger.info("Launching " + prefix + " for " + mode + " on cream02 with child command: " + command)
+      command = "./ttZ.py --mode=" + mode + " --selection=" + selection + (" --leptonsExact" if args.leptonsExact else "")
+      logfile = "log/" + mode + "-" + selection + ".log"
+      logger.info("Launching " + selection + " for " + mode + " on cream02 with child command: " + command)
       os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=01:00:00 runPlotsOnCream02.sh")
   logger.info("All jobs launched")
   exit(0)
@@ -159,22 +159,22 @@ def drawObjects( dataMCScale ):
 
 
 #
-# For given prefix
+# For given selection
 #                
 data_sample.setSelectionString([filterCut, leptonSelection])
 for sample in mc:
    sample.setSelectionString([leptonSelection])
 
 logger.info( "Calculating normalization constants" )        
-yield_mc    = sum(      s.getYieldFromDraw( selectionString = selectionStrings[args.prefix], weightString = 'weight')['val'] for s in mc)
-yield_data  = data_sample.getYieldFromDraw( selectionString = selectionStrings[args.prefix], weightString = 'weight')['val']
+yield_mc    = sum(      s.getYieldFromDraw( selectionString = selectionStrings[args.selection], weightString = 'weight')['val'] for s in mc)
+yield_data  = data_sample.getYieldFromDraw( selectionString = selectionStrings[args.selection], weightString = 'weight')['val']
 dataMCScale = yield_data/(yield_mc*lumi_scale)
 
-logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionStrings[args.prefix] )
+logger.info( "Now plotting with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
 logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
 
 # Use some defaults
-Plot.setDefaults(stack = stack, weight = lambda data:data.weight, selectionString = selectionStrings[args.prefix], prefix = prefix)
+Plot.setDefaults(stack = stack, weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
 
 plots = []
 
@@ -384,21 +384,21 @@ nlep  = Plot(
     )
 plots.append( nlep )
 
-mt  = Plot(
+plots.append(Plot(
     texX = 'm_{T} (GeV)', texY = 'Number of Events / 30 GeV',
     variable = Variable.fromString( "mt/F" ),
     binning=[300/10,0,300],
-    )
-plots.append( mt )
+    ))
 
 read_variables = ["weight/F" , "met_phi/F", "JetGood[pt/F,eta/F,phi/F]", "LepGood[pt/F,eta/F,phi/F]"]
 plotting.fill(plots, read_variables = read_variables)
 for plot in plots:
     plotting.draw(plot, 
-        plot_directory = plot_path, ratio = {'yRange':(0.1,1.9)}, 
+        plot_directory = os.path.join(plot_directory, args.plot_directory, args.selection),
+        ratio = {'yRange':(0.1,1.9)}, 
         logX = False, logY = False, sorting = True, 
         yRange = (0.003, "auto"), 
         drawObjects = drawObjects( dataMCScale )
     )
 
-logger.info( "Done with prefix %s and selectionString %s", prefix, selectionString[args.prefix] )
+logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
