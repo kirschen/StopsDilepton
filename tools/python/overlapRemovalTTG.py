@@ -1,8 +1,5 @@
 from StopsDilepton.tools.objectSelection import getGenPartsAll
-
-
-def deltaR(a, b):
-  return sqrt((a['eta']-b['eta'])**2+(a['phi']-b['phi'])**2)
+from StopsDilepton.tools.helpers import deltaR
 
 
 def isIsolatedPhoton(g, genparts, coneSize):
