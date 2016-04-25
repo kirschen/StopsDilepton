@@ -116,7 +116,7 @@ if not args.isChild and args.selection is None:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny"
+postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_3jet"
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
@@ -160,7 +160,8 @@ for mode in allModes:
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-  mc = [ DY_HT_LO, qcd_sample, singleTop, diBoson, WZZ, WJetsToLNu, TTJets, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
+# mc = [ DY_HT_LO, qcd_sample, singleTop, diBoson, WZZ, WJetsToLNu, TTJets, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
+  mc = [ DY_HT_LO, qcd_sample, singleTop, diBoson, WZZ, WJetsToLNu, TTLep_pow, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
@@ -417,12 +418,13 @@ dataMCScale = total_data/(total_mc*lumi_scale)
 # Add the different channels and plot the sums
 for plot in allPlots[allModes[0]]:
   logger.info("Adding " + plot.name + " for mode " + allModes[0] + " to all")
-  for mode in allPlots:
-    for plot2 in (p for p in allPlots[mode] if p.name == plot.name and mode != allModes[0]):
-      logger.info("Adding " + plot2.name + " for mode " + mode + " to all")
-      for i, j in enumerate(plot.histos):
-        for k, l in enumerate(plot2.histos):
-          if i==k: j[0].Add(l[0])
+  for mode in allModes[1:]:
+    for plot2 in (p for p in allPlots[mode] if p.name == plot.name):
+      logger.info("Adding " + plot.name + " for mode " + mode + " to all")
+      for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
+        for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
+          if i==k:
+            j.Add(l)
 
   plot.histos[1][0].legendText = "Data 2015 (all channels)"
   plotting.draw(plot,
