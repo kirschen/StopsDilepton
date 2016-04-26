@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' Analysis script for 1D 2l plots with TTZ selection (blnu bjj ll)
+''' Analysis script for TTG selection (g bbllnunu or g bbjjlnu)
 '''
 #
 # Standard imports and batch mode
@@ -57,7 +57,7 @@ eSelection    = getLeptonString(0, 1)
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))>="
 bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))>="
-photonSelection = "nPhotonGood>0&&photon_idCutBased>2&&sqrt((photon_eta-JetGood_eta)**2+(photon_phi-JetGood_phi)**2)>0.4&&photon_pt>"
+photonSelection = "nPhotonGood>0&&photon_idCutBased>2&&photon_pt>"
 filterCut       = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&vetoPassed&&jsonPassed&&weight>0)"
 
 #
@@ -194,6 +194,10 @@ for mode in allModes:
   logger.info( "Calculating normalization constants" )        
   yield_mc[mode]   = sum(      s.getYieldFromDraw( selectionString = selectionStrings[args.selection], weightString = 'weight')['val'] for s in mc)
   yield_data[mode] = data_sample.getYieldFromDraw( selectionString = selectionStrings[args.selection], weightString = 'weight')['val']
+  if yield_mc[mode] == 0:
+    logger.info("No MC yields for this selection in mode " + mode + ", skipping")
+    allModes.remove(mode)
+    continue
   dataMCScale      = yield_data[mode]/(yield_mc[mode]*lumi_scale)
 
   logger.info( "Now plotting with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
@@ -315,8 +319,20 @@ for mode in allModes:
     binning=[15,-pi,pi],
     ))
 
+  plots.append(Plot(
+    texX = '#Delta R(#gamma, l)', texY = 'Number of Events',
+    variable = Variable.fromString( "photonLepdR/F" ),
+    binning=[20, 0, 5],
+    ))
+
+  plots.append(Plot(
+    texX = '#Delta R(#gamma, l)', texY = 'Number of Events',
+    variable = Variable.fromString( "photonJetdR/F" ),
+    binning=[20, 0, 5],
+    ))
+
   read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_mt2ll_photonEstimated/F", "dl_mt2bb_photonEstimated/F", "dl_mt2blbl_photonEstimated/F","met_pt_photonEstimated/F",
-                    "metSig_photonEstimated/F", "ht/F", "nBTag/I", "nJetGood/I", "mt_photonEstimated/F", "photon_eta/F", "photon_pt/F", "photon_phi/F"]
+                    "metSig_photonEstimated/F", "ht/F", "nBTag/I", "nJetGood/I", "mt_photonEstimated/F", "photon_eta/F", "photon_pt/F", "photon_phi/F", "photonJetdR/F", "photonLepdR/F"]
   plotting.fill(plots, read_variables = read_variables)
   for plot in plots:
     plotting.draw(plot, 

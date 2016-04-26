@@ -17,13 +17,15 @@ from StopsDilepton.tools.user import plot_directory
 # 
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--logLevel',       action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--leptonsExact',   action='store_true', default=False,      help='Require exact number of leptons')
-argParser.add_argument('--overwrite',      action='store_true', default=True,       help='overwrite?')
+argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
+argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
 argParser.add_argument('--plot_directory', action='store',      default='TTZ')
+argParser.add_argument('--pdType',         action='store',      default='singleLep', choices=['singleLep','doubleLep'])
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 args = argParser.parse_args()
+
+args.plot_directory += "_" + args.pdType
 
 #
 # Logger
@@ -38,18 +40,15 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
 def getLooseLeptonString(nMu, nE):
-  if args.leptonsExact: return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10) + "==" + str(nE)
-  else:                 return looseMuIDString(ptCut=10) + ">=" + str(nMu) + "&&" + looseEleIDString(ptCut=10) + ">=" + str(nE)
+  return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10, absEtaCut=2.5) + "==" + str(nE)
 
 def getLeptonString(nMu, nE):
-#  if args.leptonsExact: return "nGoodMuons==" + str(nMu) + "&&Sum$(abs(LepGood_pdgId)==13&&LepGood_mediumMuonId)==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
-  if args.leptonsExact: return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
-  else:                 return "nGoodMuons>=" + str(nMu) + "&&nGoodElectrons>=" + str(nE)
+  return getLooseLeptonString(nMu, nE)
 
 def getPtThresholdString(firstPt, secondPt, thirdPt):
   return "(Sum$(LepGood_pt>" + str(firstPt) + ")>=1&&Sum$(LepGood_pt>" + str(secondPt) + ")>=2&&Sum$(LepGood_pt>" + str(thirdPt) + ")>=3)"
 
-useTrigger      = False
+useTrigger      = False #Trigger seems to be highly inefficient
 mumumuSelection = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3mu"   if useTrigger else "")
 mumueSelection  = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2mu1e" if useTrigger else "") 
 mueeSelection   = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2e1mu" if useTrigger else "")
@@ -73,8 +72,8 @@ cuts=[
     ("nbtagML",           bJetSelectionM+"1&&"+bJetSelectionL+"2"),
     ("nbtagLL",           bJetSelectionL+"2"),
     ("nbtagMM",           bJetSelectionM+"2"),
-    ("mll20",             "dl_mass>20"),
-    ("met50",             "met_pt>50"),
+#    ("mll20",             "dl_mass>20"),
+#    ("met50",             "met_pt>50"),
 #    ("met80",             "met_pt>80"),
 #    ("metSig5",           "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
 #    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
@@ -104,7 +103,7 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./ttZ.py --selection=" + selection + (" --leptonsExact" if args.leptonsExact else "")
+    command = "./ttZ.py --selection=" + selection + " --pdType=" + args.pdType
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=01:00:00 runPlotsOnCream02.sh")
@@ -141,19 +140,19 @@ allPlots   = {}
 allModes   = ['3mu', '3e', '2mu1e','2e1mu']
 for mode in allModes:
   if mode=="3mu":
-    data_sample     = SingleMuon_Run2015D
+    data_sample     = SingleMuon_Run2015D if args.pdType == "singleLep" else DoubleMuon_Run2015D
     qcd_sample      = QCD_Mu5 #FIXME
     leptonSelection = mumumuSelection
   elif mode=="3e":
-    data_sample     = SingleElectron_Run2015D
+    data_sample     = SingleElectron_Run2015D if args.pdType == "singleLep" else DoubleEG_Run2015D
     qcd_sample      = QCD_EMbcToE
     leptonSelection = eeeSelection
   elif mode=="2mu1e":
-    data_sample     = SingleMuon_Run2015D
+    data_sample     = SingleMuon_Run2015D if args.pdType == "singleLep" else MuonEG_Run2015D
     qcd_sample      = QCD_Mu5EMbcToE
     leptonSelection = mumueSelection
   elif mode=="2e1mu":
-    data_sample     = SingleElectron_Run2015D
+    data_sample     = SingleElectron_Run2015D if args.pdType == "singleLep" else MuonEG_Run2015D
     qcd_sample      = QCD_Mu5EMbcToE
     leptonSelection = mueeSelection
 
@@ -181,7 +180,7 @@ for mode in allModes:
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
-
+ 
   plots = []
   dl_mass  = Plot(
     texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 3 GeV',
@@ -217,41 +216,6 @@ for mode in allModes:
     binning=[300/20,0,300],
     ) 
   plots.append( dl_mt2blbl )
-
-  dR_jetLep = Plot(
-    texX = 'min(dR(j,l)) (GeV)', texY = 'Number of Events',
-    variable = Variable.fromString( "mindR_jetlep/F" ).addFiller(
-        helpers.uses(lambda data: min(
-            sqrt((data.LepGood_eta[0]-data.JetGood_eta[0])**2 + (data.LepGood_phi[0]-data.JetGood_phi[0])**2),
-            sqrt((data.LepGood_eta[0]-data.JetGood_eta[1])**2 + (data.LepGood_phi[0]-data.JetGood_phi[1])**2),
-            sqrt((data.LepGood_eta[0]-data.JetGood_eta[2])**2 + (data.LepGood_phi[0]-data.JetGood_phi[2])**2),
-            sqrt((data.LepGood_eta[0]-data.JetGood_eta[3])**2 + (data.LepGood_phi[0]-data.JetGood_phi[3])**2),
-            sqrt((data.LepGood_eta[1]-data.JetGood_eta[0])**2 + (data.LepGood_phi[1]-data.JetGood_phi[0])**2),
-            sqrt((data.LepGood_eta[1]-data.JetGood_eta[1])**2 + (data.LepGood_phi[1]-data.JetGood_phi[1])**2),
-            sqrt((data.LepGood_eta[1]-data.JetGood_eta[2])**2 + (data.LepGood_phi[1]-data.JetGood_phi[2])**2),
-            sqrt((data.LepGood_eta[1]-data.JetGood_eta[3])**2 + (data.LepGood_phi[1]-data.JetGood_phi[3])**2),
-            sqrt((data.LepGood_eta[2]-data.JetGood_eta[0])**2 + (data.LepGood_phi[0]-data.JetGood_phi[0])**2),
-            sqrt((data.LepGood_eta[2]-data.JetGood_eta[1])**2 + (data.LepGood_phi[0]-data.JetGood_phi[1])**2),
-            sqrt((data.LepGood_eta[2]-data.JetGood_eta[2])**2 + (data.LepGood_phi[0]-data.JetGood_phi[2])**2),
-            sqrt((data.LepGood_eta[2]-data.JetGood_eta[3])**2 + (data.LepGood_phi[0]-data.JetGood_phi[3])**2)
-         ) , "LepGood[eta/F,phi/F],JetGood[eta/F,phi/F" )
-    ),
-    binning=[30,0,3],
-    )
-  plots.append( dR_jetLep )
-
-  dR_lepLep = Plot(
-    texX = 'min(dR(l,l)) (GeV)', texY = 'Number of Events',
-    variable = Variable.fromString( "mindR_leplep/F" ).addFiller(
-        helpers.uses(lambda data: min(
-            sqrt((data.LepGood_eta[0]-data.LepGood_eta[1])**2 + (data.LepGood_phi[0]-data.JetGood_phi[1])**2),
-            sqrt((data.LepGood_eta[0]-data.LepGood_eta[2])**2 + (data.LepGood_phi[0]-data.JetGood_phi[2])**2),
-            sqrt((data.LepGood_eta[1]-data.LepGood_eta[2])**2 + (data.LepGood_phi[1]-data.JetGood_phi[2])**2),
-         ) , "LepGood[eta/F,phi/F]" )
-    ),
-    binning=[30,0,3],
-    )
-  plots.append( dR_lepLep )
 
   met  = Plot(
     texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
@@ -395,7 +359,8 @@ for mode in allModes:
     binning=[300/10,0,300],
     ))
 
-  read_variables = ["weight/F" , "met_phi/F", "JetGood[pt/F,eta/F,phi/F]", "LepGood[pt/F,eta/F,phi/F]"]
+  read_variables = ["weight/F" , "met_phi/F", "JetGood[pt/F,eta/F,phi/F]", "LepGood[pt/F,eta/F,phi/F]", "mt/F", "nLepGood/I", "nJetGood/I", "nBTag/I", "ht/F", "metSig/F", "met_pt/F", "met_phi/F",
+                    "dl_mass/F", "mlmZ_mass/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F"]
   plotting.fill(plots, read_variables = read_variables)
   for plot in plots:
     plotting.draw(plot, 
