@@ -1,62 +1,6 @@
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 10 --job 0 --samples TTJets TTJets_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 10 --job 1 --samples TTJets TTJets_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 10 --job 2 --samples TTJets TTJets_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 10 --job 3 --samples TTJets TTJets_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 10 --job 4 --samples TTJets TTJets_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 10 --job 5 --samples TTJets TTJets_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 10 --job 6 --samples TTJets TTJets_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 10 --job 7 --samples TTJets TTJets_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 10 --job 8 --samples TTJets TTJets_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 10 --job 9 --samples TTJets TTJets_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 0  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 1  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 2  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 3  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 4  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 5  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 6  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 7  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 8  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 9  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 10 --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 11 --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 12 --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 13 --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 14 --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 15 --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 16 --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 17 --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 18 --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 20 --job 19 --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 4 --job 0 --samples TTJets_LO
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 4 --job 1 --samples TTJets_LO
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 4 --job 2 --samples TTJets_LO
-python cmgPostProcessing.py  --checkTTGJetsOverlap --nJobs 4 --job 3 --samples TTJets_LO
-python cmgPostProcessing.py --nJobs 4 --job 0 --samples TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
-python cmgPostProcessing.py --nJobs 4 --job 1 --samples TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
-python cmgPostProcessing.py --nJobs 4 --job 2 --samples TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
-python cmgPostProcessing.py --nJobs 4 --job 3 --samples TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
-python cmgPostProcessing.py --nJobs 4 --job 0 --samples TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
-python cmgPostProcessing.py --nJobs 4 --job 1 --samples TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
-python cmgPostProcessing.py --nJobs 4 --job 2 --samples TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
-python cmgPostProcessing.py --nJobs 4 --job 3 --samples TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
-python cmgPostProcessing.py --nJobs 20 --job 0   --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 1   --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 2   --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 3   --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 4   --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 5   --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 6   --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 7   --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 8   --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 9   --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 10  --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 11  --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 12  --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 13  --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 14  --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 15  --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 16  --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 17  --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 18  --samples TTLep_pow TTLep_pow_ext
-python cmgPostProcessing.py --nJobs 20 --job 19  --samples TTLep_pow TTLep_pow_ext
+python cmgPostProcessing.py SPLIT20 --checkTTGJetsOverlap --samples TTJets_DiLepton TTJets_DiLepton_ext
+python cmgPostProcessing.py SPLIT10 --checkTTGJetsOverlap --samples TTJets TTJets_ext
+python cmgPostProcessing.py SPLIT5  --checkTTGJetsOverlap --samples TTJets_LO
+python cmgPostProcessing.py SPLIT10 --samples TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
+python cmgPostProcessing.py SPLIT10 --samples TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
+python cmgPostProcessing.py SPLIT20 --samples TTLep_pow TTLep_pow_ext
