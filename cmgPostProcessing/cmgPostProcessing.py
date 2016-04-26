@@ -70,14 +70,14 @@ def get_parser():
         action='store',
         nargs='?',
         type=int,
-        default=-1,
+        default=1,
         help="Maximum number of simultaneous jobs."
         )
     argParser.add_argument('--job',
         action='store',
         nargs='*',
         type=int,
-        default=-1,
+        default=[],
         help="Run only jobs i"
         )
 
@@ -302,12 +302,17 @@ if options.T2tt:
     if not os.path.exists(signalDir): os.makedirs(signalDir)
 
 if os.path.exists(outDir) and options.overwrite:
-    logger.info( "Output directory %s exists. Deleting.", outDir )
-    shutil.rmtree(outDir)
+    if options.nJobs > 1:
+        logger.warning( "NOT removing directory %s because nJobs = %i", outDir, options.nJobs ) 
+    else:
+        logger.info( "Output directory %s exists. Deleting.", outDir )
+        shutil.rmtree(outDir)
 
-if not os.path.exists(outDir): 
+try:    #Avoid trouble with race conditions in multithreading
     os.makedirs(outDir)
     logger.info( "Created output directory %s.", outDir )
+except:
+    pass
 
 if options.skim.lower().count('tiny'):
     #branches to be kept for data and MC
@@ -677,7 +682,7 @@ treeMaker_parent = TreeMaker(
     )
     
 # Split input in ranges
-if options.nJobs>0:
+if options.nJobs>1:
     eventRanges = reader.getEventRanges( nJobs = options.nJobs )
 else:
     eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs = options.minNJobs )
@@ -694,7 +699,7 @@ convertedEvents = 0
 outputLumiList = {}
 for ievtRange, eventRange in enumerate( eventRanges ):
 
-    if not ievtRange in options.job: continue
+    if len(options.job)>0 and not ievtRange in options.job: continue
 
     logger.info( "Processing range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 
