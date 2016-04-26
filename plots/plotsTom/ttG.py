@@ -1,511 +1,359 @@
 #!/usr/bin/env python
-''' Analysis script for 1D 2l plots (RootTools)
+''' Analysis script for 1D 2l plots with TTZ selection (blnu bjj ll)
 '''
-#Standard imports
+#
+# Standard imports and batch mode
+#
 import ROOT
-from math import sqrt, cos, sin, pi
-import itertools
-
-# batch mode
 ROOT.gROOT.SetBatch(True)
 
-#RootTools
+from math import sqrt, cos, sin, pi
 from RootTools.core.standard import *
-
-# argParser
-import argparse
-argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--logLevel', 
-      action='store',
-      nargs='?',
-      choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],
-      default='INFO',
-      help="Log level for logging"
-)
-
-argParser.add_argument('--mode',
-    default='doubleMu',
-    action='store',
-    choices=['doubleMu', 'doubleEle',  'muEle'])
-
-argParser.add_argument('--small',
-    action='store_true',
-#    default=True,
-    help='Just a small subset?',
-)
-
-argParser.add_argument('--overwrite',
-#    default = False,
-    default = True,
-    action='store_true',
-    help='overwrite?',
-)
-
-argParser.add_argument('--plot_directory',
-    default='ttG',
-    action='store',
-)
-
-args = argParser.parse_args()
-
-# Logging
-import StopsDilepton.tools.logger as logger
-logger = logger.get_logger(args.logLevel, logFile = None )
-import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
-
-#make samples
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
-
-def getZCut(mode):
-    mZ = 91.2
-    zstr = "abs(dl_mass - "+str(mZ)+")"
-    if mode.lower()=="onz": return zstr+"<15"
-    if mode.lower()=="offz": return zstr+">15"
-    return "(1)"
-
-if args.mode=="doubleMu":
-    leptonSelectionString = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0"
-    trigger     = "HLT_mumuIso"
-elif args.mode=="doubleEle":
-    leptonSelectionString = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2"
-    trigger   = "HLT_ee_DZ"
-elif args.mode=="muEle":
-    leptonSelectionString = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1"
-    trigger    = "HLT_mue"
-else:
-    raise ValueError( "Mode %s not known"%args.mode )
-
-# Extra requirements on data
-filterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&vetoPassed&&jsonPassed&&weight>0)"
-
-
-# Use data points for TTG
-TTG_photonAsMet.style = styles.errorStyle( ROOT.kBlack )
-TTG_photonAsMet.setSelectionString(["photonAsMet&&gamma_pt>50", trigger])   # select on photons
-
-for mc in [TTZtoLLNuNu, TTZtoQQ]:
-  mc.style = styles.fillStyle( mc.color)
-  mc.setSelectionString(["abs(dl_mass-91.1876)<15&&dl_pt>50", trigger])     # select on Z bosons
-
-stack = Stack([TTZtoLLNuNu, TTZtoQQ], TTG_photonAsMet)
-
-# user data
 from StopsDilepton.tools.user import plot_directory
 
-# official PU reweighting
-weight = lambda data:data.weight
 
-cuts=[
-    ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
-    ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
-    ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
-    ("mll20", "dl_mass>20"),
-    ("met80", "met_pt>80"),
-    ("metSig5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
-]
-                
-def drawObjects( scale ):
+#
+# Arguments
+# 
+import argparse
+argParser = argparse.ArgumentParser(description = "Argument parser")
+argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
+argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
+argParser.add_argument('--plot_directory', action='store',      default='TTG')
+argParser.add_argument('--pdType',         action='store',      default='singleLep', choices=['singleLep','doubleLep'])
+argParser.add_argument('--selection',      action='store',      default=None)
+argParser.add_argument('--isChild',        action='store_true', default=False)
+args = argParser.parse_args()
+
+args.plot_directory += "_" + args.pdType
+
+#
+# Logger
+#
+import StopsDilepton.tools.logger as logger
+import RootTools.core.logger as logger_rt
+logger    = logger.get_logger(   args.logLevel, logFile = None)
+logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
+
+#
+# Selections (three leptons with pt > 30, 20, 10 GeV)
+#
+from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
+def getLooseLeptonString(nMu, nE):
+  return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10, absEtaCut=2.5) + "==" + str(nE)
+
+def getLeptonString(nMu, nE):
+#  return getLooseLeptonString(nMu, nE)
+  return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
+
+
+offZ          = "abs(dl_mass-91.1876)>15"
+mumuSelection = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso&&" + offZ 
+mueSelection  = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
+eeSelection   = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
+muSelection   = getLeptonString(1, 0)
+eSelection    = getLeptonString(0, 1)
+
+jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
+bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))>="
+bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))>="
+photonSelection = "nPhotonGood>0&&photon_idCutBased>2&&sqrt((photon_eta-JetGood_eta)**2+(photon_phi-JetGood_phi)**2)>0.4&&photon_pt>"
+filterCut       = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&vetoPassed&&jsonPassed&&weight>0)"
+
+#
+# Cuts to iterate over
+#
+if args.pdType == "doubleLep":
+  jetCuts=[
+    ("njet1",             jetSelection+"1"),
+    ("njet2",             jetSelection+"2"),
+  ]
+else:
+  jetCuts=[
+    ("njet3",             jetSelection+"3"),
+    ("njet4",             jetSelection+"4"),
+  ]
+
+cuts = jetCuts + [
+    ("nbtagL",            bJetSelectionL+"1"),
+    ("nbtagM",            bJetSelectionM+"1"),
+    ("nbtagML",           bJetSelectionM+"1&&"+bJetSelectionL+"2"),
+    ("nbtagLL",           bJetSelectionL+"2"),
+    ("nbtagMM",           bJetSelectionM+"2"),
+    ("photon30",          photonSelection+"30"),
+    ("photon50",          photonSelection+"50"),
+    ("photon75",          photonSelection+"75"),
+    ("photon100",         photonSelection+"100"),
+    ("photon125",         photonSelection+"125"),
+    ("mll20",             "dl_mass>20"),
+    ("met80",             "met_pt_photonEstimated>80"),
+#    ("metSig5",           "metSig_photonEstimated>5"),
+#    ("dPhiJet0-dPhiJet1", "cos(met_phi_photonEstimated-JetGood_phi[0])<cos(0.25)&&cos(met_phi_photonEstimate-JetGood_phi[1])<cos(0.25)"),
+  ]
+
+
+#
+# Construct prefixes and selectionstring
+#
+import itertools
+selectionStrings = {}
+for i_comb in reversed( range( len(cuts)+1 ) ):
+    for comb in itertools.combinations( cuts, i_comb ):
+        presel = [] 
+        presel.extend( comb )
+        selection = '-'.join([p[0] for p in presel])
+        if selection.count("nbtag") > 1:   continue
+        if selection.count("photon") != 1: continue
+        if selection.count("njet") != 1:   continue
+        if selection.count("njet1") and (selection.count("LL") or selection.count("ML") or selection.count("MM")):   continue
+        if selection.count("met") > 1:     continue
+        selectionStrings[selection] = "&&".join( [p[1] for p in presel])
+
+#
+# If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
+#
+if not args.isChild and args.selection is None:
+  import os
+  os.system("mkdir -p log")
+  for selection in selectionStrings:
+    command = "./ttG.py --selection=" + selection + " --pdType=" + args.pdType
+    logfile = "log/" + selection + ".log"
+    logger.info("Launching " + selection + " on cream02 with child command: " + command)
+    os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
+  logger.info("All jobs launched")
+  exit(0)
+
+
+
+#
+# Make samples, will be searched for in the postProcessing directory
+#
+if args.pdType == "singleLep": postProcessing_directory = "postProcessed_Fall15_mAODv2/singlelepTiny"
+else:                          postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny"
+from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
+
+
+#
+# Text on the plots
+#
+def drawObjects( dataMCScale, lumi_scale ):
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
-    (0.15, 0.95, 'CMS Preliminary'), 
-    (0.45, 0.95, '13 TeV, Scale %3.2f'% ( scale ) )
+      (0.15, 0.95, 'CMS Preliminary'), 
+      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(lumi_scale*100)/100., dataMCScale ) )
     ]
     return [tex.DrawLatex(*l) for l in lines] 
 
+yield_mc   = {}
+yield_data = {}
+allPlots   = {}
+if args.pdType == "singleLep": allModes = ["mu","e"]
+else:                          allModes   = ['mumu','mue','ee']
+for mode in allModes:
+  if mode=="mumu":
+    data_sample     = DoubleMuon_Run2015D
+    qcd_sample      = QCD_Mu5 #FIXME
+    leptonSelection = mumuSelection
+  elif mode=="ee":
+    data_sample     = DoubleEG_Run2015D
+    qcd_sample      = QCD_EMbcToE
+    leptonSelection = eeSelection
+  elif mode=="mue":
+    data_sample     = MuonEG_Run2015D
+    qcd_sample      = QCD_Mu5EMbcToE
+    leptonSelection = mueSelection
+  if mode=="mu":
+    data_sample     = SingleMuon_Run2015D
+    qcd_sample      = QCD_Mu5 #FIXME
+    leptonSelection = muSelection
+  elif mode=="ee":
+    data_sample     = SingleElectron_Run2015D
+    qcd_sample      = QCD_EMbcToE
+    leptonSelection = eSelection
 
-##for i_comb in [0]:
-#for i_comb in [len(cuts)]:
-for i_comb in reversed( range( len(cuts)+1 ) ):
-#for i_comb in range(len(cuts)+1):
-    for comb in itertools.combinations( cuts, i_comb ):
-        for sample in stack.samples():
-          sample.clear()  # Need a reload of the chain in order to avoid segFault
+  data_sample.style = styles.errorStyle( ROOT.kBlack )
+  lumi_scale = data_sample.lumi/1000
 
-        presel = [("isOS","isOS")] 
-        presel.extend( comb )
+  mc = [ diBoson, WJetsToLNu, WZZ, DY_HT_LO, qcd_sample, singleTop, TTLep_pow, TTXNoZ, TTZtoQQ, TTZtoLLNuNu, TTG ]
+  for sample in mc:
+    sample.scale = lumi_scale
+    sample.style = styles.fillStyle(sample.color)
 
-        prefix = '_'.join([args.mode, '-'.join([p[0] for p in presel])])
-        plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
-        if os.path.exists(plot_path) and not args.overwrite:
-            logger.info( "Path %s not empty. Skipping."%path )
-            continue
+  stack = Stack(mc, [data_sample])
+  data_sample.setSelectionString([filterCut, leptonSelection])
+  for sample in mc:
+    sample.setSelectionString([leptonSelection])
 
-        if "nbtag1" in prefix and "nbtag0" in prefix: continue
+  # For TTJets, do TTGJets overlap events removal
+  TTJets.setSelectionString(["!isTTGJetsEvent", leptonSelection])
 
-        selectionString = "&&".join( [p[1] for p in presel] + [leptonSelectionString] )
-        logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionString )
+  logger.info( "Calculating normalization constants" )        
+  yield_mc[mode]   = sum(      s.getYieldFromDraw( selectionString = selectionStrings[args.selection], weightString = 'weight')['val'] for s in mc)
+  yield_data[mode] = data_sample.getYieldFromDraw( selectionString = selectionStrings[args.selection], weightString = 'weight')['val']
+  dataMCScale      = yield_data[mode]/(yield_mc[mode]*lumi_scale)
 
-        logger.info( "Calculating normalization constants" )
-        yield_TTG         = TTG_photonAsMet.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
-        yield_TTZtoLLNuNu = TTZtoLLNuNu.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
-        yield_TTZtoQQ     = TTZtoQQ.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
-        scale = yield_TTG/(yield_TTZtoLLNuNu+yield_TTZtoQQ)
+  logger.info( "Now plotting with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
+  logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc[mode], yield_data[mode], lumi_scale )
 
+  # Use some defaults
+  Plot.setDefaults(stack = stack, weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
+  
+  plots = []
 
-        plots = []
+  if mode in ["mumu","mue","ee"]:
+    plots.append(Plot(
+      texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 3 GeV',
+      variable = Variable.fromString( "dl_mass/F" ),
+      binning=[50/3,0,150],
+      ))
 
-        dl_mass  = Plot(
-            texX = 'm(ll) (GeV)', texY = 'Number of Events / 3 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "dl_mass/F" ),
-            binning=[150/3,0,150],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_mass )
+    plots.append(Plot(
+      texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
+      variable = Variable.fromString( "dl_mt2ll_photonEstimated/F" ),
+      binning=[300/20,0,300],
+      ))
 
-        dl_pt  = Plot(
-            texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 10 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "dl_pt/F" ),
-            binning=[40,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_pt )
+    plots.append(Plot(
+      texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
+      variable = Variable.fromString( "dl_mt2bb_photonEstimated/F" ),
+      binning=[300/20,0,300],
+      ))
 
-        dl_eta  = Plot(
-            texX = '#eta(ll) ', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "dl_eta/F" ),
-            binning=[30,-3,3],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_eta )
+    plots.append(Plot(
+      texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
+      variable = Variable.fromString( "dl_mt2blbl_photonEstimated/F" ),
+      binning=[300/20,0,300],
+      )) 
 
-        dl_phi  = Plot(
-            texX = '#phi(ll) (GeV)', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "dl_phi/F" ),
-            binning=[30,-pi,pi],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_phi )
+  plots.append(Plot(
+    texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
+    variable = Variable.fromString( "met_pt_photonEstimated/F" ),
+    binning=[15,0,300],
+    ))
 
-        dl_mt2ll  = Plot(
-            texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "dl_mt2ll/F" ),
-            binning=[300/20,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_mt2ll )
+  plots.append(Plot(
+    texX = '#slash{E}_{T}/#sqrt(H_{T}) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
+    variable = Variable.fromString('metSig_photonEstimated/F'),
+    binning=[15,0,15],
+    ))
 
-        dl_mt2bb  = Plot(
-            texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "dl_mt2bb/F" ),
-            binning=[300/20,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_mt2bb )
+  plots.append(Plot(
+    texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
+    variable = Variable.fromString( "ht/F" ),
+    binning=[510/30,90,600],
+    ))
 
-        dl_mt2blbl  = Plot(
-            texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "dl_mt2blbl/F" ),
-            binning=[300/20,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            ) 
-        plots.append( dl_mt2blbl )
-         
-        V_pt  = Plot(
-            texX = 'p_{T}(Z or #gamma) (GeV)', texY = 'Number of Events / 5 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "V_pt/F" ).addFiller(
-                helpers.uses(lambda data: data.gamma_pt[0] if data.photonAsMet else data.dl_pt , ["gamma[pt/F]","photonAsMet/O", "dl_pt/F"] )
-            ), 
-            binning=[60,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( V_pt )
+  plots.append(Plot(
+    texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
+    variable = Variable.fromString('cosMetJet0phi/F').addFiller (
+        helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
+    ), 
+    binning = [10,-1,1], 
+  ))
 
-        l1_pt  = Plot(
-            texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "l1_pt/F" ),
-            binning=[60,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l1_pt )
+  plots.append(Plot(
+    texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
+    variable = Variable.fromString('cosMetJet1phi/F').addFiller (
+        helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
+    ), 
+    binning = [10,-1,1], 
+  ))
 
+  plots.append(Plot(
+    texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
+    variable = Variable.fromString('jet0pt/F').addFiller (
+        helpers.uses(lambda data: data.JetGood_pt[0], "JetGood[pt/F]" )
+    ), 
+    binning=[900/20,30,930],
+    ))
 
-        l1_eta  = Plot(
-            texX = '#eta(l_{1})', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "l1_eta/F" ),
-            binning=[36,-3.3,3.3],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l1_eta )
+  plots.append(Plot(
+    texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
+    variable = Variable.fromString('jet1pt/F').addFiller (
+        helpers.uses(lambda data: data.JetGood_pt[1], "JetGood[pt/F]" )
+    ), 
+    binning=[600/20,30,630],
+    ))
 
-        l1_phi  = Plot(
-            texX = '#phi(l_{1})', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "l1_phi/F" ),
-            binning=[30,-pi,pi],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l1_phi )
+  plots.append(Plot(
+    texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
+    variable = Variable.fromString('nBTag/I'),
+    binning=[8,0,8],
+    ))
 
-        l1_pdgId  = Plot(
-            texX = 'pdgId(l_{1})', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "l1_pdgId/I" ),
-            binning=[32,-16,16],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l1_pdgId )
+  plots.append(Plot(
+    texX = 'number of jets', texY = 'Number of Events',
+    variable = Variable.fromString('nJetGood/I'),
+    binning=[14,0,14],
+    ))
 
-        l2_pt  = Plot(
-            texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "l2_pt/F" ),
-            binning=[60,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l2_pt )
+  plots.append(Plot(
+    texX = 'm_{T} (GeV)', texY = 'Number of Events / 30 GeV',
+    variable = Variable.fromString( "mt_photonEstimated/F" ),
+    binning=[300/10,0,300],
+    ))
 
-        l2_eta  = Plot(
-            texX = '#eta(l_{1})', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "l2_eta/F" ),
-            binning=[30,-3,3],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l2_eta )
+  plots.append(Plot(
+    texX = '#eta(#gamma)', texY = 'Number of Events',
+    variable = Variable.fromString( "photon_eta/F" ),
+    binning=[10,-2.4,2.4],
+    ))
 
-        l2_phi  = Plot(
-            texX = '#phi(l_{1})', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "l2_phi/F" ),
-            binning=[30,-pi,pi],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l2_phi )
+  plots.append(Plot(
+    texX = 'p_{T}(#gamma)', texY = 'Number of Events / 20 GeV',
+    variable = Variable.fromString( "photon_pt/F" ),
+    binning=[10, 50,250],
+    ))
 
-        l2_pdgId  = Plot(
-            texX = 'pdgId(l_{1})', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "l2_pdgId/I" ),
-            binning=[32,-16,16],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( l2_pdgId )
+  plots.append(Plot(
+    texX = '#phi(#gamma)', texY = 'Number of Events',
+    variable = Variable.fromString( "photon_phi/F" ),
+    binning=[15,-pi,pi],
+    ))
 
-        metZoomed  = Plot(
-            name = "met_pt_zoomed",
-            texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 10 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "met_pt/F" ),
-            binning=[22,0,220],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( metZoomed )
-
-        met  = Plot(
-            texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "met_pt/F" ),
-            binning=[1050/50,0,1050],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( met )
+  read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_mt2ll_photonEstimated/F", "dl_mt2bb_photonEstimated/F", "dl_mt2blbl_photonEstimated/F","met_pt_photonEstimated/F",
+                    "metSig_photonEstimated/F", "ht/F", "nBTag/I", "nJetGood/I", "mt_photonEstimated/F", "photon_eta/F", "photon_pt/F", "photon_phi/F"]
+  plotting.fill(plots, read_variables = read_variables)
+  for plot in plots:
+    plotting.draw(plot, 
+        plot_directory = os.path.join(plot_directory, args.plot_directory, mode, args.selection),
+        ratio = {'yRange':(0.1,1.9)}, 
+        logX = False, logY = False, sorting = False, 
+        yRange = (0.003, "auto"),
+        drawObjects = drawObjects( dataMCScale, lumi_scale )
+    )
+  allPlots[mode] = plots
 
 
-        JZB  = Plot(
-            texX = 'JZB (GeV)', texY = 'Number of Events / 32 GeV',
-            stack = stack, 
-            variable = Variable.fromString('JZB/F').addFiller (
-                helpers.uses( 
-                    lambda data: sqrt( (data.met_pt*cos(data.met_phi)+data.dl_pt*cos(data.dl_phi))**2 + (data.met_pt*sin(data.met_phi)+data.dl_pt*sin(data.dl_phi))**2) - data.dl_pt, 
-                    ["met_phi/F", "dl_phi/F", "met_pt/F", "dl_pt/F"])
-            ), 
-            binning=[25,-200,600],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( JZB )
 
-        metSig  = Plot(
-            texX = '#slash{E}_{T}/#sqrt(H_{T}) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
-            stack = stack, 
-            variable = Variable.fromString('metSig/F').addFiller (
-                helpers.uses( 
-                    lambda data: data.met_pt/sqrt(data.ht) if data.ht>0 else float('nan') , 
-                    ["met_pt/F", "ht/F"])
-            ), 
-            binning=[20,0,20],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( metSig )
+# Add yields in channels
+total_mc    = sum(y for y in yield_mc.values())
+total_data  = sum(y for y in yield_data.values())
+lumi_scale  = 2.165
+dataMCScale = total_data/(total_mc*lumi_scale)
 
-        ht  = Plot(
-            texX = 'H_{T} (GeV)', texY = 'Number of Events / 100 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "ht/F" ),
-            binning=[2600/100,0,2600],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( ht )
+# Add the different channels and plot the sums
+for plot in allPlots[allModes[0]]:
+  logger.info("Adding " + plot.name + " for mode " + allModes[0] + " to all")
+  for mode in allModes[1:]:
+    for plot2 in (p for p in allPlots[mode] if p.name == plot.name):
+      logger.info("Adding " + plot.name + " for mode " + mode + " to all")
+      for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
+        for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
+          if i==k:
+            j.Add(l)
 
-        ht_zoomed  = Plot(
-            name = "ht_zoomed",
-            texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "ht/F" ),
-            binning=[390/15,0,390],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( ht_zoomed )
+  plot.histos[1][0].legendText = "Data 2015 (all channels)"
+  plotting.draw(plot,
+        plot_directory = os.path.join(plot_directory, args.plot_directory, "all", args.selection),
+        ratio = {'yRange':(0.1,1.9)},
+        logX = False, logY = False, sorting = False,
+        yRange = (0.003, "auto"),
+        drawObjects = drawObjects( dataMCScale, lumi_scale )
+  )
 
-        cosMetJet0phi = Plot(\
-            texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString('cosMetJet0phi/F').addFiller (
-                helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
-            ), 
-            binning = [10,-1,1], 
-            selectionString = selectionString,
-            weight = weight,
-        )
-        plots.append( cosMetJet0phi )
-
-        cosMetJet1phi = Plot(\
-            texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString('cosMetJet1phi/F').addFiller (
-                helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
-            ), 
-            binning = [10,-1,1], 
-            selectionString = selectionString,
-            weight = weight,
-        )
-        plots.append( cosMetJet1phi )
-
-        jet0pt  = Plot(
-            texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString('jet0pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[0], "JetGood[pt/F]" )
-            ), 
-            binning=[980/20,0,980],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet0pt )
-
-        jet1pt  = Plot(
-            texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString('jet1pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[1], "JetGood[pt/F]" )
-            ), 
-            binning=[980/20,0,980],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet1pt )
-
-        jet2pt  = Plot(
-            texX = 'p_{T}(3^{rd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString('jet2pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[2], "JetGood[pt/F]" )
-            ), 
-            binning=[400/20,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet2pt )
-
-        jet3pt  = Plot(
-            texX = 'p_{T}(4^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString('jet3pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[3], "JetGood[pt/F]" )
-            ), 
-            binning=[400/20,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet3pt )
-
-        jet4pt  = Plot(
-            texX = 'p_{T}(5^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString('jet4pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[4], "JetGood[pt/F]" )
-            ), 
-            binning=[400/20,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet4pt )
-
-        nbtags  = Plot(
-            texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString('nBTag/I'),
-            binning=[8,0,8],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( nbtags )
-
-        njets  = Plot(
-            texX = 'number of jets', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString('nJetGood/I'),
-            binning=[14,0,14],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( njets )
-
-        nVert  = Plot(
-            texX = 'vertex multiplicity', texY = 'Number of Events',
-            stack = stack, 
-            variable = Variable.fromString( "nVert/I" ),
-            binning=[50,0,50],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( nVert )
-
-        read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]"]
-        plotting.fill(plots, read_variables = read_variables)
-        if not os.path.exists( plot_path ): os.makedirs( plot_path )
-        for plot in plots:
-            plotting.draw(plot, 
-                plot_directory = plot_path, ratio = {'yRange':(0.1,1.9)}, 
-                logX = False, logY = False, sorting = True, 
-                yRange = (0.03, "auto"), 
-                drawObjects = drawObjects( scale )
-            )
-        logger.info( "Done with prefix %s and selectionString %s", prefix, selectionString )
+logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
