@@ -23,10 +23,10 @@ import StopsDilepton.tools.user as user
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3
+from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons
-from StopsDilepton.tools.overlapRemovalTTG import isTTGJetsEvent
+from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 
 # central configuration 
 targetLumi = 1000 #pb-1 Which lumi to normalize to
@@ -161,7 +161,7 @@ def get_parser():
 
     argParser.add_argument('--checkTTGJetsOverlap',
         action='store_true',
-        help="Keep isTTGJetsOverlap boolean which can be used to clean TTG events from TTJets samples"
+        help="Keep TTGJetsEventType which can be used to clean TTG events from TTJets samples"
         )
 
     argParser.add_argument('--skipSystematicVariations',
@@ -187,12 +187,8 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 skimConds = []
 if options.skim.lower().startswith('dilep'):
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=2" )
-    if options.skim.lower().startswith('dilepMet80'):	  		    # Small skim when we only want to do stuff with two jets and met
-      skimConds.append( "Sum$(Jet_pt>30&&abs(Jet_eta)<2.5)>=1&&met_pt>80" ) # FIXME: should also save those events which pass after systematics
 if options.skim.lower().startswith('singlelep'):
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=1" )
-    if options.skim.lower().startswith('singlelepMet80'):		    # Small skim when we only want to do stuff with two jets and met
-      skimConds.append( "Sum$(Jet_pt>30&&abs(Jet_eta)<2.5)>=1&&met_pt>80" ) # FIXME: should also save those events which pass after systematics
 
 #Samples: Load samples
 maxN = 2 if options.runSmallSample else None
@@ -414,6 +410,8 @@ if isMC:
     read_variables.append( Variable.fromString('ngenPartAll/I') ) 
     read_variables.append( VectorType.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( Variable.fromString('genWeight/F') ) 
+    read_variables.append( Variable.fromString('met_genPt/F') )
+    read_variables.append( VectorType.fromString('gamma[mcPt/F]') )
 
     new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
 
@@ -428,6 +426,7 @@ new_variables += [\
 ]
 
 if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
+else:      new_variables.extend( ['met_res/F'] )
 new_variables.extend( ['nJetGood/I','nBTag/I', 'ht/F', 'metSig/F'] )
 
 if options.skim.lower().startswith('singlelep'):
@@ -446,13 +445,14 @@ if options.skim.lower().startswith('dilep'):
 
 if options.keepPhotons:
     new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
+    if not isData: new_variables.extend( ['photon_res/F'] )
     new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
     new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
     if options.skim.lower().startswith('dilep'):
-      new_variables.extend( ['dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
+      new_variables.extend( ['dlg_mass/F','dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
 
 if options.checkTTGJetsOverlap:
-    new_variables.extend( ['isTTGJetsEvent/O'] )
+    new_variables.extend( ['TTGJetsEventType/I'] )
 
 if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
@@ -523,14 +523,17 @@ def filler(s):
     # top pt reweighting
     if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
 
-    # jet/met related quantitie
-    allJets = getGoodJets(r, ptCut=0, jetVars = jetVarNames )
-    jets = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4), allJets)
-    bJets = filter(lambda j:isBJet(j), jets)
-    nonBJets = filter(lambda j:not isBJet(j), jets)
+    # jet/met related quantities, also load the leptons already
+    allJets      = getGoodJets(r, ptCut=0, jetVars = jetVarNames )
+    jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4), allJets)
+    bJets        = filter(lambda j:isBJet(j), jets)
+    nonBJets     = filter(lambda j:not isBJet(j), jets)
+    leptons_pt10 = getGoodLeptons(r, ptCut=10)
+    leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
 
-    s.met_pt = r.met_pt
+    s.met_pt  = r.met_pt
     s.met_phi = r.met_phi
+    if not isData: s.met_res = r.met_pt/r.met_genPt
 
     # Filling jets
     s.nJetGood   = len(jets)
@@ -551,9 +554,9 @@ def filler(s):
 
     metVariants = [''] # default
 
-    # Keep photons and estimate met including photon
+    # Keep photons and estimate met including (leading pt) photon
     if options.keepPhotons:
-       photons = getGoodPhotons(r, ptCut=20, idLevel="loose")
+       photons = getGoodPhotons(r, ptCut=20, idLevel="loose", isData=isData)
        s.nPhotonGood = len(photons)
        if s.nPhotonGood > 0:
          metVariants += ['_photonEstimated']  # do all met calculations also for the photonEstimated variant
@@ -561,6 +564,8 @@ def filler(s):
          s.photon_eta        = photons[0]['eta']
          s.photon_phi        = photons[0]['phi']
          s.photon_idCutBased = photons[0]['idCutBased']
+         if not isData: s.photon_res = photons[0]['pt']/photons[0]['mcPt'] if photons[0]['mcPt'] > 0 else float('nan')
+
          met = ROOT.TLorentzVector()
          met.SetPtEtaPhiM(r.met_pt, 0, r.met_phi, 0 )
          gamma = ROOT.TLorentzVector()
@@ -570,10 +575,11 @@ def filler(s):
          s.met_phi_photonEstimated = metGamma.Phi()
          s.metSig_photonEstimated  = s.met_pt_photonEstimated/sqrt(s.ht) if s.ht>0 else float('nan')
 
-         s.photonJetdR = min(sqrt((s.photon_eta-j['eta'])**2+(s.photon_phi-j['phi'])**2) for j in jets) if len(jets) > 0 else 999
+         s.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
+         s.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
 
     if options.checkTTGJetsOverlap and isMC:
-       s.isTTGJetsEvent = isTTGJetsEvent(r)
+       s.TTGJetsEventType = getTTGJetsEventType(r)
 
     if addSystematicVariations:
         for j in allJets:
@@ -586,33 +592,33 @@ def filler(s):
             nonBjets_sys[var]   = filter(lambda j: not isBJet(j), jets_sys[var])
 
             setattr(s, "nJetGood_"+var, len(jets_sys[var]))
-            setattr(s, "ht_"+var, sum([j['pt_'+var] for j in jets_sys[var]]))
-            setattr(s, "nBTag_"+var, len(bjets_sys[var]))
+            setattr(s, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
+            setattr(s, "nBTag_"+var,    len(bjets_sys[var]))
 
             for i in metVariants:
               (met_corr_pt, met_corr_phi) = getMetCorrected(getattr(s, "met_pt" + i), getattr(s,"met_phi" + i), jets_sys[var], var)
 
-              setattr(s, "met_pt"+i+"_"+var, met_corr_pt)
+              setattr(s, "met_pt" +i+"_"+var, met_corr_pt)
               setattr(s, "met_phi"+i+"_"+var, met_corr_phi)
-              setattr(s, "metSig"+i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( getattr(s, "met_pt"+i+"_"+var) ) )
+              setattr(s, "metSig" +i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( getattr(s, "met_pt"+i+"_"+var) ) )
 
 
     if options.skim.lower().startswith('singlelep') or options.skim.lower().startswith('dilep'):
-        leptons_pt10 = getGoodLeptons(r, ptCut=10)
-        leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
-        if options.keepPhotons and s.nPhotonGood > 0: s.photonLepdR     = min(sqrt((s.photon_eta-l['eta'])**2+(s.photon_phi-l['phi'])**2) for l in leptons) if len(leptons) > 0 else 999
         s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
         s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
-        s.mlmZ_mass = closestOSDLMassToMZ(leptons_pt10)
         if len(leptons)>=1:
-            s.l1_pt  = leptons[0]['pt']
-            s.l1_eta = leptons[0]['eta']
-            s.l1_phi = leptons[0]['phi']
+            s.l1_pt     = leptons[0]['pt']
+            s.l1_eta    = leptons[0]['eta']
+            s.l1_phi    = leptons[0]['phi']
             s.l1_pdgId  = leptons[0]['pdgId']
             s.l1_index  = leptons[0]['index']
 
+        # For TTZ studies: find Z boson candidate, and use third lepton to calculate mt
+        (s.mlmZ_mass, zl1, zl2) = closestOSDLMassToMZ(leptons_pt10)
+        if len(leptons_pt10) >= 3:
+            thirdLepton = leptons_pt10[[x for x in range(len(leptons_pt10)) if x != zl1 and x != zl2][0]]
             for i in metVariants:
-              setattr(s, "mt"+i, sqrt(2*s.l1_pt*getattr(s, "met_pt"+i)*(1-cos(s.l1_phi-getattr(s, "met_phi"+i)))))
+              setattr(s, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(s, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(s, "met_phi"+i)))))
 
     if options.skim.lower().startswith('dilep'):
         if options.fastSim:
@@ -622,29 +628,33 @@ def filler(s):
 
         if len(leptons)>=2:# and leptons[0]['pdgId']*leptons[1]['pdgId']<0 and abs(leptons[0]['pdgId'])==abs(leptons[1]['pdgId']): #OSSF choice
             mt2Calc.reset()
-            s.l2_pt  = leptons[1]['pt']
-            s.l2_eta = leptons[1]['eta']
-            s.l2_phi = leptons[1]['phi']
+            s.l2_pt     = leptons[1]['pt']
+            s.l2_eta    = leptons[1]['eta']
+            s.l2_phi    = leptons[1]['phi']
             s.l2_pdgId  = leptons[1]['pdgId']
             s.l2_index  = leptons[1]['index']
 
             l_pdgs = [abs(leptons[0]['pdgId']), abs(leptons[1]['pdgId'])]
             l_pdgs.sort()
             s.isMuMu = l_pdgs==[13,13]
-            s.isEE = l_pdgs==[11,11]
-            s.isEMu = l_pdgs==[11,13]
-            s.isOS = s.l1_pdgId*s.l2_pdgId<0
+            s.isEE   = l_pdgs==[11,11]
+            s.isEMu  = l_pdgs==[11,13]
+            s.isOS   = s.l1_pdgId*s.l2_pdgId<0
 
             l1 = ROOT.TLorentzVector()
             l1.SetPtEtaPhiM(leptons[0]['pt'], leptons[0]['eta'], leptons[0]['phi'], 0 )
             l2 = ROOT.TLorentzVector()
             l2.SetPtEtaPhiM(leptons[1]['pt'], leptons[1]['eta'], leptons[1]['phi'], 0 )
             dl = l1+l2
-            s.dl_pt  = dl.Pt()
-            s.dl_eta = dl.Eta()
-            s.dl_phi = dl.Phi()
-            s.dl_mass   = dl.M()
+            s.dl_pt   = dl.Pt()
+            s.dl_eta  = dl.Eta()
+            s.dl_phi  = dl.Phi()
+            s.dl_mass = dl.M()
             mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
+
+            if options.keepPhotons and s.nPhotonGood > 0:
+              dlg = dl + gamma
+              s.dlg_mass = dlg.M()
 
             for i in metVariants:
                 mt2Calc.setMet(getattr(s, 'met_pt'+i), getattr(s, 'met_phi', i))
@@ -663,7 +673,7 @@ def filler(s):
                         if len(jets_sys[var])>=2:
                             bj0, bj1 = (bjets_sys[var]+nonBjets_sys[var])[:2]
                             mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                            setattr(s, 'dl_mt2bb'+i+'_'+var,   mt2Calc.mt2bb())
+                            setattr(s, 'dl_mt2bb'  +i+'_'+var, mt2Calc.mt2bb())
                             setattr(s, 'dl_mt2blbl'+i+'_'+var, mt2Calc.mt2blbl())
 
     if addSystematicVariations:
