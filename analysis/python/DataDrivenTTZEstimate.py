@@ -5,16 +5,30 @@ from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
 #from StopsDilepton.tools.helpers import printHeader
 
+# Logging
+import logging
+logger = logging.getLogger(__name__)
 
 class DataDrivenTTZEstimate(SystematicEstimator):
     def __init__(self, name, cacheDir=None):
         super(DataDrivenTTZEstimate, self).__init__(name, cacheDir=cacheDir)
-        self.nJets = (4,-1) #jet selection
-        self.nLooseBTags = (2,-1) #loose bjet selection
-        self.nMediumBTags = (1,-1) #bjet selection
-#Concrete implementation of abstract method 'estimate' as defined in Systematic
+        self.nJets        = (4,-1) # jet selection (min, max)
+        self.nLooseBTags  = (2,-1) # loose bjet selection (min, max)
+        self.nMediumBTags = (1,-1) # bjet selection (min, max)
+
+    def getLooseLeptonString(nMu, nE):
+        return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10) + "==" + str(nE)
+
+    def getLeptonString(nMu, nE):
+        # Only good leptons or also loose?
+        # return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
+        return getLooseLeptonString(nMu, nE)
+
+    def getPtThresholdString(firstPt, secondPt, thirdPt):
+        return "(Sum$(LepGood_pt>" + str(firstPt) + ")>=1&&Sum$(LepGood_pt>" + str(secondPt) + ")>=2&&Sum$(LepGood_pt>" + str(thirdPt) + ")>=3)"
+
+    #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup):
-#        printHeader("DD TTZ prediction for '%s' channel %s" %(self.name, channel))
 
         #Sum of all channels for 'all'
         if channel=='all':
@@ -26,114 +40,59 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 
             #check lumi consistency
             assert abs(1.-setup.lumi[channel]/setup.sample['Data'][channel]['lumi'])<0.01, "Lumi specified in setup %f does not match lumi in data sample %f in channel %s"%(setup.lumi[channel], setup.sample['Data'][channel]['lumi'], channel)
-            selection_MC_2l = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
+            MC_2l = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
             weight = preSelection['weightStr']
-
-            print "weight: ", weight
+            logger.debug("weight: %s", weight)
 
             yield_MC_2l =  setup.lumi[channel]/1000.*u_float(getYieldFromChain(setup.sample['TTZ'][channel]['chain'], cutString = selection_MC_2l, weight=weight, returnError = True) )
             if setup.verbose: print "yield_MC_2l: %s"%yield_MC_2l
 
-            muonSelection_loosePt = looseMuIDString(ptCut=10)
-            electronSelection_loosePt = looseEleIDString(ptCut=10)
+            # pt leptons > 30, 20, 10 GeV
+            useTrigger      = False # setup.parameters['useTriggers'] # better not to use three lepton triggers, seems to be too inefficient
+            mumumuSelection = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3mu"   if useTrigger else "")
+            mumueSelection  = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2mu1e" if useTrigger else "") 
+            mueeSelection   = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2e1mu" if useTrigger else "")
+            eeeSelection    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3e"    if useTrigger else "")
+            lllSelection    = "((" + ")||(".join([mumumuSelection, mumueSelection, mueeSelection, eeeSelection]) + "))"
 
-            #mu_mu_mu
-            MuMuMuSelection = "nGoodMuons>=2" + '&&' + muonSelection_loosePt + "==3"
-            if setup.parameters['useTriggers']: MuMuMuSelection += '&&HLT_3mu'
-            #e_e_e
-            EEESelection = "nGoodElectrons>=2" + '&&' + electronSelection_loosePt + "==3"
-            if setup.parameters['useTriggers']: EEESelection += '&&HLT_3e'
-            #e_e_mu
-            EEMuSelection = "(nGoodMuons+nGoodElectrons)>=2" + "&&" + electronSelection_loosePt + "==2&&" + muonSelection_loosePt + "==1"
-            if setup.parameters['useTriggers']: EEMuSelection += '&&HLT_2e1mu'
-            #mu_mu_e
-            MuMuESelection = "(nGoodMuons+nGoodElectrons)>=2" + "&&" + electronSelection_loosePt + "==1&&" + muonSelection_loosePt + "==2"
-            if setup.parameters['useTriggers']: MuMuESelection += '&&HLT_2mu1e'
+            bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))"
+            bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))"
+            zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 
-            MC_hadronSelection    = setup.selection('MC', hadronicSelection = True,
-                    **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 0., 'metSigMin':0., 'dPhiJetMet':0. })
-                )['cut']
-            data_hadronSelection  = setup.selection('Data', hadronicSelection = True,
-                    **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 0., 'metSigMin':0., 'dPhiJetMet':0. })
-                )['cut']
-
-            #loose bjet selection added here
-            MC_hadronSelection += '&&Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605)>='+str(self.nLooseBTags[0])
-            data_hadronSelection += '&&Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605)>='+str(self.nLooseBTags[0])
-            if self.nLooseBTags[1]>0:
-                MC_hadronSelection += '&&Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605)<='+str(self.nLooseBTags[1])
-                data_hadronSelection += '&&Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605)<='+str(self.nLooseBTags[1])
-
-            MC_MuMuMu = "&&".join([
-                MC_hadronSelection,
-                MuMuMuSelection,
-                "abs(mlmZ_mass-91.2)<10"
-            ])
-            MC_EEE = "&&".join([
-                MC_hadronSelection,
-                EEESelection,
-                "abs(mlmZ_mass-91.2)<10"
-            ])
-            MC_EEMu = "&&".join([
-                MC_hadronSelection,
-                EEMuSelection,
-                "abs(mlmZ_mass-91.2)<10"
-            ])
-            MC_MuMuE = "&&".join([
-                MC_hadronSelection,
-                MuMuESelection,
-                "abs(mlmZ_mass-91.2)<10"
-            ])
-
-            MC_3l = "(("+MC_MuMuMu+")||("+MC_EEE+")||("+MC_EEMu+")||("+MC_MuMuE+"))"
-
-            data_MuMuMu = "&&".join([
-                data_hadronSelection,
-                MuMuMuSelection,
-                "abs(mlmZ_mass-91.2)<10"
-            ])
-            data_EEE = "&&".join([
-                data_hadronSelection,
-                EEESelection,
-                "abs(mlmZ_mass-91.2)<10"
-            ])
-            data_EEMu = "&&".join([
-                data_hadronSelection,
-                EEMuSelection,
-                "abs(mlmZ_mass-91.2)<10"
-            ])
-            data_MuMuE = "&&".join([
-                data_hadronSelection,
-                MuMuESelection,
-                "abs(mlmZ_mass-91.2)<10"
-            ])
+            # Start from base hadronic selection and add loose b-tag and Z-mass requirement
+            selection       = {}
+            for dataOrMC in ["Data", "MC"]:
+              selection[dataOrMC]  = setup.selection(dataOrMC,   hadronicSelection = True, **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 0., 'metSigMin':0., 'dPhiJetMet':0. }))['cut']
+              selection[dataOrMC] += bJetSelectionL+">="+str(self.nLooseBTags[0])
+              selection[dataOrMC] += zMassSelection 
 
 
-            ######yield_MC_3l computed for ALL channels but lumi changes slightly here depending on channel
-            yield_MC_3l = setup.lumi[channel]/1000.*u_float( getYieldFromChain(setup.sample['TTZ'][channel]['chain'], cutString = MC_3l, weight=weight, returnError = True))
-            if setup.verbose: print "yield_MC_looseSelection_3l: %s"%yield_MC_3l
-            yield_data_MuMuMu = u_float( getYieldFromChain(setup.sample['Data']['MuMu']['chain'], cutString = data_MuMuMu, weight=weight, returnError = True))
-            if setup.verbose: print "yield_data_looseSelection_MuMuMu: %s"%yield_data_MuMuMu
-            yield_data_EEE = u_float( getYieldFromChain(setup.sample['Data']['EE']['chain'], cutString = data_EEE, weight=weight, returnError = True))
-            if setup.verbose: print "yield_data_looseSelection_EEE: %s"%yield_data_EEE
-            yield_data_EMu = u_float( getYieldFromChain(setup.sample['Data']['EMu']['chain'], cutString = "(("+data_MuMuE+')||('+data_EEMu+'))', weight=weight, returnError = True))
-            if setup.verbose: print "yield_data_looseSelection_EMu: %s"%yield_data_EMu
+            MC_3l       = lllSelection    + "&&" + selection["MC"]
+            data_mumumu = mumumuSelection + "&&" + selection["Data"]
+            data_mumue  = mumueSelection  + "&&" + selection["Data"]
+            data_muee   = mueeSelection   + "&&" + selection["Data"]
+            data_eee    = eeeSelection    + "&&" + selection["Data"]
 
-            yield_data_3l = yield_data_MuMuMu+yield_data_EEE+yield_data_EMu
-            if setup.verbose: print "yield_data_3l: %s"%yield_data_3l
+            # Calculate yields (take together)
+            yield_ttZ_2l      = setup.lumi[channel]/1000.*u_float(getYieldFromChain(setup.sample['TTZ'][channel]['chain'], cutString = MC_2l,                                 weight=weight, returnError = True))
+            yield_ttZ_3l      = setup.lumi[channel]/1000.*u_float(getYieldFromChain(setup.sample['TTZ'][channel]['chain'], cutString = MC_3l,                                 weight=weight, returnError = True))
+            yield_data_mumumu =                           u_float(getYieldFromChain(setup.sample['Data']['MuMu']['chain'], cutString = data_mumumu,                           weight=weight, returnError = True))
+            yield_data_eee    =                           u_float(getYieldFromChain(setup.sample['Data']['EE']['chain'],   cutString = data_eee,                              weight=weight, returnError = True))
+            yield_data_mue    =                           u_float(getYieldFromChain(setup.sample['Data']['EMu']['chain'],  cutString = "(("+data_mumue+')||('+data_muee+'))', weight=weight, returnError = True))
+            yield_data_3l     = yield_data_mumumu + yield_data_mue + yield_data_eee
 
             #electroweak subtraction
-            print "\n Substracting electroweak backgrounds from data: \n"
             yield_other = u_float(0., 0.)
             for s in ['TTJets' , 'DY', 'other']:
                 yield_other+= setup.lumi[channel]/1000.* u_float(getYieldFromChain(setup.sample[s][channel]['chain'], cutString = MC_3l,  weight=weight, returnError=True))
-                if setup.verbose: print "yield_looseSelection_other %s added, now: %s"%(s, yield_other)
 
-            normRegYield = yield_data_3l - yield_other
-            if normRegYield.val<0: print "\n !!!Warning!!! \n Negative normalization region yield data: (%s), MC: (%s) \n"%(yield_data_3l, yield_other)
+            yield_ttZ_data = yield_data_3l - yield_other
 
-            print  "normRegYield", normRegYield
-            print "\n Control Region predictys ", normRegYield, " TTZ events in data; ", yield_MC_3l, " TTZ events in MC. Ratio ---> ", (normRegYield/yield_MC_3l)
-            print "DD-TTZ ---> ", (normRegYield/yield_MC_3l)*yield_MC_2l
-            return (normRegYield/yield_MC_3l)*yield_MC_2l
-
+            if normRegYield.val<0: logger.warn("Data-driven estimate is negative!")
+            logger.info("Control region predictions: ")
+            logger.info("  data:        " + str(yield_data_3l))
+            logger.info("  MC other:    " + str(yield_other))
+            logger.info("  TTZ (MC):    " + str(yield_ttZ_3l))
+            logger.info("  TTZ (data):  " + str(yield_ttZ_data))
+            logger.info("  TTZ (ratio): " + str(yield_ttZ_data/yield_ttZ_3l))
+            return (yield_ttZ_data/yield_ttZ_3l)*yield_MC_2l

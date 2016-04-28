@@ -1,8 +1,5 @@
 from StopsDilepton.tools.objectSelection import getGenPartsAll
-
-
-def deltaR(a, b):
-  return sqrt((a['eta']-b['eta'])**2+(a['phi']-b['phi'])**2)
+from StopsDilepton.tools.helpers import deltaR
 
 
 def isIsolatedPhoton(g, genparts, coneSize):
@@ -30,18 +27,21 @@ def getParentIds(genParticles, g):
 # Recipe is based on AN2015-165
 # Gen photon pt/eta cuts taken from Madgraph card
 # https://github.com/cms-sw/genproductions/blob/b0427dd453eb682bba6a84d10b5e3b4ad752c380/bin/MadGraph5_aMCatNLO/cards/production/13TeV/TTGJets_5f_NLO_FXFX/TTGJets_5f_NLO_FXFX_run_card.dat
-def isTTGJetsEvent(r):
+def getTTGJetsEventType(r):
+  type = 0
   genparts = getGenPartsAll(r)
-  for g in genparts:
+  for g in genparts:										# Type 0: no photon
     if g['pdgId'] != 22:                        continue					# pdgId == 22 for photons
+    type = max(type, 1)										# Type 1: photon found
     if g['pt'] < 10:                            continue					# pt > 10 GeV
     if abs(g['eta']) > 2.6:                     continue					# |eta| < 2.6
+    type = max(type, 2)										# Type 2: photon within generator cuts
 #   if not isIsolatedPhoton(g, genparts, 0.05): continue					# According to MG the photon isolation is 0.05, probably too small to really apply this cut
 												# (TTGJets has a few events where other stuff is found within 0.05 of the photon)
 
     parents = getParentIds(genparts, g)								# Get complete parentsList
     parents = filter(lambda x: abs(x) != 2212, parents)						# Remove the protons from the list
 
-    if len(parents) == 0:                        return True					# Rare, not sure what's happening here, apparently sometimes the photon has no parents or the proton as parent, assume it is signal
-    if max(parents) < 37 and min(parents) > -37: return True					# Only quarks, leptons, gluons and bosons allowed in the parent list (i.e. we avoid photons from pions)
-  return False
+    if len(parents) == 0:                          type = max(type, 3)				# Rare, not sure what's happening here, apparently sometimes the photon has no parents or the proton as parent
+    elif max(parents) < 37 and min(parents) > -37: type = max(type, 4)				# Only quarks, leptons, gluons and bosons allowed in the parent list (i.e. we avoid photons from pions) [those are the ones which should be removed]
+  return type
