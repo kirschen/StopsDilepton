@@ -25,8 +25,12 @@ from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3
 from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons
+from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
 from StopsDilepton.tools.overlapRemovalTTG import isTTGJetsEvent
+
+#MC tools
+from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
+genSearch = GenSearch()
 
 # central configuration 
 targetLumi = 1000 #pb-1 Which lumi to normalize to
@@ -256,7 +260,8 @@ if isMC:
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
 # Decision based on sample name -> whether TTJets or TTLep is in the sample name
-doTopPtReweighting = (sample.name.startswith("TTJets") or sample.name.startswith("TTLep")) and not options.noTopPtReweighting
+isTT = sample.name.startswith("TTJets") or sample.name.startswith("TTLep")
+doTopPtReweighting = isTT and not options.noTopPtReweighting
 if doTopPtReweighting:
     logger.info( "Sample will have top pt reweighting." ) 
     topPtReweightingFunc = getUnscaledTopPairPtReweightungFunction(selection = "dilep")
@@ -490,6 +495,10 @@ def getMetCorrected(met_pt, met_phi, jets, var):
   met_corr_phi = atan2(met_corr_py, met_corr_px)
   return (met_corr_pt, met_corr_phi)
 
+mothers = {"D":0, "B":0}
+grannies_D = {}
+grannies_B = {}
+
 def filler(s): 
     # shortcut
     r = reader.data
@@ -673,7 +682,36 @@ def filler(s):
         for var in btagEff.btagWeightNames:
             if var!='MC':
                 setattr(s, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
-    
+
+    # gen information on extra leptons 
+    if isMC:
+        gPart = getGenPartsAll( r )
+        genSearch.init( gPart )
+        # Start with status 1 gen leptons in acceptance
+        gLep = filter( lambda p:abs(p['pdgId']) in [11, 13] and p['status']==1 and p['pt']>20 and abs(p['eta'])<2.5, gPart )
+        for l in gLep:
+            ancestry = [ gPart[x]['pdgId'] for x in genSearch.ancestry( l ) ]
+            n_D =  sum([ancestry.count(p) for p in D_mesons])
+            n_B =  sum([ancestry.count(p) for p in B_mesons])
+            n_W =  sum([ancestry.count(p) for p in [24, -24]])
+            n_t =  sum([ancestry.count(p) for p in [6, -6]])
+            n_tau =  sum([ancestry.count(p) for p in [15, -15]])
+
+            #if      n_t and n_W and not n_B and not n_D and not n_tau:
+            #    print "t->W->l"
+            #elif    n_t and not n_W and n_B and not n_D and not n_tau:
+            #    print "t->b->B->l"
+            #elif    n_t and not n_W and n_B and n_D and not n_tau:
+            #    print "t->b->B->D->l"
+            #elif    n_t and n_W and n_tau:
+            #    print "t->W->tau->l"
+            #elif    n_t and n_W and not n_B and n_D and not n_tau:
+            #    print "t->W->c->D->l"
+            #else:
+            #    print l['pdgId'], l['pt'], l['phi'], l['eta'], ",".join(pdgToName(gPart[x]['pdgId']) for x in genSearch.ancestry(l))   
+
+
+
 # Create a maker. Maker class will be compiled. This instance will be used as a parent in the loop
 treeMaker_parent = TreeMaker( 
     filler = filler, 
@@ -772,3 +810,4 @@ if options.T2tt:
             logger.info( "Found file %s -> Skipping"%(signalFile) )
 
     output.clear() 
+
