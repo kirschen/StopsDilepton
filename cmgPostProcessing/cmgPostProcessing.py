@@ -410,7 +410,6 @@ if isMC:
     read_variables.append( Variable.fromString('ngenPartAll/I') ) 
     read_variables.append( VectorType.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( Variable.fromString('genWeight/F') ) 
-    read_variables.append( Variable.fromString('met_genPt/F') )
     read_variables.append( VectorType.fromString('gamma[mcPt/F]') )
 
     new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
@@ -426,7 +425,6 @@ new_variables += [\
 ]
 
 if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
-else:      new_variables.extend( ['met_res/F'] )
 new_variables.extend( ['nJetGood/I','nBTag/I', 'ht/F', 'metSig/F'] )
 
 if options.skim.lower().startswith('singlelep'):
@@ -533,7 +531,6 @@ def filler(s):
 
     s.met_pt  = r.met_pt
     s.met_phi = r.met_phi
-    if not isData: s.met_res = r.met_pt/r.met_genPt
 
     # Filling jets
     s.nJetGood   = len(jets)
