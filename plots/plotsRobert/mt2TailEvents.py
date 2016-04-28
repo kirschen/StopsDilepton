@@ -8,7 +8,7 @@ from StopsDilepton.tools.helpers import getObjDict, getEList, getVarValue, delta
 from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getLeptons, looseMuID, looseEleID, getJets, leptonVars, jetVars, getGoodTaus
 from StopsDilepton.tools.genParticleTools import getDaughters, descendDecay, decaysTo, printDecay
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
-from StopsDilepton.tools.pdgToName import pdgToName
+from StopsDilepton.tools.mcTools import pdgToName
 mt2Calc = mt2Calculator()
 from StopsDilepton.tools.user import *
 
@@ -21,7 +21,7 @@ nuPdgs = [12,14,16]
 maxN = -1
 
 samples = [ Sample.fromDirectory(name="TTJets_Lep", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (lep)", \
-            directory=['/scratch/rschoefbeck/cmgTuples/fromTom_reHadd/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) ]
+            directory=['/afs/hephy.at/data/rschoefbeck01/cmgTuples/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) ]
 
 from StopsDilepton.tools.objectSelection import multiIsoMuId, multiIsoEleId
 muID = multiIsoMuId("VT")
@@ -278,7 +278,7 @@ for s in samples:
 
                 otherNeutrinoPt = vecPtSum(otherNeutrinos)
                 if otherNeutrinoPt>40:
-                    neutrinoMotherString = ",".join([pdgToName[p['motherId']] for p in otherNeutrinos if p['pt']>20])
+                    neutrinoMotherString = ",".join([pdgToName(p['motherId']) for p in otherNeutrinos if p['pt']>20])
                     if len(neutrinoMotherString)>0:neutrinoMotherString=bold(" high-pt nu")+" from "+neutrinoMotherString
                 else:
                       neutrinoMotherString=""
@@ -310,7 +310,7 @@ for s in samples:
                     gl = filter(lambda l: dRMatch([rl], dR=0.15, checkPdgId=True)(l), status1MuEle )
                     if len(gl)==1:
                         rl['matchMotherPdgId']=gl[0]['motherId']
-                mmatch = ",".join([pdgToName[l['matchMotherPdgId']] for l in leptons if l.has_key('matchMotherPdgId')])
+                mmatch = ",".join([pdgToName(l['matchMotherPdgId']) for l in leptons if l.has_key('matchMotherPdgId')])
                 if mmatch!="":mmatch=" (matched to l from "+mmatch+")"
                 leptonsFailRelIso03Str = ""
                 if leptonsFailRelIso03: leptonsFailRelIso03Str=bold('>=1 lep fails relIso03<0.1!')
@@ -319,7 +319,7 @@ for s in samples:
                 if leptonsFailRelIso04: leptonsFailRelIso04Str=bold('>=1 lep fails relIso04<0.1!')
                 if leptonsFailRelIso04_012: leptonsFailRelIso04Str=bold('>=1 lep fails relIso04<0.12!')
                 print " "*41+"lep-m %i %s %6.2f %s. %s %s" %(len(lepMatched),lepStr, lepDMet, mmatch, leptonsFailRelIso03Str, leptonsFailRelIso04Str)
-                print " "*41, "min_jetPtRatiov2", min_jetPtRatiov2, "min_jetPtRelv2", min_jetPtRelv2
+                #print " "*41, "min_jetPtRatiov2", min_jetPtRatiov2, "min_jetPtRelv2", min_jetPtRelv2
                 print
                 if deltaMet>100:  counterRecofake_fakeMet100[mode][gMode]+=1
                 if deltaMet>200:  counterRecofake_fakeMet200[mode][gMode]+=1

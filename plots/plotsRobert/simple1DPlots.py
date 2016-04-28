@@ -25,6 +25,11 @@ argParser.add_argument('--mode',
     action='store',
     choices=['doubleMu', 'doubleEle',  'muEle'])
 
+argParser.add_argument('--charges',
+    default='OS',
+    action='store',
+    choices=['OS', 'SS'])
+
 argParser.add_argument('--zMode',
     default='offZ',
     action='store',
@@ -39,6 +44,11 @@ argParser.add_argument('--noData',
 argParser.add_argument('--small',
     action='store_true',
     help='Small?',
+)
+
+argParser.add_argument('--reversed',
+    action='store_true',
+    help='Reversed?',
 )
 
 argParser.add_argument('--signals',
@@ -57,7 +67,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='png25ns_2l_mAODv2_2100_officialPU_new',
+    default='png25ns_2l_mAODv2_2100_noPU_new',
     action='store',
 )
 
@@ -70,6 +80,8 @@ import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 #make samples
+data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/" 
+#postProcessing_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/" 
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
@@ -105,7 +117,7 @@ mcFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHa
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ DY_HT_LO, TTJets, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
+mc = [ DY_HT_LO, TTJets_Lep, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
 #mc = [ TTX]
 if args.small:
     TTJets.reduceFiles(to = 1)
@@ -126,7 +138,7 @@ weight = lambda data:data.weight
 cuts=[
     ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
     ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
-#    ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
+    ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
     ("mll20", "dl_mass>20"),
     ("met80", "met_pt>80"),
     ("metSig5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
@@ -174,16 +186,23 @@ if len(args.signals)>0:
             logger.warning( "Could not add signal %s", s)
 
 ##for i_comb in [0]:
-for i_comb in [len(cuts)]:
-#for i_comb in reversed( range( len(cuts)+1 ) ):
-#for i_comb in range(len(cuts)+1):
+#for i_comb in [len(cuts)]
+
+rev = reversed if args.reversed else lambda x:x
+for i_comb in rev( range( len(cuts)+1 ) ):
     for comb in itertools.combinations( cuts, i_comb ):
 
         if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
         for sample in mc:
             sample.setSelectionString([ mcFilterCut, trigger ])
 
-        presel = [("isOS","isOS")] 
+        if args.charges=="OS":
+            presel = [("isOS","isOS")]
+        elif args.charges=="SS":
+            presel = [("isSS","l1_pdgId*l2_pdgId>0")]
+        else:
+            raise ValueError
+ 
         presel.extend( comb )
 
         prefix = '_'.join([args.mode, args.zMode, '-'.join([p[0] for p in presel])])
