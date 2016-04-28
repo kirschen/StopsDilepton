@@ -7,7 +7,7 @@ import itertools
 #scripts
 ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.setTDRStyle()
-mZ=91.2
+mZ=91.1876
 
 def deltaPhi(phi1, phi2):
     dphi = phi2-phi1
@@ -31,13 +31,14 @@ def getFileList(dir, histname='histo', maxN=-1):
         filelist = filelist[:maxN]
     return filelist
 
+# Returns (closest mass, index1, index2)
 def closestOSDLMassToMZ(leptons):
     inds = [i for i in range(len(leptons))]
     vecs = [ROOT.TLorentzVector() for i in range(len(leptons))]
     for i, v in enumerate(vecs):
         v.SetPtEtaPhiM(leptons[i]['pt'], leptons[i]['eta'], leptons[i]['phi'], 0.)
-    dlMasses = [(vecs[comb[0]] + vecs[comb[1]]).M()  for comb in itertools.combinations(inds, 2) if leptons[comb[0]]['pdgId']*leptons[comb[1]]['pdgId'] < 0 and abs(leptons[comb[0]]['pdgId']) == abs(leptons[comb[1]]['pdgId']) ]
-    return min(dlMasses, key=lambda m:abs(m-mZ)) if len(dlMasses)>0 else float('nan')
+    dlMasses = [((vecs[comb[0]] + vecs[comb[1]]).M(), comb[0], comb[1])  for comb in itertools.combinations(inds, 2) if leptons[comb[0]]['pdgId']*leptons[comb[1]]['pdgId'] < 0 and abs(leptons[comb[0]]['pdgId']) == abs(leptons[comb[1]]['pdgId']) ]
+    return min(dlMasses, key=lambda (m,i1,i2):abs(m-mZ)) if len(dlMasses)>0 else (float('nan'), -1, -1)
 
 def m3( jets ):
     if not len(jets)>=3: return float('nan'), -1, -1, -1
