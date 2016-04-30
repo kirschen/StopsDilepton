@@ -23,6 +23,18 @@ def deltaR2(l1, l2):
 def deltaR(l1, l2):
     return sqrt(deltaR2(l1,l2))
 
+def matchWithCollection(l, coll, deltaR = 0.2, deltaRelPt = 0.5 ):
+    lst = []
+    for l2 in coll:
+        dr2 = deltaR2(l, l2)
+        if  ( dr2 < deltaR**2 or deltaR<0 ) and (abs( -1 + l2['pt']/l['pt']) < deltaRelPt ):
+            lst.append((dr2, l2))
+    lst.sort()
+    if len(lst)>0:
+        return lst[0][1]
+    else:
+        return None
+
 def getFileList(dir, histname='histo', maxN=-1):
     import os
     filelist = os.listdir(os.path.expanduser(dir))

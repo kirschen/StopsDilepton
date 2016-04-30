@@ -2,12 +2,12 @@
 
 # standard imports
 import ROOT
-import sys 
-import os 
-import copy 
-import random 
-import subprocess 
-import datetime 
+import sys
+import os
+import copy
+import random
+import subprocess
+import datetime
 import shutil
 
 from array import array
@@ -23,32 +23,32 @@ import StopsDilepton.tools.user as user
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR
+from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, matchWithCollection
 from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
+from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getGoodAndOtherLeptons,  getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
 genSearch = GenSearch()
 
-# central configuration 
+# central configuration
 targetLumi = 1000 #pb-1 Which lumi to normalize to
 
 def get_parser():
     ''' Argument parser for post-processing module.
     '''
-    import argparse 
+    import argparse
     argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
-        
-    argParser.add_argument('--logLevel', 
+
+    argParser.add_argument('--logLevel',
         action='store',
         nargs='?',
         choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],
         default='INFO',
         help="Log level for logging"
         )
-    
+
     argParser.add_argument('--overwrite',
         action='store_true',
         help="Overwrite existing output files, bool flag set to True  if used")
@@ -100,7 +100,7 @@ def get_parser():
         default=user.cmg_directory,
         help="Name of the directory where the input data is stored (for samples read from Heppy)."
         )
-    
+
     argParser.add_argument('--targetDir',
         action='store',
         nargs='?',
@@ -108,7 +108,7 @@ def get_parser():
         default=user.data_output_directory,
         help="Name of the directory the post-processed files will be saved"
         )
-    
+
     argParser.add_argument('--processingEra',
         action='store',
         nargs='?',
@@ -158,6 +158,11 @@ def get_parser():
         help="Keep photons?"
         )
 
+    argParser.add_argument('--addGenLepMatching',
+        action='store_true',
+        help="add matched genleps??"
+        )
+
     argParser.add_argument('--keepLHEWeights',
         action='store_true',
         help="Keep LHEWeights?"
@@ -187,12 +192,19 @@ logger = logger.get_logger(options.logLevel, logFile ='/tmp/%s_%s.txt'%(options.
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
+# flags (I think string searching is slow, so let's not do it in the filler function)
+isDiLep     =   options.skim.lower().startswith('dilep')
+isSingleLep =   options.skim.lower().startswith('singlelep')
+isTiny      =   options.skim.lower().count('tiny') 
+isVeryLoose =  'veryloose' in options.skim.lower()
+isLoose     =  'loose' in options.skim.lower() and not isVeryLoose
+
 # Skim condition
 skimConds = []
-if options.skim.lower().startswith('dilep'):
-    skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=2" )
-if options.skim.lower().startswith('singlelep'):
-    skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5)>=1" )
+if isDiLep:
+    skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=2" )
+elif isSingleLep:
+    skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=1" )
 
 #Samples: Load samples
 maxN = 2 if options.runSmallSample else None
@@ -203,7 +215,7 @@ if options.T2tt:
     logger.info( "T2tt signal samples to be processed: %s", ",".join(s.name for s in samples) )
     # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
     assert len(samples)==1, "Can only process one T2tt sample at a time."
-    samples[0].files = samples[0].files[:maxN] 
+    samples[0].files = samples[0].files[:maxN]
     logger.debug( "Fetching signal weights..." )
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
     logger.debug("Done fetching signal weights.")
@@ -230,7 +242,7 @@ else:
 
 #Samples: combine if more than one
 if len(samples)>1:
-    sample_name =  samples[0].name+"_comb" 
+    sample_name =  samples[0].name+"_comb"
     logger.info( "Combining samples %s to %s.", ",".join(s.name for s in samples), sample_name )
     sample = Sample.combine(sample_name, samples, maxN = maxN)
     # Clean up
@@ -259,16 +271,16 @@ from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightung
 isTT = sample.name.startswith("TTJets") or sample.name.startswith("TTLep")
 doTopPtReweighting = isTT and not options.noTopPtReweighting
 if doTopPtReweighting:
-    logger.info( "Sample will have top pt reweighting." ) 
+    logger.info( "Sample will have top pt reweighting." )
     topPtReweightingFunc = getUnscaledTopPairPtReweightungFunction(selection = "dilep")
     # Compute x-sec scale factor on unweighted events
     selectionString = "&&".join(skimConds)
     topScaleF = sample.getYieldFromDraw( selectionString = selectionString, weightString = getTopPtDrawString(selection = "dilep"))
     topScaleF = topScaleF['val']/float(sample.chain.GetEntries(selectionString))
-    logger.info( "Found topScaleF %f", topScaleF ) 
-else: 
+    logger.info( "Found topScaleF %f", topScaleF )
+else:
     topScaleF = 1
-    logger.info( "Sample will NOT have top pt reweighting. topScaleF=%f",topScaleF ) 
+    logger.info( "Sample will NOT have top pt reweighting. topScaleF=%f",topScaleF )
 
 if options.fastSim:
    from StopsDilepton.tools.leptonFastSimSF import leptonFastSimSF as leptonFastSimSF_
@@ -304,7 +316,7 @@ if options.T2tt:
 
 if os.path.exists(outDir) and options.overwrite:
     if options.nJobs > 1:
-        logger.warning( "NOT removing directory %s because nJobs = %i", outDir, options.nJobs ) 
+        logger.warning( "NOT removing directory %s because nJobs = %i", outDir, options.nJobs )
     else:
         logger.info( "Output directory %s exists. Deleting.", outDir )
         shutil.rmtree(outDir)
@@ -315,7 +327,7 @@ try:    #Avoid trouble with race conditions in multithreading
 except:
     pass
 
-if options.skim.lower().count('tiny'):
+if isTiny:
     #branches to be kept for data and MC
     branchKeepStrings_DATAMC = \
        ["run", "lumi", "evt", "isData", "nVert",
@@ -324,8 +336,8 @@ if options.skim.lower().count('tiny'):
         "Flag_*",
         "HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
         "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
-        "LepGood_eta","LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId", 
-        "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits",
+        "LepGood_eta","LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId",
+        "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits","LepGood_jetPtRelv2", "LepGood_jetPtRatiov2"
         ]
 
     #branches to be kept for MC samples only
@@ -349,7 +361,8 @@ else:
         "nLepGood", "LepGood_*",
         "nTauGood", "TauGood_*",
     ]
-
+    if isLoose or isVeryLoose:
+        branchKeepStrings_DATAMC+= ["nLepOther", "LepOther_*"]
     #branches to be kept for MC samples only
     branchKeepStrings_MC = [\
         "nTrueInt", "genWeight", "xsec", "met_gen*", "lheHTIncoming",
@@ -359,31 +372,27 @@ else:
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
 
-if options.skim.lower().startswith('singlelep'):
+if isSingleLep:
     branchKeepStrings_DATAMC += ['HLT_SingleMu', 'HLT_IsoMu27', 'HLT_IsoMu20', 'HLT_Mu45eta2p1', 'HLT_Mu50', 'HLT_MuHT350', 'HLT_MuHTMET', 'HLT_MuMET120', 'HLT_IsoEle32', 'HLT_IsoEle23', 'HLT_IsoEle22']
 
 if options.T2tt: branchKeepStrings_MC += ['GenSusyMScan1', 'GenSusyMScan2']
 
-# Jet variables to be read from chain 
+# Jet variables to be read from chain
 jetCorrInfo = ['corr/F', 'corr_JECUp/F', 'corr_JECDown/F'] if addSystematicVariations else []
 if isMC:
-    if options.skim.lower().count('tiny'):
+    if isTiny:
         jetMCInfo = ['mcPt/F', 'hadronFlavour/I']
     else:
         jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
-        if not options.T2tt: 
+        if not options.T2tt:
             jetMCInfo.append('partonFlavour/I')
-else: 
+else:
     jetMCInfo = []
 
-jetVars = ['pt/F', 'rawPt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F'] + jetCorrInfo + jetMCInfo
-# for convinience: List of jet variables to be read in the filler
-jetVarNames = [x.split('/')[0] for x in jetVars]
-
-if options.keepPhotons and not options.skim.lower().count('tiny'):
+if options.keepPhotons and not isTiny:
     branchKeepStrings_DATAMC+=[
-        "ngamma", "gamma_idCutBased", "gamma_hOverE", "gamma_r9", "gamma_sigmaIetaIeta", "gamma_chHadIso04", "gamma_chHadIso", "gamma_phIso", 
-        "gamma_neuHadIso", "gamma_relIso", "gamma_pdgId", "gamma_pt", "gamma_eta", "gamma_phi", "gamma_mass", 
+        "ngamma", "gamma_idCutBased", "gamma_hOverE", "gamma_r9", "gamma_sigmaIetaIeta", "gamma_chHadIso04", "gamma_chHadIso", "gamma_phIso",
+        "gamma_neuHadIso", "gamma_relIso", "gamma_pdgId", "gamma_pt", "gamma_eta", "gamma_phi", "gamma_mass",
         "gamma_chHadIsoRC04", "gamma_chHadIsoRC"]
     if isMC: branchKeepStrings_DATAMC+=[ "gamma_mcMatchId", "gamma_mcPt", "gamma_genIso04", "gamma_genIso03", "gamma_drMinParton"]
 
@@ -402,46 +411,58 @@ else:
     lumiScaleFactor = xSection*targetLumi/float(sample.normalization) if xSection is not None else None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
+jetVars = ['pt/F', 'rawPt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F'] + jetCorrInfo + jetMCInfo
+jetVarNames = [x.split('/')[0] for x in jetVars]
+genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'index/I', 'lepGoodMatchIndex/I', 'matchesPromptGoodLepton/I', 'n_t/I','n_W/I', 'n_B/I', 'n_D/I', 'n_tau/I']
+genLepVarNames  = [x.split('/')[0] for x in genLepVars]
 
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
 if options.keepPhotons:
-  read_variables += [Variable.fromString('ngamma/I'),
-                     VectorType.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I,pdgId/I]')]
+  read_variables += [ Variable.fromString('ngamma/I'),
+                      VectorType.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I,pdgId/I]') ]
 
 new_variables = [ 'weight/F']
-if isMC: 
+if isMC:
     read_variables+= [Variable.fromString('nTrueInt/F')]
     # reading gen particles for top pt reweighting
-    read_variables.append( Variable.fromString('ngenPartAll/I') ) 
+    read_variables.append( Variable.fromString('ngenPartAll/I') )
     read_variables.append( VectorType.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
-    read_variables.append( Variable.fromString('genWeight/F') ) 
+    read_variables.append( Variable.fromString('genWeight/F') )
     read_variables.append( VectorType.fromString('gamma[mcPt/F]') )
 
     new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
+    if options.addGenLepMatching:
+        Variable.fromString( 'nGenLep/I' ),
+        new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
 
 read_variables += [\
-    Variable.fromString('nLepGood/I'), 
-    VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F]'),
-    Variable.fromString('nJet/I'), 
+    Variable.fromString('nLepGood/I'),
+    VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F]'),
+    Variable.fromString('nJet/I'),
     VectorType.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
 ]
+if isVeryLoose:
+    read_variables += [\
+        Variable.fromString('nLepOther/I'),
+        VectorType.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F]'),
+    ]
 new_variables += [\
-    'JetGood[%s]'% ( ','.join(jetVars) ) 
+    'JetGood[%s]'% ( ','.join(jetVars) )
 ]
 
 if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
 new_variables.extend( ['nJetGood/I','nBTag/I', 'ht/F', 'metSig/F'] )
 
-if options.skim.lower().startswith('singlelep'):
+if isSingleLep:
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
-if options.skim.lower().startswith('dilep') or options.skim.lower().startswith('singlelep'):
+if isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
-    new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I' ] )
+    new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F' ] )
     new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     if options.keepPhotons:
       new_variables.extend( ['mt_photonEstimated/F'] )
-if options.skim.lower().startswith('dilep'):
-    new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I' ] )
+if isDiLep:
+    new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
@@ -451,7 +472,7 @@ if options.keepPhotons:
     if not isData: new_variables.extend( ['photon_res/F'] )
     new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
     new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
-    if options.skim.lower().startswith('dilep'):
+    if isDiLep:
       new_variables.extend( ['dlg_mass/F','dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
 
 if options.checkTTGJetsOverlap:
@@ -461,11 +482,11 @@ if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
         new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F', 'metSig_'+var+'/F'] )
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F'] )
-        if options.skim.lower().startswith('dilep'):
+        if isDiLep:
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
         if options.keepPhotons:
             new_variables.extend( ['met_pt_photonEstimated_'+var+'/F', 'met_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
-            if options.skim.lower().startswith('dilep'):
+            if isDiLep:
                 new_variables.extend( ['dl_mt2ll_photonEstimated_'+var+'/F', 'dl_mt2bb_photonEstimated_'+var+'/F', 'dl_mt2blbl_photonEstimated_'+var+'/F'] )
     # Btag weights Method 1a
     for var in btagEff.btagWeightNames:
@@ -476,12 +497,12 @@ if options.T2tt:
     read_variables += map(Variable.fromString, ['GenSusyMScan1/I', 'GenSusyMScan2/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
 
-if options.fastSim and options.skim.lower().startswith('dilep'):
+if options.fastSim and isDiLep:
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
 # Define a reader
 reader = sample.treeReader( \
-    variables = read_variables , 
+    variables = read_variables ,
     selectionString = "&&".join(skimConds)
     )
 
@@ -497,7 +518,7 @@ mothers = {"D":0, "B":0}
 grannies_D = {}
 grannies_B = {}
 
-def filler(s): 
+def filler(s):
     # shortcut
     r = reader.data
 
@@ -508,7 +529,7 @@ def filler(s):
         s.mNeu  = r.GenSusyMScan2
         s.reweightXSecUp    = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacUp']
         s.reweightXSecDown  = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacDown']
-    elif isMC: 
+    elif isMC:
         s.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
     elif isData:
         s.weight = 1
@@ -520,7 +541,7 @@ def filler(s):
         s.vetoPassed  = vetoList.passesVeto(r.run, r.lumi, r.evt)
         s.jsonPassed  = lumiList.contains(r.run, r.lumi)
         # store decision to use after filler has been executed
-        s.jsonPassed_ = s.jsonPassed 
+        s.jsonPassed_ = s.jsonPassed
 
     if isMC:
         s.reweightPU     = puRW(r.nTrueInt)
@@ -535,7 +556,18 @@ def filler(s):
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4), allJets)
     bJets        = filter(lambda j:isBJet(j), jets)
     nonBJets     = filter(lambda j:not isBJet(j), jets)
-    leptons_pt10 = getGoodLeptons(r, ptCut=10)
+    if isVeryLoose:
+        # all leptons up to relIso 1
+        miniRelIso = 1.0 
+        leptons_pt10 = getGoodAndOtherLeptons(r, ptCut=10, miniRelIso = miniRelIso)
+    elif isLoose:
+        # reliso 0.4
+        miniRelIso = 0.4
+        leptons_pt10 = getGoodLeptons(r, ptCut=10, miniRelIso = miniRelIso)
+    else:
+        miniRelIso = 0.2
+        leptons_pt10 = getGoodLeptons(r, ptCut=10, miniRelIso = miniRelIso)
+        # relIso 0.2
     leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
 
     s.met_pt  = r.met_pt
@@ -543,12 +575,12 @@ def filler(s):
 
     # Filling jets
     s.nJetGood   = len(jets)
-    if options.skim.lower().startswith('singlelep'):
-        # Compute M3 and the three indiced of the jets entering m3
-        s.m3, s.m3_ind1, s.m3_ind2, s.m3_ind3 = m3( jets )
     for iJet, jet in enumerate(jets):
         for b in jetVarNames:
             getattr(s, "JetGood_"+b)[iJet] = jet[b]
+    if isSingleLep:
+        # Compute M3 and the three indiced of the jets entering m3
+        s.m3, s.m3_ind1, s.m3_ind2, s.m3_ind3 = m3( jets )
 
     s.ht         = sum([j['pt'] for j in jets])
     s.metSig     = s.met_pt/sqrt(s.ht) if s.ht>0 else float('nan')
@@ -609,7 +641,7 @@ def filler(s):
               setattr(s, "metSig" +i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( getattr(s, "met_pt"+i+"_"+var) ) )
 
 
-    if options.skim.lower().startswith('singlelep') or options.skim.lower().startswith('dilep'):
+    if isSingleLep or isDiLep:
         s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
         s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
         if len(leptons)>=1:
@@ -618,6 +650,10 @@ def filler(s):
             s.l1_phi    = leptons[0]['phi']
             s.l1_pdgId  = leptons[0]['pdgId']
             s.l1_index  = leptons[0]['index']
+            s.l1_jetPtRelv2  = leptons[0]['jetPtRelv2']
+            s.l1_jetPtRatiov2  = leptons[0]['jetPtRatiov2']
+            s.l1_jetPtRelv2    = leptons[0]['jetPtRelv2']
+            s.l1_miniRelIso = leptons[0]['miniRelIso']
 
         # For TTZ studies: find Z boson candidate, and use third lepton to calculate mt
         (s.mlmZ_mass, zl1, zl2) = closestOSDLMassToMZ(leptons_pt10)
@@ -626,12 +662,12 @@ def filler(s):
             for i in metVariants:
               setattr(s, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(s, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(s, "met_phi"+i)))))
 
-    if options.skim.lower().startswith('dilep'):
         if options.fastSim:
             s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
             s.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
             s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
 
+    if isDiLep:
         if len(leptons)>=2:# and leptons[0]['pdgId']*leptons[1]['pdgId']<0 and abs(leptons[0]['pdgId'])==abs(leptons[1]['pdgId']): #OSSF choice
             mt2Calc.reset()
             s.l2_pt     = leptons[1]['pt']
@@ -639,6 +675,9 @@ def filler(s):
             s.l2_phi    = leptons[1]['phi']
             s.l2_pdgId  = leptons[1]['pdgId']
             s.l2_index  = leptons[1]['index']
+            s.l2_jetPtRatiov2  = leptons[1]['jetPtRatiov2']
+            s.l2_jetPtRelv2    = leptons[1]['jetPtRelv2']
+            s.l2_miniRelIso = leptons[1]['miniRelIso']
 
             l_pdgs = [abs(leptons[0]['pdgId']), abs(leptons[1]['pdgId'])]
             l_pdgs.sort()
@@ -690,42 +729,57 @@ def filler(s):
             if var!='MC':
                 setattr(s, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
 
-    # gen information on extra leptons 
-    if isMC:
+    # gen information on extra leptons
+    if isMC and options.addGenLepMatching:
         gPart = getGenPartsAll( r )
         genSearch.init( gPart )
         # Start with status 1 gen leptons in acceptance
         gLep = filter( lambda p:abs(p['pdgId']) in [11, 13] and p['status']==1 and p['pt']>20 and abs(p['eta'])<2.5, gPart )
         for l in gLep:
             ancestry = [ gPart[x]['pdgId'] for x in genSearch.ancestry( l ) ]
-            n_D =  sum([ancestry.count(p) for p in D_mesons])
-            n_B =  sum([ancestry.count(p) for p in B_mesons])
-            n_W =  sum([ancestry.count(p) for p in [24, -24]])
-            n_t =  sum([ancestry.count(p) for p in [6, -6]])
-            n_tau =  sum([ancestry.count(p) for p in [15, -15]])
-
-            #if      n_t and n_W and not n_B and not n_D and not n_tau:
-            #    print "t->W->l"
-            #elif    n_t and not n_W and n_B and not n_D and not n_tau:
-            #    print "t->b->B->l"
-            #elif    n_t and not n_W and n_B and n_D and not n_tau:
-            #    print "t->b->B->D->l"
-            #elif    n_t and n_W and n_tau:
-            #    print "t->W->tau->l"
-            #elif    n_t and n_W and not n_B and n_D and not n_tau:
-            #    print "t->W->c->D->l"
-            #else:
-            #    print l['pdgId'], l['pt'], l['phi'], l['eta'], ",".join(pdgToName(gPart[x]['pdgId']) for x in genSearch.ancestry(l))   
+            l["n_D"]   =  sum([ancestry.count(p) for p in D_mesons])
+            l["n_B"]   =  sum([ancestry.count(p) for p in B_mesons])
+            l["n_W"]   =  sum([ancestry.count(p) for p in [24, -24]])
+            l["n_t"]   =  sum([ancestry.count(p) for p in [6, -6]])
+            l["n_tau"] =  sum([ancestry.count(p) for p in [15, -15]])
+            matched_lep = matchWithCollection(l, leptons_pt10)
+            if matched_lep:
+                l["lepGoodMatchIndex"] = matched_lep['index']
+                l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index, s.l2_index]
+            else:
+                l["lepGoodMatchIndex"] = -1
+                l["matchesPromptGoodLepton"] = 0
+#            if      l["n_t"]>0 and l["n_W"]>0 and l["n_B"]==0 and l["n_D"]==0 and l["n_tau"]==0:
+#                print "t->W->l"
+#            elif    l["n_t"]>0 and l["n_W"]==0 and l["n_B"]>0 and l["n_D"]==0 and l["n_tau"]==0:
+#                print "t->b->B->l"
+#            elif    l["n_t"]>0 and l["n_W"]==0 and l["n_B"]>0 and l["n_D"]>0 and l["n_tau"]==0:
+#                print "t->b->B->D->l"
+#            elif    l["n_t"]>0 and l["n_W"]>0 and l["n_B"]==0 and l["n_D"]==0 and l["n_tau"]>0 :
+#                print "t->W->tau->l"
+#            elif    l["n_t"]>0 and l["n_W"]>0 and l["n_B"]==0 and l["n_D"]>0 and l["n_tau"]==0:
+#                print "t->W->c->D->l"
+#            elif    l["n_t"]==0 and l["n_W"]==0 and l["n_B"]>0 and l["n_D"]>=0 and l["n_tau"]==0:
+#                print l['pdgId'], l['pt'], l['phi'], l['eta'], ",".join(pdgToName( gPart[x]['pdgId']) for x in genSearch.ancestry(l) )
+#                for p in genSearch.ancestry(l):
+#                    print p, gPart[p]
+#            else:
+#                pass
+                # print l['pdgId'], l['pt'], l['phi'], l['eta'], ",".join(pdgToName(gPart[x]['pdgId']) for x in genSearch.ancestry(l))
+        s.nGenLep   = len(gLep)
+        for iLep, lep in enumerate(gLep):
+            for b in genLepVarNames:
+                getattr(s, "GenLep_"+b)[iLep] = lep[b]
 
 
 
 # Create a maker. Maker class will be compiled. This instance will be used as a parent in the loop
-treeMaker_parent = TreeMaker( 
-    filler = filler, 
+treeMaker_parent = TreeMaker(
+    filler = filler,
     variables = [ Variable.fromString(x) for x in new_variables ],
-    treeName = "Events" 
+    treeName = "Events"
     )
-    
+
 # Split input in ranges
 if options.nJobs>1:
     eventRanges = reader.getEventRanges( nJobs = options.nJobs )
@@ -748,10 +802,10 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 
     logger.info( "Processing range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 
-    # Check whether file exists 
+    # Check whether file exists
     outfilename = filename+'_'+str(ievtRange)+ext
     if os.path.isfile(outfilename):
-        logger.info( "Output file %s found.", outfilename) 
+        logger.info( "Output file %s found.", outfilename)
         if not checkRootFile(outfilename, checkForObjects=["Events"]):
             logger.info( "File %s is broken. Overwriting.", outfilename)
         elif not options.overwrite:
@@ -805,7 +859,7 @@ if isData:
 
 # Write one file per mass point for T2tt
 if options.T2tt:
-    output = Sample.fromDirectory("T2tt_output", outDir) 
+    output = Sample.fromDirectory("T2tt_output", outDir)
     for s in signalWeight.keys():
         cut = "GenSusyMScan1=="+str(s[0])+"&&GenSusyMScan2=="+str(s[1])
         signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
@@ -816,5 +870,5 @@ if options.T2tt:
         else:
             logger.info( "Found file %s -> Skipping"%(signalFile) )
 
-    output.clear() 
+    output.clear()
 
