@@ -215,22 +215,30 @@ for i_comb in [len(cuts)]:
                 [l for l in getLeptons( data, collVars = leptonVars + extraLepVars) if l not in goodLeptons] \
                 + getOtherLeptons( data , collVars = leptonVars + extraLepVars), 
                             key=lambda l: -l['pt'] )
-            setattr( data, "goodLeptons", goodLeptons )
-            setattr( data, "extraLeptons", extraLeptons )
+            #print len(goodLeptons), len(getLeptons( data, collVars = leptonVars + extraLepVars)), len(getOtherLeptons( data , collVars = leptonVars + extraLepVars)), len(extraLeptons) 
+            if len(goodLeptons)==2: 
+                setattr( data, "goodLeptons", goodLeptons )
+                setattr( data, "extraLeptons", extraLeptons )
 
-            extraMu  = filter(lambda l: abs(l['pdgId'])==13 and l['relIso04']>0.5, extraLeptons )
-            extraEle = filter(lambda l: abs(l['pdgId'])==11 and l['relIso04']>0.5, extraLeptons )
+                extraMu  = filter(lambda l: abs(l['pdgId'])==13 and l['relIso04']>0.5, extraLeptons )
+                extraEle = filter(lambda l: abs(l['pdgId'])==11 and l['relIso04']>0.5, extraLeptons )
 
-            setattr( data, "extraMu", extraMu[-1] if len(extraMu)>0 else None )
-            setattr( data, "extraEle", extraEle[-1] if len(extraEle)>0 else None )
+                setattr( data, "extraMu", extraMu[-1] if len(extraMu)>0 else None )
+                setattr( data, "extraEle", extraEle[-1] if len(extraEle)>0 else None )
 
-            # MT2ll
-            mt2Calc.reset()
-            l1, l2 = goodLeptons[0], goodLeptons[1]
-            mt2Calc.setLeptons(l1["pt"], l1["eta"], l1["phi"], l2["pt"], l2["eta"], l2["phi"])
-            mt2Calc.setMet(data.met_pt, data.met_phi)
-            setattr(data, "mt2ll", mt2Calc.mt2ll())
-            #print data.mt2ll
+                # MT2ll
+                mt2Calc.reset()
+                l1, l2 = goodLeptons[0], goodLeptons[1]
+                mt2Calc.setLeptons(l1["pt"], l1["eta"], l1["phi"], l2["pt"], l2["eta"], l2["phi"])
+                mt2Calc.setMet(data.met_pt, data.met_phi)
+                setattr( data, "mt2ll", mt2Calc.mt2ll())
+                #print data.mt2ll
+            else:
+                setattr( data, "goodLeptons", None)
+                setattr( data, "extraLeptons", None)
+                setattr( data, "extraMu", None)
+                setattr( data, "extraEle", None)
+                setattr( data, "mt2ll", None)
 
         sequence.append( makeLeptons )
 
@@ -271,7 +279,9 @@ for i_comb in [len(cuts)]:
                 if not lep or lep is None:
                      res = float('nan')
                 else:
-                    nu = filter(lambda nu:deltaR(nu, lep)<0.5, data.genNu)
+                    nu = filter(lambda nu:abs(nu['motherId'])!=24 and deltaR(nu, lep) <0.5, data.genNu)
+#                    for n in nu:
+#                        print n['pdgId'], n['motherId']
                     if len(nu)==0:
                         res = 0.
                     else:

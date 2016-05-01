@@ -34,24 +34,24 @@ Muon_sip3d = 4.0
 Muon_dxy = 0.05
 Muon_dz = 0.1
 
-def looseMuID(l, ptCut=20, absEtaCut=2.4):
+def looseMuID(l, ptCut=20, absEtaCut=2.4, miniRelIso=Muon_miniRelIso):
     return \
         l["pt"]>=ptCut\
         and abs(l["pdgId"])==13\
         and abs(l["eta"])<absEtaCut\
         and l["mediumMuonId"]==Muon_mediumMuonId \
-        and l["miniRelIso"]<Muon_miniRelIso \
+        and l["miniRelIso"]<miniRelIso \
         and l["sip3d"]<Muon_sip3d\
         and abs(l["dxy"])<Muon_dxy\
         and abs(l["dz"])<Muon_dz
 
-def looseMuIDString(ptCut=20, absEtaCut=2.4):
+def looseMuIDString(ptCut=20, absEtaCut=2.4, miniRelIso=Muon_miniRelIso):
     string = []
     string.append("LepGood_pt>="+str(ptCut))
     string.append("abs("+"LepGood_pdgId)==13")
     string.append("abs("+"LepGood_eta)<"+str(absEtaCut))
     string.append("LepGood_mediumMuonId=="+str(Muon_mediumMuonId))
-    string.append("LepGood_miniRelIso<"+str(Muon_miniRelIso))
+    string.append("LepGood_miniRelIso<"+str(miniRelIso))
     string.append("LepGood_sip3d<"+str(Muon_sip3d))
     string.append("abs("+"LepGood_dxy)<"+str(Muon_dxy))
     string.append("abs("+"LepGood_dz)<"+str(Muon_dz))
@@ -113,13 +113,13 @@ Ele_sip3d = 4.0
 Ele_dxy = 0.05
 Ele_dz = 0.1
 
-def looseEleID(l, ptCut=20, absEtaCut=2.4):
+def looseEleID(l, ptCut=20, absEtaCut=2.4, miniRelIso=Ele_miniRelIso):
     return \
         l["pt"]>=ptCut\
         and abs(l["eta"])<absEtaCut\
         and abs(l["pdgId"])==11\
         and cmgMVAEleID(l, ele_MVAID_cuts_tight)\
-        and l["miniRelIso"]<Ele_miniRelIso\
+        and l["miniRelIso"]<miniRelIso\
         and l["convVeto"]\
         and l["lostHits"]==Ele_lostHits\
         and l["sip3d"] < Ele_sip3d\
@@ -142,13 +142,13 @@ def multiIsoEleId(WP, ptCut = 20, absEtaCut = 2.4):
             and abs(l["dz"]) < Ele_dz
     return func
 
-def looseEleIDString(ptCut=20, absEtaCut=2.4):
+def looseEleIDString(ptCut=20, absEtaCut=2.4, miniRelIso=Ele_miniRelIso):
     string = []
     string.append("LepGood_pt>="+str(ptCut))
     string.append("abs("+"LepGood_eta)<"+str(absEtaCut))
     string.append("abs("+"LepGood_pdgId)==11")
     string.append(cmgMVAEleIDString(ele_MVAID_cuts_tight))
-    string.append("LepGood_miniRelIso<"+str(Ele_miniRelIso))
+    string.append("LepGood_miniRelIso<"+str(miniRelIso))
     string.append("LepGood_convVeto")
     string.append("LepGood_lostHits=="+str(Ele_lostHits))
     string.append("LepGood_sip3d<"+str(Ele_sip3d))
@@ -158,7 +158,7 @@ def looseEleIDString(ptCut=20, absEtaCut=2.4):
     return string
 
 #leptonVars=['eta','pt','phi','mass','charge', 'dxy', 'dz', 'relIso03','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits']
-leptonVars=['eta','pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits']
+leptonVars=['eta','pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2']
 
 def getLeptons(c, collVars=leptonVars):
     return [getObjDict(c, 'LepGood_', collVars, i) for i in range(int(getVarValue(c, 'nLepGood')))]
@@ -168,16 +168,22 @@ def getMuons(c, collVars=leptonVars):
     return [getObjDict(c, 'LepGood_', collVars, i) for i in range(int(getVarValue(c, 'nLepGood'))) if abs(getVarValue(c,"LepGood_pdgId",i))==13]
 def getElectrons(c, collVars=leptonVars):
     return [getObjDict(c, 'LepGood_', collVars, i) for i in range(int(getVarValue(c, 'nLepGood'))) if abs(getVarValue(c,"LepGood_pdgId",i))==11]
-def getGoodMuons(c, collVars=leptonVars):
-    return [l for l in getMuons(c, collVars) if looseMuID(l)]
-def getGoodElectrons(c, collVars=leptonVars):
-    return [l for l in getElectrons(c, collVars) if looseEleID(l)]
-def getGoodLeptons(c, ptCut=20, collVars=leptonVars):
-    return [l for l in getLeptons(c, collVars) if (abs(l["pdgId"])==11 and looseEleID(l, ptCut)) or (abs(l["pdgId"])==13 and looseMuID(l, ptCut))]
-def m_ll(l1,l2):
-    return sqrt(2.*l1['pt']*l2['pt']*(cosh(l1['eta']-l2['eta']) - cos(l1['phi']-l2['phi'])))
-def pt_ll(l1,l2):
-    return sqrt((l1['pt']*cos(l1['phi']) + l2['pt']*cos(l2['phi']))**2 + (l1['pt']*sin(l1['phi']) + l2['pt']*sin(l2['phi']))**2)
+def getGoodMuons(c, collVars=leptonVars, miniRelIso=Muon_miniRelIso):
+    return [l for l in getMuons(c, collVars) if looseMuID(l, miniRelIso=miniRelIso)]
+def getGoodElectrons(c, collVars=leptonVars, miniRelIso=Ele_miniRelIso):
+    return [l for l in getElectrons(c, collVars) if looseEleID(l, miniRelIso=miniRelIso)]
+def getGoodLeptons(c, ptCut=20, collVars=leptonVars, miniRelIso = 0.2):
+    return [l for l in getLeptons(c, collVars) if (abs(l["pdgId"])==11 and looseEleID(l, ptCut, miniRelIso=miniRelIso)) or (abs(l["pdgId"])==13 and looseMuID(l, ptCut, miniRelIso=miniRelIso))]
+def getGoodAndOtherLeptons(c, ptCut=20, collVars=leptonVars, miniRelIso = 0.2):
+    res = [l for l in getLeptons(c, collVars)+getOtherLeptons(c, collVars) if (abs(l["pdgId"])==11 and looseEleID(l, ptCut, miniRelIso=miniRelIso)) or (abs(l["pdgId"])==13 and looseMuID(l, ptCut, miniRelIso=miniRelIso))]
+    res.sort( key = lambda l:-l['pt'] )
+    return res
+
+## Couldn't find where this is used. Please move away from 'object' selection
+#def m_ll(l1,l2):
+#    return sqrt(2.*l1['pt']*l2['pt']*(cosh(l1['eta']-l2['eta']) - cos(l1['phi']-l2['phi'])))
+#def pt_ll(l1,l2):
+#    return sqrt((l1['pt']*cos(l1['phi']) + l2['pt']*cos(l2['phi']))**2 + (l1['pt']*sin(l1['phi']) + l2['pt']*sin(l2['phi']))**2)
 
 
 tauVars=['eta','pt','phi','pdgId','charge', 'dxy', 'dz', 'idDecayModeNewDMs', 'idCI3hit', 'idAntiMu','idAntiE','mcMatchId']
