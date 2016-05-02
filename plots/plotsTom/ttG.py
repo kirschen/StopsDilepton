@@ -23,7 +23,11 @@ argParser.add_argument('--overwrite',      action='store_true', default=True,   
 argParser.add_argument('--plot_directory', action='store',      default='TTG')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
+argParser.add_argument('--llgVeto',        action='store_true', default=False)
 args = argParser.parse_args()
+
+if not args.llgVeto:
+  args.plot_directory +=  "_noVeto"
 
 #
 # Logger
@@ -45,12 +49,10 @@ def getLeptonString(nMu, nE):
   return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
 
 
-offZ          = "abs(dl_mass-91.1876)>15&&abs(dlg_mass-91.1876)>15"
+offZ          = "abs(dl_mass-91.1876)>15&&abs(dlg_mass-91.1876)>15" if args.llgVeto else "abs(dl_mass-91.1876)>15"
 mumuSelection = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso&&" + offZ 
 mueSelection  = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
 eeSelection   = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
-muSelection   = getLeptonString(1, 0)
-eSelection    = getLeptonString(0, 1)
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))>="
@@ -62,27 +64,23 @@ filterCut       = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTight
 # Cuts to iterate over
 #
 cuts = [
-    ("njet1",             jetSelection+"1"),
     ("njet2",             jetSelection+"2"),
-    ("nbtagL",            bJetSelectionL+"1"),
-    ("nbtagM",            bJetSelectionM+"1"),
-    ("nbtagML",           bJetSelectionM+"1&&"+bJetSelectionL+"2"),
-    ("nbtagLL",           bJetSelectionL+"2"),
-    ("nbtagMM",           bJetSelectionM+"2"),
+    ("gJetdR",            "(1}"),			# Implenented in otherSelections() method
+    ("gLepdR",            "(1)"),
+    ("btagL",             bJetSelectionL+"1"),
+    ("btagM",             bJetSelectionM+"1"),
+    ("photon20",          photonSelection+"20"),
     ("photon30",          photonSelection+"30"),
     ("photon50",          photonSelection+"50"),
-    ("photon75",          photonSelection+"75"),
-    ("photon100",         photonSelection+"100"),
-    ("photon125",         photonSelection+"125"),
     ("mll20",             "dl_mass>20"),
     ("met80",             "met_pt_photonEstimated>80"),
-#    ("metSig5",           "metSig_photonEstimated>5"),
-#    ("dPhiJet0-dPhiJet1", "cos(met_phi_photonEstimated-JetGood_phi[0])<cos(0.25)&&cos(met_phi_photonEstimate-JetGood_phi[1])<cos(0.25)"),
+    ("metSig5",           "metSig_photonEstimated>5"),
+    ("dPhiJet0-dPhiJet1", "cos(met_phi_photonEstimated-JetGood_phi[0])<cos(0.25)&&cos(met_phi_photonEstimated-JetGood_phi[1])<cos(0.25)"),
   ]
 
 
 #
-# Construct prefixes and selectionstring
+# Construct prefixes and selectionstring and filter on possible cut combinations
 #
 import itertools
 selectionStrings = {}
@@ -91,11 +89,15 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel = [] 
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
-        if selection.count("nbtag") > 1:   continue
+        if selection.count("btag") > 1:    continue
         if selection.count("photon") != 1: continue
         if selection.count("njet") != 1:   continue
-        if selection.count("njet1") and (selection.count("LL") or selection.count("ML") or selection.count("MM")):   continue
-        if selection.count("met") > 1:     continue
+
+        if selection.count("dPhiJet0-dPhiJet1") and not selection.count("metSig5"):  continue
+        if selection.count("metSig5")           and not selection.count("met80"):    continue
+        if selection.count("met80")             and not selection.count("mll20"):    continue
+        if selection.count("mll20")             and not selection.count("photon50"): continue
+
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 #
@@ -105,8 +107,9 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./ttG.py --selection=" + selection
+    command = "./ttG.py --selection=" + selection + (" --llgVeto" if args.llgVeto else "")
     logfile = "log/" + selection + ".log"
+    if args.llgVeto: logfile = "log/llgVeto-" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
   logger.info("All jobs launched")
@@ -140,7 +143,8 @@ def drawObjects( dataMCScale, lumi_scale ):
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F" , "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_mt2ll_photonEstimated/F", "dl_mt2bb_photonEstimated/F", "dl_mt2blbl_photonEstimated/F","met_pt_photonEstimated/F",
+read_variables = ["weight/F" , "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_mt2ll_photonEstimated/F", "dl_mt2bb_photonEstimated/F", "dl_mt2blbl_photonEstimated/F",
+                  "met_pt_photonEstimated/F", "met_phi_photonEstimated/F",
                   "metSig_photonEstimated/F", "ht/F", "nBTag/I", "nJetGood/I", "mt_photonEstimated/F", "photon_eta/F", "photon_pt/F", "photon_phi/F", "photonJetdR/F", "photonLepdR/F"]
 
 def photonDeltaR(data, eta, phi):
@@ -151,16 +155,40 @@ def makeDeltaR(data):
   data.photonLep2DeltaR     = photonDeltaR(data, data.l2_eta, data.l2_phi)
   data.JetGood_photonDeltaR = [photonDeltaR(data, data.JetGood_eta[i], data.JetGood_phi[i]) for i in range(data.nJetGood)]
 
-sequence = [makeDeltaR]
+# Filter on dR jets and recalculate jet var
+def filterJets(data):
+  if args.selection.count("gJetdR"): data.goodJetIndices = [i for i in range(data.nJetGood) if data.JetGood_photonDeltaR[i] > 0.3]
+  else:                                   data.goodJetIndices = [i for i in range(data.nJetGood)]
+  data.nJetGood               = len(data.goodJetIndices)
+  data.ht                     = sum([data.JetGood_pt[j] for j in data.goodJetIndices])
+  data.metSig_photonEstimated = data.met_pt_photonEstimated/sqrt(data.ht)
+  data.nBTag                  = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.890])
+  data.nBTagLoose             = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.605])
+  data.dPhiJet0               = cos(data.met_phi_photonEstimated - data.JetGood_phi[data.goodJetIndices[0]])
+  data.dPhiJet1               = cos(data.met_phi_photonEstimated - data.JetGood_phi[data.goodJetIndices[1]])
+
+# Make photonLepdR selection or re-evaluate jet selection after photonJetdR
+def otherSelections(data):
+  data.passed = True
+  if args.selection.count("gLepdR"):
+    data.passed = (data.passed and data.photonLep1DeltaR > 0.3 and data.photonLep2DeltaR > 0.3)
+  if args.selection.count("gJetdR"):
+    if args.selection.count("njet2"):             data.passed = (data.passed and data.nJetGood > 1)
+    if args.selection.count("btagL"):             data.passed = (data.passed and data.nBTagLoose > 0)
+    if args.selection.count("btagM"):             data.passed = (data.passed and data.nBTag > 0)
+    if args.selection.count("metSig5"):           data.passed = (data.passed and data.metSig_photonEstimated > 5)
+    if args.selection.count("dPhiJet0-dPhiJet1"): data.passed = (data.passed and max(data.dPhiJet0, data.dPhiJet1) < cos(0.25))
+
+sequence = [makeDeltaR, filterJets, otherSelections]
 
 #
 # Loop over channels
 #
-yield_mc   = {}
-yield_data = {}
+yields     = {}
 allPlots   = {}
 allModes   = ['mumu','mue','ee']
-for mode in allModes:
+for index, mode in enumerate(allModes):
+  yields[mode] = {}
   if mode=="mumu":
     data_sample     = DoubleMuon_Run2015D
     qcd_sample      = QCD_Mu5 #FIXME
@@ -173,20 +201,15 @@ for mode in allModes:
     data_sample     = MuonEG_Run2015D
     qcd_sample      = QCD_Mu5EMbcToE
     leptonSelection = mueSelection
-  if mode=="mu":
-    data_sample     = SingleMuon_Run2015D
-    qcd_sample      = QCD_Mu5 #FIXME
-    leptonSelection = muSelection
-  elif mode=="ee":
-    data_sample     = SingleElectron_Run2015D
-    qcd_sample      = QCD_EMbcToE
-    leptonSelection = eSelection
+
+  qcd_sample.name  = "QCD"  # Give same name in all modes such that it combines easily
+  data_sample.name = "data"
 
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-#  mc = [ diBoson, WJetsToLNu, WZZ, DY_HT_LO, qcd_sample, singleTop, TTLep_pow, TTXNoZ, TTZtoQQ, TTZtoLLNuNu, TTG ]
-  mc = [ diBoson, WJetsToLNu, WZZ, DY_HT_LO, qcd_sample, singleTop, TTJets, TTXNoZ, TTZtoQQ, TTZtoLLNuNu, TTG ]
+#  mc = [ diBoson, WJetsToLNu, WZZ, DY_HT_LO, qcd_sample, singleTop, TTLep_pow, TTX, TTG ]
+  mc = [ diBoson, DY_HT_LO, singleTop, TTLep_pow, TTX, TTG ]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
@@ -197,119 +220,115 @@ for mode in allModes:
     sample.setSelectionString([leptonSelection])
 
   # For TTJets, do TTGJets overlap events removal
-  TTJets.setSelectionString(["TTGJetsEventType<3", leptonSelection])
+  TTJets.setSelectionString(   ["TTGJetsEventType<4", leptonSelection])
+  TTLep_pow.setSelectionString(["TTGJetsEventType<4", leptonSelection])
 
-  logger.info( "Calculating normalization constants" )
-  yield_mc[mode] = 0
-  for s in mc:        
-     y = s.getYieldFromDraw( selectionString = selectionStrings[args.selection], weightString = 'weight')['val']
-     logger.info("Yield " + s.name + ": " + str(y))
-     yield_mc[mode] += y
-  yield_data[mode] = data_sample.getYieldFromDraw( selectionString = selectionStrings[args.selection], weightString = 'weight')['val']
-  if yield_mc[mode] == 0:
-    logger.info("No MC yields for this selection in mode " + mode + ", skipping")
-    allModes.remove(mode)
-    continue
-  dataMCScale      = yield_data[mode]/(yield_mc[mode]*lumi_scale)
-
-  logger.info( "Now plotting with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
-  logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc[mode], yield_data[mode], lumi_scale )
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(stack = stack, weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])
   
   plots = []
 
-  if mode in ["mumu","mue","ee"]:
-    plots.append(Plot(
-      texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 3 GeV',
-      variable = Variable.fromString( "dl_mass/F" ),
-      binning=[50/3,0,150],
-    ))
-
-    plots.append(Plot(
-      texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / 3 GeV',
-      variable = Variable.fromString( "dlg_mass/F" ),
-      binning=[50/3,0,150],
-    ))
-
-    plots.append(Plot(
-      texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
-      variable = Variable.fromString( "dl_mt2ll_photonEstimated/F" ),
-      binning=[300/20,0,300],
-    ))
-
-    plots.append(Plot(
-      texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
-      variable = Variable.fromString( "dl_mt2bb_photonEstimated/F" ),
-      binning=[300/20,0,300],
-    ))
-
-    plots.append(Plot(
-      texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
-      variable = Variable.fromString( "dl_mt2blbl_photonEstimated/F" ),
-      binning=[300/20,0,300],
-    )) 
+  plots.append(Plot(
+    name = 'yield', texX = 'yield', texY = 'Number of Events GeV',
+    variable = Variable.fromString( "yield/F" ).addFiller(lambda data: 0.5 + index),
+    binning=[3, 0, 3],
+  ))
 
   plots.append(Plot(
-    texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
+    texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 4 GeV',
+    variable = Variable.fromString( "dl_mass/F" ),
+    binning=[200/4,0,200],
+  ))
+
+  plots.append(Plot(
+    texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / 4 GeV',
+    variable = Variable.fromString( "dlg_mass/F" ),
+    binning=[300/4,50,350],
+  ))
+
+  plots.append(Plot(
+    texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / 4 GeV',
+    variable = Variable.fromString( "dlg_mass/F" ),
+    name = "dlg_mass_zoomed",
+    binning=[80, 50, 130],
+  ))
+
+  plots.append(Plot(
+    texX = 'MT_{2}^{ll} (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
+    variable = Variable.fromString( "dl_mt2ll_photonEstimated/F" ),
+    binning=[300/20,0,300],
+  ))
+
+  plots.append(Plot(
+    texX = 'MT_{2}^{bb} (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
+    variable = Variable.fromString( "dl_mt2bb_photonEstimated/F" ),
+    binning=[300/20,0,300],
+  ))
+
+  plots.append(Plot(
+    texX = 'MT_{2}^{blbl} (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
+    variable = Variable.fromString( "dl_mt2blbl_photonEstimated/F" ),
+    binning=[300/20,0,300],
+  ))
+
+  plots.append(Plot(
+    texX = '#slash{E}_{T} (including #gamma) (GeV)', texY = 'Number of Events / 50 GeV',
     variable = Variable.fromString( "met_pt_photonEstimated/F" ),
     binning=[15,0,300],
   ))
 
   plots.append(Plot(
-    texX = '#slash{E}_{T}/#sqrt(H_{T}) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
-    variable = Variable.fromString('metSig_photonEstimated/F'),
+    texX = '#slash{E}_{T}/#sqrt(H_{T}) (including #gamma) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
+    variable = Variable.fromString('metSig_photonEstimated/F').addFiller(lambda data: data.met_pt_photonEstimated/sqrt(data.ht)),
     binning=[15,0,15],
   ))
 
   plots.append(Plot(
     texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
-    variable = Variable.fromString( "ht/F" ),
+    variable = Variable.fromString( "ht/F" ).addFiller(lambda data: data.ht),
     binning=[510/30,90,600],
   ))
 
   plots.append(Plot(
     texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
-    variable = Variable.fromString('cosMetJet0phi/F').addFiller (
-        helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
-    ), 
+    variable = Variable.fromString('cosMetJet0phi/F').addFiller(lambda data: data.dPhiJet0),
     binning = [10,-1,1], 
   ))
 
   plots.append(Plot(
     texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
-    variable = Variable.fromString('cosMetJet1phi/F').addFiller (
-        helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
-    ), 
+    variable = Variable.fromString('cosMetJet1phi/F').addFiller(lambda data: data.dPhiJet1),
     binning = [10,-1,1], 
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet1pt/F').addFiller (
-        helpers.uses(lambda data: data.JetGood_pt[0], "JetGood[pt/F]" )
-    ), 
-    binning=[900/20,30,930],
+    variable = Variable.fromString('jet1pt/F').addFiller(lambda data: data.JetGood_pt[data.goodJetIndices[0]]),
+    binning=[500/20,30,530],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet2pt/F').addFiller (
-        helpers.uses(lambda data: data.JetGood_pt[1], "JetGood[pt/F]" )
-    ), 
-    binning=[600/20,30,630],
+    variable = Variable.fromString('jet2pt/F').addFiller(lambda data: data.JetGood_pt[data.goodJetIndices[1]]),
+    binning=[400/20,30,430],
   ))
 
   plots.append(Plot(
-    texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
-    variable = Variable.fromString('nBTag/I'),
+    texX = 'number of medium b-tags (CSVM)', texY = 'Number of Events',
+    variable = Variable.fromString('nBTag/I').addFiller(lambda data: data.nBTag),
+    binning=[8,0,8],
+  ))
+
+  plots.append(Plot(
+    texX = 'number of loose b-tags (CSVM)', texY = 'Number of Events',
+    variable = Variable.fromString('nBTagLoose/I').addFiller(lambda data: data.nBTagLoose),
     binning=[8,0,8],
   ))
 
   plots.append(Plot(
     texX = 'number of jets', texY = 'Number of Events',
-    variable = Variable.fromString('nJetGood/I'),
+    variable = Variable.fromString('nJetGood/I').addFiller(lambda data : data.nJetGood),
     binning=[14,0,14],
   ))
 
@@ -357,22 +376,20 @@ for mode in allModes:
 
   plots.append(Plot(
     texX     = '#Delta R(#gamma, j_{1})', texY = 'Number of Events',
-    variable = Variable.fromString("photonJet1DeltaR/F").addFiller(lambda data : data.JetGood_photonDeltaR[0]),
+    variable = Variable.fromString("photonJet1DeltaR/F").addFiller(lambda data : data.JetGood_photonDeltaR[data.goodJetIndices[0]]),
+    name     = "photonJet1DeltaR",
     binning  = [20, 0, 5]
   ))
 
   plots.append(Plot(
     texX     = '#Delta R(#gamma, j_{2})', texY = 'Number of Events',
-    variable = Variable.fromString("photonJet2DeltaR/F").addFiller(lambda data : data.JetGood_photonDeltaR[1]),
+    variable = Variable.fromString("photonJet2DeltaR/F").addFiller(lambda data : data.JetGood_photonDeltaR[data.goodJetIndices[1]]),
+    name     = "photonJet2DeltaR",
     binning  = [20, 0, 5]
   ))
 
-  # Some MC only plots
-  TTJets_ = copy.deepcopy(TTJets)
-  TTG_    = copy.deepcopy(TTG)
-  for sample in [TTJets_, TTG_]:
-    sample.style = styles.lineStyle(sample.color, 2)
-  Plot.setDefaults(stack = Stack([TTJets_], [TTG_]), weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
+  # Some MC only plots, unfortunately this still loops two times over the samples...
+  Plot.setDefaults(stack = Stack(TTLep_pow, TTG), weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
 
   try:
     os.makedirs(os.path.join(plot_directory, args.plot_directory, mode, args.selection, 'comp'))
@@ -380,35 +397,64 @@ for mode in allModes:
     pass
 
   plots.append(Plot(
-    texX     = '#slash{E}_{T} resolution', texY = 'Number of Events',
-    variable = Variable.fromString("met_res/F").addFiller(helpers.uses(lambda data : data.met_pt/data.met_genPt, ["met_pt/F", "met_genPt/F"])),
+    texX     = '#slash{E}_{T} resolution', texY = '1/N dN/dx',
+    variable = Variable.fromString("met_res/F").addFiller(helpers.uses(lambda data : data.met_pt/data.met_genPt if data.met_pt > 30 else -1, ["met_pt/F","met_genPt/F"])),
     name     = "comp/met_res",
-    binning  = [50, 0, 2]
+    binning  = [20, 0, 2]
   ))
 
   plots.append(Plot(
-    texX     = 'p_{T}(#gamma) resolution', texY = 'Number of Events',
+    texX     = 'p_{T}(#gamma) resolution', texY = '1/N dN/dx',
     variable = Variable.fromString("photon_res/F"),
     name     = "comp/photon_res",
-    binning  = [50, 0, 2]
+    binning  = [40, 0.8, 1.2]
   ))
  
   plots.append(Plot(
-    texX     = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
+    texX     = 'MT_{2}^{ll} (including #gamma) (GeV)', texY = '1/N dN/dx',
     variable = Variable.fromString( "dl_mt2ll_photonEstimated/F" ),
     name     = "comp/dl_mt2ll_photonEstimated",
     binning  = [300/20,0,300],
   ))
 
   plots.append(Plot(
-    texX     = 'p_{T}(#gamma)', texY = 'Number of Events / 20 GeV',
+    texX     = 'p_{T}(#gamma)', texY = '1/N dN/dx',
     variable = Variable.fromString( "photon_pt/F" ),
     name     = "comp/photon_pt",
     binning  = [10, 50,250],
   ))
 
+  plots.append(Plot(
+    texX     = 'event type', texY = '1/N dN/dx',
+    variable = Variable.fromString( "TTGJetsEventType/I" ),
+    name     = "comp/eventType",
+    binning  = [5, 0, 5],
+  ))
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
+
+  # Get normalization yields from yield histogram
+  for plot in plots:
+    if plot.name == "yield":
+      for i, l in enumerate(plot.histos):
+        for j, h in enumerate(l):
+          yields[mode][plot.stack[i][j].name] = h.GetBinContent(h.FindBin(0.5+index))
+          h.GetXaxis().SetBinLabel(1, "#mu#mu")
+          h.GetXaxis().SetBinLabel(2, "e#mu")
+          h.GetXaxis().SetBinLabel(3, "ee")
+
+  yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc)
+  dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
+  logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yields[mode]["MC"], yields[mode]["data"], lumi_scale )
+
+  # Some different layout settings for the MC comparison plots
+  for plot in plots:
+    if plot.name.startswith("comp"):
+      for i, l in enumerate(plot.histos):
+        for j, h in enumerate(l):
+          h.style = styles.lineStyle(plot.stack[i][j].color, 2)
+
+
   for plot in plots:
     if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
     plotting.draw(plot, 
@@ -416,17 +462,35 @@ for mode in allModes:
         ratio = {'yRange':(0.1,1.9)}, 
         logX = False, logY = False, sorting = False, 
         yRange = (0.003, "auto"),
-        drawObjects = drawObjects( dataMCScale, lumi_scale )
+        scaling = {0:1} if plot.name.startswith("comp") else {},
+        drawObjects = drawObjects( dataMCScale, lumi_scale ),
     )
   allPlots[mode] = plots
 
 
 
 # Add yields in channels
-total_mc    = sum(y for y in yield_mc.values())
-total_data  = sum(y for y in yield_data.values())
-lumi_scale  = 2.165
-dataMCScale = total_data/(total_mc*lumi_scale)
+yields["all"] = {}
+for y in yields[allModes[0]]:
+  try:
+    yields["all"][y] = sum(yields[mode][y] for mode in allModes)
+  except:
+    yields["all"][y] = 0
+dataMCScale = yields["all"]["data"]/(yields["all"]["MC"])
+
+
+# Write to tex file
+columns = [i.name for i in mc] + ["MC", "data"]
+texdir = "tex" if args.llgVeto else "texNoVeto"
+try:
+  os.makedirs("./" + texdir)
+except:
+  pass
+with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
+  f.write("&" + " & ".join(columns) + "\\\\ \n")
+  for mode in allModes + ["all"]:
+    f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")
+
 
 try:
   os.makedirs(os.path.join(plot_directory, args.plot_directory, "all", args.selection, 'comp'))
@@ -443,13 +507,14 @@ for plot in allPlots[allModes[0]]:
           if i==k:
             j.Add(l)
 
-  plot.histos[1][0].legendText = "Data 2015 (all channels)"
+  if not plot.name.startswith("comp"): plot.histos[1][0].legendText = "Data 2015 (all channels)"
   plotting.draw(plot,
         plot_directory = os.path.join(plot_directory, args.plot_directory, "all", args.selection),
         ratio = {'yRange':(0.1,1.9)},
         logX = False, logY = False, sorting = False,
         yRange = (0.003, "auto"),
-        drawObjects = drawObjects( dataMCScale, lumi_scale )
+        scaling = {0:1} if plot.name.startswith("comp") else {},
+        drawObjects = drawObjects( dataMCScale, 2.165 )
   )
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
