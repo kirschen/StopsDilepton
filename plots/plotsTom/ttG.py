@@ -23,11 +23,8 @@ argParser.add_argument('--overwrite',      action='store_true', default=True,   
 argParser.add_argument('--plot_directory', action='store',      default='TTG')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
-argParser.add_argument('--llgVeto',        action='store_true', default=False)
 args = argParser.parse_args()
 
-if not args.llgVeto:
-  args.plot_directory +=  "_noVeto"
 
 #
 # Logger
@@ -49,7 +46,7 @@ def getLeptonString(nMu, nE):
   return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
 
 
-offZ          = "abs(dl_mass-91.1876)>15&&abs(dlg_mass-91.1876)>15" if args.llgVeto else "abs(dl_mass-91.1876)>15"
+offZ          = "abs(dl_mass-91.1876)>15&&abs(dlg_mass-91.1876)>15" if args.selection.count("llgNoZ") else "abs(dl_mass-91.1876)>15"
 mumuSelection = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso&&" + offZ 
 mueSelection  = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
 eeSelection   = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
@@ -65,7 +62,8 @@ filterCut       = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTight
 #
 cuts = [
     ("njet2",             jetSelection+"2"),
-    ("gJetdR",            "(1}"),			# Implenented in otherSelections() method
+    ("llgNoZ",            "(1)"),			# Cut implemented in lepton selection
+    ("gJetdR",            "(1)"),			# Implenented in otherSelections() method
     ("gLepdR",            "(1)"),
     ("btagL",             bJetSelectionL+"1"),
     ("btagM",             bJetSelectionM+"1"),
@@ -97,6 +95,8 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("metSig5")           and not selection.count("met80"):    continue
         if selection.count("met80")             and not selection.count("mll20"):    continue
         if selection.count("mll20")             and not selection.count("photon50"): continue
+        if selection.count("mll20")             and not selection.count("btag"):     continue
+        if selection.count("mll20")             and not selection.count("llgNoZ"):   continue
 
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
@@ -107,9 +107,8 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./ttG.py --selection=" + selection + (" --llgVeto" if args.llgVeto else "")
+    command = "./ttG.py --selection=" + selection
     logfile = "log/" + selection + ".log"
-    if args.llgVeto: logfile = "log/llgVeto-" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
   logger.info("All jobs launched")
@@ -158,7 +157,7 @@ def makeDeltaR(data):
 # Filter on dR jets and recalculate jet var
 def filterJets(data):
   if args.selection.count("gJetdR"): data.goodJetIndices = [i for i in range(data.nJetGood) if data.JetGood_photonDeltaR[i] > 0.3]
-  else:                                   data.goodJetIndices = [i for i in range(data.nJetGood)]
+  else:                              data.goodJetIndices = [i for i in range(data.nJetGood)]
   data.nJetGood               = len(data.goodJetIndices)
   data.ht                     = sum([data.JetGood_pt[j] for j in data.goodJetIndices])
   data.metSig_photonEstimated = data.met_pt_photonEstimated/sqrt(data.ht)
@@ -481,7 +480,7 @@ dataMCScale = yields["all"]["data"]/(yields["all"]["MC"])
 
 # Write to tex file
 columns = [i.name for i in mc] + ["MC", "data"]
-texdir = "tex" if args.llgVeto else "texNoVeto"
+texdir = "tex"
 try:
   os.makedirs("./" + texdir)
 except:
