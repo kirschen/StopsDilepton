@@ -33,7 +33,7 @@ def filter(input, output, eventType):
   return True
 
 base = "/user/tomc/StopsDilepton/data/postProcessed_Fall15_mAODv2/dilepTiny_new/"
-for sampleDir in ["TTGJets", "TTJets_comb"]:
+for sampleDir in ["TTGJets", "TTJets_comb","TTLep_pow_comb"]:
   for eventType in range(5):
     for j in os.listdir(os.path.join(base, sampleDir)):
       print j
