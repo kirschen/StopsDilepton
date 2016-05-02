@@ -27,6 +27,7 @@ from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writ
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
+from StopsDilepton.tools.genPtZ import getGenPtZ
 
 # central configuration 
 targetLumi = 1000 #pb-1 Which lumi to normalize to
@@ -440,10 +441,11 @@ if options.skim.lower().startswith('dilep'):
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
+    if isMC: new_variables.extend( ['zBoson_genPt/F'] )
 
 if options.keepPhotons:
     new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
-    if not isData: new_variables.extend( ['photon_res/F'] )
+    if isMC: new_variables.extend( ['photon_genPt/F'] )
     new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
     new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
     if options.skim.lower().startswith('dilep'):
@@ -558,10 +560,10 @@ def filler(s):
        if s.nPhotonGood > 0:
          metVariants += ['_photonEstimated']  # do all met calculations also for the photonEstimated variant
          s.photon_pt         = photons[0]['pt']
+         s.photon_genPt      = photons[0]['mcPt']
          s.photon_eta        = photons[0]['eta']
          s.photon_phi        = photons[0]['phi']
          s.photon_idCutBased = photons[0]['idCutBased']
-         if not isData: s.photon_res = photons[0]['pt']/photons[0]['mcPt'] if photons[0]['mcPt'] > 0 else float('nan')
 
          met = ROOT.TLorentzVector()
          met.SetPtEtaPhiM(r.met_pt, 0, r.met_phi, 0 )
@@ -597,7 +599,7 @@ def filler(s):
 
               setattr(s, "met_pt" +i+"_"+var, met_corr_pt)
               setattr(s, "met_phi"+i+"_"+var, met_corr_phi)
-              setattr(s, "metSig" +i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( getattr(s, "met_pt"+i+"_"+var) ) )
+              setattr(s, "metSig" +i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( getattr(s, "ht_"+var) ) ) if getattr(s, "ht_"+var) else float ('nan')
 
 
     if options.skim.lower().startswith('singlelep') or options.skim.lower().startswith('dilep'):
@@ -648,6 +650,8 @@ def filler(s):
             s.dl_phi  = dl.Phi()
             s.dl_mass = dl.M()
             mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
+
+            if isMC: s.zBoson_genPt  = getGenPtZ(r)
 
             if options.keepPhotons and s.nPhotonGood > 0:
               dlg = dl + gamma
