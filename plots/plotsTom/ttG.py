@@ -46,11 +46,6 @@ def getLeptonString(nMu, nE):
   return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
 
 
-offZ          = "abs(dl_mass-91.1876)>15&&abs(dlg_mass-91.1876)>15" if args.selection.count("llgNoZ") else "abs(dl_mass-91.1876)>15"
-mumuSelection = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso&&" + offZ 
-mueSelection  = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
-eeSelection   = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
-
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))>="
 bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))>="
@@ -163,8 +158,7 @@ def filterJets(data):
   data.metSig_photonEstimated = data.met_pt_photonEstimated/sqrt(data.ht)
   data.nBTag                  = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.890])
   data.nBTagLoose             = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.605])
-  data.dPhiJet0               = cos(data.met_phi_photonEstimated - data.JetGood_phi[data.goodJetIndices[0]])
-  data.dPhiJet1               = cos(data.met_phi_photonEstimated - data.JetGood_phi[data.goodJetIndices[1]])
+  data.dPhiMetJet             = [cos(data.met_phi_photonEstimated - data.JetGood_phi[j]) for j in data.goodJetIndices]
 
 # Make photonLepdR selection or re-evaluate jet selection after photonJetdR
 def otherSelections(data):
@@ -176,9 +170,15 @@ def otherSelections(data):
     if args.selection.count("btagL"):             data.passed = (data.passed and data.nBTagLoose > 0)
     if args.selection.count("btagM"):             data.passed = (data.passed and data.nBTag > 0)
     if args.selection.count("metSig5"):           data.passed = (data.passed and data.metSig_photonEstimated > 5)
-    if args.selection.count("dPhiJet0-dPhiJet1"): data.passed = (data.passed and max(data.dPhiJet0, data.dPhiJet1) < cos(0.25))
+    if args.selection.count("dPhiJet0-dPhiJet1"): data.passed = (data.passed and max(data.dPhiMetJet[0], data.dPhiMetJet[1]) < cos(0.25))
 
 sequence = [makeDeltaR, filterJets, otherSelections]
+
+
+offZ          = "abs(dl_mass-91.1876)>15&&abs(dlg_mass-91.1876)>15" if args.selection.count("llgNoZ") else "abs(dl_mass-91.1876)>15"
+mumuSelection = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso&&" + offZ 
+mueSelection  = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
+eeSelection   = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
 
 #
 # Loop over channels
@@ -291,25 +291,25 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
-    variable = Variable.fromString('cosMetJet0phi/F').addFiller(lambda data: data.dPhiJet0),
+    variable = Variable.fromString('cosMetJet0phi/F').addFiller(lambda data: data.dPhiMetJet[0] if data.nJetGood > 0 else -1),
     binning = [10,-1,1], 
   ))
 
   plots.append(Plot(
     texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
-    variable = Variable.fromString('cosMetJet1phi/F').addFiller(lambda data: data.dPhiJet1),
+    variable = Variable.fromString('cosMetJet1phi/F').addFiller(lambda data: data.dPhiMetJet[1] if data.nJetGood > 1 else -1),
     binning = [10,-1,1], 
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet1pt/F').addFiller(lambda data: data.JetGood_pt[data.goodJetIndices[0]]),
+    variable = Variable.fromString('jet1pt/F').addFiller(lambda data: data.JetGood_pt[data.goodJetIndices[0]] if data.nJetGood > 0 else -1),
     binning=[500/20,30,530],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet2pt/F').addFiller(lambda data: data.JetGood_pt[data.goodJetIndices[1]]),
+    variable = Variable.fromString('jet2pt/F').addFiller(lambda data: data.JetGood_pt[data.goodJetIndices[1]] if data.nJetGood > 1 else -1),
     binning=[400/20,30,430],
   ))
 
@@ -375,14 +375,14 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     texX     = '#Delta R(#gamma, j_{1})', texY = 'Number of Events',
-    variable = Variable.fromString("photonJet1DeltaR/F").addFiller(lambda data : data.JetGood_photonDeltaR[data.goodJetIndices[0]]),
+    variable = Variable.fromString("photonJet1DeltaR/F").addFiller(lambda data : data.JetGood_photonDeltaR[data.goodJetIndices[0]] if data.nJetGood > 0 else -1),
     name     = "photonJet1DeltaR",
     binning  = [20, 0, 5]
   ))
 
   plots.append(Plot(
     texX     = '#Delta R(#gamma, j_{2})', texY = 'Number of Events',
-    variable = Variable.fromString("photonJet2DeltaR/F").addFiller(lambda data : data.JetGood_photonDeltaR[data.goodJetIndices[1]]),
+    variable = Variable.fromString("photonJet2DeltaR/F").addFiller(lambda data : data.JetGood_photonDeltaR[data.goodJetIndices[1]] if data.nJetGood > 1 else -1),
     name     = "photonJet2DeltaR",
     binning  = [20, 0, 5]
   ))
