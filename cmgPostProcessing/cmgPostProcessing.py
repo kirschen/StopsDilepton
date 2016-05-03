@@ -601,10 +601,11 @@ def filler(s):
        if s.nPhotonGood > 0:
          metVariants += ['_photonEstimated']  # do all met calculations also for the photonEstimated variant
          s.photon_pt         = photons[0]['pt']
-         s.photon_genPt      = photons[0]['mcPt']
          s.photon_eta        = photons[0]['eta']
          s.photon_phi        = photons[0]['phi']
          s.photon_idCutBased = photons[0]['idCutBased']
+         if isMC:
+           s.photon_genPt    = photons[0]['mcPt']
 
          met = ROOT.TLorentzVector()
          met.SetPtEtaPhiM(r.met_pt, 0, r.met_phi, 0 )
@@ -646,6 +647,7 @@ def filler(s):
     if isSingleLep or isDiLep:
         s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
         s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
+
         if len(leptons)>=1:
             s.l1_pt     = leptons[0]['pt']
             s.l1_eta    = leptons[0]['eta']
