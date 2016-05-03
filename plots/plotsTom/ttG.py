@@ -49,7 +49,6 @@ def getLeptonString(nMu, nE):
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))>="
 bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))>="
-photonSelection = "nPhotonGood>0&&photon_idCutBased>2&&photon_pt>"
 filterCut       = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&vetoPassed&&jsonPassed&&weight>0)"
 
 #
@@ -59,12 +58,12 @@ cuts = [
     ("njet2",             jetSelection+"2"),
     ("llgNoZ",            "(1)"),			# Cut implemented in lepton selection
     ("gJetdR",            "(1)"),			# Implenented in otherSelections() method
-    ("gLepdR",            "(1)"),
+    ("gLepdR",            "(1)"),			# Implemented in otherSelections() method
     ("btagL",             bJetSelectionL+"1"),
     ("btagM",             bJetSelectionM+"1"),
-    ("photon20",          photonSelection+"20"),
-    ("photon30",          photonSelection+"30"),
-    ("photon50",          photonSelection+"50"),
+    ("photon20",          "(1)"),			# Implemented in photonSelection
+    ("photon30",          "(1)"),
+    ("photon50",          "(1)"),
     ("mll20",             "dl_mass>20"),
     ("met80",             "met_pt_photonEstimated>80"),
     ("metSig5",           "metSig_photonEstimated>5"),
@@ -114,7 +113,7 @@ if not args.isChild and args.selection is None:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_new"
+postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_may2"
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
@@ -137,9 +136,14 @@ def drawObjects( dataMCScale, lumi_scale ):
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F" , "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_mt2ll_photonEstimated/F", "dl_mt2bb_photonEstimated/F", "dl_mt2blbl_photonEstimated/F",
+read_variables = ["weight/F" , "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll_photonEstimated/F", "dl_mt2bb_photonEstimated/F", "dl_mt2blbl_photonEstimated/F",
                   "met_pt_photonEstimated/F", "met_phi_photonEstimated/F",
-                  "metSig_photonEstimated/F", "ht/F", "nBTag/I", "nJetGood/I", "mt_photonEstimated/F", "photon_eta/F", "photon_pt/F", "photon_phi/F", "photonJetdR/F", "photonLepdR/F"]
+                  "metSig_photonEstimated/F", "ht/F", "nBTag/I", "nJetGood/I", "mt_photonEstimated/F", "photon_pt/F", "photon_eta/F",  "photon_phi/F", "photonJetdR/F", "photonLepdR/F"]
+
+# Variables only to be read/available for specific samples (i.e. variables only in MC)
+TTG.read_variables         = ["photon_genPt/F"]
+TTLep_pow.read_variables   = ["photon_genPt/F"]
+TTZtoLLNuNu.read_variables = ["zBoson_genPt/F", "dl_mt2ll/F"]
 
 def photonDeltaR(data, eta, phi):
   return sqrt(deltaPhi(data.photon_phi, phi)**2 + (data.photon_eta - eta)**2)
@@ -155,13 +159,13 @@ def filterJets(data):
   else:                              data.goodJetIndices = [i for i in range(data.nJetGood)]
   data.nJetGood               = len(data.goodJetIndices)
   data.ht                     = sum([data.JetGood_pt[j] for j in data.goodJetIndices])
-  data.metSig_photonEstimated = data.met_pt_photonEstimated/sqrt(data.ht)
+  data.metSig_photonEstimated = data.met_pt_photonEstimated/sqrt(data.ht) if data.ht !=0 else float('nan')
   data.nBTag                  = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.890])
   data.nBTagLoose             = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.605])
   data.dPhiMetJet             = [cos(data.met_phi_photonEstimated - data.JetGood_phi[j]) for j in data.goodJetIndices]
 
 # Make photonLepdR selection or re-evaluate jet selection after photonJetdR
-def otherSelections(data):
+def otherSelections(data, sample):
   data.passed = True
   if args.selection.count("gLepdR"):
     data.passed = (data.passed and data.photonLep1DeltaR > 0.3 and data.photonLep2DeltaR > 0.3)
@@ -172,13 +176,23 @@ def otherSelections(data):
     if args.selection.count("metSig5"):           data.passed = (data.passed and data.metSig_photonEstimated > 5)
     if args.selection.count("dPhiJet0-dPhiJet1"): data.passed = (data.passed and max(data.dPhiMetJet[0], data.dPhiMetJet[1]) < cos(0.25))
 
-sequence = [makeDeltaR, filterJets, otherSelections]
+# Compare different variable types for TTZ vs TTG
+def makeCompareVariables(data, sample):
+  if sample == TTZtoLLNuNu: 
+    data.boson_genPt = data.zBoson_genPt
+    data.mt2ll       = data.dl_mt2ll
+  elif sample == TTG:
+    data.boson_genPt = data.photon_genPt
+    data.mt2ll       = data.dl_mt2ll_photonEstimated
+
+sequence = [makeDeltaR, filterJets, otherSelections, makeCompareVariables]
 
 
-offZ          = "abs(dl_mass-91.1876)>15&&abs(dlg_mass-91.1876)>15" if args.selection.count("llgNoZ") else "abs(dl_mass-91.1876)>15"
-mumuSelection = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso&&" + offZ 
-mueSelection  = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
-eeSelection   = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
+offZ            = "abs(dl_mass-91.1876)>15&&abs(dlg_mass-91.1876)>15" if args.selection.count("llgNoZ") else "abs(dl_mass-91.1876)>15"
+mumuSelection   = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso&&" + offZ 
+mueSelection    = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
+eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
+photonSelection = "nPhotonGood>0&&photon_eta<2.5&&photon_idCutBased>2&&photon_pt>" + args.selection.split('photon')[1].split('_')[0]
 
 #
 # Loop over channels
@@ -213,14 +227,18 @@ for index, mode in enumerate(allModes):
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
 
+
   stack = Stack(mc, [data_sample])
-  data_sample.setSelectionString([filterCut, leptonSelection])
+  data_sample.setSelectionString([filterCut, leptonSelection, photonSelection])
   for sample in mc:
-    sample.setSelectionString([leptonSelection])
+    sample.setSelectionString([leptonSelection, photonSelection])
 
   # For TTJets, do TTGJets overlap events removal
-  TTJets.setSelectionString(   ["TTGJetsEventType<4", leptonSelection])
-  TTLep_pow.setSelectionString(["TTGJetsEventType<4", leptonSelection])
+ # TTJets.setSelectionString(   ["TTGJetsEventType<4", leptonSelection, photonSelection])
+  TTLep_pow.setSelectionString(["TTGJetsEventType<4", leptonSelection, photonSelection])
+
+  # For comparisons with TTZ, do not use photonSelection
+  TTZtoLLNuNu.setSelectionString([leptonSelection])
 
 
   # Use some defaults
@@ -229,7 +247,7 @@ for index, mode in enumerate(allModes):
   plots = []
 
   plots.append(Plot(
-    name = 'yield', texX = 'yield', texY = 'Number of Events GeV',
+    name = 'yield', texX = 'yield', texY = 'Number of Events',
     variable = Variable.fromString( "yield/F" ).addFiller(lambda data: 0.5 + index),
     binning=[3, 0, 3],
   ))
@@ -247,7 +265,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / 4 GeV',
+    texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / GeV',
     variable = Variable.fromString( "dlg_mass/F" ),
     name = "dlg_mass_zoomed",
     binning=[80, 50, 130],
@@ -274,11 +292,11 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX = '#slash{E}_{T} (including #gamma) (GeV)', texY = 'Number of Events / 50 GeV',
     variable = Variable.fromString( "met_pt_photonEstimated/F" ),
-    binning=[15,0,300],
+    binning=[300/50,0,300],
   ))
 
   plots.append(Plot(
-    texX = '#slash{E}_{T}/#sqrt(H_{T}) (including #gamma) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
+    texX = '#slash{E}_{T}/#sqrt(H_{T}) (including #gamma) (GeV^{1/2})', texY = 'Number of Events',
     variable = Variable.fromString('metSig_photonEstimated/F').addFiller(lambda data: data.met_pt_photonEstimated/sqrt(data.ht)),
     binning=[15,0,15],
   ))
@@ -396,38 +414,62 @@ for index, mode in enumerate(allModes):
     pass
 
   plots.append(Plot(
-    texX     = '#slash{E}_{T} resolution', texY = '1/N dN/dx',
+    texX     = '#slash{E}_{T} resolution', texY = 'Normalized units',
     variable = Variable.fromString("met_res/F").addFiller(helpers.uses(lambda data : data.met_pt/data.met_genPt if data.met_pt > 30 else -1, ["met_pt/F","met_genPt/F"])),
     name     = "comp/met_res",
     binning  = [20, 0, 2]
   ))
 
   plots.append(Plot(
-    texX     = 'p_{T}(#gamma) resolution', texY = '1/N dN/dx',
-    variable = Variable.fromString("photon_res/F"),
+    texX     = 'p_{T}(#gamma) resolution', texY = 'Normalized units',
+    variable = Variable.fromString("photon_res/F").addFiller(lambda data: data.photon_pt/data.photon_mcPt),
     name     = "comp/photon_res",
     binning  = [40, 0.8, 1.2]
   ))
  
   plots.append(Plot(
-    texX     = 'MT_{2}^{ll} (including #gamma) (GeV)', texY = '1/N dN/dx',
+    texX     = 'MT_{2}^{ll} (including #gamma) (GeV)', texY = 'Normalized units',
     variable = Variable.fromString( "dl_mt2ll_photonEstimated/F" ),
     name     = "comp/dl_mt2ll_photonEstimated",
     binning  = [300/20,0,300],
   ))
 
   plots.append(Plot(
-    texX     = 'p_{T}(#gamma)', texY = '1/N dN/dx',
+    texX     = 'p_{T}(#gamma)', texY = 'Normalized units',
     variable = Variable.fromString( "photon_pt/F" ),
     name     = "comp/photon_pt",
     binning  = [10, 50,250],
   ))
 
   plots.append(Plot(
-    texX     = 'event type', texY = '1/N dN/dx',
+    texX     = 'event type', texY = 'Normalized units',
     variable = Variable.fromString( "TTGJetsEventType/I" ),
     name     = "comp/eventType",
     binning  = [5, 0, 5],
+  ))
+
+  Plot.setDefaults(stack = Stack(TTZtoLLNuNu, TTG), weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
+
+  plots.append(Plot(
+    texX     = 'p_{T} (Z or #gamma) (GeV)', texY = "Normalized units",
+    variable = Variable.fromString( "boson_pt/F" ).addFiller(lambda data: data.boson_genPt),
+    name     = "comp/boson_pt",
+    binning  = [10, 50,250],
+  ))
+
+#  Still need to have the eta's in the trees
+#  plots.append(Plot(
+#    texX     = '#eta (Z or #gamma) (GeV)', texY = "Normalized units",
+#    variable = Variable.fromString( "boson_eta/F" ).addFiller(lambda data: abs(data.boson_eta)),
+#    name     = "comp/boson_eta",
+#    binning  = [10, 0, 3],
+#  ))
+
+  plots.append(Plot(
+    texX     = '#eta (Z or #gamma) (GeV)', texY = "Normalized units",
+    variable = Variable.fromString( "mt2ll/F" ).addFiller(lambda data: data.mt2ll),
+    name     = "comp/mt2ll",
+    binning  = [10, 50,250],
   ))
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
