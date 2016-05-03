@@ -61,9 +61,10 @@ cuts = [
     ("gLepdR",            "(1)"),			# Implemented in otherSelections() method
     ("btagL",             bJetSelectionL+"1"),
     ("btagM",             bJetSelectionM+"1"),
-    ("photon20",          "(1)"),			# Implemented in photonSelection
     ("photon30",          "(1)"),
     ("photon50",          "(1)"),
+    ("photon90",          "(1)"),
+    ("photon120",         "(1)"),
     ("mll20",             "dl_mass>20"),
     ("met80",             "met_pt_photonEstimated>80"),
     ("metSig5",           "metSig_photonEstimated>5"),
@@ -141,9 +142,9 @@ read_variables = ["weight/F" , "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", 
                   "metSig_photonEstimated/F", "ht/F", "nBTag/I", "nJetGood/I", "mt_photonEstimated/F", "photon_pt/F", "photon_eta/F",  "photon_phi/F", "photonJetdR/F", "photonLepdR/F"]
 
 # Variables only to be read/available for specific samples (i.e. variables only in MC)
-TTG.read_variables         = ["photon_genPt/F"]
+TTG.read_variables         = ["photon_genPt/F", "photon_genEta/F"]
 TTLep_pow.read_variables   = ["photon_genPt/F"]
-TTZtoLLNuNu.read_variables = ["zBoson_genPt/F", "dl_mt2ll/F"]
+TTZtoLLNuNu.read_variables = ["zBoson_genPt/F", "zBoson_genEta/F", "dl_mt2ll/F"]
 
 def photonDeltaR(data, eta, phi):
   return sqrt(deltaPhi(data.photon_phi, phi)**2 + (data.photon_eta - eta)**2)
@@ -179,11 +180,13 @@ def otherSelections(data, sample):
 # Compare different variable types for TTZ vs TTG
 def makeCompareVariables(data, sample):
   if sample == TTZtoLLNuNu: 
-    data.boson_genPt = data.zBoson_genPt
-    data.mt2ll       = data.dl_mt2ll
+    data.boson_genPt  = data.zBoson_genPt
+    data.boson_genEta = data.zBoson_genEta
+    data.mt2ll        = data.dl_mt2ll
   elif sample == TTG:
-    data.boson_genPt = data.photon_genPt
-    data.mt2ll       = data.dl_mt2ll_photonEstimated
+    data.boson_genPt  = data.photon_genPt
+    data.boson_genEta = data.photon_genEta
+    data.mt2ll        = data.dl_mt2ll_photonEstimated
 
 sequence = [makeDeltaR, filterJets, otherSelections, makeCompareVariables]
 
@@ -192,7 +195,7 @@ offZ            = "abs(dl_mass-91.1876)>15&&abs(dlg_mass-91.1876)>15" if args.se
 mumuSelection   = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso&&" + offZ 
 mueSelection    = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
 eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
-photonSelection = "nPhotonGood>0&&photon_eta<2.5&&photon_idCutBased>2&&photon_pt>" + args.selection.split('photon')[1].split('_')[0]
+photonSelection = "nPhotonGood>0&&photon_eta<2.5&&photon_idCutBased>2&&photon_pt>" + args.selection.split('photon')[1].split('-')[0]
 
 #
 # Loop over channels
@@ -237,7 +240,7 @@ for index, mode in enumerate(allModes):
  # TTJets.setSelectionString(   ["TTGJetsEventType<4", leptonSelection, photonSelection])
   TTLep_pow.setSelectionString(["TTGJetsEventType<4", leptonSelection, photonSelection])
 
-  # For comparisons with TTZ, do not use photonSelection
+  # For comparisons with TTZ, do not use photonSelection, but use leptonSelection such that we probe the neutrino decay component
   TTZtoLLNuNu.setSelectionString([leptonSelection])
 
 
@@ -351,8 +354,8 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     texX = '#eta(#gamma)', texY = 'Number of Events',
-    variable = Variable.fromString( "photon_eta/F" ),
-    binning=[10,-2.4,2.4],
+    variable = Variable.fromString( "photon_eta/F" ).addFiller(lambda data: abs(data.photon_eta)),
+    binning=[10, 0, 2.4],
   ))
 
   plots.append(Plot(
@@ -422,7 +425,7 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     texX     = 'p_{T}(#gamma) resolution', texY = 'Normalized units',
-    variable = Variable.fromString("photon_res/F").addFiller(lambda data: data.photon_pt/data.photon_mcPt),
+    variable = Variable.fromString("photon_res/F").addFiller(lambda data: data.photon_pt/data.photon_genPt if data.photon_genPt > 0 else -1),
     name     = "comp/photon_res",
     binning  = [40, 0.8, 1.2]
   ))
@@ -452,24 +455,23 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     texX     = 'p_{T} (Z or #gamma) (GeV)', texY = "Normalized units",
-    variable = Variable.fromString( "boson_pt/F" ).addFiller(lambda data: data.boson_genPt),
-    name     = "comp/boson_pt",
+    variable = Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt if data.boson_genPt > int(args.selection.split('photon')[1].split('-')[0]) else -1),
+    name     = "comp/boson_genPt",
     binning  = [10, 50,250],
   ))
 
-#  Still need to have the eta's in the trees
-#  plots.append(Plot(
-#    texX     = '#eta (Z or #gamma) (GeV)', texY = "Normalized units",
-#    variable = Variable.fromString( "boson_eta/F" ).addFiller(lambda data: abs(data.boson_eta)),
-#    name     = "comp/boson_eta",
-#    binning  = [10, 0, 3],
-#  ))
-
   plots.append(Plot(
     texX     = '#eta (Z or #gamma) (GeV)', texY = "Normalized units",
-    variable = Variable.fromString( "mt2ll/F" ).addFiller(lambda data: data.mt2ll),
+    variable = Variable.fromString( "boson_genEta/F" ).addFiller(lambda data: abs(data.boson_genEta) if data.boson_genPt > int(args.selection.split('photon')[1].split('-')[0]) else -1),
+    name     = "comp/boson_genEta",
+    binning  = [10, 0, 3],
+  ))
+
+  plots.append(Plot(
+    texX     = 'MT_{2}^{ll} (GeV)', texY = "Normalized units",
+    variable = Variable.fromString( "mt2ll/F" ).addFiller(lambda data: data.mt2ll if data.boson_genPt > int(args.selection.split('photon')[1].split('-')[0]) else -1),
     name     = "comp/mt2ll",
-    binning  = [10, 50,250],
+    binning  = [30, 50, 350],
   ))
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
