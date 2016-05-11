@@ -1,17 +1,17 @@
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--dontSkipIfCachefileExists", dest="dontSkipIfCachefileExists", default = False, action="store_true", help="dontSkipIfCachefileExists?")
-parser.add_option("--noMultiThreading", dest="noMultiThreading", default = False, action="store_true", help="noMultiThreading?")
-parser.add_option("--metSigMin", dest="metSigMin", default=5, type="int", action="store", help="metSigMin?")
-parser.add_option("--metMin", dest="metMin", default=80, type="int", action="store", help="metMin?")
-parser.add_option("--multiIsoWP", dest="multiIsoWP", default="", type="string", action="store", help="wpMu,wpEle")
-parser.add_option("--relIso04", dest="relIso04", default=-1, type=float, action="store", help="relIso04 cut?")
+parser.add_option("--dontSkipIfCachefileExists", dest="dontSkipIfCachefileExists", default = False,             action="store_true", help="dontSkipIfCachefileExists?")
+parser.add_option("--noMultiThreading",          dest="noMultiThreading",          default = False,             action="store_true", help="noMultiThreading?")
+parser.add_option("--metSigMin",                 dest="metSigMin",                 default=5,    type="int",    action="store",      help="metSigMin?")
+parser.add_option("--metMin",                    dest="metMin",                    default=80,   type="int",    action="store",      help="metMin?")
+parser.add_option("--multiIsoWP",                dest="multiIsoWP",                default="",   type="string", action="store",      help="wpMu,wpEle")
+parser.add_option("--relIso04",                  dest="relIso04",                  default=-1,   type=float,    action="store",      help="relIso04 cut?")
+parser.add_option("--signal",                    dest="signal",                    default=None,                action="store",      help="which signal estimators?", choices=[None,"DM","T2tt","allT2tt"])
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.mcAnalysis import setup, regions, bkgEstimators
-setup.analysis_results='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test6_noPU'
-setup.parameters['metMin'] = options.metMin
+setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
 if options.multiIsoWP!="":
@@ -31,17 +31,23 @@ for e in bkgEstimators:
 setup.verbose=True
 #from multi_estimate import multi_estimate
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
-from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 
-#signalEstimators = [ MCBasedEstimate(name=s.name,    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in [T2tt_450_0] ] 
-#signalEstimators = [ MCBasedEstimate(name=s.name,    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals_T2tt ]
-#isFastSim = True
-
-#signalEstimators = [ MCBasedEstimate(name=s.name,    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals_TTDM ]
-#isFastSim = False
-signalEstimators = [ ] 
-isFastSim = False
+if options.signal is None:
+  signalEstimators = []
+  isFastSim = False
+elif options.signal == "DM":
+  signalEstimators = [ MCBasedEstimate(name=s.name,    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals_TTDM ]
+  isFastSim = False
+elif options.signal == "T2tt":
+  signalEstimators = [ MCBasedEstimate(name=s.name,    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in [T2tt_450_0] ]
+  isFastSim = True
+elif options.signal == "allT2tt":
+  signalEstimators = [ MCBasedEstimate(name=s.name,    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals_T2tt ]
+  isFastSim = True
+else:
+  raise Exception("Unknown signal estimator choice")
 
 signalSetup = setup.sysClone(parameters={'useTriggers':False})
 
