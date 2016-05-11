@@ -27,6 +27,7 @@ from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writ
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
+from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
@@ -466,10 +467,11 @@ if isDiLep:
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
+    if isMC: new_variables.extend( ['zBoson_genPt/F', 'zBoson_genEta/F'] )
 
 if options.keepPhotons:
     new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
-    if not isData: new_variables.extend( ['photon_res/F'] )
+    if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
     new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
     new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
     if isDiLep:
@@ -521,6 +523,7 @@ grannies_B = {}
 def filler(s):
     # shortcut
     r = reader.data
+    if isMC: gPart = getGenPartsAll(r)
 
     # weight
     if options.T2tt:
@@ -605,7 +608,10 @@ def filler(s):
          s.photon_eta        = photons[0]['eta']
          s.photon_phi        = photons[0]['phi']
          s.photon_idCutBased = photons[0]['idCutBased']
-         if not isData: s.photon_res = photons[0]['pt']/photons[0]['mcPt'] if photons[0]['mcPt'] > 0 else float('nan')
+         if isMC:
+           genPhoton       = getGenPhoton(gPart)
+           s.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
+           s.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
 
          met = ROOT.TLorentzVector()
          met.SetPtEtaPhiM(r.met_pt, 0, r.met_phi, 0 )
@@ -641,12 +647,13 @@ def filler(s):
 
               setattr(s, "met_pt" +i+"_"+var, met_corr_pt)
               setattr(s, "met_phi"+i+"_"+var, met_corr_phi)
-              setattr(s, "metSig" +i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( getattr(s, "met_pt"+i+"_"+var) ) )
+              setattr(s, "metSig" +i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( getattr(s, "ht_"+var) ) ) if getattr(s, "ht_"+var) else float ('nan')
 
 
     if isSingleLep or isDiLep:
         s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
         s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
+
         if len(leptons)>=1:
             s.l1_pt     = leptons[0]['pt']
             s.l1_eta    = leptons[0]['eta']
@@ -704,6 +711,12 @@ def filler(s):
             s.dl_mass = dl.M()
             mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
 
+            # To check MC truth when looking at the TTZToLLNuNu sample
+            if isMC:
+              zBoson          = getGenZ(gPart)
+              s.zBoson_genPt  = zBoson['pt']  if zBoson is not None else float('nan')
+              s.zBoson_genEta = zBoson['eta'] if zBoson is not None else float('nan')
+
             if options.keepPhotons and s.nPhotonGood > 0:
               dlg = dl + gamma
               s.dlg_mass = dlg.M()
@@ -738,7 +751,6 @@ def filler(s):
 
     # gen information on extra leptons
     if isMC and not options.skipGenLepMatching:
-        gPart = getGenPartsAll( r )
         genSearch.init( gPart )
         # Start with status 1 gen leptons in acceptance
         gLep = filter( lambda p:abs(p['pdgId']) in [11, 13] and p['status']==1 and p['pt']>20 and abs(p['eta'])<2.5, gPart )

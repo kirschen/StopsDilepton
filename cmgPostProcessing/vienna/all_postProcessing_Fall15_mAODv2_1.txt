@@ -1,6 +1,2 @@
-python cmgPostProcessing.py SPLIT10 --checkTTGJetsOverlap  --samples TTJets TTJets_ext
-python cmgPostProcessing.py SPLIT20 --checkTTGJetsOverlap  --samples TTJets_DiLepton TTJets_DiLepton_ext
-python cmgPostProcessing.py SPLIT10  --samples TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
-python cmgPostProcessing.py SPLIT10  --samples TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
 python cmgPostProcessing.py SPLIT5  --checkTTGJetsOverlap  --samples TTJets_LO
 python cmgPostProcessing.py SPLIT20  --samples TTLep_pow TTLep_pow_ext
