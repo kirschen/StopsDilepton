@@ -23,11 +23,11 @@ def deltaR2(l1, l2):
 def deltaR(l1, l2):
     return sqrt(deltaR2(l1,l2))
 
-def matchWithCollection(l, coll, deltaR = 0.2, deltaRelPt = 0.5 ):
+def bestDRMatchInCollection(l, coll, deltaR = 0.2, deltaRelPt = 0.5 ):
     lst = []
     for l2 in coll:
         dr2 = deltaR2(l, l2)
-        if  ( dr2 < deltaR**2 or deltaR<0 ) and (abs( -1 + l2['pt']/l['pt']) < deltaRelPt ):
+        if  ( dr2 < deltaR**2 ) and (abs( -1 + l2['pt']/l['pt']) < deltaRelPt or deltaRelPt < 0 ):
             lst.append((dr2, l2))
     lst.sort()
     if len(lst)>0:
@@ -197,6 +197,9 @@ def getObjDict(c, prefix, variables, i):
     res={var: getVarValue(c, prefix+var, i) for var in variables}
     res['index']=i
     return res
+
+def getCollection(c, prefix, variables, counter_variable):
+    return [getObjDict(c, prefix+'_', variables, i) for i in range(int(getVarValue(c, counter_variable)))]
 
 def getCutYieldFromChain(c, cutString = "(1)", cutFunc = None, weight = "weight", weightFunc = None, returnVar=False):
     c.Draw(">>eList", cutString)
