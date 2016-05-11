@@ -1,17 +1,16 @@
 import os
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--metSigMin", dest="metSigMin", default=5, type="int", action="store", help="metSigMin?")
-parser.add_option("--metMin", dest="metMin", default=80, type="int", action="store", help="metMin?")
+parser.add_option("--metSigMin",  dest="metSigMin",  default=5,  type="int",    action="store", help="metSigMin?")
+parser.add_option("--metMin",     dest="metMin",     default=80, type="int",    action="store", help="metMin?")
 parser.add_option("--multiIsoWP", dest="multiIsoWP", default="", type="string", action="store", help="multiIsoWP?")
-parser.add_option("--relIso04", dest="relIso04", default=-1, type=float, action="store", help="relIso04 cut?")
+parser.add_option("--relIso04",   dest="relIso04",   default=-1, type=float,    action="store", help="relIso04 cut?")
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.defaultAnalysis import setup, regions, bkgEstimators
 setup.verbose = False
-setup.analysis_results='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test6'
-setup.parameters['metMin'] = options.metMin
+setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
 if options.multiIsoWP!="":
@@ -28,13 +27,12 @@ if options.relIso04>0:
 for e in bkgEstimators:
     e.initCache(setup.defaultCacheDir())
 
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 from StopsDilepton.analysis.u_float import u_float
 from math import sqrt
 ##https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSYSignalSystematicsRun2
-from StopsDilepton.tools.btagEfficiency import btagWeightNames_FS_1b, btagWeightNames_1b
-from StopsDilepton.tools.user import releaseLocation71XC
+from StopsDilepton.tools.user import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 limitPrefix = 'flavSplit_almostAllReg'
@@ -43,7 +41,7 @@ verbose   = True
 
 def wrapper(s):
     c = cardFileWriter.cardFileWriter()
-    c.releaseLocation = releaseLocation71XC
+    c.releaseLocation = combineReleaseLocation
 
     counter=0
     c.reset()
@@ -56,8 +54,8 @@ def wrapper(s):
     c.addUncertainty('SFFS', 'lnN')
     c.addUncertainty('leptonSF', 'lnN')
 
-    eSignal = MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() )
-    cardFileName = os.path.join(setup.analysis_results,  setup.prefix(), 'cardFiles', limitPrefix, s['name']+'.txt')
+    eSignal = MCBasedEstimate(name=s.name,    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() )
+    cardFileName = os.path.join(setup.analysis_results,  setup.prefix(), 'cardFiles', limitPrefix, s.name+'.txt')
     if not os.path.exists(cardFileName) or overWrite:
         for r in regions:
             for channel in ['MuMu', 'EE', 'EMu']:
@@ -142,15 +140,16 @@ def wrapper(s):
     else:
         print "File %s found. Reusing."%cardFileName
     res = c.calcLimit(cardFileName)
-    mStop, mNeu = s['mStop'], s['mNeu']
+    mStop, mNeu = s.mStop, s.mNeu
     try:
         if res: print "Result: mStop %i mNeu %i obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(mStop, mNeu, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
     except:
         print "Something wrong with the limit: %r"%res
     return mStop, mNeu, res
 
+jobs = [T2tt_450_0]
 #jobs = [T2tt_400_0, T2tt_400_50, T2tt_650_250]
-jobs = signals_T2tt
+#jobs = signals_T2tt
 
 #from multiprocessing import Pool
 #pool = Pool(processes=2)
@@ -166,21 +165,10 @@ T2tt_exp_up   = T2tt_exp.Clone("T2tt_exp_up")
 T2tt_obs      = T2tt_exp.Clone("T2tt_obs")
 
 for r in results:
-    mStop, mNeu, res = r
+  mStop, mNeu, res = r
+  for hist, qE in [(T2tt_exp, '0.500'), (T2tt_exp_up, '0.160'), (T2tt_exp_down, '0.840'), (T2tt_obs, '-1.000')]:
     try:
-        T2tt_exp        .Fill(mStop, mNeu, res['0.500'])
-    except:
-        print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
-    try:
-        T2tt_exp_up     .Fill(mStop, mNeu, res['0.160'])
-    except:
-        print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
-    try:
-        T2tt_exp_down   .Fill(mStop, mNeu, res['0.840'])
-    except:
-        print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
-    try:
-        T2tt_obs        .Fill(mStop, mNeu, res['-1.000'])
+        hist.Fill(mStop, mNeu, res[qE])
     except:
         print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
 
