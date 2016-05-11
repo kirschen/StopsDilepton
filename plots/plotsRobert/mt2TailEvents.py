@@ -7,8 +7,8 @@ import array, operator
 from StopsDilepton.tools.helpers import getObjDict, getEList, getVarValue, deltaR, getObjFromFile
 from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getLeptons, looseMuID, looseEleID, getJets, leptonVars, jetVars, getGoodTaus
 from StopsDilepton.tools.genParticleTools import getDaughters, descendDecay, decaysTo, printDecay
-from StopsDilepton.tools.mt2Calculator import mt2Calculator
 from StopsDilepton.tools.mcTools import pdgToName
+from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()
 from StopsDilepton.tools.user import *
 
@@ -51,11 +51,9 @@ cuts=[
   ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
   ("isOS","isOS==1"),
   ("SFZVeto","( (isMuMu==1||isEE==1)&&abs(dl_mass-91.2)>=15 || isEMu==1 )"),
-  ("tauVeto","Sum$(TauGood_pt>20 && abs(TauGood_eta)<2.4 && TauGood_idDecayModeNewDMs>=1 && TauGood_idCI3hit>=1 && TauGood_idAntiMu>=1 && TauGood_idAntiE>=1)==0"),
-#  ("mRelIso01", "LepGood_miniRelIso[l1_index]<0.1&&LepGood_miniRelIso[l2_index]<0.1"),
-  ("multiIsoWP", multiIsoWP),
-  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
-#  ("evt", "evt==68296914")
+#  ("multiIsoWP", multiIsoWP),
+#  ("tauVeto","Sum$(TauGood_pt>20 && abs(TauGood_eta)<2.4 && TauGood_idDecayModeNewDMs>=1 && TauGood_idCI3hit>=1 && TauGood_idAntiMu>=1 && TauGood_idAntiE>=1)==0"),
+#  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     ]
 
 #prefix+="_tauVeto_mRelIso01_looseLepVeto"
@@ -92,6 +90,7 @@ for s in samples:
     counterRecofake_fakeMet100={}
     counterRecofake_fakeMet200={}
     counterRecoGen_failRelIso03={}
+    counterRecoGen_genLepOutOfAcceptance={}
     badMuonCandidates={}
     badElectronCandidates={}
     for mode in ["isMuMu", "isEE", "isEMu"]:
@@ -112,6 +111,7 @@ for s in samples:
         counterRecofake_fakeMet100[mode]={}
         counterRecofake_fakeMet200[mode]={}
         counterRecoGen_failRelIso03[mode]={}
+        counterRecoGen_genLepOutOfAcceptance[mode]={}
         badMuonCandidates[mode]=[]
         badElectronCandidates[mode]=[]
     for ev in range(nEvents):
@@ -146,7 +146,7 @@ for s in samples:
         min_jetPtRatiov2 = min(l['jetPtRatiov2'] for l in leptons)
         min_jetPtRelv2   = min(l['jetPtRelv2'] for l in leptons)
 
-#RECO mathes
+#RECO matches
         muMatched   = filter(lambda l: abs(l['mcMatchAny'])==1, mu)
         eleMatched  = filter(lambda l: abs(l['mcMatchAny'])==1, ele)
         tauMatched  = filter(lambda l: abs(l['mcMatchId'])>=1, tau)
@@ -159,7 +159,7 @@ for s in samples:
         genNeutrinosFromTau =   [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId']) ==15 and abs(p['pdgId']) in nuPdgs, genParts)]
         otherNeutrinos      =   [descendDecay(q, genParts) for q in filter(lambda p: abs(p['pdgId']) in nuPdgs, genParts) if not descendDecay(q, genParts) in genNeutrinosFromW+genNeutrinosFromTau]
         genEle =                [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId']) in [24] and abs(p['pdgId'])==11 , genParts)]
-        genMu=                  [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId']) in [24] and abs(p['pdgId'])==13 , genParts)]
+        genMu  =                [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId']) in [24] and abs(p['pdgId'])==13 , genParts)]
         genEleFromTau=          [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId']) in [15] and abs(p['pdgId'])==11 , genParts)]
         genMuFromTau=           [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId']) in [15] and abs(p['pdgId'])==13 , genParts)]
         genTau=                 [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId'])==24 and abs(p['pdgId'])==15 , genParts)]
@@ -174,6 +174,7 @@ for s in samples:
         genNuTauFromTau=        [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId'])==15 and abs(p['pdgId'])==16 , genParts)]
 #    genB   =                [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId'])==6 and abs(p['pdgId'])==5 , genParts)]
         genB   =                filter(lambda p: abs(p['motherId'])==6 and abs(p['pdgId'])==5 , genParts)
+        genLepNotAccepted =     [descendDecay(q, genParts) for q in filter(lambda p: abs(p['motherId']) in [24] and abs(p['eta'])>2.4 and abs(p['pdgId']) in [11, 13] , genParts)]
 
 #Matched
 #    muMatchedToB     = filter(lambda l: abs(l['mcMatchAny'])==5 and l['mcMatchId']==0, mu)
@@ -230,7 +231,7 @@ for s in samples:
                 elif  len(genEle)==1 and len(genTauToHad)==1 and len(genLeptons)==2: gMode="Ele+TauToHad"
 
                 elif  len(genTau)==2 and len(genLeptons)==2: gMode="2Tau"
-
+                
                 if gMode=='other':
                     print len(genLeptons), len(genNeutrinosFromW), len(genNuE), len(genNuMu), len(genNuTau)
                 if not counterRecoGen[mode].has_key(gMode):
@@ -250,6 +251,7 @@ for s in samples:
                     counterRecofake_fakeMet100[mode][gMode]=0
                     counterRecofake_fakeMet200[mode][gMode]=0
                     counterRecoGen_failRelIso03[mode][gMode]=0
+                    counterRecoGen_genLepOutOfAcceptance[mode][gMode]=0
                 counterRecoGen[mode][gMode]+=1
                 if len(mu)==len(muMatched):counterRecoGen_muMatched[mode][gMode]+=1
                 if len(ele)==len(eleMatched):counterRecoGen_eleMatched[mode][gMode]+=1
@@ -271,6 +273,7 @@ for s in samples:
                 leptonsFailRelIso04  = any([l['relIso04']>0.1 for l in leptons])
                 leptonsFailRelIso04_012  = any([l['relIso04']>0.12 for l in leptons])
                 if leptonsFailRelIso03: counterRecoGen_failRelIso03[mode][gMode]+=1
+                if len(genLepNotAccepted)>0: counterRecoGen_genLepOutOfAcceptance[mode][gMode]+=1
                 if deltaMet>50:  counterRecofake_fakeMet50[mode][gMode]+=1
                 neutrinoFromWPt = vecPtSum(genNeutrinosFromW)
                 neutrinoFromWAndTauPt = vecPtSum(genNeutrinosFromW+genNeutrinosFromTau)
@@ -348,6 +351,7 @@ for s in samples:
             print "    >=1 extra mu: %i" % counterRecoGen_looseMu[mode][gMode]
             print "    >=1 extra ele: %i" % counterRecoGen_looseEle[mode][gMode]
             print "    >=1 lep. fails relIso03: %i"% counterRecoGen_failRelIso03[mode][gMode]
+            print "    >=1 gen-lep failing acceptance:%i"%counterRecoGen_genLepOutOfAcceptance[mode][gMode]
             print "    >50 fake MET %i"%counterRecofake_fakeMet50[mode][gMode]
             print "    >100 fake MET %i"%counterRecofake_fakeMet100[mode][gMode]
             print "    >200 fake MET %i"%counterRecofake_fakeMet200[mode][gMode]

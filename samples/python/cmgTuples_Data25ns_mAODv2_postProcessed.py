@@ -3,12 +3,24 @@ from StopsDilepton.tools.user import data_directory
 from RootTools.core.Sample import Sample 
 import ROOT
 
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+
+# Data directory
+try:
+    data_directory = sys.modules['__main__'].data_directory
+except:
+    from StopsDilepton.tools.user import data_directory as user_data_directory
+    data_directory = user_data_directory 
+
 # Take post processing directory if defined in main module
 try:
-  import sys
-  postProcessing_directory = sys.modules['__main__'].postProcessing_directory
+    postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny"
+    postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny"
+
+logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
 dirs = {}
 dirs['DoubleEG']       = ["DoubleEG_Run2015D_16Dec"]

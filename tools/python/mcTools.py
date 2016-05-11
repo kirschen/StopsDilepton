@@ -13,10 +13,23 @@ class GenSearch:
         if l['pdgId']!=self.genParticles[l['motherIndex1']]['pdgId']: return self.genParticles[l['motherIndex1']]
         else: return self.mother(self.genParticles[l['motherIndex1']])
 
-
     def ancestry(self, l, stop_at_pdgId = [2212]):
         self.__found = set()
         return self.__ancestry(l, stop_at_pdgId = stop_at_pdgId )
+
+    def daughters(self, p):
+        res=[]
+        for ind in ['daughterIndex1', 'daughterIndex2']:
+            if p[ind]>0: res.append(self.genParticles[p[ind]])
+        return res
+
+    def descend(self, p):
+        cands = filter(lambda q:abs(q['pdgId'])==abs(p['pdgId']), self.daughters(p) )
+        if len(cands)>1: print "Warning: Found more than one particle with same pdgId %i in decay chain %r -> %r."%(p['pdgId'], p, cands)
+        if len(cands)>0:
+            if cands[0]==p:return p
+            return self.descend(cands[0])
+        return p
 
     def __ancestry(self, l, stop_at_pdgId):
         ''' Returns indices of all genParticles in the ancestry of l

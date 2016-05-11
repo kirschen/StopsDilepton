@@ -23,9 +23,9 @@ import StopsDilepton.tools.user as user
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, matchWithCollection
+from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection
 from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getGoodAndOtherLeptons,  getJets, getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
+from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodMuons, getGoodElectrons, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 
 #MC tools
@@ -158,9 +158,9 @@ def get_parser():
         help="Keep photons?"
         )
 
-    argParser.add_argument('--addGenLepMatching',
+    argParser.add_argument('--skipGenLepMatching',
         action='store_true',
-        help="add matched genleps??"
+        help="skip matched genleps??"
         )
 
     argParser.add_argument('--keepLHEWeights',
@@ -197,6 +197,7 @@ isDiLep     =   options.skim.lower().startswith('dilep')
 isSingleLep =   options.skim.lower().startswith('singlelep')
 isTiny      =   options.skim.lower().count('tiny') 
 isVeryLoose =  'veryloose' in options.skim.lower()
+isVeryLoosePt10 =  'veryloosept10' in options.skim.lower()
 isLoose     =  'loose' in options.skim.lower() and not isVeryLoose
 
 # Skim condition
@@ -359,10 +360,9 @@ else:
         "nDiscJet", "DiscJet_*",
         "nJetFailId", "JetFailId_*",
         "nLepGood", "LepGood_*",
+        "nLepOther", "LepOther_*",
         "nTauGood", "TauGood_*",
     ]
-    if isLoose or isVeryLoose:
-        branchKeepStrings_DATAMC+= ["nLepOther", "LepOther_*"]
     #branches to be kept for MC samples only
     branchKeepStrings_MC = [\
         "nTrueInt", "genWeight", "xsec", "met_gen*", "lheHTIncoming",
@@ -431,7 +431,7 @@ if isMC:
     read_variables.append( VectorType.fromString('gamma[mcPt/F]') )
 
     new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
-    if options.addGenLepMatching:
+    if not options.skipGenLepMatching:
         Variable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
 
@@ -457,12 +457,12 @@ if isSingleLep:
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
 if isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
-    new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F' ] )
+    new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_dxy/F', 'l1_dz/F' ] )
     new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     if options.keepPhotons:
       new_variables.extend( ['mt_photonEstimated/F'] )
 if isDiLep:
-    new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F' ] )
+    new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_dxy/F', 'l2_dz/F' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
@@ -558,17 +558,20 @@ def filler(s):
     nonBJets     = filter(lambda j:not isBJet(j), jets)
     if isVeryLoose:
         # all leptons up to relIso 1
-        miniRelIso = 1.0 
-        leptons_pt10 = getGoodAndOtherLeptons(r, ptCut=10, miniRelIso = miniRelIso)
+        miniRelIso = 999.
+        ptCut = 20 if not isVeryLoosePt10 else 10 
+        leptons_pt10 = getGoodAndOtherLeptons(r, ptCut=10, miniRelIso = miniRelIso , dz = 0.1, dxy = 1.)
+        leptons      = filter(lambda l:l['pt']>ptCut, leptons_pt10)
     elif isLoose:
         # reliso 0.4
         miniRelIso = 0.4
         leptons_pt10 = getGoodLeptons(r, ptCut=10, miniRelIso = miniRelIso)
+        leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     else:
         miniRelIso = 0.2
         leptons_pt10 = getGoodLeptons(r, ptCut=10, miniRelIso = miniRelIso)
         # relIso 0.2
-    leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
+        leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
 
     s.met_pt  = r.met_pt
     s.met_phi = r.met_phi
@@ -654,6 +657,8 @@ def filler(s):
             s.l1_jetPtRatiov2  = leptons[0]['jetPtRatiov2']
             s.l1_jetPtRelv2    = leptons[0]['jetPtRelv2']
             s.l1_miniRelIso = leptons[0]['miniRelIso']
+            s.l1_dxy = leptons[0]['dxy']
+            s.l1_dz = leptons[0]['dz']
 
         # For TTZ studies: find Z boson candidate, and use third lepton to calculate mt
         (s.mlmZ_mass, zl1, zl2) = closestOSDLMassToMZ(leptons_pt10)
@@ -678,6 +683,8 @@ def filler(s):
             s.l2_jetPtRatiov2  = leptons[1]['jetPtRatiov2']
             s.l2_jetPtRelv2    = leptons[1]['jetPtRelv2']
             s.l2_miniRelIso = leptons[1]['miniRelIso']
+            s.l2_dxy = leptons[0]['dxy']
+            s.l2_dz = leptons[0]['dz']
 
             l_pdgs = [abs(leptons[0]['pdgId']), abs(leptons[1]['pdgId'])]
             l_pdgs.sort()
@@ -730,7 +737,7 @@ def filler(s):
                 setattr(s, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
 
     # gen information on extra leptons
-    if isMC and options.addGenLepMatching:
+    if isMC and not options.skipGenLepMatching:
         gPart = getGenPartsAll( r )
         genSearch.init( gPart )
         # Start with status 1 gen leptons in acceptance
@@ -742,7 +749,7 @@ def filler(s):
             l["n_W"]   =  sum([ancestry.count(p) for p in [24, -24]])
             l["n_t"]   =  sum([ancestry.count(p) for p in [6, -6]])
             l["n_tau"] =  sum([ancestry.count(p) for p in [15, -15]])
-            matched_lep = matchWithCollection(l, leptons_pt10)
+            matched_lep = bestDRMatchInCollection(l, leptons_pt10)
             if matched_lep:
                 l["lepGoodMatchIndex"] = matched_lep['index']
                 l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index, s.l2_index]

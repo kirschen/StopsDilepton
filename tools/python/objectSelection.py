@@ -34,7 +34,7 @@ Muon_sip3d = 4.0
 Muon_dxy = 0.05
 Muon_dz = 0.1
 
-def looseMuID(l, ptCut=20, absEtaCut=2.4, miniRelIso=Muon_miniRelIso):
+def looseMuID(l, ptCut=20, absEtaCut=2.4, miniRelIso=Muon_miniRelIso, dz = Muon_dz, dxy = Muon_dxy):
     return \
         l["pt"]>=ptCut\
         and abs(l["pdgId"])==13\
@@ -42,8 +42,8 @@ def looseMuID(l, ptCut=20, absEtaCut=2.4, miniRelIso=Muon_miniRelIso):
         and l["mediumMuonId"]==Muon_mediumMuonId \
         and l["miniRelIso"]<miniRelIso \
         and l["sip3d"]<Muon_sip3d\
-        and abs(l["dxy"])<Muon_dxy\
-        and abs(l["dz"])<Muon_dz
+        and abs(l["dxy"])<dxy\
+        and abs(l["dz"])<dz
 
 def looseMuIDString(ptCut=20, absEtaCut=2.4, miniRelIso=Muon_miniRelIso):
     string = []
@@ -113,7 +113,7 @@ Ele_sip3d = 4.0
 Ele_dxy = 0.05
 Ele_dz = 0.1
 
-def looseEleID(l, ptCut=20, absEtaCut=2.4, miniRelIso=Ele_miniRelIso):
+def looseEleID(l, ptCut=20, absEtaCut=2.4, miniRelIso=Ele_miniRelIso, dxy = Ele_dxy, dz = Ele_dz):
     return \
         l["pt"]>=ptCut\
         and abs(l["eta"])<absEtaCut\
@@ -123,8 +123,8 @@ def looseEleID(l, ptCut=20, absEtaCut=2.4, miniRelIso=Ele_miniRelIso):
         and l["convVeto"]\
         and l["lostHits"]==Ele_lostHits\
         and l["sip3d"] < Ele_sip3d\
-        and abs(l["dxy"]) < Ele_dxy\
-        and abs(l["dz"]) < Ele_dz\
+        and abs(l["dxy"]) < dxy\
+        and abs(l["dz"]) < dz\
 
 def multiIsoEleId(WP, ptCut = 20, absEtaCut = 2.4):
     def func(l):
@@ -174,8 +174,12 @@ def getGoodElectrons(c, collVars=leptonVars, miniRelIso=Ele_miniRelIso):
     return [l for l in getElectrons(c, collVars) if looseEleID(l, miniRelIso=miniRelIso)]
 def getGoodLeptons(c, ptCut=20, collVars=leptonVars, miniRelIso = 0.2):
     return [l for l in getLeptons(c, collVars) if (abs(l["pdgId"])==11 and looseEleID(l, ptCut, miniRelIso=miniRelIso)) or (abs(l["pdgId"])==13 and looseMuID(l, ptCut, miniRelIso=miniRelIso))]
-def getGoodAndOtherLeptons(c, ptCut=20, collVars=leptonVars, miniRelIso = 0.2):
-    res = [l for l in getLeptons(c, collVars)+getOtherLeptons(c, collVars) if (abs(l["pdgId"])==11 and looseEleID(l, ptCut, miniRelIso=miniRelIso)) or (abs(l["pdgId"])==13 and looseMuID(l, ptCut, miniRelIso=miniRelIso))]
+def getGoodAndOtherLeptons(c, ptCut=20, collVars=leptonVars, miniRelIso = 0.2, dxy = 0.05, dz = 0.1):
+    good_lep = getLeptons(c, collVars)
+    other_lep = getOtherLeptons(c, collVars)
+    for l in other_lep: #dirty trick to find back the full lepton if it was in the 'other' collection
+        l['index']+=1000
+    res = [l for l in good_lep+other_lep if (abs(l["pdgId"])==11 and looseEleID(l, ptCut, miniRelIso=miniRelIso, dxy = dxy, dz = dz)) or (abs(l["pdgId"])==13 and looseMuID(l, ptCut, miniRelIso=miniRelIso, dxy=dxy, dz=dz))]
     res.sort( key = lambda l:-l['pt'] )
     return res
 
