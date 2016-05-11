@@ -21,9 +21,9 @@ argParser.add_argument('--logLevel',       action='store',      default='INFO', 
 argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
 argParser.add_argument('--plot_directory', action='store',      default='TTG_gen')
 argParser.add_argument('--selection',      action='store',      default=None)
+argParser.add_argument('--smoothFactor',   action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 args = argParser.parse_args()
-
 
 #
 # Logger
@@ -65,8 +65,8 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./ttG_gen.py --selection=" + selection
-    logfile = "log/" + selection + ".log"
+    command = "./ttG_gen.py --selection=" + selection + ((" --smoothFactor=" + args.smoothFactor) if args.smoothFactor is not None else "")
+    logfile = "log/" + selection + (("_smoothFactor=" + args.smoothFactor) if args.smoothFactor is not None else "") + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
   logger.info("All jobs launched")
@@ -160,8 +160,9 @@ TTG.ptHists = {}
 yields     = {}
 allPlots   = {}
 allModes   = ['mumu','mue','ee']
+if args.smoothFactor is not None: args.plot_directory = os.path.join(args.plot_directory, "smooth" + str(args.smoothFactor))
 for doPtReweight in [False, True]:
-  if doPtReweight: args.plot_directory += "_reweighted"
+  if doPtReweight: args.plot_directory = os.path.join(args.plot_directory, "reweighted")
   for index, mode in enumerate(allModes):
     TTG.mode = mode # little hack
     yields[mode] = {}
@@ -178,8 +179,8 @@ for doPtReweight in [False, True]:
       sample.style = styles.lineStyle(sample.color, 2)
    #   sample.reduceFiles(to = 1)
 
-    TTZtoLLNuNu.setSelectionString(leptonSelection, "zBoson_isNeutrinoDecay")
-    TTG.setSelectionString(leptonSelection)
+    TTZtoLLNuNu.setSelectionString([leptonSelection, "zBoson_isNeutrinoDecay"])
+    TTG.setSelectionString([leptonSelection])
 
     stack = Stack(TTZtoLLNuNu, TTG)
 
@@ -254,7 +255,21 @@ for doPtReweight in [False, True]:
     TTG_scale = yields[mode][TTG.name]/yields[mode][TTZtoLLNuNu.name]
 
     for plot in plots:
-      plotting.draw(plot, 
+
+      # Double the stack/histos for smoothing histograms
+      if plot.name == "boson_genPt":
+	for i, l in enumerate(plot.histos[:]):
+          plot.stack.append( copy.deepcopy(plot.stack[i]))
+          plot.histos.append(copy.deepcopy(plot.histos[i]))
+	  for j, h in enumerate(l):
+            plot.histos[-1][j].sample = plot.stack[i][j]
+            plot.histos[-1][j].texName = "smoothed " + plot.stack[i][j].texName
+            plot.histos[-1][j].style = styles.lineStyle(plot.stack[i][j].color-5, 1)
+	    if args.smoothFactor is not None: plot.histos[-1][j].Smooth(int(args.smoothFactor))
+	    plot.stack[i][j].ptHists[mode] = copy.deepcopy(plot.histos[-1][j])
+
+
+      plotting.draw(plot,
 	  plot_directory = os.path.join(plot_directory, args.plot_directory, mode, args.selection),
 	  ratio = {'yRange':(0.1,1.9)}, 
 	  logX = False, logY = False, sorting = False, 
@@ -262,22 +277,17 @@ for doPtReweight in [False, True]:
 	  drawObjects = drawObjects( TTG_scale, lumi_scale),
       )
 
-      plot_temp = copy.deepcopy(plot)
-      plot_temp.texY = "Normalized units"
-      plotting.draw(plot_temp, 
+      temp = plot.texY
+      plot.texY = "Normalized units"
+      plotting.draw(plot,
 	  plot_directory = os.path.join(plot_directory, args.plot_directory, mode + "_normalized", args.selection),
 	  ratio = {'yRange':(0.1,1.9)}, 
 	  logX = False, logY = False, sorting = False, 
 	  yRange = (0.003, "auto"),
-	  scaling = {0:1},
+	  scaling = {0:1,2:3} if len(plot.histos) == 4 else {0:1},
 	  drawObjects = drawObjects( TTG_scale, lumi_scale),
       )
-
-      if plot.name == "boson_genPt":
-	for i, l in enumerate(plot.histos):
-	  for j, h in enumerate(l):
-	    plot.stack[i][j].ptHists[mode] = h
-	
+      plot.texY = temp
 
     allPlots[mode] = plots
       
@@ -300,7 +310,7 @@ for doPtReweight in [False, True]:
 	      j.Add(l)
 
   for plot in allPlots[allModes[0]]:
-    plotting.draw(plot, 
+    plotting.draw(plot,
       plot_directory = os.path.join(plot_directory, args.plot_directory, "all", args.selection),
       ratio = {'yRange':(0.1,1.9)}, 
       logX = False, logY = False, sorting = False, 
@@ -309,19 +319,14 @@ for doPtReweight in [False, True]:
     )
 
     plot.texY = "Normalized units"
-    plotting.draw(plot, 
+    plotting.draw(plot,
       plot_directory = os.path.join(plot_directory, args.plot_directory, "all_normalized", args.selection),
       ratio = {'yRange':(0.1,1.9)}, 
       logX = False, logY = False, sorting = False, 
       yRange = (0.003, "auto"),
-      scaling = {0:1},
+      scaling = {0:1,2:3} if len(plot.histos) == 4 else {0:1},
       drawObjects = drawObjects( TTG_scale, lumi_scale),
     )
 
-    if plot.name == "boson_genPt":
-      for i, l in enumerate(plot.histos):
-        for j, h in enumerate(l):
-	  plot.stack[i][j].ptHists["all"] = h
-      
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
