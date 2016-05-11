@@ -1,5 +1,5 @@
 from StopsDilepton.tools.objectSelection import getGenPartsAll
-from StopsDilepton.tools.pdgToName import pdgToName
+from StopsDilepton.tools.mcTools import pdgToName
 def getDaughters(particle_, genParts):
     res=[]
     for ind in ['daughterIndex1', 'daughterIndex2']:
@@ -25,7 +25,7 @@ def decaysTo(particle_, pdgId, genParts):
 def printDecay(particle_, genParts, prefix=""):
     daughters = getDaughters(particle_, genParts)
     if True: print prefix+"%s (index %i, status: %i, n-daughters: %i) pt: %6.2f eta: %6.2f phi: %6.2f"\
-            %( pdgToName[particle_['pdgId']],particle_['index'], particle_['status'], len(daughters), particle_['pt'], particle_['eta'], particle_['phi'])
+            %( pdgToName(particle_['pdgId']),particle_['index'], particle_['status'], len(daughters), particle_['pt'], particle_['eta'], particle_['phi'])
     if len(daughters)==0 or (len(daughters)==1 and daughters[0]==particle_):
         return
     else:

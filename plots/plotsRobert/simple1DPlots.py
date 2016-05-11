@@ -81,7 +81,8 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 #make samples
 data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/" 
-#postProcessing_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/" 
+postProcessing_directory = "postProcessed_Fall15_mAODv2/dilep/" 
+
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
@@ -99,12 +100,12 @@ if args.mode=="doubleMu":
     trigger     = "HLT_mumuIso"
 elif args.mode=="doubleEle":
     leptonSelectionString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
-    data_sample = DoubleEG_Run2015 if not args.noData else NoneD
+    data_sample = DoubleEG_Run2015D if not args.noData else None
     qcd_sample = QCD_EMbcToE
     trigger   = "HLT_ee_DZ"
 elif args.mode=="muEle":
     leptonSelectionString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
-    data_sample = MuonEG_Run2015 if not args.noData else NoneD
+    data_sample = MuonEG_Run2015D if not args.noData else None
     qcd_sample = QCD_Mu5EMbcToE
     trigger    = "HLT_mue"
 else:
@@ -136,6 +137,7 @@ from StopsDilepton.tools.user import plot_directory
 weight = lambda data:data.weight
 
 cuts=[
+    ("leadingLepIsTight", "l1_miniRelIso<0.4"),
     ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
     ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
     ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
@@ -186,10 +188,10 @@ if len(args.signals)>0:
             logger.warning( "Could not add signal %s", s)
 
 ##for i_comb in [0]:
-#for i_comb in [len(cuts)]
 
 rev = reversed if args.reversed else lambda x:x
 for i_comb in rev( range( len(cuts)+1 ) ):
+#for i_comb in [len(cuts)]:
     for comb in itertools.combinations( cuts, i_comb ):
 
         if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
@@ -202,6 +204,8 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             presel = [("isSS","l1_pdgId*l2_pdgId>0")]
         else:
             raise ValueError
+
+        # presel += [("highMiniRelIso","max(l1_miniRelIso,l2_miniRelIso)>0.4")]
  
         presel.extend( comb )
 
@@ -346,6 +350,38 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             )
         plots.append( l1_phi )
 
+        l1_miniRelIso  = Plot(
+            texX = 'I_{rel.mini}', texY = 'Number of Events / 5 GeV',
+            stack = stack, 
+            variable = Variable.fromString( "l1_miniRelIso/F" ),
+            binning=[40,0,2],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( l1_miniRelIso )
+
+        l1_dxy  = Plot(
+            name = "l1_dxy",
+            texX = '|d_{xy}|', texY = 'Number of Events',
+            stack = stack, 
+            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.l1_dxy), uses = "l1_dxy/F"),
+            binning=[40,0,1],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( l1_dxy )
+
+        l1_dz  = Plot(
+            name = "l1_dz",
+            texX = '|d_{z}|', texY = 'Number of Events',
+            stack = stack, 
+            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.l1_dz), uses = "l1_dz/F"),
+            binning=[40,0,0.15],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( l1_dz )
+
         l1_pdgId  = Plot(
             texX = 'pdgId(l_{1})', texY = 'Number of Events',
             stack = stack, 
@@ -385,6 +421,38 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             weight = weight,
             )
         plots.append( l2_phi )
+
+        l2_miniRelIso  = Plot(
+            texX = 'I_{rel.mini}', texY = 'Number of Events / 5 GeV',
+            stack = stack, 
+            variable = Variable.fromString( "l2_miniRelIso/F" ),
+            binning=[40,0,2],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( l2_miniRelIso )
+
+        l2_dxy  = Plot(
+            name = "l2_dxy",
+            texX = '|d_{xy}|', texY = 'Number of Events',
+            stack = stack, 
+            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.l2_dxy), uses = "l2_dxy/F"),
+            binning=[40,0,1],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( l2_dxy )
+
+        l2_dz  = Plot(
+            name = "l2_dz",
+            texX = '|d_{z}|', texY = 'Number of Events',
+            stack = stack, 
+            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.l2_dz), uses = "l2_dz/F"),
+            binning=[40,0,0.15],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( l2_dz )
 
         l2_pdgId  = Plot(
             texX = 'pdgId(l_{2})', texY = 'Number of Events',
