@@ -43,10 +43,10 @@ cuts = [
      ("ptGamma30",       "(1)"),           # Implemented in otherSelections() method
      ("ptGamma50",       "(1)"),           # Implemented in otherSelections() method
      ("ptGamma75",       "(1)"),           # Implemented in otherSelections() method
-     ("ptGamma100",      "(1)"),           # Implemented in otherSelections() method
      ("met50",           "(1)"),           # Implemented in otherSelections() method
      ("met80",           "(1)"),           # Implemented in otherSelections() method
-#    ("mt2ll140",        "(1)"),           # Implemented in otherSelections() method
+     ("mt2ll100",        "(1)"),           # Implemented in otherSelections() method
+     ("mt2ll140",        "(1)"),           # Implemented in otherSelections() method
   ]
 
 
@@ -145,6 +145,7 @@ def otherSelections(data, sample):
   data.passed = True
   if args.selection.count("etaGamma") and sample == TTG: data.passed = (data.passed and abs(data.photon_genEta) < 2.5)
   if args.selection.count("ptGamma")  and sample == TTG: data.passed = (data.passed and data.photon_genPt > minBosonPt)
+  data.forReweight = data.passed
   if args.selection.count("met"):                        data.passed = (data.passed and data.boson_met > minMet)
   if args.selection.count("mt2ll"):                      data.passed = (data.passed and data.boson_mt2ll > minMt2ll)
 
@@ -244,14 +245,21 @@ for doPtReweight in [False, True]:
     ))
 
     plots.append(Plot(
+      texX     = 'p_{T}^{gen} (Z or #gamma) (GeV)', texY = "Events /10 GeV",
+      variable = Variable.fromString( "reweighting/F" ).addFiller(lambda data: data.boson_genPt),
+      weight   = lambda data: data.weight if data.forReweight else 0,
+      binning  = [25, minBosonPt, minBosonPt+10*25],
+    ))
+
+    plots.append(Plot(
       texX     = 'min(p_{T} (t,#bar{t})) (GeV)', texY = "Events /10 GeV",
-      variable = Variable.fromString( "t1_pt/F" ).addFiller(lambda data: min(data.t1_pt, data.t2_pt)),
+      variable = Variable.fromString( "t_minpt/F" ).addFiller(lambda data: min(data.t1_pt, data.t2_pt)),
       binning  = [50, 0, 10*50],
     ))
 
     plots.append(Plot(
       texX     = 'max(p_{T} (t,#bar{t})) (GeV)', texY = "Events /10 GeV",
-      variable = Variable.fromString( "t1_pt/F" ).addFiller(lambda data: max(data.t1_pt, data.t2_pt)),
+      variable = Variable.fromString( "t_maxpt/F" ).addFiller(lambda data: max(data.t1_pt, data.t2_pt)),
       binning  = [50, 0, 10*50],
     ))
 
@@ -265,7 +273,7 @@ for doPtReweight in [False, True]:
       texX     = 'min(#Delta R(Z or #gamma, t/#bar{t})) (GeV)', texY = "Events /5 GeV",
       variable = Variable.fromString( "deltaR_topBoson/F" ).addFiller(lambda data: min(sqrt(deltaPhi(data.t1_phi, data.boson_genPhi)**2 + (data.t1_eta - data.boson_genEta)**2), 
                                                                                        sqrt(deltaPhi(data.t2_phi, data.boson_genPhi)**2 + (data.t2_eta - data.boson_genEta)**2))),
-      binning  = [20, 0, 10],
+      binning  = [20, 0, 8],
     ))
 
     plots.append(Plot(
@@ -323,8 +331,8 @@ for doPtReweight in [False, True]:
     ))
 
     plots.append(Plot(
-      texX     = 'min(M_{T}) (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mtmax/F" ).addFiller(lambda data: min(data.mt1, data.mt2)),
+      texX     = 'max(M_{T}) (GeV)', texY = "Events / 30 GeV",
+      variable = Variable.fromString( "mtmax/F" ).addFiller(lambda data: max(data.mt1, data.mt2)),
       binning  = [30, 0, 120],
     ))
 
@@ -410,7 +418,7 @@ for doPtReweight in [False, True]:
       if not min(l[0].GetMaximum() for l in plot.histos) > 0: continue # Plot has empty contributions
 
       # Double the stack/histos for smoothing histograms
-      if plot.name == "boson_pt":
+      if plot.name == "reweighting":
         if args.smoothFactor is not None:
 	  for i, l in enumerate(plot.histos[:]):
 	    plot.stack.append( copy.deepcopy(plot.stack[i]))
