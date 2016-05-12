@@ -46,7 +46,7 @@ cuts = [
      ("ptGamma100",      "(1)"),           # Implemented in otherSelections() method
      ("met50",           "(1)"),           # Implemented in otherSelections() method
      ("met80",           "(1)"),           # Implemented in otherSelections() method
-     ("mt2ll140",        "(1)"),           # Implemented in otherSelections() method
+#    ("mt2ll140",        "(1)"),           # Implemented in otherSelections() method
   ]
 
 
@@ -126,6 +126,8 @@ read_variables = ["weight/F" , "leptonicDecays/I", "mt2ll/F",
                   "met_pt/F", "met_phi/F",
                   "l1_pt/F", "l1_eta/F", "l1_phi/F", "l1_pdgId/I",
                   "l2_pt/F", "l2_eta/F", "l2_phi/F", "l2_pdgId/I",
+                  "t1_pt/F", "t1_eta/F", "t1_phi/F", "t1_pdgId/I",
+                  "t2_pt/F", "t2_eta/F", "t2_phi/F", "t2_pdgId/I",
                   "nunu_pt/F", "nunu_eta/F", "nunu_phi/F",
                   "mt1/F", "mt2/F"
                  ]
@@ -143,7 +145,7 @@ def otherSelections(data, sample):
   data.passed = True
   if args.selection.count("etaGamma") and sample == TTG: data.passed = (data.passed and abs(data.photon_genEta) < 2.5)
   if args.selection.count("ptGamma")  and sample == TTG: data.passed = (data.passed and data.photon_genPt > minBosonPt)
-  if args.selection.count("met"):                        data.passed = (data.passed and data.met > minMet)
+  if args.selection.count("met"):                        data.passed = (data.passed and data.boson_met > minMet)
   if args.selection.count("mt2ll"):                      data.passed = (data.passed and data.boson_mt2ll > minMt2ll)
 
 
@@ -154,13 +156,13 @@ def makeCompareVariables(data, sample):
     data.boson_genEta = data.zBoson_genEta
     data.boson_genPhi = data.zBoson_genPhi
     data.boson_mt2ll  = data.mt2ll
-    data.met          = data.met_pt
+    data.boson_met    = data.met_pt
   elif sample == TTG:
     data.boson_genPt  = data.photon_genPt
     data.boson_genEta = data.photon_genEta
     data.boson_genPhi = data.photon_genPhi
     data.boson_mt2ll  = data.mt2ll_photon
-    data.met          = data.met_pt_photon
+    data.boson_met    = data.met_pt_photon
   else:
     raise Exception("Sample not known")
 
@@ -208,7 +210,7 @@ for doPtReweight in [False, True]:
     for sample in mc:
       sample.scale = lumi_scale
       sample.style = styles.lineStyle(sample.color, 2)
-   #  sample.reduceFiles(to = 1)
+#     sample.reduceFiles(to = 1)
 
     TTZtoLLNuNu.setSelectionString([leptonSelection, "zBoson_isNeutrinoDecay"])
     TTG.setSelectionString([leptonSelection])
@@ -239,6 +241,37 @@ for doPtReweight in [False, True]:
       texX     = 'p_{T}^{gen} (Z or #gamma) (GeV)', texY = "Events /10 GeV",
       variable = Variable.fromString( "boson_pt/F" ).addFiller(lambda data: data.boson_genPt),
       binning  = [25, minBosonPt, minBosonPt+10*25],
+    ))
+
+    plots.append(Plot(
+      texX     = 'min(p_{T} (t,#bar{t})) (GeV)', texY = "Events /10 GeV",
+      variable = Variable.fromString( "t1_pt/F" ).addFiller(lambda data: min(data.t1_pt, data.t2_pt)),
+      binning  = [50, 0, 10*50],
+    ))
+
+    plots.append(Plot(
+      texX     = 'max(p_{T} (t,#bar{t})) (GeV)', texY = "Events /10 GeV",
+      variable = Variable.fromString( "t1_pt/F" ).addFiller(lambda data: max(data.t1_pt, data.t2_pt)),
+      binning  = [50, 0, 10*50],
+    ))
+
+    plots.append(Plot(
+      texX     = 'min(#Delta#phi(Z or #gamma, t/#bar{t})) (GeV)', texY = "Events /5 GeV",
+      variable = Variable.fromString( "deltaPhi_topBoson/F" ).addFiller(lambda data: min(deltaPhi(data.t1_phi, data.boson_genPhi), deltaPhi(data.t2_phi, data.boson_genPhi))),
+      binning  = [20, 0, 3.1415],
+    ))
+
+    plots.append(Plot(
+      texX     = 'min(#Delta R(Z or #gamma, t/#bar{t})) (GeV)', texY = "Events /5 GeV",
+      variable = Variable.fromString( "deltaR_topBoson/F" ).addFiller(lambda data: min(sqrt(deltaPhi(data.t1_phi, data.boson_genPhi)**2 + (data.t1_eta - data.boson_genEta)**2), 
+                                                                                       sqrt(deltaPhi(data.t2_phi, data.boson_genPhi)**2 + (data.t2_eta - data.boson_genEta)**2))),
+      binning  = [20, 0, 10],
+    ))
+
+    plots.append(Plot(
+      texX     = '#Delta#phi(#nu#nu, Z or #gamma) (#nu from W decays) (GeV)', texY = "Events /5 GeV",
+      variable = Variable.fromString( "deltaPhi_nunuBoson/F" ).addFiller(lambda data: deltaPhi(data.nunu_phi, data.boson_genPhi)),
+      binning  = [20, 0, 3.1415],
     ))
 
     plots.append(Plot(
@@ -273,7 +306,7 @@ for doPtReweight in [False, True]:
 
     plots.append(Plot(
       texX     = '#slash{E}_{T} (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 20 GeV",
-      variable = Variable.fromString( "met_photonIncluded/F" ).addFiller(lambda data: data.met),
+      variable = Variable.fromString( "met_photonIncluded/F" ).addFiller(lambda data: data.boson_met),
       binning  = [15, 0, 300],
     ))
 
@@ -352,7 +385,7 @@ for doPtReweight in [False, True]:
       stack = Stack([TTG]),
       variables = (
           Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
-          Variable.fromString( "met_photonIncluded/F" ).addFiller(lambda data: data.met),
+          Variable.fromString( "met_photonIncluded/F" ).addFiller(lambda data: data.boson_met),
       ),
       binning=[200, 0, 200, 200,0,200],
       weight = weight,
@@ -377,7 +410,7 @@ for doPtReweight in [False, True]:
       if not min(l[0].GetMaximum() for l in plot.histos) > 0: continue # Plot has empty contributions
 
       # Double the stack/histos for smoothing histograms
-      if plot.name == "boson_genPt":
+      if plot.name == "boson_pt":
         if args.smoothFactor is not None:
 	  for i, l in enumerate(plot.histos[:]):
 	    plot.stack.append( copy.deepcopy(plot.stack[i]))
@@ -396,13 +429,12 @@ for doPtReweight in [False, True]:
       drawPlot(plot, mode, False, TTG_scale)
       drawPlot(plot, mode, True,  TTG_scale)
 
-      for plot in plots2D:
-        plotting.draw2D(
-	  plot = plot,
-	  plot_directory = os.path.join(plot_directory, args.plot_directory, mode, args.selection),
-	  logX = False, logY = False, logZ = True,
-        )
-
+    for plot in plots2D:
+      plotting.draw2D(
+	plot = plot,
+	plot_directory = os.path.join(plot_directory, args.plot_directory, mode, args.selection),
+	logX = False, logY = False, logZ = True,
+      )
     allPlots[mode] = plots
       
 
