@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' Analysis script for TTG selection (g bbllnunu or g bbjjlnu)
+''' Analysis script for comparing generator level TTZ vs TTG
 '''
 #
 # Standard imports and batch mode
@@ -10,6 +10,7 @@ ROOT.gROOT.SetBatch(True)
 from math import sqrt, cos, sin, pi
 from RootTools.core.standard import *
 from StopsDilepton.tools.user import plot_directory
+from StopsDilepton.tools.helpers import deltaPhi
 
 
 #
@@ -41,7 +42,11 @@ cuts = [
      ("etaGamma25",      "(1)"),           # Implemented in otherSelections() method
      ("ptGamma30",       "(1)"),           # Implemented in otherSelections() method
      ("ptGamma50",       "(1)"),           # Implemented in otherSelections() method
+     ("ptGamma75",       "(1)"),           # Implemented in otherSelections() method
      ("ptGamma100",      "(1)"),           # Implemented in otherSelections() method
+     ("met50",           "(1)"),           # Implemented in otherSelections() method
+     ("met80",           "(1)"),           # Implemented in otherSelections() method
+     ("mt2ll140",        "(1)"),           # Implemented in otherSelections() method
   ]
 
 
@@ -56,6 +61,8 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
         if selection.count('ptGamma') > 1: continue
+        if selection.count('mt2ll') > 1:   continue
+        if selection.count('met') > 1:     continue
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 #
@@ -65,7 +72,7 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./ttG_gen.py --selection=" + selection + ((" --smoothFactor=" + args.smoothFactor) if args.smoothFactor is not None else "")
+    command = "./ttG_gen.py --log=TRACE --selection=" + selection + ((" --smoothFactor=" + args.smoothFactor) if args.smoothFactor is not None else "")
     logfile = "log/" + selection + (("_smoothFactor=" + args.smoothFactor) if args.smoothFactor is not None else "") + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
@@ -80,10 +87,10 @@ if not args.isChild and args.selection is None:
 postProcessing_directory = "postProcessed_Fall15_mAODv2/gen"
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_gen import *
 
-
 #
 # Text on the plots
 #
+lumi_scale = 10
 def drawObjects( dataMCScale, lumi_scale ):
     tex = ROOT.TLatex()
     tex.SetNDC()
@@ -95,6 +102,22 @@ def drawObjects( dataMCScale, lumi_scale ):
     ]
     return [tex.DrawLatex(*l) for l in lines] 
 
+def drawPlot(plot, subdir, useScaling, TTG_scale):
+  if useScaling:
+    temp = plot.texY
+    plot.texY = "Normalized units"
+    subdir += "_normalized"
+  plotting.draw(plot,
+    plot_directory = os.path.join(plot_directory, args.plot_directory, subdir, args.selection),
+    ratio          = {'yRange':(0.1,1.9),'style':styles.errorStyle(ROOT.kBlack)},
+    logX           = False, logY = False, sorting = False,
+    yRange         = (0.003, "auto"),
+    scaling        = {} if not useScaling else {0:1,2:3} if len(plot.histos) == 4 else {0:1},
+    drawObjects    = drawObjects( TTG_scale, lumi_scale),
+  )
+  if useScaling:
+    plot.texY = temp
+
 
 #
 # Read variables and sequences
@@ -103,20 +126,25 @@ read_variables = ["weight/F" , "leptonicDecays/I", "mt2ll/F",
                   "met_pt/F", "met_phi/F",
                   "l1_pt/F", "l1_eta/F", "l1_phi/F", "l1_pdgId/I",
                   "l2_pt/F", "l2_eta/F", "l2_phi/F", "l2_pdgId/I",
+                  "nunu_pt/F", "nunu_eta/F", "nunu_phi/F",
+                  "mt1/F", "mt2/F"
                  ]
 
 # Variables only to be read/available for specific samples (i.e. variables only in MC)
-TTG.read_variables         = ["photon_genPt/F", "photon_genEta/F", "met_pt_photon/F", "met_phi_photon/F", "mt2ll_photon/F"]
-TTZtoLLNuNu.read_variables = ["zBoson_genPt/F", "zBoson_genEta/F", "zBoson_isNeutrinoDecay/O"]
+TTG.read_variables         = ["photon_genPt/F", "photon_genEta/F", "photon_genPhi/F", "met_pt_photon/F", "met_phi_photon/F", "mt2ll_photon/F"]
+TTZtoLLNuNu.read_variables = ["zBoson_genPt/F", "zBoson_genEta/F", "zBoson_genPhi/F", "zBoson_isNeutrinoDecay/O"]
 
 minBosonPt = int(args.selection.split('ptGamma')[1].split('-')[0]) if args.selection.count('ptGamma') else 0
-
+minMt2ll   = int(args.selection.split('mt2ll')[1].split('-')[0])   if args.selection.count('mt2ll') else 0
+minMet     = int(args.selection.split('met')[1].split('-')[0])     if args.selection.count('met') else 0
 
 
 def otherSelections(data, sample):
   data.passed = True
   if args.selection.count("etaGamma") and sample == TTG: data.passed = (data.passed and abs(data.photon_genEta) < 2.5)
   if args.selection.count("ptGamma")  and sample == TTG: data.passed = (data.passed and data.photon_genPt > minBosonPt)
+  if args.selection.count("met"):                        data.passed = (data.passed and data.met > minMet)
+  if args.selection.count("mt2ll"):                      data.passed = (data.passed and data.boson_mt2ll > minMt2ll)
 
 
 # Compare different variable types for TTZ vs TTG
@@ -124,13 +152,17 @@ def makeCompareVariables(data, sample):
   if sample == TTZtoLLNuNu:
     data.boson_genPt  = data.zBoson_genPt
     data.boson_genEta = data.zBoson_genEta
+    data.boson_genPhi = data.zBoson_genPhi
     data.boson_mt2ll  = data.mt2ll
     data.met          = data.met_pt
   elif sample == TTG:
     data.boson_genPt  = data.photon_genPt
     data.boson_genEta = data.photon_genEta
+    data.boson_genPhi = data.photon_genPhi
     data.boson_mt2ll  = data.mt2ll_photon
     data.met          = data.met_pt_photon
+  else:
+    raise Exception("Sample not known")
 
 def doReweighting(data, sample):
   if sample == TTG:
@@ -140,14 +172,14 @@ def doReweighting(data, sample):
     ttg = ttgHist.GetBinContent(ttgHist.FindBin(data.photon_genPt)) / ttgHist.Integral()
     data.weight = data.weight*ttz/ttg if ttg > 0 else 0
 
-sequence = [otherSelections, makeCompareVariables]
+sequence = [makeCompareVariables, otherSelections]
 reweight = [doReweighting]
 
 
 
-mumuSelection   = "abs(l1_pdgId)==13&&abs(l2_pdgId)==13"
-mueSelection    = "(abs(l1_pdgId)==11&&abs(l2_pdgId)==13)||(abs(l1_pdgId)==13&&abs(l2_pdgId)==11)"
-eeSelection     = "abs(l1_pdgId)==11&&abs(l2_pdgId)==11"
+mumuSelection   = "leptonicDecays==2&&abs(l1_pdgId)==13&&abs(l2_pdgId)==13"
+mueSelection    = "leptonicDecays==2&&((abs(l1_pdgId)==11&&abs(l2_pdgId)==13)||(abs(l1_pdgId)==13&&abs(l2_pdgId)==11))"
+eeSelection     = "leptonicDecays==2&&abs(l1_pdgId)==11&&abs(l2_pdgId)==11"
 
 TTZtoLLNuNu.ptHists = {}
 TTG.ptHists = {}
@@ -171,13 +203,12 @@ for doPtReweight in [False, True]:
     elif mode=="ee":  leptonSelection = eeSelection
     elif mode=="mue": leptonSelection = mueSelection
 
-    lumi_scale = 10
 
     mc = [ TTZtoLLNuNu,  TTG ]
     for sample in mc:
       sample.scale = lumi_scale
       sample.style = styles.lineStyle(sample.color, 2)
-   #   sample.reduceFiles(to = 1)
+   #  sample.reduceFiles(to = 1)
 
     TTZtoLLNuNu.setSelectionString([leptonSelection, "zBoson_isNeutrinoDecay"])
     TTG.setSelectionString([leptonSelection])
@@ -199,48 +230,136 @@ for doPtReweight in [False, True]:
 
     plots.append(Plot(
       texX     = 'p_{T}^{gen} (Z or #gamma) (GeV)', texY = "Events / 20 GeV",
-      variable = Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
-      name     = "boson_genPt_highPt",
+      variable = Variable.fromString( "boson_pt/F" ).addFiller(lambda data: data.boson_genPt),
+      name     = "boson_pt_high",
       binning  = [10, 150,350],
     ))
 
     plots.append(Plot(
-      texX     = 'p_{T}^{gen} (Z or #gamma) (GeV)', texY = "Events /5 GeV",
-      variable = Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
-      binning  = [50, minBosonPt, minBosonPt+5*50],
+      texX     = 'p_{T}^{gen} (Z or #gamma) (GeV)', texY = "Events /10 GeV",
+      variable = Variable.fromString( "boson_pt/F" ).addFiller(lambda data: data.boson_genPt),
+      binning  = [25, minBosonPt, minBosonPt+10*25],
+    ))
+
+    plots.append(Plot(
+      texX     = 'p_{T}^{#nu#nu} (#nu from W decays) (GeV)', texY = "Events /5 GeV",
+      variable = Variable.fromString( "nunu_pt/F" ).addFiller(lambda data: data.nunu_pt),
+      binning  = [50, 0, 250],
+    ))
+
+    plots.append(Plot(
+      texX     = '#eta^{#nu#nu} (#nu from W decays) (GeV)', texY = "Events /5 GeV",
+      variable = Variable.fromString( "nunu_eta/F" ).addFiller(lambda data: data.nunu_eta),
+      binning  = [25, 0, 5],
+    ))
+
+    plots.append(Plot(
+      texX     = '#Delta#phi(#nu#nu, Z or #gamma) (#nu from W decays) (GeV)', texY = "Events /5 GeV",
+      variable = Variable.fromString( "deltaPhi_nunuBoson/F" ).addFiller(lambda data: deltaPhi(data.nunu_phi, data.boson_genPhi)),
+      binning  = [20, 0, 3.1415],
+    ))
+
+    plots.append(Plot(
+      texX     = '#Delta R(#nu#nu, Z or #gamma) (#nu from W decays) (GeV)', texY = "Events /5 GeV",
+      variable = Variable.fromString( "deltaR_nunuBoson/F" ).addFiller(lambda data: sqrt(deltaPhi(data.nunu_phi, data.boson_genPhi)**2 + (data.nunu_eta - data.boson_genEta)**2)),
+      binning  = [20, 0, 10],
     ))
 
     plots.append(Plot(
       texX     = '#eta^{gen} (Z or #gamma) (GeV)', texY = "Events",
-      variable = Variable.fromString( "boson_genEta/F" ).addFiller(lambda data: abs(data.boson_genEta)),
-      binning  = [30, 0, 3],
+      variable = Variable.fromString( "boson_eta/F" ).addFiller(lambda data: abs(data.boson_genEta)),
+      binning  = [12, 0, 3],
     ))
 
     plots.append(Plot(
-      texX     = '#slash{E}_{T} (#gamma in included for t#bar{t}#gamma) (GeV)', texY = "Events / 10 GeV",
+      texX     = '#slash{E}_{T} (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 20 GeV",
       variable = Variable.fromString( "met_photonIncluded/F" ).addFiller(lambda data: data.met),
-      binning  = [20, 0, 200],
+      binning  = [15, 0, 300],
     ))
 
     plots.append(Plot(
-      texX     = '#slash{E}_{T} (GeV)', texY = "Events / 10 GeV",
+      texX     = '#slash{E}_{T} (GeV)', texY = "Events / 20 GeV",
       variable = Variable.fromString( "met/F" ).addFiller(lambda data: data.met_pt),
-      binning  = [20, 0, 200],
+      binning  = [15, 0, 300],
     ))
 
     plots.append(Plot(
-      texX     = 'MT_{2}^{ll}  (#gamma in included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
+      texX     = 'min(M_{T}) (GeV)', texY = "Events / 30 GeV",
+      variable = Variable.fromString( "mtmin/F" ).addFiller(lambda data: min(data.mt1, data.mt2)),
+      binning  = [30, 0, 120],
+    ))
+
+    plots.append(Plot(
+      texX     = 'min(M_{T}) (GeV)', texY = "Events / 30 GeV",
+      variable = Variable.fromString( "mtmax/F" ).addFiller(lambda data: min(data.mt1, data.mt2)),
+      binning  = [30, 0, 120],
+    ))
+
+    plots.append(Plot(
+      texX     = 'MT_{2}^{ll}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
       variable = Variable.fromString( "mt2ll_photonIncluded/F" ).addFiller(lambda data: data.boson_mt2ll),
-      binning  = [10, 50, 350],
+      binning  = [10, 0, 300],
     ))
 
     plots.append(Plot(
       texX     = 'MT_{2}^{ll} (GeV)', texY = "Events / 30 GeV",
       variable = Variable.fromString( "mt2ll/F" ).addFiller(lambda data: data.mt2ll),
-      binning  = [10, 50, 350],
+      binning  = [10, 0, 300],
     ))
 
-    plotting.fill(plots, read_variables = read_variables, sequence = sequence + reweight if doPtReweight else sequence)
+    plots.append(Plot(
+      texX     = 'MT_{2}^{ll}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
+      variable = Variable.fromString( "mt2ll_photonIncluded_high/F" ).addFiller(lambda data: data.boson_mt2ll),
+      binning  = [10, 100, 400],
+    ))
+
+    plots.append(Plot(
+      texX     = 'MT_{2}^{ll}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
+      variable = Variable.fromString( "mt2ll_high/F" ).addFiller(lambda data: data.mt2ll),
+      binning  = [10, 100, 400],
+    ))
+
+    plots2D = []
+    plots2D.append(Plot2D(
+      name  = "TTZ_met_vs_pt",
+      texX  = 'p_{T}^{gen} (Z) (GeV)', texY = "#slash{E}_{T} (GeV)'",
+      stack = Stack([TTZtoLLNuNu]),
+      variables = (
+          Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
+          Variable.fromString( "met/F" ).addFiller(lambda data: data.met_pt),
+      ),
+      binning =[200, 0, 200, 200,0,200],
+      weight  = weight,
+      selectionString = selectionStrings[args.selection]
+    ))
+
+    plots2D.append(Plot2D(
+      name  = "TTG_met_vs_pt",
+      texX  = 'p_{T}^{gen} (#gamma) (GeV)', texY = "#slash{E}_{T} (GeV)'",
+      stack = Stack([TTG]),
+      variables = (
+          Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
+          Variable.fromString( "met/F" ).addFiller(lambda data: data.met_pt),
+      ),
+      binning=[200, 0, 200, 200,0,200],
+      weight = weight,
+      selectionString = selectionStrings[args.selection]
+    ))
+
+    plots2D.append(Plot2D(
+      name  = "TTG_met_photonIncluded_vs_pt",
+      texX  = 'p_{T}^{gen} (#gamma) (GeV)', texY = "#slash{E}_{T} (#gamma included) (GeV)",
+      stack = Stack([TTG]),
+      variables = (
+          Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
+          Variable.fromString( "met_photonIncluded/F" ).addFiller(lambda data: data.met),
+      ),
+      binning=[200, 0, 200, 200,0,200],
+      weight = weight,
+      selectionString = selectionStrings[args.selection]
+    ))
+
+    plotting.fill(plots + plots2D, read_variables = read_variables, sequence = sequence + reweight if doPtReweight else sequence)
 
     # Get normalization yields from yield histogram
     for plot in plots:
@@ -255,39 +374,34 @@ for doPtReweight in [False, True]:
     TTG_scale = yields[mode][TTG.name]/yields[mode][TTZtoLLNuNu.name]
 
     for plot in plots:
+      if not min(l[0].GetMaximum() for l in plot.histos) > 0: continue # Plot has empty contributions
 
       # Double the stack/histos for smoothing histograms
       if plot.name == "boson_genPt":
-	for i, l in enumerate(plot.histos[:]):
-          plot.stack.append( copy.deepcopy(plot.stack[i]))
-          plot.histos.append(copy.deepcopy(plot.histos[i]))
-	  for j, h in enumerate(l):
-            plot.histos[-1][j].sample = plot.stack[i][j]
-            plot.histos[-1][j].texName = "smoothed " + plot.stack[i][j].texName
-            plot.histos[-1][j].style = styles.lineStyle(plot.stack[i][j].color-5, 1)
-	    if args.smoothFactor is not None: plot.histos[-1][j].Smooth(int(args.smoothFactor))
-	    plot.stack[i][j].ptHists[mode] = copy.deepcopy(plot.histos[-1][j])
+        if args.smoothFactor is not None:
+	  for i, l in enumerate(plot.histos[:]):
+	    plot.stack.append( copy.deepcopy(plot.stack[i]))
+	    plot.histos.append(copy.deepcopy(plot.histos[i]))
+	    for j, h in enumerate(l):
+	      plot.histos[-1][j].sample = plot.stack[i][j]
+	      plot.histos[-1][j].texName = "smoothed " + plot.stack[i][j].texName
+	      plot.histos[-1][j].style = styles.lineStyle(plot.stack[i][j].color-5, 1)
+	      plot.histos[-1][j].Smooth(int(args.smoothFactor))
+	      plot.stack[i][j].ptHists[mode] = copy.deepcopy(plot.histos[-1][j])
+        else:
+	  for i, l in enumerate(plot.histos[:]):
+	    for j, h in enumerate(l):
+	      plot.stack[i][j].ptHists[mode] = copy.deepcopy(h)
 
+      drawPlot(plot, mode, False, TTG_scale)
+      drawPlot(plot, mode, True,  TTG_scale)
 
-      plotting.draw(plot,
+      for plot in plots2D:
+        plotting.draw2D(
+	  plot = plot,
 	  plot_directory = os.path.join(plot_directory, args.plot_directory, mode, args.selection),
-	  ratio = {'yRange':(0.1,1.9)}, 
-	  logX = False, logY = False, sorting = False, 
-	  yRange = (0.003, "auto"),
-	  drawObjects = drawObjects( TTG_scale, lumi_scale),
-      )
-
-      temp = plot.texY
-      plot.texY = "Normalized units"
-      plotting.draw(plot,
-	  plot_directory = os.path.join(plot_directory, args.plot_directory, mode + "_normalized", args.selection),
-	  ratio = {'yRange':(0.1,1.9)}, 
-	  logX = False, logY = False, sorting = False, 
-	  yRange = (0.003, "auto"),
-	  scaling = {0:1,2:3} if len(plot.histos) == 4 else {0:1},
-	  drawObjects = drawObjects( TTG_scale, lumi_scale),
-      )
-      plot.texY = temp
+	  logX = False, logY = False, logZ = True,
+        )
 
     allPlots[mode] = plots
       
@@ -310,23 +424,8 @@ for doPtReweight in [False, True]:
 	      j.Add(l)
 
   for plot in allPlots[allModes[0]]:
-    plotting.draw(plot,
-      plot_directory = os.path.join(plot_directory, args.plot_directory, "all", args.selection),
-      ratio = {'yRange':(0.1,1.9)}, 
-      logX = False, logY = False, sorting = False, 
-      yRange = (0.003, "auto"),
-      drawObjects = drawObjects( TTG_scale, lumi_scale),
-    )
-
-    plot.texY = "Normalized units"
-    plotting.draw(plot,
-      plot_directory = os.path.join(plot_directory, args.plot_directory, "all_normalized", args.selection),
-      ratio = {'yRange':(0.1,1.9)}, 
-      logX = False, logY = False, sorting = False, 
-      yRange = (0.003, "auto"),
-      scaling = {0:1,2:3} if len(plot.histos) == 4 else {0:1},
-      drawObjects = drawObjects( TTG_scale, lumi_scale),
-    )
-
+    if not min(l[0].GetMaximum() for l in plot.histos) > 0: continue # Plot has empty contributions
+    drawPlot(plot, "all", False, TTG_scale)
+    drawPlot(plot, "all", True, TTG_scale)
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
