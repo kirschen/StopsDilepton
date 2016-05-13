@@ -56,15 +56,13 @@ filterCut       = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTight
 #
 cuts = [
     ("njet2",             jetSelection+"2"),
+    ("photon30",          "(1)"),
+    ("photon50",          "(1)"),
     ("llgNoZ",            "(1)"),			# Cut implemented in lepton selection
     ("gJetdR",            "(1)"),			# Implenented in otherSelections() method
     ("gLepdR",            "(1)"),			# Implemented in otherSelections() method
     ("btagL",             bJetSelectionL+"1"),
     ("btagM",             bJetSelectionM+"1"),
-    ("photon30",          "(1)"),
-    ("photon50",          "(1)"),
-    ("photon90",          "(1)"),
-    ("photon120",         "(1)"),
     ("mll20",             "dl_mass>20"),
     ("met80",             "met_pt_photonEstimated>80"),
     ("metSig5",           "metSig_photonEstimated>5"),
@@ -89,7 +87,6 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("dPhiJet0-dPhiJet1") and not selection.count("metSig5"):  continue
         if selection.count("metSig5")           and not selection.count("met80"):    continue
         if selection.count("met80")             and not selection.count("mll20"):    continue
-        if selection.count("mll20")             and not selection.count("photon50"): continue
         if selection.count("mll20")             and not selection.count("btag"):     continue
         if selection.count("mll20")             and not selection.count("llgNoZ"):   continue
 #        if selection.count("mll20")             and not selection.count("gJetdR"):   continue
@@ -250,6 +247,7 @@ for index, mode in enumerate(allModes):
   # For TTJets, do TTGJets overlap events removal
  # TTJets.setSelectionString(   ["TTGJetsEventType<4", leptonSelection, photonSelection])
   TTLep_pow.setSelectionString(["TTGJetsEventType<4", leptonSelection, photonSelection])
+  DY_HT_LO.setSelectionString(["TTGJetsEventType<4", leptonSelection, photonSelection])
 
   # For comparisons with TTZ, do not use photonSelection, but use leptonSelection such that we probe the neutrino decay component
   TTZtoLLNuNu.setSelectionString([leptonSelection_nollg])
@@ -460,40 +458,6 @@ for index, mode in enumerate(allModes):
     variable = Variable.fromString( "TTGJetsEventType/I" ),
     name     = "comp/TTJets_vs_TTGJets-eventType",
     binning  = [5, 0, 5],
-  ))
-
-  Plot.setDefaults(stack = Stack(TTZtoLLNuNu, TTG), weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])
-
-  # Use this one to mormalize, assuming that for pt > 200 GeV distributins should be similar
-  plots.append(Plot(
-    texX     = 'p_{T}^{gen} (Z or #gamma) (GeV)', texY = "Normalized units",
-#    variable = Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt if data.boson_genPt > int(args.selection.split('photon')[1].split('-')[0]) else -1),
-    variable = Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
-    name     = "comp/TTG_vs_TTZ-boson_genPt_highPt",
-    binning  = [10, 150,300],
-  ))
-
-  plots.append(Plot(
-    texX     = 'p_{T}^{gen} (Z or #gamma) (GeV)', texY = "Normalized units",
-#    variable = Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt if data.boson_genPt > int(args.selection.split('photon')[1].split('-')[0]) else -1),
-    variable = Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
-    name     = "comp/TTG_vs_TTZ-boson_genPt",
-    binning  = [10, 50,250],
-  ))
-
-  plots.append(Plot(
-    texX     = '#eta^{gen} (Z or #gamma) (GeV)', texY = "Normalized units",
-#    variable = Variable.fromString( "boson_genEta/F" ).addFiller(lambda data: abs(data.boson_genEta) if data.boson_genPt > int(args.selection.split('photon')[1].split('-')[0]) else -1),
-    variable = Variable.fromString( "boson_genEta/F" ).addFiller(lambda data: abs(data.boson_genEta)),
-    name     = "comp/TTG_vs_TTZ-boson_genEta",
-    binning  = [10, 0, 3],
-  ))
-
-  plots.append(Plot(
-    texX     = 'MT_{2}^{ll} (GeV)', texY = "Normalized units",
-    variable = Variable.fromString( "mt2ll/F" ).addFiller(lambda data: data.mt2ll),
-    name     = "comp/TTG_vs_TTZ-mt2ll",
-    binning  = [30, 50, 350],
   ))
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
