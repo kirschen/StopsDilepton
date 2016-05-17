@@ -199,22 +199,24 @@ class cardFileWriter:
 
     def calcLimit(self, fname=None, options=""):
         import uuid, os
-        uniqueDirname="."
-        unique=False
-        ustr = str(uuid.uuid4())
+        ustr          = str(uuid.uuid4())
         uniqueDirname = os.path.join(self.releaseLocation, ustr)
         print "Creating %s"%uniqueDirname
-        if not os.path.exists(uniqueDirname): os.makedirs(uniqueDirname)
+        os.makedirs(uniqueDirname)
 
-        filename = fname if fname else os.path.join(uniqueDirname, ustr+".txt")
-        filename = os.path.abspath(filename)
+        if fname is not None:  # Assume card is already written when fname is not none
+          filename = os.path.abspath(fname)
+        else:
+          filename = fname if fname else os.path.join(uniqueDirname, ustr+".txt")
+          self.writeToFile(filename)
         resultFilename = filename.replace('.txt','')+'.root'
-        self.writeToFile( filename )
 
         assert os.path.exists(filename), "File not found: %s"%filename
 
-        print "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M Asymptotic "+filename
-        os.system("cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M Asymptotic "+filename)
+        combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M Asymptotic "+filename
+        print combineCommand
+        os.system(sysCommand)
+
         tempResFile = uniqueDirname+"/higgsCombineTest.Asymptotic.mH120.root"
         try:
             res= self.readResFile(tempResFile)
@@ -224,7 +226,7 @@ class cardFileWriter:
         if res:
             shutil.copyfile(tempResFile, resultFilename)
 
-        if os.path.exists(uniqueDirname): shutil.rmtree(uniqueDirname)
+        shutil.rmtree(uniqueDirname)
         return res
 
 
