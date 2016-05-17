@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--dontSkipIfCachefileExists", dest="dontSkipIfCachefileExists", default = False,             action="store_true", help="dontSkipIfCachefileExists?")
@@ -50,11 +51,6 @@ else:
   raise Exception("Unknown signal estimator choice")
 
 signalSetup = setup.sysClone(parameters={'useTriggers':False})
-
-def wrapper(args):
-        r,channel,setup = args
-        res = estimate.cachedEstimate(r, channel, setup, save=False)
-        return (estimate.uniqueKey(r, channel, setup), res )
 
 for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, bkgEstimators ] ]:
     for estimate in estimators_:
