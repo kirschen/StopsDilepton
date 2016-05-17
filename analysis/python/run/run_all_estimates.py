@@ -11,10 +11,12 @@ parser.add_option("--signal",                    dest="signal",                 
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
-from StopsDilepton.analysis.mcAnalysis import setup, regions, bkgEstimators
+from StopsDilepton.analysis.mcAnalysis import setup, bkgEstimators
+from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB
 setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
+allRegions = set(defaultRegions + reducedRegionsA + reducedRegionsB + reducedRegionsAB)
 if options.multiIsoWP!="":
     multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
     wpMu, wpEle=options.multiIsoWP.split(',')
@@ -52,6 +54,12 @@ else:
 
 signalSetup = setup.sysClone(parameters={'useTriggers':False})
 
+def wrapper(args):
+        r,channel,setup = args
+        res = estimate.cachedEstimate(r, channel, setup, save=False)
+        return (estimate.uniqueKey(r, channel, setup), res )
+
+
 for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, bkgEstimators ] ]:
     for estimate in estimators_:
         setup_ = signalSetup if isSignal else setup
@@ -60,7 +68,7 @@ for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, bkgEstimator
             continue
         jobs=[]
         for channel in ['MuMu' ,'EE', 'EMu']:
-            for r in regions:
+            for r in allRegions:
                 jobs.append((r, channel, setup_))
                 if isSignal:
                     jobs.extend(estimate.getSigSysJobs(r, channel, setup_, isFastSim))
@@ -80,7 +88,7 @@ for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, bkgEstimator
             estimate.cache.add(*r, save=False)
 
         for channel in ['all']:
-            for r in regions:
+            for r in allRegions:
                 estimate.cachedEstimate(r, channel, setup_, save=False)
                 map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getBkgSysJobs(r, channel, setup_))
                 if isSignal:

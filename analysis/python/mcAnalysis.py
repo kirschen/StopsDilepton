@@ -1,10 +1,6 @@
 from Setup import Setup, otherEWKComponents
 setup = Setup()
 
-#define analysis regions
-from StopsDilepton.analysis.regions import regions1D, regions3D
-regions =  regions3D
-
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 #from collections import OrderedDict
 bkgEstimators = [
@@ -18,7 +14,7 @@ assert len(list(set(nList))) == len(nList), "Names of bkgEstimators are not uniq
 
 
 from SetupHelpers import channels 
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
 bkgEstimators_detailed = [
       MCBasedEstimate(name='TTZ',         sample=setup.sample['TTZ'],    cacheDir = None ),#setup.defaultCacheDir()),
       MCBasedEstimate(name='TTJets',      sample=setup.sample['TTJets'], cacheDir = None ),#setup.defaultCacheDir()),
