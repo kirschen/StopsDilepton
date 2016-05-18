@@ -6,7 +6,7 @@ parser.add_option("--metSigMin",  dest="metSigMin",  default=5,  type="int",    
 parser.add_option("--metMin",     dest="metMin",     default=80, type="int",    action="store", help="metMin?")
 parser.add_option("--multiIsoWP", dest="multiIsoWP", default="", type="string", action="store", help="multiIsoWP?")
 parser.add_option("--relIso04",   dest="relIso04",   default=-1, type=float,    action="store", help="relIso04 cut?")
-parser.add_option("--regions",    dest="regions",    default="defaultRegions", type=string, action="store", help="which regions setup?", choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB")
+parser.add_option("--regions",    dest="regions",    default="defaultRegions",  action="store", help="which regions setup?", choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB"])
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
@@ -45,7 +45,7 @@ from math import sqrt
 from StopsDilepton.tools.user import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
-limitPrefix = 'flavSplit_almostAllReg'
+limitPrefix = options.regions
 overWrite = False
 verbose   = True
 
