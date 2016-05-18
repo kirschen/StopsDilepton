@@ -215,7 +215,7 @@ class cardFileWriter:
 
         combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M Asymptotic "+filename
         print combineCommand
-        os.system(sysCommand)
+        os.system(combineCommand)
 
         tempResFile = uniqueDirname+"/higgsCombineTest.Asymptotic.mH120.root"
         try:
