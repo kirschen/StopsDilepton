@@ -12,6 +12,7 @@ parser.add_option("--regions",    dest="regions",    default="defaultRegions",  
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.defaultAnalysis import setup, bkgEstimators
 from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB
+from StopsDilepton.analysis.Cache import Cache
 setup.verbose = False
 setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
@@ -46,14 +47,21 @@ from StopsDilepton.tools.user import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 limitPrefix = options.regions
-overWrite = False
-verbose   = True
+limitDir    = os.path.join(setup.analysis_results, setup.prefix(), 'cardFiles', limitPrefix)
+overWrite   = False
+useCache    = True
+verbose     = True
+
+if not os.path.exists(limitDir): os.makedirs(limitDir)
+cacheFileName = os.path.join(limitDir, 'calculatedLimits.pkl')
+limitCache    = Cache(cacheFileName, verbosity=2)
+
 
 def wrapper(s):
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = combineReleaseLocation
 
-    cardFileName = os.path.join(setup.analysis_results, setup.prefix(), 'cardFiles', limitPrefix, s.name+'.txt')
+    cardFileName = os.path.join(limitDir, s.name+'.txt')
     if not os.path.exists(cardFileName) or overWrite:
 	counter=0
 	c.reset()
@@ -149,12 +157,16 @@ def wrapper(s):
         cardFileName = c.writeToFile(cardFileName)
     else:
         print "File %s found. Reusing."%cardFileName
-    res = c.calcLimit(cardFileName)
     mStop, mNeu = s.mStop, s.mNeu
+    if useCache and not overWrite and limitCache.contains((mStop, mNeu)):
+      res = limitCache.get((mStop, mNeu))
+    else:
+      res = c.calcLimit(cardFileName)
     try:
         if res: print "Result: mStop %i mNeu %i obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(mStop, mNeu, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
     except:
         print "Something wrong with the limit: %r"%res
+    limitCache.add((mStop, mNeu), res, save=True)
     return mStop, mNeu, res
 
 #jobs = [T2tt_450_0]
