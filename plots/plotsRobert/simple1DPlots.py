@@ -36,6 +36,11 @@ argParser.add_argument('--zMode',
     choices=['onZ', 'offZ', 'allZ']
 )
 
+argParser.add_argument('--ttjets',
+    default='LO',
+    action='store',
+    choices=['LO', 'NLO'])
+
 argParser.add_argument('--noData',
     action='store_true',
     help='Skip data',
@@ -67,7 +72,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='png25ns_2l_mAODv2_2100_noPU_new',
+    default='png25ns_2l_mAODv2_2100_noPU_VTVT',
     action='store',
 )
 
@@ -115,14 +120,20 @@ else:
 dataFilterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
 mcFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
 
+if args.ttjets == "NLO":
+    TTJets_sample = TTJets
+elif args.ttjets == "LO":
+    TTJets_sample = TTJets_Lep 
+else:
+    raise ValueError
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ DY_HT_LO, TTJets_Lep, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
+mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
 #mc = [ TTX]
 if args.small:
-    TTJets.reduceFiles(to = 1)
-    DY_HT_LO.reduceFiles(to = 1)
+    for sample in mc:
+        sample.reduceFiles(to = 1)
 
 if not args.noData:
     data_sample.style = styles.errorStyle( ROOT.kBlack )
@@ -136,15 +147,25 @@ from StopsDilepton.tools.user import plot_directory
 # official PU reweighting
 weight = lambda data:data.weight
 
+from StopsDilepton.tools.objectSelection import multiIsoLepString
+multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
+
 cuts=[
-    ("leadingLepIsTight", "l1_miniRelIso<0.4"),
-    ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
-    ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
-    ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
+#    ("leadingLepIsTight", "l1_miniRelIso<0.4"),
+#    ("EE", "abs(l1_eta)>1.5&&abs(l2_eta)>1.5"),
+#    ("EB", "(abs(l1_eta)<1.5&&abs(l2_eta)>1.5||abs(l1_eta)>1.5&&abs(l2_eta)<1.5)"),
+    ("BB", "abs(l1_eta)<1.5&&abs(l2_eta)<1.5"),
+    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
+    ("njet2", "nJetGood>=2"),
+    ("nbtag1", "nBTag>=1"),
+#    ("nbtag0", "nBTag==0"),
     ("mll20", "dl_mass>20"),
     ("met80", "met_pt>80"),
-    ("metSig5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
+    ("metSig5", "met_pt/sqrt(ht)>5"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+    ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
+    ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
+
 ]
                 
 def drawObjects( dataMCScale ):
@@ -187,11 +208,24 @@ if len(args.signals)>0:
         except NameError:
             logger.warning( "Could not add signal %s", s)
 
-##for i_comb in [0]:
+sequence = []
+#if args.zMode == 'onZ':
+#
+#    def makeUParaUPerp( data ):
+#         
+#        qx = data.dl_pt*cos(data.dl_phi)  
+#        qy = data.dl_pt*sin(data.dl_phi)
+#
+#        ux = -data.met_pt*cos(data.met_phi) - qx 
+#        uy = -data.met_pt*sin(data.met_phi) - qy
+#        data.upara = (ux*qx+uy*qy)/data.dl_pt
+#        data.uperp = (ux*qy-uy*qx)/data.dl_pt
+#
+#    sequence.append( makeUParaUPerp )
 
-rev = reversed if args.reversed else lambda x:x
-for i_comb in rev( range( len(cuts)+1 ) ):
-#for i_comb in [len(cuts)]:
+#rev = reversed if args.reversed else lambda x:x
+#for i_comb in rev( range( len(cuts)+1 ) ):
+for i_comb in [len(cuts)]:
     for comb in itertools.combinations( cuts, i_comb ):
 
         if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
@@ -209,7 +243,12 @@ for i_comb in rev( range( len(cuts)+1 ) ):
  
         presel.extend( comb )
 
-        prefix = '_'.join([args.mode, args.zMode, '-'.join([p[0] for p in presel])])
+        ppfixes = [args.mode, args.zMode]
+        if args.ttjets == "NLO": ppfixes.append( "TTJetsNLO" )
+        if args.ttjets == "LO": ppfixes.append( "TTJetsLO" )
+        if args.small: ppfixes = ['small'] + ppfixes
+        prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
+
         plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
         if os.path.exists(plot_path) and not args.overwrite:
             logger.info( "Path %s not empty. Skipping."%path )
@@ -276,20 +315,20 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             )
         plots.append( dl_phi )
 
-#        dl_dphi  = Plot(
-#            texX = '#Delta#phi(l_{1},l_{2})', texY = 'Number of Events',
-#            stack = stack, 
-#            variable = Variable.fromString('dl_dphi/F').addFiller(
-#                helpers.uses( 
-#                    lambda data: acos(cos(l1_phi-l2_phi)), 
-#                    ["l1_phi/F", "l2_phi/F"])
-#            ), 
-#            binning=[60,-2*pi,2*pi],
-#            selectionString = selectionString,
-#            weight = weight,
-#            )
-#        plots.append( dl_dphi )
-
+##        dl_dphi  = Plot(
+##            texX = '#Delta#phi(l_{1},l_{2})', texY = 'Number of Events',
+##            stack = stack, 
+##            variable = Variable.fromString('dl_dphi/F').addFiller(
+##                helpers.uses( 
+##                    lambda data: acos(cos(l1_phi-l2_phi)), 
+##                    ["l1_phi/F", "l2_phi/F"])
+##            ), 
+##            binning=[60,-2*pi,2*pi],
+##            selectionString = selectionString,
+##            weight = weight,
+##            )
+##        plots.append( dl_dphi )
+#
         dl_mt2ll  = Plot(
             texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
@@ -300,16 +339,49 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             )
         plots.append( dl_mt2ll )
 
-        dl_mt2bb  = Plot(
-            texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            variable = Variable.fromString( "dl_mt2bb/F" ),
-            binning=[300/15,0,300],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( dl_mt2bb )
+#        dl_mt2ll_BB  = Plot(
+#            name = "mt2ll_BB",
+#            texX = 'MT_{2}^{ll} (GeV) Barrel-Barrel', texY = 'Number of Events / 20 GeV',
+#            stack = stack, 
+#            variable = Variable.fromString( "dl_mt2ll/F" ),
+#            binning=[300/15,0,300],
+#            selectionString = selectionString+"&&abs(l1_eta)<1.5&&abs(l2_eta)<1.5",
+#            weight = weight,
+#            )
+#        plots.append( dl_mt2ll_BB )
 
+##        dl_mt2ll_EB  = Plot(
+##            name = "mt2ll_EB",
+##            texX = 'MT_{2}^{ll} (GeV) Barrel-Endcap', texY = 'Number of Events / 20 GeV',
+##            stack = stack, 
+##            variable = Variable.fromString( "dl_mt2ll/F" ),
+##            binning=[300/15,0,300],
+##            selectionString = selectionString+"&&(abs(l1_eta)<1.5&&abs(l2_eta)>1.5||abs(l1_eta)>1.5&&abs(l2_eta)<1.5)",
+##            weight = weight,
+##            )
+##        plots.append( dl_mt2ll_EB )
+##
+##        dl_mt2ll_EE  = Plot(
+##            name = "mt2ll_EE",
+##            texX = 'MT_{2}^{ll} (GeV) Barrel-Endcap', texY = 'Number of Events / 20 GeV',
+##            stack = stack, 
+##            variable = Variable.fromString( "dl_mt2ll/F" ),
+##            binning=[300/15,0,300],
+##            selectionString = selectionString+"&&abs(l1_eta)>1.5&&abs(l2_eta)>1.5",
+##            weight = weight,
+##            )
+##        plots.append( dl_mt2ll_EE )
+##
+##        dl_mt2bb  = Plot(
+##            texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
+##            stack = stack, 
+##            variable = Variable.fromString( "dl_mt2bb/F" ),
+##            binning=[300/15,0,300],
+##            selectionString = selectionString,
+##            weight = weight,
+##            )
+##        plots.append( dl_mt2bb )
+#
         dl_mt2blbl  = Plot(
             texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
@@ -319,7 +391,7 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             weight = weight,
             ) 
         plots.append( dl_mt2blbl )
-         
+ 
         l1_pt  = Plot(
             texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
             stack = stack, 
@@ -649,7 +721,7 @@ for i_comb in rev( range( len(cuts)+1 ) ):
         plots.append( nVert )
 
         read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]"]
-        plotting.fill(plots, read_variables = read_variables)
+        plotting.fill(plots, read_variables = read_variables, sequence = sequence)
         if not os.path.exists( plot_path ): os.makedirs( plot_path )
 
         ratio = {'yRange':(0.1,1.9)} if not args.noData else None

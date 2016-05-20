@@ -459,7 +459,8 @@ if isSingleLep:
 if isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_dxy/F', 'l1_dz/F' ] )
-    new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
+    # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
+    new_variables.extend( ['mlmZ_mass/F'] )
     if options.keepPhotons:
       new_variables.extend( ['mt_photonEstimated/F'] )
 if isDiLep:
@@ -669,10 +670,10 @@ def filler(s):
 
         # For TTZ studies: find Z boson candidate, and use third lepton to calculate mt
         (s.mlmZ_mass, zl1, zl2) = closestOSDLMassToMZ(leptons_pt10)
-        if len(leptons_pt10) >= 3:
-            thirdLepton = leptons_pt10[[x for x in range(len(leptons_pt10)) if x != zl1 and x != zl2][0]]
-            for i in metVariants:
-              setattr(s, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(s, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(s, "met_phi"+i)))))
+#        if len(leptons_pt10) >= 3:
+#            thirdLepton = leptons_pt10[[x for x in range(len(leptons_pt10)) if x != zl1 and x != zl2][0]]
+#            for i in metVariants:
+#              setattr(s, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(s, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(s, "met_phi"+i)))))
 
         if options.fastSim:
             s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
@@ -764,7 +765,10 @@ def filler(s):
             matched_lep = bestDRMatchInCollection(l, leptons_pt10)
             if matched_lep:
                 l["lepGoodMatchIndex"] = matched_lep['index']
-                l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index, s.l2_index]
+                if isSingleLep:
+                    l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index]
+                elif isDiLep:
+                    l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index, s.l2_index]
             else:
                 l["lepGoodMatchIndex"] = -1
                 l["matchesPromptGoodLepton"] = 0
@@ -789,8 +793,6 @@ def filler(s):
         for iLep, lep in enumerate(gLep):
             for b in genLepVarNames:
                 getattr(s, "GenLep_"+b)[iLep] = lep[b]
-
-
 
 # Create a maker. Maker class will be compiled. This instance will be used as a parent in the loop
 treeMaker_parent = TreeMaker(
