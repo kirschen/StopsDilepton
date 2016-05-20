@@ -13,7 +13,7 @@ from StopsDilepton.tools.user import analysis_results
 
 #define samples
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
 
 #Choices for specific samples
 #DYSample      = DY 

@@ -56,15 +56,13 @@ filterCut       = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTight
 #
 cuts = [
     ("njet2",             jetSelection+"2"),
+    ("photon30",          "(1)"),
+    ("photon50",          "(1)"),
     ("llgNoZ",            "(1)"),			# Cut implemented in lepton selection
     ("gJetdR",            "(1)"),			# Implenented in otherSelections() method
     ("gLepdR",            "(1)"),			# Implemented in otherSelections() method
     ("btagL",             bJetSelectionL+"1"),
     ("btagM",             bJetSelectionM+"1"),
-    ("photon30",          "(1)"),
-    ("photon50",          "(1)"),
-    ("photon90",          "(1)"),
-    ("photon120",         "(1)"),
     ("mll20",             "dl_mass>20"),
     ("met80",             "met_pt_photonEstimated>80"),
     ("metSig5",           "metSig_photonEstimated>5"),
@@ -89,9 +87,10 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("dPhiJet0-dPhiJet1") and not selection.count("metSig5"):  continue
         if selection.count("metSig5")           and not selection.count("met80"):    continue
         if selection.count("met80")             and not selection.count("mll20"):    continue
-        if selection.count("mll20")             and not selection.count("photon50"): continue
         if selection.count("mll20")             and not selection.count("btag"):     continue
         if selection.count("mll20")             and not selection.count("llgNoZ"):   continue
+#        if selection.count("mll20")             and not selection.count("gJetdR"):   continue
+#        if selection.count("mll20")             and not selection.count("gLepdR"):   continue
 
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
@@ -114,8 +113,9 @@ if not args.isChild and args.selection is None:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_may2"
+#postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_may2"
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed_photonSamples import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
 
@@ -191,7 +191,8 @@ def makeCompareVariables(data, sample):
 sequence = [makeDeltaR, filterJets, otherSelections, makeCompareVariables]
 
 
-offZ            = "abs(dl_mass-91.1876)>15&&abs(dlg_mass-91.1876)>15" if args.selection.count("llgNoZ") else "abs(dl_mass-91.1876)>15"
+offZ            = "abs(dl_mass-91.1876)>15"
+offZ_dlg        = "abs(dlg_mass-91.1876)>15"
 mumuSelection   = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso&&" + offZ 
 mueSelection    = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
 eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
@@ -208,15 +209,21 @@ for index, mode in enumerate(allModes):
   if mode=="mumu":
     data_sample     = DoubleMuon_Run2015D
     qcd_sample      = QCD_Mu5 #FIXME
-    leptonSelection = mumuSelection
+    leptonSelection = mumuSelection + "&&" + offZ_dlg
+    leptonSelection_nollg = mumuSelection
   elif mode=="ee":
     data_sample     = DoubleEG_Run2015D
     qcd_sample      = QCD_EMbcToE
-    leptonSelection = eeSelection
+    leptonSelection = eeSelection + "&&" + offZ_dlg
+    leptonSelection_nollg = eeSelection
   elif mode=="mue":
     data_sample     = MuonEG_Run2015D
     qcd_sample      = QCD_Mu5EMbcToE
     leptonSelection = mueSelection
+    leptonSelection_nollg = mueSelection
+
+  if not args.selection.count('llgNoZ'):
+    leptonSelection = leptonSelection_nollg
 
   qcd_sample.name  = "QCD"  # Give same name in all modes such that it combines easily
   data_sample.name = "data"
@@ -225,7 +232,8 @@ for index, mode in enumerate(allModes):
   lumi_scale = data_sample.lumi/1000
 
 #  mc = [ diBoson, WJetsToLNu, WZZ, DY_HT_LO, qcd_sample, singleTop, TTLep_pow, TTX, TTG ]
-  mc = [ diBoson, DY_HT_LO, singleTop, TTLep_pow, TTX, TTG ]
+#  mc = [ diBoson, DY_HT_LO, singleTop, TTLep_pow, TTX, TTG ]
+  mc = [ WG, ZG, WWG, diBoson, DY_HT_LO, singleTop, TTLep_pow, TTX, TTG ]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
@@ -239,9 +247,10 @@ for index, mode in enumerate(allModes):
   # For TTJets, do TTGJets overlap events removal
  # TTJets.setSelectionString(   ["TTGJetsEventType<4", leptonSelection, photonSelection])
   TTLep_pow.setSelectionString(["TTGJetsEventType<4", leptonSelection, photonSelection])
+  DY_HT_LO.setSelectionString(["TTGJetsEventType<4", leptonSelection, photonSelection])
 
   # For comparisons with TTZ, do not use photonSelection, but use leptonSelection such that we probe the neutrino decay component
-  TTZtoLLNuNu.setSelectionString([leptonSelection])
+  TTZtoLLNuNu.setSelectionString([leptonSelection_nollg])
 
 
   # Use some defaults
@@ -409,7 +418,7 @@ for index, mode in enumerate(allModes):
   ))
 
   # Some MC only plots, unfortunately this still loops two times over the samples...
-  Plot.setDefaults(stack = Stack(TTLep_pow, TTG), weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(stack = Stack(TTLep_pow, TTG), weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])
 
   try:
     os.makedirs(os.path.join(plot_directory, args.plot_directory, mode, args.selection, 'comp'))
@@ -419,59 +428,36 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX     = '#slash{E}_{T} resolution', texY = 'Normalized units',
     variable = Variable.fromString("met_res/F").addFiller(helpers.uses(lambda data : data.met_pt/data.met_genPt if data.met_pt > 30 else -1, ["met_pt/F","met_genPt/F"])),
-    name     = "comp/met_res",
+    name     = "comp/TTJets_vs_TTGJets-met_res",
     binning  = [20, 0, 2]
   ))
 
   plots.append(Plot(
     texX     = 'p_{T}(#gamma) resolution', texY = 'Normalized units',
     variable = Variable.fromString("photon_res/F").addFiller(lambda data: data.photon_pt/data.photon_genPt if data.photon_genPt > 0 else -1),
-    name     = "comp/photon_res",
+    name     = "comp/TTJets_vs_TTGJets-photon_res",
     binning  = [40, 0.8, 1.2]
   ))
  
   plots.append(Plot(
     texX     = 'MT_{2}^{ll} (including #gamma) (GeV)', texY = 'Normalized units',
     variable = Variable.fromString( "dl_mt2ll_photonEstimated/F" ),
-    name     = "comp/dl_mt2ll_photonEstimated",
+    name     = "comp/TTJets_vs_TTGJets-dl_mt2ll_photonEstimated",
     binning  = [300/20,0,300],
   ))
 
   plots.append(Plot(
     texX     = 'p_{T}(#gamma)', texY = 'Normalized units',
     variable = Variable.fromString( "photon_pt/F" ),
-    name     = "comp/photon_pt",
+    name     = "comp/TTJets_vs_TTGJets-photon_pt",
     binning  = [10, 50,250],
   ))
 
   plots.append(Plot(
     texX     = 'event type', texY = 'Normalized units',
     variable = Variable.fromString( "TTGJetsEventType/I" ),
-    name     = "comp/eventType",
+    name     = "comp/TTJets_vs_TTGJets-eventType",
     binning  = [5, 0, 5],
-  ))
-
-  Plot.setDefaults(stack = Stack(TTZtoLLNuNu, TTG), weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
-
-  plots.append(Plot(
-    texX     = 'p_{T} (Z or #gamma) (GeV)', texY = "Normalized units",
-    variable = Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt if data.boson_genPt > int(args.selection.split('photon')[1].split('-')[0]) else -1),
-    name     = "comp/boson_genPt",
-    binning  = [10, 50,250],
-  ))
-
-  plots.append(Plot(
-    texX     = '#eta (Z or #gamma) (GeV)', texY = "Normalized units",
-    variable = Variable.fromString( "boson_genEta/F" ).addFiller(lambda data: abs(data.boson_genEta) if data.boson_genPt > int(args.selection.split('photon')[1].split('-')[0]) else -1),
-    name     = "comp/boson_genEta",
-    binning  = [10, 0, 3],
-  ))
-
-  plots.append(Plot(
-    texX     = 'MT_{2}^{ll} (GeV)', texY = "Normalized units",
-    variable = Variable.fromString( "mt2ll/F" ).addFiller(lambda data: data.mt2ll if data.boson_genPt > int(args.selection.split('photon')[1].split('-')[0]) else -1),
-    name     = "comp/mt2ll",
-    binning  = [30, 50, 350],
   ))
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
@@ -497,6 +483,17 @@ for index, mode in enumerate(allModes):
         for j, h in enumerate(l):
           h.style = styles.lineStyle(plot.stack[i][j].color, 2)
 
+    if plot.name == "comp/TTG_vs_TTZ-boson_genPt_highPt":
+      yieldTTZ  = plot.histos[0][0].Integral()
+      yieldTTG  = plot.histos[1][0].Integral()
+      TTG_scale = yieldTTG/yieldTTZ if yieldTTZ > 0 else 1
+      print "yield TTZ: " + str(yieldTTZ)
+      print "yield TTG: " + str(yieldTTG)
+      print "TTG scale: " + str(TTG_scale)
+
+  for plot in plots:
+    if plot.name.startswith("comp/TTG_vs_TTZ"):
+      plot.histos[1][0].Scale(1/TTG_scale)
 
   for plot in plots:
     if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
@@ -505,8 +502,8 @@ for index, mode in enumerate(allModes):
         ratio = {'yRange':(0.1,1.9)}, 
         logX = False, logY = False, sorting = False, 
         yRange = (0.003, "auto"),
-        scaling = {0:1} if plot.name.startswith("comp") else {},
-        drawObjects = drawObjects( dataMCScale, lumi_scale ),
+        scaling = {0:1} if plot.name.startswith("comp/TTJets_vs_TTGJets") else {},
+        drawObjects = drawObjects( dataMCScale, lumi_scale ) if not plot.name.startswith("comp/TTG_vs_TTZ") else drawObjects( TTG_scale, lumi_scale),
     )
   allPlots[mode] = plots
 
@@ -550,14 +547,24 @@ for plot in allPlots[allModes[0]]:
           if i==k:
             j.Add(l)
 
+  if plot.name == "comp/TTG_vs_TTZ-boson_genPt_highPt":
+      yieldTTZ  = plot.histos[0][0].Integral()
+      yieldTTG  = plot.histos[1][0].Integral()
+      TTG_scale = yieldTTG/yieldTTZ if yieldTTZ > 0 else 1
+      print "TTG scale: " + str(TTG_scale)
+
+
+for plot in allPlots[allModes[0]]:
+  if plot.name.startswith("comp/TTG_vs_TTZ"):
+      plot.histos[1][0].Scale(1/TTG_scale)
   if not plot.name.startswith("comp"): plot.histos[1][0].legendText = "Data 2015 (all channels)"
   plotting.draw(plot,
         plot_directory = os.path.join(plot_directory, args.plot_directory, "all", args.selection),
         ratio = {'yRange':(0.1,1.9)},
         logX = False, logY = False, sorting = False,
         yRange = (0.003, "auto"),
-        scaling = {0:1} if plot.name.startswith("comp") else {},
-        drawObjects = drawObjects( dataMCScale, 2.165 )
+        scaling = {0:1} if plot.name.startswith("comp/TTJets_vs_TTGJets") else {},
+        drawObjects = drawObjects( dataMCScale, lumi_scale ) if not plot.name.startswith("comp/TTG_vs_TTZ") else drawObjects( TTG_scale, lumi_scale),
   )
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )

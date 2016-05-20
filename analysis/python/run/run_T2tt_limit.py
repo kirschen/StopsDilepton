@@ -1,18 +1,28 @@
+#!/usr/bin/env python
 import os
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--metSigMin", dest="metSigMin", default=5, type="int", action="store", help="metSigMin?")
-parser.add_option("--metMin", dest="metMin", default=80, type="int", action="store", help="metMin?")
+parser.add_option("--metSigMin",  dest="metSigMin",  default=5,  type="int",    action="store", help="metSigMin?")
+parser.add_option("--metMin",     dest="metMin",     default=80, type="int",    action="store", help="metMin?")
 parser.add_option("--multiIsoWP", dest="multiIsoWP", default="", type="string", action="store", help="multiIsoWP?")
-parser.add_option("--relIso04", dest="relIso04", default=-1, type=float, action="store", help="relIso04 cut?")
+parser.add_option("--relIso04",   dest="relIso04",   default=-1, type=float,    action="store", help="relIso04 cut?")
+parser.add_option("--regions",    dest="regions",    default="defaultRegions",  action="store", help="which regions setup?", choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB"])
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
-from StopsDilepton.analysis.defaultAnalysis import setup, regions, bkgEstimators
+from StopsDilepton.analysis.defaultAnalysis import setup, bkgEstimators
+from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB
+from StopsDilepton.analysis.Cache import Cache
 setup.verbose = False
-setup.analysis_results='/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test6'
-setup.parameters['metMin'] = options.metMin
+setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
+
+if options.regions == "defaultRegions":     regions = defaultRegions
+elif options.regions == "reducedRegionsA":  regions = reducedRegionsA
+elif options.regions == "reducedRegionsB":  regions = reducedRegionsB
+elif options.regions == "reducedRegionsAB": regions = reducedRegionsAB
+else: raise Exception("Unknown regions setup")
+
 
 if options.multiIsoWP!="":
     multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
@@ -28,38 +38,44 @@ if options.relIso04>0:
 for e in bkgEstimators:
     e.initCache(setup.defaultCacheDir())
 
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 from StopsDilepton.analysis.u_float import u_float
 from math import sqrt
 ##https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSYSignalSystematicsRun2
-from StopsDilepton.tools.btagEfficiency import btagWeightNames_FS_1b, btagWeightNames_1b
-from StopsDilepton.tools.user import releaseLocation71XC
+from StopsDilepton.tools.user import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
-limitPrefix = 'flavSplit_almostAllReg'
-overWrite = True
-verbose   = True
+limitPrefix = options.regions
+limitDir    = os.path.join(setup.analysis_results, setup.prefix(), 'cardFiles', limitPrefix)
+overWrite   = False
+useCache    = True
+verbose     = True
+
+if not os.path.exists(limitDir): os.makedirs(limitDir)
+cacheFileName = os.path.join(limitDir, 'calculatedLimits.pkl')
+limitCache    = Cache(cacheFileName, verbosity=2)
+
 
 def wrapper(s):
     c = cardFileWriter.cardFileWriter()
-    c.releaseLocation = releaseLocation71XC
+    c.releaseLocation = combineReleaseLocation
 
-    counter=0
-    c.reset()
-    c.addUncertainty('PU', 'lnN')
-    c.addUncertainty('topPt', 'lnN')
-    c.addUncertainty('JEC', 'lnN')
-    c.addUncertainty('JER', 'lnN')
-    c.addUncertainty('SFb', 'lnN')
-    c.addUncertainty('SFl', 'lnN')
-    c.addUncertainty('SFFS', 'lnN')
-    c.addUncertainty('leptonSF', 'lnN')
-
-    eSignal = MCBasedEstimate(name=s['name'],    sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() )
-    cardFileName = os.path.join(setup.analysis_results,  setup.prefix(), 'cardFiles', limitPrefix, s['name']+'.txt')
+    cardFileName = os.path.join(limitDir, s.name+'.txt')
     if not os.path.exists(cardFileName) or overWrite:
-        for r in regions:
+	counter=0
+	c.reset()
+	c.addUncertainty('PU',       'lnN')
+	c.addUncertainty('topPt',    'lnN')
+	c.addUncertainty('JEC',      'lnN')
+	c.addUncertainty('JER',      'lnN')
+	c.addUncertainty('SFb',      'lnN')
+	c.addUncertainty('SFl',      'lnN')
+	c.addUncertainty('SFFS',     'lnN')
+	c.addUncertainty('leptonSF', 'lnN')
+
+	eSignal = MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() )
+        for r in regions[1:]:
             for channel in ['MuMu', 'EE', 'EMu']:
 #      for channel in ['all']:
                 niceName = ' '.join([channel, r.__str__()])
@@ -141,14 +157,19 @@ def wrapper(s):
         cardFileName = c.writeToFile(cardFileName)
     else:
         print "File %s found. Reusing."%cardFileName
-    res = c.calcLimit(cardFileName)
-    mStop, mNeu = s['mStop'], s['mNeu']
+    mStop, mNeu = s.mStop, s.mNeu
+    if useCache and not overWrite and limitCache.contains((mStop, mNeu)):
+      res = limitCache.get((mStop, mNeu))
+    else:
+      res = c.calcLimit(cardFileName)
     try:
         if res: print "Result: mStop %i mNeu %i obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(mStop, mNeu, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
     except:
         print "Something wrong with the limit: %r"%res
+    limitCache.add((mStop, mNeu), res, save=True)
     return mStop, mNeu, res
 
+#jobs = [T2tt_450_0]
 #jobs = [T2tt_400_0, T2tt_400_50, T2tt_650_250]
 jobs = signals_T2tt
 
@@ -166,21 +187,10 @@ T2tt_exp_up   = T2tt_exp.Clone("T2tt_exp_up")
 T2tt_obs      = T2tt_exp.Clone("T2tt_obs")
 
 for r in results:
-    mStop, mNeu, res = r
+  mStop, mNeu, res = r
+  for hist, qE in [(T2tt_exp, '0.500'), (T2tt_exp_up, '0.160'), (T2tt_exp_down, '0.840'), (T2tt_obs, '-1.000')]:
     try:
-        T2tt_exp        .Fill(mStop, mNeu, res['0.500'])
-    except:
-        print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
-    try:
-        T2tt_exp_up     .Fill(mStop, mNeu, res['0.160'])
-    except:
-        print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
-    try:
-        T2tt_exp_down   .Fill(mStop, mNeu, res['0.840'])
-    except:
-        print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
-    try:
-        T2tt_obs        .Fill(mStop, mNeu, res['-1.000'])
+        hist.Fill(mStop, mNeu, res[qE])
     except:
         print "Something failed for mStop %i mNeu %i"%(mStop, mNeu)
 

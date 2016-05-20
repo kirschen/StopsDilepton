@@ -188,7 +188,11 @@ new_variables.extend( ['nu1_pt/F', 'nu1_eta/F', 'nu1_phi/F', 'nu1_pdgId/I'] )
 new_variables.extend( ['nu2_pt/F', 'nu2_eta/F', 'nu2_phi/F', 'nu2_pdgId/I'] )
 new_variables.extend( ['bJet1_pt/F', 'bJet1_eta/F', 'bJet1_phi/F', 'bJet1_pdgId/I'] )
 new_variables.extend( ['bJet2_pt/F', 'bJet2_eta/F', 'bJet2_phi/F', 'bJet2_pdgId/I'] )
+new_variables.extend( ['t1_pt/F', 't1_eta/F', 't1_phi/F', 't1_pdgId/I'] )
+new_variables.extend( ['t2_pt/F', 't2_eta/F', 't2_phi/F', 't2_pdgId/I'] )
 new_variables.extend( ['leptonicDecays/I', 'mt2ll/F', 'mt2ll_photon/F'] )
+new_variables.extend( ['mt1/F','mt2/F'] )
+new_variables.extend( ['nunu_pt/F','nunu_eta/F','nunu_phi/F'] )
 
 
 
@@ -240,11 +244,19 @@ def filler(s):
 	      raise Exception('Logic is wrong')
 
 	  if g['pdgId'] == 6:
+	    s.t1_pt         = g['pt']
+	    s.t1_eta        = g['eta']
+	    s.t1_phi        = g['phi']
+	    s.t1_pdgId      = g['pdgId']
 	    s.bJet1_pt      = bJet['pt']
 	    s.bJet1_eta     = bJet['eta']
 	    s.bJet1_phi     = bJet['phi']
 	    s.bJet1_pdgId   = bJet['pdgId']
 	  elif g['pdgId'] == -6:
+	    s.t2_pt         = g['pt']
+	    s.t2_eta        = g['eta']
+	    s.t2_phi        = g['phi']
+	    s.t2_pdgId      = g['pdgId']
 	    s.bJet2_pt      = bJet['pt']
 	    s.bJet2_eta     = bJet['eta']
 	    s.bJet2_phi     = bJet['phi']
@@ -273,7 +285,8 @@ def filler(s):
 	      s.nu1_eta   = nu['eta']
 	      s.nu1_phi   = nu['phi']
 	      s.nu1_pdgId = nu['pdgId']
-	    if g['pdgId'] == -6:
+              s.mt1       = sqrt(2*s.l1_pt*s.nu1_pt*(1-cos(s.l1_phi-s.nu1_phi)))
+	    elif g['pdgId'] == -6:
 	      s.l2_pt     = l['pt']
 	      s.l2_eta    = l['eta']
 	      s.l2_phi    = l['phi']
@@ -282,21 +295,37 @@ def filler(s):
 	      s.nu2_eta   = nu['eta']
 	      s.nu2_phi   = nu['phi']
 	      s.nu2_pdgId = nu['pdgId']
-        except:
-          logger.error("Some very rare error, probably index out of genParts range")
-      
-    zBoson           = getGenZ(genParts)
-    s.zBoson_genPt   = zBoson['pt']  if zBoson is not None else float('nan')
-    s.zBoson_genEta  = zBoson['eta'] if zBoson is not None else float('nan')
-    s.zBoson_genPhi  = zBoson['phi'] if zBoson is not None else float('nan')
-    s.zBoson_isNeutrinoDecay = abs(genParts[zBoson['daughterIndex1']]['pdgId']) in (12, 14, 16) if zBoson is not None else False
+              s.mt2       = sqrt(2*s.l2_pt*s.nu2_pt*(1-cos(s.l2_phi-s.nu2_phi)))
+	    else:
+	      raise Exception('Logic is wrong')
 
-    genPhoton       = getGenPhoton(genParts)
-    s.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
-    s.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
-    s.photon_genPhi = genPhoton['eta'] if genPhoton is not None else float('nan')
+        except Exception, e:
+           print str(e)
+
+    zBoson = getGenZ(genParts)
+    if zBoson is not None:
+      s.zBoson_isNeutrinoDecay = abs(genParts[zBoson['daughterIndex1']]['pdgId']) in (12, 14, 16)
+      s.zBoson_genPt           = zBoson['pt']
+      s.zBoson_genEta          = zBoson['eta']
+      s.zBoson_genPhi          = zBoson['phi']
+
+    genPhoton = getGenPhoton(genParts)
+    if genPhoton is not None:
+      s.photon_genPt     = genPhoton['pt']
+      s.photon_genEta    = genPhoton['eta']
+      s.photon_genPhi    = genPhoton['phi']
 
     if s.leptonicDecays == 2:      
+      nu1 = ROOT.TLorentzVector()
+      nu2 = ROOT.TLorentzVector()
+      nu1.SetPtEtaPhiM(s.nu1_pt, s.nu1_eta, s.nu1_phi, 0 )
+      nu2.SetPtEtaPhiM(s.nu2_pt, s.nu2_eta, s.nu2_phi, 0 )
+
+      nunu = nu1 + nu2
+      s.nunu_pt  = nunu.Pt()
+      s.nunu_eta = nunu.Eta()
+      s.nunu_phi = nunu.Phi()
+
       mt2Calc.reset()
       mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
       mt2Calc.setMet(s.met_pt, s.met_phi)
@@ -314,18 +343,7 @@ def filler(s):
 
 	mt2Calc.setMet(metGamma.Pt(), metGamma.Phi())
 	s.mt2ll_photon = mt2Calc.mt2ll()
-      else:
-	s.met_pt_photon  = float('nan') 
-	s.met_phi_photon = float('nan')
-	s.mt2ll_photon   = float('nan')
-        
-    else:
-      s.mt2ll        = float('nan')
-      s.mt2ll_photon = float('nan')
-      s.met_pt_photon  = float('nan') 
-      s.met_phi_photon = float('nan')
-      s.mt2ll_photon   = float('nan')
-	
+
 
 # Create a maker. Maker class will be compiled. This instance will be used as a parent in the loop
 treeMaker_parent = TreeMaker(

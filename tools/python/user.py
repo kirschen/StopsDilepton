@@ -17,7 +17,7 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     # directory with veto lists
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
     # 715 release for limit calculation 
-    releaseLocation71XC = '/afs/hephy.at/work/r/rschoefbeck/CMS/tmp/CMSSW_7_1_5/src'
+    combineReleaseLocation = '/afs/hephy.at/work/r/rschoefbeck/CMS/tmp/CMSSW_7_1_5/src'
     runOnGentT2 = False
 
 
@@ -34,3 +34,5 @@ if os.environ['USER'] in ['tomc']:
     analysis_results           = "/user/tomc/StopsDilepton/results"
     # directory with veto lists
     veto_lists                 = "/user/tomc/StopsDilepton/vetoLists"
+    # Release for limit calculation (seems the 74X release is now also recommended for users)
+    combineReleaseLocation     = '/user/tomc/StopsDilepton/CMSSW_7_4_7/src/'
