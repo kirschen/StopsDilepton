@@ -200,6 +200,7 @@ isTiny      =   options.skim.lower().count('tiny')
 isVeryLoose =  'veryloose' in options.skim.lower()
 isVeryLoosePt10 =  'veryloosept10' in options.skim.lower()
 isLoose     =  'loose' in options.skim.lower() and not isVeryLoose
+isJet250    = 'jet250' in options.skim.lower()
 
 # Skim condition
 skimConds = []
@@ -207,6 +208,8 @@ if isDiLep:
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=2" )
 elif isSingleLep:
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=1" )
+elif isJet250:
+    skimConds.append( "Jet_pt[0]>250 || DiscJet_pt[0]>250 || JetFailId_pt[0]>250" )
 
 #Samples: Load samples
 maxN = 2 if options.runSmallSample else None
@@ -799,6 +802,8 @@ def filler(s):
                     l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index]
                 elif isDiLep:
                     l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index, s.l2_index]
+                else:
+                    l["matchesPromptGoodLepton"] = 0
             else:
                 l["lepGoodMatchIndex"] = -1
                 l["matchesPromptGoodLepton"] = 0
