@@ -58,8 +58,8 @@ def get_parser():
         action='store',
         nargs='*',
         type=str,
-        default=['MuonEG_Run2015D_16Dec'],
-#        default=['WZZ'],
+#        default=['MuonEG_Run2015D_16Dec'],
+        default=['WZZ'],
         help="List of samples to be post-processed, given as CMG component name"
         )
 
@@ -482,9 +482,14 @@ if options.checkTTGJetsOverlap:
     new_variables.extend( ['TTGJetsEventType/I'] )
 
 if addSystematicVariations:
-    for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
-        new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F', 'metSig_'+var+'/F'] )
-        new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F'] )
+    read_variables += map(Variable.fromString, [\
+    "met_JetEnUp_Pt/F", "met_JetEnUp_Phi/F", "met_JetEnDown_Pt/F", "met_JetEnDown_Phi/F", "met_JetResUp_Pt/F", "met_JetResUp_Phi/F", "met_JetResDown_Pt/F", "met_JetResDown_Phi/F", 
+    "met_UnclusteredEnUp_Pt/F", "met_UnclusteredEnUp_Phi/F", "met_UnclusteredEnDown_Pt/F", "met_UnclusteredEnDown_Phi/F", 
+    ] )
+
+    for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
+        if 'Unclustered' not in var: new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
+        new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
         if isDiLep:
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
         if options.keepPhotons:
@@ -509,13 +514,31 @@ reader = sample.treeReader( \
     selectionString = "&&".join(skimConds)
     )
 
-# Calculate corrected met pt/phi using systematics for jets
-def getMetCorrected(met_pt, met_phi, jets, var):
+## Calculate corrected met pt/phi using systematics for jets
+def getMetJetCorrected(met_pt, met_phi, jets, var):
   met_corr_px  = met_pt*cos(met_phi) + sum([(j['pt']-j['pt_'+var])*cos(j['phi']) for j in jets])
   met_corr_py  = met_pt*sin(met_phi) + sum([(j['pt']-j['pt_'+var])*sin(j['phi']) for j in jets])
   met_corr_pt  = sqrt(met_corr_px**2 + met_corr_py**2)
   met_corr_phi = atan2(met_corr_py, met_corr_px)
   return (met_corr_pt, met_corr_phi)
+
+def getMetCorrected(r, var):
+    if var ==  "":
+        return (r.met_pt, r.met_phi)
+    elif var == "JECUp":
+        return (r.met_JetEnUp_Pt , r.met_JetEnUp_Phi)
+    elif var == "JECDown":
+        return (r.met_JetEnDown_Pt , r.met_JetEnDown_Phi)
+#    elif var == "JERUp":
+#        return (r.met_JetResUp_Pt , r.met_JetResUp_Phi)
+#    elif var == "JERDown":
+#        return (r.met_JetResDown_Pt , r.met_JetResDown_Phi)
+    elif var == "UnclusteredEnUp":
+        return (r.met_UnclusteredEnUp_Pt , r.met_UnclusteredEnUp_Phi)
+    elif var == "UnclusteredEnDown":
+        return (r.met_UnclusteredEnDown_Pt , r.met_UnclusteredEnDown_Phi)
+    else:
+        raise ValueError
 
 mothers = {"D":0, "B":0}
 grannies_D = {}
@@ -633,8 +656,9 @@ def filler(s):
         for j in allJets:
             j['pt_JECUp']   =j['pt']/j['corr']*j['corr_JECUp']
             j['pt_JECDown'] =j['pt']/j['corr']*j['corr_JECDown']
+            # JERUp, JERDown, JER
             addJERScaling(j)
-        for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
+        for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown']:
             jets_sys[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt_'+var), allJets)
             bjets_sys[var]      = filter(isBJet, jets_sys[var])
             nonBjets_sys[var]   = filter(lambda j: not isBJet(j), jets_sys[var])
@@ -643,13 +667,18 @@ def filler(s):
             setattr(s, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
             setattr(s, "nBTag_"+var,    len(bjets_sys[var]))
 
+        for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
             for i in metVariants:
-              (met_corr_pt, met_corr_phi) = getMetCorrected(getattr(s, "met_pt" + i), getattr(s,"met_phi" + i), jets_sys[var], var)
+                # use cmg MET correction values ecept for JER where it is zero. There, propagate jet variations.
+                if 'JER' in var:
+                  (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(s, "met_pt" + i), getattr(s,"met_phi" + i), jets_sys[var], var)
+                else:
+                  (met_corr_pt, met_corr_phi) = getMetCorrected(r, var)
 
-              setattr(s, "met_pt" +i+"_"+var, met_corr_pt)
-              setattr(s, "met_phi"+i+"_"+var, met_corr_phi)
-              setattr(s, "metSig" +i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( getattr(s, "ht_"+var) ) ) if getattr(s, "ht_"+var) else float ('nan')
-
+                setattr(s, "met_pt" +i+"_"+var, met_corr_pt)
+                setattr(s, "met_phi"+i+"_"+var, met_corr_phi)
+                ht = getattr(s, "ht_"+var) if 'Unclustered' not in var else s.ht 
+                setattr(s, "metSig" +i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
 
     if isSingleLep or isDiLep:
         s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
@@ -733,14 +762,15 @@ def filler(s):
                     setattr(s, "dl_mt2blbl"+i, mt2Calc.mt2blbl())
 
                 if addSystematicVariations:
-                    for var in ['JECUp', 'JECDown', 'JER', 'JERUp', 'JERDown']:
+                    for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
                         mt2Calc.setMet( getattr(s, "met_pt"+i+"_"+var), getattr(s, "met_phi"+i+"_"+var) )
                         setattr(s, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
-                        if len(jets_sys[var])>=2:
-                            bj0, bj1 = (bjets_sys[var]+nonBjets_sys[var])[:2]
-                            mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                            setattr(s, 'dl_mt2bb'  +i+'_'+var, mt2Calc.mt2bb())
-                            setattr(s, 'dl_mt2blbl'+i+'_'+var, mt2Calc.mt2blbl())
+                        if not 'Unclustered' in var:
+                            if len(jets_sys[var])>=2:
+                                bj0, bj1 = (bjets_sys[var]+nonBjets_sys[var])[:2]
+                                mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                                setattr(s, 'dl_mt2bb'  +i+'_'+var, mt2Calc.mt2bb())
+                                setattr(s, 'dl_mt2blbl'+i+'_'+var, mt2Calc.mt2blbl())
 
     if addSystematicVariations:
         # B tagging weights method 1a
