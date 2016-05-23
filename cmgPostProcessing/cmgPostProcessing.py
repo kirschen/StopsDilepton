@@ -209,7 +209,7 @@ if isDiLep:
 elif isSingleLep:
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=1" )
 elif isJet250:
-    skimConds.append( "Jet_pt[0]>250 || DiscJet_pt[0]>250 || JetFailId_pt[0]>250" )
+    skimConds.append( "Sum$(Jet_pt>250) +  Sum$(DiscJet_pt>250) + Sum$(JetFailId_pt>250) + Sum$(gamma_pt>250) > 0" )
 
 #Samples: Load samples
 maxN = 2 if options.runSmallSample else None
