@@ -517,6 +517,16 @@ reader = sample.treeReader( \
     selectionString = "&&".join(skimConds)
     )
 
+# Calculate photonEstimated met
+def getMetPhotonEstimated(met_pt, met_phi, photon):
+  met = ROOT.TLorentzVector()
+  met.SetPtEtaPhiM(met_pt, 0, met_phi, 0 )
+  gamma = ROOT.TLorentzVector()
+  gamma.SetPtEtaPhiM(photon['pt'], photon['eta'], photon['phi'], photon['mass'] )
+  metGamma = met + gamma
+  return (metGamma.Pt(), metGamma.Phi())
+
+
 ## Calculate corrected met pt/phi using systematics for jets
 def getMetJetCorrected(met_pt, met_phi, jets, var):
   met_corr_px  = met_pt*cos(met_phi) + sum([(j['pt']-j['pt_'+var])*cos(j['phi']) for j in jets])
@@ -525,21 +535,20 @@ def getMetJetCorrected(met_pt, met_phi, jets, var):
   met_corr_phi = atan2(met_corr_py, met_corr_px)
   return (met_corr_pt, met_corr_phi)
 
-def getMetCorrected(r, var):
-    if var ==  "":
-        return (r.met_pt, r.met_phi)
-    elif var == "JECUp":
-        return (r.met_JetEnUp_Pt , r.met_JetEnUp_Phi)
-    elif var == "JECDown":
-        return (r.met_JetEnDown_Pt , r.met_JetEnDown_Phi)
-#    elif var == "JERUp":
-#        return (r.met_JetResUp_Pt , r.met_JetResUp_Phi)
-#    elif var == "JERDown":
-#        return (r.met_JetResDown_Pt , r.met_JetResDown_Phi)
-    elif var == "UnclusteredEnUp":
-        return (r.met_UnclusteredEnUp_Pt , r.met_UnclusteredEnUp_Phi)
-    elif var == "UnclusteredEnDown":
-        return (r.met_UnclusteredEnDown_Pt , r.met_UnclusteredEnDown_Phi)
+def getMetCorrected(r, var, addPhoton = None):
+    if var == "":
+      if addPhoton is not None: return getMetPhotonEstimated(r.met_pt, r.met_phi, addPhoton)
+      else:                     return (r.met_pt, r.met_phi)
+
+    elif var in ["JECUp","JECDown","UnclusteredEnUp","UnclusteredEnDown"]:
+      var_ = var
+      var_ = var_.replace("JEC", "JetEn")
+      var_ = var_.replace("JER", "JetRes")
+      met_pt  = getattr(r, "met_" + var_ + "_Pt")
+      met_phi = getattr(r, "met_" + var_ + "_Phi")
+      if addPhoton is not None: return getMetPhotonEstimated(met_pt, met_phi, addPhoton)
+      else:                     return (met_pt, met_phi)
+
     else:
         raise ValueError
 
@@ -640,14 +649,8 @@ def filler(s):
            s.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
            s.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
 
-         met = ROOT.TLorentzVector()
-         met.SetPtEtaPhiM(r.met_pt, 0, r.met_phi, 0 )
-         gamma = ROOT.TLorentzVector()
-         gamma.SetPtEtaPhiM(photons[0]['pt'], photons[0]['eta'], photons[0]['phi'], photons[0]['mass'] )
-         metGamma = met + gamma
-         s.met_pt_photonEstimated  = metGamma.Pt()
-         s.met_phi_photonEstimated = metGamma.Phi()
-         s.metSig_photonEstimated  = s.met_pt_photonEstimated/sqrt(s.ht) if s.ht>0 else float('nan')
+         s.met_pt_photonEstimated, s.met_phi_photonEstimated = getMetPhotonEstimated(r.met_pt, r.met_phi, photons[0])
+         s.metSig_photonEstimated = s.met_pt_photonEstimated/sqrt(s.ht) if s.ht>0 else float('nan')
 
          s.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
          s.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
@@ -676,7 +679,7 @@ def filler(s):
                 if 'JER' in var:
                   (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(s, "met_pt" + i), getattr(s,"met_phi" + i), jets_sys[var], var)
                 else:
-                  (met_corr_pt, met_corr_phi) = getMetCorrected(r, var)
+                  (met_corr_pt, met_corr_phi) = getMetCorrected(r, var, photons[0] if i.count("photonEstimated") else None)
 
                 setattr(s, "met_pt" +i+"_"+var, met_corr_pt)
                 setattr(s, "met_phi"+i+"_"+var, met_corr_phi)
@@ -751,6 +754,8 @@ def filler(s):
               s.zBoson_genEta = zBoson['eta'] if zBoson is not None else float('nan')
 
             if options.keepPhotons and s.nPhotonGood > 0:
+              gamma = ROOT.TLorentzVector()
+              gamma.SetPtEtaPhiM(photons[0]['pt'], photons[0]['eta'], photons[0]['phi'], photons[0]['mass'] )
               dlg = dl + gamma
               s.dlg_mass = dlg.M()
 
