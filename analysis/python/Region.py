@@ -40,13 +40,18 @@ class Region:
             res.append(s1)
         return "&&".join(res)
 
+    def texStringForVar(self, var = None):
+        if var not in self.variables(): return None
+	s1=str(self.vals[var][0])+" #leq "+texString[var]
+	if self.vals[var][1]>0: s1+=" < "+str(self.vals[var][1])
+	return s1
+
+
     def texString(self):
         res=[]
         for var in allowedVars: #Always keep the sequence in allowedVars
             if var in self.variables():
-                s1=str(self.vals[var][0])+" #leq "+texString[var]
-                if self.vals[var][1]>0: s1+=" < "+str(self.vals[var][1])
-                res.append(s1)
+                res.append(self.texStringForVar(var))
         return ", ".join(res)
 
     def __str__(self):
