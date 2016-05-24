@@ -173,7 +173,7 @@ class Setup:
           res['cuts'].append('met_pt'+sysStr+'>='+str(metMin))
           res['prefixes'].append('met'+str(metMin))
         if metSigMin and metSigMin>0:
-          res['cuts'].append('met_pt'+sysStr+'/sqrt(ht'+sysStr+')>='+str(metSigMin))
+          res['cuts'].append('metSig'+sysStr+'>='+str(metSigMin))
           res['prefixes'].append('metSig'+str(metSigMin))
         if dPhiJetMet>=0.:
           res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<cos('+str(dPhiJetMet)+')&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos('+str(dPhiJetMet)+')')
