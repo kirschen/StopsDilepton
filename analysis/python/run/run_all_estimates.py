@@ -11,8 +11,9 @@ parser.add_option("--signal",                    dest="signal",                 
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
-from StopsDilepton.analysis.mcAnalysis import setup, bkgEstimators
+from StopsDilepton.analysis.estimators import setup, allEstimators
 from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB
+
 setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
@@ -28,7 +29,7 @@ if options.relIso04>0:
     setup.externalCuts.append("&&".join(["LepGood_relIso04["+ist+"]<"+str(options.relIso04) for ist in ('l1_index','l2_index')]))
     setup.prefixes.append('relIso04sm'+str(int(100*options.relIso04)))
 
-for e in bkgEstimators:
+for e in allEstimators:
     e.initCache(setup.defaultCacheDir())
 
 setup.verbose=True
@@ -60,7 +61,7 @@ def wrapper(args):
         return (estimate.uniqueKey(r, channel, setup), res )
 
 
-for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, bkgEstimators ] ]:
+for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, allEstimators ] ]:
     for estimate in estimators_:
         setup_ = signalSetup if isSignal else setup
         if not options.dontSkipIfCachefileExists and estimate.cache.cacheFileLoaded:
@@ -79,7 +80,7 @@ for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, bkgEstimator
             results = map(wrapper, jobs)
         else:
             from multiprocessing import Pool
-            pool = Pool(processes=20)
+            pool = Pool(processes=6)
             results = pool.map(wrapper, jobs)
             pool.close()
             pool.join()
