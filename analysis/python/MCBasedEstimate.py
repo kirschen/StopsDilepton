@@ -2,7 +2,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-#from StopsDilepton.tools.helpers import getYieldFromChain
 from StopsDilepton.analysis.Region import Region
 from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
