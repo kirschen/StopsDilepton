@@ -40,80 +40,16 @@ def get_parser():
     import argparse
     argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
 
-    argParser.add_argument('--logLevel',
-        action='store',
-        nargs='?',
-        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],
-        default='INFO',
-        help="Log level for logging"
-        )
-
-    argParser.add_argument('--overwrite',
-        action='store_true',
-        help="Overwrite existing output files, bool flag set to True  if used")
-
-    argParser.add_argument('--samples',
-        action='store',
-        nargs='*',
-        type=str,
-        default=['TTZToLLNuNu'],
-        help="List of samples to be post-processed, given as CMG component name"
-        )
-
-    argParser.add_argument('--eventsPerJob',
-        action='store',
-        nargs='?',
-        type=int,
-        default=300000,
-        help="Maximum number of events per job (Approximate!)."
-        )
-
-    argParser.add_argument('--nJobs',
-        action='store',
-        nargs='?',
-        type=int,
-        default=1,
-        help="Maximum number of simultaneous jobs."
-        )
-    argParser.add_argument('--job',
-        action='store',
-        nargs='*',
-        type=int,
-        default=[],
-        help="Run only jobs i"
-        )
-
-    argParser.add_argument('--minNJobs',
-        action='store',
-        nargs='?',
-        type=int,
-        default=1,
-        help="Minimum number of simultaneous jobs."
-        )
-
-    argParser.add_argument('--dataDir',
-        action='store',
-        nargs='?',
-        type=str,
-        default=user.cmg_directory,
-        help="Name of the directory where the input data is stored (for samples read from Heppy)."
-        )
-
-    argParser.add_argument('--targetDir',
-        action='store',
-        nargs='?',
-        type=str,
-        default=user.data_output_directory,
-        help="Name of the directory the post-processed files will be saved"
-        )
-
-    argParser.add_argument('--processingEra',
-        action='store',
-        nargs='?',
-        type=str,
-        default='postProcessed_Fall15_mAODv2',
-        help="Name of the processing era"
-        )
+    argParser.add_argument('--logLevel',      action='store',      nargs='?',           default='INFO',                        help="Log level for logging", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
+    argParser.add_argument('--overwrite',     action='store_true',                                                             help="Overwrite existing output files, bool flag set to True  if used")
+    argParser.add_argument('--samples',       action='store',      nargs='*', type=str, default=['TTZToLLNuNu'],               help="List of samples to be post-processed, given as CMG component name")
+    argParser.add_argument('--eventsPerJob',  action='store',      nargs='?', type=int, default=300000,                        help="Maximum number of events per job (Approximate!)")
+    argParser.add_argument('--job',           action='store',      nargs='*', type=int, default=[],                            help="Run only jobs i")
+    argParser.add_argument('--minNJobs',      action='store',      nargs='?', type=int, default=1,                             help="Minimum number of simultaneous jobs")
+    argParser.add_argument('--nJobs',         action='store',      nargs='?', type=int, default=1,                             help="Maximum number of simultaneous jobs")
+    argParser.add_argument('--dataDir',       action='store',      nargs='?', type=str, default=user.cmg_directory,            help="Name of the directory where the input data is stored (for samples read from Heppy)")
+    argParser.add_argument('--targetDir',     action='store',      nargs='?', type=str, default=user.data_output_directory,    help="Name of the directory the post-processed files will be saved")
+    argParser.add_argument('--processingEra', action='store',      nargs='?', type=str, default='postProcessed_Fall15_mAODv2', help="Name of the processing era")
 
     return argParser
 
@@ -190,7 +126,7 @@ new_variables.extend( ['bJet1_pt/F', 'bJet1_eta/F', 'bJet1_phi/F', 'bJet1_pdgId/
 new_variables.extend( ['bJet2_pt/F', 'bJet2_eta/F', 'bJet2_phi/F', 'bJet2_pdgId/I'] )
 new_variables.extend( ['t1_pt/F', 't1_eta/F', 't1_phi/F', 't1_pdgId/I'] )
 new_variables.extend( ['t2_pt/F', 't2_eta/F', 't2_phi/F', 't2_pdgId/I'] )
-new_variables.extend( ['leptonicDecays/I', 'mt2ll/F', 'mt2ll_photon/F'] )
+new_variables.extend( ['leptonicDecays/I', 'mt2ll/F', 'mt2ll_photon/F','mt2bb/F','mt2bb_photon/F','mt2blbl/F','mt2blbl_photon/F'] )
 new_variables.extend( ['mt1/F','mt2/F'] )
 new_variables.extend( ['nunu_pt/F','nunu_eta/F','nunu_phi/F'] )
 
@@ -328,8 +264,11 @@ def filler(s):
 
       mt2Calc.reset()
       mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
+      mt2Calc.setBJets(s.bJet1_pt, s.bJet1_eta, s.bJet1_phi, s.bJet2_pt, s.bJet2_eta, s.bJet2_phi)
       mt2Calc.setMet(s.met_pt, s.met_phi)
-      s.mt2ll = mt2Calc.mt2ll()
+      s.mt2ll   = mt2Calc.mt2ll()
+      s.mt2bb   = mt2Calc.mt2bb()
+      s.mt2blbl = mt2Calc.mt2blbl()
 
       if genPhoton is not None:
         met   = ROOT.TLorentzVector()
@@ -342,7 +281,9 @@ def filler(s):
 	s.met_phi_photon = metGamma.Phi()
 
 	mt2Calc.setMet(metGamma.Pt(), metGamma.Phi())
-	s.mt2ll_photon = mt2Calc.mt2ll()
+	s.mt2ll_photon   = mt2Calc.mt2ll()
+	s.mt2bb_photon   = mt2Calc.mt2bb()
+	s.mt2blbl_photon = mt2Calc.mt2blbl()
 
 
 # Create a maker. Maker class will be compiled. This instance will be used as a parent in the loop
