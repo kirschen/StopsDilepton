@@ -122,7 +122,7 @@ def drawPlot(plot, subdir, useScaling, TTG_scale):
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F" , "leptonicDecays/I", "mt2ll/F",
+read_variables = ["weight/F" , "leptonicDecays/I", "mt2ll/F", "mt2bb/F", "mt2blbl/F",
                   "met_pt/F", "met_phi/F",
                   "l1_pt/F", "l1_eta/F", "l1_phi/F", "l1_pdgId/I",
                   "l2_pt/F", "l2_eta/F", "l2_phi/F", "l2_pdgId/I",
@@ -133,7 +133,7 @@ read_variables = ["weight/F" , "leptonicDecays/I", "mt2ll/F",
                  ]
 
 # Variables only to be read/available for specific samples (i.e. variables only in MC)
-TTG.read_variables         = ["photon_genPt/F", "photon_genEta/F", "photon_genPhi/F", "met_pt_photon/F", "met_phi_photon/F", "mt2ll_photon/F"]
+TTG.read_variables         = ["photon_genPt/F", "photon_genEta/F", "photon_genPhi/F", "met_pt_photon/F", "met_phi_photon/F", "mt2ll_photon/F","mt2bb_photon/F","mt2blbl_photon/F"]
 TTZtoLLNuNu.read_variables = ["zBoson_genPt/F", "zBoson_genEta/F", "zBoson_genPhi/F", "zBoson_isNeutrinoDecay/O"]
 
 minBosonPt = int(args.selection.split('ptGamma')[1].split('-')[0]) if args.selection.count('ptGamma') else 0
@@ -153,17 +153,21 @@ def otherSelections(data, sample):
 # Compare different variable types for TTZ vs TTG
 def makeCompareVariables(data, sample):
   if sample == TTZtoLLNuNu:
-    data.boson_genPt  = data.zBoson_genPt
-    data.boson_genEta = data.zBoson_genEta
-    data.boson_genPhi = data.zBoson_genPhi
-    data.boson_mt2ll  = data.mt2ll
-    data.boson_met    = data.met_pt
+    data.boson_genPt   = data.zBoson_genPt
+    data.boson_genEta  = data.zBoson_genEta
+    data.boson_genPhi  = data.zBoson_genPhi
+    data.boson_mt2ll   = data.mt2ll
+    data.boson_mt2bb   = data.mt2bb
+    data.boson_mt2blbl = data.mt2blbl
+    data.boson_met     = data.met_pt
   elif sample == TTG:
-    data.boson_genPt  = data.photon_genPt
-    data.boson_genEta = data.photon_genEta
-    data.boson_genPhi = data.photon_genPhi
-    data.boson_mt2ll  = data.mt2ll_photon
-    data.boson_met    = data.met_pt_photon
+    data.boson_genPt   = data.photon_genPt
+    data.boson_genEta  = data.photon_genEta
+    data.boson_genPhi  = data.photon_genPhi
+    data.boson_mt2ll   = data.mt2ll_photon
+    data.boson_mt2bb   = data.mt2ll_photon
+    data.boson_mt2blbl = data.mt2blbl_photon
+    data.boson_met     = data.met_pt_photon
   else:
     raise Exception("Sample not known")
 
@@ -358,6 +362,30 @@ for doPtReweight in [False, True]:
       texX     = 'MT_{2}^{ll}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
       variable = Variable.fromString( "mt2ll_high/F" ).addFiller(lambda data: data.mt2ll),
       binning  = [10, 100, 400],
+    ))
+
+    plots.append(Plot(
+      texX     = 'MT_{2}^{bb}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
+      variable = Variable.fromString( "mt2bb_photonIncluded/F" ).addFiller(lambda data: data.boson_mt2bb),
+      binning  = [10, 70, 370],
+    ))
+
+    plots.append(Plot(
+      texX     = 'MT_{2}^{bb} (GeV)', texY = "Events / 30 GeV",
+      variable = Variable.fromString( "mt2bb/F" ).addFiller(lambda data: data.mt2bb),
+      binning  = [10, 70, 370],
+    ))
+
+    plots.append(Plot(
+      texX     = 'MT_{2}^{blbl}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
+      variable = Variable.fromString( "mt2blbl_photonIncluded/F" ).addFiller(lambda data: data.boson_mt2blbl),
+      binning  = [10, 0, 300],
+    ))
+
+    plots.append(Plot(
+      texX     = 'MT_{2}^{blbl} (GeV)', texY = "Events / 30 GeV",
+      variable = Variable.fromString( "mt2blbl/F" ).addFiller(lambda data: data.mt2blbl),
+      binning  = [10, 0, 300],
     ))
 
     plots2D = []
