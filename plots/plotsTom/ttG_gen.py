@@ -165,7 +165,7 @@ def makeCompareVariables(data, sample):
     data.boson_genEta  = data.photon_genEta
     data.boson_genPhi  = data.photon_genPhi
     data.boson_mt2ll   = data.mt2ll_photon
-    data.boson_mt2bb   = data.mt2ll_photon
+    data.boson_mt2bb   = data.mt2bb_photon
     data.boson_mt2blbl = data.mt2blbl_photon
     data.boson_met     = data.met_pt_photon
   else:
