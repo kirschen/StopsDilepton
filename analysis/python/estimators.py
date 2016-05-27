@@ -9,8 +9,8 @@ setup = Setup()
 estimators = {}
 
 # Data-driven estimators
-estimators['DY-DD']  = [DataDrivenDYEstimate( name='DY-DD')]
-estimators['TTZ-DD'] = [DataDrivenTTZEstimate(name='TTZ-DD')]
+#estimators['DY-DD']  = [DataDrivenDYEstimate( name='DY-DD')]
+#estimators['TTZ-DD'] = [DataDrivenTTZEstimate(name='TTZ-DD')]
 
 # main MC based estimators
 for mc in ['DY','TTJets','TTZ','other']:
@@ -34,7 +34,7 @@ def constructEstimatorList(mcList):
     estimatorList += estimators[mc]
   return estimatorList
 
-defaultAnalysisEstimators = constructEstimatorList(['DY-DD','TTZ-DD','TTJets','other'])
+#defaultAnalysisEstimators = constructEstimatorList(['DY-DD','TTZ-DD','TTJets','other'])
 mcAnalysisEstimators      = constructEstimatorList(['DY',   'TTZ',   'TTJets','other'])
 mcDetailedEstimators      = constructEstimatorList(['DY',   'TTZ',   'TTJets','other-detailed'])
 allEstimators             = constructEstimatorList(estimators.keys())
