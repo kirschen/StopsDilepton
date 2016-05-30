@@ -19,7 +19,7 @@ from StopsDilepton.tools.helpers import deltaPhi
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
+argParser.add_argument('--plotData',       action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
@@ -78,12 +78,12 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel = [] 
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
-        if not selection.count("njet"):   continue
-        if not selection.count("btag"):   continue
-        if not selection.count("mll"):    continue
-        if not selection.count("met80"):  continue
-        if not selection.count("metSig"): continue
-        if not selection.count("dPhi"):   continue
+        if selection.count("btag")  and not selection.count("njet"):   continue
+        if selection.count("mll")   and not selection.count("btag"):   continue
+        if selection.count("met")   and not selection.count("mll"):    continue
+        if selection.count("metS")  and not selection.count("met80"):  continue
+        if selection.count("dPhi")  and not selection.count("metSig"): continue
+        if selection.count("mt2ll") and not selection.count("dPhi"):   continue
         if selection.count("mt2ll") > 1:  continue
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
@@ -111,18 +111,18 @@ from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed_photonSamples import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi1_Mphi100
-
+TTbarDMJets_scalar_Mchi1_Mphi100.texName += "(#times 10)"
 #
 # Text on the plots
 #
-def drawObjects( dataMCScale, lumi_scale ):
+def drawObjects( plotData, dataMCScale, lumi_scale ):
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'), 
-      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(lumi_scale*100)/100., dataMCScale ) )
+      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(lumi_scale*100)/100., dataMCScale ) ) if plotData else (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(lumi_scale*100)/100.) )
     ]
     return [tex.DrawLatex(*l) for l in lines] 
 
@@ -145,6 +145,7 @@ eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
 #
 # Loop over channels
 #
+plotData   = False
 yields     = {}
 allPlots   = {}
 allModes   = ['mumu','mue','ee']
@@ -167,20 +168,24 @@ for index, mode in enumerate(allModes):
   data_sample.name = "data"
 
   data_sample.style = styles.errorStyle( ROOT.kBlack )
-  lumi_scale = data_sample.lumi/1000
+  if plotData: lumi_scale = data_sample.lumi/1000
+  else:        lumi_scale = 10
 
-  mc = [ DY_HT_LO, TTJets_Lep, qcd_sample, singleTop, TTZ, TTXNoZ, diBoson, WJetsToLNu]
+  mc = [ DY_HT_LO, TTJets_Lep, qcd_sample, singleTop, TTZ, TTW, TZQ, TTH, EWK]
+#  mc = [ DY_HT_LO, TTJets_Lep, qcd_sample, singleTop, TTZ, TTW, TTH, TZQ, EWK]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
 
-  TTbarDMJets_scalar_Mchi1_Mphi100.scale = lumi_scale
+  TTbarDMJets_scalar_Mchi1_Mphi100.scale = lumi_scale*10
   TTbarDMJets_scalar_Mchi1_Mphi100.style = styles.lineStyle( ROOT.kBlue, width=2 )
 
   stack = Stack(mc, [data_sample], TTbarDMJets_scalar_Mchi1_Mphi100)
+  if not plotData: stack = Stack(mc, TTbarDMJets_scalar_Mchi1_Mphi100)
   data_sample.setSelectionString([dataFilterCut, leptonSelection])
   for sample in mc:
     sample.setSelectionString([mcFilterCut, leptonSelection])
+  TTbarDMJets_scalar_Mchi1_Mphi100.setSelectionString([mcFilterCut, leptonSelection])
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
@@ -196,20 +201,74 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2ll/F" ),
-    binning=[8,140,300],
+    binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
     texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2bb/F" ),
-    binning=[300/20,70,370],
+    binning=[400/20,70,470],
   ))
 
   plots.append(Plot(
     texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2blbl/F" ),
-    binning=[300/20,0,300],
+    binning=[400/20,0,400],
   ))
+
+  plots.append(Plot(
+      texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
+      variable = Variable.fromString( "met_pt/F" ),
+      binning=[300/50,0,300],
+  ))
+
+  plots.append(Plot(
+    texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
+    variable = Variable.fromString('metSig/F'),
+    binning=[15,0,15],
+  ))
+
+  plots.append(Plot(
+    texX = 'Cos(#phi(#slash{E}_{T}, leading jet))', texY = 'Number of Events',
+    variable = Variable.fromString('cosMetJet0phi/F').addFiller (
+	helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
+    ),
+    binning = [10,-1,1],
+  ))
+
+  plots.append(Plot(
+    texX = 'Cos(#phi(#slash{E}_{T}, second jet))', texY = 'Number of Events',
+    variable = Variable.fromString('cosMetJet1phi/F').addFiller (
+	helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
+    ),
+    binning = [10,-1,1],
+  ))
+
+  plots.append(Plot(
+    texX = 'number of jets', texY = 'Number of Events',
+    variable = Variable.fromString('nJetGood/I'),
+    binning=[14,0,14],
+  ))
+
+  plots.append(Plot(
+    texX = 'number of medium b-tags (CSVM)', texY = 'Number of Events',
+    variable = Variable.fromString('nBTag/I'),
+    binning=[8,0,8],
+  ))
+
+  plots.append(Plot(
+    texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
+    variable = Variable.fromString( "ht/F" ),
+    binning=[510/30,90,600],
+  ))
+
+  plots.append(Plot(
+    texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 4 GeV',
+    variable = Variable.fromString( "dl_mass/F" ),
+    binning=[200/4,0,200],
+  ))
+
+
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
   # Get normalization yields from yield histogram
@@ -221,6 +280,7 @@ for index, mode in enumerate(allModes):
           h.GetXaxis().SetBinLabel(1, "#mu#mu")
           h.GetXaxis().SetBinLabel(2, "e#mu")
           h.GetXaxis().SetBinLabel(3, "ee")
+  if not plotData: yields[mode]["data"] = 0
 
   yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc)
   dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
@@ -229,13 +289,15 @@ for index, mode in enumerate(allModes):
   for log in [False, True]:
     for plot in plots:
       if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
+      print "Plotting of " + plot.name
       plotting.draw(plot, 
 	  plot_directory = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection),
-	  ratio = {'yRange':(0.1,1.9)}, 
+	  ratio = {'yRange':(0.1,1.9)} if plotData else None,
 	  logX = False, logY = log, sorting = True, 
 	  yRange = (0.003, "auto"),
 	  scaling = {},
-	  drawObjects = drawObjects( dataMCScale , lumi_scale )
+          legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),
+	  drawObjects = drawObjects( plotData, dataMCScale , lumi_scale )
       )
   allPlots[mode] = plots
 
@@ -250,6 +312,17 @@ for y in yields[allModes[0]]:
     yields["all"][y] = 0
 dataMCScale = yields["all"]["data"]/(yields["all"]["MC"])
 
+# Write to tex file
+columns = [i.name for i in mc] + ["MC", "data", TTbarDMJets_scalar_Mchi1_Mphi100.name]
+texdir = "tex"
+try:
+  os.makedirs("./" + texdir)
+except:
+  pass
+with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
+  f.write("&" + " & ".join(columns) + "\\\\ \n")
+  for mode in allModes + ["all"]:
+    f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")
 
 # Add the different channels and plot the sums
 for plot in allPlots[allModes[0]]:
@@ -264,14 +337,15 @@ for plot in allPlots[allModes[0]]:
 
 for log in [False, True]:
   for plot in allPlots[allModes[0]]:
-    plot.histos[1][0].legendText = "Data 2015 (all channels)"
+    if plotData: plot.histos[1][0].legendText = "Data 2015 (all channels)"
     plotting.draw(plot,
 	  plot_directory = os.path.join(plot_directory, args.plot_directory, "all" + ("_log" if log else ""), args.selection),
-	  ratio = {'yRange':(0.1,1.9)},
+	  ratio = {'yRange':(0.1,1.9)} if plotData else None,
 	  logX = False, logY = log, sorting = True,
 	  yRange = (0.003, "auto"),
 	  scaling = {},
-	  drawObjects = drawObjects( dataMCScale , lumi_scale )
+          legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),
+	  drawObjects = drawObjects( plotData, dataMCScale , lumi_scale )
     )
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
