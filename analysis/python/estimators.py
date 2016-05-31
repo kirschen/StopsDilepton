@@ -10,13 +10,13 @@ estimators = {}
 
 # Data-driven estimators
 #estimators['DY-DD']  = [DataDrivenDYEstimate( name='DY-DD')]
-#estimators['TTZ-DD'] = [DataDrivenTTZEstimate(name='TTZ-DD')]
+estimators['TTZ-DD'] = [DataDrivenTTZEstimate(name='TTZ-DD')]
 
 # main MC based estimators
 for mc in ['DY','TTJets','TTZ','other']:
   estimators[mc] = [MCBasedEstimate(name=mc, sample=setup.sample[mc])]
 
-# detailes MC based estimators
+# detailed MC based estimators
 estimators['other-detailed']  = [ MCBasedEstimate(name=comp.name, sample={c:comp for c in channels}) for comp in otherEWKComponents ]
 estimators['other-detailed'] += [ MCBasedEstimate(name="QCD", sample= {'MuMu': QCD_Mu5, 'EE': QCD_EMbcToE, 'EMu': QCD_Mu5EMbcToE}) ]
 

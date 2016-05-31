@@ -8,6 +8,7 @@ parser.add_option("--metMin",                dest="metMin",                defau
 parser.add_option("--multiIsoWP",            dest="multiIsoWP",            default="",   type="string", action="store",      help="wpMu,wpEle")
 parser.add_option("--relIso04",              dest="relIso04",              default=-1,   type=float,    action="store",      help="relIso04 cut?")
 parser.add_option("--signal",                dest="signal",                default=None,                action="store",      help="which signal estimators?", choices=[None,"DM","T2tt","allT2tt"])
+parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
@@ -16,6 +17,12 @@ from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, redu
 
 setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
+
+# Logging
+import StopsDilepton.tools.logger as logger
+logger = logger.get_logger(options.logLevel, logFile = None )
+import RootTools.core.logger as logger_rt
+logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 allRegions = set(defaultRegions + reducedRegionsA + reducedRegionsB + reducedRegionsAB + reducedRegionsNew + reducedRegionsC)
 if options.multiIsoWP!="":
