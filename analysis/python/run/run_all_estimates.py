@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--dontSkipIfCachefileExists", dest="dontSkipIfCachefileExists", default = False,             action="store_true", help="dontSkipIfCachefileExists?")
-parser.add_option("--noMultiThreading",          dest="noMultiThreading",          default = False,             action="store_true", help="noMultiThreading?")
-parser.add_option("--metSigMin",                 dest="metSigMin",                 default=5,    type="int",    action="store",      help="metSigMin?")
-parser.add_option("--metMin",                    dest="metMin",                    default=80,   type="int",    action="store",      help="metMin?")
-parser.add_option("--multiIsoWP",                dest="multiIsoWP",                default="",   type="string", action="store",      help="wpMu,wpEle")
-parser.add_option("--relIso04",                  dest="relIso04",                  default=-1,   type=float,    action="store",      help="relIso04 cut?")
-parser.add_option("--signal",                    dest="signal",                    default=None,                action="store",      help="which signal estimators?", choices=[None,"DM","T2tt","allT2tt"])
+parser.add_option("--skipIfCachefileExists", dest="skipIfCachefileExists", default = False,             action="store_true", help="skipIfCachefileExists?")
+parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
+parser.add_option("--metSigMin",             dest="metSigMin",             default=5,    type="int",    action="store",      help="metSigMin?")
+parser.add_option("--metMin",                dest="metMin",                default=80,   type="int",    action="store",      help="metMin?")
+parser.add_option("--multiIsoWP",            dest="multiIsoWP",            default="",   type="string", action="store",      help="wpMu,wpEle")
+parser.add_option("--relIso04",              dest="relIso04",              default=-1,   type=float,    action="store",      help="relIso04 cut?")
+parser.add_option("--signal",                dest="signal",                default=None,                action="store",      help="which signal estimators?", choices=[None,"DM","T2tt","allT2tt"])
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.estimators import setup, allEstimators
-from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB
+from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB, reducedRegionsNew, reducedRegionsC
 
 setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
-allRegions = set(defaultRegions + reducedRegionsA + reducedRegionsB + reducedRegionsAB)
+allRegions = set(defaultRegions + reducedRegionsA + reducedRegionsB + reducedRegionsAB + reducedRegionsNew + reducedRegionsC)
 if options.multiIsoWP!="":
     multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
     wpMu, wpEle=options.multiIsoWP.split(',')
@@ -64,7 +64,7 @@ def wrapper(args):
 for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, allEstimators ] ]:
     for estimate in estimators_:
         setup_ = signalSetup if isSignal else setup
-        if not options.dontSkipIfCachefileExists and estimate.cache.cacheFileLoaded:
+        if options.skipIfCachefileExists and estimate.cache.cacheFileLoaded:
             print "Cache file %s was loaded -> Skipping."%estimate.cache.filename
             continue
         jobs=[]
