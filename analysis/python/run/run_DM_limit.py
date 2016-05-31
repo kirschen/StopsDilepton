@@ -220,7 +220,7 @@ for type in sorted(set([type_ for (mChi, mPhi, type_, res) in results])):
   with open(texdir + "/" + type + ".tex", "w") as f:
     f.write("\\begin{tabular}{cc|" + "c"*len(phiList) + "} \n")
     f.write(" & & \multicolumn{" + str(len(phiList)) + "}{c}{$m_\\phi$ (GeV)} \\\\ \n")
-    f.write("&" + " & ".join(str(x) for x in phiList) + "\\\\ \n \\hline \\hline \n")
+    f.write("& &" + " & ".join(str(x) for x in phiList) + "\\\\ \n \\hline \\hline \n")
     for chi in chiList:
       resultList = []
       for phi in phiList:
