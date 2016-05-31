@@ -6,21 +6,23 @@ parser.add_option("--metSigMin",  dest="metSigMin",  default=5,  type="int",    
 parser.add_option("--metMin",     dest="metMin",     default=80, type="int",    action="store", help="metMin?")
 parser.add_option("--multiIsoWP", dest="multiIsoWP", default="", type="string", action="store", help="multiIsoWP?")
 parser.add_option("--relIso04",   dest="relIso04",   default=-1, type=float,    action="store", help="relIso04 cut?")
-parser.add_option("--regions",    dest="regions",    default="defaultRegions",  action="store", help="which regions setup?", choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB"])
+parser.add_option("--regions",    dest="regions",    default="defaultRegions",  action="store", help="which regions setup?", choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB","reducedRegionsNew","reducedRegionsC"])
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
-from StopsDilepton.analysis.defaultAnalysis import setup, bkgEstimators
-from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB
+from StopsDilepton.analysis.estimators import setup, mcAnalysisEstimators
+from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB, reducedRegionsNew, reducedRegionsC
 from StopsDilepton.analysis.Cache import Cache
 setup.verbose = False
 setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
 
-if options.regions == "defaultRegions":     regions = defaultRegions
-elif options.regions == "reducedRegionsA":  regions = reducedRegionsA
-elif options.regions == "reducedRegionsB":  regions = reducedRegionsB
-elif options.regions == "reducedRegionsAB": regions = reducedRegionsAB
+if options.regions == "defaultRegions":      regions = defaultRegions
+elif options.regions == "reducedRegionsA":   regions = reducedRegionsA
+elif options.regions == "reducedRegionsB":   regions = reducedRegionsB
+elif options.regions == "reducedRegionsAB":  regions = reducedRegionsAB
+elif options.regions == "reducedRegionsNew": regions = reducedRegionsNew
+elif options.regions == "reducedRegionsC":   regions = reducedRegionsC
 else: raise Exception("Unknown regions setup")
 
 
@@ -35,7 +37,7 @@ if options.relIso04>0:
     setup.externalCuts.append("&&".join(["LepGood_relIso04["+ist+"]<"+str(options.relIso04) for ist in ('l1_index','l2_index')]))
     setup.prefixes.append('relIso04sm'+str(int(100*options.relIso04)))
 
-for e in bkgEstimators:
+for e in mcAnalysisEstimators:
     e.initCache(setup.defaultCacheDir())
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
@@ -82,8 +84,8 @@ def wrapper(s):
                 binname = 'Bin'+str(counter)
                 counter += 1
                 total_exp_bkg = 0
-                c.addBin(binname, [e.name for e in bkgEstimators], niceName)
-                for e in bkgEstimators:
+                c.addBin(binname, [e.name for e in mcAnalysisEstimators], niceName)
+                for e in mcAnalysisEstimators:
                     expected = e.cachedEstimate(r, channel, setup)
                     total_exp_bkg += expected.val
                     c.specifyExpectation(binname, e.name, expected.val )
