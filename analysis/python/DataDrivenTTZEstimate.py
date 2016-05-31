@@ -36,7 +36,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 
         #Sum of all channels for 'all'
         if channel=='all':
-            return sum( [ self.cachedEstimate(region, c, channel, setup) for c in ['MuMu', 'EE', 'EMu'] ] )
+            return sum( [ self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE', 'EMu'] ] )
         else:
             #Data driven for EE, EMu and  MuMu.
             zWindow= 'allZ' if channel=='EMu' else 'offZ'
@@ -48,7 +48,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
             logger.debug("weight: %s", weight)
 
             yield_MC_2l =  setup.lumi[channel]/1000.*u_float(**setup.sample['TTZ'][channel].getYieldFromDraw(selectionString = MC_2l, weightString=weight))
-            if setup.verbose: print "yield_MC_2l: %s"%yield_MC_2l
+            logger.info("yield_MC_2l: %s"%yield_MC_2l)
 
             if self.useTop16009:
               sysError  = max((abs(x) for x in self.sysErrTop16009))    # not sure yet to handle assymetric errors
