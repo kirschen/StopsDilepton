@@ -132,12 +132,11 @@ class Setup:
 	'''
         #Consistency checks
         assert dataMC in ['Data','MC'],                                                          "dataMC = Data or MC, got %r."%dataMC
-        assert not (dataMC=='Data' and self.sys['selectionModifier']),                           "Why would you need data preselection with selectionModifier=%r? Should be None."%self.sys['selectionModifier']
         if self.sys['selectionModifier']: assert self.sys['selectionModifier'] in jmeVariations, "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations))
         assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                           "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
 
-        #postfix for variables
-        sysStr="" if not self.sys['selectionModifier'] else "_"+self.sys['selectionModifier']
+        #Postfix for variables (only for MC)
+        sysStr="" if (not self.sys['selectionModifier'] or dataMC=='Data') else "_"+self.sys['selectionModifier']
 
         res={'cuts':[], 'prefixes':[], 'reweight':self.sys['reweight'] if self.sys['reweight'] else [] }
 
