@@ -28,17 +28,17 @@ class DataDrivenDYEstimate(SystematicEstimator):
             preSelection = setup.preselection('MC', zWindow='offZ', channel=channel)
             weight = preSelection['weightStr']
 
-            cut_offZ_1b     = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters(update={'nBTags':(1,-1)}))['cut'] ])
-            cut_onZ_1b      = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(1,-1)}))['cut'] ])
-            cut_onZ_0b      = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0)}))['cut'] ])
-            cut_data_onZ_0b = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('Data', channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0)}) )['cut'] ])
+            cut_offZ_1b     = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters(update={'nBTags':(1,-1)}))['cut']])
+            cut_onZ_1b      = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(1,-1)}))['cut']])
+            cut_onZ_0b      = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
+            cut_data_onZ_0b = "&&".join([region.cutString(),                               setup.selection('Data', channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
     #    R1 = DY-MC (offZ, 1b) / DY-MC (onZ, 1b)
     #    R2 = DY-MC (onZ, 1b) / DY-MC (onZ, 0b)
     #    DY-est = R1*R2*(Data(2l, onZ, 0b) - EWK(onZ, 0b)) = DY-MC (offZ, 1b) / DY-MC (onZ, 0b) *( Data(2l, onZ, 0b) - EWK(onZ, 0b))
 
             yield_offZ_1b = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_offZ_1b,     weightString=weight))
             yield_onZ_0b  = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_onZ_0b,      weightString=weight))
-            yield_data    = u_float(**setup.sample['Data'][channel].getYieldFromDraw(selectionString = cut_data_onZ_0b, weightString=weight))
+            yield_data    = u_float(**setup.sample['Data'][channel].getYieldFromDraw(selectionString = cut_data_onZ_0b, weightString="(1)"))
             if setup.verbose: 
               print "yield_offZ_1b: %s"%yield_offZ_1b
               print "yield_onZ_0b: %s"%yield_onZ_0b
