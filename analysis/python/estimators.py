@@ -9,8 +9,9 @@ setup = Setup()
 estimators = {}
 
 # Data-driven estimators
-#estimators['DY-DD']  = [DataDrivenDYEstimate( name='DY-DD')]
-estimators['TTZ-DD'] = [DataDrivenTTZEstimate(name='TTZ-DD')]
+estimators['DY-DD']           = [DataDrivenDYEstimate( name='DY-DD')]
+estimators['TTZ-DD']          = [DataDrivenTTZEstimate(name='TTZ-DD')]
+estimators['TTZ-DD-Top16009'] = [DataDrivenTTZEstimate(name='TTZ-DD-Top16009', useTop16009=True)]
 
 # main MC based estimators
 for mc in ['DY','TTJets','TTZ','other']:
@@ -23,7 +24,8 @@ estimators['other-detailed'] += [ MCBasedEstimate(name="QCD", sample= {'MuMu': Q
 
 
 # check if all estimators have unique name
-assert len(list(set(estimators.keys()))) == len(estimators.keys()), "Names of bkgEstimators are not unique: %s"%",".join(estimators.keys())
+estimatorNames = [e.name for eList in estimators.values() for e in eList]
+assert len(set(estimatorNames)) == len(estimatorNames), "Names of bkgEstimators are not unique: %s"%",".join(estimatorNames)
 
 
 
