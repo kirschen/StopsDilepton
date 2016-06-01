@@ -20,7 +20,7 @@ class MCBasedEstimate(SystematicEstimator):
 
         if channel=='all':
             # 'all' is the total of all contributions
-            return sum( [ self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE', 'EMu'] ], u_float(0., 0.) )
+            return sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE', 'EMu']])
 
         else:
 
