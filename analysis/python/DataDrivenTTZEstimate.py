@@ -91,13 +91,15 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 	      yield_data_mue    =                           u_float(**setup.sample['Data']['EMu'].getYieldFromDraw( selectionString = "(("+data_mumue+')||('+data_muee+'))', weightString="(1)"))
 	      yield_data_3l     = yield_data_mumumu + yield_data_mue + yield_data_eee
 
+              if yield_ttZ_3l < 0:
+                logger.warn("No yield for 3l selection")
+                estimate = 0
+
 	      #electroweak subtraction
-	      yield_other = u_float(0., 0.)
-	      for s in ['TTJets' , 'DY', 'other']:
-		  yield_other+= setup.lumi[channel]/1000.* u_float(**setup.sample[s][channel].getYieldFromDraw(selectionString = MC_3l,  weightString=weight))
+	      yield_other = sum(setup.lumi[channel]/1000.* u_float(**setup.sample[s][channel].getYieldFromDraw(selectionString = MC_3l,  weightString=weight)) for s in ['TTJets', 'DY', 'other'])
 
 	      yield_ttZ_data = yield_data_3l - yield_other
-
+            
 	      if yield_ttZ_data/yield_ttZ_3l<0: logger.warn("Data-driven estimate is negative!")
 	      logger.debug("Control region predictions: ")
 	      logger.debug("  data:        " + str(yield_data_3l))

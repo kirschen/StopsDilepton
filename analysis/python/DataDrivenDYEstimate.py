@@ -54,7 +54,7 @@ class DataDrivenDYEstimate(SystematicEstimator):
             normRegYield = yield_data - yield_other
             if normRegYield.val<0: print "\n !!!Warning!!! \n Negative normalization region yield data: (%s), MC: (%s) \n"%(yield_data, yield_other)
 
-            mcRatio = yield_offZ_1b / yield_onZ_0b
+            mcRatio = yield_offZ_1b / yield_onZ_0b if yield_onZ_0b > 0 else 0
             res = mcRatio * normRegYield
 
             return res
