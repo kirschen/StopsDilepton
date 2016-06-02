@@ -9,12 +9,10 @@ import itertools
 #RootTools
 from RootTools.core.standard import *
 
-from StopsDilepton.analysis.estimators import setup, mcDetailedEstimators
+from StopsDilepton.analysis.estimators import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTZEstimate, DataDrivenDYEstimate
 from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB, reducedRegionsNew
 import StopsDilepton.tools.user as user
 from StopsDilepton.samples.color import color
-
-from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 
@@ -23,7 +21,9 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',           nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
 argParser.add_argument("--regions",        action='store', default='defaultRegions', nargs='?', choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB","reducedRegionsNew"], help="which regions setup?")
-argParser.add_argument('--plot_directory', action='store', default='png25ns_3rdLep')
+argParser.add_argument("--signal",         action='store', default='T2tt',           nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal to plot?")
+argParser.add_argument("--estimateDY",     action='store', default='DY',             nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
+argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',            nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which DY estimate?")
 args = argParser.parse_args()
 
 
@@ -34,19 +34,19 @@ elif args.regions == "reducedRegionsAB":  regions = reducedRegionsAB
 elif args.regions == "reducedRegionsNew": regions = reducedRegionsNew
 else: raise Exception("Unknown regions setup")
 
+detailedEstimators = constructEstimatorList(['TTJets','other-detailed', args.estimateDY, args.estimateTTZ])
 signalSetup = setup.sysClone(parameters={'useTriggers':False})
 
-for estimator in mcDetailedEstimators:
-    estimator.style = styles.fillStyle( getattr( color, estimator.name ) )
+for estimator in detailedEstimators:
+    estimator.style = styles.fillStyle( getattr( color, estimator.name.split('-')[0] ) )
 
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-#signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in [T2tt_450_0] ]
-signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in [TTbarDMJets_scalar_Mchi1_Mphi100]]
+signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_0] if args.signal == "T2TT" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
 for estimator in signalEstimators:
-    estimator.style = styles.lineStyle( getattr( color, estimator.name ), width=2 )
+    estimator.style = styles.lineStyle( getattr(color, estimator.name ), width=2 )
  
-estimators = mcDetailedEstimators + signalEstimators
+estimators = detailedEstimators + signalEstimators
 for e in estimators:
     e.initCache(setup.defaultCacheDir())
 
@@ -88,14 +88,13 @@ def drawObjects( regions ):
 for channel in allChannels:
 
     regions_ = regions[1:]
-    # regions_ = filter(lambda r: r.vals['dl_mt2ll'][0]>0, regions)
 
-    bkg_histos = [ getRegionHisto(e, regions=regions_, channel=channel, setup = setup) for e in mcDetailedEstimators ]
+    bkg_histos = [  getRegionHisto(e, regions=regions_, channel=channel, setup = setup) for e in detailedEstimators ]
     sig_histos = [ [getRegionHisto(e, regions=regions_, channel=channel, setup = signalSetup)] for e in signalEstimators ]
 
     region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos ] + sig_histos, texX = "SR number", texY = "Events" )
     plotting.draw( region_plot, \
-        plot_directory = os.path.join(user.plot_directory, args.regions), 
+        plot_directory = os.path.join(user.plot_directory, args.regions, args.estimateDY, args.estimateTTZ),
         logX = False, logY = True, 
         # sorting = True , 
         yRange = (10**-2.4, "auto"),
