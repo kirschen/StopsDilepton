@@ -64,7 +64,7 @@ signalSetup = setup.sysClone(parameters={'useTriggers':False})
 
 def wrapper(args):
         r,channel,setup = args
-        res = estimate.cachedEstimate(r, channel, setup, save=False)
+        res = estimate.cachedEstimate(r, channel, setup, save=True)
         return (estimate.uniqueKey(r, channel, setup), res )
 
 
@@ -92,14 +92,9 @@ for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, allEstimator
             pool.close()
             pool.join()
 
-        for r in results:
-            estimate.cache.add(*r, save=False)
-
         for channel in ['all']:
             for r in allRegions:
                 estimate.cachedEstimate(r, channel, setup_, save=False)
-                map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getBkgSysJobs(r, channel, setup_))
+                map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getBkgSysJobs(r, channel, setup_))
                 if isSignal:
-                    map(lambda args:estimate.cachedEstimate(*args, save=False), estimate.getSigSysJobs(r, channel, setup_, isFastSim))
-
-        estimate.cache.save()
+                    map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getSigSysJobs(r, channel, setup_, isFastSim))
