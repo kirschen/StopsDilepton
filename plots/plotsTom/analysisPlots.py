@@ -23,6 +23,7 @@ argParser.add_argument('--plotData',       action='store_true', default=False,  
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
+argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
 
 
@@ -64,8 +65,22 @@ cuts = [
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
     ("mt2ll100",          "dl_mt2ll>100"),
     ("mt2ll140",          "dl_mt2ll>140"),
+    ("mt2ll240",          "dl_mt2ll>240"),
+    ("mt2blbl100",        "dl_mt2blbl>100"),
+    ("mt2blbl200",        "dl_mt2blbl>200"),
 #    ("looseLeptonVeto",   "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
   ]
+
+
+# To make piecharts
+from array import array
+def makePieChart(yields, mode, samples):
+  c        = ROOT.TCanvas("pie", "pie", 700, 700)
+  labels   = [ array( 'c', s.name + '\0' ) for s in samples]
+  labels_  = array( 'l', map( lambda x: x.buffer_info()[0], labels ) )
+  piechart = ROOT.TPie("TTX pie", "TTX pie", 3, array('f', [yields[mode][s.name] for s in samples]), array('i', [s.color for s in samples]), labels_)
+  piechart.Draw("rsc")
+  c.Print(os.path.join(plot_directory, args.plot_directory, mode, args.selection, "TTX_pie.png"))
 
 
 #
@@ -78,13 +93,14 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel = [] 
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
-        if selection.count("btag")  and not selection.count("njet"):   continue
-        if selection.count("mll")   and not selection.count("btag"):   continue
-        if selection.count("met")   and not selection.count("mll"):    continue
-        if selection.count("metS")  and not selection.count("met80"):  continue
-        if selection.count("dPhi")  and not selection.count("metSig"): continue
-        if selection.count("mt2ll") and not selection.count("dPhi"):   continue
+        if selection.count("btag")   and not selection.count("njet"):   continue
+        if selection.count("mll")    and not selection.count("btag"):   continue
+        if selection.count("met")    and not selection.count("mll"):    continue
+        if selection.count("metSig") and not selection.count("met"):    continue
+        if selection.count("dPhi")   and not selection.count("metSig"): continue
+        if selection.count("mt2")    and not selection.count("dPhi"):   continue
         if selection.count("mt2ll") > 1:  continue
+        if selection.count("mt2blbl") > 1:  continue
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 #
@@ -97,7 +113,7 @@ if not args.isChild and args.selection is None:
     command = "./analysisPlots.py --selection=" + selection
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
+    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
   logger.info("All jobs launched")
   exit(0)
 
@@ -171,14 +187,13 @@ for index, mode in enumerate(allModes):
   if plotData: lumi_scale = data_sample.lumi/1000
   else:        lumi_scale = 10
 
-  mc = [ DY_HT_LO, TTJets_Lep, qcd_sample, singleTop, TTZ, TTW, TZQ, TTH, EWK]
-#  mc = [ DY_HT_LO, TTJets_Lep, qcd_sample, singleTop, TTZ, TTW, TTH, TZQ, EWK]
+  mc = [ DY_HT_LO, TTJets_Lep, qcd_sample, singleTop, TTZ, TTW, TTH, TZQ, EWK]
   for sample in mc:
     sample.scale = lumi_scale
-    sample.style = styles.fillStyle(sample.color)
+    sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
 
   TTbarDMJets_scalar_Mchi1_Mphi100.scale = lumi_scale*10
-  TTbarDMJets_scalar_Mchi1_Mphi100.style = styles.lineStyle( ROOT.kBlue, width=2 )
+  TTbarDMJets_scalar_Mchi1_Mphi100.style = styles.lineStyle( ROOT.kBlack, width=3 )
 
   stack = Stack(mc, [data_sample], TTbarDMJets_scalar_Mchi1_Mphi100)
   if not plotData: stack = Stack(mc, TTbarDMJets_scalar_Mchi1_Mphi100)
@@ -233,7 +248,7 @@ for index, mode in enumerate(allModes):
     variable = Variable.fromString('cosMetJet0phi/F').addFiller (
 	helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
     ),
-    binning = [10,-1,1],
+    binning = [30,-1,1],
   ))
 
   plots.append(Plot(
@@ -241,7 +256,7 @@ for index, mode in enumerate(allModes):
     variable = Variable.fromString('cosMetJet1phi/F').addFiller (
 	helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
     ),
-    binning = [10,-1,1],
+    binning = [30,-1,1],
   ))
 
   plots.append(Plot(
@@ -301,6 +316,7 @@ for index, mode in enumerate(allModes):
       )
   allPlots[mode] = plots
 
+  makePieChart(yields, mode, [TTH, TTW, TZQ])
 
 
 # Add yields in channels
@@ -347,5 +363,7 @@ for log in [False, True]:
           legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),
 	  drawObjects = drawObjects( plotData, dataMCScale , lumi_scale )
     )
+
+makePieChart(yields, "all", [TTH, TTW, TZQ])
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
