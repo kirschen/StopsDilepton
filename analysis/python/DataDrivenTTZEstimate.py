@@ -91,7 +91,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 	      yield_data_mue    =                           u_float(**setup.sample['Data']['EMu'].getYieldFromDraw( selectionString = "(("+data_mumue+')||('+data_muee+'))', weightString="(1)"))
 	      yield_data_3l     = yield_data_mumumu + yield_data_mue + yield_data_eee
 
-              if yield_ttZ_3l < 0:
+              if not yield_ttZ_3l > 0:
                 logger.warn("No yield for 3l selection")
                 estimate = 0
 
@@ -100,13 +100,13 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 
 	      yield_ttZ_data = yield_data_3l - yield_other
             
-	      if yield_ttZ_data/yield_ttZ_3l<0: logger.warn("Data-driven estimate is negative!")
-	      logger.debug("Control region predictions: ")
-	      logger.debug("  data:        " + str(yield_data_3l))
-	      logger.debug("  MC other:    " + str(yield_other))
-	      logger.debug("  TTZ (MC):    " + str(yield_ttZ_3l))
-	      logger.debug("  TTZ (data):  " + str(yield_ttZ_data))
-	      logger.debug("  TTZ (ratio): " + str(yield_ttZ_data/yield_ttZ_3l))
+	      if yield_ttZ_data/yield_ttZ_3l<0: logger.warn("Data-driven ratio is negative!")
+	      logger.info("Control region predictions: ")
+	      logger.info("  data:        " + str(yield_data_3l))
+	      logger.info("  MC other:    " + str(yield_other))
+	      logger.info("  TTZ (MC):    " + str(yield_ttZ_3l))
+	      logger.info("  TTZ (data):  " + str(yield_ttZ_data))
+	      logger.info("  TTZ (ratio): " + str(yield_ttZ_data/yield_ttZ_3l))
 	      estimate = (yield_ttZ_data/yield_ttZ_3l)*yield_MC_2l
 
         logger.info("  -->  " + str(estimate))
