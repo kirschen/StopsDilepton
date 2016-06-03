@@ -115,6 +115,8 @@ class Setup:
         res.update(update)
         return res
 
+    def weightString(self):
+        return "*".join([self.sys['weight']] + (self.sys['reweight'] if self.sys['reweight'] else []))
 
     def preselection(self, dataMC , zWindow, channel='all'):
         '''Get preselection  cutstring.'''
@@ -138,7 +140,7 @@ class Setup:
         #Postfix for variables (only for MC)
         sysStr="" if (not self.sys['selectionModifier'] or dataMC=='Data') else "_"+self.sys['selectionModifier']
 
-        res={'cuts':[], 'prefixes':[], 'reweight':self.sys['reweight'] if self.sys['reweight'] else [] }
+        res={'cuts':[], 'prefixes':[]}
 
         if leptonCharges and not hadronicSelection:
 	    res['cuts'].append(leptonCharges)
@@ -217,5 +219,5 @@ class Setup:
         res['cuts'].append(filterCut)
         res['cuts'].extend(self.externalCuts)
 
-        return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr':"*".join([self.sys['weight']]+res['reweight'])}
+        return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr': self.weightString()}
 
