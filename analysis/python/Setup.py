@@ -29,6 +29,7 @@ from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels
 
 #to run on data
 #lumi = {'EMu': MuonEG_Run2015D.lumi, 'MuMu':DoubleMuon_Run2015D.lumi, 'EE':DoubleEG_Run2015D.lumi}
+dataLumi = {'EMu': MuonEG_Run2015D.lumi, 'MuMu':DoubleMuon_Run2015D.lumi, 'EE':DoubleEG_Run2015D.lumi}
 #10/fb to run on MC
 lumi = {c:10000 for c in channels}
 
@@ -81,6 +82,9 @@ class Setup:
                        'EE':   DoubleEG_Run2015D,
                        'EMu':  MuonEG_Run2015D},
         }
+
+    def rescaleDataLumi(self, channel):
+        return str(1000/dataLumi[channel])
 
     def prefix(self):
         return '_'.join(self.prefixes+[self.preselection('MC', zWindow='allZ')['prefix']])
