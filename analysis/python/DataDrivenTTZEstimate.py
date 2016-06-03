@@ -44,7 +44,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
             preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel)
 
             MC_2l = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
-            weight = preSelection['weightStr']
+            weight = setup.weightString()
             logger.debug("weight: %s", weight)
 
             yield_MC_2l =  setup.lumi[channel]/1000.*u_float(**setup.sample['TTZ'][channel].getYieldFromDraw(selectionString = MC_2l, weightString=weight))
@@ -93,14 +93,16 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 
               if not yield_ttZ_3l > 0:
                 logger.warn("No yield for 3l selection")
-                estimate = 0
+                estimate = u_float(0, 0)
 
 	      #electroweak subtraction
 	      yield_other = sum(setup.lumi[channel]/1000.* u_float(**setup.sample[s][channel].getYieldFromDraw(selectionString = MC_3l,  weightString=weight)) for s in ['TTJets', 'DY', 'other'])
 
 	      yield_ttZ_data = yield_data_3l - yield_other
-            
-	      if yield_ttZ_data/yield_ttZ_3l<0: logger.warn("Data-driven ratio is negative!")
+	      if yield_ttZ_data < 0:
+                logger.warn("Data-driven ratio is negative!")
+                yield_ttZ_data = u_float(0, 0)
+
 	      logger.info("Control region predictions: ")
 	      logger.info("  data:        " + str(yield_data_3l))
 	      logger.info("  MC other:    " + str(yield_other))
