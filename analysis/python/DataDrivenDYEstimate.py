@@ -19,15 +19,14 @@ class DataDrivenDYEstimate(SystematicEstimator):
 
         #MC based for 'EMu'
         elif channel=='EMu':
+            weight       = setup.weightString()
             preSelection = setup.preselection('MC', zWindow='allZ', channel=channel)
             cut          = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut'] ])
-            weight       = preSelection['weightStr']
             estimate     = setup.lumi[channel]/1000.*u_float(**setup.sample['DY'][channel].getYieldFromDraw(selectionString = cut, weightString=weight))
 
         #Data driven for EE and MuMu
         else:
-            preSelection = setup.preselection('MC', zWindow='offZ', channel=channel)
-            weight       = preSelection['weightStr']
+            weight       = setup.weightString()
 
             cut_offZ_1b     = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters(update={'nBTags':(1,-1)}))['cut']])
             cut_onZ_0b      = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
@@ -36,7 +35,7 @@ class DataDrivenDYEstimate(SystematicEstimator):
             # Calculate ratio (offZ,1b)/(onZ,0b)
             yield_offZ_1b = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_offZ_1b,     weightString=weight))
             yield_onZ_0b  = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_onZ_0b,      weightString=weight))
-            R             = yield_offZ_1b/yield_onZ_0b if not yield_onZ_0b > 0 else 0
+            R             = yield_offZ_1b/yield_onZ_0b if yield_onZ_0b > 0 else 0
 
             # Calculate data-other onZ for 0 b-jets region
             yield_data    = u_float(**setup.sample['Data'][channel].getYieldFromDraw(selectionString = cut_data_onZ_0b, weightString="(1)"))
@@ -53,5 +52,5 @@ class DataDrivenDYEstimate(SystematicEstimator):
             logger.info("yield_other:   " + str(yield_other))
             if normRegYield < 0 and yield_data > 0: logger.warn("Negative normalization region yield: " + str(normRegYield))
 
-	logger.info('Estimate for DY in ' + channel + ' channel: ' + str(estimate))
-	return estimate
+	logger.info('Estimate for DY in ' + channel + ' channel: ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
+	return estimate if estimate > 0 else u_float(0, 0)
