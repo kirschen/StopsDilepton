@@ -72,6 +72,21 @@ class u_float():
             raise NotImplementedError("This should never happen.")
         return u_float(val,sigma)
 
+    def __lt__(self,other):
+        if type(other)==type(self):             return self.val < other.val
+        elif isinstance(other, numbers.Number): return self.val < other
+        else:                                   raise ValueError("Can only compare with u_float, float or int, got %r" % type(other))
+
+    def __gt__(self,other):
+        if type(other)==type(self):             return self.val > other.val
+        elif isinstance(other, numbers.Number): return self.val > other
+        else:                                   raise ValueError("Can only compare with u_float, float or int, got %r" % type(other))
+
+    def __eq__(self,other): return not self < other and not self > other
+    def __ge__(self,other): return not self < other
+    def __le__(self,other): return not self > other
+    def __ne__(self,other): return self < other or self > other
+
     def __str__(self):
         return str(self.val)+'+-'+str(self.sigma)
 
