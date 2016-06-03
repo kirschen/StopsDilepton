@@ -38,7 +38,7 @@ class DataDrivenDYEstimate(SystematicEstimator):
             R             = yield_offZ_1b/yield_onZ_0b if yield_onZ_0b > 0 else 0
 
             # Calculate data-other onZ for 0 b-jets region
-            yield_data    = u_float(**setup.sample['Data'][channel].getYieldFromDraw(selectionString = cut_data_onZ_0b, weightString="(1)"))
+            yield_data    = u_float(**setup.sample['Data'][channel].getYieldFromDraw(selectionString = cut_data_onZ_0b, weightString="("+str(setup.rescaleDataLumi(channel)) + ")"))
             yield_other   = sum(u_float(**setup.sample[s][channel].getYieldFromDraw( selectionString = cut_onZ_0b,      weightString=weight)) for s in ['TTJets' , 'TTZ' , 'other'])
             normRegYield  = yield_data - yield_other
 

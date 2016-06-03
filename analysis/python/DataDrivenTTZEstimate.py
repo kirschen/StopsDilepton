@@ -86,9 +86,9 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 	      # Calculate yields (take together)
 	      yield_ttZ_2l      = setup.lumi[channel]/1000.*u_float(**setup.sample['TTZ'][channel].getYieldFromDraw(selectionString = MC_2l,                                 weightString=weight))
 	      yield_ttZ_3l      = setup.lumi[channel]/1000.*u_float(**setup.sample['TTZ'][channel].getYieldFromDraw(selectionString = MC_3l,                                 weightString=weight))
-	      yield_data_mumumu =                           u_float(**setup.sample['Data']['MuMu'].getYieldFromDraw(selectionString = data_mumumu,                           weightString="(1)"))
-	      yield_data_eee    =                           u_float(**setup.sample['Data']['EE'].getYieldFromDraw(  selectionString = data_eee,                              weightString="(1)"))
-	      yield_data_mue    =                           u_float(**setup.sample['Data']['EMu'].getYieldFromDraw( selectionString = "(("+data_mumue+')||('+data_muee+'))', weightString="(1)"))
+	      yield_data_mumumu =                           u_float(**setup.sample['Data']['MuMu'].getYieldFromDraw(selectionString = data_mumumu,                           weightString="("+str(setup.rescaleDataLumi(channel)) + ")"))
+	      yield_data_eee    =                           u_float(**setup.sample['Data']['EE'].getYieldFromDraw(  selectionString = data_eee,                              weightString="("+str(setup.rescaleDataLumi(channel)) + ")"))
+	      yield_data_mue    =                           u_float(**setup.sample['Data']['EMu'].getYieldFromDraw( selectionString = "(("+data_mumue+')||('+data_muee+'))', weightString="("+str(setup.rescaleDataLumi(channel)) + ")"))
 	      yield_data_3l     = yield_data_mumumu + yield_data_mue + yield_data_eee
 
               if not yield_ttZ_3l > 0:
