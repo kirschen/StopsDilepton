@@ -726,8 +726,8 @@ def filler(s):
             s.l2_jetPtRatiov2  = leptons[1]['jetPtRatiov2']
             s.l2_jetPtRelv2    = leptons[1]['jetPtRelv2']
             s.l2_miniRelIso = leptons[1]['miniRelIso']
-            s.l2_dxy = leptons[0]['dxy']
-            s.l2_dz = leptons[0]['dz']
+            s.l2_dxy = leptons[1]['dxy']
+            s.l2_dz = leptons[1]['dz']
 
             l_pdgs = [abs(leptons[0]['pdgId']), abs(leptons[1]['pdgId'])]
             l_pdgs.sort()
@@ -773,12 +773,16 @@ def filler(s):
                     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
                         mt2Calc.setMet( getattr(s, "met_pt"+i+"_"+var), getattr(s, "met_phi"+i+"_"+var) )
                         setattr(s, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
+                        bj0_, bj1_ = bj0, bj1
                         if not 'Unclustered' in var:
                             if len(jets_sys[var])>=2:
-                                bj0, bj1 = (bjets_sys[var]+nonBjets_sys[var])[:2]
-                                mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                                setattr(s, 'dl_mt2bb'  +i+'_'+var, mt2Calc.mt2bb())
-                                setattr(s, 'dl_mt2blbl'+i+'_'+var, mt2Calc.mt2blbl())
+                                bj0_, bj1_ = (bjets_sys[var]+nonBjets_sys[var])[:2]
+                            else: 
+                                bj0_, bj1_ = None, None
+                        if bj0_ and bj1_:
+                            mt2Calc.setBJets(bj0_['pt'], bj0_['eta'], bj0_['phi'], bj1_['pt'], bj1_['eta'], bj1_['phi'])
+                            setattr(s, 'dl_mt2bb'  +i+'_'+var, mt2Calc.mt2bb())
+                            setattr(s, 'dl_mt2blbl'+i+'_'+var, mt2Calc.mt2blbl())
 
     if addSystematicVariations:
         # B tagging weights method 1a
