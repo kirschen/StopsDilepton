@@ -8,6 +8,7 @@ class color():
 
 color.data           = ROOT.kBlack
 color.DY             = 8
+color.DYToNuNu       = ROOT.kGreen+2
 color.TTJets         = 7
 color.singleTop      = 40
 color.TTX            = ROOT.kMagenta
