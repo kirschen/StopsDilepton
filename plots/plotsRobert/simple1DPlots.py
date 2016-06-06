@@ -72,7 +72,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='png25ns_2l_mAODv2_2100_noPU_VTVT_0bDiagnosis',
+    default='0bDiagnosis_diBosonInclusive',
     action='store',
 )
 
@@ -129,7 +129,7 @@ else:
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
+mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBosonInclusive, WZZ]
 #mc = [ TTX]
 if args.small:
     for sample in mc:
@@ -159,13 +159,13 @@ basic_cuts=[
 ]
 cuts=[
     #("njet0", "nJetGood==0"),
-    #("njet0p", "nJetGood>=0"),
+    ("njet0p", "nJetGood>=0"),
     #("njet1", "nJetGood==1"),
-     ("njet2p", "nJetGood>=2"),
+    # ("njet2p", "nJetGood>=2"),
     ("nbtag0", "nBTag==0"),
-    ("nbtag1p", "nBTag>=1"),
+    #("nbtag1p", "nBTag>=1"),
     ("met80-metSig5", "met_pt>80&&(met_pt/sqrt(ht)>5||nJetGood==0)"),
-    ("highMT2ll", "dl_mt2ll>140"),
+    #("highMT2ll", "dl_mt2ll>140"),
 ]
                 
 def drawObjects( dataMCScale ):
