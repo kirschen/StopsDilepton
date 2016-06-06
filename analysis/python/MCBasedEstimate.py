@@ -2,7 +2,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-#from StopsDilepton.tools.helpers import getYieldFromChain
 from StopsDilepton.analysis.Region import Region
 from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
@@ -21,7 +20,7 @@ class MCBasedEstimate(SystematicEstimator):
 
         if channel=='all':
             # 'all' is the total of all contributions
-            return sum( [ self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE', 'EMu'] ], u_float(0., 0.) )
+            return sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE', 'EMu']])
 
         else:
 

@@ -19,12 +19,13 @@ from StopsDilepton.tools.helpers import deltaPhi
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
+argParser.add_argument('--subtract',       action='store_true', default=False,       help='subtract residual backgrounds?')
 argParser.add_argument('--plot_directory', action='store',      default='TTG')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
+argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
-
+if args.subtract: args.plot_directory += "_subtracted"
 
 #
 # Logger
@@ -49,7 +50,8 @@ def getLeptonString(nMu, nE):
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))>="
 bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))>="
-filterCut       = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&vetoPassed&&jsonPassed&&weight>0)"
+dataFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
+mcFilterCut     = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
 
 #
 # Cuts to iterate over
@@ -57,7 +59,6 @@ filterCut       = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTight
 cuts = [
     ("njet2",             jetSelection+"2"),
     ("photon30",          "(1)"),
-    ("photon50",          "(1)"),
     ("llgNoZ",            "(1)"),			# Cut implemented in lepton selection
     ("gJetdR",            "(1)"),			# Implenented in otherSelections() method
     ("gLepdR",            "(1)"),			# Implemented in otherSelections() method
@@ -83,14 +84,13 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("btag") > 1:    continue
         if selection.count("photon") != 1: continue
         if selection.count("njet") != 1:   continue
-
         if selection.count("dPhiJet0-dPhiJet1") and not selection.count("metSig5"):  continue
         if selection.count("metSig5")           and not selection.count("met80"):    continue
         if selection.count("met80")             and not selection.count("mll20"):    continue
         if selection.count("mll20")             and not selection.count("btag"):     continue
         if selection.count("mll20")             and not selection.count("llgNoZ"):   continue
-#        if selection.count("mll20")             and not selection.count("gJetdR"):   continue
-#        if selection.count("mll20")             and not selection.count("gLepdR"):   continue
+        if selection.count("mll20")             and not selection.count("gJetdR"):   continue
+        if selection.count("mll20")             and not selection.count("gLepdR"):   continue
 
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
@@ -101,10 +101,10 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./ttG.py --selection=" + selection
+    command = "./ttG.py --selection=" + selection + (" --subtract" if args.subtract else "")
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
+    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
   logger.info("All jobs launched")
   exit(0)
 
@@ -141,11 +141,6 @@ read_variables = ["weight/F" , "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", 
                   "met_pt_photonEstimated/F", "met_phi_photonEstimated/F",
                   "metSig_photonEstimated/F", "ht/F", "nBTag/I", "nJetGood/I", "mt_photonEstimated/F", "photon_pt/F", "photon_eta/F",  "photon_phi/F", "photonJetdR/F", "photonLepdR/F"]
 
-# Variables only to be read/available for specific samples (i.e. variables only in MC)
-TTG.read_variables         = ["photon_genPt/F", "photon_genEta/F"]
-TTLep_pow.read_variables   = ["photon_genPt/F"]
-TTZtoLLNuNu.read_variables = ["zBoson_genPt/F", "zBoson_genEta/F", "dl_mt2ll/F"]
-
 def photonDeltaR(data, eta, phi):
   return sqrt(deltaPhi(data.photon_phi, phi)**2 + (data.photon_eta - eta)**2)
 
@@ -177,18 +172,7 @@ def otherSelections(data, sample):
     if args.selection.count("metSig5"):           data.passed = (data.passed and data.metSig_photonEstimated > 5)
     if args.selection.count("dPhiJet0-dPhiJet1"): data.passed = (data.passed and max(data.dPhiMetJet[0], data.dPhiMetJet[1]) < cos(0.25))
 
-# Compare different variable types for TTZ vs TTG
-def makeCompareVariables(data, sample):
-  if sample == TTZtoLLNuNu: 
-    data.boson_genPt  = data.zBoson_genPt
-    data.boson_genEta = data.zBoson_genEta
-    data.mt2ll        = data.dl_mt2ll
-  elif sample == TTG:
-    data.boson_genPt  = data.photon_genPt
-    data.boson_genEta = data.photon_genEta
-    data.mt2ll        = data.dl_mt2ll_photonEstimated
-
-sequence = [makeDeltaR, filterJets, otherSelections, makeCompareVariables]
+sequence = [makeDeltaR, filterJets, otherSelections]
 
 
 offZ            = "abs(dl_mass-91.1876)>15"
@@ -231,27 +215,20 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-#  mc = [ diBoson, WJetsToLNu, WZZ, DY_HT_LO, qcd_sample, singleTop, TTLep_pow, TTX, TTG ]
-#  mc = [ diBoson, DY_HT_LO, singleTop, TTLep_pow, TTX, TTG ]
-  mc = [ WG, ZG, WWG, diBoson, DY_HT_LO, singleTop, TTLep_pow, TTX, TTG ]
+  mc = [WG, ZG, WWG, diBoson, DY_HT_LO, singleTop, TTLep_pow, TTX, TTG]
+  stack = Stack(mc, [data_sample])
+
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
 
-
-  stack = Stack(mc, [data_sample])
-  data_sample.setSelectionString([filterCut, leptonSelection, photonSelection])
+  data_sample.setSelectionString([dataFilterCut, leptonSelection, photonSelection])
   for sample in mc:
-    sample.setSelectionString([leptonSelection, photonSelection])
+    sample.setSelectionString([mcFilterCut, leptonSelection, photonSelection])
 
   # For TTJets, do TTGJets overlap events removal
- # TTJets.setSelectionString(   ["TTGJetsEventType<4", leptonSelection, photonSelection])
-  TTLep_pow.setSelectionString(["TTGJetsEventType<4", leptonSelection, photonSelection])
-  DY_HT_LO.setSelectionString(["TTGJetsEventType<4", leptonSelection, photonSelection])
-
-  # For comparisons with TTZ, do not use photonSelection, but use leptonSelection such that we probe the neutrino decay component
-  TTZtoLLNuNu.setSelectionString([leptonSelection_nollg])
-
+  TTLep_pow.setSelectionString(["TTGJetsEventType<4", mcFilterCut, leptonSelection, photonSelection])
+  DY_HT_LO.setSelectionString( ["TTGJetsEventType<4", mcFilterCut, leptonSelection, photonSelection])
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])
@@ -417,50 +394,19 @@ for index, mode in enumerate(allModes):
     binning  = [20, 0, 5]
   ))
 
-  # Some MC only plots, unfortunately this still loops two times over the samples...
-  Plot.setDefaults(stack = Stack(TTLep_pow, TTG), weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])
-
-  try:
-    os.makedirs(os.path.join(plot_directory, args.plot_directory, mode, args.selection, 'comp'))
-  except:
-    pass
-
-  plots.append(Plot(
-    texX     = '#slash{E}_{T} resolution', texY = 'Normalized units',
-    variable = Variable.fromString("met_res/F").addFiller(helpers.uses(lambda data : data.met_pt/data.met_genPt if data.met_pt > 30 else -1, ["met_pt/F","met_genPt/F"])),
-    name     = "comp/TTJets_vs_TTGJets-met_res",
-    binning  = [20, 0, 2]
-  ))
-
-  plots.append(Plot(
-    texX     = 'p_{T}(#gamma) resolution', texY = 'Normalized units',
-    variable = Variable.fromString("photon_res/F").addFiller(lambda data: data.photon_pt/data.photon_genPt if data.photon_genPt > 0 else -1),
-    name     = "comp/TTJets_vs_TTGJets-photon_res",
-    binning  = [40, 0.8, 1.2]
-  ))
- 
-  plots.append(Plot(
-    texX     = 'MT_{2}^{ll} (including #gamma) (GeV)', texY = 'Normalized units',
-    variable = Variable.fromString( "dl_mt2ll_photonEstimated/F" ),
-    name     = "comp/TTJets_vs_TTGJets-dl_mt2ll_photonEstimated",
-    binning  = [300/20,0,300],
-  ))
-
-  plots.append(Plot(
-    texX     = 'p_{T}(#gamma)', texY = 'Normalized units',
-    variable = Variable.fromString( "photon_pt/F" ),
-    name     = "comp/TTJets_vs_TTGJets-photon_pt",
-    binning  = [10, 50,250],
-  ))
-
-  plots.append(Plot(
-    texX     = 'event type', texY = 'Normalized units',
-    variable = Variable.fromString( "TTGJetsEventType/I" ),
-    name     = "comp/TTJets_vs_TTGJets-eventType",
-    binning  = [5, 0, 5],
-  ))
-
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
+
+  # Subtract other MC's from data
+  if args.subtract:
+    for plot in plots:
+      for j, h in enumerate(plot.histos[0]):
+        if plot.stack[0][j].name != 'TTGJets':
+          plot.histos[1][0].Add(h, -1)
+      for j, h in enumerate(plot.histos[0]):
+        if plot.stack[0][j].name == 'TTGJets':
+          plot.histos[0] = [h]
+      plot.stack = Stack([TTG], [data_sample])
+
 
   # Get normalization yields from yield histogram
   for plot in plots:
@@ -471,29 +417,10 @@ for index, mode in enumerate(allModes):
           h.GetXaxis().SetBinLabel(1, "#mu#mu")
           h.GetXaxis().SetBinLabel(2, "e#mu")
           h.GetXaxis().SetBinLabel(3, "ee")
+      yields[mode]["MC"] = sum(yields[mode][s.name] for s in plot.stack[0])
 
-  yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc)
   dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
   logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yields[mode]["MC"], yields[mode]["data"], lumi_scale )
-
-  # Some different layout settings for the MC comparison plots
-  for plot in plots:
-    if plot.name.startswith("comp"):
-      for i, l in enumerate(plot.histos):
-        for j, h in enumerate(l):
-          h.style = styles.lineStyle(plot.stack[i][j].color, 2)
-
-    if plot.name == "comp/TTG_vs_TTZ-boson_genPt_highPt":
-      yieldTTZ  = plot.histos[0][0].Integral()
-      yieldTTG  = plot.histos[1][0].Integral()
-      TTG_scale = yieldTTG/yieldTTZ if yieldTTZ > 0 else 1
-      print "yield TTZ: " + str(yieldTTZ)
-      print "yield TTG: " + str(yieldTTG)
-      print "TTG scale: " + str(TTG_scale)
-
-  for plot in plots:
-    if plot.name.startswith("comp/TTG_vs_TTZ"):
-      plot.histos[1][0].Scale(1/TTG_scale)
 
   for plot in plots:
     if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
@@ -502,8 +429,8 @@ for index, mode in enumerate(allModes):
         ratio = {'yRange':(0.1,1.9)}, 
         logX = False, logY = False, sorting = False, 
         yRange = (0.003, "auto"),
-        scaling = {0:1} if plot.name.startswith("comp/TTJets_vs_TTGJets") else {},
-        drawObjects = drawObjects( dataMCScale, lumi_scale ) if not plot.name.startswith("comp/TTG_vs_TTZ") else drawObjects( TTG_scale, lumi_scale),
+        scaling = {},
+        drawObjects = drawObjects( dataMCScale, lumi_scale),
     )
   allPlots[mode] = plots
 
@@ -520,7 +447,7 @@ dataMCScale = yields["all"]["data"]/(yields["all"]["MC"])
 
 
 # Write to tex file
-columns = [i.name for i in mc] + ["MC", "data"]
+columns = [i.name for i in (mc if not args.subtract else [TTG])] + ["MC", "data"]
 texdir = "tex"
 try:
   os.makedirs("./" + texdir)
@@ -547,24 +474,15 @@ for plot in allPlots[allModes[0]]:
           if i==k:
             j.Add(l)
 
-  if plot.name == "comp/TTG_vs_TTZ-boson_genPt_highPt":
-      yieldTTZ  = plot.histos[0][0].Integral()
-      yieldTTG  = plot.histos[1][0].Integral()
-      TTG_scale = yieldTTG/yieldTTZ if yieldTTZ > 0 else 1
-      print "TTG scale: " + str(TTG_scale)
-
-
 for plot in allPlots[allModes[0]]:
-  if plot.name.startswith("comp/TTG_vs_TTZ"):
-      plot.histos[1][0].Scale(1/TTG_scale)
-  if not plot.name.startswith("comp"): plot.histos[1][0].legendText = "Data 2015 (all channels)"
+  plot.histos[1][0].legendText = "Data 2015 (all channels)"
   plotting.draw(plot,
         plot_directory = os.path.join(plot_directory, args.plot_directory, "all", args.selection),
         ratio = {'yRange':(0.1,1.9)},
         logX = False, logY = False, sorting = False,
         yRange = (0.003, "auto"),
-        scaling = {0:1} if plot.name.startswith("comp/TTJets_vs_TTGJets") else {},
-        drawObjects = drawObjects( dataMCScale, lumi_scale ) if not plot.name.startswith("comp/TTG_vs_TTZ") else drawObjects( TTG_scale, lumi_scale),
+        scaling = {},
+        drawObjects = drawObjects( dataMCScale, lumi_scale ),
   )
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )

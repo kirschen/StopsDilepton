@@ -21,17 +21,19 @@ class u_float():
 
     def __add__(self,other):
         if not type(other)==type(self):
-            raise ValueError( "Can't add, two objects should be u_float but is %r."%(type(other)) )
+            if other == 0 or other == None: return self
+            elif self == 0 or self == None: return other
+            else: raise ValueError( "Can't add, two objects should be u_float but is %r."%(type(other)) )
         val = self.val+other.val
         sigma = sqrt(self.sigma**2+other.sigma**2)
         return u_float(val,sigma)
 
     def __iadd__(self,other):
-        if not type(other)==type(self):
-            raise ValueError( "Can't add, two objects should be u_float but is %r."%(type(other)) )
-        self.val = self.val+other.val
-        self.sigma = sqrt(self.sigma**2+other.sigma**2)
+        self = self + other
         return self
+
+    def __radd__(self,other):
+        return self + other
 
     def __sub__(self,other):
         if not type(other)==type(self):
@@ -69,6 +71,21 @@ class u_float():
         else:
             raise NotImplementedError("This should never happen.")
         return u_float(val,sigma)
+
+    def __lt__(self,other):
+        if type(other)==type(self):             return self.val < other.val
+        elif isinstance(other, numbers.Number): return self.val < other
+        else:                                   raise ValueError("Can only compare with u_float, float or int, got %r" % type(other))
+
+    def __gt__(self,other):
+        if type(other)==type(self):             return self.val > other.val
+        elif isinstance(other, numbers.Number): return self.val > other
+        else:                                   raise ValueError("Can only compare with u_float, float or int, got %r" % type(other))
+
+    def __eq__(self,other): return not self < other and not self > other
+    def __ge__(self,other): return not self < other
+    def __le__(self,other): return not self > other
+    def __ne__(self,other): return self < other or self > other
 
     def __str__(self):
         return str(self.val)+'+-'+str(self.sigma)

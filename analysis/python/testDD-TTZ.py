@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from StopsDilepton.analysis.Region import Region
-from StopsDilepton.analysis.defaultAnalysis import setup
+from StopsDilepton.analysis.estimators import setup
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 from StopsDilepton.analysis.DataDrivenTTZEstimate import DataDrivenTTZEstimate
 

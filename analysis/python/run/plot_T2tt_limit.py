@@ -1,12 +1,13 @@
+#!/usr/bin/env python
 import ROOT
 import sys, ctypes, os
 from StopsDilepton.tools.helpers import getObjFromFile
 from StopsDilepton.tools.interpolate import interpolate, rebin
 from StopsDilepton.tools.niceColorPalette import niceColorPalette
-from StopsDilepton.tools.user import plotDir
+from StopsDilepton.tools.user import plot_directory, analysis_results
 from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
-defFile="/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/test5/isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20/limits/flavSplit_almostAllReg/T2tt_limitResults.root"
+defFile= os.path.join(analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20/limits/defaultRegions/T2tt_limitResults.root")
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -15,21 +16,22 @@ parser.add_option("--file", dest="filename", default=defFile, type="string", act
 
 #ofilename = '/afs/hephy.at/user/r/rschoefbeck/www/etc/T2tt_flavSplit_almostAllReg_'+limitPosFix+'_'
 ifs = options.filename.split('/')
-ofilename = os.path.join(plotDir, 'T2tt', ifs[-4], ifs[-2], 'T2tt_limit')
+ofilename = os.path.join(plot_directory, 'T2tt', ifs[-4], ifs[-2], 'T2tt_limit')
 if not os.path.exists(os.path.dirname(ofilename)):
     os.makedirs(os.path.dirname(ofilename))
 
 T2tt_exp        = getObjFromFile(options.filename, "T2tt_exp")
 T2tt_exp_up     = getObjFromFile(options.filename, "T2tt_exp_up")
 T2tt_exp_down   = getObjFromFile(options.filename, "T2tt_exp_down")
-
-T2tt_obs        = getObjFromFile(options.filename, "T2tt_exp").Clone('T2tt_obs') #FIXME!!! This is just for now...
+#T2tt_obs        = getObjFromFile(options.filename, "T2tt_exp").Clone("T2tt_obs")
+T2tt_obs        = getObjFromFile(options.filename, "T2tt_exp")
 T2tt_obs_UL     = T2tt_obs.Clone("T2tt_obs_UL")
 #theory uncertainty on observed limit
-T2tt_obs_up   = T2tt_obs.Clone("T2tt_obs_up")
-T2tt_obs_down = T2tt_obs.Clone("T2tt_obs_down")
+T2tt_obs_up     = T2tt_obs.Clone("T2tt_obs_up")
+T2tt_obs_down   = T2tt_obs.Clone("T2tt_obs_down")
 T2tt_obs_up  .Reset()
 T2tt_obs_down.Reset()
+
 from StopsDilepton.tools.xSecSusy import xSecSusy
 xSecSusy_ = xSecSusy()
 for ix in range(T2tt_obs.GetNbinsX()):
@@ -38,25 +40,25 @@ for ix in range(T2tt_obs.GetNbinsX()):
         mNeu  = T2tt_obs.GetYaxis().GetBinLowEdge(iy)
         v = T2tt_obs.GetBinContent(T2tt_obs.FindBin(mStop, mNeu))
         if v>0:
-            scaleup = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=1)/xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)
+            scaleup   = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=1) /xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)
             scaledown = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=-1)/xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)
             T2tt_obs_UL.SetBinContent(T2tt_obs.FindBin(mStop, mNeu), v*xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0))
             T2tt_obs_up.SetBinContent(T2tt_obs.FindBin(mStop, mNeu), v*scaleup)
             T2tt_obs_down.SetBinContent(T2tt_obs.FindBin(mStop, mNeu), v*scaledown)
 
-T2tt_obs_int = interpolate(T2tt_obs)
-T2tt_obs_UL_int = interpolate(T2tt_obs_UL)
-T2tt_obs_up_int = interpolate(T2tt_obs_up)
+T2tt_obs_int      = interpolate(T2tt_obs)
+T2tt_obs_UL_int   = interpolate(T2tt_obs_UL)
+T2tt_obs_up_int   = interpolate(T2tt_obs_up)
 T2tt_obs_down_int = interpolate(T2tt_obs_down)
-T2tt_exp_int = interpolate(T2tt_exp)
-T2tt_exp_up_int = interpolate(T2tt_exp_up)
+T2tt_exp_int      = interpolate(T2tt_exp)
+T2tt_exp_up_int   = interpolate(T2tt_exp_up)
 T2tt_exp_down_int = interpolate(T2tt_exp_down)
 
-T2tt_obs_smooth = T2tt_obs_int.Clone("T2tt_obs_smooth")
-T2tt_obs_up_smooth = T2tt_obs_up_int.Clone("T2tt_obs_up_smooth")
+T2tt_obs_smooth      = T2tt_obs_int.Clone("T2tt_obs_smooth")
+T2tt_obs_up_smooth   = T2tt_obs_up_int.Clone("T2tt_obs_up_smooth")
 T2tt_obs_down_smooth = T2tt_obs_down_int.Clone("T2tt_obs_down_smooth")
-T2tt_exp_smooth = T2tt_exp_int.Clone("T2tt_exp_smooth")
-T2tt_exp_up_smooth = T2tt_exp_up_int.Clone("T2tt_exp_up_smooth")
+T2tt_exp_smooth      = T2tt_exp_int.Clone("T2tt_exp_smooth")
+T2tt_exp_up_smooth   = T2tt_exp_up_int.Clone("T2tt_exp_up_smooth")
 T2tt_exp_down_smooth = T2tt_exp_down_int.Clone("T2tt_exp_down_smooth")
 for i in range(1):
 
