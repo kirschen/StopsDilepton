@@ -1,8 +1,9 @@
+import os
 from math import sqrt
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
-#from StopsDilepton.tools.helpers import printHeader
+from StopsDilepton.analysis.Cache        import Cache
 
 # Logging
 import logging
@@ -31,9 +32,22 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         self.sysErrTop16009    = (-0.17, +0.20)
         self.statErrTop16009   = (-0.37, +0.42)
 
+        # Because we are going to reuse a lot of yields which otherwise will be terribly slow
+        self.helperCacheName = os.path.join('.', 'helperCache.pkl')
+        self.helperCache     = Cache(self.helperCacheName, verbosity=2)
+
+    def yieldFromCache(self, setup, sample, channel, selectionString, weightString):
+        s = (sample, channel, selectionString, weightString)
+        if self.helperCache.contains(s):
+          return self.helperCache.get(s)
+        else:
+	  yieldFromDraw = u_float(**setup.sample[sample][channel].getYieldFromDraw(selectionString, weightString))
+          self.helperCache.add(s, yieldFromDraw, save=True)
+	  return yieldFromDraw
+
     #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup):
-        logger.info("Data-driven estimate for region " + str(region) + " in channel " + channel + " and setup " + str(setup.sys) + ":")
+        logger.info("Data-driven TTZ estimate for region " + str(region) + " in channel " + channel + " and setup " + str(setup.sys) + ":")
 
         #Sum of all channels for 'all'
         if channel=='all':
@@ -45,16 +59,17 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 
             MC_2l = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
             weight = setup.weightString()
-            logger.debug("weight: %s", weight)
+            logger.info("weight: %s", weight)
 
-            yield_MC_2l =  setup.lumi[channel]/1000.*u_float(**setup.sample['TTZ'][channel].getYieldFromDraw(selectionString = MC_2l, weightString=weight))
-            logger.debug("yield_MC_2l: %s"%yield_MC_2l)
+            yield_ttZ_2l = setup.lumi[channel]/1000.*self.yieldFromCache(setup, 'TTZ', channel, MC_2l, weight)
+            logger.info("yield_MC_2l: %s"%yield_ttZ_2l)
 
             if self.useTop16009:
               sysError  = max((abs(x) for x in self.sysErrTop16009))    # not sure yet to handle assymetric errors
               statError = max((abs(x) for x in self.statErrTop16009))
               error     = sqrt(sysError*sysError+statError*statError)
-	      return u_float(self.ratioTop16009, error)*yield_MC_2l
+	      return u_float(self.ratioTop16009, error)*yield_ttZ_2l
+
             else:
 	      # pt leptons > 30, 20, 10 GeV
 	      useTrigger      = False # setup.parameters['useTriggers'] # better not to use three lepton triggers, seems to be too inefficient
@@ -82,13 +97,11 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 	      data_muee   = mueeSelection   + "&&" + selection["Data"]
 	      data_eee    = eeeSelection    + "&&" + selection["Data"]
 
-              logger.info(data_eee)
 	      # Calculate yields (take together)
-	      yield_ttZ_2l      = setup.lumi[channel]/1000.*u_float(**setup.sample['TTZ'][channel].getYieldFromDraw(selectionString = MC_2l,                                 weightString=weight))
-	      yield_ttZ_3l      = setup.lumi[channel]/1000.*u_float(**setup.sample['TTZ'][channel].getYieldFromDraw(selectionString = MC_3l,                                 weightString=weight))
-	      yield_data_mumumu =                           u_float(**setup.sample['Data']['MuMu'].getYieldFromDraw(selectionString = data_mumumu,                           weightString="("+str(setup.rescaleDataLumi(channel)) + ")"))
-	      yield_data_eee    =                           u_float(**setup.sample['Data']['EE'].getYieldFromDraw(  selectionString = data_eee,                              weightString="("+str(setup.rescaleDataLumi(channel)) + ")"))
-	      yield_data_mue    =                           u_float(**setup.sample['Data']['EMu'].getYieldFromDraw( selectionString = "(("+data_mumue+')||('+data_muee+'))', weightString="("+str(setup.rescaleDataLumi(channel)) + ")"))
+	      yield_ttZ_3l      = setup.lumi[channel]/1000.*self.yieldFromCache(setup, 'TTZ', channel, MC_3l,                                 weight)
+	      yield_data_mumumu =                           self.yieldFromCache(setup, 'Data', 'MuMu', data_mumumu,                           "("+str(setup.rescaleDataLumi(channel)) + ")")
+	      yield_data_eee    =                           self.yieldFromCache(setup, 'Data', 'EE',   data_eee,                              "("+str(setup.rescaleDataLumi(channel)) + ")")
+	      yield_data_mue    =                           self.yieldFromCache(setup, 'Data', 'EMu',  "(("+data_mumue+')||('+data_muee+'))', "("+str(setup.rescaleDataLumi(channel)) + ")")
 	      yield_data_3l     = yield_data_mumumu + yield_data_mue + yield_data_eee
 
               if not yield_ttZ_3l > 0:
@@ -96,7 +109,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
                 estimate = u_float(0, 0)
 
 	      #electroweak subtraction
-	      yield_other = sum(setup.lumi[channel]/1000.* u_float(**setup.sample[s][channel].getYieldFromDraw(selectionString = MC_3l,  weightString=weight)) for s in ['TTJets', 'DY', 'other'])
+	      yield_other = sum(setup.lumi[channel]/1000.*self.yieldFromCache(setup, s, channel, MC_3l, weight) for s in ['TTJets', 'DY', 'other'])
 
 	      yield_ttZ_data = yield_data_3l - yield_other
 	      if yield_ttZ_data < 0:
