@@ -5,9 +5,16 @@
 import ROOT
 from math import sqrt, cos, sin, pi, acos
 import itertools
+import pickle
 
 #RootTools
 from RootTools.core.standard import *
+
+#StopsDilepton
+from StopsDilepton.tools.helpers import getCollection, deltaR
+from StopsDilepton.tools.objectSelection import getGoodAndOtherLeptons, leptonVars, looseEleID, looseMuID, getLeptons, getOtherLeptons, getGoodLeptons
+from StopsDilepton.tools.mt2Calculator import mt2Calculator
+mt2Calc = mt2Calculator() 
 
 # argParser
 import argparse
@@ -21,9 +28,15 @@ argParser.add_argument('--logLevel',
 )
 
 argParser.add_argument('--mode',
-    default='doubleMu',
+    default='doubleEle',
     action='store',
     choices=['doubleMu', 'doubleEle',  'muEle'])
+
+argParser.add_argument('--isolation',
+    default='standard',
+    #default='VeryLoose',
+    action='store',
+    choices=['VeryLoose', 'VeryLooseInverted', 'VeryLoosePt10', 'standard'])
 
 argParser.add_argument('--charges',
     default='OS',
@@ -36,11 +49,6 @@ argParser.add_argument('--zMode',
     choices=['onZ', 'offZ', 'allZ']
 )
 
-argParser.add_argument('--ttjets',
-    default='LO',
-    action='store',
-    choices=['LO', 'NLO'])
-
 argParser.add_argument('--noData',
     action='store_true',
     help='Skip data',
@@ -48,7 +56,13 @@ argParser.add_argument('--noData',
 
 argParser.add_argument('--small',
     action='store_true',
+    #default = True,
     help='Small?',
+)
+
+argParser.add_argument('--noTrigger',
+    action='store_true',
+    help='noTrigger?',
 )
 
 argParser.add_argument('--reversed',
@@ -65,14 +79,14 @@ argParser.add_argument('--signals',
     )
 
 argParser.add_argument('--overwrite',
-   default = False,
-    #default = True,
+#    default = False,
+    default = True,
     action='store_true',
     help='overwrite?',
 )
 
 argParser.add_argument('--plot_directory',
-    default='png25ns_2l_mAODv2_2100_noPU_VTVT_0bDiagnosis',
+    default='png25ns_2l_mAODv2_2100_noPU_new',
     action='store',
 )
 
@@ -85,8 +99,14 @@ import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 #make samples
-data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/" 
-postProcessing_directory = "postProcessed_Fall15_mAODv2/dilep/" 
+
+if args.isolation=='standard':
+    data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/" 
+    postProcessing_directory = "postProcessed_Fall15_mAODv2/dilep/" 
+elif args.isolation=="VeryLoose" or args.isolation=="VeryLooseInverted":
+    data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/" 
+    postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepVeryLoose/" 
+else: raise ValueError
 
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
@@ -102,17 +122,17 @@ if args.mode=="doubleMu":
     leptonSelectionString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
     data_sample = DoubleMuon_Run2015D if not args.noData else None
     qcd_sample = QCD_Mu5 #FIXME
-    trigger     = "HLT_mumuIso"
+    trigger     = "HLT_mumuIso" if not args.noTrigger else "(1)"
 elif args.mode=="doubleEle":
     leptonSelectionString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
     data_sample = DoubleEG_Run2015D if not args.noData else None
     qcd_sample = QCD_EMbcToE
-    trigger   = "HLT_ee_DZ"
+    trigger   = "HLT_ee_DZ" if not args.noTrigger else "(1)"
 elif args.mode=="muEle":
     leptonSelectionString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
     data_sample = MuonEG_Run2015D if not args.noData else None
     qcd_sample = QCD_Mu5EMbcToE
-    trigger    = "HLT_mue"
+    trigger    = "HLT_mue" if not args.noTrigger else "(1)"
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
@@ -120,20 +140,34 @@ else:
 dataFilterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
 mcFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
 
-if args.ttjets == "NLO":
-    TTJets_sample = TTJets
-elif args.ttjets == "LO":
-    TTJets_sample = TTJets_Lep 
-else:
-    raise ValueError
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
+TTJets_1l    = TTJets_Singlelep
+TTJets_1l.name = "TTJets_1l"
+TTJets_1l.texName = "TTJets 1l"
+TTJets_1l.color = ROOT.kAzure - 2
+
+TTJets_l2_prompt    = TTJets_Dilep
+TTJets_l2_prompt.name = "TTJets_2l_prompt"
+TTJets_l2_prompt.texName = "TTJets 2l (prompt)"
+TTJets_l2_prompt.weight =    lambda data: not data.l2_matched_nonPrompt
+
+TTJets_l2_nonPrompt = copy.deepcopy(TTJets_Dilep)
+TTJets_l2_nonPrompt.name = "TTJets_2l_nonPrompt"
+TTJets_l2_nonPrompt.texName = "TTJets 2l (non-prompt)"
+TTJets_l2_nonPrompt.weight = lambda data: data.l2_matched_nonPrompt
+TTJets_l2_nonPrompt.color = ROOT.kAzure + 9
+
+mc = [ DY_HT_LO, TTJets_l2_prompt, TTJets_1l, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ, TTJets_l2_nonPrompt]
+mc_for_normalization = [ DY_HT_LO, TTJets, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
+#mc = [WZZ]
+#mc_for_normalization = [WZZ]
+
 #mc = [ TTX]
 if args.small:
-    for sample in mc:
-        sample.reduceFiles(to = 1)
+    for s in mc:
+        s.reduceFiles(to = 1)
 
 if not args.noData:
     data_sample.style = styles.errorStyle( ROOT.kBlack )
@@ -147,26 +181,25 @@ from StopsDilepton.tools.user import plot_directory
 # official PU reweighting
 weight = lambda data:data.weight
 
-from StopsDilepton.tools.objectSelection import multiIsoLepString
-multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
-
-basic_cuts=[
-    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
-    ("mll20", "dl_mass>20"),
-    ("dPhiJet0-dPhiJet1", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0"),
-    ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
-    ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
-]
 cuts=[
-    #("njet0", "nJetGood==0"),
-    #("njet0p", "nJetGood>=0"),
-    #("njet1", "nJetGood==1"),
-     ("njet2p", "nJetGood>=2"),
-    ("nbtag0", "nBTag==0"),
-    ("nbtag1p", "nBTag>=1"),
-    ("met80-metSig5", "met_pt>80&&(met_pt/sqrt(ht)>5||nJetGood==0)"),
-    ("highMT2ll", "dl_mt2ll>140"),
+    ("leadingLepIsTight", "l1_miniRelIso<0.4"),
 ]
+if args.isolation=="VeryLooseInverted":
+    cuts+=[ ("trailingLepNonIso", "l2_miniRelIso>0.4") ]
+cuts+=[
+    ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
+    ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
+#    ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
+#    ("mll20", "dl_mass>20"),
+    ("met80", "met_pt>80"),
+    ("metSig5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
+    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+]
+
+def add_histos( l ):
+    res = l[0].Clone()
+    for h in l[1:]: res.Add(h)
+    return res
                 
 def drawObjects( dataMCScale ):
     tex = ROOT.TLatex()
@@ -208,33 +241,123 @@ if len(args.signals)>0:
         except NameError:
             logger.warning( "Could not add signal %s", s)
 
+def fromTau( gen_lepton ):
+    return gen_lepton['n_tau']>0
+def prompt( gen_lepton ):
+    return not fromTau( gen_lepton) and gen_lepton['n_B']==0 and gen_lepton['n_D']==0
+def nonPrompt( gen_lepton ):
+    return not fromTau( gen_lepton) and not ( gen_lepton['n_B']==0 and gen_lepton['n_D']==0 ) 
+
+gen_ttbar_sequence = []
+
+# Match l1 and l2
+def matchLeptons( data ):
+    # Get Gen leptons
+    gen_leps = getCollection(data, "GenLep", ["pt", "eta", "phi", "n_t", "n_W", "n_B", "n_D", "n_tau", "pdgId"], "nGenLep" )
+    non_prompt = filter(lambda l: nonPrompt(l), gen_leps )
+    # Get selected leptons
+    l1 = {'pt':data.l1_pt, 'eta':data.l1_eta, 'phi':data.l1_phi, 'pdgId':data.l1_pdgId} 
+    l2 = {'pt':data.l2_pt, 'eta':data.l2_eta, 'phi':data.l2_phi, 'pdgId':data.l2_pdgId} 
+    # match l1 and l2 
+    data.l1_matched_nonPrompt = False 
+    data.l2_matched_nonPrompt = False 
+    for gl in non_prompt:
+        if gl['pdgId']==l1['pdgId'] and deltaR(gl, l1)<0.2 and abs(1-gl['pt']/l1['pt'])<0.5:
+            data.l1_matched_nonPrompt = True
+        if gl['pdgId']==l2['pdgId'] and deltaR(gl, l2)<0.2 and abs(1-gl['pt']/l2['pt'])<0.5:
+            data.l2_matched_nonPrompt = True
+    return
+
+gen_ttbar_sequence.append( matchLeptons )
+
+read_variables = [\
+    "weight/F" , "JetGood[pt/F,eta/F,phi/F]",
+]
+
+read_variables.extend([\
+    "nLepGood/I",  "LepGood[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F]",
+    "nLepOther/I", "LepOther[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F]",
+])
+
+def fs(pdgId):
+    if abs(pdgId)==11:
+        return "e"
+    elif abs(pdgId)==13:
+        return "m"
+    else: raise ValueError
+
 sequence = []
 
-from StopsDilepton.tools.helpers import deltaR
-from StopsDilepton.tools.objectSelection import getJets
+if args.isolation == "standard":
+    def initSwappedMT2ll( data ):
+        # initial values
+        for fh in ["leadingLepIso", "leadingLepNonIso"]:
+            for swap in ["L1", "L2"]:
+                for fs in ["mm","me","em","ee"]:
+                    setattr(data, "dl_mt2ll_%s_swap%s_%s"%(fh, swap, fs), float('nan') )
+                    # print "dl_mt2ll_%s_swap%s_%s"%(fh, swap, fs)
 
-def makeMinDeltaRLepJets( data ):
-    jets = filter(lambda j: j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(data, jetColl="JetGood"))
-    if len(jets)>0:
-        dr =  [deltaR(j, {'eta':data.l1_eta, 'phi':data.l1_phi}) for j in jets] 
-        dr += [deltaR(j, {'eta':data.l2_eta, 'phi':data.l2_phi}) for j in jets] 
-        setattr( data, "minDeltaRLepJets", min(dr) )
-    else:
-        setattr( data, "minDeltaRLepJets", float('nan') )
+    sequence.append( initSwappedMT2ll )
 
-    loose_bjets = filter(lambda j: j['btagCSV']>0.605, jets)
-    if len(loose_bjets)>0:
-        dr =  [deltaR(j, {'eta':data.l1_eta, 'phi':data.l1_phi}) for j in loose_bjets] 
-        dr += [deltaR(j, {'eta':data.l2_eta, 'phi':data.l2_phi}) for j in loose_bjets] 
-        setattr( data, "minDeltaRLepBJets", min(dr) )
-    else:
-        setattr( data, "minDeltaRLepBJets", float('nan') )
-        
+    def makeSwappedMT2ll(data, l1, l2, nonIsoLep, verbose = False):
+        mt2Calc.reset()
+        mt2Calc.setMet(data.met_pt, data.met_phi)
 
-sequence.append( makeMinDeltaRLepJets )
+        # swap l1
+        final_hierarchy = "leadingLepNonIso" if nonIsoLep['pt']>l2['pt'] else "leadingLepIso"
+        l1p, l2p = (nonIsoLep, l2) if nonIsoLep['pt']>l2['pt'] else (l2, nonIsoLep)
+        finalState = "".join(fs(p['pdgId']) for p in [l1p, l2p])
+        pfix = "_".join([final_hierarchy, "swapL1", finalState])
+        mt2Calc.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
+        setattr(data, "dl_mt2ll_"+pfix, mt2Calc.mt2ll() )
+        if verbose: print "dl_mt2ll_"+pfix, mt2Calc.mt2ll()
 
-rev = reversed if args.reversed else lambda x:x
-for i_comb in rev( range( len(cuts)+1 ) ):
+        # swap l2
+        final_hierarchy = "leadingLepNonIso" if nonIsoLep['pt']>l1['pt'] else "leadingLepIso"
+        l1p, l2p = (nonIsoLep, l1) if nonIsoLep['pt']>l1['pt'] else (l1, nonIsoLep)
+        finalState = "".join(fs(p['pdgId']) for p in [l1p, l2p])
+        pfix = "_".join([final_hierarchy, "swapL2", finalState])
+        mt2Calc.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
+        setattr(data, "dl_mt2ll_"+pfix, mt2Calc.mt2ll() )
+        if verbose: print "dl_mt2ll_"+pfix, mt2Calc.mt2ll() 
+
+    verbose = False
+    def makeNonIsoLeptons( data ):
+
+        goodLeptons = getGoodLeptons( data, collVars = leptonVars )
+        allExtraLeptons = sorted( \
+            [l for l in getLeptons( data, collVars = leptonVars ) if l not in goodLeptons] + getOtherLeptons( data , collVars = leptonVars ), 
+                        key=lambda l: -l['pt'] )
+
+        # print len(allLeptons), len(goodLeptons), len(allExtraLeptons) 
+        assert len(goodLeptons)==2, "Analysis leptons not found!"
+        l1, l2 = goodLeptons
+        #print l1['pt'] - data.l1_pt, l2['pt'] - data.l2_pt
+        data.allExtraLeptons = allExtraLeptons
+
+        nonIsoMus  = filter(lambda l: abs(l['pdgId'])==13 and l['miniRelIso']>0.2 and l['pt']>5, allExtraLeptons )
+        nonIsoEles = filter(lambda l: abs(l['pdgId'])==11 and l['miniRelIso']>0.2 and l['pt']>7, allExtraLeptons )
+        #print nonIsoMus, nonIsoEles
+
+        data.nonIsoMu  = nonIsoMus[-1] if len(nonIsoMus)>0 else None 
+        data.nonIsoEle = nonIsoEles[-1] if len(nonIsoEles)>0 else None 
+
+        # extra ele
+        if data.nonIsoEle is not None:
+            makeSwappedMT2ll( data, l1, l2, data.nonIsoEle, verbose = verbose)
+        if data.nonIsoMu is not None:
+            makeSwappedMT2ll( data, l1, l2, data.nonIsoMu, verbose = verbose)
+        if verbose: print
+
+    sequence.append( makeNonIsoLeptons )
+
+for sample in [TTJets_l2_prompt, TTJets_l2_nonPrompt]:
+    sample.sequence = gen_ttbar_sequence        
+    sample.read_variables = [ "nGenLep/I", "GenLep[pt/F,eta/F,phi/F,n_t/I,n_W/I,n_B/I,n_D/I,n_tau/I,pdgId/I]"]
+
+#rev = reversed if args.reversed else lambda x:x
+#for i_comb in rev( range( len(cuts)+1 ) ):
+for i_comb in [len(cuts)]:
     for comb in itertools.combinations( cuts, i_comb ):
 
         if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
@@ -250,13 +373,11 @@ for i_comb in rev( range( len(cuts)+1 ) ):
 
         # presel += [("highMiniRelIso","max(l1_miniRelIso,l2_miniRelIso)>0.4")]
  
-        presel.extend( basic_cuts )
         presel.extend( comb )
 
-        ppfixes = [args.mode, args.zMode]
-        if args.ttjets == "NLO": ppfixes.append( "TTJetsNLO" )
-        if args.ttjets == "LO": ppfixes.append( "TTJetsLO" )
+        ppfixes = [args.mode, args.zMode, args.isolation]
         if args.small: ppfixes = ['small'] + ppfixes
+        if args.noTrigger: ppfixes.append( "noTrigger" )
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
 
         plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
@@ -264,17 +385,15 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             logger.info( "Path %s not empty. Skipping."%path )
             continue
 
-        selectionString = "&&".join( [p[1] for p in presel] + [leptonSelectionString] )
+        if "nbtag1" in prefix and "nbtag0" in prefix: continue
 
-        if  prefix.count('nbtag')>1: continue
-        if  prefix.count('njet')>1: continue
-        if "njet0p" not in prefix and "njet0" in prefix and "btag1" in prefix:continue
+        selectionString = "&&".join( [p[1] for p in presel] + [leptonSelectionString] )
 
         logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionString )
 
         if not args.noData:
             logger.info( "Calculating normalization constants" )        
-            yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc)
+            yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc_for_normalization)
             yield_data  = data_sample.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
 
             for sample in mc:
@@ -284,6 +403,7 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
         else:
             dataMCScale = None 
+
 
         plots = []
 
@@ -327,30 +447,22 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             )
         plots.append( dl_phi )
 
-        minDeltaRLepJets  = Plot(
-            name = "minDeltaRLepJets",
-            texX = 'min #Delta R(loose b-jets, leptons) ', texY = 'Number of Events',
-            stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.minDeltaRLepJets)),
-            binning=[30,0,4],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( minDeltaRLepJets )
-
-        minDeltaRLepBJets  = Plot(
-            name = "minDeltaRLepBJets",
-            texX = 'min #Delta R(loose b-jets, leptons) ', texY = 'Number of Events',
-            stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.minDeltaRLepBJets)),
-            binning=[30,0,4],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( minDeltaRLepBJets )
+#        dl_dphi  = Plot(
+#            texX = '#Delta#phi(l_{1},l_{2})', texY = 'Number of Events',
+#            stack = stack, 
+#            variable = Variable.fromString('dl_dphi/F').addFiller(
+#                helpers.uses( 
+#                    lambda data: acos(cos(l1_phi-l2_phi)), 
+#                    ["l1_phi/F", "l2_phi/F"])
+#            ), 
+#            binning=[60,-2*pi,2*pi],
+#            selectionString = selectionString,
+#            weight = weight,
+#            )
+#        plots.append( dl_dphi )
 
         dl_mt2ll  = Plot(
-            texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
+            texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 15 GeV',
             stack = stack, 
             variable = Variable.fromString( "dl_mt2ll/F" ),
             binning=[300/15,0,300],
@@ -359,8 +471,119 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             )
         plots.append( dl_mt2ll )
 
+        if args.isolation == "standard":
+            mt2ll_leadingLepIso_swapL1_mm  = Plot(
+                name = "mt2ll_leadingLepIso_swapL1_mm",
+                texX = 'MT_{2}^{ll}(l.l. Iso, swap l1, mm)', texY = 'Number of Events / 15 GeV',
+                stack = stack, 
+                variable = ScalarType.uniqueFloat().addFiller(lambda data:data.dl_mt2ll_leadingLepIso_swapL1_mm),
+                binning=[300/15,0,300],
+                selectionString = selectionString,
+                weight = weight,
+                )
+            plots.append( mt2ll_leadingLepIso_swapL1_mm )
+
+            mt2ll_leadingLepIso_swapL2_mm  = Plot(
+                name = "mt2ll_leadingLepIso_swapL2_mm",
+                texX = 'MT_{2}^{ll}(l.l. Iso, swap l2, mm)', texY = 'Number of Events / 15 GeV',
+                stack = stack, 
+                variable = ScalarType.uniqueFloat().addFiller(lambda data:data.dl_mt2ll_leadingLepIso_swapL2_mm),
+                binning=[300/15,0,300],
+                selectionString = selectionString,
+                weight = weight,
+                )
+            plots.append( mt2ll_leadingLepIso_swapL2_mm )
+
+            mt2ll_leadingLepIso_swapL1_me  = Plot(
+                name = "mt2ll_leadingLepIso_swapL1_me",
+                texX = 'MT_{2}^{ll}(l.l. Iso, swap l1, me)', texY = 'Number of Events / 15 GeV',
+                stack = stack, 
+                variable = ScalarType.uniqueFloat().addFiller(lambda data:data.dl_mt2ll_leadingLepIso_swapL1_me),
+                binning=[300/15,0,300],
+                selectionString = selectionString,
+                weight = weight,
+                )
+            plots.append( mt2ll_leadingLepIso_swapL1_me )
+
+            mt2ll_leadingLepIso_swapL2_me  = Plot(
+                name = "mt2ll_leadingLepIso_swapL2_me",
+                texX = 'MT_{2}^{ll}(l.l. Iso, swap l2, me)', texY = 'Number of Events / 15 GeV',
+                stack = stack, 
+                variable = ScalarType.uniqueFloat().addFiller(lambda data:data.dl_mt2ll_leadingLepIso_swapL2_me),
+                binning=[300/15,0,300],
+                selectionString = selectionString,
+                weight = weight,
+                )
+            plots.append( mt2ll_leadingLepIso_swapL2_me )
+
+            mt2ll_leadingLepIso_swapL1_em  = Plot(
+                name = "mt2ll_leadingLepIso_swapL1_em",
+                texX = 'MT_{2}^{ll}(l.l. Iso, swap l1, em)', texY = 'Number of Events / 15 GeV',
+                stack = stack, 
+                variable = ScalarType.uniqueFloat().addFiller(lambda data:data.dl_mt2ll_leadingLepIso_swapL1_em),
+                binning=[300/15,0,300],
+                selectionString = selectionString,
+                weight = weight,
+                )
+            plots.append( mt2ll_leadingLepIso_swapL1_em )
+
+            mt2ll_leadingLepIso_swapL2_em  = Plot(
+                name = "mt2ll_leadingLepIso_swapL2_em",
+                texX = 'MT_{2}^{ll}(l.l. Iso, swap l2, em)', texY = 'Number of Events / 15 GeV',
+                stack = stack, 
+                variable = ScalarType.uniqueFloat().addFiller(lambda data:data.dl_mt2ll_leadingLepIso_swapL2_em),
+                binning=[300/15,0,300],
+                selectionString = selectionString,
+                weight = weight,
+                )
+            plots.append( mt2ll_leadingLepIso_swapL2_em )
+
+            mt2ll_leadingLepIso_swapL1_ee  = Plot(
+                name = "mt2ll_leadingLepIso_swapL1_ee",
+                texX = 'MT_{2}^{ll}(l.l. Iso, swap l1, ee)', texY = 'Number of Events / 15 GeV',
+                stack = stack, 
+                variable = ScalarType.uniqueFloat().addFiller(lambda data:data.dl_mt2ll_leadingLepIso_swapL1_ee),
+                binning=[300/15,0,300],
+                selectionString = selectionString,
+                weight = weight,
+                )
+            plots.append( mt2ll_leadingLepIso_swapL1_ee )
+
+            mt2ll_leadingLepIso_swapL2_ee  = Plot(
+                name = "mt2ll_leadingLepIso_swapL2_ee",
+                texX = 'MT_{2}^{ll}(l.l. Iso, swap l2, ee)', texY = 'Number of Events / 15 GeV',
+                stack = stack, 
+                variable = ScalarType.uniqueFloat().addFiller(lambda data:data.dl_mt2ll_leadingLepIso_swapL2_ee),
+                binning=[300/15,0,300],
+                selectionString = selectionString,
+                weight = weight,
+                )
+            plots.append( mt2ll_leadingLepIso_swapL2_ee )
+
+            extra_mu_pt  = Plot(
+                name = "extra_mu_pt",
+                texX = 'p_{T}(extra #mu) (GeV)', texY = 'Number of Events / 1 GeV',
+                stack = stack, 
+                variable = ScalarType.uniqueFloat().addFiller(lambda data:data.nonIsoMu['pt'] if data.nonIsoMu is not None else float('nan') ),
+                binning=[30,0,30],
+                selectionString = selectionString,
+                weight = weight,
+                )
+            plots.append( extra_mu_pt )
+
+            extra_ele_pt  = Plot(
+                name = "extra_ele_pt",
+                texX = 'p_{T}(extra e) (GeV)', texY = 'Number of Events / 1 GeV',
+                stack = stack, 
+                variable = ScalarType.uniqueFloat().addFiller(lambda data:data.nonIsoEle['pt'] if data.nonIsoEle is not None else float('nan') ),
+                binning=[30,0,30],
+                selectionString = selectionString,
+                weight = weight,
+                )
+            plots.append( extra_ele_pt )
+
         dl_mt2bb  = Plot(
-            texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
+            texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 15 GeV',
             stack = stack, 
             variable = Variable.fromString( "dl_mt2bb/F" ),
             binning=[300/15,0,300],
@@ -370,7 +593,7 @@ for i_comb in rev( range( len(cuts)+1 ) ):
         plots.append( dl_mt2bb )
 
         dl_mt2blbl  = Plot(
-            texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
+            texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 15 GeV',
             stack = stack, 
             variable = Variable.fromString( "dl_mt2blbl/F" ),
             binning=[300/15,0,300],
@@ -378,7 +601,7 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             weight = weight,
             ) 
         plots.append( dl_mt2blbl )
- 
+         
         l1_pt  = Plot(
             texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
             stack = stack, 
@@ -707,7 +930,6 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             )
         plots.append( nVert )
 
-        read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F,btagCSV/F,id/I]"]
         plotting.fill(plots, read_variables = read_variables, sequence = sequence)
         if not os.path.exists( plot_path ): os.makedirs( plot_path )
 
@@ -720,4 +942,70 @@ for i_comb in rev( range( len(cuts)+1 ) ):
                 yRange = (0.03, "auto"), 
                 drawObjects = drawObjects( dataMCScale )
             )
+
+        # Dump dl_mt2ll extra lepton histos
+        if args.isolation=='standard':
+            for fh in ["leadingLepIso"]:
+                for swap in ["L1", "L2"]:
+                    for fs in ["mm","me","em","ee"]:
+                        ofile = os.path.join(plot_path, "dl_mt2ll_%s_swap%s_%s.pkl"%(fh, swap, fs))
+                        pickle.dump(getattr( eval("mt2ll_%s_swap%s_%s"%(fh, swap, fs)), "histos"), file( ofile, 'w') )
+                        logger.info( "Written %s", ofile )
+        elif 'Loose' in args.isolation:
+            # load mt2ll extra lepton histos (same directory but with isolation 'standard')
+            histos = {}
+            for m in ['doubleMu', 'doubleEle', 'muEle']:
+                for fh in ["leadingLepIso"]:
+                    for swap in ["L1", "L2"]:
+                        for fs in ["mm","me","em","ee"]:
+                            ofile = os.path.join(plot_directory, args.plot_directory, prefix.replace(args.isolation, "standard").replace("small_","").replace(args.mode, m), "dl_mt2ll_%s_swap%s_%s.pkl"%(fh, swap, fs))
+                            if os.path.isfile(ofile):
+                                logger.info( "Loading %s", ofile )
+                                histos["%s_mt2ll_%s_swap%s_%s"%(m, fh, swap, fs)] = pickle.load( file( ofile) )
+                            else:
+                                logger.warning( "File not found: %s", ofile)
+
+            # construct shape of swapped leptons
+            if args.mode == 'doubleMu':
+                fss = ["mm"]
+            elif args.mode == 'doubleEle':
+                fss = ['ee']
+            elif args.mode== 'muEle':
+                fss = ['em', 'me']
+            else: raise ValueError( "Unknown mode %s"%args.mode )
+
+            # sum up all contributions
+            shape_histos = []
+            for m in ['doubleMu', 'doubleEle', 'muEle']:
+                for fh in ["leadingLepIso"]:
+                    for swap in ["L1", "L2"]:
+                        for fs in fss:
+                            logger.info( "Adding %s_mt2ll_%s_swap%s_%s"%(m, fh, swap, fs) )
+                            shape_histos.extend( histos["%s_mt2ll_%s_swap%s_%s"%(m, fh, swap, fs)][0] )
+
+            shape = add_histos( shape_histos )
+            #shape.Scale( dl_mt2ll.histos[0][ mc.index( TTJets_l2_nonPrompt  ) ].Integral() / shape.Integral() )
+            bin_low, bin_high = shape.FindBin( 90 ), shape.FindBin( 290 )
+            h_TTJets_l2_nonPrompt = dl_mt2ll.histos[0][ mc.index( TTJets_l2_nonPrompt  ) ] 
+            shape.Scale( h_TTJets_l2_nonPrompt.Integral( bin_low, bin_high ) / shape.Integral( bin_low, bin_high ) )
+            shape.style = styles.lineStyle( ROOT.kRed )
+
+            plotting.draw(
+                Plot.fromHisto(name = "dl_mt2ll_comp", histos = dl_mt2ll.histos + [[ shape ]], texX = dl_mt2ll.texX, texY = dl_mt2ll.texY),
+                plot_directory = plot_path, #ratio = ratio, 
+                logX = False, logY = True, sorting = False,
+                 yRange = (0.003, "auto"), legend = None ,
+                # scaling = {0:1},
+                 drawObjects = drawObjects( dataMCScale )
+            )
+            plotting.draw(
+                Plot.fromHisto(name = "dl_mt2ll_shape", histos = [[h_TTJets_l2_nonPrompt]] + [[ shape ]], texX = dl_mt2ll.texX, texY = dl_mt2ll.texY),
+                plot_directory = plot_path, #ratio = ratio, 
+                logX = False, logY = True, sorting = False,
+                 yRange = (0.003, "auto"), legend = None ,
+                # scaling = {0:1},
+                 drawObjects = drawObjects( dataMCScale )
+            )
+             
         logger.info( "Done with prefix %s and selectionString %s", prefix, selectionString )
+
