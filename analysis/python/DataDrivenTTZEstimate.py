@@ -23,9 +23,9 @@ def getPtThresholdString(firstPt, secondPt, thirdPt):
 class DataDrivenTTZEstimate(SystematicEstimator):
     def __init__(self, name, cacheDir=None, useTop16009=False):
         super(DataDrivenTTZEstimate, self).__init__(name, cacheDir=cacheDir)
-        self.nJets        = (4,-1) # jet selection (min, max)
+        self.nJets        = (3,-1) # jet selection (min, max)
         self.nLooseBTags  = (2,-1) # loose bjet selection (min, max)
-        self.nMediumBTags = (1,-1) # bjet selection (min, max)
+        self.nMediumBTags = (0,-1) # bjet selection (min, max)
 
         self.useTop16009       = useTop16009
         self.ratioTop16009     = 1.27 #
@@ -72,12 +72,13 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 
             else:
 	      # pt leptons > 30, 20, 10 GeV
-	      useTrigger      = False # setup.parameters['useTriggers'] # better not to use three lepton triggers, seems to be too inefficient
-	      mumumuSelection = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3mu"   if useTrigger else "")
-	      mumueSelection  = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2mu1e" if useTrigger else "") 
-	      mueeSelection   = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2e1mu" if useTrigger else "")
-	      eeeSelection    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3e"    if useTrigger else "")
-	      lllSelection    = "((" + ")||(".join([mumumuSelection, mumueSelection, mueeSelection, eeeSelection]) + "))"
+	      useTrigger            = False # setup.parameters['useTriggers'] # better not to use three lepton triggers, seems to be too inefficient
+              lllSelection          = {}
+	      lllSelection['MuMu']  = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3mu"   if useTrigger else "")
+	      lllSelection['MuMuE'] = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2mu1e" if useTrigger else "") 
+	      lllSelection['MuEE']  = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2e1mu" if useTrigger else "")
+	      lllSelection['EE']    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3e"    if useTrigger else "")
+              lllSelection['EMu']   = "(("+lllSelection['MuMuE']+")||("+lllSelection['MuEE']+"))"
 
 	      bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))"
 	      bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))"
@@ -91,25 +92,15 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 		selection[dataOrMC] += "&&" + zMassSelection 
                 logger.info("Selection " + dataOrMC + ": " + selection[dataOrMC])
 
-	      MC_3l       = lllSelection    + "&&" + selection["MC"]
-	      data_mumumu = mumumuSelection + "&&" + selection["Data"]
-	      data_mumue  = mumueSelection  + "&&" + selection["Data"]
-	      data_muee   = mueeSelection   + "&&" + selection["Data"]
-	      data_eee    = eeeSelection    + "&&" + selection["Data"]
-
-	      # Calculate yields (take together)
-	      yield_ttZ_3l      = setup.lumi[channel]/1000.*self.yieldFromCache(setup, 'TTZ', channel, MC_3l,                                 weight)
-	      yield_data_mumumu =                           self.yieldFromCache(setup, 'Data', 'MuMu', data_mumumu,                           "("+str(setup.rescaleDataLumi(channel)) + ")")
-	      yield_data_eee    =                           self.yieldFromCache(setup, 'Data', 'EE',   data_eee,                              "("+str(setup.rescaleDataLumi(channel)) + ")")
-	      yield_data_mue    =                           self.yieldFromCache(setup, 'Data', 'EMu',  "(("+data_mumue+')||('+data_muee+'))', "("+str(setup.rescaleDataLumi(channel)) + ")")
-	      yield_data_3l     = yield_data_mumumu + yield_data_mue + yield_data_eee
+	      # Calculate yields (take together channels together)
+              channels      = ['MuMu','EMu','EE']
+	      yield_ttZ_3l  = sum(self.yieldFromCache(setup, 'TTZ',  c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in ['MuMu','EMu','EE'])
+	      yield_other   = sum(self.yieldFromCache(setup, s,      c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in ['MuMu','EMu','EE'] for s in ['TTJets', 'DY', 'other'])
+	      yield_data_3l = sum(self.yieldFromCache(setup, 'Data', c, "&&".join([lllSelection[c], selection["Data"]]), "(1)")                               for c in ['MuMu','EMu','EE'])
 
               if not yield_ttZ_3l > 0:
                 logger.warn("No yield for 3l selection")
                 estimate = u_float(0, 0)
-
-	      #electroweak subtraction
-	      yield_other = sum(setup.lumi[channel]/1000.*self.yieldFromCache(setup, s, channel, MC_3l, weight) for s in ['TTJets', 'DY', 'other'])
 
 	      yield_ttZ_data = yield_data_3l - yield_other
 	      if yield_ttZ_data < 0:
@@ -122,7 +113,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 	      logger.info("  TTZ (MC):    " + str(yield_ttZ_3l))
 	      logger.info("  TTZ (data):  " + str(yield_ttZ_data))
 	      logger.info("  TTZ (ratio): " + str(yield_ttZ_data/yield_ttZ_3l))
-	      estimate = (yield_ttZ_data/yield_ttZ_3l)*yield_MC_2l
+	      estimate = (yield_ttZ_data/yield_ttZ_3l)*yield_ttZ_2l
 
         logger.info("  -->  " + str(estimate))
 	return estimate
