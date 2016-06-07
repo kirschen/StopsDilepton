@@ -188,7 +188,7 @@ if args.signal == "T2tt":
       except:
 	  print "Something failed for mChi %i mPhi %i res %s"%(mStop, mNeu, res)
 
-  limitResultsFilename = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), 'limits', args.signal, limitPrefix,'limitResults.root'))
+  limitResultsFilename = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, 'limits', args.signal, limitPrefix,'limitResults.root'))
   if not os.path.exists(os.path.dirname(limitResultsFilename)):
       os.makedirs(os.path.dirname(limitResultsFilename))
 
@@ -204,7 +204,7 @@ if args.signal == "T2tt":
 # Make table for DM
 if args.signal == "DM":
   # Create table
-  texdir = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), 'limits', limitPrefix))
+  texdir = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, 'limits', limitPrefix))
 
   for type in sorted(set([type_ for ((mChi, mPhi, type_), res) in results])):
     chiList = sorted(set([mChi  for ((mChi, mPhi, type_), res) in results if type_ == type]))
