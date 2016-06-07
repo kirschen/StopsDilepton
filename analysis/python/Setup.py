@@ -21,7 +21,7 @@ DYSample           = DY_HT_LO #LO, HT binned including a low HT bin starting fro
 #TTJetsSample      = TTJets #NLO
 TTJetsSample       = TTJets_Lep #LO, very large dilep + single lep samples
 WJetsSample        = WJetsToLNu #WJetsToLNu_HT
-otherEWKComponents = [singleTop, diBoson, WZZ,  TTXNoZ, WJetsSample]
+otherEWKComponents = [singleTop, diBoson, triBoson,  TTXNoZ, WJetsSample]
 otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations
@@ -67,9 +67,10 @@ class Setup:
         }
 
 
-#       self.sys  = {'weight':'weight', 'reweight':['reweightPU'], 'selectionModifier':None}
-        self.sys  = {'weight':'weight', 'reweight':[],             'selectionModifier':None}
-        self.lumi = lumi
+#       self.sys      = {'weight':'weight', 'reweight':['reweightPU'], 'selectionModifier':None}
+        self.sys      = {'weight':'weight', 'reweight':[],             'selectionModifier':None}
+        self.lumi     = lumi
+        self.dataLumi = dataLumi
 
         self.sample = {
         'DY':         {c:DYSample     for c in channels},
@@ -82,9 +83,6 @@ class Setup:
                        'EE':   DoubleEG_Run2015D,
                        'EMu':  MuonEG_Run2015D},
         }
-
-    def rescaleDataLumi(self, channel):
-        return str(1000/dataLumi[channel])
 
     def prefix(self):
         return '_'.join(self.prefixes+[self.preselection('MC', zWindow='allZ')['prefix']])
