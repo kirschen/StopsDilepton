@@ -24,7 +24,7 @@ class DataDrivenDYEstimate(SystematicEstimator):
             cut          = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut'] ])
             estimate     = setup.lumi[channel]/1000.*u_float(**setup.sample['DY'][channel].getYieldFromDraw(selectionString = cut, weightString=weight))
 
-        #Data driven for EE and MuMu
+        #Data driven for EE and MuMu (calculate for data luminosity)
         else:
             weight       = setup.weightString()
 
@@ -33,24 +33,27 @@ class DataDrivenDYEstimate(SystematicEstimator):
             cut_data_onZ_0b = "&&".join([region.cutString(),                               setup.selection('Data', channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
 
             # Calculate ratio (offZ,1b)/(onZ,0b)
-            yield_offZ_1b = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_offZ_1b,     weightString=weight))
-            yield_onZ_0b  = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_onZ_0b,      weightString=weight))
+            yield_offZ_1b = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_offZ_1b,     weightString=weight))*setup.dataLumi[channel]/1000
+            yield_onZ_0b  = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_onZ_0b,      weightString=weight))*setup.dataLumi[channel]/1000
             R             = yield_offZ_1b/yield_onZ_0b if yield_onZ_0b > 0 else 0
 
             # Calculate data-other onZ for 0 b-jets region
-            yield_data    = u_float(**setup.sample['Data'][channel].getYieldFromDraw(selectionString = cut_data_onZ_0b, weightString="("+str(setup.rescaleDataLumi(channel)) + ")"))
-            yield_other   = sum(u_float(**setup.sample[s][channel].getYieldFromDraw( selectionString = cut_onZ_0b,      weightString=weight)) for s in ['TTJets' , 'TTZ' , 'other'])
+            yield_data    = u_float(**setup.sample['Data'][channel].getYieldFromDraw(selectionString = cut_data_onZ_0b, weightString="(1)"))
+            yield_other   = sum(u_float(**setup.sample[s][channel].getYieldFromDraw( selectionString = cut_onZ_0b,      weightString=weight)) for s in ['TTJets' , 'TTZ' , 'other'])*setup.dataLumi[channel]/1000
             normRegYield  = yield_data - yield_other
 
-            # Calculate DY estimate in 1 b-jet region
-            estimate      = R*normRegYield
+            # Calculate DY estimate in 1 b-jet region (and scale back to MC lumi)
+            estimate      = R*normRegYield*setup.lumi[channel]/setup.dataLumi[channel]
 
-            logger.info("yield_offZ_1b: " + str(yield_offZ_1b))
-            logger.info("yield_onZ_0b:  " + str(yield_onZ_0b))
-            logger.info("R:             " + str(R))
-            logger.info("yield_data:    " + str(yield_data))
-            logger.info("yield_other:   " + str(yield_other))
-            if normRegYield < 0 and yield_data > 0: logger.warn("Negative normalization region yield: " + str(normRegYield))
+            logger.info("Calculating data-driven DY estimate in channel " + channel + " using lumi " + str(setup.dataLumi[channel]) + ":")
+            logger.info("yield DY offZ/1b:          " + str(yield_offZ_1b))
+            logger.info("yield DY onZ/0b:           " + str(yield_onZ_0b))
+            logger.info("R:                         " + str(R))
+            logger.info("yield data onZ/0b:         " + str(yield_data))
+            logger.info("yield other onZ/0b:        " + str(yield_other))
+            logger.info("yield (data-other) onZ/0b: " + str(normRegYield))
+            logger.info("yield expected DY  onZ/1b: " + str(normRegYield*R))
+            if normRegYield < 0 and yield_data > 0: logger.warn("Negative normalization region yield!")
 
-	logger.info('Estimate for DY in ' + channel + ' channel: ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
+	logger.info('Estimate for DY in ' + channel + ' channel (lumi=' + str(setup.lumi[channel]) + '/pb): ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
 	return estimate if estimate > 0 else u_float(0, 0)
