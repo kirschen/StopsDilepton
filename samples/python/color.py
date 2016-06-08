@@ -24,6 +24,7 @@ color.WJetsToLNu     = ROOT.kRed-10
 color.diBoson        = ROOT.kOrange
 color.ZZ             = ROOT.kOrange+1
 color.WZ             = ROOT.kOrange+2
+color.WW             = ROOT.kOrange+3
 color.WG             = ROOT.kOrange-5
 color.ZG             = ROOT.kOrange-10
 color.triBoson       = ROOT.kYellow

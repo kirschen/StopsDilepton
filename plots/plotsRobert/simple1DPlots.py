@@ -129,7 +129,8 @@ else:
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBosonInclusive, WZZ]
+mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
+#mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, WWInclusive, WZInclusive, ZZInclusive, WZZ]
 #mc = [ TTX]
 if args.small:
     for sample in mc:
@@ -152,6 +153,7 @@ multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 basic_cuts=[
     ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
+    ("eleCutBasedTightID", "(abs(l1_pdgId)!=11 || LepGood_eleCutIdSpring15_25ns_v1[l1_index]>=4)&&((abs(l2_pdgId)!=11 || LepGood_eleCutIdSpring15_25ns_v1[l2_index]>=4))"),
     ("mll20", "dl_mass>20"),
     ("dPhiJet0-dPhiJet1", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
@@ -159,11 +161,11 @@ basic_cuts=[
 ]
 cuts=[
     #("njet0", "nJetGood==0"),
-    ("njet0p", "nJetGood>=0"),
+    #("njet0p", "nJetGood>=0"),
     #("njet1", "nJetGood==1"),
-    # ("njet2p", "nJetGood>=2"),
-    ("nbtag0", "nBTag==0"),
-    #("nbtag1p", "nBTag>=1"),
+    ("njet2p", "nJetGood>=2"),
+    #("nbtag0", "nBTag==0"),
+    ("nbtag1p", "nBTag>=1"),
     ("met80-metSig5", "met_pt>80&&(met_pt/sqrt(ht)>5||nJetGood==0)"),
     #("highMT2ll", "dl_mt2ll>140"),
 ]
@@ -233,8 +235,9 @@ def makeMinDeltaRLepJets( data ):
 
 sequence.append( makeMinDeltaRLepJets )
 
-rev = reversed if args.reversed else lambda x:x
-for i_comb in rev( range( len(cuts)+1 ) ):
+#rev = reversed if args.reversed else lambda x:x
+#for i_comb in rev( range( len(cuts)+1 ) ):
+for i_comb in [ len(cuts) ]:
     for comb in itertools.combinations( cuts, i_comb ):
 
         if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
@@ -261,7 +264,7 @@ for i_comb in rev( range( len(cuts)+1 ) ):
 
         plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
         if os.path.exists(plot_path) and not args.overwrite:
-            logger.info( "Path %s not empty. Skipping."%path )
+            logger.info( "Path %s not empty. Skipping."%plot_path )
             continue
 
         selectionString = "&&".join( [p[1] for p in presel] + [leptonSelectionString] )
