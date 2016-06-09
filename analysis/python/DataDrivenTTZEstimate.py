@@ -2,7 +2,7 @@ import os
 from math import sqrt
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.analysis.u_float import u_float
-from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
+from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
 from StopsDilepton.analysis.Cache        import Cache
 
 # Logging
@@ -10,7 +10,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 def getLooseLeptonString(nMu, nE):
-    return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10) + "==" + str(nE)
+    raise NotImplementedError( "Tom, please check carefully" )
+    return muonSelectorString(ptCut=10) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10) + "==" + str(nE)
 
 def getLeptonString(nMu, nE):
     # Only good leptons or also loose?

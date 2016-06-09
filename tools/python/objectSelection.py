@@ -1,5 +1,6 @@
 from StopsDilepton.tools.helpers import mZ, getVarValue, getObjDict
 from math import *
+import numbers
 
 jetVars = ['eta','pt','phi','btagCSV', 'id']
 
@@ -28,137 +29,173 @@ genVars = ['eta','pt','phi','charge', 'status', 'pdgId', 'motherId', 'grandmothe
 def getGenPartsAll(c):
     return [getObjDict(c, 'genPartAll_', genVars, i) for i in range(int(getVarValue(c, 'ngenPartAll')))]
 
-Muon_mediumMuonId = 1
-Muon_miniRelIso = 0.2
-Muon_sip3d = 4.0
-Muon_dxy = 0.05
-Muon_dz = 0.1
-
-def looseMuID(l, ptCut=20, absEtaCut=2.4, miniRelIso=Muon_miniRelIso, dz = Muon_dz, dxy = Muon_dxy):
-    return \
-        l["pt"]>=ptCut\
-        and abs(l["pdgId"])==13\
-        and abs(l["eta"])<absEtaCut\
-        and l["mediumMuonId"]==Muon_mediumMuonId \
-        and l["miniRelIso"]<miniRelIso \
-        and l["sip3d"]<Muon_sip3d\
-        and abs(l["dxy"])<dxy\
-        and abs(l["dz"])<dz
-
-def looseMuIDString(ptCut=20, absEtaCut=2.4, miniRelIso=Muon_miniRelIso):
-    string = []
-    string.append("LepGood_pt>="+str(ptCut))
-    string.append("abs("+"LepGood_pdgId)==13")
-    string.append("abs("+"LepGood_eta)<"+str(absEtaCut))
-    string.append("LepGood_mediumMuonId=="+str(Muon_mediumMuonId))
-    string.append("LepGood_miniRelIso<"+str(miniRelIso))
-    string.append("LepGood_sip3d<"+str(Muon_sip3d))
-    string.append("abs("+"LepGood_dxy)<"+str(Muon_dxy))
-    string.append("abs("+"LepGood_dz)<"+str(Muon_dz))
-    string = 'Sum$('+'&&'.join(string)+')'
-    return string
-
 #https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF
 #https://www.dropbox.com/s/fsfw0gummwsc61v/lepawareJECv2_bkg_wp_300915.pdf?dl=0
 multiIsoWP = {'VL':{'mRelIso':0.25, 'ptRatiov2':0.67, 'ptRelv2':4.4},
-                            'L' :{'mRelIso':0.20, 'ptRatiov2':0.69, 'ptRelv2':6.0},
-                            'M' :{'mRelIso':0.16, 'ptRatiov2':0.76, 'ptRelv2':7.2},
-                            'T' :{'mRelIso':0.12, 'ptRatiov2':0.80, 'ptRelv2':7.2},
-                            'VT':{'mRelIso':0.09, 'ptRatiov2':0.84, 'ptRelv2':7.2},
-                            }
-
-def multiIsoMuId(WP, ptCut = 20, absEtaCut = 2.4):
-    def func(l):
-        return \
-            l["pt"]>=ptCut\
-            and abs(l["pdgId"])==13\
-            and abs(l["eta"])<absEtaCut\
-            and l["mediumMuonId"]==Muon_mediumMuonId \
-            and l["miniRelIso"]<multiIsoWP[WP]['mRelIso'] \
-            and (l["jetPtRatiov2"]>multiIsoWP[WP]['ptRatiov2'] or l['jetPtRelv2']>multiIsoWP[WP]['ptRelv2'] )\
-            and l["sip3d"]<Muon_sip3d\
-            and abs(l["dxy"])<Muon_dxy\
-            and abs(l["dz"])<Muon_dz
-    return func
+              'L' :{'mRelIso':0.20, 'ptRatiov2':0.69, 'ptRelv2':6.0},
+              'M' :{'mRelIso':0.16, 'ptRatiov2':0.76, 'ptRelv2':7.2},
+              'T' :{'mRelIso':0.12, 'ptRatiov2':0.80, 'ptRelv2':7.2},
+              'VT':{'mRelIso':0.09, 'ptRatiov2':0.84, 'ptRelv2':7.2},
+              }
+multiIsoWPs=multiIsoWP.keys()
 
 def multiIsoLepString(wpMu, wpEle, i):
-    assert all([wp in multiIsoWP.keys() for wp in [wpMu, wpEle]]),  "Unknown MultiIso WP %s or %s. Use one of %s"%(wpMu, wpEle, ",".join(multiIsoWP.keys()))
+    assert all([wp in multiIsoWPs for wp in [wpMu, wpEle]]),  "Unknown MultiIso WP %s or %s. Use one of %s"%(wpMu, wpEle, ",".join(multiIsoWPs))
     if type(i)==type(()) or type(i)==type([]):
         return "&&".join([multiIsoLepString(wpMu, wpEle, j) for j in i])
     stri = str(i) if type(i)==type("") else i
     return "((abs(LepGood_pdgId["+stri+"])==13&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpMu]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRelv2'])+"))"\
               +"|| (abs(LepGood_pdgId["+stri+"])==11&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpEle]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRelv2'])+")))"
 
-def cmgMVAEleID(l,mva_cuts):
-    aeta = abs(l["eta"])
-    for abs_e, mva in mva_cuts.iteritems():
-        if aeta>=abs_e[0] and aeta<abs_e[1] and l["mvaIdSpring15"] >mva: return True
-    return False
+def leptonIsoSelectorString( iso ):
+    if isinstance(iso, numbers.Number):
+        return  "LepGood_miniRelIso<%s"%iso
+    elif type(iso)==type(""):
+        return "LepGood_miniRelIso<{mRelIso}&&(LepGood_jetPtRatiov2>{ptRatiov2}||LepGood_jetPtRelv2>{ptRelv2})".format(**multiIsoWP[iso])
+    else:
+        raise ValueError( "Don't know what to do with iso %r" % iso )
 
-def cmgMVAEleIDString(mva_cuts):
-    aeta = "abs(LepGood_eta)"
-    string = []
-    for abs_e, mva in mva_cuts.iteritems():
-        string.append("("+aeta+">="+str(abs_e[0])+"&&"+aeta+"<"+str(abs_e[1])+"&&LepGood_mvaIdSpring15>"+str(mva)+")")
-    string = "("+'||'.join(string)+')'
+def multiIsoSelector(WP):
+    assert WP in multiIsoWPs,  "Unknown MultiIso WP %s. Use one of %s"%(WP, ",".join(multiIsoWPs))
+    def func(l):
+        return \
+            l["miniRelIso"]<multiIsoWP[WP]['mRelIso'] \
+            and (l["jetPtRatiov2"]>multiIsoWP[WP]['ptRatiov2'] or l['jetPtRelv2']>multiIsoWP[WP]['ptRelv2'] )
+    return func
+
+def miniIsoSelector( miniRelIso ):
+    assert isinstance(miniRelIso, numbers.Number), "Don't know what to do with miniRelIso %r"%miniRelIso
+    def func(l):
+        return  l["miniRelIso"] < miniRelIso
+    return func
+
+# MUONS
+def muonSelector(iso, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
+
+    if isinstance(iso, numbers.Number):
+        iso_ = miniIsoSelector( iso )
+    elif type(iso)==type(""):
+        iso_ = multiIsoSelector( iso )
+    else:
+        raise ValueError( "Don't know what to do with iso %r"%iso )
+
+    def func(l, ptCut = 20):
+        return \
+            l["pt"]>=ptCut\
+            and abs(l["pdgId"])==13\
+            and abs(l["eta"])<absEtaCut\
+            and l["mediumMuonId"]>=1 \
+            and iso_(l) \
+            and l["sip3d"]<4.0\
+            and abs(l["dxy"])<dxy\
+            and abs(l["dz"])<dz
+
+    return func
+
+default_muon_selector = muonSelector( iso = 'VT', absEtaCut = 2.4)
+
+def muonSelectorString(iso = 'VT', ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
+    string = [\
+                   "LepGood_pt>=%s"%ptCut ,
+                   "abs(LepGood_pdgId)==13" ,
+                   "abs(LepGood_eta)<%s" % absEtaCut ,
+                   "LepGood_mediumMuonId>=1" ,
+                   "LepGood_sip3d<4.0" ,
+                   "abs(LepGood_dxy)<%s" % dxy ,
+                   "abs(LepGood_dz)<%s" % dz ,
+                   leptonIsoSelectorString( iso )
+             ]
+    string = 'Sum$('+'&&'.join(string)+')'
     return string
 
-ele_MVAID_cuts_vloose = {(0,0.8):-0.16 , (0.8, 1.479):-0.65, (1.57, 999): -0.74}
-#ele_MVAID_cuts_loose = {(0,0.8):0.35 , (0.8, 1.479):0.20, (1.57, 999): -0.52}
-ele_MVAID_cuts_tight = {(0,0.8):0.87 , (0.8, 1.479):0.60, (1.57, 999):  0.17}
 
-Ele_miniRelIso = 0.2
-Ele_lostHits = 0
-Ele_sip3d = 4.0
-Ele_dxy = 0.05
-Ele_dz = 0.1
+# ELECTRONS
 
-def looseEleID(l, ptCut=20, absEtaCut=2.4, miniRelIso=Ele_miniRelIso, dxy = Ele_dxy, dz = Ele_dz):
-    return \
-        l["pt"]>=ptCut\
-        and abs(l["eta"])<absEtaCut\
-        and abs(l["pdgId"])==11\
-        and cmgMVAEleID(l, ele_MVAID_cuts_tight)\
-        and l["miniRelIso"]<miniRelIso\
-        and l["convVeto"]\
-        and l["lostHits"]==Ele_lostHits\
-        and l["sip3d"] < Ele_sip3d\
-        and abs(l["dxy"]) < dxy\
-        and abs(l["dz"]) < dz\
+ele_MVAID =  {'VL': {(0,0.8):-0.16 , (0.8, 1.479):-0.65, (1.57, 999): -0.74},
+              'T':  {(0,0.8):0.87 , (0.8, 1.479):0.60, (1.57, 999):  0.17}
+}
 
-def multiIsoEleId(WP, ptCut = 20, absEtaCut = 2.4):
+def eleMVAIDSelector( eleId ):
+    ele_mva_WP = ele_MVAID[eleId]
     def func(l):
+        abs_ele_eta = abs(l["eta"])
+        for abs_ele_bin, mva_threshold in ele_mva_WP.iteritems():
+            if abs_ele_eta>=abs_ele_bin[0] and abs_ele_eta<abs_ele_bin[1] and l["mvaIdSpring15"] > mva_threshold: return True
+        return False
+    return func
+
+def eleCutIDSelector( ele_cut_Id = 4):
+    def func(l):
+        return l["eleCutIdSpring15_25ns_v1"]>=ele_cut_Id 
+    return func
+
+def eleSelector(iso, eleId = 4, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
+    if isinstance(iso, numbers.Number):
+        iso_ = miniIsoSelector( iso )
+    elif type(iso)==type(""):
+        iso_ = multiIsoSelector( iso )
+    else:
+        raise ValueError( "Don't know what to do with iso %r" % iso )
+    if isinstance(eleId, numbers.Number):
+        id_ = eleCutIDSelector( eleId )
+    elif type(eleId)==type(""):
+        id_ = eleMVAIDSelector( eleId )
+    else:
+        raise ValueError( "Don't know what to do with eleId %r" % eleId )
+
+    def func(l, ptCut = 20):
         return \
             l["pt"]>=ptCut\
             and abs(l["eta"])<absEtaCut\
             and abs(l["pdgId"])==11\
-            and cmgMVAEleID(l, ele_MVAID_cuts_tight)\
-            and l["miniRelIso"]<multiIsoWP[WP]['mRelIso'] \
-            and (l["jetPtRatiov2"]>multiIsoWP[WP]['ptRatiov2'] or l['jetPtRelv2']>multiIsoWP[WP]['ptRelv2'] )\
+            and id_(l)\
+            and iso_(l)\
             and l["convVeto"]\
-            and l["lostHits"]==Ele_lostHits\
-            and l["sip3d"] < Ele_sip3d\
-            and abs(l["dxy"]) < Ele_dxy\
-            and abs(l["dz"]) < Ele_dz
+            and l["lostHits"]==0\
+            and l["sip3d"] < 4.0\
+            and abs(l["dxy"]) < dxy\
+            and abs(l["dz"]) < dz
     return func
 
-def looseEleIDString(ptCut=20, absEtaCut=2.4, miniRelIso=Ele_miniRelIso):
-    string = []
-    string.append("LepGood_pt>="+str(ptCut))
-    string.append("abs("+"LepGood_eta)<"+str(absEtaCut))
-    string.append("abs("+"LepGood_pdgId)==11")
-    string.append(cmgMVAEleIDString(ele_MVAID_cuts_tight))
-    string.append("LepGood_miniRelIso<"+str(miniRelIso))
-    string.append("LepGood_convVeto")
-    string.append("LepGood_lostHits=="+str(Ele_lostHits))
-    string.append("LepGood_sip3d<"+str(Ele_sip3d))
-    string.append("abs(LepGood_dxy)<"+str(Ele_dxy))
-    string.append("abs(LepGood_dz)<"+str(Ele_dz))
-    string = 'Sum$('+'&&'.join(string)+')'
-    return string
+default_ele_selector = eleSelector( iso = 'VT', eleId = 4, absEtaCut = 2.4 )
 
-#leptonVars=['eta','pt','phi','mass','charge', 'dxy', 'dz', 'relIso03','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits']
-leptonVars=['eta','pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2']
+def eleIDSelectorString( eleId ):
+    if isinstance(eleId, numbers.Number):
+        return "LepGood_eleCutIdSpring15_25ns_v1>=%i" % eleId 
+    elif type(eleId)==type(""):
+        return eleMVAString( eleId ) 
+    else:
+        raise ValueError( "Don't know what to do with eleId %r" % eleId )
+
+def eleMVAString( eleId ):
+    ele_mva_WP = ele_MVAID[eleId]
+    abs_ele_eta = "abs(LepGood_eta)"
+    strings = []
+    for abs_ele_bin, mva_threshold in ele_mva_WP.iteritems():
+        strings.append("({abs_ele_eta}>={low_abs_ele_eta}&&{abs_ele_eta}<{high_abs_ele_eta}&&LepGood_mvaIdSpring15>{mva_threshold})".format(\
+            abs_ele_eta=abs_ele_eta, 
+            low_abs_ele_eta = abs_ele_bin[0],
+            high_abs_ele_eta=abs_ele_bin[1], 
+            mva_threshold = mva_threshold))
+
+    return "("+'||'.join(strings)+')'
+
+def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
+    string = [\
+                   "LepGood_pt>=%s" % ptCut ,
+                   "abs(LepGood_eta)<%s" % absEtaCut ,
+                   "abs(LepGood_pdgId)==11" ,
+                   "LepGood_confVeto",
+                   "LepGood_lostHits==0",
+                   "LepGood_sip3d<4.0" ,
+                   "abs(LepGood_dxy)<%s" % dxy ,
+                   "abs(LepGood_dz)<%s" % dz ,
+                   leptonIsoSelectorString( iso ),
+                   eleIDSelectorString( eleId ),
+             ]
+    return 'Sum$('+'&&'.join(string)+')'
+
+leptonVars=['eta','pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2', 'eleCutIdSpring15_25ns_v1']
 
 def getLeptons(c, collVars=leptonVars):
     return [getObjDict(c, 'LepGood_', collVars, i) for i in range(int(getVarValue(c, 'nLepGood')))]
@@ -168,32 +205,28 @@ def getMuons(c, collVars=leptonVars):
     return [getObjDict(c, 'LepGood_', collVars, i) for i in range(int(getVarValue(c, 'nLepGood'))) if abs(getVarValue(c,"LepGood_pdgId",i))==13]
 def getElectrons(c, collVars=leptonVars):
     return [getObjDict(c, 'LepGood_', collVars, i) for i in range(int(getVarValue(c, 'nLepGood'))) if abs(getVarValue(c,"LepGood_pdgId",i))==11]
-def getGoodMuons(c, collVars=leptonVars, miniRelIso=Muon_miniRelIso):
-    return [l for l in getMuons(c, collVars) if looseMuID(l, miniRelIso=miniRelIso)]
-def getGoodElectrons(c, collVars=leptonVars, miniRelIso=Ele_miniRelIso):
-    return [l for l in getElectrons(c, collVars) if looseEleID(l, miniRelIso=miniRelIso)]
-def getGoodLeptons(c, ptCut=20, collVars=leptonVars, miniRelIso = 0.2):
-    return [l for l in getLeptons(c, collVars) if (abs(l["pdgId"])==11 and looseEleID(l, ptCut, miniRelIso=miniRelIso)) or (abs(l["pdgId"])==13 and looseMuID(l, ptCut, miniRelIso=miniRelIso))]
-def getGoodAndOtherLeptons(c, ptCut=20, collVars=leptonVars, miniRelIso = 0.2, dxy = 0.05, dz = 0.1):
+
+def getGoodMuons(c, ptCut = 20, collVars=leptonVars, mu_selector = default_muon_selector):
+    return [l for l in getMuons(c, collVars) if mu_selector(l, ptCut = ptCut)]
+def getGoodElectrons(c, ptCut = 20, collVars=leptonVars, ele_selector = default_ele_selector):
+    return [l for l in getElectrons(c, collVars) if ele_selector(l, ptCut = ptCut)]
+def getGoodLeptons(c, ptCut=20, collVars=leptonVars, mu_selector = default_muon_selector, ele_selector = default_ele_selector):
+    return [l for l in getLeptons(c, collVars) if (abs(l["pdgId"])==11 and ele_selector(l, ptCut = ptCut)) or (abs(l["pdgId"])==13 and mu_selector(l, ptCut = ptCut))]
+
+def getGoodAndOtherLeptons(c, ptCut=20, collVars=leptonVars, mu_selector = default_muon_selector, ele_selector = default_ele_selector):
     good_lep = getLeptons(c, collVars)
     other_lep = getOtherLeptons(c, collVars)
     for l in other_lep: #dirty trick to find back the full lepton if it was in the 'other' collection
         l['index']+=1000
-    res = [l for l in good_lep+other_lep if (abs(l["pdgId"])==11 and looseEleID(l, ptCut, miniRelIso=miniRelIso, dxy = dxy, dz = dz)) or (abs(l["pdgId"])==13 and looseMuID(l, ptCut, miniRelIso=miniRelIso, dxy=dxy, dz=dz))]
+    res = [l for l in good_lep+other_lep if (abs(l["pdgId"])==11 and ele_selector(l, ptCut = ptCut)) or (abs(l["pdgId"])==13 and mu_selector(l, ptCut = ptCut))]
     res.sort( key = lambda l:-l['pt'] )
     return res
-
-## Couldn't find where this is used. Please move away from 'object' selection
-#def m_ll(l1,l2):
-#    return sqrt(2.*l1['pt']*l2['pt']*(cosh(l1['eta']-l2['eta']) - cos(l1['phi']-l2['phi'])))
-#def pt_ll(l1,l2):
-#    return sqrt((l1['pt']*cos(l1['phi']) + l2['pt']*cos(l2['phi']))**2 + (l1['pt']*sin(l1['phi']) + l2['pt']*sin(l2['phi']))**2)
-
 
 tauVars=['eta','pt','phi','pdgId','charge', 'dxy', 'dz', 'idDecayModeNewDMs', 'idCI3hit', 'idAntiMu','idAntiE','mcMatchId']
 
 def getTaus(c, collVars=tauVars):
     return [getObjDict(c, 'TauGood_', collVars, i) for i in range(int(getVarValue(c, 'nTauGood')))]
+
 def looseTauID(l, ptCut=20, absEtaCut=2.4):
     return \
         l["pt"]>=ptCut\

@@ -25,7 +25,7 @@ from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection
 from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
+from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, muonSelector, eleSelector, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 
@@ -342,7 +342,7 @@ if isTiny:
         "HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
         "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
         "LepGood_eta","LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId",
-        "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits","LepGood_jetPtRelv2", "LepGood_jetPtRatiov2"
+        "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits","LepGood_jetPtRelv2", "LepGood_jetPtRatiov2", "LepGood_eleCutIdSpring15_25ns_v1"
         ]
 
     #branches to be kept for MC samples only
@@ -441,14 +441,14 @@ if isMC:
 
 read_variables += [\
     Variable.fromString('nLepGood/I'),
-    VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F]'),
+    VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
     Variable.fromString('nJet/I'),
     VectorType.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
 ]
 if isVeryLoose:
     read_variables += [\
         Variable.fromString('nLepOther/I'),
-        VectorType.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F]'),
+        VectorType.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
     ]
 new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) )
@@ -597,19 +597,21 @@ def filler(s):
     nonBJets     = filter(lambda j:not isBJet(j), jets)
     if isVeryLoose:
         # all leptons up to relIso 1
-        miniRelIso = 999.
+        mu_selector = muonSelector( iso = 999., dxy = 1., dz = 0.1 )
+        ele_selector = eleSelector( iso = 999., dxy = 1., dz = 0.1 )
+        leptons_pt10 = getGoodAndOtherLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
         ptCut = 20 if not isVeryLoosePt10 else 10 
-        leptons_pt10 = getGoodAndOtherLeptons(r, ptCut=10, miniRelIso = miniRelIso , dz = 0.1, dxy = 1.)
         leptons      = filter(lambda l:l['pt']>ptCut, leptons_pt10)
     elif isLoose:
-        # reliso 0.4
-        miniRelIso = 0.4
-        leptons_pt10 = getGoodLeptons(r, ptCut=10, miniRelIso = miniRelIso)
+        # loose relIso lepton selection
+        mu_selector = muonSelector( iso = 0.4 )
+        ele_selector = eleSelector( iso = 0.4 )
+
+        leptons_pt10 = getGoodLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
         leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     else:
-        miniRelIso = 0.2
-        leptons_pt10 = getGoodLeptons(r, ptCut=10, miniRelIso = miniRelIso)
-        # relIso 0.2
+        # default lepton selection
+        leptons_pt10 = getGoodLeptons(r, ptCut=10)
         leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
 
     s.met_pt  = r.met_pt
@@ -763,6 +765,7 @@ def filler(s):
                 mt2Calc.setMet(getattr(s, 'met_pt'+i), getattr(s, 'met_phi', i))
                 setattr(s, "dl_mt2ll"+i, mt2Calc.mt2ll())
 
+                bj0, bj1 = None, None
                 if len(jets)>=2:
                     bj0, bj1 = (bJets+nonBJets)[:2]
                     mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
@@ -773,12 +776,13 @@ def filler(s):
                     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
                         mt2Calc.setMet( getattr(s, "met_pt"+i+"_"+var), getattr(s, "met_phi"+i+"_"+var) )
                         setattr(s, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
-                        bj0_, bj1_ = bj0, bj1
                         if not 'Unclustered' in var:
                             if len(jets_sys[var])>=2:
                                 bj0_, bj1_ = (bjets_sys[var]+nonBjets_sys[var])[:2]
                             else: 
                                 bj0_, bj1_ = None, None
+                        else:
+                            bj0_, bj1_ = bj0, bj1
                         if bj0_ and bj1_:
                             mt2Calc.setBJets(bj0_['pt'], bj0_['eta'], bj0_['phi'], bj1_['pt'], bj1_['eta'], bj1_['phi'])
                             setattr(s, 'dl_mt2bb'  +i+'_'+var, mt2Calc.mt2bb())

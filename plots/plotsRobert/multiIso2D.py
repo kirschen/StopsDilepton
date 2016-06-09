@@ -5,7 +5,7 @@ ROOT.setTDRStyle()
 from math import *
 import array, operator
 from StopsDilepton.tools.helpers import getObjDict, getEList, getVarValue, deltaR, getObjFromFile
-from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getLeptons, looseMuID, looseEleID, getJets, leptonVars, jetVars, getGoodTaus
+from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getLeptons, default_muon_selector, default_ele_selector, getJets, leptonVars, jetVars, getGoodTaus
 from StopsDilepton.tools.genParticleTools import getDaughters, descendDecay, decaysTo, printDecay
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()
@@ -53,7 +53,7 @@ stuff=[]
 for i in range(evtList.GetN()):
     ttjets.chain.GetEntry(evtList.GetEntry(i))
     allLeptons = getLeptons(ttjets.chain, collVars=leptonVars+['mcMatchId','mcMatchAny','mcMatchTau','mcPt','ip3d', 'relIso03', 'relIso04', 'jetPtRatiov1', 'jetPtRelv1', 'jetPtRelv2', 'jetPtRatiov2', 'jetBTagCSV', 'jetDR'])
-    leptons = filter(lambda l: looseMuID(l) or looseEleID(l), allLeptons)
+    leptons = filter(lambda l: default_muon_selector(l) or default_ele_selector(l), allLeptons)
     l = ROOT.TLine(leptons[0]['jetPtRelv2'], leptons[0]['jetPtRatiov2'], leptons[1]['jetPtRelv2'], leptons[1]['jetPtRatiov2']) 
     l.Draw()
     stuff.append(l)

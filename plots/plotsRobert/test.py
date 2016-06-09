@@ -9,7 +9,7 @@ import os
 #RootTools
 from RootTools.core.standard import *
 
-from StopsDilepton.tools.objectSelection import getLeptons, getOtherLeptons, getGoodLeptons, looseEleIDString, looseMuIDString, leptonVars, getGenPartsAll
+from StopsDilepton.tools.objectSelection import getLeptons, getOtherLeptons, getGoodLeptons, eleSelectorString, muonSelectorString, leptonVars, getGenPartsAll
 from StopsDilepton.tools.helpers import deltaR
 
 # argParser
@@ -66,13 +66,13 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 #from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
 if args.mode=="doubleMu":
-    leptonSelectionString = "&&".join([looseMuIDString()+"==2", looseEleIDString()+"==0"])
+    leptonSelectionString = "&&".join([muonSelectorString()+"==2", eleSelectorString()+"==0"])
     trigger     = "HLT_mumuIso"
 elif args.mode=="doubleEle":
-    leptonSelectionString = "&&".join([looseMuIDString()+"==0", looseEleIDString()+"==2"])
+    leptonSelectionString = "&&".join([muonSelectorString()+"==0", eleSelectorString()+"==2"])
     trigger   = "HLT_ee_DZ"
 elif args.mode=="muEle":
-    leptonSelectionString = "&&".join([looseMuIDString()+"==1", looseEleIDString()+"==1"])
+    leptonSelectionString = "&&".join([muonSelectorString()+"==1", eleSelectorString()+"==1"])
     trigger    = "HLT_mue"
 else:
     raise ValueError( "Mode %s not known"%args.mode )

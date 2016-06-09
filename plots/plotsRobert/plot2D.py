@@ -10,7 +10,7 @@ ROOT.tdrStyle.SetPadRightMargin(0.15)
 
 from math import *
 from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue
-from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, getJets
+from StopsDilepton.tools.objectSelection import getLeptons, default_muon_selector, getJets
 from StopsDilepton.tools.user import *
 
 #preselection: MET>50, HT>100, n_bjets>=2

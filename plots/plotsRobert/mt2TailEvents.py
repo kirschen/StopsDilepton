@@ -5,7 +5,7 @@ ROOT.setTDRStyle()
 from math import *
 import array, operator
 from StopsDilepton.tools.helpers import getObjDict, getEList, getVarValue, deltaR, getObjFromFile
-from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getLeptons, looseMuID, looseEleID, getJets, leptonVars, jetVars, getGoodTaus
+from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getLeptons, default_muon_selector, default_ele_selector, getJets, leptonVars, jetVars, getGoodTaus
 from StopsDilepton.tools.genParticleTools import getDaughters, descendDecay, decaysTo, printDecay
 from StopsDilepton.tools.mcTools import pdgToName
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
@@ -129,7 +129,7 @@ for s in samples:
         jets = filter(lambda j:j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(s.chain, jetColl="JetGood"))
 
         allLeptons = getLeptons(s.chain, collVars=leptonVars+['mcMatchId','mcMatchAny','mcMatchTau','mcPt','ip3d', 'relIso03', 'relIso04', 'jetPtRatiov1', 'jetPtRelv1', 'jetPtRelv2', 'jetPtRatiov2', 'jetBTagCSV', 'jetDR'])
-        leptons = filter(lambda l: looseMuID(l) or looseEleID(l), allLeptons)
+        leptons = filter(lambda l: default_muon_selector(l) or default_ele_selector(l), allLeptons)
 
 #LepGood_mcMatchId Match to source from hard scatter (pdgId of heaviest particle in s.chain, 25 for H, 6 for t, 23/24 for W/Z), zero if non-prompt or fake for Leptons after the preselection
 #LepGood_mcMatchAny  Match to any final state leptons: 0 if unmatched, 1 if light flavour (including prompt), 4 if charm, 5 if bottom for Leptons after the preselection

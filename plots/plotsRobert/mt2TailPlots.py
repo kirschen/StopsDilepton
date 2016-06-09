@@ -6,7 +6,7 @@ from math import *
 import array
 from StopsDilepton.tools.user import plotDir
 from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue
-from StopsDilepton.tools.objectSelection import getGoodLeptons, looseMuID, looseEleID, getJets, leptonVars, jetVars
+from StopsDilepton.tools.objectSelection import getGoodLeptons, default_muon_selector, default_ele_selector, getJets, leptonVars, jetVars
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()
 from StopsDilepton.tools.user import *

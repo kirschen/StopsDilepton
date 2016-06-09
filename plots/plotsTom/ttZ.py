@@ -38,9 +38,9 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selections (three leptons with pt > 30, 20, 10 GeV)
 #
-from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
+from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
 def getLooseLeptonString(nMu, nE):
-  return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10, absEtaCut=2.5) + "==" + str(nE)
+  return muonSelectorString(ptCut=10) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, absEtaCut=2.5) + "==" + str(nE)
 
 def getLeptonString(nMu, nE):
   return getLooseLeptonString(nMu, nE)

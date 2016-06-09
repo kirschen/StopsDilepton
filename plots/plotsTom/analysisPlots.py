@@ -35,15 +35,9 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-#
 # Selections (two leptons with pt > 20 GeV, photon)
-#
-from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
-def getLooseLeptonString(nMu, nE):
-  return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10, absEtaCut=2.5) + "==" + str(nE)
 
 def getLeptonString(nMu, nE):
-#  return getLooseLeptonString(nMu, nE)
   return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
 
 

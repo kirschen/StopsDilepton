@@ -4,7 +4,7 @@ ROOT.setTDRStyle()
 
 import os
 from StopsDilepton.tools.helpers import getChain, getObjFromFile, getObjDict, getEList, getVarValue, getPlotFromChain
-from StopsDilepton.tools.objectSelection import getLeptons, looseMuID, looseEleID, getJets
+from StopsDilepton.tools.objectSelection import getLeptons, default_muon_selector, default_ele_selector, getJets
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()
 from StopsDilepton.tools.user import *

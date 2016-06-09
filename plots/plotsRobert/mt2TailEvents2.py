@@ -5,7 +5,7 @@ import operator
 
 #StopsDilepton
 from StopsDilepton.tools.helpers import getObjDict, getEList, getVarValue, deltaR, getCollection, bestDRMatchInCollection
-from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getGoodJets, jetVars, getLeptons, looseMuID, looseEleID, getJets, leptonVars, jetVars, getGoodTaus, getGoodAndOtherLeptons
+from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getGoodJets, jetVars, getLeptons, default_muon_selector, default_ele_selector, getJets, leptonVars, jetVars, getGoodTaus, getGoodAndOtherLeptons
 #Local Jet response
 import StopsDilepton.tools.localJetResponse 
 localJetResponse = StopsDilepton.tools.localJetResponse.localJetResponse()
@@ -334,11 +334,11 @@ for i_event, event in enumerate( intersec ):
         len(filter( lambda l:abs(l['pdgId'])==11 and l['other'], gen_leps ))
     )
 
-    loose_mu = filter(lambda l:abs(l['pdgId'])==13 and looseMuID(l), all_reco_leps )
-    loose_e  = filter(lambda l:abs(l['pdgId'])==11 and looseEleID(l), all_reco_leps )
+    loose_mu = filter(lambda l:abs(l['pdgId'])==13 and default_muon_selector(l), all_reco_leps )
+    loose_e  = filter(lambda l:abs(l['pdgId'])==11 and default_ele_selector(l), all_reco_leps )
 
-    extra_mu = filter(lambda l:abs(l['pdgId'])==13 and not looseMuID(l), all_reco_leps )
-    extra_e  = filter(lambda l:abs(l['pdgId'])==11 and not looseEleID(l), all_reco_leps )
+    extra_mu = filter(lambda l:abs(l['pdgId'])==13 and not default_muon_selector(l), all_reco_leps )
+    extra_e  = filter(lambda l:abs(l['pdgId'])==11 and not default_ele_selector(l), all_reco_leps )
 
     reco_mode = "unknown"
     if reader.data.isMuMu:

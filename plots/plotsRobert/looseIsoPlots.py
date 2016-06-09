@@ -12,7 +12,7 @@ from RootTools.core.standard import *
 
 #StopsDilepton
 from StopsDilepton.tools.helpers import getCollection, deltaR
-from StopsDilepton.tools.objectSelection import getGoodAndOtherLeptons, leptonVars, looseEleID, looseMuID, getLeptons, getOtherLeptons, getGoodLeptons
+from StopsDilepton.tools.objectSelection import getGoodAndOtherLeptons, leptonVars, default_ele_selector, default_muon_selector, getLeptons, getOtherLeptons, getGoodLeptons
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator() 
 
