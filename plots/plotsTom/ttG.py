@@ -459,10 +459,6 @@ with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
     f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")
 
 
-try:
-  os.makedirs(os.path.join(plot_directory, args.plot_directory, "all", args.selection, 'comp'))
-except:
-  pass
 # Add the different channels and plot the sums
 for plot in allPlots[allModes[0]]:
   logger.info("Adding " + plot.name + " for mode " + allModes[0] + " to all")

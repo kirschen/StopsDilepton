@@ -20,7 +20,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
 argParser.add_argument('--plot_directory', action='store',      default='TTZ')
-argParser.add_argument('--pdType',         action='store',      default='singleLep', choices=['singleLep','doubleLep'])
+argParser.add_argument('--pdType',         action='store',      default='doubleLep', choices=['singleLep','doubleLep'])
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 args = argParser.parse_args()
@@ -115,7 +115,7 @@ if not args.isChild and args.selection is None:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_3jet"
+#postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_3jet"
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 
@@ -159,8 +159,7 @@ for mode in allModes:
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-# mc = [ DY_HT_LO, qcd_sample, singleTop, diBoson, WZZ, WJetsToLNu, TTJets, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
-  mc = [ DY_HT_LO, qcd_sample, singleTop, diBoson, WZZ, WJetsToLNu, TTLep_pow, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
+  mc = [ DY_HT_LO, qcd_sample, singleTop, diBoson, triBoson, WJetsToLNu, TTLep_pow, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
