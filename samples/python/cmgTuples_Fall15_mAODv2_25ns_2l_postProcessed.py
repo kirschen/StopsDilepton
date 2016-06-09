@@ -47,8 +47,11 @@ dirs['TTGJets']	         = ["TTGJets"]
 dirs['WJetsToLNu']       = ["WJetsToLNu"]
 #dirs['WJetsToLNu_LO']    = ["WJetsToLNu_LO"]
 #dirs['WJetsToLNu_HT']    = ["WJetsToLNu_HT100to200_comb", "WJetsToLNu_HT200to400_comb", "WJetsToLNu_HT400to600", "WJetsToLNu_HT600to800", "WJetsToLNu_HT800to1200", "WJetsToLNu_HT1200to2500", "WJetsToLNu_HT2500toInf"]
-dirs['diBoson']          = ["WWTo2L2Nu", "WWToLNuQQ", "WZTo1L1Nu2Q", "WZTo2L2Q", "WZTo3LNu", "ZZTo2L2Q", "ZZTo2Q2Nu"]
+dirs['diBoson']          = ["WWTo2L2Nu", "WWToLNuQQ", "WZTo1L1Nu2Q", "WZTo2L2Q", "WZTo3LNu", "ZZTo2L2Q", "ZZTo2Q2Nu", "VVTo2L2Nu"]
 dirs['diBosonInclusive'] = ["WW", "WZ", "ZZ"]
+dirs['WWInclusive'] = ["WW"]
+dirs['WZInclusive'] = ["WZ"]
+dirs['ZZInclusive'] = ["ZZ"]
 dirs['ZZ']               = ["ZZTo2L2Q", "ZZTo2Q2Nu"]
 dirs['WZ']               = ["WZTo1L1Nu2Q", "WZTo2L2Q", "WZTo3LNu"]
 #dirs['triBoson']        = ["WWZ","WZZ","ZZZ"] # No Fall15 production for WWZ and ZZZ?
@@ -88,6 +91,9 @@ WJetsToLNu     = Sample.fromDirectory(name="WJetsToLNu",       treeName="Events"
 #WJetsToLNu_HT  = Sample.fromDirectory(name="WJetsToLNu_HT",    treeName="Events", isData=False, color=color.WJets,   texName="W(l,#nu) + Jets (HT)",      directory=directories['WJetsToLNu_HT'])
 diBoson        = Sample.fromDirectory(name="diBoson",          treeName="Events", isData=False, color=color.diBoson,   texName="WW/ZZ/WZ (excl.)",                  directory=directories['diBoson'])
 diBosonInclusive = Sample.fromDirectory(name="diBosonInclusive",treeName="Events", isData=False, color=color.diBoson,        texName="WW/ZZ/WZ (incl.)",                  directory=directories['diBosonInclusive'])
+ZZInclusive    = Sample.fromDirectory(name="ZZInclusive",      treeName="Events", isData=False, color=color.ZZ, texName="ZZ (incl.)",                        directory=directories['ZZInclusive'])
+WZInclusive    = Sample.fromDirectory(name="WZInclusive",      treeName="Events", isData=False, color=color.WZ, texName="WZ (incl.)",                        directory=directories['WZInclusive'])
+WWInclusive    = Sample.fromDirectory(name="WWInclusive",      treeName="Events", isData=False, color=color.WW, texName="WW (incl.)",                        directory=directories['WWInclusive'])
 ZZ             = Sample.fromDirectory(name="ZZ",               treeName="Events", isData=False, color=color.ZZ, texName="ZZ",                        directory=directories['ZZ'])
 WZ             = Sample.fromDirectory(name="WZ",               treeName="Events", isData=False, color=color.WZ, texName="WZ",                        directory=directories['WZ'])
 #triBoson       = Sample.fromDirectory(name="triBoson",         treeName="Events", isData=False, color=color.triBoson,   texName="WWZ,WZZ,ZZZ",               directory=directories['triBoson'])
