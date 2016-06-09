@@ -8,22 +8,23 @@ class color():
 
 color.data           = ROOT.kBlack
 color.DY             = 8
-color.DYToNuNu       = ROOT.kGreen+2
 color.TTJets         = 7
 color.singleTop      = 40
 color.TTX            = ROOT.kMagenta
-color.TTXNoZ         = ROOT.kPink-3
-color.TTH            = ROOT.kPink-4
-color.TTW            = ROOT.kPink-8
+color.TTXNoZ         = ROOT.kRed
+color.TTH            = ROOT.kRed
+color.TTW            = ROOT.kRed+3
 color.TTZ            = ROOT.kPink+9
 color.TTZtoLLNuNu    = 6
 color.TTZtoQQ        = ROOT.kBlue
 color.TTG            = ROOT.kRed
-color.TZQ            = ROOT.kPink-7
+color.TZQ            = 9
 color.WJetsToLNu     = ROOT.kRed-10
 color.diBoson        = ROOT.kOrange
 color.ZZ             = ROOT.kOrange+1
-color.WZ             = ROOT.kOrange+2
+color.WZ             = ROOT.kOrange+7
+color.WW             = ROOT.kOrange-7
+color.VV             = 30
 color.WG             = ROOT.kOrange-5
 color.ZG             = ROOT.kOrange-10
 color.triBoson       = ROOT.kYellow
@@ -37,4 +38,10 @@ color.QCD_Mu5EMbcToE = 46
 
 color.other          = 46
 
-color.T2tt_450_0     = ROOT.kBlue
+color.T2tt_450_0                       = ROOT.kBlack
+color.TTbarDMJets_scalar_Mchi1_Mphi200 = ROOT.kBlack
+color.TTbarDMJets_scalar_Mchi1_Mphi10  = ROOT.kBlack
+color.TTbarDMJets_scalar_Mchi1_Mphi20  = ROOT.kBlack
+color.TTbarDMJets_scalar_Mchi1_Mphi100 = ROOT.kBlack
+color.TTbarDMJets_pseudoscalar_Mchi1_Mphi100 = ROOT.kRed
+color.TTbarDMJets_scalar_Mchi10_Mphi100 = ROOT.kPink
