@@ -1,6 +1,6 @@
 # Stops-dilepton + CMG in 80X
 ```
-cmrel CMSSW_8_0_10_patch2
+cmsrel CMSSW_8_0_10_patch2
 cd CMSSW_8_0_10_patch2/src
 cmsenv
 git cms-init
