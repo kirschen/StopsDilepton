@@ -185,7 +185,7 @@ def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 
                    "LepGood_pt>=%s" % ptCut ,
                    "abs(LepGood_eta)<%s" % absEtaCut ,
                    "abs(LepGood_pdgId)==11" ,
-                   "LepGood_confVeto",
+                   "LepGood_convVeto",
                    "LepGood_lostHits==0",
                    "LepGood_sip3d<4.0" ,
                    "abs(LepGood_dxy)<%s" % dxy ,
