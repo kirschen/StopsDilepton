@@ -30,7 +30,7 @@ git remote add origin git@github.com:GhentAnalysis/cmgtools-lite.git
 git push -u origin 80X_StopsDilepton
 
 git fetch origin
-git checkout -b 80X_StopsDilepton origin/76X_StopsDilepton
+git checkout -b 80X_StopsDilepton origin/80X_StopsDilepton
 
 #compile
 cd $CMSSW_BASE/src && scram b -j 8 
