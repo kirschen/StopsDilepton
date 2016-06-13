@@ -14,7 +14,7 @@ scram b -j9
 # Setting up CMG
 #
 git remote add cmg-central https://github.com/CERN-PH-CMG/cmg-cmssw.git -f -t heppy_80X
-scp $USER@lxplus.cern.ch:/afs/cern.ch/user/c/cmgtools/public/sparse-checkout_80X_heppy .git/info/sparse-checkout
+cp .sparse-checkout .git/info/sparse-checkout
 git checkout -b heppy_80X cmg-central/heppy_80X
 
 # add your mirror, and push the 80X branch to it
