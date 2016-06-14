@@ -39,6 +39,7 @@ multiIsoWP = {'VL':{'mRelIso':0.25, 'ptRatiov2':0.67, 'ptRelv2':4.4},
               }
 multiIsoWPs=multiIsoWP.keys()
 
+#FIXME should be removed....
 def multiIsoLepString(wpMu, wpEle, i):
     assert all([wp in multiIsoWPs for wp in [wpMu, wpEle]]),  "Unknown MultiIso WP %s or %s. Use one of %s"%(wpMu, wpEle, ",".join(multiIsoWPs))
     if type(i)==type(()) or type(i)==type([]):
@@ -47,11 +48,27 @@ def multiIsoLepString(wpMu, wpEle, i):
     return "((abs(LepGood_pdgId["+stri+"])==13&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpMu]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRelv2'])+"))"\
               +"|| (abs(LepGood_pdgId["+stri+"])==11&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpEle]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRelv2'])+")))"
 
-def leptonIsoSelectorString( iso ):
+
+def get_index_str( index ):
+    if isinstance(index, int):
+        index_str = "["+str(index)+"]"
+    elif type(index)==type(""):
+        if index.startswith('[') and index.endswith(']'):
+            index_str = index
+        else:
+            index_str = '['+index+']'
+    elif index is None:
+        index_str=""
+    else:
+        raise ValueError( "Don't know what to do with index %r" % index )
+    return index_str
+
+def leptonIsoSelectorString( iso, index = None):
+    index_str = get_index_str( index )
     if isinstance(iso, numbers.Number):
-        return  "LepGood_miniRelIso<%s"%iso
+        return  "LepGood_miniRelIso"+index_str+"<%s"%iso
     elif type(iso)==type(""):
-        return "LepGood_miniRelIso<{mRelIso}&&(LepGood_jetPtRatiov2>{ptRatiov2}||LepGood_jetPtRelv2>{ptRelv2})".format(**multiIsoWP[iso])
+        return "LepGood_miniRelIso{idx_str}<{mRelIso}&&(LepGood_jetPtRatiov2{idx_str}>{ptRatiov2}||LepGood_jetPtRelv2{idx_str}>{ptRelv2})".format(idx_str = index_str, **multiIsoWP[iso])
     else:
         raise ValueError( "Don't know what to do with iso %r" % iso )
 
@@ -94,19 +111,23 @@ def muonSelector(iso, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
 
 default_muon_selector = muonSelector( iso = 'VT', absEtaCut = 2.4)
 
-def muonSelectorString(iso = 'VT', ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
+def muonSelectorString(iso = 'VT', ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = None):
+    index_str = get_index_str( index )
     string = [\
-                   "LepGood_pt>=%s"%ptCut ,
-                   "abs(LepGood_pdgId)==13" ,
-                   "abs(LepGood_eta)<%s" % absEtaCut ,
-                   "LepGood_mediumMuonId>=1" ,
-                   "LepGood_sip3d<4.0" ,
-                   "abs(LepGood_dxy)<%s" % dxy ,
-                   "abs(LepGood_dz)<%s" % dz ,
-                   leptonIsoSelectorString( iso )
+                   "LepGood_pt"+index_str+">=%s"%ptCut ,
+                   "abs(LepGood_pdgId"+index_str+")==13" ,
+                   "abs(LepGood_eta"+index_str+")<%s" % absEtaCut ,
+                   "LepGood_mediumMuonId"+index_str+">=1" ,
+                   "LepGood_sip3d"+index_str+"<4.0" ,
+                   "abs(LepGood_dxy"+index_str+")<%s" % dxy ,
+                   "abs(LepGood_dz"+index_str+")<%s" % dz ,
+                   leptonIsoSelectorString( iso, index = index)
              ]
-    string = 'Sum$('+'&&'.join(string)+')'
-    return string
+    if index is not None:
+        return '&&'.join(string)
+    else:
+        return 'Sum$('+'&&'.join(string)+')'
+
 
 
 # ELECTRONS
@@ -159,41 +180,50 @@ def eleSelector(iso, eleId = 4, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
 
 default_ele_selector = eleSelector( iso = 'VT', eleId = 4, absEtaCut = 2.4 )
 
-def eleIDSelectorString( eleId ):
+def eleIDSelectorString( eleId, index = None ):
+    index_str = get_index_str( index )
+
     if isinstance(eleId, numbers.Number):
-        return "LepGood_eleCutIdSpring15_25ns_v1>=%i" % eleId 
+        return "LepGood_eleCutIdSpring15_25ns_v1"+index_str+">=%i" % eleId 
     elif type(eleId)==type(""):
-        return eleMVAString( eleId ) 
+        return eleMVAString( eleId, index = index) 
     else:
         raise ValueError( "Don't know what to do with eleId %r" % eleId )
 
-def eleMVAString( eleId ):
+def eleMVAString( eleId, index = None):
+    index_str = get_index_str( index )
     ele_mva_WP = ele_MVAID[eleId]
-    abs_ele_eta = "abs(LepGood_eta)"
+    abs_ele_eta = "abs(LepGood_eta"+index_str+")"
     strings = []
     for abs_ele_bin, mva_threshold in ele_mva_WP.iteritems():
-        strings.append("({abs_ele_eta}>={low_abs_ele_eta}&&{abs_ele_eta}<{high_abs_ele_eta}&&LepGood_mvaIdSpring15>{mva_threshold})".format(\
+        strings.append("({abs_ele_eta}>={low_abs_ele_eta}&&{abs_ele_eta}<{high_abs_ele_eta}&&LepGood_mvaIdSpring15{idx_str}>{mva_threshold})".format(\
             abs_ele_eta=abs_ele_eta, 
             low_abs_ele_eta = abs_ele_bin[0],
             high_abs_ele_eta=abs_ele_bin[1], 
+            idx_str = index_str,
             mva_threshold = mva_threshold))
 
     return "("+'||'.join(strings)+')'
 
-def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
+def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = None):
+    index_str = get_index_str( index )
     string = [\
-                   "LepGood_pt>=%s" % ptCut ,
-                   "abs(LepGood_eta)<%s" % absEtaCut ,
-                   "abs(LepGood_pdgId)==11" ,
-                   "LepGood_convVeto",
-                   "LepGood_lostHits==0",
-                   "LepGood_sip3d<4.0" ,
-                   "abs(LepGood_dxy)<%s" % dxy ,
-                   "abs(LepGood_dz)<%s" % dz ,
-                   leptonIsoSelectorString( iso ),
-                   eleIDSelectorString( eleId ),
+                   "LepGood_pt"+index_str+">=%s" % ptCut ,
+                   "abs(LepGood_eta"+index_str+")<%s" % absEtaCut ,
+                   "abs(LepGood_pdgId"+index_str+")==11" ,
+                   "LepGood_convVeto"+index_str+"",
+                   "LepGood_lostHits"+index_str+"==0",
+                   "LepGood_sip3d"+index_str+"<4.0" ,
+                   "abs(LepGood_dxy"+index_str+")<%s" % dxy ,
+                   "abs(LepGood_dz"+index_str+")<%s" % dz ,
+                   leptonIsoSelectorString( iso, index = index),
+                   eleIDSelectorString( eleId, index = index),
              ]
-    return 'Sum$('+'&&'.join(string)+')'
+
+    if index is not None:
+        return '&&'.join(string)
+    else:
+        return 'Sum$('+'&&'.join(string)+')'
 
 leptonVars=['eta','pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2', 'eleCutIdSpring15_25ns_v1']
 
