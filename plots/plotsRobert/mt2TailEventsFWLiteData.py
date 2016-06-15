@@ -38,8 +38,11 @@ def bold(s):
 ## from Directory
 dirname = "/data/rschoefbeck/pickEvents/StopsDilepton/" 
 s0 = FWLiteSample.fromFiles("mt2Tail", files = [ \
-    "/data/rschoefbeck/pickEvents/StopsDilepton/data/doubleEle_miniAOD_76X.root",  
-    "/data/rschoefbeck/pickEvents/StopsDilepton/data/muEle_miniAOD_76X.root",  
+    "muonEG_76X_mAOD.root", 
+#    "muonEG_74X_mAOD.root" 
+#    "doubleMu_76X_0b.root",  
+#    "doubleMu_76X_0b_2.root", 
+#    "doubleMu_0b_mAOD.root" 
     ])
 
 products = {
@@ -101,8 +104,8 @@ while r.run():
     for e in r.products['electrons']:
         if e.pt()<20: continue
         print "ele pt %3.2f eta %3.2f phi %3.2f conv-veto %i lost hits %i"%(e.pt(), e.eta(), e.phi(), e.passConversionVeto(), lostHits(e))
-        for id_ in eleIDs:
-            print "       passes %i %s"%(e.electronID(id_), id_)
+#        for id_ in eleIDs:
+#            print "       passes %i %s"%(e.electronID(id_), id_)
         print "       passingCutBasedPreselection %i trackMomentumError %3.2f"% (e.passingCutBasedPreselection(), e.trackMomentumError() )
         print "       sigmaIEtaIEta  %5.4f"% sigmaIEtaIEta( e )
         print "       dEtaScTrkIn    %5.4f"% dEtaScTrkIn( e )
@@ -114,11 +117,19 @@ while r.run():
         print "       ecalPFClusterIso/pt %5.4f"%( e.ecalPFClusterIso()/e.pt() ) 
         print "       hcalPFClusterIso/pt %5.4f"%( e.hcalPFClusterIso()/e.pt() )
         print "       dr03TkSumPt     /pt %5.4f"%( e.dr03TkSumPt()/e.pt() )
-#        print "       dxy            %5.4f"% e.dxy()
-#        print "       dz             %5.4f"% e.dz()
+        print "       dxy            %5.4f"% e.dB(ROOT.pat.Electron.PV2D)
+        gsft = e.gsfTrack()
+        print "       gsfTrack().pt()       %3.2f ptError %3.2f normChi2 %3.2f"%(gsft.pt(), gsft.ptError(), gsft.normalizedChi2() )
+        print "       isGsfCtfScPixChargeConsistent %i isGsfScPixChargeConsistent %i"%(e.isGsfCtfScPixChargeConsistent(), e.isGsfScPixChargeConsistent())
+        
     for m in r.products['muons']:
         if m.pt()<20: continue
         print "muon pt %3.2f eta %3.2f phi %3.2f"%(m.pt(), m.eta(), m.phi())
+        print "       dxy            %5.4f"% m.dB(ROOT.pat.Muon.PV2D)
+        print "       track().pt()       %3.2f ptError %3.2f normChi2 %3.2f"%(m.track().pt(), m.track().ptError(), m.track().normalizedChi2())
+        it = m.innerTrack()
+        print "       innerTrack().pt()  %3.2f ptError %3.2f normChi2 %3.2f HP? %i"%(it.pt(), it.ptError(), it.normalizedChi2(), it.quality(it.highPurity))
+        print "       globalTrack().pt() %3.2f ptError %3.2f normChi2 %3.2f relPtErr %3.2f"%(m.globalTrack().pt(), m.globalTrack().ptError(), m.globalTrack().normalizedChi2(), m.globalTrack().ptError()/m.globalTrack().pt())
     #break
 
          

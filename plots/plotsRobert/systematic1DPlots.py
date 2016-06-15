@@ -71,7 +71,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='png25ns_2l_mAODv2_2100_noPU_VTVT_systematics',
+    default='png25ns_2l_mAODv2_2100_v3_systematics',
     action='store',
 )
 
@@ -84,8 +84,8 @@ import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 #make samples
-data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
-postProcessing_directory = "postProcessed_Fall15_mAODv2/dilep/"
+data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+postProcessing_directory = "postProcessed_Fall15_v3/dilep/"
 
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
@@ -171,8 +171,8 @@ from StopsDilepton.tools.objectSelection import multiIsoLepString
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 common_selection=[
-    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"), #FIXME implicit cut on unvariied Jet pt
+#    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
+    ("dPhiJet0-dPhiJet1", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     ("mll20", "dl_mass>20"),

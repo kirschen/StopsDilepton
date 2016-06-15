@@ -21,7 +21,7 @@ argParser.add_argument('--logLevel',
 )
 
 argParser.add_argument('--mode',
-    default='doubleMu',
+    default='muEle',
     action='store',
     choices=['doubleMu', 'doubleEle',  'muEle'])
 
@@ -72,7 +72,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='0bDiagnosis_diBosonInclusive',
+    default='VTVT_EleCBIdtight',
     action='store',
 )
 
@@ -86,7 +86,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 #make samples
 data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/" 
-postProcessing_directory = "postProcessed_Fall15_mAODv2/dilep/" 
+postProcessing_directory = "postProcessed_Fall15_v3/dilep/" 
 
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
@@ -111,6 +111,8 @@ elif args.mode=="doubleEle":
 elif args.mode=="muEle":
     leptonSelectionString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
     data_sample = MuonEG_Run2015D if not args.noData else None
+    #qcd_sample = QCD_EMbcToE
+    #trigger   = "HLT_ee_DZ"
     qcd_sample = QCD_Mu5EMbcToE
     trigger    = "HLT_mue"
 else:
@@ -134,7 +136,7 @@ mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ
 #mc = [ TTX]
 if args.small:
     for sample in mc:
-        sample.reduceFiles(to = 1)
+        sample.reduceFiles(to = 10)
 
 if not args.noData:
     data_sample.style = styles.errorStyle( ROOT.kBlack )
@@ -152,8 +154,8 @@ from StopsDilepton.tools.objectSelection import multiIsoLepString
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 basic_cuts=[
-    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
-    ("eleCutBasedTightID", "(abs(l1_pdgId)!=11 || LepGood_eleCutIdSpring15_25ns_v1[l1_index]>=4)&&((abs(l2_pdgId)!=11 || LepGood_eleCutIdSpring15_25ns_v1[l2_index]>=4))"),
+#    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
+#    ("eleCutBasedTightID", "(abs(l1_pdgId)!=11 || LepGood_eleCutIdSpring15_25ns_v1[l1_index]>=4)&&((abs(l2_pdgId)!=11 || LepGood_eleCutIdSpring15_25ns_v1[l2_index]>=4))"),
     ("mll20", "dl_mass>20"),
     ("dPhiJet0-dPhiJet1", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
@@ -235,9 +237,9 @@ def makeMinDeltaRLepJets( data ):
 
 sequence.append( makeMinDeltaRLepJets )
 
-#rev = reversed if args.reversed else lambda x:x
-#for i_comb in rev( range( len(cuts)+1 ) ):
-for i_comb in [ len(cuts) ]:
+rev = reversed if args.reversed else lambda x:x
+for i_comb in rev( range( len(cuts)+1 ) ):
+#for i_comb in [ len(cuts) ]:
     for comb in itertools.combinations( cuts, i_comb ):
 
         if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
@@ -710,7 +712,7 @@ for i_comb in [ len(cuts) ]:
             )
         plots.append( nVert )
 
-        read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F,btagCSV/F,id/I]"]
+        read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F,btagCSV/F,id/I]", "nJetGood/I"]
         plotting.fill(plots, read_variables = read_variables, sequence = sequence)
         if not os.path.exists( plot_path ): os.makedirs( plot_path )
 

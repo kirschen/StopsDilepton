@@ -6,7 +6,7 @@ import os
 
 #StopsDilepton
 from StopsDilepton.tools.helpers import getObjDict, getEList, getVarValue, deltaR, getCollection, bestDRMatchInCollection
-from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getGoodJets, jetVars, getLeptons, default_muon_selector, default_ele_selector, getJets, leptonVars, jetVars, getGoodTaus, getGoodAndOtherLeptons
+from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getGoodJets, jetVars, getLeptons, default_muon_selector, default_ele_selector, getJets, leptonVars, jetVars, getGoodTaus, getGoodAndOtherLeptons, muonSelector, eleSelector
 # Calculate MT2
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()
@@ -29,7 +29,7 @@ argParser.add_argument('--logLevel',
 )
 
 argParser.add_argument('--mode',
-    default='doubleEle',
+    default='muEle',
     action='store',
     choices=['doubleMu', 'doubleEle',  'muEle'])
 
@@ -48,7 +48,8 @@ evtNr = -1
 #evtNr = 19956300 # event 9, e matched to gamma
 #evtNr = 55481323 # event 24, tautoE 205 GeV extra neutrino
 
-data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
+data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+postProcessing_directory = "postProcessed_Fall15_v3/dilep/" 
 from StopsDilepton.samples.helpers import fromHeppySample
 
 if args.mode=="doubleMu":
@@ -101,7 +102,7 @@ if evtNr>0:
 
 #prefix+="_tauVeto_mRelIso01_looseLepVeto"
 selection = "&&".join([c[1] for c in cuts])
-tail_selection = "dl_mt2ll>140"
+tail_selection = "dl_mt2ll>100"
 
 jetVars = ['pt/F', 'rawPt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F']
 
@@ -114,7 +115,7 @@ common_variables.extend( map( Variable.fromString, [ 'run/I', 'lumi/I', 'evt/l' 
 
 cmg_variables = [\
     Variable.fromString( 'nJet/I' ),
-    VectorType.fromString('Jet[pt/F,eta/F,phi/F,btagCSV/F,id/I]'),
+    VectorType.fromString('Jet[pt/F,eta/F,phi/F,btagCSV/F,id/I,muEF/F,eEF/F]'),
     Variable.fromString( 'nLepOther/I' ),
     #VectorType.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F]'),
     #VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F]'),
@@ -201,6 +202,10 @@ postProcessed_variables.extend( [
     VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F]'),
     ] )
 
+mu_selector = muonSelector( iso = 999., dxy = 1., dz = 0.1 )
+ele_selector = eleSelector( iso = 999., dxy = 1., dz = 0.1 )
+
+
 logger.info( "Analyzing sample %s",  sample.name )
 logger.info( "Selection: %s", selection)
 logger.info( "Tail selection: %s", tail_selection)
@@ -264,12 +269,17 @@ for i_event, event in enumerate( intersec ):
     logger.info( "###################### Event %2i #############################" % i_event )
     logger.info( "Run %i lumi %i event %i", reader.data.run, reader.data.lumi, reader.data.evt )
 
+    all_jets = filter(lambda j:j['id'] and j['btagCSV']< 0.460 , getJets(cmg_reader.data, jetVars = ['eta', 'pt', 'phi', 'btagCSV', 'id', 'muEF', 'eEF']) )
+    max_lEF_jet = max(all_jets, key=lambda j:max([j['eEF'], j['muEF']]) )
+    
+    logger.info( "non-b jet with maximum lEF %3.2f %3.2f btag %3.2f", max([max_lEF_jet['eEF'], max_lEF_jet['muEF']]), max_lEF_jet['pt'], max_lEF_jet['btagCSV'])
+    
     nonId_jets = filter(lambda j:j['pt']>30 and not j['id'], getJets(cmg_reader.data))
     for j in nonId_jets:
         logger.info( "Non-ID Jet found pt %3.2f eta %3.2f phi %3.2f", j['pt'], j['eta'], j['phi'] )
 
     # reco leptons
-    all_reco_leps = getGoodAndOtherLeptons(cmg_reader.data, ptCut=10, miniRelIso = 999. , dz = 0.1, dxy = 1.)
+    all_reco_leps = getGoodAndOtherLeptons(cmg_reader.data, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
 
     loose_mu = filter(lambda l:abs(l['pdgId'])==13 and default_muon_selector(l), all_reco_leps )
     loose_e  = filter(lambda l:abs(l['pdgId'])==11 and default_ele_selector(l), all_reco_leps )
@@ -292,8 +302,9 @@ for i_event, event in enumerate( intersec ):
     logger.info( "l1 pdgId %i pt %3.2f eta %3.2f phi %3.2f dxy %5.4f dz %5.4f", reader.data.l1_pdgId, reader.data.l1_pt, reader.data.l1_eta, reader.data.l1_phi, reader.data.LepGood_dxy[reader.data.l1_index], reader.data.LepGood_dz[reader.data.l1_index])
     logger.info( "l2 pdgId %i pt %3.2f eta %3.2f phi %3.2f dxy %5.4f dz %5.4f", reader.data.l2_pdgId, reader.data.l2_pt, reader.data.l2_eta, reader.data.l2_phi, reader.data.LepGood_dxy[reader.data.l2_index], reader.data.LepGood_dz[reader.data.l2_index])
 
-    printLepton( cmg_reader.data, reader.data.l1_index )
-    printLepton( cmg_reader.data, reader.data.l2_index )
+    #printLepton( cmg_reader.data, reader.data.l1_index )
+    #printLepton( cmg_reader.data, reader.data.l2_index )
+
     # Missing energy related
     met_pt = reader.data.met_pt
     met_phi = reader.data.met_phi

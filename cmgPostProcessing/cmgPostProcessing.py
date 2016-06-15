@@ -114,7 +114,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_Fall15_mAODv2',
+        default='postProcessed_Fall15_v3',
         help="Name of the processing era"
         )
 
