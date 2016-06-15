@@ -55,5 +55,5 @@ class DataDrivenDYEstimate(SystematicEstimator):
             logger.info("yield expected DY  onZ/1b: " + str(normRegYield*R))
             if normRegYield < 0 and yield_data > 0: logger.warn("Negative normalization region yield!")
 
-	logger.info('Estimate for DY in ' + channel + ' channel (lumi=' + str(setup.lumi[channel]) + '/pb): ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
+	logger.info('Estimate for DY in ' + channel + ' channel' + (' (lumi=' + str(setup.lumi[channel]) + '/pb)' if channel != "all" else "") + ': ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
 	return estimate if estimate > 0 else u_float(0, 0)
