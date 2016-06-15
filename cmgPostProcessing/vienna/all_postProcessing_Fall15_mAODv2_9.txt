@@ -1,0 +1,1 @@
+python cmgPostProcessing.py SPLIT20  --samples TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
