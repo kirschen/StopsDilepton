@@ -1,6 +1,8 @@
 from math import sqrt
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.analysis.u_float import u_float
+from StopsDilepton.analysis.Cache        import Cache
+import os
 
 # Logging
 import logging
@@ -41,7 +43,7 @@ class DataDrivenTTJetsEstimate(SystematicEstimator):
             # Calculate yields for CR
             yield_data    = self.yieldFromCache(setup, 'Data',   channel, cut_data_CR, "(1)")
             yield_ttjets  = self.yieldFromCache(setup, 'TTJets', channel, cut_MC_CR,   weight)*setup.dataLumi[channel]/1000
-            yield_other   = self.yieldFromCache(setup, s,        channel, cut_MC_CR,   weight) for s in ['DY' , 'TTZ' , 'other'])*setup.dataLumi[channel]/1000
+            yield_other   = sum(self.yieldFromCache(setup, s,    channel, cut_MC_CR,   weight) for s in ['DY' , 'TTZ' , 'other'])*setup.dataLumi[channel]/1000
 
             sr_ttjets     = self.yieldFromCache(setup, 'TTJets', channel, cut_MC_SR,   weight)*setup.dataLumi[channel]/1000
 
