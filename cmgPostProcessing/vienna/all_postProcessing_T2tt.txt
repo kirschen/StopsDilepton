@@ -1,7 +1,4 @@
-
-
 python cmgPostProcessing.py  --fastSim --T2tt --samples  SMS_T2tt_mStop_400to475_mLSP_1to400
-
 python cmgPostProcessing.py  --fastSim --T2tt --samples  SMS_T2tt_mStop_100_125_mLSP_1to50
 python cmgPostProcessing.py  --fastSim --T2tt --samples  SMS_T2tt_mStop_150_175_mLSP_1to100
 python cmgPostProcessing.py  --fastSim --T2tt --samples  SMS_T2tt_mStop_200_mLSP_1to125

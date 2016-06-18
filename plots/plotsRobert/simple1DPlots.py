@@ -150,8 +150,8 @@ from StopsDilepton.tools.user import plot_directory
 # official PU reweighting
 weight = lambda data:data.weight
 
-from StopsDilepton.tools.objectSelection import multiIsoLepString
-multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
+#from StopsDilepton.tools.objectSelection import multiIsoLepString
+#multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 basic_cuts=[
 #    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
