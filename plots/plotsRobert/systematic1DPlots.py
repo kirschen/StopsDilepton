@@ -26,7 +26,7 @@ argParser.add_argument('--mode',
     #default='muEle',
     default='dilepton',
     action='store',
-    choices=['doubleMu', 'doubleEle',  'muEle', 'dilepton'])
+    choices=['doubleMu', 'doubleEle',  'muEle', 'dilepton', 'sameFlavour'])
 
 argParser.add_argument('--charges',
     default='OS',
@@ -39,6 +39,18 @@ argParser.add_argument('--zMode',
     choices=['onZ', 'offZ', 'allZ']
 )
 
+argParser.add_argument('--njet',
+    default='2p',
+    type=str,
+    action='store',
+    choices=['0', '0p', '1', '1p', '2', '2p', '01']
+)
+argParser.add_argument('--nbtag',
+    default='1p',
+    action='store',
+    choices=['0', '0p', '1', '1p',]
+)
+
 argParser.add_argument('--ttjets',
     default='LO',
     action='store',
@@ -48,6 +60,12 @@ argParser.add_argument('--small',
     action='store_true',
     #default=True,
     help='Small?',
+)
+
+argParser.add_argument('--noMet',
+    action='store_true',
+    #default=True,
+    help='Remove MET cuts?',
 )
 
 argParser.add_argument('--normalizeBinWidth',
@@ -71,7 +89,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='png25ns_2l_mAODv2_2100_noPU_VTVT_systematics',
+    default='png25ns_2l_mAODv2_2100_v3_systematics',
     action='store',
 )
 
@@ -84,8 +102,8 @@ import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 #make samples
-data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
-postProcessing_directory = "postProcessed_Fall15_mAODv2/dilep/"
+data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+postProcessing_directory = "postProcessed_Fall15_v3/dilep/"
 
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
@@ -133,6 +151,17 @@ elif args.mode=="dilepton":
     DoubleMuon_Run2015D.setSelectionString([dataFilterCut, doubleMu_selectionString])
     DoubleEG_Run2015D.setSelectionString([dataFilterCut, doubleEle_selectionString])
     MuonEG_Run2015D.setSelectionString([dataFilterCut, muEle_selectionString])
+elif args.mode=="sameFlavour":
+    doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
+    doubleEle_selectionString = "&&".join([ "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
+    lepton_selection_string = "&&".join([ "(isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso || isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ)", getZCut(args.zMode)])
+
+    data_samples = [DoubleMuon_Run2015D, DoubleEG_Run2015D] 
+    data_sample_texName = "Data (SF)"
+    qcd_sample = QCD_Mu5EMbcToE
+
+    DoubleMuon_Run2015D.setSelectionString([dataFilterCut, doubleMu_selectionString])
+    DoubleEG_Run2015D.setSelectionString([dataFilterCut, doubleEle_selectionString])
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
@@ -171,8 +200,8 @@ from StopsDilepton.tools.objectSelection import multiIsoLepString
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 common_selection=[
-    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"), #FIXME implicit cut on unvariied Jet pt
+#    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
+    ("dPhiJet0-dPhiJet1", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     ("mll20", "dl_mass>20"),
@@ -198,28 +227,53 @@ sys_pairs = [\
 #weight_systematics = []
 #sys_pairs = []
 
+def mCutStr( arg ):
+    if not arg in ['0', '0p', '1', '1p', '2', '2p', '01']: raise ValueError( "Don't know what to do with cut %s" % arg )
+    
+    if arg=='0':
+        return '==0'
+    elif arg=='0p':
+        return '>=0'
+    elif arg=='1':
+        return '==1'
+    elif arg=='1p':
+        return '>=1'
+    elif arg=='2':
+        return '==2'
+    elif arg=='2p':
+        return '>=2'
+    elif arg=='01':
+        return '<=1'
+        
+
 jme_systematics = jet_systematics + met_systematics
 
 def systematic_selection( sys = None ):
 
-    if sys is None: return [ \
-        ("njet2", "nJetGood>=2"),
-        ("nbtag1", "nBTag>=1"),
-        ("met80", "met_pt>80"),
-        ("metSig5", "met_pt/sqrt(ht)>5"),
-        ]
-    elif sys in jet_systematics: return [\
-        ("njet2", "nJetGood_"+sys+">=2"),
-        ("nbtag1", "nBTag_"+sys+">=1"),
-        ("met80", "met_pt_"+sys+">80"),
-        ("metSig5", "metSig_"+sys+">5"),
-        ]
-    elif sys in met_systematics: return [\
-        ("njet2", "nJetGood>=2"),
-        ("nbtag1", "nBTag>=1"),
-        ("met80", "met_pt_"+sys+">80"),
-        ("metSig5", "metSig_"+sys+">5"),
-        ]
+    if sys is None: 
+        res = [ \
+            ("njet%s"%args.njet, "nJetGood%s"%mCutStr( args.njet )),
+            ("nbtag%s"%args.nbtag, "nBTag%s"%mCutStr( args.nbtag ))]
+        if not args.noMet: res.extend([\
+            ("met80", "met_pt>80"),
+            ("metSig5", "met_pt/sqrt(ht)>5")])
+        return res
+    elif sys in jet_systematics: 
+        res = [\
+            ("njet%s"%args.njet, "nJetGood_%s%s"%( sys, mCutStr(args.njet) )),
+            ("nbtag%s"%args.nbtag, "nBTag_%s%s"%( sys, mCutStr(args.nbtag) ))]
+        if not args.noMet: res.extend([\
+            ("met80", "met_pt_"+sys+">80"),
+            ("metSig5", "metSig_"+sys+">5")])
+        return res
+    elif sys in met_systematics: 
+        res = [\
+            ("njet%s"%args.njet, "nJetGood%s"%mCutStr( args.njet )),
+            ("nbtag%s"%args.nbtag, "nBTag%s"%mCutStr( args.nbtag ))]
+        if not args.noMet: res.extend([\
+            ("met80", "met_pt_"+sys+">80"),
+            ("metSig5", "metSig_"+sys+">5")])
+        return res
     elif sys in weight_systematics:
         return systematic_selection( sys = None )
     else: raise ValueError( "Systematic %s not known"%sys )
@@ -297,7 +351,7 @@ ppfixes = [args.mode, args.zMode] if not args.mode=='dilepton' else [args.mode]
 if args.ttjets == "NLO": ppfixes.append( "TTJetsNLO" )
 if args.ttjets == "LO": ppfixes.append( "TTJetsLO" )
 if args.small: ppfixes = ['small'] + ppfixes
-prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in selection ] ) ] )
+prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in selection + systematic_selection( sys = None )] ) ] )
 
 plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
 
@@ -315,7 +369,7 @@ sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics
 roottools_plots = []
 dl_mt2ll_data  = Plot(
     name = "dl_mt2ll_data",
-    texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
     stack = stack_data,
     variable = Variable.fromString( "dl_mt2ll/F" ),
@@ -327,7 +381,7 @@ roottools_plots.append( dl_mt2ll_data )
 
 dl_mt2ll_mc  = { sys:Plot(\
     name = "dl_mt2ll" if sys is None else "dl_mt2ll_mc_%s" % sys,
-    texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
     stack = sys_stacks[sys],
     variable = Variable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2ll_%s/F" % sys ),
@@ -339,7 +393,7 @@ roottools_plots.extend( dl_mt2ll_mc.values() )
 
 dl_mt2bb_data  = Plot( 
     name = "dl_mt2bb_data",
-    texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = stack_data,
     variable = Variable.fromString( "dl_mt2bb/F" ),
     binning=Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
@@ -351,7 +405,7 @@ roottools_plots.append( dl_mt2bb_data )
 
 dl_mt2bb_mc  = {sys: Plot(
     name = "dl_mt2bb" if sys is None else "dl_mt2bb_mc_%s" % sys,
-    texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = sys_stacks[sys],
     variable = Variable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2bb_%s/F" % sys ),
     binning=Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
@@ -363,7 +417,7 @@ roottools_plots.extend( dl_mt2bb_mc.values() )
 
 dl_mt2blbl_data  = Plot( 
     name = "dl_mt2blbl_data",
-    texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = stack_data,
     variable = Variable.fromString( "dl_mt2blbl/F" ),
     binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
@@ -375,7 +429,7 @@ roottools_plots.append( dl_mt2blbl_data )
 
 dl_mt2blbl_mc  = {sys: Plot(
     name = "dl_mt2blbl" if sys is None else "dl_mt2blbl_mc_%s" % sys,
-    texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = sys_stacks[sys],
     variable = Variable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2blbl_%s/F" % sys ),
     binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
@@ -435,10 +489,10 @@ roottools_plots.extend( njets_mc.values() )
 
 met_data  = Plot( 
     name = "met_data",
-    texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
+    texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = stack_data, 
     variable = Variable.fromString( "met_pt/F" ),
-    binning=Binning.fromThresholds([80,130,180,230,280,320,420,520,800]),
+    binning=Binning.fromThresholds( [0,80,130,180,230,280,320,420,520,800] if args.noMet else [80,130,180,230,280,320,420,520,800]),
     selectionString = "&&".join([ common_selection_string, data_selection_string] ),
     weight = data_weight_func,
     addOverFlowBin = "upper",
@@ -447,10 +501,10 @@ roottools_plots.append( met_data )
 
 met_mc  = {sys: Plot(
     name = "met_pt" if sys is None else "met_pt_mc_%s" % sys,
-    texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
+    texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = sys_stacks[sys],
     variable = Variable.fromString('met_pt/F') if sys not in met_systematics else Variable.fromString( "met_pt_%s/F" % sys ),
-    binning=Binning.fromThresholds([80,130,180,230,280,320,420,520,800]),
+    binning=Binning.fromThresholds( [0,80,130,180,230,280,320,420,520,800] if args.noMet else [80,130,180,230,280,320,420,520,800]),
     selectionString = "&&".join( [common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
     weight = weight( sys = sys )[0],
     addOverFlowBin = "upper",
@@ -550,21 +604,22 @@ for plot_mc, plot_data, x_norm, bin_width in plots:
     h_rel_err = h_summed[None].Clone()
     h_rel_err.Reset()
 
+    #MC statistical error
+    for ib in range( 1 + h_rel_err.GetNbinsX() ):
+        h_rel_err.SetBinContent(ib, h_summed[None].GetBinError(ib)**2 )
+
     h_sys = {}
     for k, s1, s2 in sys_pairs:
         h_sys[k] = h_summed[s1].Clone()
         h_sys[k].Scale(-1)
         h_sys[k].Add(h_summed[s2])
-        # h_sys[k].Divide(h_summed[None])
-
-    h_rel_err = h_summed[None].Clone()
-    h_rel_err.Reset()
 
     # Adding in quadrature
     for k in h_sys.keys():
         for ib in range( 1 + h_rel_err.GetNbinsX() ):
             h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
+    # take sqrt
     for ib in range( 1 + h_rel_err.GetNbinsX() ):
         h_rel_err.SetBinContent(ib, sqrt( h_rel_err.GetBinContent(ib) ) )
 

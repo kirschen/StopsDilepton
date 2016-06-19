@@ -114,7 +114,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_Fall15_mAODv2',
+        default='postProcessed_Fall15_v3',
         help="Name of the processing era"
         )
 
@@ -214,7 +214,7 @@ elif isJet250:
 #Samples: Load samples
 maxN = 2 if options.runSmallSample else None
 if options.T2tt:
-    from StopsDilepton.samples.cmgTuples_Signals_Spring15_mAODv2_25ns_0l import T2tt
+    from StopsDilepton.samples.cmgTuples_Signals_Spring15_mAODv2_25ns_1l import T2tt
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
     samples = filter( lambda s:s.name in options.samples, T2tt)
     logger.info( "T2tt signal samples to be processed: %s", ",".join(s.name for s in samples) )
