@@ -9,17 +9,19 @@ from StopsDilepton.analysis.Cache        import Cache
 import logging
 logger = logging.getLogger(__name__)
 
+isoCut = 0.2
+
 def getLooseLeptonString(nMu, nE):
-    raise NotImplementedError( "Tom, please check carefully" )
-    return muonSelectorString(ptCut=10) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10) + "==" + str(nE)
+    return muonSelectorString(ptCut=10, iso=isoCut) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, iso=isoCut) + "==" + str(nE)
 
 def getLeptonString(nMu, nE):
-    # Only good leptons or also loose?
-    # return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
     return getLooseLeptonString(nMu, nE)
 
-def getPtThresholdString(firstPt, secondPt, thirdPt):
-    return "(Sum$(LepGood_pt>" + str(firstPt) + ")>=1&&Sum$(LepGood_pt>" + str(secondPt) + ")>=2&&Sum$(LepGood_pt>" + str(thirdPt) + ")>=3)"
+def getPtThresholdString(firstPt, secondPt):
+    return "&&".join([muonSelectorString(ptCut=firstPt,  iso=isoCut) + "+" + eleSelectorString(ptCut=firstPt,  iso=isoCut) + ">=1",
+                      muonSelectorString(ptCut=secondPt, iso=isoCut) + "+" + eleSelectorString(ptCut=secondPt, iso=isoCut) + ">=2"])
+
+#    return "(Sum$(LepGood_pt>" + str(firstPt) + ")>=1&&Sum$(LepGood_pt>" + str(secondPt) + ")>=2&&Sum$(LepGood_pt>" + str(thirdPt) + ")>=3)"
 
 class DataDrivenTTZEstimate(SystematicEstimator):
     def __init__(self, name, cacheDir=None, useTop16009=False):
@@ -27,6 +29,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         self.nJets        = (3,-1) # jet selection (min, max)
         self.nLooseBTags  = (2,-1) # loose bjet selection (min, max)
         self.nMediumBTags = (0,-1) # bjet selection (min, max)
+        self.useCache     = False
 
         self.useTop16009       = useTop16009
         self.ratioTop16009     = 1.27 #
@@ -37,12 +40,12 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         self.helperCacheName = os.path.join('.', 'helperCache.pkl')
         self.helperCache     = Cache(self.helperCacheName, verbosity=2)
 
-    def yieldFromCache(self, setup, sample, channel, selectionString, weightString):
-        s = (sample, channel, selectionString, weightString)
-        if self.helperCache.contains(s):
+    def yieldFromCache(self, setup, sample, c, selectionString, weightString):
+        s = (sample, c, selectionString, weightString)
+        if self.helperCache.contains(s) and self.useCache:
           return self.helperCache.get(s)
         else:
-	  yieldFromDraw = u_float(**setup.sample[sample][channel].getYieldFromDraw(selectionString, weightString))
+	  yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
           self.helperCache.add(s, yieldFromDraw, save=True)
 	  return yieldFromDraw
 
@@ -75,14 +78,14 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 	      # pt leptons > 30, 20, 10 GeV
 	      useTrigger            = False # setup.parameters['useTriggers'] # better not to use three lepton triggers, seems to be too inefficient
               lllSelection          = {}
-	      lllSelection['MuMu']  = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3mu"   if useTrigger else "")
-	      lllSelection['MuMuE'] = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2mu1e" if useTrigger else "") 
-	      lllSelection['MuEE']  = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20, 10)]) + ("&&HLT_2e1mu" if useTrigger else "")
-	      lllSelection['EE']    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20, 10)]) + ("&&HLT_3e"    if useTrigger else "")
+	      lllSelection['MuMu']  = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)]) + ("&&HLT_mumuIso"            if useTrigger else "")
+	      lllSelection['MuMuE'] = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)]) + ("&&(HLT_mue||HLT_mumuIso)" if useTrigger else "") 
+	      lllSelection['MuEE']  = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)]) + ("&&(HLT_mue||HLT_ee_DZ)"   if useTrigger else "")
+	      lllSelection['EE']    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)]) + ("&&HLT_ee_DZ"              if useTrigger else "")
               lllSelection['EMu']   = "(("+lllSelection['MuMuE']+")||("+lllSelection['MuEE']+"))"
 
-	      bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))"
-	      bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))"
+	      bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
+	      bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))"
 	      zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 
 	      # Start from base hadronic selection and add loose b-tag and Z-mass requirement
@@ -91,13 +94,13 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 		selection[dataOrMC]  = setup.selection(dataOrMC, hadronicSelection = True, **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 0., 'metSigMin':0., 'dPhiJetMet':0. }))['cut']
 		selection[dataOrMC] += "&&" + bJetSelectionL+">="+str(self.nLooseBTags[0])
 		selection[dataOrMC] += "&&" + zMassSelection 
-                logger.info("Selection " + dataOrMC + ": " + selection[dataOrMC])
 
 	      # Calculate yields (take together channels together)
-              channels      = ['MuMu','EMu','EE']
-	      yield_ttZ_3l  = sum(self.yieldFromCache(setup, 'TTZ',  c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in ['MuMu','EMu','EE'])
-	      yield_other   = sum(self.yieldFromCache(setup, s,      c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in ['MuMu','EMu','EE'] for s in ['TTJets', 'DY', 'other'])
-	      yield_data_3l = sum(self.yieldFromCache(setup, 'Data', c, "&&".join([lllSelection[c], selection["Data"]]), "(1)")                               for c in ['MuMu','EMu','EE'])
+            #  channels      = ['MuMu','EE','EMu'] #something is wrong for the MuMuMu and eee, too much data
+              channels      = [channel]
+	      yield_ttZ_3l  = sum(self.yieldFromCache(setup, 'TTZ',  c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels)
+	      yield_other   = sum(self.yieldFromCache(setup, s,      c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels for s in ['TTJets', 'DY', 'other'])
+	      yield_data_3l = sum(self.yieldFromCache(setup, 'Data', c, "&&".join([lllSelection[c], selection["Data"]]), "(1)")                               for c in channels)
 
               if not yield_ttZ_3l > 0:
                 logger.warn("No yield for 3l selection")
