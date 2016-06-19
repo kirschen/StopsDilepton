@@ -8,9 +8,8 @@ logger = logger.get_logger("INFO", logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger("INFO", logFile = None )
 
-
-ddTTJets = DataDrivenTTJetsEstimate(name='TTJets-norm', controlRegion=reducedRegionsNew[0], cacheDir=None)
+estimate = DataDrivenTTJetsEstimate(name='TTJets-DD', controlRegion=reducedRegionsNew[0], cacheDir=None)
 
 for region in reducedRegionsNew:
   for channel, sample in setup.sample['Data'].iteritems():
-    res = ddTTJets.cachedEstimate(region, channel, setup)
+    res = estimate.cachedEstimate(region, channel, setup)
