@@ -42,7 +42,7 @@ for estimator in detailedEstimators:
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_0] if args.signal == "T2TT" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
+signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_0] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
 for estimator in signalEstimators:
     estimator.style = styles.lineStyle( getattr(color, estimator.name ), width=2 )
  
@@ -63,7 +63,14 @@ def getRegionHisto(estimate, regions, channel, setup):
     try:
       h.legendText = estimate.sample[channel].texName
     except:
-      h.legendText = estimate.name
+      try:
+	texNames = [estimate.sample[c].texName for c in ['MuMu','EMu','EE']]		# If all, only take texName if it is the same for all channels
+	if texNames.count(texNames[0]) == len(texNames):
+	  h.legendText = texNames[0]
+	else:
+	  h.legendText = estimate.name
+      except:
+	h.legendText = estimate.name
     for i, r in enumerate(regions):
         res = estimate.cachedEstimate(r, channel, setup, save=False)
         h.SetBinContent(i+1, res.val)
@@ -96,7 +103,7 @@ for channel in allChannels:
     plotting.draw( region_plot, \
         plot_directory = os.path.join(user.plot_directory, args.regions, args.estimateDY, args.estimateTTZ),
         logX = False, logY = True, 
-        # sorting = True , 
+        sorting = True,
         yRange = (10**-2.4, "auto"),
         widths = {'x_width':500, 'y_width':600},
         drawObjects = drawObjects(regions_), 
