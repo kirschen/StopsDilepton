@@ -8,12 +8,13 @@ argParser.add_argument("--multiIsoWP",     action='store', default="",          
 argParser.add_argument("--relIso04",       action='store', default=-1,                  type=float,                                                                                                       help="relIso04 cut?")
 argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
+argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTZJets","TTJets-DD"],                                                                       help="which TTJets estimate?")
 argParser.add_argument("--regions",        action='store', default='reducedRegionsNew', nargs='?', choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB","reducedRegionsNew"], help="which regions setup?")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal?")
 args = argParser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
-from StopsDilepton.analysis.estimators   import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTZEstimate, DataDrivenDYEstimate
+from StopsDilepton.analysis.estimators   import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTZEstimate, DataDrivenDYEstimate, DataDrivenTTJetsEstimate
 from StopsDilepton.analysis.regions      import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB, reducedRegionsNew, reducedRegionsC
 from StopsDilepton.analysis.Cache        import Cache
 
@@ -29,7 +30,7 @@ elif args.regions == "reducedRegionsNew": regions = reducedRegionsNew
 elif args.regions == "reducedRegionsC":   regions = reducedRegionsC
 else: raise Exception("Unknown regions setup")
 
-estimators = constructEstimatorList(['TTJets','other', args.estimateDY, args.estimateTTZ])
+estimators = constructEstimatorList([args.estimateTTJets, 'other', args.estimateDY, args.estimateTTZ])
 
 if args.multiIsoWP!="":
     multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
@@ -55,7 +56,7 @@ from StopsDilepton.tools.user           import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 limitPrefix = args.regions
-limitDir    = os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, 'cardFiles', args.signal, limitPrefix)
+limitDir    = os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, 'cardFiles', args.signal, limitPrefix)
 overWrite   = False
 useCache    = True
 verbose     = True
@@ -157,19 +158,21 @@ def wrapper(s):
       res = c.calcLimit(cardFileName)
       limitCache.add(sConfig, res, save=True)
 
-    try:
-      if res: 
-	if   args.signal == "DM":   sString = "mChi %i mPhi %i type %i" % sConfig
-	elif args.signal == "T2tt": sString = "mStop %i mNeu %i" % sConfig
-        print "Result: %i obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
-    except:
-      print "Something wrong with the limit: %r"%res
-    return sConfig, res
+    if res: 
+      if   args.signal == "DM":   sString = "mChi %i mPhi %i type %i" % sConfig
+      elif args.signal == "T2tt": sString = "mStop %i mNeu %i" % sConfig
+      try:
+        print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
+        return sConfig, res
+      except:
+        print "Problem with limit: %r" + str(res)
+        return None
 
 if   args.signal == "T2tt": jobs = signals_T2tt 
 elif args.signal == "DM":   jobs = signals_TTDM
 
 results = map(wrapper, jobs)
+results = [r for r in results if r]
 
 # Make histograms for T2tt
 if args.signal == "T2tt":
@@ -180,15 +183,11 @@ if args.signal == "T2tt":
 
   for r in results:
     s, res = r
-    mStop, mNeu = r
-    if type != "scalar": continue
+    mStop, mNeu = s
     for hist, qE in [(exp, '0.500'), (exp_up, '0.160'), (exp_down, '0.840'), (obs, '-1.000')]:
-      try:
-	  hist.Fill(mStop, mNeu, res[qE])
-      except:
-	  print "Something failed for mChi %i mPhi %i res %s"%(mStop, mNeu, res)
+      hist.Fill(mStop, mNeu, res[qE])
 
-  limitResultsFilename = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, 'limits', args.signal, limitPrefix,'limitResults.root'))
+  limitResultsFilename = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, 'limits', args.signal, limitPrefix,'limitResults.root'))
   if not os.path.exists(os.path.dirname(limitResultsFilename)):
       os.makedirs(os.path.dirname(limitResultsFilename))
 
@@ -204,7 +203,8 @@ if args.signal == "T2tt":
 # Make table for DM
 if args.signal == "DM":
   # Create table
-  texdir = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, 'limits', limitPrefix))
+  texdir = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, 'limits', args.signal, limitPrefix))
+  if not os.path.exists(texdir): os.makedirs(texdir)
 
   for type in sorted(set([type_ for ((mChi, mPhi, type_), res) in results])):
     chiList = sorted(set([mChi  for ((mChi, mPhi, type_), res) in results if type_ == type]))

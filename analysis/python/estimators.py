@@ -12,6 +12,7 @@ estimators = {}
 estimators['DY-DD']           = [DataDrivenDYEstimate( name='DY-DD')]
 estimators['TTZ-DD']          = [DataDrivenTTZEstimate(name='TTZ-DD')]
 estimators['TTZ-DD-Top16009'] = [DataDrivenTTZEstimate(name='TTZ-DD-Top16009', useTop16009=True)]
+estimators['TTJets-DD']       = [DataDrivenTTZEstimate(name='TTJets-DD')]
 
 # main MC based estimators
 for mc in ['DY','TTJets','TTZ','other']:
@@ -30,13 +31,13 @@ assert len(set(estimatorNames)) == len(estimatorNames), "Names of bkgEstimators 
 
 
 # constuct estimator lists
-def constructEstimatorList(mcList):
+def constructEstimatorList(eList):
   estimatorList = []
-  for mc in mcList:
-    estimatorList += estimators[mc]
+  for e in eList:
+    estimatorList += estimators[e]
   return estimatorList
 
-#defaultAnalysisEstimators = constructEstimatorList(['DY-DD','TTZ-DD','TTJets','other'])
+defaultAnalysisEstimators = constructEstimatorList(['DY-DD','TTZ-DD','TTJets-DD','other'])
 mcAnalysisEstimators      = constructEstimatorList(['DY',   'TTZ',   'TTJets','other'])
 mcDetailedEstimators      = constructEstimatorList(['DY',   'TTZ',   'TTJets','other-detailed'])
 allEstimators             = constructEstimatorList(estimators.keys())

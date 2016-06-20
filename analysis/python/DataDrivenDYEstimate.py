@@ -40,6 +40,8 @@ class DataDrivenDYEstimate(SystematicEstimator):
             # Calculate data-other onZ for 0 b-jets region
             yield_data    = u_float(**setup.sample['Data'][channel].getYieldFromDraw(selectionString = cut_data_onZ_0b, weightString="(1)"))
             yield_other   = sum(u_float(**setup.sample[s][channel].getYieldFromDraw( selectionString = cut_onZ_0b,      weightString=weight)) for s in ['TTJets' , 'TTZ' , 'other'])*setup.dataLumi[channel]/1000
+
+            if yield_data.val == 0: yield_data = u_float(1.15, 1.15) #1 sigma poissonian upper limit
             normRegYield  = yield_data - yield_other
 
             # Calculate DY estimate in 1 b-jet region (and scale back to MC lumi)
