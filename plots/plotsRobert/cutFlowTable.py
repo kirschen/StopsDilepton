@@ -15,14 +15,17 @@ data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
 postProcessing_directory = "postProcessed_Fall15_v3/dilep/" 
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
-
 maxN = -1
+s1 =  Sample.fromFiles(name="T2tt_450_0", treeName="Events", isData=False, color=ROOT.kBlack, texName="T2tt(450,0)", files=['/afs/hephy.at/data/rschoefbeck01/cmgTuples/postProcessed_Fall15_v3/dilep/T2tt/T2tt_450_0.root'], maxN = maxN)
+s2 =  Sample.fromFiles(name="T2tt_450_0", treeName="Events", isData=False, color=ROOT.kBlack, texName="T2tt(450,0)", files=['/afs/hephy.at/data/rschoefbeck01/cmgTuples/postProcessed_Fall15_mAODv2/dilepTiny/T2tt/T2tt_450_0.root'], maxN = maxN)
+
 #Define chains for signals and backgrounds
 samples = [
-    DY_HT_LO, TTJets_Lep, TTZ, TTXNoZ, singleTop, diBoson, WZZ, QCD_Mu5EMbcToE, 
+#    DY_HT_LO, TTJets_Lep, TTZ, TTXNoZ, singleTop, diBoson, WZZ, QCD_Mu5EMbcToE, 
 #    TTbarDMJets_pseudoscalar_Mchi1_Mphi10,
 #    TTbarDMJets_pseudoscalar_Mchi10_Mphi100
- Sample.fromFiles(name="T2tt_450_0", treeName="Events", isData=False, color=ROOT.kBlack, texName="T2tt(450,0)", files=['/afs/hephy.at/data/rschoefbeck01/cmgTuples/postProcessed_Fall15_mAODv2/dilepTiny/T2tt/T2tt_450_0.root'], maxN = maxN), 
+s1,
+s2, 
 # Sample.fromDirectory(name="TTJets_Lep", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (lep)", directory=['/scratch/rschoefbeck/cmgTuples/fromTom/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) 
 ]
 QCD_Mu5EMbcToE.name = 'QCD'
@@ -59,8 +62,8 @@ cuts=[
 
 lumiFac=10
 print 30*" "+ "".join([ "%13s"%s.name for s in samples ] )
-#for i in reversed(range(len(cuts))):
-for i in range(len(cuts)):
+for i in reversed(range(len(cuts))):
+#for i in range(len(cuts)):
     r=[]
     for s in samples:
         selection = "&&".join(c[1] for c in cuts[:i+1])

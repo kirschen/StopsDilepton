@@ -56,6 +56,25 @@ argParser.add_argument('--reversed',
     help='Reversed?',
 )
 
+argParser.add_argument('--njet',
+    default='2p',
+    type=str,
+    action='store',
+    choices=['0', '0p', '1', '1p', '2', '2p', '01']
+)
+argParser.add_argument('--nbtag',
+    default='1p',
+    action='store',
+    choices=['0', '0p', '1', '1p',]
+)
+
+argParser.add_argument('--met',
+    default='def',
+    action='store',
+    choices=['def', 'none', 'low'],
+    help='met cut',
+)
+
 argParser.add_argument('--signals',
     action='store',
     nargs='*',
@@ -136,7 +155,7 @@ mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ
 #mc = [ TTX]
 if args.small:
     for sample in mc:
-        sample.reduceFiles(to = 10)
+        sample.reduceFiles(to = 1)
 
 if not args.noData:
     data_sample.style = styles.errorStyle( ROOT.kBlack )
@@ -161,18 +180,56 @@ basic_cuts=[
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
 ]
-cuts=[
-    #("njet0", "nJetGood==0"),
-    #("njet0p", "nJetGood>=0"),
-    #("njet1", "nJetGood==1"),
-    ("njet2p", "nJetGood>=2"),
-    #("nbtag0", "nBTag==0"),
-    ("nbtag1p", "nBTag>=1"),
-    ("met80-metSig5", "met_pt>80&&(met_pt/sqrt(ht)>5||nJetGood==0)"),
-    #("highMT2ll", "dl_mt2ll>140"),
-]
-                
-def drawObjects( dataMCScale ):
+    
+def mCutStr( arg ):
+    if not arg in ['0', '0p', '1', '1p', '2', '2p', '01']: raise ValueError( "Don't know what to do with cut %s" % arg )
+    
+    if arg=='0':
+        return '==0'
+    elif arg=='0p':
+        return '>=0'
+    elif arg=='1':
+        return '==1'
+    elif arg=='1p':
+        return '>=1'
+    elif arg=='2':
+        return '==2'
+    elif arg=='2p':
+        return '>=2'
+    elif arg=='01':
+        return '<=1'
+
+def selection( ):
+    res = [ \
+        ("njet%s"%args.njet, "nJetGood%s"%mCutStr( args.njet )),
+        ("nbtag%s"%args.nbtag, "nBTag%s"%mCutStr( args.nbtag ))]
+    if args.met=='def': res.extend([\
+        ("met80", "met_pt>80"),
+        ("metSig5", "met_pt/sqrt(ht)>5")])
+    elif args.met=='low':
+        res.extend([  ("metSm80", "met_pt<80")] )
+    elif args.met=='none':
+        pass
+    return res
+
+cuts = selection()
+
+#cuts=[
+#    #("njet0", "nJetGood==0"),
+#    #("njet0p", "nJetGood>=0"),
+#    #("njet1", "nJetGood==1"),
+#    #("njet01", "nJetGood<=1"),
+#    ("njet2p", "nJetGood>=2"),
+#    #("nbtag0", "nBTag==0"),
+#    #("nbtag1", "nBTag==1"),
+#    ("nbtag1p", "nBTag>=1"),
+#    #("met80-metSig5", "met_pt>80&&(met_pt/sqrt(ht)>5||nJetGood==0)"),
+#    ("metSm80", "met_pt<80"),
+#    #("highMT2ll", "dl_mt2ll>140"),
+#]
+
+            
+def getDrawObjects( dataMCScale ):
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
@@ -237,9 +294,9 @@ def makeMinDeltaRLepJets( data ):
 
 sequence.append( makeMinDeltaRLepJets )
 
-rev = reversed if args.reversed else lambda x:x
-for i_comb in rev( range( len(cuts)+1 ) ):
-#for i_comb in [ len(cuts) ]:
+#rev = reversed if args.reversed else lambda x:x
+#for i_comb in rev( range( len(cuts)+1 ) ):
+for i_comb in [ len(cuts) ]:
     for comb in itertools.combinations( cuts, i_comb ):
 
         if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
@@ -273,7 +330,7 @@ for i_comb in rev( range( len(cuts)+1 ) ):
 
         if  prefix.count('nbtag')>1: continue
         if  prefix.count('njet')>1: continue
-        if "njet0p" not in prefix and "njet0" in prefix and "btag1" in prefix:continue
+        #if "njet0p" not in prefix and "njet0" in prefix and "btag1" in prefix:continue
 
         logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionString )
 
@@ -723,6 +780,6 @@ for i_comb in rev( range( len(cuts)+1 ) ):
                 plot_directory = plot_path, ratio = ratio, 
                 logX = False, logY = True, sorting = True, 
                 yRange = (0.03, "auto"), 
-                drawObjects = drawObjects( dataMCScale )
+                drawObjects = getDrawObjects( dataMCScale )
             )
         logger.info( "Done with prefix %s and selectionString %s", prefix, selectionString )
