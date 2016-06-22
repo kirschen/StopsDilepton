@@ -9,7 +9,7 @@ import itertools
 #RootTools
 from RootTools.core.standard import *
 
-from StopsDilepton.analysis.estimators import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTZEstimate, DataDrivenDYEstimate
+from StopsDilepton.analysis.estimators import setup, constructEstimatorList, MCBasedEstimate
 from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB, reducedRegionsNew
 import StopsDilepton.tools.user as user
 from StopsDilepton.samples.color import color
@@ -19,11 +19,14 @@ from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 # argParser
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--logLevel',       action='store', default='INFO',           nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
-argParser.add_argument("--regions",        action='store', default='defaultRegions', nargs='?', choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB","reducedRegionsNew"], help="which regions setup?")
-argParser.add_argument("--signal",         action='store', default='T2tt',           nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal to plot?")
-argParser.add_argument("--estimateDY",     action='store', default='DY',             nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
-argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',            nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which DY estimate?")
+argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
+argParser.add_argument("--regions",        action='store', default='reducedRegionsNew', nargs='?', choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB","reducedRegionsNew"], help="which regions setup?")
+argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal to plot?")
+argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
+argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
+argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTJets","TTJets-DD"],                                                                        help="which TTJets estimate?")
+argParser.add_argument("--log",            action='store_true', default=False,          help="plot logarithmic y-axis?")
+argParser.add_argument("--labels",         action='store_true', default=False,          help="plot labels?")
 args = argParser.parse_args()
 
 
@@ -34,11 +37,12 @@ elif args.regions == "reducedRegionsAB":  regions = reducedRegionsAB
 elif args.regions == "reducedRegionsNew": regions = reducedRegionsNew
 else: raise Exception("Unknown regions setup")
 
-detailedEstimators = constructEstimatorList(['TTJets','other-detailed', args.estimateDY, args.estimateTTZ])
+detailedEstimators = constructEstimatorList([args.estimateTTJets,'other-detailed', args.estimateDY, args.estimateTTZ])
 signalSetup = setup.sysClone(parameters={'useTriggers':False})
 
 for estimator in detailedEstimators:
-    estimator.style = styles.fillStyle( getattr( color, estimator.name.split('-')[0] ) )
+    estimatorColor = getattr( color, estimator.name.split('-')[0] ) 
+    estimator.style = styles.fillStyle(estimatorColor, lineColor = estimatorColor )
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
@@ -101,12 +105,12 @@ for channel in allChannels:
 
     region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos ] + sig_histos, texX = "SR number", texY = "Events" )
     plotting.draw( region_plot, \
-        plot_directory = os.path.join(user.plot_directory, args.regions, args.estimateDY, args.estimateTTZ),
-        logX = False, logY = True, 
+        plot_directory = os.path.join(user.plot_directory, args.regions, args.estimateDY, args.estimateTTZ, args.estimateTTJets),
+        logX = False, logY = args.log, 
         sorting = True,
         yRange = (10**-2.4, "auto"),
         widths = {'x_width':500, 'y_width':600},
-        drawObjects = drawObjects(regions_), 
+        drawObjects = drawObjects(regions_) if args.labels else [], 
         legend = (0.7,0.93-0.02*(len(bkg_histos) + len(sig_histos)), 0.95, 0.93),
-        canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] # Keep some space for the labels
+        canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
