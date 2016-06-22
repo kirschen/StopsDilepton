@@ -2,6 +2,7 @@ from math import sqrt
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.analysis.Cache        import Cache
+from StopsDilepton.tools.user import analysis_results
 import os
 
 # Logging
@@ -14,8 +15,9 @@ class DataDrivenTTJetsEstimate(SystematicEstimator):
         self.controlRegion = controlRegion
 
         # Because we are going to reuse a lot of yields which otherwise will be terribly slow
-        self.helperCacheName = os.path.join('.', 'helperCache.pkl')
+        self.helperCacheName = os.path.join(analysis_results, 'helperCache.pkl')
         self.helperCache     = Cache(self.helperCacheName, verbosity=2)
+        self.useCache        = True
 
     # Should move this function somehwere more generally
     def yieldFromCache(self, setup, sample, c, selectionString, weightString):
@@ -38,7 +40,7 @@ class DataDrivenTTJetsEstimate(SystematicEstimator):
             weight       = setup.weightString()
             cut_MC_SR    = "&&".join([            region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters())['cut']])
             cut_MC_CR    = "&&".join([self.controlRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters())['cut']])
-            cut_data_CR  = "&&".join([self.controlRegion.cutString(setup.sys['selectionModifier']), setup.selection('Data', channel=channel, zWindow = 'offZ', **setup.defaultParameters())['cut']])
+            cut_data_CR  = "&&".join([self.controlRegion.cutString(),                               setup.selection('Data', channel=channel, zWindow = 'offZ', **setup.defaultParameters())['cut']])
 
             # Calculate yields for CR
             yield_data    = self.yieldFromCache(setup, 'Data',   channel, cut_data_CR, "(1)")
@@ -58,8 +60,6 @@ class DataDrivenTTJetsEstimate(SystematicEstimator):
             logger.info("yield (data-other):        " + str(normRegYield))
             logger.info("normalization:             " + str(normalization))
             if normRegYield < 0 and yield_data > 0: logger.warn("Negative normalization region yield!")
-
-	return normalization
 
 	logger.info('Estimate for TTJets in ' + channel + ' channel' + (' (lumi=' + str(setup.lumi[channel]) + '/pb)' if channel != "all" else "") + ': ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
 	return estimate if estimate > 0 else u_float(0, 0)

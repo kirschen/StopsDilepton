@@ -1,6 +1,8 @@
-from StopsDilepton.analysis.MCBasedEstimate       import MCBasedEstimate
-from StopsDilepton.analysis.DataDrivenDYEstimate  import DataDrivenDYEstimate
-from StopsDilepton.analysis.DataDrivenTTZEstimate import DataDrivenTTZEstimate
+from StopsDilepton.analysis.MCBasedEstimate          import MCBasedEstimate
+from StopsDilepton.analysis.DataDrivenDYEstimate     import DataDrivenDYEstimate
+from StopsDilepton.analysis.DataDrivenTTZEstimate    import DataDrivenTTZEstimate
+from StopsDilepton.analysis.DataDrivenTTJetsEstimate import DataDrivenTTJetsEstimate
+from StopsDilepton.analysis.regions import reducedRegionsNew
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
 from SetupHelpers import channels 
 from Setup import Setup, otherEWKComponents
@@ -12,7 +14,7 @@ estimators = {}
 estimators['DY-DD']           = [DataDrivenDYEstimate( name='DY-DD')]
 estimators['TTZ-DD']          = [DataDrivenTTZEstimate(name='TTZ-DD')]
 estimators['TTZ-DD-Top16009'] = [DataDrivenTTZEstimate(name='TTZ-DD-Top16009', useTop16009=True)]
-estimators['TTJets-DD']       = [DataDrivenTTZEstimate(name='TTJets-DD')]
+estimators['TTJets-DD']       = [DataDrivenTTJetsEstimate(name='TTJets-DD', controlRegion=reducedRegionsNew[0])]
 
 # main MC based estimators
 for mc in ['DY','TTJets','TTZ','other']:

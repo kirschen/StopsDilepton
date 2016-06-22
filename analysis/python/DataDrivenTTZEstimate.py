@@ -4,6 +4,7 @@ from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
 from StopsDilepton.analysis.Cache        import Cache
+from StopsDilepton.tools.user import analysis_results
 
 # Logging
 import logging
@@ -29,7 +30,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         self.nJets        = (3,-1) # jet selection (min, max)
         self.nLooseBTags  = (2,-1) # loose bjet selection (min, max)
         self.nMediumBTags = (0,-1) # bjet selection (min, max)
-        self.useCache     = False
+        self.useCache     = True
 
         self.useTop16009       = useTop16009
         self.ratioTop16009     = 1.27 #
@@ -37,7 +38,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         self.statErrTop16009   = (-0.37, +0.42)
 
         # Because we are going to reuse a lot of yields which otherwise will be terribly slow
-        self.helperCacheName = os.path.join('.', 'helperCache.pkl')
+        self.helperCacheName = os.path.join(analysis_results, 'helperCache.pkl')
         self.helperCache     = Cache(self.helperCacheName, verbosity=2)
 
     def yieldFromCache(self, setup, sample, c, selectionString, weightString):
