@@ -42,12 +42,13 @@ class DataDrivenTTJetsEstimate(SystematicEstimator):
             cut_MC_CR    = "&&".join([self.controlRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters())['cut']])
             cut_data_CR  = "&&".join([self.controlRegion.cutString(),                               setup.selection('Data', channel=channel, zWindow = 'offZ', **setup.defaultParameters())['cut']])
 
-            # Calculate yields for CR
+            # Calculate yields for CR (normalized to data lumi)
             yield_data    = self.yieldFromCache(setup, 'Data',   channel, cut_data_CR, "(1)")
             yield_ttjets  = self.yieldFromCache(setup, 'TTJets', channel, cut_MC_CR,   weight)*setup.dataLumi[channel]/1000
             yield_other   = sum(self.yieldFromCache(setup, s,    channel, cut_MC_CR,   weight) for s in ['DY' , 'TTZ' , 'other'])*setup.dataLumi[channel]/1000
 
-            sr_ttjets     = self.yieldFromCache(setup, 'TTJets', channel, cut_MC_SR,   weight)*setup.dataLumi[channel]/1000
+            # The ttjets yield in the signal regions
+            sr_ttjets     = self.yieldFromCache(setup, 'TTJets', channel, cut_MC_SR,   weight)*setup.lumi[channel]/1000
 
             normRegYield  = yield_data - yield_other
             normalization = normRegYield/yield_ttjets if yield_ttjets > 0 else 0
