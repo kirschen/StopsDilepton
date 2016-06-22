@@ -13,7 +13,7 @@ parser.add_option('--logLevel',              dest="logLevel",              defau
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.estimators import setup, allEstimators
-from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB, reducedRegionsNew, reducedRegionsC
+from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB, reducedRegionsNew, reducedRegionsC, superRegion
 
 setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
@@ -26,7 +26,7 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 if options.multiIsoWP!="":
     multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
-   wpMu, wpEle=options.multiIsoWP.split(',')
+    wpMu, wpEle=options.multiIsoWP.split(',')
     from StopsDilepton.tools.objectSelection import multiIsoLepString
     setup.externalCuts.append(multiIsoLepString(wpMu, wpEle, ('l1_index','l2_index')))
     setup.prefixes.append('multiIso'+options.multiIsoWP.replace(',',''))
