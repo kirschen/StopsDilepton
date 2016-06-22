@@ -20,9 +20,9 @@ estimators['TTJets-DD']       = [DataDrivenTTJetsEstimate(name='TTJets-DD', cont
 for mc in ['DY','TTJets','TTZ','other']:
   estimators[mc] = [MCBasedEstimate(name=mc, sample=setup.sample[mc])]
 
-# detailed MC based estimators
-estimators['other-detailed']  = [ MCBasedEstimate(name=comp.name, sample={c:comp for c in channels}) for comp in otherEWKComponents ]
-estimators['other-detailed'] += [ MCBasedEstimate(name="QCD", sample= {'MuMu': QCD_Mu5, 'EE': QCD_EMbcToE, 'EMu': QCD_Mu5EMbcToE}) ]
+# detailed MC based estimators (used for plotting so leave out the small ones)
+estimators['other-detailed']  = [ MCBasedEstimate(name=comp.name, sample={c:comp for c in channels}) for comp in [singleTop, EWK,  TTXNoZ] ]
+# estimators['other-detailed'] += [ MCBasedEstimate(name="QCD", sample= {'MuMu': QCD_Mu5, 'EE': QCD_EMbcToE, 'EMu': QCD_Mu5EMbcToE}) ]
 
 
 
