@@ -3,6 +3,8 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--skipIfCachefileExists", dest="skipIfCachefileExists", default = False,             action="store_true", help="skipIfCachefileExists?")
 parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
+parser.add_option("--multiIsoWP",            dest="multiIsoWP",            default="",   type="string", action="store",      help="wpMu,wpEle")
+parser.add_option("--relIso04",              dest="relIso04",              default=-1,   type=float,    action="store",      help="relIso04 cut?")
 parser.add_option("--metSigMin",             dest="metSigMin",             default=5,    type="int",    action="store",      help="metSigMin?")
 parser.add_option("--metMin",                dest="metMin",                default=80,   type="int",    action="store",      help="metMin?")
 parser.add_option("--signal",                dest="signal",                default=None,                action="store",      help="which signal estimators?", choices=[None,"DM","T2tt","allT2tt"])
@@ -22,8 +24,22 @@ logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
+if options.multiIsoWP!="":
+    multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
+   wpMu, wpEle=options.multiIsoWP.split(',')
+    from StopsDilepton.tools.objectSelection import multiIsoLepString
+    setup.externalCuts.append(multiIsoLepString(wpMu, wpEle, ('l1_index','l2_index')))
+    setup.prefixes.append('multiIso'+options.multiIsoWP.replace(',',''))
+
+if options.relIso04>0:
+    setup.externalCuts.append("&&".join(["LepGood_relIso04["+ist+"]<"+str(options.relIso04) for ist in ('l1_index','l2_index')]))
+    setup.prefixes.append('relIso04sm'+str(int(100*options.relIso04)))
+
+
+
+
 #allRegions = set(defaultRegions + reducedRegionsA + reducedRegionsB + reducedRegionsAB + reducedRegionsNew + reducedRegionsC)
-allRegions = set(reducedRegionsNew)
+allRegions = set(reducedRegionsNew + superRegion)
 
 for e in allEstimators:
     e.initCache(setup.defaultCacheDir())

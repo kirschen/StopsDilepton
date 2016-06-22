@@ -27,8 +27,10 @@ reducedRegionsA    = getRegions3D( mt2llThresholds = [0, 140, 240],   mt2blblThr
 reducedRegionsB    = getRegions3D( mt2llThresholds = [0, 140, 240],   mt2blblThresholds = [0, 100],      mt2bbThresholds  = [70,170, 270])
 reducedRegionsAB   = getRegions3D( mt2llThresholds = [0, 140, 240],   mt2blblThresholds = [0, 100],      mt2bbThresholds  = [70,170])
 
-reducedRegionsNew  = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))] # whole mt2ll < 140 as control region
+reducedRegionsNew  = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))] # whole mt2ll < 100 as control region
 reducedRegionsNew += getRegions3D( mt2llThresholds = [100, 140, 240], mt2blblThresholds = [0, 100, 200], mt2bbThresholds  = [70,170])
 
-reducedRegionsC    = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))] # whole mt2ll < 140 as control region
+reducedRegionsC    = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))] # whole mt2ll < 100 as control region
 reducedRegionsC   += getRegions3D( mt2llThresholds = [100, 140, 240], mt2blblThresholds = [0, 150], mt2bbThresholds  = [70,170])
+
+superRegion        = getRegions3D( mt2llThresholds = [0, 100], mt2blblThresholds = [0], mt2bbThresholds = [70] ) # control region is mt2ll < 100, super regions is mt2ll > 100
