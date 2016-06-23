@@ -87,7 +87,7 @@ class u_float():
     def __le__(self,other): return not self > other
     def __ne__(self,other): return self < other or self > other
 
-    def __abs__(self): return u_float(-self.val, self.sigma)
+    def __abs__(self): return u_float(abs(self.val), self.sigma)
 
     def __str__(self):
         return str(self.val)+'+-'+str(self.sigma)
