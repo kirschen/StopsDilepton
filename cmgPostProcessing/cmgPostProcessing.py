@@ -114,7 +114,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_Fall15_v3',
+        default='postProcessed_80X_v2',
         help="Name of the processing era"
         )
 
@@ -304,12 +304,12 @@ if options.LHEHTCut>0:
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
 
-# MET group veto list
-if sample.isData:
-    import StopsDilepton.tools.vetoList as vetoList_
-    # MET group veto lists from 74X
-    fileNames  = ['Run2015D/csc2015_Dec01.txt.gz', 'Run2015D/ecalscn1043093_Dec01.txt.gz']
-    vetoList = vetoList_.vetoList( [os.path.join(user.veto_lists, f) for f in fileNames] )
+## MET group veto list
+#if sample.isData:
+#    import StopsDilepton.tools.vetoList as vetoList_
+#    # MET group veto lists from 74X
+#    fileNames  = ['Run2015D/csc2015_Dec01.txt.gz', 'Run2015D/ecalscn1043093_Dec01.txt.gz']
+#    vetoList = vetoList_.vetoList( [os.path.join(user.veto_lists, f) for f in fileNames] )
 
 # output directory
 outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sample.name)
@@ -408,7 +408,7 @@ if sample.isData:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
-    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_13TeV_16Dec2015ReReco_Collisions15_25ns_JSON_v2.txt'
+    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_271036-274421_13TeV_PromptReco_Collisions16_JSON.txt'
     lumiList = LumiList(os.path.expandvars(sample.heppy.json))
     logger.info( "Loaded json %s", sample.heppy.json )
 else:
@@ -454,7 +454,7 @@ new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) )
 ]
 
-if isData: new_variables.extend( ['vetoPassed/I', 'jsonPassed/I'] )
+if isData: new_variables.extend( ['jsonPassed/I'] )
 new_variables.extend( ['nJetGood/I','nBTag/I', 'ht/F', 'metSig/F'] )
 
 if isSingleLep:
@@ -577,7 +577,7 @@ def filler(s):
 
     # lumi lists and vetos
     if isData:
-        s.vetoPassed  = vetoList.passesVeto(r.run, r.lumi, r.evt)
+        #s.vetoPassed  = vetoList.passesVeto(r.run, r.lumi, r.evt)
         s.jsonPassed  = lumiList.contains(r.run, r.lumi)
         # store decision to use after filler has been executed
         s.jsonPassed_ = s.jsonPassed

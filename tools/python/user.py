@@ -4,9 +4,9 @@ runOnGentT2 = True
 
 if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     # Where you store cmg output
-    cmg_directory      = "/scratch/rschoefbeck/cmgTuples/763_1l"
+    cmg_directory      = "/scratch/rschoefbeck/cmgTuples/80X_2l_7"
     # Where postprocessed data goes 
-    data_output_directory      = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+    data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where you store the data
     data_directory      = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"

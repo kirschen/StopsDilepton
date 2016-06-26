@@ -1,6 +1,7 @@
 
-python cmgPostProcessing.py --dataDir /scratch/rschoefbeck/cmgTuples/763 --keepPhotons --samples SingleElectron_Run2015D_16Dec
-python cmgPostProcessing.py --dataDir /scratch/rschoefbeck/cmgTuples/763 --keepPhotons --samples SingleMuon_Run2015D_16Dec
-python cmgPostProcessing.py --dataDir /scratch/rschoefbeck/cmgTuples/763 --keepPhotons --samples DoubleMuon_Run2015D_16Dec
-python cmgPostProcessing.py --dataDir /scratch/rschoefbeck/cmgTuples/763 --keepPhotons --samples MuonEG_Run2015D_16Dec
-python cmgPostProcessing.py --dataDir /scratch/rschoefbeck/cmgTuples/763 --keepPhotons --samples DoubleEG_Run2015D_16Dec
+#python cmgPostProcessing.py  --keepPhotons --samples SingleElectron_Run2016B_PromptReco_v2
+#python cmgPostProcessing.py  --keepPhotons --samples SingleMuon_Run2016B_PromptReco_v2
+
+python cmgPostProcessing.py --keepPhotons --samples DoubleMuon_Run2016B_PromptReco_v2
+python cmgPostProcessing.py --keepPhotons --samples MuonEG_Run2016B_PromptReco_v2
+python cmgPostProcessing.py --keepPhotons --samples DoubleEG_Run2016B_PromptReco_v2

@@ -33,10 +33,10 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
     import importlib
     if module is not None:
         module_ = module
-    elif "Run2015D" in sample:
-        module_ = 'CMGTools.RootTools.samples.samples_13TeV_DATA2015'
+    elif "Run2016B" in sample:
+        module_ = 'CMGTools.RootTools.samples.samples_13TeV_DATA2016'
     else: 
-        module_ = 'CMGTools.RootTools.samples.samples_13TeV_RunIIFall15MiniAODv2'
+        module_ = 'CMGTools.RootTools.samples.samples_13TeV_RunIISpring16MiniAODv2'
 
     try:
         heppy_sample = getattr(importlib.import_module( module_ ), sample)

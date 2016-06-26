@@ -151,7 +151,7 @@ DY_HT_LO.texName  = "DY + jets"
 qcd_sample.texName = "QCD (multi-jet)"
 
 if args.small:
-    for sample in mc_samples+ data_samples:
+    for sample in mc_samples + data_samples:
         sample.reduceFiles(to = 1)
     
 
