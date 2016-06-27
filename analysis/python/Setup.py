@@ -16,7 +16,7 @@ from StopsDilepton.tools.objectSelection import multiIsoLepString, getFilterCut
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 #define samples
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed.py import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 
 #Choices for specific samples
@@ -32,8 +32,7 @@ from StopsDilepton.analysis.SystematicEstimator import jmeVariations
 from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels
 
 #to run on data
-#lumi = {'EMu': MuonEG_Run2015D.lumi, 'MuMu':DoubleMuon_Run2015D.lumi, 'EE':DoubleEG_Run2015D.lumi}
-dataLumi = {'EMu': MuonEG_Run2015D.lumi, 'MuMu':DoubleMuon_Run2015D.lumi, 'EE':DoubleEG_Run2015D.lumi}
+dataLumi = {'EMu': MuonEG_Run2016B.lumi, 'MuMu':DoubleMuon_Run2016B.lumi, 'EE':DoubleEG_Run2016B.lumi}
 #10/fb to run on MC
 lumi = {c:10000 for c in channels}
 
@@ -77,12 +76,12 @@ class Setup:
         'DY':         {c:DYSample     for c in channels},
         'TTJets' :    {c:TTJetsSample for c in channels},
         'TTZ' :       {c:TTZ          for c in channels},
-        'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs, QCD_Mu5]),
-                       'EE':   Sample.combine('other', [otherEWKBkgs, QCD_EMbcToE]),
-                       'EMu':  Sample.combine('other', [otherEWKBkgs, QCD_Mu5EMbcToE])},
-        'Data'   :    {'MuMu': DoubleMuon_Run2015D,
-                       'EE':   DoubleEG_Run2015D,
-                       'EMu':  MuonEG_Run2015D},
+        'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs]),
+                       'EE':   Sample.combine('other', [otherEWKBkgs]),
+                       'EMu':  Sample.combine('other', [otherEWKBkgs])},
+        'Data'   :    {'MuMu': DoubleMuon_Run2016B,
+                       'EE':   DoubleEG_Run2016B,
+                       'EMu':  MuonEG_Run2016B},
         }
 
     def prefix(self):

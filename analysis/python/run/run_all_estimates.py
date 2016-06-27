@@ -12,7 +12,7 @@ parser.add_option('--logLevel',              dest="logLevel",              defau
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.estimators import setup, allEstimators
-from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB, reducedRegionsNew, reducedRegionsC, superRegion, superRegion140
+from StopsDilepton.analysis.regions import regions80X, reducedRegionsNew, superRegion, superRegion140
 
 setup.parameters['metMin']    = options.metMin
 setup.parameters['metSigMin'] = options.metSigMin
@@ -25,7 +25,7 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 
 
-allRegions = set(reducedRegionsNew + superRegion + superRegion140)
+allRegions = set(regions80X + reducedRegionsNew + superRegion + superRegion140)
 
 for e in allEstimators:
     e.initCache(setup.defaultCacheDir())
