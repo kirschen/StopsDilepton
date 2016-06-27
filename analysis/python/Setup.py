@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 from StopsDilepton.tools.user import analysis_results
 
 #multi-iso workpoint
-from StopsDilepton.tools.objectSelection import multiIsoLepString
+from StopsDilepton.tools.objectSelection import multiIsoLepString, getFilterCut
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 #define samples
@@ -47,9 +47,6 @@ default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
 default_leptonCharges = "isOS"
 default_useTriggers   = True
-
-filterCutData = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
-filterCutMC   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
 
 class Setup:
     def __init__(self):
@@ -225,9 +222,7 @@ class Setup:
             res['prefixes'].append('multiIsoVT')
             res['cuts'].append("l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP)
 
-        if dataMC=='Data': filterCut = filterCutData
-        else:              filterCut = filterCutMC
-        res['cuts'].append(filterCut)
+        res['cuts'].append(getFilterCut(isData=(dataMC=='Data')))
         res['cuts'].extend(self.externalCuts)
 
         return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr': self.weightString()}

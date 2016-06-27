@@ -39,7 +39,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selections (two leptons with pt > 20 GeV, photon)
 #
-from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
+from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString,getFilterCut
 def getLooseLeptonString(nMu, nE):
   return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10, absEtaCut=2.5) + "==" + str(nE)
 
@@ -51,8 +51,6 @@ def getLeptonString(nMu, nE):
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))"
 bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))"
-dataFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
-mcFilterCut     = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
 
 #
 # Cuts to iterate over
@@ -215,10 +213,10 @@ for index, mode in enumerate(allModes):
     elif args.signal == "DM":   stack = Stack(mc, TTbarDMJets_scalar_Mchi1_Mphi100)
     elif args.signal == "T2tt": stack = Stack(mc, T2tt_650_250)
 
-  data_sample.setSelectionString([dataFilterCut, leptonSelection])
+  data_sample.setSelectionString([getFilterCut(isData=True), leptonSelection])
   for sample in mc:
-    sample.setSelectionString([mcFilterCut, leptonSelection])
-  TTbarDMJets_scalar_Mchi1_Mphi100.setSelectionString([mcFilterCut, leptonSelection])
+    sample.setSelectionString([getFilterCut(isData=False), leptonSelection])
+  TTbarDMJets_scalar_Mchi1_Mphi100.setSelectionString([getFilterCut(isData=False), leptonSelection])
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
