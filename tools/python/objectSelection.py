@@ -280,5 +280,5 @@ def getGoodPhotons(c, ptCut=50, idLevel="loose", isData=True, collVars=None):
 
 def getFilterCut(isData=False):
     filterCut = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
-    if(isData) filterCut += "&&weight>0&&run<=274240"
+    if isData: filterCut += "&&weight>0&&run<=274240"
     return filterCut
