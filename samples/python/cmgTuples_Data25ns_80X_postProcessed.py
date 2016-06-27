@@ -18,7 +18,7 @@ except:
 try:
     postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-    postProcessing_directory = "postProcessed_80X/dilep"
+    postProcessing_directory = "postProcessed_80X_v2/dilepTiny"
 
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 

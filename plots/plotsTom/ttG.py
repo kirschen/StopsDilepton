@@ -38,7 +38,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selections (two leptons with pt > 20 GeV, photon)
 #
-from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
+from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString,getFilterCut
 def getLooseLeptonString(nMu, nE):
   return muonSelectorString(ptCut=10) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, absEtaCut=2.5) + "==" + str(nE)
 
@@ -50,8 +50,6 @@ def getLeptonString(nMu, nE):
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))>="
 bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))>="
-dataFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
-mcFilterCut     = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
 
 #
 # Cuts to iterate over
@@ -114,10 +112,9 @@ if not args.isChild and args.selection is None:
 # Make samples, will be searched for in the postProcessing directory
 #
 #postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_may2"
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed_photonSamples import *
-from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
-
+# from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed_photonSamples import * # TODO
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed.py import *
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 
 #
 # Text on the plots
@@ -222,13 +219,13 @@ for index, mode in enumerate(allModes):
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
 
-  data_sample.setSelectionString([dataFilterCut, leptonSelection, photonSelection])
+  data_sample.setSelectionString([getFilterCut(isData=True), leptonSelection, photonSelection])
   for sample in mc:
-    sample.setSelectionString([mcFilterCut, leptonSelection, photonSelection])
+    sample.setSelectionString([getFilterCut(isData=False), leptonSelection, photonSelection])
 
   # For TTJets, do TTGJets overlap events removal
-  TTLep_pow.setSelectionString(["TTGJetsEventType<4", mcFilterCut, leptonSelection, photonSelection])
-  DY_HT_LO.setSelectionString( ["TTGJetsEventType<4", mcFilterCut, leptonSelection, photonSelection])
+  TTLep_pow.setSelectionString(["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
+  DY_HT_LO.setSelectionString( ["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])

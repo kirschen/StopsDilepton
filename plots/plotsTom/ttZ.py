@@ -39,7 +39,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 # Selections (three leptons with pt > 30, 20, 10 GeV)
 #
 isoCut="VT" if args.selection and args.selection.count("VT") else 0.2
-from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
+from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString,getFilterCut
 def getLooseLeptonString(nMu, nE):
   return muonSelectorString(ptCut=10, iso=isoCut) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, absEtaCut=2.5, iso=isoCut) + "==" + str(nE)
 
@@ -63,8 +63,6 @@ jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))>="
 bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))>="
 zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
-dataFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
-mcFilterCut     = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
 
 
 #
@@ -147,9 +145,8 @@ sequence = [makeDeltaR, calcBTag]
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
-
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed.py import *
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 
 #
 # Text on the plots
@@ -194,9 +191,9 @@ for index, mode in enumerate(allModes):
     sample.style = styles.fillStyle(sample.color)
 
   stack = Stack(mc, [data_sample])
-  data_sample.setSelectionString([dataFilterCut, leptonSelection])
+  data_sample.setSelectionString([getFilterCut(isData=True), leptonSelection])
   for sample in mc:
-    sample.setSelectionString([mcFilterCut, leptonSelection])
+    sample.setSelectionString([getFilterCut(isData=False), leptonSelection])
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])

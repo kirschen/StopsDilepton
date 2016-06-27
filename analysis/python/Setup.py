@@ -11,9 +11,13 @@ logger = logging.getLogger(__name__)
 #user specific
 from StopsDilepton.tools.user import analysis_results
 
+#multi-iso workpoint
+from StopsDilepton.tools.objectSelection import multiIsoLepString, getFilterCut
+multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
+
 #define samples
-from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 
 #Choices for specific samples
 #DYSample          = DY
@@ -28,8 +32,7 @@ from StopsDilepton.analysis.SystematicEstimator import jmeVariations
 from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels
 
 #to run on data
-#lumi = {'EMu': MuonEG_Run2015D.lumi, 'MuMu':DoubleMuon_Run2015D.lumi, 'EE':DoubleEG_Run2015D.lumi}
-dataLumi = {'EMu': MuonEG_Run2015D.lumi, 'MuMu':DoubleMuon_Run2015D.lumi, 'EE':DoubleEG_Run2015D.lumi}
+dataLumi = {'EMu': MuonEG_Run2016B.lumi, 'MuMu':DoubleMuon_Run2016B.lumi, 'EE':DoubleEG_Run2016B.lumi}
 #10/fb to run on MC
 lumi = {c:10000 for c in channels}
 
@@ -43,9 +46,6 @@ default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
 default_leptonCharges = "isOS"
 default_useTriggers   = True
-
-filterCutData = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
-filterCutMC   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
 
 class Setup:
     def __init__(self):
@@ -76,12 +76,12 @@ class Setup:
         'DY':         {c:DYSample     for c in channels},
         'TTJets' :    {c:TTJetsSample for c in channels},
         'TTZ' :       {c:TTZ          for c in channels},
-        'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs, QCD_Mu5]),
-                       'EE':   Sample.combine('other', [otherEWKBkgs,QCD_EMbcToE]),
-                       'EMu':  Sample.combine('other', [otherEWKBkgs, QCD_Mu5EMbcToE])},
-        'Data'   :    {'MuMu': DoubleMuon_Run2015D,
-                       'EE':   DoubleEG_Run2015D,
-                       'EMu':  MuonEG_Run2015D},
+        'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs]),
+                       'EE':   Sample.combine('other', [otherEWKBkgs]),
+                       'EMu':  Sample.combine('other', [otherEWKBkgs])},
+        'Data'   :    {'MuMu': DoubleMuon_Run2016B,
+                       'EE':   DoubleEG_Run2016B,
+                       'EMu':  MuonEG_Run2016B},
         }
 
     def prefix(self):
@@ -216,9 +216,12 @@ class Setup:
             elif channel=="all": chStr = "("+pMuMu+'||'+pEE+'||'+pEMu+')'
             res['cuts'].append(chStr)
 
-        if dataMC=='Data': filterCut = filterCutData
-        else:              filterCut = filterCutMC
-        res['cuts'].append(filterCut)
+            res['prefixes'].append('looseLeptonVeto')
+            res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
+            res['prefixes'].append('multiIsoVT')
+            res['cuts'].append("l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP)
+
+        res['cuts'].append(getFilterCut(isData=(dataMC=='Data')))
         res['cuts'].extend(self.externalCuts)
 
         return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr': self.weightString()}

@@ -2,10 +2,10 @@ from StopsDilepton.analysis.Region import Region
 
 #Put all sets of regions that are used in the analysis, closure, tables, etc.
 
-def getRegionsFromThresholds(var, vals):
-    return [Region(var, (vals[i], vals[i+1])) for i in range(len(vals)-1)]+[Region(var, (vals[-1], -1))]
+def getRegionsFromThresholds(var, vals, gtLastThreshold = True):
+    return [Region(var, (vals[i], vals[i+1])) for i in range(len(vals)-1)]
 
-regions1D = getRegionsFromThresholds('dl_mt2ll', [140, 240])
+regions1D = getRegionsFromThresholds('dl_mt2ll', [140, 240, -1])
 
 def getRegions3D(mt2llThresholds, mt2blblThresholds, mt2bbThresholds):
   regions_mt2ll   = getRegionsFromThresholds('dl_mt2ll',   mt2llThresholds)
@@ -22,13 +22,17 @@ def getRegions3D(mt2llThresholds, mt2blblThresholds, mt2bbThresholds):
     
 
 
-defaultRegions     = getRegions3D( mt2llThresholds = [0, 140, 240],   mt2blblThresholds = [0, 100, 200], mt2bbThresholds  = [70,170, 270])
-reducedRegionsA    = getRegions3D( mt2llThresholds = [0, 140, 240],   mt2blblThresholds = [0, 100, 200], mt2bbThresholds  = [70,170])
-reducedRegionsB    = getRegions3D( mt2llThresholds = [0, 140, 240],   mt2blblThresholds = [0, 100],      mt2bbThresholds  = [70,170, 270])
-reducedRegionsAB   = getRegions3D( mt2llThresholds = [0, 140, 240],   mt2blblThresholds = [0, 100],      mt2bbThresholds  = [70,170])
+defaultRegions     = getRegions3D( mt2llThresholds = [0, 140, 240, -1], mt2blblThresholds = [0, 100, 200, -1], mt2bbThresholds  = [70,170, 270, -1])
 
-reducedRegionsNew  = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))] # whole mt2ll < 140 as control region
-reducedRegionsNew += getRegions3D( mt2llThresholds = [100, 140, 240], mt2blblThresholds = [0, 100, 200], mt2bbThresholds  = [70,170])
+# whole mt2ll < 100 GeV as control region
+reducedRegionsNew  = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))] # whole mt2ll < 100 as control region
+reducedRegionsNew += getRegions3D( mt2llThresholds = [100, 140, 240, -1], mt2blblThresholds = [0, 100, 200], mt2bbThresholds  = [70,170, -1])
 
-reducedRegionsC    = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))] # whole mt2ll < 140 as control region
-reducedRegionsC   += getRegions3D( mt2llThresholds = [100, 140, 240], mt2blblThresholds = [0, 150], mt2bbThresholds  = [70,170])
+# definition of super regions
+superRegion        = getRegions3D( mt2llThresholds = [0, 100, -1],      mt2blblThresholds = [0, -1], mt2bbThresholds = [70, -1] ) # control region is mt2ll < 100, super regions is mt2ll > 100
+superRegion140     = getRegions3D( mt2llThresholds = [0, 100, 140, -1], mt2blblThresholds = [0, -1], mt2bbThresholds = [70, -1] ) # control region is mt2ll < 100, super regions is mt2ll > 140
+
+# same as reducedRegionsNew, but with collapsed hith mt2ll > 240 GeV region
+regions80X         = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))]
+regions80X        += getRegions3D( mt2llThresholds = [100, 140, 240], mt2blblThresholds = [0, 100, 200,-1], mt2bbThresholds  = [70,170,-1])
+regions80X        += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))]
