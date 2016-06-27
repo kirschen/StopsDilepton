@@ -16,8 +16,8 @@ from StopsDilepton.tools.objectSelection import multiIsoLepString, getFilterCut
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 #define samples
-from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed.py import *
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 
 #Choices for specific samples
 #DYSample          = DY

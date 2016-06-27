@@ -145,9 +145,8 @@ sequence = [makeDeltaR, calcBTag]
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
-
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed.py import *
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 
 #
 # Text on the plots
