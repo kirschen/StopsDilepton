@@ -9,7 +9,7 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where you store the data
-    data_directory      = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+    data_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/r/rschoefbeck/www/"
     # Analysis result files
