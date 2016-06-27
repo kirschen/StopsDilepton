@@ -26,7 +26,7 @@ class SystematicEstimator:
             cacheFileName = os.path.join(cacheDir, self.name+'.pkl')
             if not os.path.exists(os.path.dirname(cacheFileName)):
                 os.makedirs(os.path.dirname(cacheFileName))
-            self.cache = Cache(cacheFileName, verbosity=2)
+            self.cache = Cache(cacheFileName, verbosity=1)
         else:
             self.cache=None
 
@@ -35,11 +35,13 @@ class SystematicEstimator:
 
     def cachedEstimate(self, region, channel, setup, save=True):
         key =  self.uniqueKey(region, channel, setup)
+        print key
         if self.cache and self.cache.contains(key):
             res = self.cache.get(key)
-            logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
+            logger.info( "Loading cached %s result for %r : %r"%(self.name, key, res) )
             return res
         elif self.cache:
+            logger.info( "Adding cached %s result for %r"%(self.name, key) )
             return self.cache.add( key, self._estimate( region, channel, setup), save=save)
         else:
             return self._estimate( region, channel, setup)
@@ -53,48 +55,48 @@ class SystematicEstimator:
         ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUUp']}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUDown']}))
-        return 0.5*(up-down)/ref
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up,down)
 
     def topPtSystematic(self, region, channel, setup):
-        ref   = self.cachedEstimate(region, channel, setup)
+        ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightTopPt']}))
-        return 0.5*(up-ref)/ref
+        return abs(0.5*(up-ref)/ref) if ref > 0 else up
 
     def JERSystematic(self, region, channel, setup):
-        ref   = self.cachedEstimate(region, channel, setup)
+        ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JERUp'}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JERDown'}))
-        return 0.5*(up-down)/ref
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def JECSystematic(self, region, channel, setup):
-        ref   = self.cachedEstimate(region, channel, setup)
+        ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECUp'}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECDown'}))
-        return 0.5*(up-down)/ref
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def leptonFSSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSF']}))
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']}))
-        return 0.5*(up-down)/ref
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def btaggingSFbSystematic(self, region, channel, setup):
-        ref     = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
-        up      = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']}))
-        down    = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']}))
-        return 0.5*(up-down)/ref
+        ref  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']}))
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def btaggingSFlSystematic(self, region, channel, setup):
-        ref     = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
-        up      = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']}))
-        down    = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']}))
-        return 0.5*(up-down)/ref
+        ref  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']}))
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def btaggingSFFSSystematic(self, region, channel, setup):
-        ref     = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
-        up      = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Up']}))
-        down    = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']}))
-        return 0.5*(up-down)/ref
+        ref  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Up']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']}))
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def getBkgSysJobs(self, region, channel, setup):
         l = [

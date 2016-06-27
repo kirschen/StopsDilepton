@@ -11,6 +11,10 @@ logger = logging.getLogger(__name__)
 #user specific
 from StopsDilepton.tools.user import analysis_results
 
+#multi-iso workpoint
+from StopsDilepton.tools.objectSelection import multiIsoLepString
+multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
+
 #define samples
 from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
@@ -77,7 +81,7 @@ class Setup:
         'TTJets' :    {c:TTJetsSample for c in channels},
         'TTZ' :       {c:TTZ          for c in channels},
         'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs, QCD_Mu5]),
-                       'EE':   Sample.combine('other', [otherEWKBkgs,QCD_EMbcToE]),
+                       'EE':   Sample.combine('other', [otherEWKBkgs, QCD_EMbcToE]),
                        'EMu':  Sample.combine('other', [otherEWKBkgs, QCD_Mu5EMbcToE])},
         'Data'   :    {'MuMu': DoubleMuon_Run2015D,
                        'EE':   DoubleEG_Run2015D,
@@ -215,6 +219,11 @@ class Setup:
             elif channel=="EMu": chStr = pEMu
             elif channel=="all": chStr = "("+pMuMu+'||'+pEE+'||'+pEMu+')'
             res['cuts'].append(chStr)
+
+            res['prefixes'].append('looseLeptonVeto')
+            res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
+            res['prefixes'].append('multiIsoVT')
+            res['cuts'].append("l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP)
 
         if dataMC=='Data': filterCut = filterCutData
         else:              filterCut = filterCutMC
