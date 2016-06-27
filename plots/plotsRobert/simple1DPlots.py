@@ -68,6 +68,7 @@ argParser.add_argument('--njet',
     action='store',
     choices=['0', '0p', '1', '1p', '2', '2p', '01']
 )
+
 argParser.add_argument('--nbtag',
     default='1p',
     action='store',
@@ -97,7 +98,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='VTVT_EleCBIdtight_80X_test',
+    default='80X_v2',
     action='store',
 )
 
@@ -181,7 +182,7 @@ else:
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc_samples = [ DY_HT_LO, TTJets_sample, singleTop, TTZ, TTW, diBosonInclusive, triBoson]
+mc_samples = [ DY_HT_LO, TTJets_sample, singleTop, TTZ, TTW, diBoson, triBoson]
 #mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, WWInclusive, WZInclusive, ZZInclusive, WZZ]
 #mc = [ TTX]
 if args.small:
