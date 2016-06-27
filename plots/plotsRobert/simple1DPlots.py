@@ -52,6 +52,11 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
+argParser.add_argument('--unblind',
+    action='store_true',
+    help='unblind?',
+)
+
 argParser.add_argument('--reversed',
     action='store_true',
     help='Reversed?',
@@ -63,6 +68,7 @@ argParser.add_argument('--njet',
     action='store',
     choices=['0', '0p', '1', '1p', '2', '2p', '01']
 )
+
 argParser.add_argument('--nbtag',
     default='1p',
     action='store',
@@ -92,7 +98,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='VTVT_EleCBIdtight_80X_test',
+    default='80X_v2',
     action='store',
 )
 
@@ -116,7 +122,8 @@ def getZCut(mode):
 
 # Extra requirements on data
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
-dataFilterCut = mcFilterCut+"&&weight>0&&run<=274240"
+dataFilterCut = mcFilterCut+"&&weight>0"
+if not args.unblind: dataFilterCut+="&&run<=274240"
 
 if args.mode=="doubleMu":
     lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
@@ -175,7 +182,7 @@ else:
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc_samples = [ DY_HT_LO, TTJets_sample, singleTop, TTZ, TTW, diBosonInclusive, triBoson]
+mc_samples = [ DY_HT_LO, TTJets_sample, singleTop, TTZ, TTW, diBoson, triBoson]
 #mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, WWInclusive, WZInclusive, ZZInclusive, WZZ]
 #mc = [ TTX]
 if args.small:
@@ -186,12 +193,15 @@ for d in data_samples:
     d.style = styles.errorStyle( ROOT.kBlack )
 
 #Averaging lumi
-lumi_scale = 804.2/1000
+if args.unblind:
+    lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
+else:
+    lumi_scale = 804.2/1000
+
 logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 for sample in mc_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     sample.style = styles.fillStyle( sample.color)
-
 
 from StopsDilepton.tools.user import plot_directory
 
