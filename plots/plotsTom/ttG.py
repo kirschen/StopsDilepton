@@ -225,8 +225,8 @@ for index, mode in enumerate(allModes):
     sample.setSelectionString([getFilterCut(isData=False), leptonSelection, photonSelection])
 
   # For TTJets, do TTGJets overlap events removal
-  TTLep_pow.setSelectionString(["TTGJetsEventType<4", isFilterCut(isData=False), leptonSelection, photonSelection])
-  DY_HT_LO.setSelectionString( ["TTGJetsEventType<4", isFilterCut(isData=False), leptonSelection, photonSelection])
+  TTLep_pow.setSelectionString(["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
+  DY_HT_LO.setSelectionString( ["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])
