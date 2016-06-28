@@ -23,7 +23,7 @@ argParser.add_argument('--logLevel',
 argParser.add_argument('--mode',
     default='dilepton',
     action='store',
-    choices=['doubleMu', 'doubleEle',  'muEle', 'dilepton'])
+    choices=['doubleMu', 'doubleEle',  'muEle', 'dilepton', 'sameFlavour'])
 
 argParser.add_argument('--charges',
     default='OS',
@@ -252,7 +252,9 @@ def selection( ):
     return res
 
 cuts = selection()
-
+#cuts.extend( [ ("highMT2ll", "dl_mt2ll>100"),
+#    ] )
+#
 #cuts=[
 #    #("njet0", "nJetGood==0"),
 #    #("njet0p", "nJetGood>=0"),
@@ -810,7 +812,7 @@ for i_comb in [ len(cuts) ]:
         ratio = {'yRange':(0.1,1.9)} if not args.noData else None
 
         for plot in plots:
-            if args.mode=='dilepton':
+            if args.mode in ['dilepton', 'sameFlavour']:
                 data_histo =  plot.histos_added[-1][0]
                 data_histo.style = styles.errorStyle( ROOT.kBlack )
                 plot.histos = plot.histos[:-1]+[[data_histo]]
