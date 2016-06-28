@@ -39,9 +39,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selections (two leptons with pt > 20 GeV, photon)
 #
-from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString,getFilterCut
-def getLooseLeptonString(nMu, nE):
-  return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10, absEtaCut=2.5) + "==" + str(nE)
+from StopsDilepton.tools.objectSelection import getFilterCut
 
 def getLeptonString(nMu, nE):
 #  return getLooseLeptonString(nMu, nE)
@@ -56,7 +54,7 @@ bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGoo
 # Cuts to iterate over
 #
 cuts = [
-    ("lepVeto",           "(1)"),
+    ("looseLeptonVeto",   "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     ("njet1",             jetSelection+"==1"),
     ("njet2",             jetSelection+">=2"),
     ("btag0",             bJetSelectionM+"==0"),
@@ -131,7 +129,7 @@ if not args.isChild and args.selection is None:
 # Make samples, will be searched for in the postProcessing directory
 #
 #postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_may2"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed.py import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi1_Mphi100
@@ -162,9 +160,9 @@ sequence = []
 
 
 offZ            = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
-mumuSelection   = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso" + offZ + (("&&" + getLooseLeptonString(2, 0)) if args.selection.count("lepVeto") else "")
-mueSelection    = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"             + (("&&" + getLooseLeptonString(1, 1)) if args.selection.count("lepVeto") else "")
-eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ" + offZ     + (("&&" + getLooseLeptonString(0, 2)) if args.selection.count("lepVeto") else "")
+mumuSelection   = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso" + offZ
+mueSelection    = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
+eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ" + offZ
 
 #
 # Loop over channels
