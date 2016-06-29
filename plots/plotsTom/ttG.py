@@ -11,7 +11,7 @@ from math import sqrt, cos, sin, pi
 from RootTools.core.standard import *
 from StopsDilepton.tools.user import plot_directory
 from StopsDilepton.tools.helpers import deltaPhi
-
+from StopsDilepton.tools.objectSelection import getFilterCut
 
 #
 # Arguments
@@ -38,18 +38,13 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selections (two leptons with pt > 20 GeV, photon)
 #
-from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString,getFilterCut
-def getLooseLeptonString(nMu, nE):
-  return muonSelectorString(ptCut=10) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, absEtaCut=2.5) + "==" + str(nE)
-
 def getLeptonString(nMu, nE):
-#  return getLooseLeptonString(nMu, nE)
   return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
 
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
-bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))>="
-bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))>="
+bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))>="
+bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))>="
 
 #
 # Cuts to iterate over
@@ -111,10 +106,10 @@ if not args.isChild and args.selection is None:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-#postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_may2"
-# from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed_photonSamples import * # TODO
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed.py import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed_photonSamples import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+
 
 #
 # Text on the plots
@@ -153,8 +148,8 @@ def filterJets(data):
   data.nJetGood               = len(data.goodJetIndices)
   data.ht                     = sum([data.JetGood_pt[j] for j in data.goodJetIndices])
   data.metSig_photonEstimated = data.met_pt_photonEstimated/sqrt(data.ht) if data.ht !=0 else float('nan')
-  data.nBTag                  = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.890])
-  data.nBTagLoose             = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.605])
+  data.nBTag                  = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.800])
+  data.nBTagLoose             = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.460])
   data.dPhiMetJet             = [cos(data.met_phi_photonEstimated - data.JetGood_phi[j]) for j in data.goodJetIndices]
 
 # Make photonLepdR selection or re-evaluate jet selection after photonJetdR
@@ -172,11 +167,11 @@ def otherSelections(data, sample):
 sequence = [makeDeltaR, filterJets, otherSelections]
 
 
-offZ            = "abs(dl_mass-91.1876)>15"
-offZ_dlg        = "abs(dlg_mass-91.1876)>15"
-mumuSelection   = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso&&" + offZ 
-mueSelection    = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
-eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ&&" + offZ
+offZ            = "&&abs(dl_mass-91.1876)>15"
+offZ_dlg        = "&&abs(dlg_mass-91.1876)>15"
+mumuSelection   = getLeptonString(2, 0) + "&&isOS&&isMuMu" + offZ
+mueSelection    = getLeptonString(1, 1) + "&&isOS&&isEMu"
+eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE" + offZ
 photonSelection = "nPhotonGood>0&&photon_eta<2.5&&photon_idCutBased>2&&photon_pt>" + args.selection.split('photon')[1].split('-')[0]
 
 #
@@ -188,43 +183,47 @@ allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
   if mode=="mumu":
-    data_sample     = DoubleMuon_Run2015D
-    qcd_sample      = QCD_Mu5 #FIXME
-    leptonSelection = mumuSelection + "&&" + offZ_dlg
+    data_sample           = DoubleMuon_Run2016B
+#    qcd_sample            = QCD_Mu5 #FIXME
+    leptonSelection       = mumuSelection + offZ_dlg
     leptonSelection_nollg = mumuSelection
+    trigger               = "HLT_mumuIso"
   elif mode=="ee":
-    data_sample     = DoubleEG_Run2015D
-    qcd_sample      = QCD_EMbcToE
-    leptonSelection = eeSelection + "&&" + offZ_dlg
+    data_sample           = DoubleEG_Run2016B
+#    qcd_sample            = QCD_EMbcToE
+    leptonSelection       = eeSelection + offZ_dlg
     leptonSelection_nollg = eeSelection
+    trigger               = "HLT_ee_DZ"
   elif mode=="mue":
-    data_sample     = MuonEG_Run2015D
-    qcd_sample      = QCD_Mu5EMbcToE
-    leptonSelection = mueSelection
+    data_sample           = MuonEG_Run2016B
+#    qcd_sample            = QCD_Mu5EMbcToE
+    leptonSelection       = mueSelection
     leptonSelection_nollg = mueSelection
+    trigger               = "HLT_mue"
 
   if not args.selection.count('llgNoZ'):
     leptonSelection = leptonSelection_nollg
 
-  qcd_sample.name  = "QCD"  # Give same name in all modes such that it combines easily
+#  qcd_sample.name  = "QCD"  # Give same name in all modes such that it combines easily
   data_sample.name = "data"
 
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
+  lumi_scale = 804.2/1000   # current data is 0.8 /fb
 
-  mc = [WG, ZG, WWG, diBoson, DY_HT_LO, singleTop, TTLep_pow, TTX, TTG]
+  mc = [WG, ZG, diBoson, DY_HT_LO, singleTop, TTJets, TTX, TTG]
   stack = Stack(mc, [data_sample])
 
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
 
-  data_sample.setSelectionString([getFilterCut(isData=True), leptonSelection, photonSelection])
+  data_sample.setSelectionString([getFilterCut(isData=True), trigger, leptonSelection, photonSelection])
   for sample in mc:
     sample.setSelectionString([getFilterCut(isData=False), leptonSelection, photonSelection])
 
   # For TTJets, do TTGJets overlap events removal
-  TTLep_pow.setSelectionString(["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
+  TTJets.setSelectionString(["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
   DY_HT_LO.setSelectionString( ["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
 
   # Use some defaults
@@ -244,11 +243,13 @@ for index, mode in enumerate(allModes):
     binning=[200/4,0,200],
   ))
 
-  plots.append(Plot(
+  theDlgPlot = Plot(
     texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / 4 GeV',
     variable = Variable.fromString( "dlg_mass/F" ),
-    binning=[300/4,50,350],
-  ))
+    binning=Binning.fromThresholds([50,70,80,84,88,92,94,100,120,140,160,180,200,230,260,290,320,360]),
+  )
+  theDlgPlot.binWidth = 20
+  plots.append(theDlgPlot)
 
   plots.append(Plot(
     texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / GeV',
@@ -282,7 +283,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = '#slash{E}_{T}/#sqrt(H_{T}) (including #gamma) (GeV^{1/2})', texY = 'Number of Events',
+    texX = '#slash{E}_{T}/#sqrt{H_{T}} (including #gamma) (GeV^{1/2})', texY = 'Number of Events',
     variable = Variable.fromString('metSig_photonEstimated/F').addFiller(lambda data: data.met_pt_photonEstimated/sqrt(data.ht)),
     binning=[15,0,15],
   ))
@@ -419,7 +420,16 @@ for index, mode in enumerate(allModes):
   dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
   logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yields[mode]["MC"], yields[mode]["data"], lumi_scale )
 
-  for plot in plots:
+  for plot in plots: #To get normalized bins in variable binning
+    if hasattr(plot, 'binWidth'):
+      for histo in sum(plot.histos, []):
+        for ib in range(histo.GetXaxis().GetNbins()+1):
+	  val = histo.GetBinContent( ib )
+	  err = histo.GetBinError( ib )
+	  width = histo.GetBinWidth( ib )
+	  histo.SetBinContent(ib, val / (width / plot.binWidth))
+	  histo.SetBinError(ib, err / (width / plot.binWidth))
+
     if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
     plotting.draw(plot, 
         plot_directory = os.path.join(plot_directory, args.plot_directory, mode, args.selection),
