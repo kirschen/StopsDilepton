@@ -4,6 +4,7 @@ parser = OptionParser()
 parser.add_option("--skipIfCachefileExists", dest="skipIfCachefileExists", default = False,             action="store_true", help="skipIfCachefileExists?")
 parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
 parser.add_option("--selectEstimator",       dest="selectEstimator",       default=None,                action="store",      help="select estimator?")
+parser.add_option("--selectRegion",          dest="selectRegion",          default=None, type="int",    action="store",      help="select region?")
 parser.add_option("--metSigMin",             dest="metSigMin",             default=5,    type="int",    action="store",      help="metSigMin?")
 parser.add_option("--metMin",                dest="metMin",                default=80,   type="int",    action="store",      help="metMin?")
 parser.add_option("--signal",                dest="signal",                default=None,                action="store",      help="which signal estimators?", choices=[None,"DM","T2tt","allT2tt"])
@@ -68,7 +69,8 @@ for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, allEstimator
             continue
         jobs=[]
         for channel in ['MuMu' ,'EE', 'EMu']:
-            for r in allRegions:
+            for (i, r) in enumerate(allRegions):
+                if options.selectRegion is not None and options.selectRegion != i: continue
                 jobs.append((r, channel, setup_))
                 if isSignal:
                     jobs.extend(estimate.getSigSysJobs(r, channel, setup_, isFastSim))
@@ -85,7 +87,8 @@ for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, allEstimator
             pool.join()
 
         for channel in ['all']:
-            for r in allRegions:
+            for (i, r) in enumerate(allRegions):
+                if options.selectRegion is not None and options.selectRegion != i: continue
                 estimate.cachedEstimate(r, channel, setup_, save=True)
                 map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getBkgSysJobs(r, channel, setup_))
                 if isSignal:
