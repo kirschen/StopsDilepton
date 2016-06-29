@@ -45,7 +45,7 @@ default_dPhiJetMet    = 0.25
 default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
 default_leptonCharges = "isOS"
-default_useTriggers   = True
+default_useTriggers   = False
 
 class Setup:
     def __init__(self):
