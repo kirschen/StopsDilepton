@@ -24,6 +24,7 @@ argParser.add_argument('--plotData',       action='store_true', default=False,  
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
+argParser.add_argument('--unblind',        action='store_true', default=False,       help='unblind?')
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
 
@@ -102,6 +103,7 @@ if not args.isChild and args.selection is None:
   os.system("mkdir -p log")
   for selection in selectionStrings:
     command = "./analysisPlots.py --selection=" + selection + (" --plotData" if args.plotData else "")\
+                                                            + (" --unblind" if args.unblind else "")\
                                                             + (" --signal=" + args.signal if args.signal else "")\
                                                             + (" --plot_directory=" + args.plot_directory)\
                                                             + (" --logLevel=" + args.logLevel)
@@ -111,8 +113,9 @@ if not args.isChild and args.selection is None:
   logger.info("All jobs launched")
   exit(0)
 
-if args.plotData:
-  args.plot_directory += "_withData"
+if not args.unblind and (args.selection.count("njet2") and not args.selection.count("onZ") and args.selection.count("btagM")):
+  args.plotData = False
+
 
 from array import array
 import warnings
@@ -165,9 +168,9 @@ sequence = []
 
 
 offZ            = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
-mumuSelection   = getLeptonString(2, 0) + "&&isOS&&isMuMu&&HLT_mumuIso" + offZ
-mueSelection    = getLeptonString(1, 1) + "&&isOS&&isEMu&&HLT_mue"
-eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE&&HLT_ee_DZ" + offZ
+mumuSelection   = getLeptonString(2, 0) + "&&isOS&&isMuMu" + offZ
+mueSelection    = getLeptonString(1, 1) + "&&isOS&&isEMu"
+eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE" + offZ
 
 #
 # Loop over channels
@@ -181,23 +184,28 @@ for index, mode in enumerate(allModes):
     data_sample     = DoubleMuon_Run2016B
 #    qcd_sample      = QCD_Mu5 #FIXME
     leptonSelection = mumuSelection
+    trigger         = "HLT_mumuIso"
   elif mode=="ee":
     data_sample     = DoubleEG_Run2016B
 #    qcd_sample      = QCD_EMbcToE
     leptonSelection = eeSelection
+    trigger         = "HLT_ee_DZ"
   elif mode=="mue":
     data_sample     = MuonEG_Run2016B
 #    qcd_sample      = QCD_Mu5EMbcToE
     leptonSelection = mueSelection
+    trigger         = "HLT_mue"
 
 #  qcd_sample.name  = "QCD"  # Give same name in all modes such that it combines easily
   data_sample.name = "data"
 
   data_sample.style = styles.errorStyle( ROOT.kBlack )
-  if args.plotData: lumi_scale = data_sample.lumi/1000
+  if args.plotData: 
+    lumi_scale = data_sample.lumi/1000
+    lumi_scale = 804.2/1000   # current data is 0.8 /fb
   else:             lumi_scale = 10
 
-  mc = [ TTJets_Lep, TTZ, singleTop, TTXNoZ, diBoson, triBoson, DY_HT_LO]
+  mc = [ TTJets_Lep, TTZ, singleTop, TTXNoZ, EWK, DY_HT_LO]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
@@ -215,7 +223,7 @@ for index, mode in enumerate(allModes):
     elif args.signal == "DM":   stack = Stack(mc, TTbarDMJets_scalar_Mchi1_Mphi100)
     elif args.signal == "T2tt": stack = Stack(mc, T2tt)
 
-  data_sample.setSelectionString([getFilterCut(isData=True), leptonSelection])
+  data_sample.setSelectionString([getFilterCut(isData=True), leptonSelection, trigger])
   for sample in mc:
     sample.setSelectionString([getFilterCut(isData=False), leptonSelection])
   TTbarDMJets_scalar_Mchi1_Mphi100.setSelectionString([getFilterCut(isData=False), leptonSelection])
@@ -528,7 +536,7 @@ for plot in allPlots[allModes[0]]:
 
 for log in [False, True]:
   for plot in allPlots[allModes[0]]:
-    if args.plotData: plot.histos[1][0].legendText = "Data 2015 (all channels)"
+    if args.plotData: plot.histos[1][0].legendText = "Data 2016 (all channels)"
     plotting.draw(plot,
 	  plot_directory = os.path.join(plot_directory, args.plot_directory, "all" + ("_log" if log else ""), args.selection),
 	  ratio = {'yRange':(0.1,1.9)} if args.plotData else None,
