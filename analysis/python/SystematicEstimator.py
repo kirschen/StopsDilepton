@@ -35,14 +35,14 @@ class SystematicEstimator:
 
     def cachedEstimate(self, region, channel, setup, save=True):
         key =  self.uniqueKey(region, channel, setup)
-        print key
         if self.cache and self.cache.contains(key):
             res = self.cache.get(key)
             logger.info( "Loading cached %s result for %r : %r"%(self.name, key, res) )
             return res
         elif self.cache:
             logger.info( "Adding cached %s result for %r"%(self.name, key) )
-            return self.cache.add( key, self._estimate( region, channel, setup), save=save)
+            estimate = self._estimate( region, channel, setup)
+            return self.cache.add( key, estimate, save=save)
         else:
             return self._estimate( region, channel, setup)
 

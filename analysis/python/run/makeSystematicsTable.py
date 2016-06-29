@@ -4,7 +4,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument("--metSigMin",      action='store', default=5,                   type=int,                                                                                                         help="metSigMin?")
 argParser.add_argument("--metMin",         action='store', default=80,                  type=int,                                                                                                         help="metMin?")
-argParser.add_argument("--regions",        action='store', default='reducedRegionsNew', nargs='?', choices=["defaultRegions","superRegion","superRegion140"],                                             help="which regions setup?")
+argParser.add_argument("--regions",        action='store', default='regions80X', nargs='?', choices=["defaultRegions","superRegion","superRegion140"],                                             help="which regions setup?")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal?")
 argParser.add_argument("--estimates",      action='store', default='mc',                nargs='?', choices=["mc","dd"],                                                                                   help="mc estimators or data-driven estimators?")
 argParser.add_argument("--relativeError",  action='store_true', default=False,          help="show relative errors?")
@@ -14,7 +14,7 @@ from StopsDilepton.analysis.SetupHelpers    import allChannels, channels
 from StopsDilepton.analysis.estimators      import setup, constructEstimatorList
 from StopsDilepton.analysis.DataObservation import DataObservation
 from StopsDilepton.analysis.SumEstimate     import SumEstimate
-from StopsDilepton.analysis.regions         import reducedRegionsNew, superRegion, superRegion140
+from StopsDilepton.analysis.regions         import regions80X, superRegion, superRegion140
 from StopsDilepton.analysis.Cache           import Cache
 
 # Logging
@@ -27,12 +27,7 @@ setup.verbose = False
 setup.parameters['metMin']    = args.metMin
 setup.parameters['metSigMin'] = args.metSigMin
 
-if args.regions == "defaultRegions":      regions = defaultRegions
-elif args.regions == "reducedRegionsA":   regions = reducedRegionsA
-elif args.regions == "reducedRegionsB":   regions = reducedRegionsB
-elif args.regions == "reducedRegionsAB":  regions = reducedRegionsAB
-elif args.regions == "reducedRegionsNew": regions = reducedRegionsNew
-elif args.regions == "reducedRegionsC":   regions = reducedRegionsC
+if   args.regions == "regions80X":        regions = reducedRegionsNew
 elif args.regions == "superRegion":       regions = superRegion
 elif args.regions == "superRegion140":    regions = superRegion140
 else: raise Exception("Unknown regions setup")

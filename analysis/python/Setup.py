@@ -23,9 +23,9 @@ from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 #DYSample          = DY
 DYSample           = DY_HT_LO #LO, HT binned including a low HT bin starting from zero from the inclusive sample
 #TTJetsSample      = TTJets #NLO
-TTJetsSample       = TTJets_Lep #LO, very large dilep + single lep samples
+TTJetsSample       = Sample.combine("TTJets", [TTJets_Lep, singleTop], texName = "t#bar{t}/single-t") #LO, very large dilep + single lep samples
 WJetsSample        = WJetsToLNu #WJetsToLNu_HT
-otherEWKComponents = [singleTop, diBoson, triBoson,  TTXNoZ, WJetsSample]
+otherEWKComponents = [diBoson, triBoson,  TTXNoZ, WJetsSample]
 otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations
@@ -120,14 +120,14 @@ class Setup:
     def weightString(self):
         return "*".join([self.sys['weight']] + (self.sys['reweight'] if self.sys['reweight'] else []))
 
-    def preselection(self, dataMC , zWindow, channel='all'):
+    def preselection(self, dataMC , zWindow, channel='all', applyFilterCut= True):
         '''Get preselection  cutstring.'''
-        return self.selection(dataMC, channel = channel, zWindow = zWindow, hadronicSelection = False, **self.parameters)
+        return self.selection(dataMC, channel = channel, zWindow = zWindow, hadronicSelection = False, applyFilterCut=applyFilterCut, **self.parameters)
 
     def selection(self, dataMC,
 			mllMin, metMin, metSigMin, dPhiJetMet,
 			nJets, nBTags, leptonCharges, useTriggers,
-			channel = 'all', zWindow = 'offZ', hadronicSelection = False):
+			channel = 'all', zWindow = 'offZ', hadronicSelection = False, applyFilterCut = True):
         '''Define full selection
 	   dataMC: 'Data' or 'MC'
 	   channel: all, EE, MuMu or EMu
@@ -221,7 +221,7 @@ class Setup:
             res['prefixes'].append('multiIsoVT')
             res['cuts'].append("l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP)
 
-        res['cuts'].append(getFilterCut(isData=(dataMC=='Data')))
+        if applyFilterCut: res['cuts'].append(getFilterCut(isData=(dataMC=='Data')))
         res['cuts'].extend(self.externalCuts)
 
         return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr': self.weightString()}
