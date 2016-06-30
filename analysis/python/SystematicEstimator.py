@@ -98,8 +98,6 @@ class SystematicEstimator:
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
-    def top
-
     def getBkgSysJobs(self, region, channel, setup):
         l = [
             (region, channel, setup.sysClone({'reweight':['reweightPUUp']})),
