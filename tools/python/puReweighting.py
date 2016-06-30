@@ -38,6 +38,8 @@ def getReweightingFunction(data="PU_2100_XSecCentral", mc="Spring15"):
         logger.info("Loaded Spring15 MC Profile" )
     elif mc=="Fall15":
         mcProfile = extendHistoTo(getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/MCProfile_Fall15.root", 'MC'), histoData)
+    elif mc=='Spring16':
+        mcProfile = extendHistoTo(getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/MCProfile_Spring16.root", 'MC'), histoData)
     else:
         raise ValueError( "Don't know about MC PU profile %s" %mc )
 
@@ -50,5 +52,20 @@ def getReweightingFunction(data="PU_2100_XSecCentral", mc="Spring15"):
     # Define reweightingFunc
     def reweightingFunc(nvtx):
         return reweightingHisto.GetBinContent(reweightingHisto.FindBin(nvtx))
+
+    return reweightingFunc
+
+def getNVTXReweightingFunction(key, filename = "dilepton_allZ_isOS_4000pb4000_80X.pkl"):
+
+    if not key in ['rw', 'up', 'down', 'vup', 'vdown']:
+        raise ValueError( "Need to specify value PU reweighting key" )
+
+    # 2016 PU reweighting with sigma(QCD) uncertainty
+    import pickle, os
+    data = pickle.load( file(os.path.expandvars("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/%s" % filename)) )
+    h = data[key]
+    def reweightingFunc( nvtx ):
+        ib = h.FindBin( nvtx )
+        return h.GetBinContent( ib )
 
     return reweightingFunc

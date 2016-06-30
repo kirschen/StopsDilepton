@@ -26,7 +26,7 @@ argParser.add_argument('--mode',
     #default='muEle',
     default='dilepton',
     action='store',
-    choices=['doubleMu', 'doubleEle',  'muEle', 'dilepton'])
+    choices=['doubleMu', 'doubleEle',  'muEle', 'dilepton', 'sameFlavour'])
 
 argParser.add_argument('--charges',
     default='OS',

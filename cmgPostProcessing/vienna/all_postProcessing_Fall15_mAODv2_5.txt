@@ -12,7 +12,6 @@ python cmgPostProcessing.py  --samples TTW_LO
 python cmgPostProcessing.py  --samples TTZToLLNuNu
 python  cmgPostProcessing.py  --samples TTZToQQ
 python cmgPostProcessing.py  --samples TTZ_LO
-python cmgPostProcessing.py  --samples TTGJets  
 
 
 python cmgPostProcessing.py  --samples WW
@@ -34,4 +33,6 @@ python cmgPostProcessing.py  --samples WZTo1L3Nu
 #python cmgPostProcessing.py  --samples WZJets
 python cmgPostProcessing.py  --samples VVTo2L2Nu
 python cmgPostProcessing.py  --samples WGToLNuG
-#python cmgPostProcessing.py  --samples ZGTo2LG
+
+python cmgPostProcessing.py  --checkTTGJetsOverlap --samples TTGJets  
+python cmgPostProcessing.py  --checkTTGJetsOverlap --samples ZGTo2LG

@@ -10,7 +10,7 @@ try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "postProcessed_80X_v2/dilepTiny/"
+  postProcessing_directory = "postProcessed_80X_v4/dilepTiny/"
 
 dirs = {}
 dirs['DY']               = ["DYJetsToLL_M10to50", "DYJetsToLL_M50"]
