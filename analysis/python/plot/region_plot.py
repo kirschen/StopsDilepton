@@ -10,7 +10,7 @@ import itertools
 from RootTools.core.standard import *
 
 from StopsDilepton.analysis.estimators import setup, constructEstimatorList, MCBasedEstimate
-from StopsDilepton.analysis.regions import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB, reducedRegionsNew
+from StopsDilepton.analysis.regions import regions80X, reducedRegionsNew
 import StopsDilepton.tools.user as user
 from StopsDilepton.samples.color import color
 
@@ -20,7 +20,7 @@ from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
-argParser.add_argument("--regions",        action='store', default='reducedRegionsNew', nargs='?', choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB","reducedRegionsNew"], help="which regions setup?")
+argParser.add_argument("--regions",        action='store', default='regions80X',        nargs='?', choices=["reducedRegionsNew", "regions80X"],                                                           help="which regions setup?")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal to plot?")
 argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
@@ -30,11 +30,8 @@ argParser.add_argument("--labels",         action='store_true', default=False,  
 args = argParser.parse_args()
 
 
-if   args.regions == "defaultRegions":    regions = defaultRegions
-elif args.regions == "reducedRegionsA":   regions = reducedRegionsA
-elif args.regions == "reducedRegionsB":   regions = reducedRegionsB
-elif args.regions == "reducedRegionsAB":  regions = reducedRegionsAB
-elif args.regions == "reducedRegionsNew": regions = reducedRegionsNew
+if   args.regions == "reducedRegionsNew": regions = reducedRegionsNew
+elif args.regions == "regions80X":        regions = regions80X
 else: raise Exception("Unknown regions setup")
 
 detailedEstimators = constructEstimatorList([args.estimateTTJets,'other-detailed', args.estimateDY, args.estimateTTZ])
@@ -49,6 +46,7 @@ from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed im
 signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_0] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
 for estimator in signalEstimators:
     estimator.style = styles.lineStyle( getattr(color, estimator.name ), width=2 )
+    estimator.applyFilterCut=False
  
 estimators = detailedEstimators + signalEstimators
 for e in estimators:
@@ -61,26 +59,42 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
+systematics = { 'JEC' : ['JECUp', 'JECDown'] }
+
+variations = [None]
+for var in systematics.values():
+  variations += var
+
 def getRegionHisto(estimate, regions, channel, setup):
 
-    h = ROOT.TH1F(estimate.name + channel, estimate.name, len(regions), 0, len(regions))
+    h = {}
+    for var in variations:
+      h[var] = ROOT.TH1F(estimate.name + channel + (var if var else ""), estimate.name, len(regions), 0, len(regions))
+
+
+    # Legend text
     try:
-      h.legendText = estimate.sample[channel].texName
+      h[None].legendText = estimate.sample[channel].texName
     except:
       try:
 	texNames = [estimate.sample[c].texName for c in ['MuMu','EMu','EE']]		# If all, only take texName if it is the same for all channels
 	if texNames.count(texNames[0]) == len(texNames):
-	  h.legendText = texNames[0]
+	  h[None].legendText = texNames[0]
 	else:
-	  h.legendText = estimate.name
+	  h[None].legendText = estimate.name
       except:
-	h.legendText = estimate.name
+	h[None].legendText = estimate.name
+
     for i, r in enumerate(regions):
-        res = estimate.cachedEstimate(r, channel, setup, save=False)
-        h.SetBinContent(i+1, res.val)
-        h.SetBinError(i+1, res.sigma)
-    h.style = estimate.style
-    return h
+      for var in variations:
+        setup_ = setup if not var else setup.sysClone({'selectionModifier': var})
+        res = estimate.cachedEstimate(r, channel, setup_, save=True)
+        h[var].SetBinContent(i+1, res.val)
+        h[var].SetBinError(i+1, res.sigma)
+
+    h[None].style = estimate.style
+
+    return h[None]
 
 def drawObjects( regions ):
     tex = ROOT.TLatex()
@@ -111,6 +125,6 @@ for channel in allChannels:
         yRange = (10**-2.4, "auto"),
         widths = {'x_width':500, 'y_width':600},
         drawObjects = drawObjects(regions_) if args.labels else [], 
-        legend = (0.7,0.93-0.02*(len(bkg_histos) + len(sig_histos)), 0.95, 0.93),
+        legend = (0.6,0.93-0.04*(len(bkg_histos) + len(sig_histos)), 0.95, 0.93),
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )

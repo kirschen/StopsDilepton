@@ -10,6 +10,7 @@ class MCBasedEstimate(SystematicEstimator):
     def __init__(self, name, sample, cacheDir=None):
         super(MCBasedEstimate, self).__init__(name, cacheDir=cacheDir)
         self.sample=sample
+        self.applyFilterCut=True
 
     def _estimate(self, region, channel, setup):
 
@@ -27,7 +28,7 @@ class MCBasedEstimate(SystematicEstimator):
             # Important! We use 'allZ' (mll>20) in case of EMu 
             zWindow= 'allZ' if channel=='EMu' else 'offZ'
 
-            preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel)
+            preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel, applyFilterCut=self.applyFilterCut)
             cut = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
             weight = preSelection['weightStr']
 

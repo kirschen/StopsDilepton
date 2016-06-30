@@ -1,4 +1,4 @@
-import pickle, os
+import pickle, os, time
 class Cache:
     def __init__(self, filename=None, verbosity=0, overwrite=False):
         self.verbosity=verbosity
@@ -8,12 +8,26 @@ class Cache:
     def initCache(self, filename):
         self.filename=filename
         try:
-            self._cache = pickle.load(open(filename, 'r'))
+            with open(filename, 'r') as f:
+	      self._cache = pickle.load(f)
             if self.verbosity>=1: print "Loaded cache file %s"%filename
             self.cacheFileLoaded = True
         except:# (IOError, ValueError, EOFError):
             if self.verbosity>=2: print "File %s not found or corrupted. Starting new cache."%filename
             self._cache = {}
+
+    # Try to reload to cache file in order to get updates from other jobs/threads
+    def reload(self, attempt = 0):
+        try:
+            with open(self.filename, 'r') as f:
+              temp = self._cache
+	      self._cache = pickle.load(f)
+              self._cache.update(temp)
+        except:# (IOError, ValueError, EOFError):
+            if self.verbosity>=2: print "Cache file %s could not be reloaded"%filename
+            if attempt < 10:
+	      time.sleep(20)
+	      self.reload(attempt + 1)
 
     def contains (self, key):
         return key in self._cache
@@ -29,5 +43,7 @@ class Cache:
         return self._cache[key]
 
     def save(self):
-        pickle.dump(self._cache, open(self.filename, 'w'))
+        self.reload()
+        with open(self.filename, 'w') as f:
+          pickle.dump(self._cache, f)
         if self.verbosity>=2: print "Written cache file %s"%self.filename

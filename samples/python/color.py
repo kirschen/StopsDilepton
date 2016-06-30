@@ -21,6 +21,7 @@ color.TTG            = ROOT.kRed
 color.TZQ            = 9
 color.WJetsToLNu     = ROOT.kRed-10
 color.diBoson        = ROOT.kOrange
+color.EWK            = ROOT.kOrange
 color.ZZ             = ROOT.kOrange+1
 color.WZ             = ROOT.kOrange+7
 color.WW             = ROOT.kOrange-7

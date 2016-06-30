@@ -1,0 +1,14 @@
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+
+from StopsDilepton.analysis.Region import Region
+from StopsDilepton.analysis.u_float import u_float
+from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
+
+class SumEstimate(SystematicEstimator):
+    def __init__(self, name, cacheDir=None):
+        super(SumEstimate, self).__init__(name, cacheDir=cacheDir)
+
+    def _estimate(self, region, channel, setup):
+        raise NotImplementedError("Run sum_estimates.py first")
