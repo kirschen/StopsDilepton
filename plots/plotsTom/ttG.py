@@ -106,9 +106,9 @@ if not args.isChild and args.selection is None:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed_photonSamples import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
 
 #
@@ -211,12 +211,14 @@ for index, mode in enumerate(allModes):
   lumi_scale = data_sample.lumi/1000
   lumi_scale = 804.2/1000   # current data is 0.8 /fb
 
-  mc = [WG, ZG, diBoson, DY_HT_LO, singleTop, TTJets, TTX, TTG]
+  mc = [TTG, ZG, DY_HT_LO, EWK, Top, TTX]
   stack = Stack(mc, [data_sample])
 
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
+    sample.read_variables = ['reweightPU/F']
+    sample.weight = lambda data: data.reweightPU
 
   data_sample.setSelectionString([getFilterCut(isData=True), trigger, leptonSelection, photonSelection])
   for sample in mc:
