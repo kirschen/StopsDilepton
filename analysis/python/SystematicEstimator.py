@@ -70,8 +70,8 @@ class SystematicEstimator:
 
     def JECSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECUp'}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECDown'}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECVUp'}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECVDown'}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def leptonFSSystematic(self, region, channel, setup):
@@ -98,6 +98,8 @@ class SystematicEstimator:
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
+    def top
+
     def getBkgSysJobs(self, region, channel, setup):
         l = [
             (region, channel, setup.sysClone({'reweight':['reweightPUUp']})),
@@ -110,6 +112,8 @@ class SystematicEstimator:
 
             (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
             (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
+            (region, channel, setup.sysClone({'selectionModifier':'JECVUp'})),
+            (region, channel, setup.sysClone({'selectionModifier':'JECVDown'})),
 
 
             (region, channel, setup.sysClone({'reweight':['reweightBTag_SF']})),
