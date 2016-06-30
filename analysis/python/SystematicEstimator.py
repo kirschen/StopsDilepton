@@ -1,4 +1,4 @@
-jmeVariations = ["JER", "JERUp", "JERDown", "JECUp", "JECDown"]
+jmeVariations = ["JER", "JERUp", "JERDown", "JECUp", "JECDown","JECVUp","JECVDown"]
 
 # Standard imports
 import os
@@ -53,8 +53,13 @@ class SystematicEstimator:
 
     def PUSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUUp']}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUDown']}))
+#        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUUp']}))
+#        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUDown']}))
+        setup_ = setup.sysClone()
+        setup_.sys = {'weight':'weight', 'reweight':['reweightPUUp'], 'selectionModifier':None}
+        up   = self.cachedEstimate(region, channel, setup_)
+        setup_.sys = {'weight':'weight', 'reweight':['reweightPUDown'], 'selectionModifier':None}
+        down = self.cachedEstimate(region, channel, setup_)
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up,down)
 
     def topPtSystematic(self, region, channel, setup):
