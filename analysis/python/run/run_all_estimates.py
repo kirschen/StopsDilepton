@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+postProcessing_directory = "postProcessed_80X_v2/dilepTiny/"
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--skipIfCachefileExists", dest="skipIfCachefileExists", default = False,             action="store_true", help="skipIfCachefileExists?")
