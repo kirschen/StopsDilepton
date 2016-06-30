@@ -86,7 +86,7 @@ WZ             = Sample.fromDirectory(name="WZ",               treeName="Events"
 WW             = Sample.fromDirectory(name="WW",               treeName="Events", isData=False, color=color.WW,              texName="WW (excl. ll#nu#nu)",               directory=directories['WW'])
 VV             = Sample.fromDirectory(name="VV",               treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",                    directory=directories['VV'])
 triBoson       = Sample.fromDirectory(name="triBoson",         treeName="Events", isData=False, color=color.triBoson,        texName="WWZ,WZZ,ZZZ",                       directory=directories['triBoson'])
-multiBoson     = Sample.fromDirectory(name="multiBoson",              treeName="Events", isData=False, color=color.diBoson,         texName="diboson/triboson",                  directory=directories['multiBoson'])
+multiBoson     = Sample.fromDirectory(name="multiBoson",              treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                  directory=directories['multiBoson'])
 #QCD_HT         = Sample.fromDirectory(name="QCD_HT",           treeName="Events", isData=False, color=color.QCD,             texName="QCD (HT)",                          directory=directories['QCD_HT'])
 #QCD_Mu5        = Sample.fromDirectory(name="QCD_Mu5",          treeName="Events", isData=False, color=color.QCD,             texName="QCD (Mu5)",                         directory=directories['QCD_Mu5'])
 #QCD_EMbcToE    = Sample.fromDirectory(name="QCD_EM+bcToE",     treeName="Events", isData=False, color=color.QCD,             texName="QCD (Em+bcToE)",                    directory=directories['QCD_EM+bcToE'])
