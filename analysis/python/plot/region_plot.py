@@ -59,7 +59,12 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-systematics = { 'JEC' : ['JECUp', 'JECDown'] }
+systematics = { 'JEC' :      ['JECVUp', 'JECVDown'],
+                'JER' :      ['JERUp', 'JERDown'],
+                'PU' :       ['reweightPUUp', 'reweightPUDown'],
+                'topPt' :    ['reweightTopPt', None],
+                'b-tag-b' :  ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
+                'b-tag-l' :  ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'] }
 
 variations = [None]
 for var in systematics.values():
@@ -87,14 +92,18 @@ def getRegionHisto(estimate, regions, channel, setup):
 
     for i, r in enumerate(regions):
       for var in variations:
-        setup_ = setup if not var else setup.sysClone({'selectionModifier': var})
+        if var and var.count('PU'):
+          setup_ = setup.sysClone()
+          setup_.sys = {'weight':'weight', 'reweight':[var], 'selectionModifier':None}
+        else:
+          setup_ = setup if not var else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
     h[None].style = estimate.style
 
-    return h[None]
+    return h
 
 def drawObjects( regions ):
     tex = ROOT.TLatex()
@@ -114,17 +123,74 @@ for channel in allChannels:
 
     regions_ = regions[1:]
 
-    bkg_histos = [  getRegionHisto(e, regions=regions_, channel=channel, setup = setup) for e in detailedEstimators ]
-    sig_histos = [ [getRegionHisto(e, regions=regions_, channel=channel, setup = signalSetup)] for e in signalEstimators ]
+    bkg_histos = {}
+    for e in detailedEstimators:
+      histos = getRegionHisto(e, regions=regions_, channel=channel, setup = setup)
+      for k in variations:
+        if k in bkg_histos: bkg_histos[k].append(histos[k])
+        else:               bkg_histos[k] = [histos[k]]
 
-    region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos ] + sig_histos, texX = "SR number", texY = "Events" )
+    # Get summed histos for the systematics
+    histos_summed = {k: bkg_histos[k][0].Clone() for k in variations}
+    for k in variations:
+      for i in range(1, len(bkg_histos[k])):
+        histos_summed[k].Add(bkg_histos[k][i])
+
+    # Get up-down for each of the systematics
+    h_sys = {}
+    for sys, vars in systematics.iteritems():
+        h_sys[sys] = histos_summed[vars[0]].Clone()
+        h_sys[sys].Scale(-1)
+        h_sys[sys].Add(histos_summed[vars[1] if len(vars) > 1 else None])
+
+
+    h_rel_err = histos_summed[None].Clone()
+    h_rel_err.Reset()
+
+    # Adding the systematics in quadrature
+    for k in h_sys.keys():
+        for ib in range( 1 + h_rel_err.GetNbinsX() ):
+            h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
+
+    for ib in range( 1 + h_rel_err.GetNbinsX() ):
+        h_rel_err.SetBinContent(ib, sqrt( h_rel_err.GetBinContent(ib) ) )
+
+    # Divide by the summed hist to get relative errors
+    h_rel_err.Divide(histos_summed[None])
+
+
+    # For signal histos we don't need the systematics, so only access the "None"
+    sig_histos = [ [getRegionHisto(e, regions=regions_, channel=channel, setup = signalSetup)[None]] for e in signalEstimators ]
+ 
+    region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos[None] ] + sig_histos, texX = "SR number", texY = "Events" )
+
+    boxes = []
+    ratio_boxes = []
+    for ib in range(1, 1 + h_rel_err.GetNbinsX() ):
+        val = histos_summed[None].GetBinContent(ib)
+        if val<0: continue
+        sys = h_rel_err.GetBinContent(ib)
+        box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max([0.03, (1-sys)*val]), h_rel_err.GetXaxis().GetBinUpEdge(ib), max([0.03, (1+sys)*val]) )
+        box.SetLineColor(ROOT.kBlack)
+        box.SetFillStyle(3444)
+        box.SetFillColor(ROOT.kBlack)
+        r_box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max(0.1, 1-sys), h_rel_err.GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys) )
+        r_box.SetLineColor(ROOT.kBlack)
+        r_box.SetFillStyle(3444)
+        r_box.SetFillColor(ROOT.kBlack)
+
+        boxes.append( box )
+        ratio_boxes.append( r_box )
+
+
+
     plotting.draw( region_plot, \
         plot_directory = os.path.join(user.plot_directory, args.regions, args.estimateDY, args.estimateTTZ, args.estimateTTJets),
         logX = False, logY = args.log, 
         sorting = True,
         yRange = (10**-2.4, "auto"),
         widths = {'x_width':500, 'y_width':600},
-        drawObjects = drawObjects(regions_) if args.labels else [], 
+        drawObjects = (drawObjects(regions_) if args.labels else []) + boxes,
         legend = (0.6,0.93-0.04*(len(bkg_histos) + len(sig_histos)), 0.95, 0.93),
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
