@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-postProcessing_directory = "postProcessed_80X_v2/dilepTiny/"
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--skipIfCachefileExists", dest="skipIfCachefileExists", default = False,             action="store_true", help="skipIfCachefileExists?")
@@ -52,6 +51,10 @@ elif options.signal == "allT2tt":
   isFastSim = True
 else:
   raise Exception("Unknown signal estimator choice")
+
+for e in signalEstimators:
+  e.applyFilterCut=False
+
 
 signalSetup = setup.sysClone(parameters={'useTriggers':False})
 
