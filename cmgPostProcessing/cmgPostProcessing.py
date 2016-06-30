@@ -114,7 +114,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v2',
+        default='postProcessed_80X_v4',
         help="Name of the processing era"
         )
 
@@ -171,6 +171,7 @@ def get_parser():
 
     argParser.add_argument('--checkTTGJetsOverlap',
         action='store_true',
+        default=True,
         help="Keep TTGJetsEventType which can be used to clean TTG events from TTJets samples"
         )
 
@@ -258,6 +259,7 @@ elif len(samples)==1:
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
 
+
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
     if options.T2tt or options.TTDM:
@@ -266,10 +268,20 @@ if isMC:
         puRWDown    = getReweightingFunction(data="PU_2100_XSecDown", mc="Spring15")
         puRWUp      = getReweightingFunction(data="PU_2100_XSecUp", mc="Spring15")
     else:
-        puRW        = getReweightingFunction(data="PU_2100_XSecCentral", mc="Fall15")
-        puRWDown    = getReweightingFunction(data="PU_2100_XSecDown", mc="Fall15")
-        puRWUp      = getReweightingFunction(data="PU_2100_XSecUp", mc="Fall15")
-
+        # nTrueIntReweighting
+        nTrueInt_puRW        = getReweightingFunction(data="PU_2016_4000_XSecCentral", mc="Spring16")
+        nTrueInt_puRWDown    = getReweightingFunction(data="PU_2016_4000_XSecDown", mc="Spring16")
+        nTrueInt_puRWUp      = getReweightingFunction(data="PU_2016_4000_XSecUp", mc="Spring16")
+        nTrueInt_puRWVDown   = getReweightingFunction(data="PU_2016_4000_XSecVDown", mc="Spring16")
+        nTrueInt_puRWVUp     = getReweightingFunction(data="PU_2016_4000_XSecVUp", mc="Spring16")
+        # 2016 NVTX reweighting
+        from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
+        nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_4000pb.pkl")
+        nvtx_reweight_up      = getNVTXReweightingFunction(key = 'up', filename = "dilepton_allZ_isOS_4000pb.pkl")
+        nvtx_reweight_down    = getNVTXReweightingFunction(key = 'down', filename = "dilepton_allZ_isOS_4000pb.pkl")
+        nvtx_reweight_vup      = getNVTXReweightingFunction(key = 'vup', filename = "dilepton_allZ_isOS_4000pb.pkl")
+        nvtx_reweight_vdown    = getNVTXReweightingFunction(key = 'vdown', filename = "dilepton_allZ_isOS_4000pb.pkl")
+        
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
 # Decision based on sample name -> whether TTJets or TTLep is in the sample name
@@ -408,7 +420,7 @@ if sample.isData:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
-    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_271036-274421_13TeV_PromptReco_Collisions16_JSON.txt'
+    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_271036-275125_13TeV_PromptReco_Collisions16_JSON.txt'
     lumiList = LumiList(os.path.expandvars(sample.heppy.json))
     logger.info( "Loaded json %s", sample.heppy.json )
 else:
@@ -434,7 +446,7 @@ if isMC:
     read_variables.append( Variable.fromString('genWeight/F') )
     read_variables.append( VectorType.fromString('gamma[mcPt/F]') )
 
-    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPUVUp/F','reweightPUVDown/F', 'reweightNVTX/F','reweightNVTXUp/F','reweightNVTXDown/F', 'reweightNVTXVUp/F','reweightNVTXVDown/F'])
     if not options.skipGenLepMatching:
         Variable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
@@ -451,7 +463,7 @@ if isVeryLoose:
         VectorType.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
     ]
 new_variables += [\
-    'JetGood[%s]'% ( ','.join(jetVars) )
+    'JetGood[%s]'% ( ','.join(jetVars + ['JECVUp/F', 'JECVDown/F']) )
 ]
 
 if isData: new_variables.extend( ['jsonPassed/I'] )
@@ -490,7 +502,7 @@ if addSystematicVariations:
     "met_UnclusteredEnUp_Pt/F", "met_UnclusteredEnUp_Phi/F", "met_UnclusteredEnDown_Pt/F", "met_UnclusteredEnDown_Phi/F", 
     ] )
 
-    for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
+    for var in ['JECUp', 'JECDown', 'JECVUp', 'JECVDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
         if 'Unclustered' not in var: new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
         if isDiLep:
@@ -540,7 +552,7 @@ def getMetCorrected(r, var, addPhoton = None):
       if addPhoton is not None: return getMetPhotonEstimated(r.met_pt, r.met_phi, addPhoton)
       else:                     return (r.met_pt, r.met_phi)
 
-    elif var in ["JECUp","JECDown","UnclusteredEnUp","UnclusteredEnDown"]:
+    elif var in [ "JECUp", "JECDown", "UnclusteredEnUp", "UnclusteredEnDown" ]:
       var_ = var
       var_ = var_.replace("JEC", "JetEn")
       var_ = var_.replace("JER", "JetRes")
@@ -583,9 +595,18 @@ def filler(s):
         s.jsonPassed_ = s.jsonPassed
 
     if isMC:
-        s.reweightPU     = puRW(r.nTrueInt)
-        s.reweightPUDown = puRWDown(r.nTrueInt)
-        s.reweightPUUp   = puRWUp(r.nTrueInt)
+        s.reweightPU     = nTrueInt_puRW       ( r.nTrueInt ) 
+        s.reweightPUDown = nTrueInt_puRWDown   ( r.nTrueInt ) 
+        s.reweightPUUp   = nTrueInt_puRWUp     ( r.nTrueInt ) 
+        s.reweightPUVDown = nTrueInt_puRWVDown ( r.nTrueInt ) 
+        s.reweightPUVUp   = nTrueInt_puRWVUp   ( r.nTrueInt ) 
+        # 2016 NVTX reweighting
+        from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
+        s.reweightNVTX     = nvtx_reweight_central( r.nVert ) 
+        s.reweightNVTXUp   = nvtx_reweight_up     ( r.nVert ) 
+        s.reweightNVTXDown  = nvtx_reweight_down  ( r.nVert ) 
+        s.reweightNVTXVUp   = nvtx_reweight_vup   ( r.nVert ) 
+        s.reweightNVTXVDown = nvtx_reweight_vdown ( r.nVert ) 
 
     # top pt reweighting
     if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
@@ -664,9 +685,11 @@ def filler(s):
         for j in allJets:
             j['pt_JECUp']   =j['pt']/j['corr']*j['corr_JECUp']
             j['pt_JECDown'] =j['pt']/j['corr']*j['corr_JECDown']
+            j['pt_JECVUp']   =1.02*j['pt']/j['corr']*j['corr_JECUp']
+            j['pt_JECVDown'] =0.98*j['pt']/j['corr']*j['corr_JECDown']
             # JERUp, JERDown, JER
             addJERScaling(j)
-        for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown']:
+        for var in ['JECUp', 'JECDown', 'JECVUp', 'JECVDown', 'JERUp', 'JERDown']:
             jets_sys[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt_'+var), allJets)
             bjets_sys[var]      = filter(isBJet, jets_sys[var])
             nonBjets_sys[var]   = filter(lambda j: not isBJet(j), jets_sys[var])
@@ -675,10 +698,10 @@ def filler(s):
             setattr(s, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
             setattr(s, "nBTag_"+var,    len(bjets_sys[var]))
 
-        for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
+        for var in ['JECUp', 'JECDown', 'JECVUp', 'JECVDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
             for i in metVariants:
                 # use cmg MET correction values ecept for JER where it is zero. There, propagate jet variations.
-                if 'JER' in var:
+                if 'JER' in var or 'JECV' in var:
                   (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(s, "met_pt" + i), getattr(s,"met_phi" + i), jets_sys[var], var)
                 else:
                   (met_corr_pt, met_corr_phi) = getMetCorrected(r, var, photons[0] if i.count("photonEstimated") else None)
@@ -773,7 +796,7 @@ def filler(s):
                     setattr(s, "dl_mt2blbl"+i, mt2Calc.mt2blbl())
 
                 if addSystematicVariations:
-                    for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
+                    for var in ['JECUp', 'JECDown', 'JECVUp', 'JECVDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
                         mt2Calc.setMet( getattr(s, "met_pt"+i+"_"+var), getattr(s, "met_phi"+i+"_"+var) )
                         setattr(s, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
                         if not 'Unclustered' in var:

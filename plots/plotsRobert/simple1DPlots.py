@@ -52,7 +52,19 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
+argParser.add_argument('--noScaling',
+    action='store_true',
+    default = True,
+    help='Small?',
+)
+
 argParser.add_argument('--unblind',
+    action='store_true',
+    default=True,
+    help='unblind?',
+)
+
+argParser.add_argument('--old',
     action='store_true',
     help='unblind?',
 )
@@ -81,6 +93,13 @@ argParser.add_argument('--met',
     choices=['def', 'none', 'low'],
     help='met cut',
 )
+argParser.add_argument('--pu',
+    default="reweightPU",
+    action='store',
+    choices=[None, "reweightPU", "reweightPUUp", "reweightPUDown", "reweightPUVUp", "reweightPUVDown", "reweightNVTX", "reweightNVTXUp", "reweightNVTXDown", "reweightNVTXVUp", "reweightNVTXVDown"],
+    help='PU weight',
+)
+
 
 argParser.add_argument('--signals',
     action='store',
@@ -98,7 +117,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v2',
+    default='80X_v4_PU',
     action='store',
 )
 
@@ -110,9 +129,6 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
-
 def getZCut(mode):
     mZ = 91.2
     zstr = "abs(dl_mass - "+str(mZ)+")"
@@ -121,54 +137,91 @@ def getZCut(mode):
     return "(1)"
 
 # Extra requirements on data
-mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
-dataFilterCut = mcFilterCut+"&&weight>0"
-if not args.unblind: dataFilterCut+="&&run<=274240"
+if args.old:
+    mcFilterCut   = "Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter"
+    dataFilterCut = mcFilterCut+"&&weight>0&&jsonPassed&&vetoPassed"
+
+    data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+    postProcessing_directory = "postProcessed_Fall15_v3/dilep/"
+    from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_2l_postProcessed import *
+    from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
+else:
+    mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
+    dataFilterCut = mcFilterCut+"&&weight>0"
+    postProcessing_directory = "postProcessed_80X_v4/dilepTiny/"
+    from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+    postProcessing_directory = "postProcessed_80X_v2/dilepTiny/"
+    from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+    if not args.unblind: dataFilterCut+="&&run<=274240"
 
 if args.mode=="doubleMu":
     lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
     lepton_selection_string_mc   = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
-    data_samples = [DoubleMuon_Run2016B]
+    if args.old:
+        data_samples = [DoubleMuon_Run2015D]
+        DoubleMuon_Run2015D.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    else:
+        data_samples = [DoubleMuon_Run2016B]
+        DoubleMuon_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
     data_sample_texName = "Data (2 #mu)"
     #qcd_sample = QCD_Mu5 #FIXME
-    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
 elif args.mode=="doubleEle":
     lepton_selection_string_data = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
-    data_samples = [DoubleEG_Run2016B]
+    if args.old:
+        data_samples = [DoubleEG_Run2015D]
+        DoubleEG_Run2015D.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    else:
+        data_samples = [DoubleEG_Run2016B]
+        DoubleEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
     data_sample_texName = "Data (2 e)"
     #qcd_sample = QCD_EMbcToE
-    DoubleEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
 elif args.mode=="muEle":
     lepton_selection_string_data = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
-    data_samples = [MuonEG_Run2016B]
+    if args.old:
+        data_samples = [MuonEG_Run2015D]
+        MuonEG_Run2015D.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    else:
+        data_samples = [MuonEG_Run2016B]
+        MuonEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
     data_sample_texName = "Data (1 #mu, 1 e)"
     #qcd_sample = QCD_Mu5EMbcToE
-    MuonEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
 elif args.mode=="dilepton":
     doubleMu_selectionString = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso&&abs(dl_mass-91.2)>15"
     doubleEle_selectionString = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ&&abs(dl_mass-91.2)>15"
     muEle_selectionString = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue"
     lepton_selection_string_mc = "(isEMu==1&&nGoodMuons==1&&nGoodElectrons==1|| ( isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2 ) && abs(dl_mass-91.2)>15)"
-    data_samples = [DoubleMuon_Run2016B, DoubleEG_Run2016B, MuonEG_Run2016B]
+    if args.old:
+        data_samples = [DoubleMuon_Run2015D, DoubleEG_Run2015D, MuonEG_Run2015D]
+        DoubleMuon_Run2015D.setSelectionString([dataFilterCut, doubleMu_selectionString])
+        DoubleEG_Run2015D.setSelectionString([dataFilterCut, doubleEle_selectionString])
+        MuonEG_Run2015D.setSelectionString([dataFilterCut, muEle_selectionString])
+    else:
+        data_samples = [DoubleMuon_Run2016B, DoubleEG_Run2016B, MuonEG_Run2016B]
+        DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
+        DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
+        MuonEG_Run2016B.setSelectionString([dataFilterCut, muEle_selectionString])
     data_sample_texName = "Data"
     #qcd_sample = QCD_Mu5EMbcToE
 
-    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
-    DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
-    MuonEG_Run2016B.setSelectionString([dataFilterCut, muEle_selectionString])
 elif args.mode=="sameFlavour":
     doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
     doubleEle_selectionString = "&&".join([ "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join([ "(isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2)", getZCut(args.zMode)])
 
-    data_samples = [DoubleMuon_Run2016B, DoubleEG_Run2016B]
+    if args.old:
+        data_samples = [DoubleMuon_Run2015D, DoubleEG_Run2015D]
+        DoubleMuon_Run2015D.setSelectionString([dataFilterCut, doubleMu_selectionString])
+        DoubleEG_Run2015D.setSelectionString([dataFilterCut, doubleEle_selectionString])
+    else:
+        data_samples = [DoubleMuon_Run2016B, DoubleEG_Run2016B]
+        DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
+        DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
+
     data_sample_texName = "Data (SF)"
     #qcd_sample = QCD_Mu5EMbcToE
 
-    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
-    DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
@@ -182,7 +235,7 @@ else:
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc_samples = [ DY_HT_LO, TTJets_sample, singleTop, TTZ, TTW, diBoson, triBoson]
+mc_samples = [ TTJets_sample, singleTop, diBoson, DY_HT_LO, TTZ, TTW, triBoson]
 #mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, WWInclusive, WZInclusive, ZZInclusive, WZZ]
 #mc = [ TTX]
 if args.small:
@@ -199,21 +252,26 @@ else:
     lumi_scale = 804.2/1000
 
 logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
+
+# 2016 PU reweighting
+#from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
+
+#nvtx_reweight = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_4000pb.pkl")
+
+
 for sample in mc_samples:
+    if args.pu is not None: sample.read_variables = [args.pu+'/F']
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     sample.style = styles.fillStyle( sample.color)
+    if args.pu is not None:
+        sample.weight = lambda data:getattr( data, args.pu )
 
 from StopsDilepton.tools.user import plot_directory
 
-# official PU reweighting
+
 weight = lambda data:data.weight
 
-#from StopsDilepton.tools.objectSelection import multiIsoLepString
-#multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
-
 basic_cuts=[
-#    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
-#    ("eleCutBasedTightID", "(abs(l1_pdgId)!=11 || LepGood_eleCutIdSpring15_25ns_v1[l1_index]>=4)&&((abs(l2_pdgId)!=11 || LepGood_eleCutIdSpring15_25ns_v1[l2_index]>=4))"),
     ("mll20", "dl_mass>20"),
     ("dPhiJet0-dPhiJet1", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
@@ -244,7 +302,7 @@ def selection( ):
         ("nbtag%s"%args.nbtag, "nBTag%s"%mCutStr( args.nbtag ))]
     if args.met=='def': res.extend([\
         ("met80", "met_pt>80"),
-        ("metSig5", "met_pt/sqrt(ht)>5")])
+        ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)")])
     elif args.met=='low':
         res.extend([  ("metSm80", "met_pt<80")] )
     elif args.met=='none':
@@ -252,6 +310,7 @@ def selection( ):
     return res
 
 cuts = selection()
+
 #cuts.extend( [ ("highMT2ll", "dl_mt2ll>100"),
 #    ] )
 #
@@ -355,6 +414,8 @@ for i_comb in [ len(cuts) ]:
         ppfixes = [args.mode, args.zMode]
         if args.ttjets == "NLO": ppfixes.append( "TTJetsNLO" )
         if args.ttjets == "LO": ppfixes.append( "TTJetsLO" )
+        if args.old: ppfixes = ['76X'] + ppfixes
+        if args.pu is not None: ppfixes = [args.pu] + ppfixes
         if args.small: ppfixes = ['small'] + ppfixes
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
 
@@ -370,18 +431,19 @@ for i_comb in [ len(cuts) ]:
 
         logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionString )
 
-        if not args.noData:
+        if not args.noData and not args.noScaling:
             logger.info( "Calculating normalization constants" )        
             yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc_samples)
             yield_data  = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in data_samples)
 
-            for sample in mc_samples:
-                dataMCScale = yield_data/(yield_mc*lumi_scale)
-                sample.scale = lumi_scale*dataMCScale
-
+            dataMCScale = yield_data/(yield_mc*lumi_scale)
             logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
+
         else:
-            dataMCScale = None 
+            dataMCScale = 1 
+
+        for sample in mc_samples:
+            sample.scale = lumi_scale*dataMCScale
 
         plots = []
 
@@ -818,10 +880,12 @@ for i_comb in [ len(cuts) ]:
                 plot.histos = plot.histos[:-1]+[[data_histo]]
                 plot.stack = plot.stack[:-1] + [[plot.stack[-1][0] ]]
                 plot.stack[-1][0].texName = data_sample_texName
+            scale_corr = plot.histos_added[1][0].Integral()/plot.histos_added[0][0].Integral() if not args.noScaling else 1
             plotting.draw(plot, 
                 plot_directory = plot_path, ratio = ratio, 
-                logX = False, logY = True, sorting = True, 
+                logX = False, logY = True, #sorting = True, 
+                scaling = {0:1} if not args.noScaling else {},
                 yRange = (0.03, "auto"), 
-                drawObjects = drawObjects( dataMCScale )
+                drawObjects = drawObjects( dataMCScale * scale_corr )
             )
         logger.info( "Done with prefix %s and selectionString %s", prefix, selectionString )
