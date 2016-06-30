@@ -21,9 +21,9 @@ argParser.add_argument('--logLevel',
 )
 
 argParser.add_argument('--mode',
-    default='muEle',
+    default='doubleMu',
     action='store',
-    choices=['doubleMu', 'doubleEle',  'muEle'])
+    choices=['doubleMu', 'doubleEle',  'muEle', 'dilepton'])
 
 argParser.add_argument('--charges',
     default='OS',
@@ -91,7 +91,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='VTVT_EleCBIdtight',
+    default='VTVT_EleCBIdtight_test',
     action='store',
 )
 
@@ -117,29 +117,54 @@ def getZCut(mode):
     if mode.lower()=="offz": return zstr+">15"
     return "(1)"
 
-if args.mode=="doubleMu":
-    leptonSelectionString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
-    data_sample = DoubleMuon_Run2015D if not args.noData else None
-    qcd_sample = QCD_Mu5 #FIXME
-    trigger     = "HLT_mumuIso"
-elif args.mode=="doubleEle":
-    leptonSelectionString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
-    data_sample = DoubleEG_Run2015D if not args.noData else None
-    qcd_sample = QCD_EMbcToE
-    trigger   = "HLT_ee_DZ"
-elif args.mode=="muEle":
-    leptonSelectionString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
-    data_sample = MuonEG_Run2015D if not args.noData else None
-    #qcd_sample = QCD_EMbcToE
-    #trigger   = "HLT_ee_DZ"
-    qcd_sample = QCD_Mu5EMbcToE
-    trigger    = "HLT_mue"
-else:
-    raise ValueError( "Mode %s not known"%args.mode )
-
 # Extra requirements on data
 dataFilterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
 mcFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
+
+if args.mode=="doubleMu":
+    lepton_selection_string = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
+    data_samples = [DoubleMuon_Run2015D]
+    data_sample_texName = "Data (2 #mu)"
+    qcd_sample = QCD_Mu5 #FIXME
+    DoubleMuon_Run2015D.setSelectionString([dataFilterCut, lepton_selection_string])
+elif args.mode=="doubleEle":
+    lepton_selection_string = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
+    data_samples = [DoubleEG_Run2015D]
+    data_sample_texName = "Data (2 e)"
+    qcd_sample = QCD_EMbcToE
+    DoubleEG_Run2015D.setSelectionString([dataFilterCut, lepton_selection_string])
+elif args.mode=="muEle":
+    lepton_selection_string = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue", getZCut(args.zMode)])
+    data_samples = [MuonEG_Run2015D]
+    data_sample_texName = "Data (1 #mu, 1 e)"
+    qcd_sample = QCD_Mu5EMbcToE
+    MuonEG_Run2015D.setSelectionString([dataFilterCut, lepton_selection_string])
+elif args.mode=="dilepton":
+    doubleMu_selectionString = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso&&abs(dl_mass-91.2)>15"
+    doubleEle_selectionString = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ&&abs(dl_mass-91.2)>15"
+    muEle_selectionString = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue"
+    lepton_selection_string = "(isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue|| ( isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso || isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ ) && abs(dl_mass-91.2)>15)"
+    data_samples = [DoubleMuon_Run2015D, DoubleEG_Run2015D, MuonEG_Run2015D]
+    data_sample_texName = "Data"
+    qcd_sample = QCD_Mu5EMbcToE
+    
+    DoubleMuon_Run2015D.setSelectionString([dataFilterCut, doubleMu_selectionString])
+    DoubleEG_Run2015D.setSelectionString([dataFilterCut, doubleEle_selectionString])
+    MuonEG_Run2015D.setSelectionString([dataFilterCut, muEle_selectionString])
+elif args.mode=="sameFlavour":  
+    doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
+    doubleEle_selectionString = "&&".join([ "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
+    lepton_selection_string = "&&".join([ "(isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso || isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ)", getZCut(args.zMode)])
+    
+    data_samples = [DoubleMuon_Run2015D, DoubleEG_Run2015D]
+    data_sample_texName = "Data (SF)"
+    qcd_sample = QCD_Mu5EMbcToE
+    
+    DoubleMuon_Run2015D.setSelectionString([dataFilterCut, doubleMu_selectionString])
+    DoubleEG_Run2015D.setSelectionString([dataFilterCut, doubleEle_selectionString])
+else:
+    raise ValueError( "Mode %s not known"%args.mode )
+
 
 if args.ttjets == "NLO":
     TTJets_sample = TTJets
@@ -150,18 +175,21 @@ else:
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
+mc_samples = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
 #mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, WWInclusive, WZInclusive, ZZInclusive, WZZ]
 #mc = [ TTX]
 if args.small:
-    for sample in mc:
+    for sample in mc_samples + data_samples:
         sample.reduceFiles(to = 1)
 
-if not args.noData:
-    data_sample.style = styles.errorStyle( ROOT.kBlack )
-    lumi_scale = data_sample.lumi/1000
+for d in data_samples:
+    d.style = styles.errorStyle( ROOT.kBlack )
 
-for sample in mc:
+#Averaging lumi
+lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
+logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
+for sample in mc_samples:
+    sample.setSelectionString([ mcFilterCut, lepton_selection_string])
     sample.style = styles.fillStyle( sample.color)
 
 from StopsDilepton.tools.user import plot_directory
@@ -237,14 +265,14 @@ def getDrawObjects( dataMCScale ):
 
     lines = [ (0.15, 0.95, 'CMS Preliminary') ]
     if dataMCScale is not None: 
-        lines.append( (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(data_sample.lumi/100)/10., dataMCScale ) ) )
+        lines.append( (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(lumi_scale*10)/10., dataMCScale ) ) )
     else:
         lines.append( (0.50, 0.95, '13 TeV' ) )
     return [tex.DrawLatex(*l) for l in lines] 
 
-stack = Stack(mc)
+stack = Stack( mc_samples )
 if not args.noData:
-    stack.append( [data_sample] )
+    stack.append( data_samples )
 
 if len(args.signals)>0:
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
@@ -299,10 +327,6 @@ sequence.append( makeMinDeltaRLepJets )
 for i_comb in [ len(cuts) ]:
     for comb in itertools.combinations( cuts, i_comb ):
 
-        if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
-        for sample in mc:
-            sample.setSelectionString([ mcFilterCut, trigger ])
-
         if args.charges=="OS":
             presel = [("isOS","isOS")]
         elif args.charges=="SS":
@@ -326,7 +350,7 @@ for i_comb in [ len(cuts) ]:
             logger.info( "Path %s not empty. Skipping."%plot_path )
             continue
 
-        selectionString = "&&".join( [p[1] for p in presel] + [leptonSelectionString] )
+        selectionString = "&&".join( [p[1] for p in presel] )
 
         if  prefix.count('nbtag')>1: continue
         if  prefix.count('njet')>1: continue
@@ -336,10 +360,10 @@ for i_comb in [ len(cuts) ]:
 
         if not args.noData:
             logger.info( "Calculating normalization constants" )        
-            yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc)
-            yield_data  = data_sample.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
+            yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc_samples)
+            yield_data  = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in data_samples)
 
-            for sample in mc:
+            for sample in mc_samples:
                 dataMCScale = yield_data/(yield_mc*lumi_scale)
                 sample.scale = lumi_scale*dataMCScale
 

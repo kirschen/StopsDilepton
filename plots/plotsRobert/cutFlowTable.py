@@ -62,8 +62,8 @@ cuts=[
 
 lumiFac=10
 print 30*" "+ "".join([ "%13s"%s.name for s in samples ] )
-for i in reversed(range(len(cuts))):
-#for i in range(len(cuts)):
+#for i in reversed(range(len(cuts))):
+for i in range(len(cuts)):
     r=[]
     for s in samples:
         selection = "&&".join(c[1] for c in cuts[:i+1])

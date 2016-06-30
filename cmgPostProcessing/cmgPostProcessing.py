@@ -9,6 +9,7 @@ import random
 import subprocess
 import datetime
 import shutil
+import pickle
 
 from array import array
 from operator import mul
@@ -214,7 +215,7 @@ elif isJet250:
 #Samples: Load samples
 maxN = 2 if options.runSmallSample else None
 if options.T2tt:
-    from StopsDilepton.samples.cmgTuples_Signals_Spring15_mAODv2_25ns_1l import T2tt
+    from StopsDilepton.samples.cmgTuples_Signals_Spring15_mAODv2_25ns_0l import T2tt
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
     samples = filter( lambda s:s.name in options.samples, T2tt)
     logger.info( "T2tt signal samples to be processed: %s", ",".join(s.name for s in samples) )
@@ -223,6 +224,8 @@ if options.T2tt:
     samples[0].files = samples[0].files[:maxN]
     logger.debug( "Fetching signal weights..." )
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
+    #logger.warning( "Reading 74X T2tt weights for 10/fb!!!!!!!!")
+    #signalWeight_74X = pickle.load(file("/afs/hephy.at/data/rschoefbeck01/StopsDilepton/T2tt_74X_weights/weights.pkl"))
     logger.debug("Done fetching signal weights.")
 elif options.TTDM:
     from StopsDilepton.samples.helpers import fromHeppySample
@@ -563,9 +566,10 @@ def filler(s):
 
     # weight
     if options.T2tt:
-        s.weight=signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['weight']
         s.mStop = r.GenSusyMScan1
         s.mNeu  = r.GenSusyMScan2
+        #s.weight = signalWeight_74X[(r.GenSusyMScan1, r.GenSusyMScan2)]['weight']
+        s.weight = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['weight']
         s.reweightXSecUp    = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacUp']
         s.reweightXSecDown  = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacDown']
     elif isMC:

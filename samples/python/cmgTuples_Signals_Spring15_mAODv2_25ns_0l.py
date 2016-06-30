@@ -1,7 +1,7 @@
 import os
 from RootTools.core.standard import *
 
-signal_T2tt_path = "/data/rschoefbeck/cmgTuples/T2tt_0l_150109/"
+signal_T2tt_path = "/data/rschoefbeck/cmgTuples/T2tt_210617/"
 
 SMS_T2tt_mStop_100_125_mLSP_1to50 = Sample.fromCMGOutput("SMS_T2tt_mStop_100_125_mLSP_1to50", os.path.join(signal_T2tt_path, "SMS-T2tt_mStop-100-125_mLSP-1to50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISpring15MiniAODv2-FastAsympt25ns_74X_mcRun2_asymptotic_v2-v2"), treeFilename = 'tree.root',  treeName = 'tree')
 SMS_T2tt_mStop_150_175_mLSP_1to100 = Sample.fromCMGOutput("SMS_T2tt_mStop_150_175_mLSP_1to100", os.path.join(signal_T2tt_path, "SMS-T2tt_mStop-150-175_mLSP-1to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_schoef-crab_SMS-T2tt_mStop-150-175_mLSP-1to100_RunIISpring15MiniAODv2_2-eb69b0448a13fda070ca35fd76ab4e24"), treeFilename = 'tree.root',  treeName = 'tree')
@@ -15,3 +15,4 @@ SMS_T2tt_mStop_500_525_550_mLSP_1to425_325to450_1to475 = Sample.fromCMGOutput("S
 SMS_T2tt_mStop_600_950_mLSP_1to450 = Sample.fromCMGOutput("SMS_T2tt_mStop_600_950_mLSP_1to450", os.path.join(signal_T2tt_path, "SMS-T2tt_mStop-600-950_mLSP-1to450_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_RunIISpring15MiniAODv2-FastAsympt25ns_74X_mcRun2_asymptotic_v2-v1"), treeFilename = 'tree.root',  treeName = 'tree')
 
 T2tt = [SMS_T2tt_mStop_100_125_mLSP_1to50, SMS_T2tt_mStop_150_175_mLSP_1to100, SMS_T2tt_mStop_200_mLSP_1to125, SMS_T2tt_mStop_225_mLSP_25to150, SMS_T2tt_mStop_250_mLSP_1to175, SMS_T2tt_mStop_275_mLSP_75to200, SMS_T2tt_mStop_300to375_mLSP_1to300, SMS_T2tt_mStop_400to475_mLSP_1to400, SMS_T2tt_mStop_500_525_550_mLSP_1to425_325to450_1to475, SMS_T2tt_mStop_600_950_mLSP_1to450]
+#T2tt = [SMS_T2tt_mStop_400to475_mLSP_1to400 ]
