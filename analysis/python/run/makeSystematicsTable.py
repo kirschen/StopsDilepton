@@ -90,6 +90,7 @@ for channel in allChannels:
 	f.write("  \\hline \n")
 
         topNorm = 0
+        ttZNorm = 0
 	
 	# One row for each estimator
 	for e in estimators:
@@ -141,7 +142,7 @@ for channel in allChannels:
 	overviewTable.write(" & " + displaySysValue(e.btaggingSFbSystematic(r, channel, setup).val,   expected))
 	overviewTable.write(" & " + displaySysValue(e.btaggingSFlSystematic(r, channel, setup).val,   expected))
 	overviewTable.write(" & " + topNorm)
-	overviewTable.write(" & " + ttZnorm)
+	overviewTable.write(" & " + ttZNorm)
 	overviewTable.write(" \\\\ \n")
 
       SR = SR+1

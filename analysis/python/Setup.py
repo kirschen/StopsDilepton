@@ -101,13 +101,17 @@ class Setup:
         if sys:
             for k in sys.keys():
                 if k=='reweight':
-                    res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
+                    if sys[k].count('reweightPU'):
+                      res.sys[k] = list(set(sys[k]))          # If PU variations, don't keep nominal reweightPU
+                    else:
+                      res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
                 else:
                     res.sys[k] = sys[k] # if sys[k] else res.sys[k]
 
         if parameters:
             for k in parameters.keys():
                 res.parameters[k] = parameters[k]
+
 
         return res
 

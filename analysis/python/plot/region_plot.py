@@ -92,11 +92,7 @@ def getRegionHisto(estimate, regions, channel, setup):
 
     for i, r in enumerate(regions):
       for var in variations:
-        if var and var.count('PU'):
-          setup_ = setup.sysClone()
-          setup_.sys = {'weight':'weight', 'reweight':[var], 'selectionModifier':None}
-        else:
-          setup_ = setup if not var else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
+        setup_ = setup if not var else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
