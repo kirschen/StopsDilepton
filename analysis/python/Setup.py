@@ -67,8 +67,8 @@ class Setup:
         }
 
 
-#       self.sys      = {'weight':'weight', 'reweight':['reweightPU'], 'selectionModifier':None}
-        self.sys      = {'weight':'weight', 'reweight':[],             'selectionModifier':None}
+        self.sys      = {'weight':'weight', 'reweight':['reweightPU'], 'selectionModifier':None}
+#        self.sys      = {'weight':'weight', 'reweight':[],             'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
 

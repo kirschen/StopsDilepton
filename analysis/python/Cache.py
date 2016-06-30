@@ -24,7 +24,7 @@ class Cache:
 	      self._cache = pickle.load(f)
               self._cache.update(temp)
         except:# (IOError, ValueError, EOFError):
-            if self.verbosity>=2: print "Cache file %s could not be reloaded"%filename
+            if self.verbosity>=2: print "Cache file %s could not be reloaded"%self.filename
             if attempt < 10:
 	      time.sleep(20)
 	      self.reload(attempt + 1)
