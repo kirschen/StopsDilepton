@@ -50,8 +50,7 @@ class DataObservation():
 
             preSelection = setup.preselection('Data', zWindow=zWindow, channel=channel)
             cut = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
-            weight = preSelection['weightStr']
 
-            logger.debug( "Using cut %s and weight %s"%(cut, weight) )
+            logger.debug( "Using cut %s"% cut )
 
-            return u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = weight) )
+            return u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut) )

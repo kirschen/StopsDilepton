@@ -71,7 +71,7 @@ for channel in allChannels:
   except:
     pass 
 
-  columns = ["observed","expected","stat","PU","JEC","top \\pt","b-tag SFb", "b-tag SFl","top norm."]
+  columns = ["observed","expected","stat","PU","JEC","top \\pt","b-tag SFb", "b-tag SFl","top norm.","ttZ norm"]
 
   overviewTexfile = os.path.join(texdir, channel, "overview.tex")
   print "Writing to " + overviewTexfile
@@ -110,8 +110,8 @@ for channel in allChannels:
 	  f.write(" $" + name + "$ ")
 	  expected = int(100*e.cachedEstimate(r, channel, setup).val+0.5)/100.
 
-          if e.name == "TTJets": topNorm = str(0.3*expected if SR < 6 else 0.2*expected if SR < 12 else expected) if expected > 0 else " - "
-          if e.name == "TTZ":    ttZNorm = str(0.5*expected) if expected > 0 else " - "
+          if e.name == "TTJets": topNorm = ("%.2f" % (0.3*expected if SR < 6 else 0.2*expected if SR < 12 else expected)) if expected > 0 else " - "
+          if e.name == "TTZ":    ttZNorm = ("%.2f" % (0.5*expected)) if expected > 0 else " - "
 
 	  f.write(" & %.2f" % expected)
 	  f.write(" & " + displaySysValue(e.cachedEstimate(       r, channel, setup).sigma, expected))
@@ -121,8 +121,8 @@ for channel in allChannels:
 	  f.write(" & " + displaySysValue(e.topPtSystematic(      r, channel, setup).val,   expected))
 	  f.write(" & " + displaySysValue(e.btaggingSFbSystematic(r, channel, setup).val,   expected))
 	  f.write(" & " + displaySysValue(e.btaggingSFlSystematic(r, channel, setup).val,   expected))
-	  f.write(" & " + topNorm if e.name=="TTJets" else " - ")
-	  f.write(" & " + ttZNorm if e.name=="TTZ" else " - ")
+	  f.write(" & " + (topNorm if e.name=="TTJets" else " - "))
+	  f.write(" & " + (ttZNorm if e.name=="TTZ" else " - "))
 	  f.write(" \\\\ \n")
 	f.write("\\end{tabular} \n")
 	f.write("\\caption{Yields and uncertainties for each background in the signal region $" + r.texString(useRootLatex = False) + "$ in channel " + channel + "} \n")
