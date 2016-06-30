@@ -154,11 +154,6 @@ def get_parser():
         help="FastSim?"
         )
 
-    argParser.add_argument('--keepPhotons',
-        action='store_true',
-        help="Keep photons?"
-        )
-
     argParser.add_argument('--skipGenLepMatching',
         action='store_true',
         help="skip matched genleps??"
@@ -405,7 +400,7 @@ if isMC:
 else:
     jetMCInfo = []
 
-if options.keepPhotons and not isTiny:
+if not isTiny:
     branchKeepStrings_DATAMC+=[
         "ngamma", "gamma_idCutBased", "gamma_hOverE", "gamma_r9", "gamma_sigmaIetaIeta", "gamma_chHadIso04", "gamma_chHadIso", "gamma_phIso",
         "gamma_neuHadIso", "gamma_relIso", "gamma_pdgId", "gamma_pt", "gamma_eta", "gamma_phi", "gamma_mass",
@@ -433,9 +428,8 @@ genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'index/I', 'lepGoodMatch
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
 
 read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
-if options.keepPhotons:
-  read_variables += [ Variable.fromString('ngamma/I'),
-                      VectorType.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I,pdgId/I]') ]
+read_variables += [ Variable.fromString('ngamma/I'),
+		    VectorType.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I,pdgId/I]') ]
 
 new_variables = [ 'weight/F']
 if isMC:
@@ -476,8 +470,7 @@ if isDiLep or isSingleLep:
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_dxy/F', 'l1_dz/F' ] )
     # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     new_variables.extend( ['mlmZ_mass/F'] )
-    if options.keepPhotons:
-      new_variables.extend( ['mt_photonEstimated/F'] )
+    new_variables.extend( ['mt_photonEstimated/F'] )
 if isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_dxy/F', 'l2_dz/F' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
@@ -485,13 +478,12 @@ if isDiLep:
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
     if isMC: new_variables.extend( ['zBoson_genPt/F', 'zBoson_genEta/F'] )
 
-if options.keepPhotons:
-    new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
-    if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
-    new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
-    new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
-    if isDiLep:
-      new_variables.extend( ['dlg_mass/F','dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
+new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
+if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
+new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
+new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
+if isDiLep:
+  new_variables.extend( ['dlg_mass/F','dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
 
 if options.checkTTGJetsOverlap:
     new_variables.extend( ['TTGJetsEventType/I'] )
@@ -507,10 +499,9 @@ if addSystematicVariations:
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
         if isDiLep:
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
-        if options.keepPhotons:
-            new_variables.extend( ['met_pt_photonEstimated_'+var+'/F', 'met_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
-            if isDiLep:
-                new_variables.extend( ['dl_mt2ll_photonEstimated_'+var+'/F', 'dl_mt2bb_photonEstimated_'+var+'/F', 'dl_mt2blbl_photonEstimated_'+var+'/F'] )
+	new_variables.extend( ['met_pt_photonEstimated_'+var+'/F', 'met_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
+	if isDiLep:
+	    new_variables.extend( ['dl_mt2ll_photonEstimated_'+var+'/F', 'dl_mt2bb_photonEstimated_'+var+'/F', 'dl_mt2blbl_photonEstimated_'+var+'/F'] )
     # Btag weights Method 1a
     for var in btagEff.btagWeightNames:
         if var!='MC':
@@ -658,25 +649,24 @@ def filler(s):
     metVariants = [''] # default
 
     # Keep photons and estimate met including (leading pt) photon
-    if options.keepPhotons:
-       photons = getGoodPhotons(r, ptCut=20, idLevel="loose", isData=isData)
-       s.nPhotonGood = len(photons)
-       if s.nPhotonGood > 0:
-         metVariants += ['_photonEstimated']  # do all met calculations also for the photonEstimated variant
-         s.photon_pt         = photons[0]['pt']
-         s.photon_eta        = photons[0]['eta']
-         s.photon_phi        = photons[0]['phi']
-         s.photon_idCutBased = photons[0]['idCutBased']
-         if isMC:
-           genPhoton       = getGenPhoton(gPart)
-           s.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
-           s.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
+    photons = getGoodPhotons(r, ptCut=20, idLevel="loose", isData=isData)
+    s.nPhotonGood = len(photons)
+    if s.nPhotonGood > 0:
+      metVariants += ['_photonEstimated']  # do all met calculations also for the photonEstimated variant
+      s.photon_pt         = photons[0]['pt']
+      s.photon_eta        = photons[0]['eta']
+      s.photon_phi        = photons[0]['phi']
+      s.photon_idCutBased = photons[0]['idCutBased']
+      if isMC:
+        genPhoton       = getGenPhoton(gPart)
+        s.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
+        s.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
 
-         s.met_pt_photonEstimated, s.met_phi_photonEstimated = getMetPhotonEstimated(r.met_pt, r.met_phi, photons[0])
-         s.metSig_photonEstimated = s.met_pt_photonEstimated/sqrt(s.ht) if s.ht>0 else float('nan')
+      s.met_pt_photonEstimated, s.met_phi_photonEstimated = getMetPhotonEstimated(r.met_pt, r.met_phi, photons[0])
+      s.metSig_photonEstimated = s.met_pt_photonEstimated/sqrt(s.ht) if s.ht>0 else float('nan')
 
-         s.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
-         s.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
+      s.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
+      s.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
 
     if options.checkTTGJetsOverlap and isMC:
        s.TTGJetsEventType = getTTGJetsEventType(r)
@@ -778,7 +768,7 @@ def filler(s):
               s.zBoson_genPt  = zBoson['pt']  if zBoson is not None else float('nan')
               s.zBoson_genEta = zBoson['eta'] if zBoson is not None else float('nan')
 
-            if options.keepPhotons and s.nPhotonGood > 0:
+            if s.nPhotonGood > 0:
               gamma = ROOT.TLorentzVector()
               gamma.SetPtEtaPhiM(photons[0]['pt'], photons[0]['eta'], photons[0]['phi'], photons[0]['mass'] )
               dlg = dl + gamma
