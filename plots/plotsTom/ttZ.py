@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 ''' Analysis script for 1D 2l plots with TTZ selection (blnu bjj ll)
 '''
-postProcessing_directory = 'postProcessed_Fall15_mAODv2/dilepTiny_june76X'
 #
 # Standard imports and batch mode
 #
@@ -11,6 +10,7 @@ ROOT.gROOT.SetBatch(True)
 from math import sqrt, cos, sin, pi
 from RootTools.core.standard import *
 from StopsDilepton.tools.user import plot_directory
+from StopsDilepton.tools.objectSelection import getFilterCut
 
 
 #
@@ -38,8 +38,8 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selections (three leptons with pt > 30, 20, 10 GeV)
 #
-isoCut="VT" if args.selection and args.selection.count("VT") else 0.2
-from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString,getFilterCut
+isoCut="VT" if args.selection and args.selection.count("VT") else 0.6
+from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
 def getLooseLeptonString(nMu, nE):
   return muonSelectorString(ptCut=10, iso=isoCut) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, absEtaCut=2.5, iso=isoCut) + "==" + str(nE)
 
@@ -49,19 +49,17 @@ def getLeptonString(nMu, nE):
 def getPtThresholdString(firstPt, secondPt):
     return "&&".join([muonSelectorString(ptCut=firstPt,  iso=isoCut) + "+" + eleSelectorString(ptCut=firstPt,  iso=isoCut) + ">=1",
                       muonSelectorString(ptCut=secondPt, iso=isoCut) + "+" + eleSelectorString(ptCut=secondPt, iso=isoCut) + ">=2"])
-#  return "(Sum$(LepGood_pt>" + str(firstPt) + ")>=1&&Sum$(LepGood_pt>" + str(secondPt) + ")>=2&&Sum$(LepGood_pt>" + str(thirdPt) + ")>=3)"
 
-useTrigger            = True # setup.parameters['useTriggers'] # better not to use three lepton triggers, seems to be too inefficient
 lllSelection          = {}
-lllSelection['MuMu']  = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)]) + ("&&HLT_mumuIso"            if useTrigger else "")
-lllSelection['MuMuE'] = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)]) + ("&&(HLT_mue||HLT_mumuIso)" if useTrigger else "") 
-lllSelection['MuEE']  = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)]) + ("&&(HLT_mue||HLT_ee_DZ)"   if useTrigger else "")
-lllSelection['EE']    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)]) + ("&&HLT_ee_DZ"              if useTrigger else "")
+lllSelection['MuMu']  = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)])
+lllSelection['MuMuE'] = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)])
+lllSelection['MuEE']  = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)])
+lllSelection['EE']    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)])
 lllSelection['EMu']   = "(("+lllSelection['MuMuE']+")||("+lllSelection['MuEE']+"))"
 
-jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
-bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))>="
-bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))>="
+jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
+bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
+bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))"
 zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 
 
@@ -69,13 +67,18 @@ zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 # Cuts to iterate over: at least 3/4 jets with 1/2 btags
 #
 cuts=[
-    ("njet3",             jetSelection+"3"),
-    ("njet4",             jetSelection+"4"),
-    ("nbtagL",            bJetSelectionL+"1"),
-    ("nbtagM",            bJetSelectionM+"1"),
-    ("nbtagLL",           bJetSelectionL+"2"),
-    ("nbtagMM",           bJetSelectionM+"2"),
+    ("njet01",            jetSelection+"<2"),
+    ("njet2",             jetSelection+">=2"),
+    ("njet3",             jetSelection+">=3"),
+    ("njet4",             jetSelection+">=4"),
+    ("nbtag0",            bJetSelectionL+"==0"),
+    ("nbtagL",            bJetSelectionL+">=1"),
+    ("nbtagM",            bJetSelectionM+">=1"),
+    ("nbtagLL",           bJetSelectionL+">=2"),
+    ("nbtagMM",           bJetSelectionM+">=2"),
     ("onZ",               zMassSelection),
+    ("met30",             "met_pt>30"),
+    ("mt50",              "mt>50"),
     ("dR",                "(1)"),
     ("VT",                "(1)"),
 ]
@@ -93,6 +96,10 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         selection = '-'.join([p[0] for p in presel])
         if selection.count("nbtag") > 1: continue
         if selection.count("njet") != 1: continue
+        if selection.count("njet01") and (selection.count("nbtagL") or selection.count("nbtagM")): continue # only look at 0b for diboson CR
+        if selection.count("nbtag0") and not selection.count("njet01"): continue # only look at 0b for diboson CR
+        if selection.count("met")    and not selection.count("njet01"): continue # only look at met cut for diboson CR
+        if selection.count("mt")     and not selection.count("njet01"): continue # only look at met cut for diboson CR
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 #
@@ -126,27 +133,52 @@ def makeDeltaR(data):
   data.dR_lep1lep2 = deltaR(data.LepGood_eta[1], data.LepGood_phi[1], data.LepGood_eta[2], data.LepGood_phi[2])
   data.dR_lep0lep2 = deltaR(data.LepGood_eta[2], data.LepGood_phi[2], data.LepGood_eta[0], data.LepGood_phi[0])
 
-  data.dR_lep0jet  = min([deltaR(data.JetGood_eta[i], data.JetGood_phi[i], data.LepGood_eta[0], data.LepGood_phi[0]) for i in range(data.nJetGood)])
-  data.dR_lep1jet  = min([deltaR(data.JetGood_eta[i], data.JetGood_phi[i], data.LepGood_eta[1], data.LepGood_phi[1]) for i in range(data.nJetGood)])
-  data.dR_lep2jet  = min([deltaR(data.JetGood_eta[i], data.JetGood_phi[i], data.LepGood_eta[2], data.LepGood_phi[2]) for i in range(data.nJetGood)])
+  data.dR_lep0jet  = min([deltaR(data.JetGood_eta[i], data.JetGood_phi[i], data.LepGood_eta[0], data.LepGood_phi[0]) for i in range(data.nJetGood)]) if data.nJetGood else 999
+  data.dR_lep1jet  = min([deltaR(data.JetGood_eta[i], data.JetGood_phi[i], data.LepGood_eta[1], data.LepGood_phi[1]) for i in range(data.nJetGood)]) if data.nJetGood else 999
+  data.dR_lep2jet  = min([deltaR(data.JetGood_eta[i], data.JetGood_phi[i], data.LepGood_eta[2], data.LepGood_phi[2]) for i in range(data.nJetGood)]) if data.nJetGood else 999
 
-  data.passed      = args.selection.count("dR") and data.dR_lep0lep1 > 0.1 and data.dR_lep1lep2 > 0.1 and data.dR_lep0lep2 > 0.1 and data.dR_lep0jet > 0.4 and data.dR_lep1jet > 0.4 and data.dR_lep2jet > 0.4
+  data.passed      = not args.selection.count("dR") or (data.dR_lep0lep1 > 0.1 and data.dR_lep1lep2 > 0.1 and data.dR_lep0lep2 > 0.1 and data.dR_lep0jet > 0.4 and data.dR_lep1jet > 0.4 and data.dR_lep2jet > 0.4)
+
 
 def calcBTag(data):
   data.nBTag       = len([j for j in range(data.nJetGood) if data.JetGood_btagCSV[j] > 0.800])
   data.nBTagLoose  = len([j for j in range(data.nJetGood) if data.JetGood_btagCSV[j] > 0.460])
   csvValues        = [data.JetGood_btagCSV[j] for j in range(data.nJetGood)]
   csvValues.sort()
-  data.leadingCSV  = csvValues[-1] if len(csvValues) > 1 else float('nan')
-  data.secondCSV   = csvValues[-2] if len(csvValues) > 2 else float('nan')
+  data.leadingCSV  = csvValues[-1] if len(csvValues) > 1 else -20
+  data.secondCSV   = csvValues[-2] if len(csvValues) > 2 else -20
 
-sequence = [makeDeltaR, calcBTag]
+def calcInvMass(data):
+  l1 = ROOT.TLorentzVector()
+  l2 = ROOT.TLorentzVector()
+  l3 = ROOT.TLorentzVector()
+  l1.SetPtEtaPhiM(data.LepGood_pt[0], data.LepGood_eta[0], data.LepGood_phi[0], 0)
+  l2.SetPtEtaPhiM(data.LepGood_pt[1], data.LepGood_eta[1], data.LepGood_phi[1], 0)
+  l3.SetPtEtaPhiM(data.LepGood_pt[2], data.LepGood_eta[2], data.LepGood_phi[2], 0)
+
+  data.mlll = (l1 + l2 + l3).M()
+
+  if ((l1 + l2).M() - 91.1876) < 10:
+    data.mt = sqrt(2*l3.Pt()*data.met_pt*(1-cos(l3.Phi()-data.met_phi)))
+  elif ((l1 + l3).M() - 91.1876) < 10:
+    data.mt = sqrt(2*l2.Pt()*data.met_pt*(1-cos(l2.Phi()-data.met_phi)))
+  elif ((l3 + l2).M() - 91.1876) < 10:
+    data.mt = sqrt(2*l1.Pt()*data.met_pt*(1-cos(l1.Phi()-data.met_phi)))
+  else:
+    data.mt = 0
+    data.passed = False
+  
+  data.passed = data.passed and (not args.selection.count("mt50") or data.mt > 50)
+
+
+sequence = [makeDeltaR, calcBTag, calcInvMass]
 
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed.py import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+
 
 #
 # Text on the plots
@@ -169,29 +201,37 @@ for index, mode in enumerate(allModes):
   yields[mode] = {}
 
   if mode=="3mu":
-    data_sample     = DoubleMuon_Run2015D
+    data_sample     = DoubleMuon_Run2016B
     leptonSelection = lllSelection['MuMu']
+    trigger         = "HLT_mumuIso"
   elif mode=="3e":
-    data_sample     = DoubleEG_Run2015D
+    data_sample     = DoubleEG_Run2016B
     leptonSelection = lllSelection['EE']
+    trigger         = "HLT_ee_DZ"
   elif mode=="2mu1e":
-    data_sample     = MuonEG_Run2015D
+    data_sample     = MuonEG_Run2016B
     leptonSelection = lllSelection['MuMuE']
+    trigger         = "HLT_mue"
   elif mode=="2e1mu":
-    data_sample     = MuonEG_Run2015D
+    data_sample     = MuonEG_Run2016B
     leptonSelection = lllSelection['MuEE']
+    trigger         = "HLT_mue"
+
+  print leptonSelection
 
   data_sample.name = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-  mc = [ DY_HT_LO, singleTop, diBoson, triBoson, WJetsToLNu, TTLep_pow, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
+  mc = [ DY_HT_LO, Top, EWK, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
+    sample.read_variables = ['reweightPU/F']
+    sample.weight = lambda data: data.reweightPU
 
   stack = Stack(mc, [data_sample])
-  data_sample.setSelectionString([getFilterCut(isData=True), leptonSelection])
+  data_sample.setSelectionString([getFilterCut(isData=True), leptonSelection, trigger])
   for sample in mc:
     sample.setSelectionString([getFilterCut(isData=False), leptonSelection])
 
@@ -213,11 +253,23 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+    texX = 'm(lll) (GeV)', texY = 'Number of Events / 3 GeV',
+    variable = Variable.fromString( "lll_mass/F" ).addFiller(lambda data: data.mlll),
+    binning=[50/3,0,150],
+  ))
+
+  plots.append(Plot(
     texX = 'm(ll) of best Z candidate (GeV)', texY = 'Number of Events / 3 GeV',
     variable = Variable.fromString( "mlmZ_mass/F" ),
     binning=[50/3,0,150],
   ))
 
+  plots.append(Plot(
+    texX = 'm_{T} of non-Z lepton (GeV)', texY = 'Number of Events / 3 GeV',
+    variable = Variable.fromString( "mt/F" ).addFiller(lambda data: data.mt),
+    binning=[50/3,0,150],
+  ))
+  
   plots.append(Plot(
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2ll/F" ),
@@ -358,26 +410,20 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet0pt/F').addFiller(helpers.uses(lambda data: data.JetGood_pt[0], "JetGood[pt/F]")), 
+    variable = Variable.fromString('jet0pt/F').addFiller(helpers.uses(lambda data: data.JetGood_pt[0] if data.nJetGood > 0 else -1, "JetGood[pt/F]")), 
     binning=[900/20,30,930],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet1pt/F').addFiller(helpers.uses(lambda data: data.JetGood_pt[1], "JetGood[pt/F]")), 
+    variable = Variable.fromString('jet1pt/F').addFiller(helpers.uses(lambda data: data.JetGood_pt[1] if data.nJetGood > 1 else -1, "JetGood[pt/F]")), 
     binning=[600/20,30,630],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(3^{rd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet2pt/F').addFiller(helpers.uses(lambda data: data.JetGood_pt[2], "JetGood[pt/F]")), 
+    variable = Variable.fromString('jet2pt/F').addFiller(helpers.uses(lambda data: data.JetGood_pt[2] if data.nJetGood > 2 else -1, "JetGood[pt/F]")), 
     binning=[300/20,30,330],
-  ))
-
-  plots.append(Plot(
-    texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
-    variable = Variable.fromString('nBTag/I'),
-    binning=[8,0,8],
   ))
 
   plots.append(Plot(
@@ -392,23 +438,18 @@ for index, mode in enumerate(allModes):
     binning=[10,0,10],
   ))
 
-#  plots.append(Plot(
-#    texX = 'm_{T} (GeV)', texY = 'Number of Events / 30 GeV',
-#    variable = Variable.fromString( "mt/F" ),
-#    binning=[300/10,0,300],
-#    ))
+  if not selection.count("nbtag0"):
+    plots.append(Plot(
+      texX = 'number of loose b-tags (CSV)', texY = 'Number of Events',
+      variable = Variable.fromString('nBTagLoose/I').addFiller(lambda data: data.nBTagLoose),
+      binning=[8,0,8],
+    ))
 
-  plots.append(Plot(
-    texX = 'number of loose b-tags (CSV)', texY = 'Number of Events',
-    variable = Variable.fromString('nBTagLoose/I').addFiller(lambda data: data.nBTagLoose),
-    binning=[8,0,8],
-  ))
-
-  plots.append(Plot(
-    texX = 'number of medium b-tags (CSV)', texY = 'Number of Events',
-    variable = Variable.fromString('nBTag/I').addFiller(lambda data: data.nBTag),
-    binning=[8,0,8],
-  ))
+    plots.append(Plot(
+      texX = 'number of medium b-tags (CSV)', texY = 'Number of Events',
+      variable = Variable.fromString('nBTag/I').addFiller(lambda data: data.nBTag),
+      binning=[8,0,8],
+    ))
 
   plots.append(Plot(
     texX = 'highest CSV', texY = 'Number of Events',
@@ -431,9 +472,9 @@ for index, mode in enumerate(allModes):
         for j, h in enumerate(l):
           yields[mode][plot.stack[i][j].name] = h.GetBinContent(h.FindBin(0.5+index))
           h.GetXaxis().SetBinLabel(1, "#mu#mu#mu")
-          h.GetXaxis().SetBinLabel(2, "#mu#mue")
-          h.GetXaxis().SetBinLabel(3, "#muee")
-          h.GetXaxis().SetBinLabel(4, "eee")
+          h.GetXaxis().SetBinLabel(2, "eee")
+          h.GetXaxis().SetBinLabel(3, "#mu#mue")
+          h.GetXaxis().SetBinLabel(4, "#muee")
 
   yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc)
   dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
@@ -458,6 +499,26 @@ for y in yields[allModes[0]]:
   except:
     yields["all"][y] = 0
 dataMCScale = yields["all"]["data"]/(yields["all"]["MC"])
+
+
+
+# Write to tex file
+columns = [i.name for i in mc] + ["MC", "data"]
+texdir = "tex_ttZ"
+try:
+  os.makedirs("./" + texdir)
+except:
+  pass
+with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
+  f.write("&" + " & ".join(columns) + "\\\\ \n")
+  for mode in allModes + ["all"]:
+    f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")
+
+
+
+
+
+
 
 # Add the different channels and plot the sums
 for plot in allPlots[allModes[0]]:
