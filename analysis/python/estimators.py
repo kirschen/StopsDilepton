@@ -6,12 +6,13 @@ from StopsDilepton.analysis.regions import reducedRegionsNew
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from SetupHelpers import channels 
 from Setup import Setup, otherEWKComponents
+from StopsDilepton.analysis.Region import Region
 setup = Setup()
 
 estimators = {}
 
 # Data-driven estimators
-estimators['DY-DD']           = [DataDrivenDYEstimate( name='DY-DD')]
+estimators['DY-DD']           = [DataDrivenDYEstimate( name='DY-DD', controlRegion=Region('dl_mt2ll', (100,-1)))]
 estimators['TTZ-DD']          = [DataDrivenTTZEstimate(name='TTZ-DD')]
 estimators['TTZ-DD-Top16009'] = [DataDrivenTTZEstimate(name='TTZ-DD-Top16009', useTop16009=True)]
 estimators['TTJets-DD']       = [DataDrivenTTJetsEstimate(name='TTJets-DD', controlRegion=reducedRegionsNew[0])]
@@ -21,7 +22,7 @@ for mc in ['DY','TTJets','TTZ','other']:
   estimators[mc] = [MCBasedEstimate(name=mc, sample=setup.sample[mc])]
 
 # detailed MC based estimators (used for plotting so leave out the small ones)
-estimators['other-detailed']  = [ MCBasedEstimate(name=comp.name, sample={c:comp for c in channels}) for comp in [singleTop, EWK,  TTXNoZ] ]
+estimators['other-detailed']  = [ MCBasedEstimate(name=comp.name, sample={c:comp for c in channels}) for comp in [EWK,  TTXNoZ] ]
 # estimators['other-detailed'] += [ MCBasedEstimate(name="QCD", sample= {'MuMu': QCD_Mu5, 'EE': QCD_EMbcToE, 'EMu': QCD_Mu5EMbcToE}) ]
 
 

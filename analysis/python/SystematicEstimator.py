@@ -33,9 +33,9 @@ class SystematicEstimator:
     def uniqueKey(self, region, channel, setup):
         return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
 
-    def cachedEstimate(self, region, channel, setup, save=True):
+    def cachedEstimate(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
-        if self.cache and self.cache.contains(key):
+        if (self.cache and self.cache.contains(key)) or overwrite:
             res = self.cache.get(key)
             logger.info( "Loading cached %s result for %r : %r"%(self.name, key, res) )
             return res

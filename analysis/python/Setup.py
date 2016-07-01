@@ -34,7 +34,8 @@ from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels
 #to run on data
 dataLumi = {'EMu': MuonEG_Run2016B.lumi, 'MuMu':DoubleMuon_Run2016B.lumi, 'EE':DoubleEG_Run2016B.lumi}
 #10/fb to run on MC
-lumi = {c:10000 for c in channels}
+#lumi = {c:10000 for c in channels}
+lumi = dataLumi
 
 #Define defaults here
 zMassRange            = 15
@@ -101,7 +102,7 @@ class Setup:
         if sys:
             for k in sys.keys():
                 if k=='reweight':
-                    if sys[k].count('reweightPU'):
+                    if 'reweightPUUp' in sys[k] or 'reweightPUDown' in sys[k]:
                       res.sys[k] = list(set(sys[k]))          # If PU variations, don't keep nominal reweightPU
                     else:
                       res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
@@ -218,6 +219,7 @@ class Setup:
             elif channel=="EE":  chStr = pEE
             elif channel=="EMu": chStr = pEMu
             elif channel=="all": chStr = "("+pMuMu+'||'+pEE+'||'+pEMu+')'
+            elif channel=="SF":  chStr = "("+pMuMu+'||'+pEE+')'
             res['cuts'].append(chStr)
 
             res['prefixes'].append('looseLeptonVeto')
