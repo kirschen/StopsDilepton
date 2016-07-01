@@ -36,6 +36,7 @@ if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ"
 elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets","TTJets-DD","TTZ","TTZ-DD","TTZ-DD-Top16009","DY","DY-DD"])
 summedEstimate = SumEstimate(name="sum")
 
+DYestimators = constructEstimatorList(["DY", "DY-DD"])
 observation = DataObservation(name='Data', sample=setup.sample['Data'])
 
 for e in estimators + [summedEstimate, observation]:
@@ -71,13 +72,13 @@ for channel in allChannels:
   except:
     pass 
 
-  columns = ["observed","expected","stat","PU","JEC","top \\pt","b-tag SFb", "b-tag SFl","top norm.","ttZ norm"]
+  columns = ["expected","stat","PU","JEC","top \\pt","b-tag SFb", "b-tag SFl","top norm.","ttZ norm","DY norm"]
 
   overviewTexfile = os.path.join(texdir, channel, "overview.tex")
   print "Writing to " + overviewTexfile
   with open(overviewTexfile, "w") as overviewTable:
-    overviewTable.write("\\begin{tabular}{l|" + "c"*len(columns) + "} \n")
-    overviewTable.write("  signal region & " + "&".join(columns) + " \\\\ \n")
+    overviewTable.write("\\begin{tabular}{l|c" + "c"*len(columns) + "} \n")
+    overviewTable.write("  signal region & observed & " + "&".join(columns) + " \\\\ \n")
     overviewTable.write("  \\hline \n")
 
     SR = 0
@@ -111,7 +112,13 @@ for channel in allChannels:
 	  expected = int(100*e.cachedEstimate(r, channel, setup).val+0.5)/100.
 
           if e.name == "TTJets": topNorm = ("%.2f" % (0.3*expected if SR < 6 else 0.2*expected if SR < 12 else expected)) if expected > 0 else " - "
-          if e.name == "TTZ":    ttZNorm = ("%.2f" % (0.5*expected)) if expected > 0 else " - "
+          if e.name == "TTZ":    ttZNorm = ("%.2f" % (0.2*expected)) if expected > 0 else " - "
+          if e.name == "DY":     
+	     mc = int(100*DYestimators[0].cachedEstimate(r, channel, setup).val+0.5)/100.
+	     dd = int(100*DYestimators[1].cachedEstimate(r, channel, setup).val+0.5)/100.
+             dyScale = dd/mc if mc > 0 else 0
+             print "Scale of DY:" + str(dyScale)
+             dyNorm  = ("%.2f" % abs(mc-dd)) if abs(mc-dd) > 0 else " - "
 
 	  f.write(" & %.2f" % expected)
 	  f.write(" & " + displaySysValue(e.cachedEstimate(       r, channel, setup).sigma, expected))
@@ -122,7 +129,8 @@ for channel in allChannels:
 	  f.write(" & " + displaySysValue(e.btaggingSFbSystematic(r, channel, setup).val,   expected))
 	  f.write(" & " + displaySysValue(e.btaggingSFlSystematic(r, channel, setup).val,   expected))
 	  f.write(" & " + (topNorm if e.name=="TTJets" else " - "))
-	  f.write(" & " + (ttZNorm if e.name=="TTZ" else " - "))
+	  f.write(" & " + (ttZNorm if e.name=="TTZ"    else " - "))
+	  f.write(" & " + (dyNorm  if e.name=="DY"     else " - "))
 	  f.write(" \\\\ \n")
 	f.write("\\end{tabular} \n")
 	f.write("\\caption{Yields and uncertainties for each background in the signal region $" + r.texString(useRootLatex = False) + "$ in channel " + channel + "} \n")
@@ -143,6 +151,7 @@ for channel in allChannels:
 	overviewTable.write(" & " + displaySysValue(e.btaggingSFlSystematic(r, channel, setup).val,   expected))
 	overviewTable.write(" & " + topNorm)
 	overviewTable.write(" & " + ttZNorm)
+	overviewTable.write(" & " + dyNorm)
 	overviewTable.write(" \\\\ \n")
 
       SR = SR+1
