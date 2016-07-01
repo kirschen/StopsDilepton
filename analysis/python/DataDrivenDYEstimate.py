@@ -7,8 +7,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class DataDrivenDYEstimate(SystematicEstimator):
-    def __init__(self, name, cacheDir=None):
+    def __init__(self, name, controlRegion=None, cacheDir=None):
         super(DataDrivenDYEstimate, self).__init__(name, cacheDir=cacheDir)
+        self.controlRegion = controlRegion
 
     #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup):
@@ -16,6 +17,10 @@ class DataDrivenDYEstimate(SystematicEstimator):
         #Sum of all channels for 'all'
         if channel=='all':
             estimate     = sum([ self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE', 'EMu']])
+
+        elif channel=='SF':
+            estimate     = sum([ self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE']])
+
 
         #MC based for 'EMu'
         elif channel=='EMu':
@@ -27,19 +32,24 @@ class DataDrivenDYEstimate(SystematicEstimator):
         #Data driven for EE and MuMu (calculate for data luminosity)
         else:
             weight       = setup.weightString()
+            normRegion   = self.controlRegion if self.controlRegion else region
 
-            cut_offZ_1b     = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters(update={'nBTags':(1,-1)}))['cut']])
-            cut_onZ_0b      = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
-            cut_data_onZ_0b = "&&".join([region.cutString(),                               setup.selection('Data', channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
+            cut_offZ_1b_CR     = "&&".join([normRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters(update={'nBTags':(1,-1)}))['cut']])
+            cut_onZ_0b_CR      = "&&".join([normRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
+            cut_data_onZ_0b_CR = "&&".join([normRegion.cutString(),                               setup.selection('Data', channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
 
-            # Calculate ratio (offZ,1b)/(onZ,0b)
-            yield_offZ_1b = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_offZ_1b,     weightString=weight))*setup.dataLumi[channel]/1000
-            yield_onZ_0b  = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_onZ_0b,      weightString=weight))*setup.dataLumi[channel]/1000
+            cut_offZ_1b     = "&&".join([region.cutString(setup.sys['selectionModifier']),     setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters(update={'nBTags':(1,-1)}))['cut']])
+            cut_onZ_0b      = "&&".join([region.cutString(setup.sys['selectionModifier']),     setup.selection('MC',   channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
+            cut_data_onZ_0b = "&&".join([region.cutString(),                                   setup.selection('Data', channel=channel, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
+
+            # Calculate ratio (offZ,1b,SR)/(onZ,0b,CR)
+            yield_offZ_1b = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_offZ_1b,    weightString=weight))*setup.dataLumi[channel]/1000
+            yield_onZ_0b  = u_float(**setup.sample['DY'][channel].getYieldFromDraw(  selectionString = cut_onZ_0b_CR,  weightString=weight))*setup.dataLumi[channel]/1000
             R             = yield_offZ_1b/yield_onZ_0b if yield_onZ_0b > 0 else 0
 
-            # Calculate data-other onZ for 0 b-jets region
-            yield_data    = u_float(**setup.sample['Data'][channel].getYieldFromDraw(selectionString = cut_data_onZ_0b, weightString="(1)"))
-            yield_other   = sum(u_float(**setup.sample[s][channel].getYieldFromDraw( selectionString = cut_onZ_0b,      weightString=weight)) for s in ['TTJets' , 'TTZ' , 'other'])*setup.dataLumi[channel]/1000
+            # Calculate data-other onZ for 0 b-jets region in CR
+            yield_data    = u_float(**setup.sample['Data'][channel].getYieldFromDraw(selectionString = cut_data_onZ_0b_CR, weightString="(1)"))
+            yield_other   = sum(u_float(**setup.sample[s][channel].getYieldFromDraw( selectionString = cut_onZ_0b_CR,      weightString=weight)) for s in ['TTJets' , 'TTZ' , 'other'])*setup.dataLumi[channel]/1000
             normRegYield  = yield_data - yield_other
 
             # Calculate DY estimate in 1 b-jet region (and scale back to MC lumi)
@@ -55,5 +65,5 @@ class DataDrivenDYEstimate(SystematicEstimator):
             logger.info("yield expected DY  onZ/1b: " + str(normRegYield*R))
             if normRegYield < 0 and yield_data > 0: logger.warn("Negative normalization region yield!")
 
-	logger.info('Estimate for DY in ' + channel + ' channel' + (' (lumi=' + str(setup.lumi[channel]) + '/pb)' if channel != "all" else "") + ': ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
+	logger.info('Estimate for DY in ' + channel + ' channel' + (' (lumi=' + str(setup.lumi[channel]) + '/pb)' if (channel != "all" and channel != "SF") else "") + ': ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
 	return estimate if estimate > 0 else u_float(0, 0)
