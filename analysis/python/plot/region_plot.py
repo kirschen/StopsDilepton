@@ -52,6 +52,10 @@ estimators = detailedEstimators + signalEstimators
 for e in estimators:
     e.initCache(setup.defaultCacheDir())
 
+from StopsDilepton.analysis.DataObservation import DataObservation
+from RootTools.core.standard import *
+observation = DataObservation(name='Data', sample=setup.sample['Data'])
+observation.style = styles.errorStyle( ROOT.kBlack )
 
 # Logging
 import StopsDilepton.tools.logger as logger
@@ -60,17 +64,18 @@ import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 systematics = { 'JEC' :      ['JECVUp', 'JECVDown'],
-                'JER' :      ['JERUp', 'JERDown'],
+       #         'JER' :      ['JERUp', 'JERDown'],
                 'PU' :       ['reweightPUUp', 'reweightPUDown'],
                 'topPt' :    ['reweightTopPt', None],
-                'b-tag-b' :  ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
-                'b-tag-l' :  ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'] }
+       #         'b-tag-b' :  ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
+       #         'b-tag-l' :  ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'] 
+}
 
-variations = [None]
+sysVariations = [None]
 for var in systematics.values():
-  variations += var
+  sysVariations += var
 
-def getRegionHisto(estimate, regions, channel, setup):
+def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
     h = {}
     for var in variations:
@@ -121,14 +126,15 @@ for channel in allChannels:
 
     bkg_histos = {}
     for e in detailedEstimators:
-      histos = getRegionHisto(e, regions=regions_, channel=channel, setup = setup)
-      for k in variations:
+      histos = getRegionHisto(e, regions=regions_, channel=channel, setup = setup, variations = sysVariations)
+      for k in set(sysVariations):
+  #      histos[k].Scale(3.99/10.)
         if k in bkg_histos: bkg_histos[k].append(histos[k])
         else:               bkg_histos[k] = [histos[k]]
 
     # Get summed histos for the systematics
-    histos_summed = {k: bkg_histos[k][0].Clone() for k in variations}
-    for k in variations:
+    histos_summed = {k: bkg_histos[k][0].Clone() for k in sysVariations}
+    for k in sysVariations:
       for i in range(1, len(bkg_histos[k])):
         histos_summed[k].Add(bkg_histos[k][i])
 
@@ -157,8 +163,11 @@ for channel in allChannels:
 
     # For signal histos we don't need the systematics, so only access the "None"
     sig_histos = [ [getRegionHisto(e, regions=regions_, channel=channel, setup = signalSetup)[None]] for e in signalEstimators ]
+   # sig_histos[0][0].Scale(3.99/10.)
+
+    data_histo = [ [getRegionHisto(observation, regions=regions_, channel=channel, setup=setup)[None]]]
  
-    region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos[None] ] + sig_histos, texX = "SR number", texY = "Events" )
+    region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos[None] ] + sig_histos + data_histo, texX = "signal region number", texY = "Events" )
 
     boxes = []
     ratio_boxes = []
@@ -184,9 +193,9 @@ for channel in allChannels:
         plot_directory = os.path.join(user.plot_directory, args.regions, args.estimateDY, args.estimateTTZ, args.estimateTTJets),
         logX = False, logY = args.log, 
         sorting = True,
-        yRange = (10**-2.4, "auto"),
-        widths = {'x_width':500, 'y_width':600},
+        yRange = (10**-1.4, "auto"),
+        widths = {'x_width':1000, 'y_width':700},
         drawObjects = (drawObjects(regions_) if args.labels else []) + boxes,
-        legend = (0.6,0.93-0.04*(len(bkg_histos) + len(sig_histos)), 0.95, 0.93),
+        legend = (0.6,0.9-0.02*(len(bkg_histos) + len(sig_histos)), 0.95, 0.9),
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
