@@ -4,7 +4,7 @@ parser = OptionParser()
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 (options, args) = parser.parse_args()
 
-from StopsDilepton.analysis.SetupHelpers import allChannels
+from StopsDilepton.analysis.SetupHelpers import allChannels, channels
 from StopsDilepton.analysis.estimators import setup, constructEstimatorList
 from StopsDilepton.analysis.regions import regions80X, superRegion, superRegion140
 from StopsDilepton.analysis.Cache import Cache
