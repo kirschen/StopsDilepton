@@ -26,7 +26,7 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 
 
-allRegions = set(regions80X + reducedRegionsNew + superRegion + superRegion140)
+allRegions = set(regions80X + superRegion + superRegion140)
 
 for e in allEstimators:
     e.initCache(setup.defaultCacheDir())
