@@ -6,9 +6,9 @@ from StopsDilepton.analysis.u_float import u_float
 import logging
 logger = logging.getLogger(__name__)
 
-class DataDrivenDYEstimate2(SystematicEstimator):
+class DataDrivenDYEstimate(SystematicEstimator):
     def __init__(self, name, controlRegion=None, combineChannels = True, cacheDir=None):
-        super(DataDrivenDYEstimate2, self).__init__(name, cacheDir=cacheDir)
+        super(DataDrivenDYEstimate, self).__init__(name, cacheDir=cacheDir)
         self.controlRegion   = controlRegion
         self.combineChannels = combineChannels
 
