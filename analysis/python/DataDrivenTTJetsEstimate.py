@@ -14,21 +14,6 @@ class DataDrivenTTJetsEstimate(SystematicEstimator):
         super(DataDrivenTTJetsEstimate, self).__init__(name, cacheDir=cacheDir)
         self.controlRegion = controlRegion
 
-        # Because we are going to reuse a lot of yields which otherwise will be terribly slow
-        self.helperCacheName = os.path.join(analysis_results, 'helperCache.pkl')
-        self.helperCache     = Cache(self.helperCacheName, verbosity=2)
-        self.useCache        = True
-
-    # Should move this function somehwere more generally
-    def yieldFromCache(self, setup, sample, c, selectionString, weightString):
-        s = (sample, c, selectionString, weightString)
-        if self.helperCache.contains(s) and self.useCache:
-          return self.helperCache.get(s)
-        else:
-	  yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
-          self.helperCache.add(s, yieldFromDraw, save=True)
-	  return yieldFromDraw
-
     #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup):
 

@@ -8,6 +8,7 @@ import json
 
 # StopsDilepton
 from StopsDilepton.analysis.Cache import Cache
+from StopsDilepton.analysis.u_float import u_float
 
 # Logging
 import logging
@@ -26,25 +27,38 @@ class SystematicEstimator:
             cacheFileName = os.path.join(cacheDir, self.name+'.pkl')
             if not os.path.exists(os.path.dirname(cacheFileName)):
                 os.makedirs(os.path.dirname(cacheFileName))
-            self.cache = Cache(cacheFileName, verbosity=1)
+            self.cache       = Cache(cacheFileName, verbosity=1)
+            self.helperCache = Cache(cacheFileName.replace('.pkl','_helper.pkl'), verbosity=1)
         else:
             self.cache=None
+            self.helperCache=None
+
+    # For the datadriven subclasses which often need the same getYieldFromDraw we write those yields to a cache
+    def yieldFromCache(self, setup, sample, c, selectionString, weightString):
+        s = (sample, c, selectionString, weightString)
+        if self.helperCache and self.helperCache.contains(s):
+          return self.helperCache.get(s)
+        else:
+	  yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
+          if self.helperCache: self.helperCache.add(s, yieldFromDraw, save=True)
+	  return yieldFromDraw
+
 
     def uniqueKey(self, region, channel, setup):
         return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
 
     def cachedEstimate(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
-        if (self.cache and self.cache.contains(key)) or overwrite:
+        if (self.cache and self.cache.contains(key)) and not overwrite:
             res = self.cache.get(key)
             logger.info( "Loading cached %s result for %r : %r"%(self.name, key, res) )
-            return res
         elif self.cache:
-            logger.info( "Adding cached %s result for %r"%(self.name, key) )
             estimate = self._estimate( region, channel, setup)
-            return self.cache.add( key, estimate, save=save)
+            res = self.cache.add( key, estimate, save=save)
+            logger.info( "Adding cached %s result for %r : %r" %(self.name, key, res) )
         else:
-            return self._estimate( region, channel, setup)
+            res = self._estimate( region, channel, setup)
+        return res if res > 0 else u_float(0,0)
 
     @abc.abstractmethod
     def _estimate(self, region, channel, setup):
