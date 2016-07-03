@@ -66,6 +66,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 systematics = { 'JEC' :      ['JECVUp', 'JECVDown'],
        #         'JER' :      ['JERUp', 'JERDown'],
                 'PU' :       ['reweightPUUp', 'reweightPUDown'],
+                'stat' :     ['statLow', 'statHigh'],
                 'topPt' :    ['reweightTopPt', None],
        #         'b-tag-b' :  ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
        #         'b-tag-l' :  ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'] 
@@ -97,16 +98,20 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
     for i, r in enumerate(regions):
       for var in variations:
+        if var == 'statLow' or var == 'statHigh': continue
         setup_ = setup if not var else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
+        if not var and ('statLow' in variations or 'statHigh' in variations):
+          h['statLow'].SetBinContent(i+1,  res.val-res.sigma)
+          h['statHigh'].SetBinContent(i+1, res.val+res.sigma)
 
     h[None].style = estimate.style
 
     return h
 
-def drawObjects( regions ):
+def drawLabels( regions ):
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.015)
@@ -120,7 +125,18 @@ def drawObjects( regions ):
     lines += [(min+(i+0.5)*diff, 0.285,  r.texStringForVar('dl_mt2bb'))   for i, r in enumerate(regions)]
     return [tex.DrawLatex(*l) for l in lines] 
 
-for channel in allChannels:
+def drawObjects( lumi_scale ):
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.04)
+    tex.SetTextAlign(11) # align right
+    lines = [
+      (0.15, 0.95, 'CMS Preliminary'),
+      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(lumi_scale*100)/100.) )
+    ]
+    return [tex.DrawLatex(*l) for l in lines]
+
+for channel in ['all']:
 
     regions_ = regions[1:]
 
@@ -128,13 +144,12 @@ for channel in allChannels:
     for e in detailedEstimators:
       histos = getRegionHisto(e, regions=regions_, channel=channel, setup = setup, variations = sysVariations)
       for k in set(sysVariations):
-  #      histos[k].Scale(3.99/10.)
         if k in bkg_histos: bkg_histos[k].append(histos[k])
         else:               bkg_histos[k] = [histos[k]]
 
     # Get summed histos for the systematics
-    histos_summed = {k: bkg_histos[k][0].Clone() for k in sysVariations}
-    for k in sysVariations:
+    histos_summed = {k: bkg_histos[k][0].Clone() for k in set(sysVariations)}
+    for k in set(sysVariations):
       for i in range(1, len(bkg_histos[k])):
         histos_summed[k].Add(bkg_histos[k][i])
 
@@ -144,7 +159,6 @@ for channel in allChannels:
         h_sys[sys] = histos_summed[vars[0]].Clone()
         h_sys[sys].Scale(-1)
         h_sys[sys].Add(histos_summed[vars[1] if len(vars) > 1 else None])
-
 
     h_rel_err = histos_summed[None].Clone()
     h_rel_err.Reset()
@@ -163,7 +177,6 @@ for channel in allChannels:
 
     # For signal histos we don't need the systematics, so only access the "None"
     sig_histos = [ [getRegionHisto(e, regions=regions_, channel=channel, setup = signalSetup)[None]] for e in signalEstimators ]
-   # sig_histos[0][0].Scale(3.99/10.)
 
     data_histo = [ [getRegionHisto(observation, regions=regions_, channel=channel, setup=setup)[None]]]
  
@@ -175,7 +188,7 @@ for channel in allChannels:
         val = histos_summed[None].GetBinContent(ib)
         if val<0: continue
         sys = h_rel_err.GetBinContent(ib)
-        box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max([0.03, (1-sys)*val]), h_rel_err.GetXaxis().GetBinUpEdge(ib), max([0.03, (1+sys)*val]) )
+        box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max([0.0015, (1-sys)*val]), h_rel_err.GetXaxis().GetBinUpEdge(ib), max([0.0015, (1+sys)*val]) )
         box.SetLineColor(ROOT.kBlack)
         box.SetFillStyle(3444)
         box.SetFillColor(ROOT.kBlack)
@@ -185,7 +198,7 @@ for channel in allChannels:
         r_box.SetFillColor(ROOT.kBlack)
 
         boxes.append( box )
-        ratio_boxes.append( r_box )
+   #     ratio_boxes.append( r_box )
 
 
 
@@ -193,9 +206,9 @@ for channel in allChannels:
         plot_directory = os.path.join(user.plot_directory, args.regions, args.estimateDY, args.estimateTTZ, args.estimateTTJets),
         logX = False, logY = args.log, 
         sorting = True,
-        yRange = (10**-1.4, "auto"),
+        yRange = (0.0015, "auto"),
         widths = {'x_width':1000, 'y_width':700},
-        drawObjects = (drawObjects(regions_) if args.labels else []) + boxes,
+        drawObjects = (drawLabels(regions_) if args.labels else []) + boxes + drawObjects( 3.997 ),
         legend = (0.6,0.9-0.02*(len(bkg_histos) + len(sig_histos)), 0.95, 0.9),
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
