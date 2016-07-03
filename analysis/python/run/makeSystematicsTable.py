@@ -33,13 +33,13 @@ elif args.regions == "superRegion140":    regions = superRegion140
 else: raise Exception("Unknown regions setup")
 
 if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'other-detailed'])
-elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets","TTJets-DD","TTZ","TTZ-DD","TTZ-DD-Top16009","DY","DY-DD"])
+elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'other-detailed'])
 summedEstimate = SumEstimate(name="sum")
 
 DYestimators = constructEstimatorList(["DY", "DY-DD"])
 observation = DataObservation(name='Data', sample=setup.sample['Data'])
 
-for e in estimators + [summedEstimate, observation]:
+for e in estimators + [summedEstimate, observation] + DYestimators:
     e.initCache(setup.defaultCacheDir())
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
@@ -72,7 +72,7 @@ for channel in allChannels:
   except:
     pass 
 
-  columns = ["expected","stat","PU","JEC","top \\pt","b-tag SFb", "b-tag SFl","top norm.","ttZ norm","DY norm"]
+  columns = ["expected","stat","PU","JEC","top-\\pt","b-tag SFb", "b-tag SFl","top","ttZ","DY"]
 
   overviewTexfile = os.path.join(texdir, channel, "overview.tex")
   print "Writing to " + overviewTexfile
@@ -111,9 +111,9 @@ for channel in allChannels:
 	  f.write(" $" + name + "$ ")
 	  expected = int(100*e.cachedEstimate(r, channel, setup).val+0.5)/100.
 
-          if e.name == "TTJets": topNorm = ("%.2f" % (0.3*expected if SR < 6 else 0.2*expected if SR < 12 else expected)) if expected > 0 else " - "
-          if e.name == "TTZ":    ttZNorm = ("%.2f" % (0.2*expected)) if expected > 0 else " - "
-          if e.name == "DY":     
+          if e.name.count("TTJets"): topNorm = ("%.2f" % (0.3*expected if SR < 6 else 0.2*expected if SR < 12 else expected)) if expected > 0 else " - "
+          if e.name.count("TTZ"):    ttZNorm = ("%.2f" % (0.2*expected)) if expected > 0 else " - "
+          if e.name.count("DY"):
 	     mc = int(100*DYestimators[0].cachedEstimate(r, channel, setup).val+0.5)/100.
 	     dd = int(100*DYestimators[1].cachedEstimate(r, channel, setup).val+0.5)/100.
              dyScale = dd/mc if mc > 0 else 0
