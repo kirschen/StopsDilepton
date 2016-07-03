@@ -11,4 +11,13 @@ class SumEstimate(SystematicEstimator):
         super(SumEstimate, self).__init__(name, cacheDir=cacheDir)
 
     def _estimate(self, region, channel, setup):
-        raise NotImplementedError("Run sum_estimates.py first")
+        if channel=='all':
+            # 'all' is the total of all contributions
+            return sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE', 'EMu']])
+
+        elif channel=='SF':
+            # 'all' is the total of all contributions
+            return sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE']])
+
+        else:
+            raise NotImplementedError("Run sum_estimates.py first")
