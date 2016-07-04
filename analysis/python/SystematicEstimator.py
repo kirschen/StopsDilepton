@@ -9,6 +9,7 @@ import json
 # StopsDilepton
 from StopsDilepton.analysis.Cache import Cache
 from StopsDilepton.analysis.u_float import u_float
+from StopsDilepton.analysis.SetupHelpers import channels
 
 # Logging
 import logging
@@ -19,16 +20,18 @@ class SystematicEstimator:
 
     def __init__(self, name, cacheDir=None):
         self.name = name
-        self.initCache(cacheDir)
+#        self.initCache(cacheDir)
 
     def initCache(self, cacheDir):
         if cacheDir:
-            self.cacheDir=cacheDir
-            cacheFileName = os.path.join(cacheDir, self.name+'.pkl')
-            if not os.path.exists(os.path.dirname(cacheFileName)):
-                os.makedirs(os.path.dirname(cacheFileName))
-            self.cache       = Cache(cacheFileName, verbosity=1)
-            self.helperCache = Cache(cacheFileName.replace('.pkl','_helper.pkl'), verbosity=1)
+            self.cacheDir       = cacheDir
+            if not os.path.exists(cacheDir): os.makedir(cacheDir)
+
+            cacheFileName       = os.path.join(cacheDir, self.name+'.pkl')
+            helperCacheFileName = os.path.join(cacheDir, self.name+'_helper.pkl')
+
+            self.cache       = Cache(cacheFileName,       verbosity=1)
+            self.helperCache = Cache(helperCacheFileName, verbosity=1) if self.name.count('DD') else None
         else:
             self.cache=None
             self.helperCache=None
@@ -53,9 +56,10 @@ class SystematicEstimator:
             res = self.cache.get(key)
             logger.info( "Loading cached %s result for %r : %r"%(self.name, key, res) )
         elif self.cache:
+            logger.info( "Calculating %s result for %r"%(self.name, key) )
             estimate = self._estimate( region, channel, setup)
             res = self.cache.add( key, estimate, save=save)
-            logger.info( "Adding cached %s result for %r : %r" %(self.name, key, res) )
+            logger.info( "Adding cached %s result for %r : %r" %(self.name, key, estimate) )
         else:
             res = self._estimate( region, channel, setup)
         return res if res > 0 else u_float(0,0)
@@ -148,3 +152,18 @@ class SystematicEstimator:
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
             ] )
         return l
+
+    def getTexName(self, channel, rootTex=True):
+        try:
+	  name = self.sample[channel].texName
+	except:
+	  try:
+	    texNames = [self.sample[c].texName for c in channels]		# If all, only take texName if it is the same for all channels
+            if texNames.count(texNames[0]) == len(texNames):
+              name = texNames[0]
+	    else:
+	      name = self.name
+	  except:
+	    name = self.name
+	if not rootTex: name = name.replace('#','\\') # Make it tex format
+        return name
