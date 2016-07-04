@@ -1,7 +1,6 @@
 from math import sqrt
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.analysis.u_float import u_float
-from StopsDilepton.analysis.Cache        import Cache
 from StopsDilepton.tools.user import analysis_results
 import os
 
