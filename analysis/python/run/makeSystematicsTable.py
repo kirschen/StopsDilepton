@@ -27,18 +27,19 @@ setup.verbose = False
 setup.parameters['metMin']    = args.metMin
 setup.parameters['metSigMin'] = args.metSigMin
 
-if   args.regions == "regions80X":        regions = reducedRegionsNew
+if   args.regions == "regions80X":        regions = regions80X
 elif args.regions == "superRegion":       regions = superRegion
 elif args.regions == "superRegion140":    regions = superRegion140
 else: raise Exception("Unknown regions setup")
 
 if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'other-detailed'])
-elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets","TTJets-DD","TTZ","TTZ-DD","TTZ-DD-Top16009","DY","DY-DD"])
+elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'other-detailed'])
 summedEstimate = SumEstimate(name="sum")
 
+DYestimators = constructEstimatorList(["DY", "DY-DD"])
 observation = DataObservation(name='Data', sample=setup.sample['Data'])
 
-for e in estimators + [summedEstimate, observation]:
+for e in estimators + [summedEstimate, observation] + DYestimators:
     e.initCache(setup.defaultCacheDir())
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
@@ -71,12 +72,12 @@ for channel in allChannels:
   except:
     pass 
 
-  columns = ["expected","stat","PU","JEC","top \\pt","b-tag SFb", "b-tag SFl"]
+  columns = ["expected","stat","PU","JEC","top-\\pt","b-tag SFb", "b-tag SFl","top","ttZ","DY"]
 
   overviewTexfile = os.path.join(texdir, channel, "overview.tex")
   print "Writing to " + overviewTexfile
   with open(overviewTexfile, "w") as overviewTable:
-    overviewTable.write("\\begin{tabular}{l|" + "c"*len(columns) + "} \n")
+    overviewTable.write("\\begin{tabular}{l|c" + "c"*len(columns) + "} \n")
     overviewTable.write("  signal region & observed & " + "&".join(columns) + " \\\\ \n")
     overviewTable.write("  \\hline \n")
 
@@ -88,6 +89,9 @@ for channel in allChannels:
 	f.write("\\begin{tabular}{l|" + "c"*len(columns) + "} \n")
 	f.write("  estimator & " + "&".join(columns) + " \\\\ \n")
 	f.write("  \\hline \n")
+
+        topNorm = 0
+        ttZNorm = 0
 	
 	# One row for each estimator
 	for e in estimators:
@@ -106,6 +110,16 @@ for channel in allChannels:
 
 	  f.write(" $" + name + "$ ")
 	  expected = int(100*e.cachedEstimate(r, channel, setup).val+0.5)/100.
+
+          if e.name.count("TTJets"): topNorm = ("%.2f" % (0.3*expected if SR < 6 else 0.2*expected if SR < 12 else expected)) if expected > 0 else " - "
+          if e.name.count("TTZ"):    ttZNorm = ("%.2f" % (0.2*expected)) if expected > 0 else " - "
+          if e.name.count("DY"):
+	     mc = int(100*DYestimators[0].cachedEstimate(r, channel, setup).val+0.5)/100.
+	     dd = int(100*DYestimators[1].cachedEstimate(r, channel, setup).val+0.5)/100.
+             dyScale = dd/mc if mc > 0 else 0
+             print "Scale of DY:" + str(dyScale)
+             dyNorm  = ("%.2f" % abs(mc-dd)) if abs(mc-dd) > 0 else " - "
+
 	  f.write(" & %.2f" % expected)
 	  f.write(" & " + displaySysValue(e.cachedEstimate(       r, channel, setup).sigma, expected))
 	  f.write(" & " + displaySysValue(e.PUSystematic(         r, channel, setup).val,   expected))
@@ -114,6 +128,9 @@ for channel in allChannels:
 	  f.write(" & " + displaySysValue(e.topPtSystematic(      r, channel, setup).val,   expected))
 	  f.write(" & " + displaySysValue(e.btaggingSFbSystematic(r, channel, setup).val,   expected))
 	  f.write(" & " + displaySysValue(e.btaggingSFlSystematic(r, channel, setup).val,   expected))
+	  f.write(" & " + (topNorm if e.name=="TTJets" else " - "))
+	  f.write(" & " + (ttZNorm if e.name=="TTZ"    else " - "))
+	  f.write(" & " + (dyNorm  if e.name=="DY"     else " - "))
 	  f.write(" \\\\ \n")
 	f.write("\\end{tabular} \n")
 	f.write("\\caption{Yields and uncertainties for each background in the signal region $" + r.texString(useRootLatex = False) + "$ in channel " + channel + "} \n")
@@ -121,9 +138,10 @@ for channel in allChannels:
         e = summedEstimate
 	overviewTable.write(" $" + str(SR) + "$ ")
 	expected = int(100*e.cachedEstimate(r, channel, setup).val+0.5)/100.
-	observed = observation.cachedObservation(r, channel, setup)
-	overviewTable.write(" & %.2f" % expected)
+	observed = observation.cachedObservation(r, channel, setup).val
+#	overviewTable.write(" & xxxx")
 	overviewTable.write(" & %.2f" % observed)
+	overviewTable.write(" & %.2f" % expected)
 	overviewTable.write(" & " + displaySysValue(e.cachedEstimate(       r, channel, setup).sigma, expected))
 	overviewTable.write(" & " + displaySysValue(e.PUSystematic(         r, channel, setup).val,   expected))
 	overviewTable.write(" & " + displaySysValue(e.JECSystematic(        r, channel, setup).val,   expected))
@@ -131,6 +149,9 @@ for channel in allChannels:
 	overviewTable.write(" & " + displaySysValue(e.topPtSystematic(      r, channel, setup).val,   expected))
 	overviewTable.write(" & " + displaySysValue(e.btaggingSFbSystematic(r, channel, setup).val,   expected))
 	overviewTable.write(" & " + displaySysValue(e.btaggingSFlSystematic(r, channel, setup).val,   expected))
+	overviewTable.write(" & " + topNorm)
+	overviewTable.write(" & " + ttZNorm)
+	overviewTable.write(" & " + dyNorm)
 	overviewTable.write(" \\\\ \n")
 
       SR = SR+1

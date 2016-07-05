@@ -55,6 +55,7 @@ multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 cuts = [
     ("njet2",             jetSelection+">=2"),
     ("btag0",             bJetSelectionM+"==0"),
+    ("btag0",             bJetSelectionM+"==0"),
     ("btagM",             bJetSelectionM+">=1"),
     ("multiIsoWP",        "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
     ("looseLeptonVeto",   "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
@@ -80,7 +81,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
         if not selection.count("multiIsoWP"):      continue
-        if not selection.count("njet2"):           continue
+#        if not selection.count("njet2"):           continue
         if not selection.count("mll20"):           continue
         if selection.count("onZ")    and selection.count("allZ"):       continue
         if selection.count("met80")  and not selection.count("mll"):    continue
@@ -200,15 +201,15 @@ for index, mode in enumerate(allModes):
   data_sample.name = "data"
 
   data_sample.style = styles.errorStyle( ROOT.kBlack )
-  if args.plotData: 
-    lumi_scale = data_sample.lumi/1000
-    lumi_scale = 804.2/1000   # current data is 0.8 /fb
+  if args.plotData: lumi_scale = data_sample.lumi/1000
   else:             lumi_scale = 10
 
-  mc = [ TTJets_Lep, TTZ, singleTop, TTXNoZ, EWK, DY_HT_LO]
+  mc = [ Top, TTZ, TTXNoZ, EWK, DY_HT_LO]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
+    sample.read_variables = ['reweightPU/F']
+    sample.weight = lambda data: data.reweightPU
 
   TTbarDMJets_scalar_Mchi1_Mphi100.scale = lumi_scale*10
   TTbarDMJets_scalar_Mchi1_Mphi100.style = styles.lineStyle( ROOT.kBlack, width=3 )
@@ -254,7 +255,7 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2ll/F" ),
-    binning=[300/20,0,300],
+    binning=[300/15,0,300],
   ))
 
   plots.append(Plot(
@@ -491,7 +492,7 @@ for index, mode in enumerate(allModes):
       plotting.draw(plot, 
 	  plot_directory = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection),
 	  ratio = {'yRange':(0.1,1.9)} if args.plotData else None,
-	  logX = False, logY = log, sorting = False,
+	  logX = False, logY = log, sorting = True,
 	  yRange = (0.03, "auto"),
 	  scaling = {},
           legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),
@@ -540,7 +541,7 @@ for log in [False, True]:
     plotting.draw(plot,
 	  plot_directory = os.path.join(plot_directory, args.plot_directory, "all" + ("_log" if log else ""), args.selection),
 	  ratio = {'yRange':(0.1,1.9)} if args.plotData else None,
-	  logX = False, logY = log, sorting = False,
+	  logX = False, logY = log, sorting = True,
 	  yRange = (0.03, "auto"),
 	  scaling = {},
           legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),

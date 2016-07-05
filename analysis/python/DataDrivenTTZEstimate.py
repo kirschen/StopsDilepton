@@ -37,19 +37,6 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         self.sysErrTop16009    = (-0.17, +0.20)
         self.statErrTop16009   = (-0.37, +0.42)
 
-        # Because we are going to reuse a lot of yields which otherwise will be terribly slow
-        self.helperCacheName = os.path.join(analysis_results, 'helperCache.pkl')
-        self.helperCache     = Cache(self.helperCacheName, verbosity=2)
-
-    def yieldFromCache(self, setup, sample, c, selectionString, weightString):
-        s = (sample, c, selectionString, weightString)
-        if self.helperCache.contains(s) and self.useCache:
-          return self.helperCache.get(s)
-        else:
-	  yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
-          self.helperCache.add(s, yieldFromDraw, save=True)
-	  return yieldFromDraw
-
     #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup):
         logger.info("Data-driven TTZ estimate for region " + str(region) + " in channel " + channel + " and setup " + str(setup.sys) + ":")
@@ -57,6 +44,9 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         #Sum of all channels for 'all'
         if channel=='all':
             estimate = sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE', 'EMu']])
+
+        elif channel=='SF':
+            estimate = sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE']])
 
         else:
             zWindow= 'allZ' if channel=='EMu' else 'offZ'

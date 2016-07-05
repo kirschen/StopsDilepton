@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-postProcessing_directory = "postProcessed_80X_v2/dilepTiny/"
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--skipIfCachefileExists", dest="skipIfCachefileExists", default = False,             action="store_true", help="skipIfCachefileExists?")
@@ -27,7 +26,7 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 
 
-allRegions = set(regions80X + reducedRegionsNew + superRegion + superRegion140)
+allRegions = set(regions80X + superRegion + superRegion140)
 
 for e in allEstimators:
     e.initCache(setup.defaultCacheDir())
@@ -52,6 +51,10 @@ elif options.signal == "allT2tt":
   isFastSim = True
 else:
   raise Exception("Unknown signal estimator choice")
+
+for e in signalEstimators:
+  e.applyFilterCut=False
+
 
 signalSetup = setup.sysClone(parameters={'useTriggers':False})
 

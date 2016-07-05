@@ -13,18 +13,24 @@ class Cache:
             if self.verbosity>=1: print "Loaded cache file %s"%filename
             self.cacheFileLoaded = True
         except:# (IOError, ValueError, EOFError):
-            if self.verbosity>=2: print "File %s not found or corrupted. Starting new cache."%filename
-            self._cache = {}
+            if os.path.isfile(filename):
+              print "File %s looks corrupted, please check before proceeding" % filename
+              exit(1)
+            else:
+              if self.verbosity>=1: print "File %s not found. Starting new cache."%filename
+              self._cache = {}
 
     # Try to reload to cache file in order to get updates from other jobs/threads
-    def reload(self, attempt = 0):
+    def reload(self, attempt = 0, removeKey=None):
         try:
             with open(self.filename, 'r') as f:
-              temp = self._cache
+              temp = pickle.load(f)
 	      self._cache = pickle.load(f)
+              if removeKey:                               # This is to avoid that an old value overwrites an updated value when using parallel jobs
+                del temp[key]
               self._cache.update(temp)
         except:# (IOError, ValueError, EOFError):
-            if self.verbosity>=2: print "Cache file %s could not be reloaded"%self.filename
+            if self.verbosity>=1: print "Cache file %s could not be reloaded"%self.filename
             if attempt < 10:
 	      time.sleep(20)
 	      self.reload(attempt + 1)
@@ -39,11 +45,11 @@ class Cache:
         self._cache[key] = val
         if save==True:
             if self.verbosity>=2: print "Storing new result %r to key %r"%(val, key)
-            self.save()
+            self.save(key)
         return self._cache[key]
 
-    def save(self):
-        self.reload()
+    def save(self, removeKey = None):
+        self.reload(removeKey)
         with open(self.filename, 'w') as f:
           pickle.dump(self._cache, f)
         if self.verbosity>=2: print "Written cache file %s"%self.filename
