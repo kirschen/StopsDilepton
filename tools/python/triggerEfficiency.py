@@ -31,7 +31,9 @@ class triggerEfficiency:
     def getSF(self, pt1, eta1, pdgId1, pt2, eta2, pdgId2):
 
         if not pt1>pt2:
-            pt1, eta1, pdgId1, pt2, eta2, pdgId2 = pt2, eta2, pdgId2, pt1, eta1, pdgId1
+            raise ValueError "Sort leptons wrt pt."
+#            pt1, eta1, pdgId1, pt2, eta2, pdgId2 = pt2, eta2, pdgId2, pt1, eta1, pdgId1
+
         #Split in low/high eta of leading lepton for both, ee and mumu channel 
         if abs(pdgId1)==abs(pdgId2)==13:
             if abs(eta1)<1.5:

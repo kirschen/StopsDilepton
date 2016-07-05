@@ -766,7 +766,7 @@ def filler(s):
 
             # To check MC truth when looking at the TTZToLLNuNu sample
             if isMC:
-              s.reweightDilepTrigger = triggerEff(l1_pt, l1_eta, l1_pdgId, l2_pt, l2_eta, l2_pdgId)
+              s.reweightDilepTrigger = triggerEff(s.l1_pt, s.l1_eta, s.l1_pdgId, s.l2_pt, s.l2_eta, s.l2_pdgId)
               zBoson          = getGenZ(gPart)
               s.zBoson_genPt  = zBoson['pt']  if zBoson is not None else float('nan')
               s.zBoson_genEta = zBoson['eta'] if zBoson is not None else float('nan')
