@@ -38,6 +38,7 @@ argParser.add_argument('--noData',
 
 argParser.add_argument('--small',
     action='store_true',
+    #default=True,
     help='Small?',
 )
 
@@ -62,7 +63,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='png25ns_1l_mAODv2_2100_noPU_VT',
+    default='png25ns_1l',
     action='store',
 )
 
@@ -76,27 +77,28 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 #make samples
 data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/" 
-postProcessing_directory = "postProcessed_Fall15_mAODv2/singleLep/" 
+postProcessing_directory = "postProcessed_80X_v6/singleLepTiny/" 
 
-from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_1l_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_25ns_1l_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_1l_postProcessed import *
+
 
 if args.mode=="singleMu":
     leptonSelectionString = "&&".join(["abs(l1_pdgId)==13"])
-    data_sample = SingleMuon_Run2015D if not args.noData else None
-    qcd_sample = QCD_Mu5 #FIXME
+    data_sample = SingleMuon_Run2016B if not args.noData else None
+    #qcd_sample = QCD_Mu5 #FIXME
     trigger     = "HLT_SingleMu"
 elif args.mode=="singleEle":
     leptonSelectionString = "&&".join(["abs(l1_pdgId)==11"])
-    data_sample = SingleElectron_Run2015D if not args.noData else None
-    qcd_sample = QCD_EMbcToE
+    data_sample = SingleElectron_Run2016B if not args.noData else None
+    #qcd_sample = QCD_EMbcToE
     trigger   = "HLT_IsoEle32"
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
 # Extra requirements on data
-dataFilterCut = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
-mcFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
+mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
+dataFilterCut = mcFilterCut+"&&weight>0"
 
 if args.ttjets == "NLO":
     TTJets_sample = TTJets
@@ -105,10 +107,7 @@ elif args.ttjets == "LO":
 else:
     raise ValueError
 
-mc = [ TTJets, singleTop, WJetsToLNu_LO, DY,  qcd_sample]#, TTX, diBoson, triBoson]
-#mc = [ DY, TTJets, qcd_sample, TTZ]
-#mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, diBoson, WZZ]
-#mc = [ TTX]
+mc = [ TTJets, singleTop, WJetsToLNu_HT, DY]
 if args.small:
     for sample in mc:
         sample.reduceFiles(to = 1)
@@ -118,30 +117,27 @@ if not args.noData:
     lumi_scale = data_sample.lumi/1000
 
 for sample in mc:
+    sample.read_variables = ["reweightPU/F"]
     sample.style = styles.fillStyle( sample.color)
 
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
-weight = lambda data:data.weight
+weight = lambda data:data.weight*data.reweightPU
 
 from StopsDilepton.tools.objectSelection import multiIsoLepString
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index'))
 
-preselection =[
-    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&"+multiIsoWP),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+preselection=[
+    ("dPhiJet0-dPhiJet1", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==1"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==1"),
-]
-
-cuts=[
     ("njet2", "nJetGood>=2"),
-    ("nbtag1", "nBTag>=1"),
-    ("nbtag0", "nBTag==0"),
+#    ("nbtag1", "nBTag>=1"),
     ("met80", "met_pt>80"),
-    ("metSig5", "met_pt/sqrt(ht)>5"),
+    ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
 ]
+cuts = []
                 
 def drawObjects( dataMCScale ):
     tex = ROOT.TLatex()
@@ -160,39 +156,16 @@ stack = Stack(mc)
 if not args.noData:
     stack.append( [data_sample] )
 
-if len(args.signals)>0:
-    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
-    for s in args.signals:
-        if "*" in s:
-            split = s.split("*")
-            sig, fac = split[0], int(split[1])
-        else:
-            sig, fac = s, 1
-        try:
-            stack.append( [eval(sig)] )
-            if hasattr(stack[-1][0], "scale"): 
-                stack[-1][0].scale*=fac
-            elif fac!=1:
-                stack[-1][0].scale = fac
-            else: pass
-
-            if fac!=1:
-                stack[-1][0].name+=" x"+str(fac)                
-            logger.info( "Adding sample %s with factor %3.2f", sig, fac)
-        except NameError:
-            logger.warning( "Could not add signal %s", s)
-
 sequence = []
 
 rev = reversed if args.reversed else lambda x:x
-for i_comb in rev( range( len(cuts)+1 ) ):
-#for i_comb in [len(cuts)]:
+#for i_comb in rev( range( len(cuts)+1 ) ):
+for i_comb in [len(cuts)]:
     for comb in itertools.combinations( cuts, i_comb ):
 
         if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
         for sample in mc:
-            sample.setSelectionString([ mcFilterCut, trigger ])
+            sample.setSelectionString([ mcFilterCut ])
 
         presel = preselection + list(comb)
 
@@ -483,7 +456,7 @@ for i_comb in rev( range( len(cuts)+1 ) ):
             )
         plots.append( nVert )
 
-        read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]"]
+        read_variables = ["weight/F", "JetGood[pt/F,eta/F,phi/F]"]
         plotting.fill(plots, read_variables = read_variables, sequence = sequence)
         if not os.path.exists( plot_path ): os.makedirs( plot_path )
 

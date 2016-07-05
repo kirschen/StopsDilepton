@@ -6,7 +6,7 @@ import time
 import sys
 
 processes = set()
-max_processes = 10
+max_processes = 14
 
 #command = "echo"
 command = ""

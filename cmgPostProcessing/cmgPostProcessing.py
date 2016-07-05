@@ -28,7 +28,8 @@ from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, muonSelector, eleSelector, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
-
+from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
+triggerEff = triggerEfficiency()
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
 genSearch = GenSearch()
@@ -114,7 +115,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v4',
+        default='postProcessed_80X_v6',
         help="Name of the processing era"
         )
 
@@ -384,7 +385,7 @@ else:
     branchKeepStrings_DATA = [ ]
 
 if isSingleLep:
-    branchKeepStrings_DATAMC += ['HLT_SingleMu', 'HLT_IsoMu27', 'HLT_IsoMu20', 'HLT_Mu45eta2p1', 'HLT_Mu50', 'HLT_MuHT350', 'HLT_MuHTMET', 'HLT_MuMET120', 'HLT_IsoEle32', 'HLT_IsoEle23', 'HLT_IsoEle22']
+    branchKeepStrings_DATAMC += ['HLT_*']
 
 if options.T2tt: branchKeepStrings_MC += ['GenSusyMScan1', 'GenSusyMScan2']
 
@@ -415,7 +416,7 @@ if sample.isData:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
-    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_271036-275125_13TeV_PromptReco_Collisions16_JSON.txt'
+    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_271036-275783_13TeV_PromptReco_Collisions16_JSON_NoL1T.txt'
     lumiList = LumiList(os.path.expandvars(sample.heppy.json))
     logger.info( "Loaded json %s", sample.heppy.json )
 else:
@@ -476,7 +477,7 @@ if isDiLep:
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
-    if isMC: new_variables.extend( ['zBoson_genPt/F', 'zBoson_genEta/F'] )
+    if isMC: new_variables.extend( ['zBoson_genPt/F', 'zBoson_genEta/F', 'reweightDilepTrigger/F'] )
 
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
@@ -743,6 +744,7 @@ def filler(s):
             s.l2_miniRelIso = leptons[1]['miniRelIso']
             s.l2_dxy = leptons[1]['dxy']
             s.l2_dz = leptons[1]['dz']
+            
 
             l_pdgs = [abs(leptons[0]['pdgId']), abs(leptons[1]['pdgId'])]
             l_pdgs.sort()
@@ -764,6 +766,7 @@ def filler(s):
 
             # To check MC truth when looking at the TTZToLLNuNu sample
             if isMC:
+              s.reweightDilepTrigger = triggerEff(l1_pt, l1_eta, l1_pdgId, l2_pt, l2_eta, l2_pdgId)
               zBoson          = getGenZ(gPart)
               s.zBoson_genPt  = zBoson['pt']  if zBoson is not None else float('nan')
               s.zBoson_genEta = zBoson['eta'] if zBoson is not None else float('nan')

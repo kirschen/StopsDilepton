@@ -39,7 +39,8 @@ def add_histos( l ):
 for name, fss in [
     ['doubleMu', ['mm']], 
     ['muEle', ['me', 'em']], 
-    ['doubleEle', ['ee']]
+    ['doubleEle', ['ee']],
+    ['all',['mm','ee','em','me']]
     ]:
     to_be_added = []
     for key in histos.keys():
@@ -60,14 +61,18 @@ for name, fss in [
         #selectionString = selectionString,
         #weight = weight,
         )
-    dl_mt2ll.histos = [mc_histos, [data_histo]]
+    dl_mt2ll.histos = [mc_histos[1:-1], [data_histo]]
+    for m in mc_histos:
+        m.legendText = ' '.join(m.GetName().split('_')[4:-5])
+
+    data_histo.legendText = "Data (all flavours)"
 
     ratio = {'yRange':(0.1,1.9)}
     plotting.draw(
         dl_mt2ll,
         plot_directory = plot_directory+'/etc/', ratio = ratio, 
-        logX = False, logY = True, sorting = True,
-         yRange = (0.003, "auto"), legend = None ,
+        logX = False, logY = True, #sorting = True,
+         yRange = (0.003, "auto") ,
         # scaling = {0:1},
         # drawObjects = drawObjects( dataMCScale )
     )

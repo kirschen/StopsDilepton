@@ -35,16 +35,16 @@ for key in dirs:
 DoubleEG_Run2015D       = Sample.fromDirectory(name="DoubleEG_Run2015D",       treeName="Events", texName="DoubleEG (Run2015D)",       directory=dirs["DoubleEG"])
 DoubleMuon_Run2015D     = Sample.fromDirectory(name="DoubleMuon_Run2015D",     treeName="Events", texName="DoubleMuon (Run2015D)",     directory=dirs["DoubleMuon"])
 MuonEG_Run2015D         = Sample.fromDirectory(name="MuonEG_Run2015D",         treeName="Events", texName="MuonEG (Run2015D)",         directory=dirs["MuonEG"])
-SingleElectron_Run2015D = Sample.fromDirectory(name="SingleElectron_Run2015D", treeName="Events", texName="SingleElectron (Run2015D)", directory=dirs["SingleElectron"])
-SingleMuon_Run2015D     = Sample.fromDirectory(name="SingleMuon_Run2015D",     treeName="Events", texName="SingleMuon (Run2015D)",     directory=dirs["SingleMuon"])
+#SingleElectron_Run2015D = Sample.fromDirectory(name="SingleElectron_Run2015D", treeName="Events", texName="SingleElectron (Run2015D)", directory=dirs["SingleElectron"])
+#SingleMuon_Run2015D     = Sample.fromDirectory(name="SingleMuon_Run2015D",     treeName="Events", texName="SingleMuon (Run2015D)",     directory=dirs["SingleMuon"])
 
 DoubleEG_Run2015D      .lumi =  1000*(2.165)
 DoubleMuon_Run2015D    .lumi =  1000*(2.165)
 MuonEG_Run2015D        .lumi =  1000*(2.137)
-SingleElectron_Run2015D.lumi =  1000*(2.165)
-SingleMuon_Run2015D    .lumi =  1000*(2.165)
+#SingleElectron_Run2015D.lumi =  1000*(2.165)
+#SingleMuon_Run2015D    .lumi =  1000*(2.165)
 
-allSamples_Data25ns = [DoubleEG_Run2015D, MuonEG_Run2015D, DoubleMuon_Run2015D, SingleElectron_Run2015D, SingleMuon_Run2015D]
+allSamples_Data25ns = [DoubleEG_Run2015D, MuonEG_Run2015D, DoubleMuon_Run2015D]#, SingleElectron_Run2015D, SingleMuon_Run2015D]
 for s in allSamples_Data25ns:
   s.color   = ROOT.kBlack
   s.isData  = True

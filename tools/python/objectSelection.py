@@ -111,8 +111,9 @@ def muonSelector(iso, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
 
 default_muon_selector = muonSelector( iso = 'VT', absEtaCut = 2.4)
 
-def muonSelectorString(iso = 'VT', ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = None):
-    index_str = get_index_str( index )
+def muonSelectorString(iso = 'VT', ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum"):
+    idx = None if (index is None) or (type(index)==type("") and index.lower()=="sum") else index
+    index_str = get_index_str( index  = idx)
     string = [\
                    "LepGood_pt"+index_str+">=%s"%ptCut ,
                    "abs(LepGood_pdgId"+index_str+")==13" ,
@@ -121,14 +122,12 @@ def muonSelectorString(iso = 'VT', ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz =
                    "LepGood_sip3d"+index_str+"<4.0" ,
                    "abs(LepGood_dxy"+index_str+")<%s" % dxy ,
                    "abs(LepGood_dz"+index_str+")<%s" % dz ,
-                   leptonIsoSelectorString( iso, index = index)
+                   leptonIsoSelectorString( iso, index = idx)
              ]
-    if index is not None:
-        return '&&'.join(string)
-    else:
+    if type(index)==type("") and index.lower()=='sum':
         return 'Sum$('+'&&'.join(string)+')'
-
-
+    else:
+        return '&&'.join(string)
 
 # ELECTRONS
 
@@ -205,8 +204,9 @@ def eleMVAString( eleId, index = None):
 
     return "("+'||'.join(strings)+')'
 
-def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = None):
-    index_str = get_index_str( index )
+def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum"):
+    idx = None if (index is None) or (type(index)==type("") and index.lower()=="sum") else index
+    index_str = get_index_str( index  = idx)
     string = [\
                    "LepGood_pt"+index_str+">=%s" % ptCut ,
                    "abs(LepGood_eta"+index_str+")<%s" % absEtaCut ,
@@ -216,14 +216,15 @@ def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 
                    "LepGood_sip3d"+index_str+"<4.0" ,
                    "abs(LepGood_dxy"+index_str+")<%s" % dxy ,
                    "abs(LepGood_dz"+index_str+")<%s" % dz ,
-                   leptonIsoSelectorString( iso, index = index),
-                   eleIDSelectorString( eleId, index = index),
+                   leptonIsoSelectorString( iso, index = idx),
+                   eleIDSelectorString( eleId, index = idx),
              ]
 
-    if index is not None:
-        return '&&'.join(string)
-    else:
+    if type(index)==type("") and index.lower()=='sum':
         return 'Sum$('+'&&'.join(string)+')'
+    else:
+        return '&&'.join(string)
+
 
 leptonVars=['eta','pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2', 'eleCutIdSpring15_25ns_v1']
 
