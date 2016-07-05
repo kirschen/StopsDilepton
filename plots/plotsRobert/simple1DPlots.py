@@ -260,10 +260,10 @@ logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 
 
 for sample in mc_samples:
-    if args.pu is not None: sample.read_variables = [args.pu+'/F']
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     sample.style = styles.fillStyle( sample.color)
     if args.pu is not None:
+        sample.read_variables = [args.pu+'/F']
         sample.weight = lambda data:getattr( data, args.pu )
 
 from StopsDilepton.tools.user import plot_directory

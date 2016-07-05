@@ -209,9 +209,9 @@ for index, mode in enumerate(allModes):
 
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
-  lumi_scale = 804.2/1000   # current data is 0.8 /fb
+#  lumi_scale = 804.2/1000   # current data is 0.8 /fb
 
-  mc = [TTG, ZG, DY_HT_LO, EWK, Top, TTX]
+  mc = [TTG, ZG, DY_HT_LO, multiBoson, TTJets_Lep, singleTop, TTX]
   stack = Stack(mc, [data_sample])
 
   for sample in mc:
@@ -225,7 +225,7 @@ for index, mode in enumerate(allModes):
     sample.setSelectionString([getFilterCut(isData=False), leptonSelection, photonSelection])
 
   # For TTJets, do TTGJets overlap events removal
-  TTJets.setSelectionString(["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
+  TTJets_Lep.setSelectionString(["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
   DY_HT_LO.setSelectionString( ["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
 
   # Use some defaults
@@ -484,7 +484,7 @@ for plot in allPlots[allModes[0]]:
             j.Add(l)
 
 for plot in allPlots[allModes[0]]:
-  plot.histos[1][0].legendText = "Data 2015 (all channels)"
+  plot.histos[1][0].legendText = "Data 2016 (all channels)"
   plotting.draw(plot,
         plot_directory = os.path.join(plot_directory, args.plot_directory, "all", args.selection),
         ratio = {'yRange':(0.1,1.9)},
