@@ -134,9 +134,9 @@ preselection=[
     ("lepVeto", "nGoodMuons+nGoodElectrons==1"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==1"),
     ("njet2", "nJetGood>=2"),
-#    ("nbtag1", "nBTag>=1"),
-    ("met80", "met_pt>80"),
-    ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
+    ("ht", "ht>200"),
+    ("met140", "met_pt>140"),
+#    ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
 ]
 cuts = []
                 

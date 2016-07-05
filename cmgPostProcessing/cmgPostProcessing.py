@@ -732,7 +732,7 @@ def filler(s):
             s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
 
     if isDiLep:
-        if len(leptons)>=2:# and leptons[0]['pdgId']*leptons[1]['pdgId']<0 and abs(leptons[0]['pdgId'])==abs(leptons[1]['pdgId']): #OSSF choice
+        if len(leptons)>=2:
             mt2Calc.reset()
             s.l2_pt     = leptons[1]['pt']
             s.l2_eta    = leptons[1]['eta']
