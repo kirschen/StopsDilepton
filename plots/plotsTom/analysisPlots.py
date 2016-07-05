@@ -4,7 +4,7 @@
 #
 # Standard imports and batch mode
 #
-import ROOT
+import ROOT, os
 ROOT.gROOT.SetBatch(True)
 
 from math import sqrt, cos, sin, pi
@@ -22,6 +22,7 @@ argParser.add_argument('--logLevel',       action='store',      default='INFO', 
 argParser.add_argument('--signal',         action='store',      default='T2tt',      nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
 argParser.add_argument('--noData',         action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
+argParser.add_argument('--pu',             action='store',      default=None)
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--unblind',        action='store_true', default=False,       help='unblind?')
@@ -82,6 +83,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
         if not selection.count("multiIsoWP"):      continue
+        if not selection.count("looseLeptonVeto"): continue
         if not selection.count("njet2"):           continue
         if not selection.count("mll20"):           continue
         if selection.count("met50")  and selection.count("met80"):      continue
@@ -119,6 +121,9 @@ if not args.isChild and args.selection is None:
 
 if args.selection.count("btag0"):
   args.signal = None
+
+
+if args.pu: args.plot_directory = os.path.join(args.plot_directory, args.pu)
 
 from array import array
 import warnings
@@ -206,12 +211,21 @@ for index, mode in enumerate(allModes):
   lumi_scale        = data_sample.lumi/1000
 
   mc = [ Top, TTZ, TTXNoZ, multiBoson, DY_HT_LO]
-  if args.selection.count("btag0"): mc = [ Top, TTZ, TTXNoZ, WW, WZ, ZZ, triBoson, DY_HT_LO] # Split diboson up for the nbtag=0 control region
+#  if args.selection.count("btag0"): mc = [ Top, TTZ, TTXNoZ, WW, WZ, ZZ, triBoson, DY_HT_LO] # Split diboson up for the nbtag=0 control region
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightPU/F']
-    sample.weight = lambda data: data.reweightPU
+    sample.read_variables = ['reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPUVUp/F','reweightPUVDown/F', 'reweightNVTX/F','reweightNVTXUp/F','reweightNVTXDown/F', 'reweightNVTXVUp/F','reweightNVTXVDown/F']
+    if   args.pu == "reweightPUUp":      sample.weight = lambda data: data.reweightPUUp
+    elif args.pu == "reweightPUDown":    sample.weight = lambda data: data.reweightPUDown
+    elif args.pu == "reweightPUVUp":     sample.weight = lambda data: data.reweightPUVUp
+    elif args.pu == "reweightPUVDown":   sample.weight = lambda data: data.reweightPUVDown
+    elif args.pu == "reweightNVTX":      sample.weight = lambda data: data.reweightNVTX
+    elif args.pu == "reweightNVTXUp":    sample.weight = lambda data: data.reweightNVTXUp
+    elif args.pu == "reweightNVTXDown":  sample.weight = lambda data: data.reweightNVTXDown
+    elif args.pu == "reweightNVTXVUp":   sample.weight = lambda data: data.reweightNVTXVUp
+    elif args.pu == "reweightNVTXVDown": sample.weight = lambda data: data.reweightNVTXVDown
+    else:                                sample.weight = lambda data: data.reweightPU
 
   TTbarDMJets_scalar_Mchi1_Mphi100.scale = lumi_scale*10
   TTbarDMJets_scalar_Mchi1_Mphi100.style = styles.lineStyle( ROOT.kBlack, width=3 )
@@ -273,9 +287,9 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
+    texX = 'H_{T} (GeV)', texY = 'Number of Events / 50 GeV',
     variable = Variable.fromString( "ht/F" ),
-    binning=[510/30,90,600],
+    binning=[500/50,50,600],
   ))
 
   plots.append(Plot(
@@ -503,7 +517,7 @@ for index, mode in enumerate(allModes):
   allPlots[mode] = plots
 
   makePieChart("pie_chart", yields, mode, mc)
-  if args.selection.count("btag0"): makePieChart("VV_chart", yields, mode, [WW, WZ, ZZ])
+#  if args.selection.count("btag0"): makePieChart("VV_chart", yields, mode, [WW, WZ, ZZ])
 
 
 # Add yields in channels
@@ -512,13 +526,13 @@ for mode in ["SF","all"]:
   yields[mode] = {}
   for y in yields[allModes[0]]:
     try:
-      yields[mode][y] = sum(yields[c][y] for c in (['EE','MuMu'] if mode=="SF" else ['EE','MuMu','EMu']))
+      yields[mode][y] = sum(yields[c][y] for c in (['ee','mumu'] if mode=="SF" else ['ee','mumu','mue']))
     except:
       yields[mode][y] = 0
-  dataMCScale[mode] = yields[mode]["data"]/(yields[mode]["MC"])
+  dataMCScale[mode] = yields[mode]["data"]/(yields[mode]["MC"]) if yields[mode]["MC"] > 0 else 0
 
   makePieChart("pie_chart", yields, mode, mc)
-  if args.selection.count("btag0"): makePieChart("VV_chart", yields, mode, [WW, WZ, ZZ])
+#/  if args.selection.count("btag0"): makePieChart("VV_chart", yields, mode, [WW, WZ, ZZ])
 
 
 # Write to tex file
@@ -536,9 +550,9 @@ with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
 
 # Add the different channels and plot the sums
 for mode in ["SF","all"]:
-  for plot in allPlots['MuMu']:
+  for plot in allPlots['mumu']:
     logger.info("Adding " + plot.name + " for ee and mumu to SF")
-    for plot2 in (p for p in (allPlots['EE'] if mode=="SF" else allPlots["EMu"]) if p.name == plot.name):  #For SF add EE, second round add EMu for all
+    for plot2 in (p for p in (allPlots['ee'] if mode=="SF" else allPlots["mue"]) if p.name == plot.name):  #For SF add EE, second round add EMu for all
       for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
 	for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
 	  if i==k:
@@ -554,7 +568,7 @@ for mode in ["SF","all"]:
 	    yRange = (0.03, "auto"),
 	    scaling = {},
 	    legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),
-	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
+	    drawObjects = drawObjects( not args.noData, dataMCScale[mode] , lumi_scale )
       )
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )

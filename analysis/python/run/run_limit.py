@@ -4,46 +4,28 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument("--metSigMin",      action='store', default=5,                   type=int,                                                                                                         help="metSigMin?")
 argParser.add_argument("--metMin",         action='store', default=80,                  type=int,                                                                                                         help="metMin?")
-argParser.add_argument("--multiIsoWP",     action='store', default="",                                                                                                                                    help="multiIsoWP?")
-argParser.add_argument("--relIso04",       action='store', default=-1,                  type=float,                                                                                                       help="relIso04 cut?")
 argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
 argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTZJets","TTJets-DD"],                                                                       help="which TTJets estimate?")
-argParser.add_argument("--regions",        action='store', default='reducedRegionsNew', nargs='?', choices=["defaultRegions","reducedRegionsA","reducedRegionsB","reducedRegionsAB","reducedRegionsNew"], help="which regions setup?")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal?")
 args = argParser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.estimators   import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTZEstimate, DataDrivenDYEstimate, DataDrivenTTJetsEstimate
-from StopsDilepton.analysis.regions      import defaultRegions, reducedRegionsA, reducedRegionsB, reducedRegionsAB, reducedRegionsNew, reducedRegionsC
+from StopsDilepton.analysis.DataObservation import DataObservation
+from StopsDilepton.analysis.regions      import regions80X
 from StopsDilepton.analysis.Cache        import Cache
 
 setup.verbose = False
 setup.parameters['metMin']    = args.metMin
 setup.parameters['metSigMin'] = args.metSigMin
 
-if args.regions == "defaultRegions":      regions = defaultRegions
-elif args.regions == "reducedRegionsA":   regions = reducedRegionsA
-elif args.regions == "reducedRegionsB":   regions = reducedRegionsB
-elif args.regions == "reducedRegionsAB":  regions = reducedRegionsAB
-elif args.regions == "reducedRegionsNew": regions = reducedRegionsNew
-elif args.regions == "reducedRegionsC":   regions = reducedRegionsC
-else: raise Exception("Unknown regions setup")
+regions = regions80X
 
 estimators = constructEstimatorList([args.estimateTTJets, 'other', args.estimateDY, args.estimateTTZ])
+observation = DataObservation(name='Data', sample=setup.sample['Data'])
 
-if args.multiIsoWP!="":
-    multiIsoWPs = ['VL', 'L', 'M', 'T', 'VT']
-    wpMu, wpEle=args.multiIsoWP.split(',')
-    from StopsDilepton.tools.objectSelection import multiIsoLepString
-    setup.externalCuts.append(multiIsoLepString(wpMu, wpEle, ('l1_index','l2_index')))
-    setup.prefixes.append('multiIso'+args.multiIsoWP.replace(',',''))
-
-if args.relIso04>0:
-    setup.externalCuts.append("&&".join(["LepGood_relIso04["+ist+"]<"+str(args.relIso04) for ist in ('l1_index','l2_index')]))
-    setup.prefixes.append('relIso04sm'+str(int(100*args.relIso04)))
-
-for e in estimators:
+for e in estimators + [observation]:
     e.initCache(setup.defaultCacheDir())
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
@@ -55,7 +37,7 @@ from math                                                                     im
 from StopsDilepton.tools.user           import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
-limitPrefix = args.regions
+limitPrefix = "regions80X"
 limitDir    = os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, 'cardFiles', args.signal, limitPrefix)
 overWrite   = False
 useCache    = True
@@ -112,7 +94,7 @@ def wrapper(s):
                         c.addUncertainty(uname, 'lnN')
                         c.specifyUncertainty('Stat_'+binname+'_'+e.name, binname, e.name, 1+expected.sigma/expected.val )
 
-                c.specifyObservation(binname, int(total_exp_bkg) )
+                c.specifyObservation(binname, int(observation.cachedObservation(r, channel, setup).val))
 
                 #signal
                 e = eSignal
@@ -144,7 +126,7 @@ def wrapper(s):
                     if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
         c.addUncertainty('Lumi', 'lnN')
-        c.specifyFlatUncertainty('Lumi', 1.046)
+        c.specifyFlatUncertainty('Lumi', 1.02)
         cardFileName = c.writeToFile(cardFileName)
     else:
         print "File %s found. Reusing."%cardFileName
