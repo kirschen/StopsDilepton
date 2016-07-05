@@ -76,7 +76,7 @@ class Setup:
         self.sample = {
         'DY':         {c:DYSample     for c in channels},
         'TTJets' :    {c:TTJetsSample for c in channels},
-        'TTZ' :       {c:TTZ          for c in channels},
+        'TTZ' :       {c:TTZincl      for c in channels},
         'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs]),
                        'EE':   Sample.combine('other', [otherEWKBkgs]),
                        'EMu':  Sample.combine('other', [otherEWKBkgs])},

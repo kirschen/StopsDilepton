@@ -58,9 +58,9 @@ except:
 def displaySysValue(val, expected):
    if args.relativeError:
      if val <=0 or expected <= 0: return "-"
-     return "%.0f" % (val/expected*100+0.5) + " \\%" # round off to next percent
+     return "%.0f" % (val*100+0.5) + " \\%" # round off to next percent
    else:
-     roundedVal = int(100*val+0.99)/100.    # round to next 0.0x
+     roundedVal = int(100*(val*expected)+0.99)/100.    # round to next 0.0x
      if roundedVal <= 0.: return "-"
      return "%.2f" % roundedVal
 
@@ -90,8 +90,9 @@ for channel in allChannels:
 	f.write("  estimator & " + "&".join(columns) + " \\\\ \n")
 	f.write("  \\hline \n")
 
-        topNorm = 0
-        ttZNorm = 0
+        topNorm = None
+        ttZNorm = None
+        dyNorm  = None
 	
 	# One row for each estimator
 	for e in estimators:
@@ -111,14 +112,14 @@ for channel in allChannels:
 	  f.write(" $" + name + "$ ")
 	  expected = int(100*e.cachedEstimate(r, channel, setup).val+0.5)/100.
 
-          if e.name.count("TTJets"): topNorm = ("%.2f" % (0.3*expected if SR < 6 else 0.2*expected if SR < 12 else expected)) if expected > 0 else " - "
-          if e.name.count("TTZ"):    ttZNorm = ("%.2f" % (0.2*expected)) if expected > 0 else " - "
+          if e.name.count("TTJets"): topNorm = ("%.2f" % (0.3 if SR < 6 else 0.2 if SR < 12 else 1)*(1 if args.relError else expected) if expected > 0 else " - "
+          if e.name.count("TTZ"):    ttZNorm = ("%.2f" % (0.2*(1 if args.relError else expected)) if expected > 0 else " - "
           if e.name.count("DY"):
 	     mc = int(100*DYestimators[0].cachedEstimate(r, channel, setup).val+0.5)/100.
 	     dd = int(100*DYestimators[1].cachedEstimate(r, channel, setup).val+0.5)/100.
              dyScale = dd/mc if mc > 0 else 0
              print "Scale of DY:" + str(dyScale)
-             dyNorm  = ("%.2f" % abs(mc-dd)) if abs(mc-dd) > 0 else " - "
+             dyNorm  = ("%.2f" % abs(mc-dd))*(1/expected if args.relError else 1) if (abs(mc-dd) > 0 and expected > 0) else " - "
 
 	  f.write(" & %.2f" % expected)
 	  f.write(" & " + displaySysValue(e.cachedEstimate(       r, channel, setup).sigma, expected))
@@ -132,6 +133,7 @@ for channel in allChannels:
 	  f.write(" & " + (ttZNorm if e.name=="TTZ"    else " - "))
 	  f.write(" & " + (dyNorm  if e.name=="DY"     else " - "))
 	  f.write(" \\\\ \n")
+
 	f.write("\\end{tabular} \n")
 	f.write("\\caption{Yields and uncertainties for each background in the signal region $" + r.texString(useRootLatex = False) + "$ in channel " + channel + "} \n")
 
@@ -139,8 +141,7 @@ for channel in allChannels:
 	overviewTable.write(" $" + str(SR) + "$ ")
 	expected = int(100*e.cachedEstimate(r, channel, setup).val+0.5)/100.
 	observed = observation.cachedObservation(r, channel, setup).val
-#	overviewTable.write(" & xxxx")
-	overviewTable.write(" & %.2f" % observed)
+	overviewTable.write(" & %d" % observed)
 	overviewTable.write(" & %.2f" % expected)
 	overviewTable.write(" & " + displaySysValue(e.cachedEstimate(       r, channel, setup).sigma, expected))
 	overviewTable.write(" & " + displaySysValue(e.PUSystematic(         r, channel, setup).val,   expected))

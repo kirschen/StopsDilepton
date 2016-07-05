@@ -25,7 +25,7 @@ class SystematicEstimator:
     def initCache(self, cacheDir):
         if cacheDir:
             self.cacheDir       = cacheDir
-            if not os.path.exists(cacheDir): os.makedir(cacheDir)
+            if not os.path.exists(cacheDir): os.makedirs(cacheDir)
 
             cacheFileName       = os.path.join(cacheDir, self.name+'.pkl')
             helperCacheFileName = os.path.join(cacheDir, self.name+'_helper.pkl')
@@ -155,15 +155,18 @@ class SystematicEstimator:
 
     def getTexName(self, channel, rootTex=True):
         try:
-	  name = self.sample[channel].texName
-	except:
+          name = self.texName
+        except:
 	  try:
-	    texNames = [self.sample[c].texName for c in channels]		# If all, only take texName if it is the same for all channels
-            if texNames.count(texNames[0]) == len(texNames):
-              name = texNames[0]
-	    else:
-	      name = self.name
+	    name = self.sample[channel].texName
 	  except:
-	    name = self.name
-	if not rootTex: name = name.replace('#','\\') # Make it tex format
-        return name
+	    try:
+	      texNames = [self.sample[c].texName for c in channels]		# If all, only take texName if it is the same for all channels
+	      if texNames.count(texNames[0]) == len(texNames):
+		name = texNames[0]
+	      else:
+		name = self.name
+	    except:
+	      name = self.name
+	if not rootTex: name = "$" + name.replace('#','\\') + "$" # Make it tex format
+	return name

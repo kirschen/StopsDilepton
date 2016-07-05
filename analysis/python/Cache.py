@@ -5,7 +5,8 @@ def waitForLock(filename):
     lockAcquired = False
     while not lockAcquired:
       try:
-           os.open(filename + "_lock", os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+           f = os.open(filename + "_lock", os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+           os.close(f)
            lockAcquired = True
       except OSError as e:
            if e.errno == errno.EEXIST:  # Failed as the file already exists.

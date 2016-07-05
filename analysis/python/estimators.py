@@ -17,6 +17,11 @@ estimators['TTZ-DD']          = [DataDrivenTTZEstimate(name='TTZ-DD')]
 estimators['TTZ-DD-Top16009'] = [DataDrivenTTZEstimate(name='TTZ-DD-Top16009', useTop16009=True)]
 estimators['TTJets-DD']       = [DataDrivenTTJetsEstimate(name='TTJets-DD', controlRegion=reducedRegionsNew[0])]
 
+estimators['DY-DD'][0].texName           = "DY"
+estimators['TTZ-DD'][0].texName          = "t#bar{t}Z"
+estimators['TTZ-DD-Top16009'][0].texName = "t#bar{t}Z"
+estimators['TTJets-DD'][0].texName       = "t#bar{t}/single-t"
+
 # main MC based estimators
 for mc in ['DY','TTJets','TTZ','other']:
   estimators[mc] = [MCBasedEstimate(name=mc, sample=setup.sample[mc])]
