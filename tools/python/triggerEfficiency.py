@@ -17,7 +17,7 @@ class triggerEfficiency:
         self.mue_highEta    = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_highEta1_veryCoarse")
         self.mue_lowEta     = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_lowEta1_veryCoarse")
         h_ = [self.mumu_highEta, self.mumu_lowEta, self.ee_highEta, self.ee_lowEta, self.mue_highEta, self.mue_lowEta]
-        assert False not in [bool(x) for x in h], "Could not load trigger SF: %r"%h
+        assert False not in [bool(x) for x in h_], "Could not load trigger SF: %r"%h_
 
         self.ptMax = self.mumu_highEta.GetXaxis().GetXmax()
 

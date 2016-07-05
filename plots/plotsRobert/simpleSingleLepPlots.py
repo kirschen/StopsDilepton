@@ -118,12 +118,13 @@ if not args.noData:
 
 for sample in mc:
     sample.read_variables = ["reweightPU/F"]
+    sample.weight = lambda data:data.reweightPU
     sample.style = styles.fillStyle( sample.color)
 
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
-weight = lambda data:data.weight*data.reweightPU
+weight = lambda data:data.weight
 
 from StopsDilepton.tools.objectSelection import multiIsoLepString
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index'))
