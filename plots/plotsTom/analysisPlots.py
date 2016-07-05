@@ -19,14 +19,15 @@ from StopsDilepton.tools.objectSelection import getFilterCut
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',         action='store',      default=None,        nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
-argParser.add_argument('--plotData',       action='store_true', default=False,       help='also plot data?')
+argParser.add_argument('--signal',         action='store',      default='T2tt',      nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
+argParser.add_argument('--noData',         action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--unblind',        action='store_true', default=False,       help='unblind?')
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
+
 
 #
 # Logger
@@ -55,13 +56,13 @@ multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 cuts = [
     ("njet2",             jetSelection+">=2"),
     ("btag0",             bJetSelectionM+"==0"),
-    ("btag0",             bJetSelectionM+"==0"),
     ("btagM",             bJetSelectionM+">=1"),
     ("multiIsoWP",        "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
     ("looseLeptonVeto",   "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     ("mll20",             "dl_mass>20"),
     ("allZ",              "(1)"),                        # allZ and onZ switches off the offZ selection
     ("onZ",               "abs(dl_mass-91.1876)<15"),
+    ("met50",             "met_pt>50"),
     ("met80",             "met_pt>80"),
     ("metSig5",           "metSig>5"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
@@ -81,11 +82,13 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
         if not selection.count("multiIsoWP"):      continue
-#        if not selection.count("njet2"):           continue
+        if not selection.count("njet2"):           continue
         if not selection.count("mll20"):           continue
+        if selection.count("met50")  and selection.count("met80"):      continue
         if selection.count("onZ")    and selection.count("allZ"):       continue
         if selection.count("met80")  and not selection.count("mll"):    continue
-        if selection.count("metSig") and not selection.count("met80"):  continue
+        if selection.count("met50")  and not selection.count("btag0"):  continue #met50 only for btag0
+        if selection.count("metSig") and not (selection.count("met80") or selection.count("met50")):  continue
         if selection.count("dPhi")   and not selection.count("metSig"): continue
         if selection.count("dPhi")   and not selection.count("njet2"):  continue
         if selection.count("mt2")    and not selection.count("met"):    continue
@@ -103,7 +106,7 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./analysisPlots.py --selection=" + selection + (" --plotData" if args.plotData else "")\
+    command = "./analysisPlots.py --selection=" + selection + (" --noData" if args.noData else "")\
                                                             + (" --unblind" if args.unblind else "")\
                                                             + (" --signal=" + args.signal if args.signal else "")\
                                                             + (" --plot_directory=" + args.plot_directory)\
@@ -114,9 +117,8 @@ if not args.isChild and args.selection is None:
   logger.info("All jobs launched")
   exit(0)
 
-if not args.unblind and (args.selection.count("njet2") and not args.selection.count("onZ") and args.selection.count("btagM")):
-  args.plotData = False
-
+if args.selection.count("btag0"):
+  args.signal = None
 
 from array import array
 import warnings
@@ -152,7 +154,7 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
-      (0.15, 0.95, 'CMS Preliminary'), 
+      (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
       (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(lumi_scale*100)/100., dataMCScale ) ) if plotData else (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(lumi_scale*100)/100.) )
     ]
     return [tex.DrawLatex(*l) for l in lines] 
@@ -201,10 +203,10 @@ for index, mode in enumerate(allModes):
   data_sample.name = "data"
 
   data_sample.style = styles.errorStyle( ROOT.kBlack )
-  if args.plotData: lumi_scale = data_sample.lumi/1000
-  else:             lumi_scale = 10
+  lumi_scale        = data_sample.lumi/1000
 
-  mc = [ Top, TTZ, TTXNoZ, EWK, DY_HT_LO]
+  mc = [ Top, TTZ, TTXNoZ, multiBoson, DY_HT_LO]
+  if args.selection.count("btag0"): mc = [ Top, TTZ, TTXNoZ, WW, WZ, ZZ, triBoson, DY_HT_LO] # Split diboson up for the nbtag=0 control region
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
@@ -215,7 +217,7 @@ for index, mode in enumerate(allModes):
   TTbarDMJets_scalar_Mchi1_Mphi100.style = styles.lineStyle( ROOT.kBlack, width=3 )
   T2tt.style = styles.lineStyle( ROOT.kBlack, width=3 )
 
-  if args.plotData:
+  if not args.noData:
     if not args.signal:         stack = Stack(mc, data_sample)
     elif args.signal == "DM":   stack = Stack(mc, data_sample, TTbarDMJets_scalar_Mchi1_Mphi100)
     elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt)
@@ -455,15 +457,15 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
+      texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 30 GeV',
       variable = Variable.fromString( "dl_mt2bb/F" ),
-      binning=[400/20,70,470],
+      binning=[420/30,70,470],
     ))
 
     plots.append(Plot(
-      texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
+      texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 30 GeV',
       variable = Variable.fromString( "dl_mt2blbl/F" ),
-      binning=[400/20,0,400],
+      binning=[420/30,0,400],
     ))
 
 
@@ -479,7 +481,7 @@ for index, mode in enumerate(allModes):
           h.GetXaxis().SetBinLabel(1, "#mu#mu")
           h.GetXaxis().SetBinLabel(2, "e#mu")
           h.GetXaxis().SetBinLabel(3, "ee")
-  if not args.plotData: yields[mode]["data"] = 0
+  if args.noData: yields[mode]["data"] = 0
 
   yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc)
   dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
@@ -491,26 +493,33 @@ for index, mode in enumerate(allModes):
       print "Plotting of " + plot.name
       plotting.draw(plot, 
 	  plot_directory = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection),
-	  ratio = {'yRange':(0.1,1.9)} if args.plotData else None,
+	  ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
 	  logX = False, logY = log, sorting = True,
 	  yRange = (0.03, "auto"),
 	  scaling = {},
           legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),
-	  drawObjects = drawObjects( args.plotData, dataMCScale , lumi_scale )
+	  drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
       )
   allPlots[mode] = plots
 
   makePieChart("pie_chart", yields, mode, mc)
+  if args.selection.count("btag0"): makePieChart("VV_chart", yields, mode, [WW, WZ, ZZ])
 
 
 # Add yields in channels
-yields["all"] = {}
-for y in yields[allModes[0]]:
-  try:
-    yields["all"][y] = sum(yields[mode][y] for mode in allModes)
-  except:
-    yields["all"][y] = 0
-dataMCScale = yields["all"]["data"]/(yields["all"]["MC"])
+dataMCScale = {}
+for mode in ["SF","all"]:
+  yields[mode] = {}
+  for y in yields[allModes[0]]:
+    try:
+      yields[mode][y] = sum(yields[c][y] for c in (['EE','MuMu'] if mode=="SF" else ['EE','MuMu','EMu']))
+    except:
+      yields[mode][y] = 0
+  dataMCScale[mode] = yields[mode]["data"]/(yields[mode]["MC"])
+
+  makePieChart("pie_chart", yields, mode, mc)
+  if args.selection.count("btag0"): makePieChart("VV_chart", yields, mode, [WW, WZ, ZZ])
+
 
 # Write to tex file
 columns = [i.name for i in mc] + ["MC", "data"] + ([TTbarDMJets_scalar_Mchi1_Mphi100.name] if args.signal=="DM" else []) + ([T2tt.name] if args.signal=="T2tt" else [])
@@ -521,33 +530,31 @@ except:
   pass
 with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
   f.write("&" + " & ".join(columns) + "\\\\ \n")
-  for mode in allModes + ["all"]:
+  for mode in allModes + ["SF","all"]:
     f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")
 
+
 # Add the different channels and plot the sums
-for plot in allPlots[allModes[0]]:
-  logger.info("Adding " + plot.name + " for mode " + allModes[0] + " to all")
-  for mode in allModes[1:]:
-    for plot2 in (p for p in allPlots[mode] if p.name == plot.name):
-      logger.info("Adding " + plot.name + " for mode " + mode + " to all")
+for mode in ["SF","all"]:
+  for plot in allPlots['MuMu']:
+    logger.info("Adding " + plot.name + " for ee and mumu to SF")
+    for plot2 in (p for p in (allPlots['EE'] if mode=="SF" else allPlots["EMu"]) if p.name == plot.name):  #For SF add EE, second round add EMu for all
       for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
-        for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
-          if i==k:
-            j.Add(l)
+	for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
+	  if i==k:
+	    j.Add(l)
 
-for log in [False, True]:
-  for plot in allPlots[allModes[0]]:
-    if args.plotData: plot.histos[1][0].legendText = "Data 2016 (all channels)"
-    plotting.draw(plot,
-	  plot_directory = os.path.join(plot_directory, args.plot_directory, "all" + ("_log" if log else ""), args.selection),
-	  ratio = {'yRange':(0.1,1.9)} if args.plotData else None,
-	  logX = False, logY = log, sorting = True,
-	  yRange = (0.03, "auto"),
-	  scaling = {},
-          legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),
-	  drawObjects = drawObjects( args.plotData, dataMCScale , lumi_scale )
-    )
-
-makePieChart("pie_chart", yields, "all", mc)
+  for log in [False, True]:
+    for plot in allPlots[allModes[0]]:
+      if not args.noData: plot.histos[1][0].legendText = "Data 2016 (all channels)"
+      plotting.draw(plot,
+	    plot_directory = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection),
+	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
+	    logX = False, logY = log, sorting = True,
+	    yRange = (0.03, "auto"),
+	    scaling = {},
+	    legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),
+	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
+      )
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )

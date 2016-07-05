@@ -29,8 +29,8 @@ if os.environ['USER'] in ['tomc']:
     # Where you store the data for plotting, analysis etc.
     data_directory             = "/user/tomc/StopsDilepton/data"
     # Where the plots go
-    plot_directory             = "/user/tomc/StopsDilepton/plots_80X"
+    plot_directory             = "/user/tomc/StopsDilepton/plots_80X_v6"
     # Analysis result files
-    analysis_results           = "/user/tomc/StopsDilepton/results_80X"
+    analysis_results           = "/user/tomc/StopsDilepton/results_80X_v6"
     # Release for limit calculation (seems the 74X release is now also recommended for users)
     combineReleaseLocation     = '/user/tomc/StopsDilepton/CMSSW_7_4_7/src/'

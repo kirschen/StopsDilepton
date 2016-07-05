@@ -223,7 +223,8 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-  mc = [ DY_HT_LO, Top, EWK, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
+#  mc = [ DY_HT_LO, Top, EWK, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
+  mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZincl]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
@@ -531,7 +532,7 @@ for plot in allPlots[allModes[0]]:
           if i==k:
             j.Add(l)
 
-  plot.histos[1][0].legendText = "Data 2015 (all channels)"
+  plot.histos[1][0].legendText = "Data 2016 (all channels)"
   plotting.draw(plot,
         plot_directory = os.path.join(plot_directory, args.plot_directory, "all", args.selection),
         ratio = {'yRange':(0.1,1.9)},

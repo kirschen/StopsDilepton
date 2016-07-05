@@ -18,7 +18,7 @@ except:
 try:
     postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-    postProcessing_directory = "postProcessed_80X_v2/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v6/dilepTiny"
 
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
@@ -38,9 +38,9 @@ MuonEG_Run2016B         = Sample.fromDirectory(name="MuonEG_Run2016B",         t
 #SingleElectron_Run2016B = Sample.fromDirectory(name="SingleElectron_Run2016B", treeName="Events", texName="SingleElectron (Run2016B)", directory=dirs["SingleElectron"])
 #SingleMuon_Run2016B     = Sample.fromDirectory(name="SingleMuon_Run2016B",     treeName="Events", texName="SingleMuon (Run2016B)",     directory=dirs["SingleMuon"])
 
-DoubleEG_Run2016B      .lumi = 1000*(3.997)
-DoubleMuon_Run2016B    .lumi = 1000*(3.997)
-MuonEG_Run2016B        .lumi = 1000*(3.997)
+DoubleEG_Run2016B      .lumi = 1000*(5.396)
+DoubleMuon_Run2016B    .lumi = 1000*(5.324)
+MuonEG_Run2016B        .lumi = 1000*(5.396)
 #SingleElectron_Run2016B.lumi =  1000*(2.165)
 #SingleMuon_Run2016B    .lumi =  1000*(2.165)
 

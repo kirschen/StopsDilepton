@@ -3,7 +3,6 @@ from math import sqrt
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
-from StopsDilepton.analysis.Cache        import Cache
 from StopsDilepton.tools.user import analysis_results
 
 # Logging
@@ -30,7 +29,6 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         self.nJets        = (3,-1) # jet selection (min, max)
         self.nLooseBTags  = (2,-1) # loose bjet selection (min, max)
         self.nMediumBTags = (0,-1) # bjet selection (min, max)
-        self.useCache     = True
 
         self.useTop16009       = useTop16009
         self.ratioTop16009     = 1.27 #

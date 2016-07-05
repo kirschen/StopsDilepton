@@ -1,39 +1,61 @@
 import pickle, os, time
+import errno
+
+def waitForLock(filename):
+    lockAcquired = False
+    while not lockAcquired:
+      try:
+           f = os.open(filename + "_lock", os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+           os.close(f)
+           lockAcquired = True
+      except OSError as e:
+           if e.errno == errno.EEXIST:  # Failed as the file already exists.
+             time.sleep(1)
+           else:  # Something unexpected went wrong
+             print "Problem acquiring the lock"
+             exit(1)
+
+def removeLock(filename):
+    os.system("rm " + filename + "_lock")
+
 class Cache:
     def __init__(self, filename=None, verbosity=0, overwrite=False):
         self.verbosity=verbosity
-        self.cacheFileLoaded = False
         self.initCache(filename)
 
     def initCache(self, filename):
         self.filename=filename
-        try:
-            with open(filename, 'r') as f:
+        if not os.path.isfile(filename) or os.stat(self.filename).st_size == 0:  # Check if there's already something in there
+	  if self.verbosity>=1: print "File %s not found. Starting new cache."%filename
+	  self._cache = {}
+        else:
+	  try:
+            waitForLock(filename)
+	    with open(filename, 'r') as f:
 	      self._cache = pickle.load(f)
-            if self.verbosity>=1: print "Loaded cache file %s"%filename
-            self.cacheFileLoaded = True
-        except:# (IOError, ValueError, EOFError):
-            if os.path.isfile(filename):
+            removeLock(filename)
+	    if self.verbosity>=1: print "Loaded cache file %s"%filename
+	  except:# (IOError, ValueError, EOFError):
               print "File %s looks corrupted, please check before proceeding" % filename
-              exit(1)
-            else:
-              if self.verbosity>=1: print "File %s not found. Starting new cache."%filename
-              self._cache = {}
+	      exit(1)
 
     # Try to reload to cache file in order to get updates from other jobs/threads
-    def reload(self, attempt = 0, removeKey=None):
-        try:
-            with open(self.filename, 'r') as f:
-              temp = pickle.load(f)
+    def reload(self, removeKey=None):
+        if not os.path.isfile(self.filename) or os.stat(self.filename).st_size == 0:
+          pass
+        else:
+	  try:
+	    temp = self._cache
+            waitForLock(self.filename)
+	    with open(self.filename, 'r') as f:
 	      self._cache = pickle.load(f)
-              if removeKey:                               # This is to avoid that an old value overwrites an updated value when using parallel jobs
-                del temp[key]
-              self._cache.update(temp)
-        except:# (IOError, ValueError, EOFError):
-            if self.verbosity>=1: print "Cache file %s could not be reloaded"%self.filename
-            if attempt < 10:
-	      time.sleep(20)
-	      self.reload(attempt + 1)
+	      if removeKey and removeKey in self._cache:   # This is to avoid that an old value overwrites an updated value when using parallel jobs
+		del self._cache[removeKey]
+	      self._cache.update(temp)
+            removeLock(self.filename)
+          except Exception as e:# (IOError, ValueError, EOFError):
+	      if self.verbosity>=1: print "Cache file %s could not be reloaded"%self.filename
+              removeLock(self.filename)
 
     def contains (self, key):
         return key in self._cache
@@ -50,6 +72,8 @@ class Cache:
 
     def save(self, removeKey = None):
         self.reload(removeKey)
-        with open(self.filename, 'w') as f:
-          pickle.dump(self._cache, f)
+	waitForLock(self.filename)
+	with open(self.filename, 'w') as f:
+	  pickle.dump(self._cache, f)
+        removeLock(self.filename)
         if self.verbosity>=2: print "Written cache file %s"%self.filename

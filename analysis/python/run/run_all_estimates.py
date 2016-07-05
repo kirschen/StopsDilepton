@@ -90,7 +90,7 @@ for isSignal, estimators_ in [ [ True, signalEstimators ], [ False, allEstimator
             pool.close()
             pool.join()
 
-        for channel in ['all']:
+        for channel in ['SF','all']:
             for (i, r) in enumerate(allRegions):
                 if options.selectRegion is not None and options.selectRegion != i: continue
                 estimate.cachedEstimate(r, channel, setup_, save=True)
