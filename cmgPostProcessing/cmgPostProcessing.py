@@ -477,7 +477,7 @@ if isDiLep:
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
-    if isMC: new_variables.extend( ['zBoson_genPt/F', 'zBoson_genEta/F', 'reweightDilepTrigger/F'] )
+    if isMC: new_variables.extend( ['zBoson_genPt/F', 'zBoson_genEta/F', 'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F'] )
 
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
@@ -766,7 +766,10 @@ def filler(s):
 
             # To check MC truth when looking at the TTZToLLNuNu sample
             if isMC:
-              s.reweightDilepTrigger = triggerEff(s.l1_pt, s.l1_eta, s.l1_pdgId, s.l2_pt, s.l2_eta, s.l2_pdgId)
+              trig_eff, trig_eff_err =  triggerEff.getSF(s.l1_pt, s.l1_eta, s.l1_pdgId, s.l2_pt, s.l2_eta, s.l2_pdgId)
+              s.reweightDilepTrigger       = trig_eff 
+              s.reweightDilepTriggerUp     = trig_eff + trig_eff_err
+              s.reweightDilepTriggerDown   = trig_eff - trig_eff_err
               zBoson          = getGenZ(gPart)
               s.zBoson_genPt  = zBoson['pt']  if zBoson is not None else float('nan')
               s.zBoson_genEta = zBoson['eta'] if zBoson is not None else float('nan')
