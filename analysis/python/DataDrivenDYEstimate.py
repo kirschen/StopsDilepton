@@ -47,10 +47,13 @@ class DataDrivenDYEstimate(SystematicEstimator):
 
             yield_data    = sum(self.yieldFromCache(setup, 'Data',   c, cut_data_onZ_0b[c], "(1)")                         for c in channels)
             yield_onZ_0b  = sum(self.yieldFromCache(setup, 'DY',     c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels)
-            yield_ttjets  = sum(self.yieldFromCache(setup, 'TTJets', c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels)
-            yield_other   = sum(self.yieldFromCache(setup, s,      c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels for s in ['TTJets' , 'TTZ' , 'other'])
+            yield_other   = sum(self.yieldFromCache(setup, s,        c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels for s in ['TTJets' , 'TTZ' , 'other'])
             scaleFactor   = (yield_data - yield_other)/yield_onZ_0b if yield_onZ_0b > 0 else 0
-            if returnScaleFactor: return scaleFactor
+
+            # To make this table in the getScaleFactor script
+            if returnScaleFactor:
+              yields = {i: sum(self.yieldFromCache(setup, i, c, cut_onZ_0b[c], weight)*setup.dataLumi[c]/1000 for c in channels) for i in ['DY', 'TTJets', 'TTZ', 'TTX', 'multiBoson']}
+              return (yields, yield_data, scaleFactor)
 
             if yield_data < yield_other: logger.warn("yield other > yield data in DY control region " + str(normRegion))
             if yield_onZ_0b <=0 :        logger.warn("Zero or negative yield for onZ 0b DY MC in control region " + str(normRegion))

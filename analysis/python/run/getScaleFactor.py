@@ -13,25 +13,38 @@ estimateDY = DataDrivenDYEstimate(name='DY-DD', cacheDir=None, controlRegion=Reg
 estimateDY.initCache(setup.defaultCacheDir())
 
 modifiers = [ {},
-              {'reweight':['reweightPUUp']},
-              {'reweight':['reweightPUDown']},
-              {'reweight':['reweightTopPt']},
- #            {'selectionModifier':'JERUp'},
- #            {'selectionModifier':'JERDown'},
-              {'selectionModifier':'JECVUp'},
-              {'selectionModifier':'JECVDown'},
+#             {'reweight':['reweightPUUp']},
+#             {'reweight':['reweightPUDown']},
+#             {'reweight':['reweightTopPt']},
+#             {'selectionModifier':'JERUp'},
+#             {'selectionModifier':'JERDown'},
+#             {'selectionModifier':'JECVUp'},
+#             {'selectionModifier':'JECVDown'},
 #             {'reweight':['reweightLeptonFastSimSFUp']},
 #             {'reweight':['reweightLeptonFastSimSFDown']},
 #             {'reweight':['reweightBTag_SF']},
 #             {'reweight':['reweightBTag_SF_b_Down']},
             ]
 
-selections = [ "met50" ]
+selections = [ "met80", "met50" ]
 
-for selection in selections:
-  if selection == "met50": setup.parameters['metMin'] = 50
-  for channel in ['MuMu']:  # is the same for EE
-    for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a controlRegion
-      for modifier in modifiers:
-	scaleFactor = estimateDY._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True)
-	print "DY scalefactor: " + str(scaleFactor) + "     (" + str(modifier) + ")"
+texdir = os.path.join(setup.analysis_results, setup.prefix(), 'tables')
+try:
+  os.makedirs(texdir)
+except:
+  pass 
+
+columns = ["DY","TTJets","multiBoson","TTX","observed","scale factor"]
+texfile = os.path.join(texdir, "DY_scalefactors.tex")
+with open(texfile, "w") as table:
+  table.write("\\begin{tabular}{l|c" + "c"*len(columns) + "} \n")
+  table.write("  selection & " + "&".join(columns) + " \\\\ \n")
+  table.write("  \\hline \n")
+  for selection in selections:
+    if selection == "met50": setup.parameters['metMin'] = 50
+    for channel in ['MuMu']:  # is the same for EE
+      for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a controlRegion
+        for modifier in modifiers:
+  	  (yields, data, scaleFactor) = estimateDY._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True)
+          table.write(selection + " & "+ " & ".join([str(yields[s].val) for s in ['DY','TTJets','multiBoson','TTX']]) + " & " + str(data.val) + " & " + str(scaleFactor) + " \\\\ \n")
+  table.write("\\end{tabular} \n")
