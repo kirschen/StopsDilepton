@@ -215,17 +215,17 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPUVUp/F','reweightPUVDown/F', 'reweightNVTX/F','reweightNVTXUp/F','reweightNVTXDown/F', 'reweightNVTXVUp/F','reweightNVTXVDown/F']
-    if   args.pu == "reweightPUUp":      sample.weight = lambda data: data.reweightPUUp
-    elif args.pu == "reweightPUDown":    sample.weight = lambda data: data.reweightPUDown
-    elif args.pu == "reweightPUVUp":     sample.weight = lambda data: data.reweightPUVUp
-    elif args.pu == "reweightPUVDown":   sample.weight = lambda data: data.reweightPUVDown
-    elif args.pu == "reweightNVTX":      sample.weight = lambda data: data.reweightNVTX
-    elif args.pu == "reweightNVTXUp":    sample.weight = lambda data: data.reweightNVTXUp
-    elif args.pu == "reweightNVTXDown":  sample.weight = lambda data: data.reweightNVTXDown
-    elif args.pu == "reweightNVTXVUp":   sample.weight = lambda data: data.reweightNVTXVUp
-    elif args.pu == "reweightNVTXVDown": sample.weight = lambda data: data.reweightNVTXVDown
-    else:                                sample.weight = lambda data: data.reweightPU
+    sample.read_variables = ['reweightDilepTrigger/F','reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPUVUp/F','reweightPUVDown/F', 'reweightNVTX/F','reweightNVTXUp/F','reweightNVTXDown/F', 'reweightNVTXVUp/F','reweightNVTXVDown/F']
+    if   args.pu == "reweightPUUp":      sample.weight = lambda data: data.reweightDilepTrigger*data.reweightPUUp
+    elif args.pu == "reweightPUDown":    sample.weight = lambda data: data.reweightDilepTrigger*data.reweightPUDown
+    elif args.pu == "reweightPUVUp":     sample.weight = lambda data: data.reweightDilepTrigger*data.reweightPUVUp
+    elif args.pu == "reweightPUVDown":   sample.weight = lambda data: data.reweightDilepTrigger*data.reweightPUVDown
+    elif args.pu == "reweightNVTX":      sample.weight = lambda data: data.reweightDilepTrigger*data.reweightNVTX
+    elif args.pu == "reweightNVTXUp":    sample.weight = lambda data: data.reweightDilepTrigger*data.reweightNVTXUp
+    elif args.pu == "reweightNVTXDown":  sample.weight = lambda data: data.reweightDilepTrigger*data.reweightNVTXDown
+    elif args.pu == "reweightNVTXVUp":   sample.weight = lambda data: data.reweightDilepTrigger*data.reweightNVTXVUp
+    elif args.pu == "reweightNVTXVDown": sample.weight = lambda data: data.reweightDilepTrigger*data.reweightNVTXVDown
+    else:                                sample.weight = lambda data: data.reweightDilepTrigger*data.reweightPU
 
   TTbarDMJets_scalar_Mchi1_Mphi100.scale = lumi_scale*10
   TTbarDMJets_scalar_Mchi1_Mphi100.style = styles.lineStyle( ROOT.kBlack, width=3 )
