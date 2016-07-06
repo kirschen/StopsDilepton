@@ -208,7 +208,7 @@ class Setup:
 
             #lepton channel
             assert channel in allChannels, "channel must be one of "+",".join(allChannels)+". Got %r."%channel
-            if useTriggers:
+            if useTriggers or (dataMC=='Data'):
                 pMuMu = preselMuMu + "&&" + triggerMuMu
                 pEE   = preselEE   + "&&" + triggerEleEle
                 pEMu  = preselEMu  + "&&" + triggerMuEle
