@@ -217,8 +217,8 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)
-    sample.read_variables = ['reweightPU/F']
-    sample.weight = lambda data: data.reweightPU
+    sample.read_variables = ['reweightDilepTrigger/F','reweightPU/F']
+    sample.weight = lambda data: data.reweightDilepTrigger*data.reweightPU
 
   data_sample.setSelectionString([getFilterCut(isData=True), trigger, leptonSelection, photonSelection])
   for sample in mc:
