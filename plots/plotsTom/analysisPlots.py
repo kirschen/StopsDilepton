@@ -210,7 +210,7 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
 
-  mc = [ Top, TTZ, TTXNoZ, multiBoson, DY_HT_LO]
+  mc = [ Top, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
 #  if args.selection.count("btag0"): mc = [ Top, TTZ, TTXNoZ, WW, WZ, ZZ, triBoson, DY_HT_LO] # Split diboson up for the nbtag=0 control region
   for sample in mc:
     sample.scale = lumi_scale
