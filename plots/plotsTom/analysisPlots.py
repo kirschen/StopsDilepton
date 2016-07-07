@@ -42,7 +42,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 # Selections (two leptons with pt > 20 GeV)
 #
 def getLeptonString(nMu, nE):
-  return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
+  return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&l1_pt>25"
 
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
@@ -572,7 +572,7 @@ for mode in ["SF","all"]:
 
   for log in [False, True]:
     for plot in allPlots[allModes[0]]:
-      if not args.noData: plot.histos[1][0].legendText = "Data 2016 (all channels)"
+      if not args.noData: plot.histos[1][0].legendText = "Data 2016 (all channels)" if mode == "all" else "Data 2016 (ee/mumu)"
       plotting.draw(plot,
 	    plot_directory = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection),
 	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
