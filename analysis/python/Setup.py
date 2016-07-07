@@ -227,6 +227,7 @@ class Setup:
             res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
             res['prefixes'].append('multiIsoVT')
             res['cuts'].append("l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP)
+            res['cuts'].append("l1_pt>25")
 
         if applyFilterCut: res['cuts'].append(getFilterCut(isData=(dataMC=='Data')))
         res['cuts'].extend(self.externalCuts)
