@@ -218,6 +218,7 @@ class Setup:
 
         if dataMC=='Data': filterCut = filterCutData
         else:              filterCut = filterCutMC
+        res['cuts'].append("l1_pt>25")
         res['cuts'].append(filterCut)
         res['cuts'].extend(self.externalCuts)
 
