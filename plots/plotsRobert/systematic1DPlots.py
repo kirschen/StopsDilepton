@@ -51,11 +51,6 @@ argParser.add_argument('--nbtag',
     choices=['0', '0p', '1', '1p',]
 )
 
-argParser.add_argument('--ttjets',
-    default='LO',
-    action='store',
-    choices=['LO', 'NLO'])
-
 argParser.add_argument('--small',
     action='store_true',
     #default=True,
@@ -130,7 +125,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v7/dilep/"
+postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
@@ -192,18 +187,8 @@ else:
     raise ValueError( "Mode %s not known"%args.mode )
 
 
-if args.ttjets == "NLO":
-    TTJets_sample = TTJets
-elif args.ttjets == "LO":
-    TTJets_sample = TTJets_Lep
-else:
-    raise ValueError
-
-mc_samples = [ DY_HT_LO, TTJets_sample, singleTop, TTZ, TTXNoZ, multiBoson]
-#mc_samples = [ TTJets_sample ]
-
+mc_samples = [ DY_HT_LO, Top, TTZ, TTXNoZ, multiBoson]
 DY_HT_LO.texName  = "DY + jets"
-#qcd_sample.texName = "QCD (multi-jet)"
 
 if args.small:
     for sample in mc_samples+ data_samples:
@@ -226,12 +211,12 @@ multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 common_selection=[
 #    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
-    ("dPhiJet0-dPhiJet1", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0"),
+    ("l1pt25", "l1_pt>25"),
+    ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     ("mll20", "dl_mass>20"),
 ]
-
 
 analysis_selection=[
 ]
@@ -320,11 +305,11 @@ def systematic_selection( sys = None ):
 
 def weightMC( sys = None ):
     if sys is None:
-        return (lambda data:data.weight*data.reweightPU, "weight*reweightPU")
+        return (lambda data:data.weight*data.reweightPU*data.reweightDilepTrigger, "weight*reweightDilepTrigger*reweightPU")
     elif 'PU' in sys:
-        return (lambda data:data.weight*getattr(data, "reweight"+sys), "weight*reweight"+sys)
+        return (lambda data:data.weight*data.reweightDilepTrigger*getattr(data, "reweight"+sys), "weight*reweightDilepTrigger*reweight"+sys)
     elif sys in weight_systematics:
-        return (lambda data:data.weight*data.reweightPU*getattr(data, "reweight"+sys), "weight*reweightPU*reweight"+sys)
+        return (lambda data:data.weight*data.reweightDilepTrigger*data.reweightPU*getattr(data, "reweight"+sys), "weight*reweightDilepTrigger*reweightPU*reweight"+sys)
     elif sys in jme_systematics :
         return weightMC( sys = None )
     else: raise ValueError( "Systematic %s not known"%sys )
@@ -355,7 +340,7 @@ for sample in mc_samples:
     sample.read_variables += ["nJetGood_%s/I"%s for s in jet_systematics]
     sample.read_variables += ["nBTag_%s/I"%s for s in jet_systematics]
     #if args.pu is not None: sample.read_variables += [args.pu+'/F']
-    sample.read_variables += ['reweightPU/F']
+    sample.read_variables += ['reweightPU/F', 'reweightDilepTrigger/F']
 
 # Charge requirements
 if args.charges=="OS":
@@ -368,11 +353,10 @@ else:
 selection.extend( common_selection )
 
 ppfixes = [args.mode, args.zMode] if not args.mode=='dilepton' else [args.mode]
-if args.ttjets == "NLO": ppfixes.append( "TTJetsNLO" )
-if args.ttjets == "LO": ppfixes.append( "TTJetsLO" )
 #if args.pu is not None: ppfixes = [args.pu] + ppfixes
 if args.dataMCScaling: ppfixes.append( "sysScaled" )
 if args.sysScaling: ppfixes.append( "dataMCScaled" )
+ppfixes.append('triggerSF')
 if args.small: ppfixes = ['small'] + ppfixes
 prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in selection + analysis_selection + systematic_selection( sys = None )] ) ] )
 
@@ -621,6 +605,20 @@ else:
 
 if not os.path.exists( plot_path ): os.makedirs( plot_path )
 
+## Ad Hoc
+for i_plot, plot_ in enumerate(plots):
+    p_mc, p_data, bin_width = plot_
+    for k in p_mc.keys():
+        for h in p_mc[k].histos[0]:
+            if 'DY' in h.GetName():
+                scale = 2
+                logger.info("Add hoc scaling of scaling DY by %3.2f for %s in plot %s", scale, k, p_mc[k].name)
+                h.Scale(scale)
+            if 'TTZ' in h.GetName():
+                scale = 1.3
+                logger.info("Add hoc scaling of scaling TTZ by %3.2f for %s in plot %s", scale, k, p_mc[k].name)
+                h.Scale(scale)
+
 #for plot_mc, plot_data, x_norm, bin_width in plots:
 for plot_mc, plot_data, bin_width in plots:
     if args.normalizeBinWidth and bin_width>0:
@@ -635,20 +633,6 @@ for plot_mc, plot_data, bin_width in plots:
 
     #Calculating systematics
     h_summed = {k: plot_mc[k].histos_added[0][0].Clone() for k in plot_mc.keys()}
-
-#    #Normalize systematic shapes
-#    for k in h_summed.keys():
-#        if k is None: continue
-#        try:
-#            bin_low  = h_summed[None].FindBin(x_norm[0])
-#            bin_high = h_summed[None].FindBin(x_norm[1])
-#            # if 'njet' in plot_mc[k].name.lower(): print "before", k,h_summed[k], bin_low, bin_high, h_summed[k].Integral(bin_low, bin_high), [ h_summed[k][i] for i in range(10) ]
-#            h_summed[k].Scale(
-#                h_summed[None].Integral(bin_low, bin_high) / h_summed[k].Integral(bin_low, bin_high)
-#            )
-#            # if 'njet' in plot_mc[k].name.lower(): print "after", k,h_summed[k], bin_low, bin_high, h_summed[k].Integral(bin_low, bin_high), [ h_summed[k][i] for i in range(10) ]
-#        except ZeroDivisionError:
-#            logger.warning( "Found zero for variation %s of variable %s", k, plot_mc[k].name )
 
     #Normalize systematic shapes
     if args.sysScaling:
