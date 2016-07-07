@@ -425,6 +425,12 @@ for index, mode in enumerate(allModes):
       variable = Variable.fromString('cosMetJet1phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [10,-1,1],
     ))
+    
+    plots.append(Plot(
+      texX = 'Cos(#phi(#slash{E}_{T}, leading jet))', texY = 'Number of Events',
+      variable = Variable.fromString('cosMetJet1phi_smallBinning/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"])),
+      binning = [20,-1,1],
+    ))
 
     plots.append(Plot(
       texX = 'Cos(#phi(Z, leading jet))', texY = 'Number of Events',
@@ -456,6 +462,12 @@ for index, mode in enumerate(allModes):
       texX = 'Cos(#phi(#slash{E}_{T}, second jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosMetJet2phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [10,-1,1],
+    ))
+    
+    plots.append(Plot(
+      texX = 'Cos(#phi(#slash{E}_{T}, second jet))', texY = 'Number of Events',
+      variable = Variable.fromString('cosMetJet2phi_smallBinning/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"])),
+      binning = [20,-1,1],
     ))
 
     plots.append(Plot(
