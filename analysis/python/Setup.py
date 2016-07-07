@@ -42,7 +42,7 @@ zMassRange            = 15
 default_mllMin        = 20
 default_metMin        = 80
 default_metSigMin     = 5
-default_dPhiJetMet    = 0.25
+default_dPhiJetMet    = 0.25  # To fix: only applies on 2nd jet, leading jet cut is fixed see below
 default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
 default_leptonCharges = "isOS"
@@ -185,7 +185,7 @@ class Setup:
           res['cuts'].append('metSig'+sysStr+'>='+str(metSigMin))
           res['prefixes'].append('metSig'+str(metSigMin))
         if dPhiJetMet>=0.:
-          res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<cos('+str(dPhiJetMet)+')&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos('+str(dPhiJetMet)+')')
+          res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos('+str(dPhiJetMet)+')')
           res['prefixes'].append('dPhiJet0-dPhiJet')
 
         if not hadronicSelection:
