@@ -68,7 +68,7 @@ class Setup:
         }
 
 
-        self.sys      = {'weight':'weight', 'reweight':['reweightPU'], 'selectionModifier':None}
+        self.sys      = {'weight':'weight', 'reweight':['reweightPU','reweightDilepTrigger'], 'selectionModifier':None}
 #        self.sys      = {'weight':'weight', 'reweight':[],             'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
@@ -76,7 +76,9 @@ class Setup:
         self.sample = {
         'DY':         {c:DYSample     for c in channels},
         'TTJets' :    {c:TTJetsSample for c in channels},
-        'TTZ' :       {c:TTZincl      for c in channels},
+        'TTZ' :       {c:TTZ          for c in channels},
+        'multiBoson' :{c:multiBoson   for c in channels},
+        'TTX' :       {c:TTX          for c in channels},
         'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs]),
                        'EE':   Sample.combine('other', [otherEWKBkgs]),
                        'EMu':  Sample.combine('other', [otherEWKBkgs])},
@@ -102,10 +104,9 @@ class Setup:
         if sys:
             for k in sys.keys():
                 if k=='reweight':
-                    if 'reweightPUUp' in sys[k] or 'reweightPUDown' in sys[k]:
-                      res.sys[k] = list(set(sys[k]))          # If PU variations, don't keep nominal reweightPU
-                    else:
-                      res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
+                    res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
+                    if 'reweightPUUp' in res.sys[k] or 'reweightPUDown' in res.sys[k]:                     res.sys[k].remove('reweightPU')
+                    if 'reweightDilepTriggerUp' in res.sys[k] or 'reweightDilepTriggerDown' in res.sys[k]: res.sys[k].remove('reweightDilepTrigger')
                 else:
                     res.sys[k] = sys[k] # if sys[k] else res.sys[k]
 
@@ -206,7 +207,7 @@ class Setup:
 
             #lepton channel
             assert channel in allChannels, "channel must be one of "+",".join(allChannels)+". Got %r."%channel
-            if useTriggers:
+            if useTriggers or (dataMC=='Data'):
                 pMuMu = preselMuMu + "&&" + triggerMuMu
                 pEE   = preselEE   + "&&" + triggerEleEle
                 pEMu  = preselEMu  + "&&" + triggerMuEle

@@ -20,7 +20,7 @@ class SystematicEstimator:
 
     def __init__(self, name, cacheDir=None):
         self.name = name
-#        self.initCache(cacheDir)
+        self.initCache(cacheDir)
 
     def initCache(self, cacheDir):
         if cacheDir:

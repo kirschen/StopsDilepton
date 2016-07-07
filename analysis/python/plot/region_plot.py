@@ -25,7 +25,6 @@ argParser.add_argument("--signal",         action='store', default='T2tt',      
 argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
 argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTJets","TTJets-DD"],                                                                        help="which TTJets estimate?")
-argParser.add_argument("--log",            action='store_true', default=False,          help="plot logarithmic y-axis?")
 argParser.add_argument("--labels",         action='store_true', default=False,          help="plot labels?")
 args = argParser.parse_args()
 
@@ -204,7 +203,7 @@ for channel in ['all']:
 
     plotting.draw( region_plot, \
         plot_directory = os.path.join(user.plot_directory, args.regions, args.estimateDY, args.estimateTTZ, args.estimateTTJets),
-        logX = False, logY = args.log, 
+        logX = False, logY = True,
         sorting = True,
         yRange = (0.0015, "auto"),
         widths = {'x_width':1000, 'y_width':700},

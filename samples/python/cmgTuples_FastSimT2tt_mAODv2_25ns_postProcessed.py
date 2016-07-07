@@ -17,6 +17,8 @@ try:
 except:
   postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny"
 
+postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny"
+#for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
     if f.endswith('.root') and f.startswith('T2tt_'):
         name = f.replace('.root','')

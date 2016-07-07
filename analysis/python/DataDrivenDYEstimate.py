@@ -13,7 +13,7 @@ class DataDrivenDYEstimate(SystematicEstimator):
         self.combineChannels = combineChannels
 
     #Concrete implementation of abstract method 'estimate' as defined in Systematic
-    def _estimate(self, region, channel, setup):
+    def _estimate(self, region, channel, setup, returnScaleFactor = False):
 
         #Sum of all channels for 'all'
         if channel=='all':
@@ -45,10 +45,15 @@ class DataDrivenDYEstimate(SystematicEstimator):
 	      cut_onZ_0b[c]      = "&&".join([normRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=c, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
 	      cut_data_onZ_0b[c] = "&&".join([normRegion.cutString(),                               setup.selection('Data', channel=c, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 )}))['cut']])
 
-            yield_data    = sum(self.yieldFromCache(setup, 'Data', c, cut_data_onZ_0b[c], "(1)")                         for c in channels)
-            yield_onZ_0b  = sum(self.yieldFromCache(setup, 'DY',   c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels)
-            yield_other   = sum(self.yieldFromCache(setup, s,      c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels for s in ['TTJets' , 'TTZ' , 'other'])
+            yield_data    = sum(self.yieldFromCache(setup, 'Data',   c, cut_data_onZ_0b[c], "(1)")                         for c in channels)
+            yield_onZ_0b  = sum(self.yieldFromCache(setup, 'DY',     c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels)
+            yield_other   = sum(self.yieldFromCache(setup, s,        c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels for s in ['TTJets' , 'TTZ' , 'other'])
             scaleFactor   = (yield_data - yield_other)/yield_onZ_0b if yield_onZ_0b > 0 else 0
+
+            # To make this table in the getScaleFactor script
+            if returnScaleFactor:
+              yields = {i: sum(self.yieldFromCache(setup, i, c, cut_onZ_0b[c], weight)*setup.dataLumi[c]/1000 for c in channels) for i in ['DY', 'TTJets', 'TTZ', 'TTX', 'multiBoson']}
+              return (yields, yield_data, scaleFactor)
 
             if yield_data < yield_other: logger.warn("yield other > yield data in DY control region " + str(normRegion))
             if yield_onZ_0b <=0 :        logger.warn("Zero or negative yield for onZ 0b DY MC in control region " + str(normRegion))
