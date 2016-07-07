@@ -44,7 +44,7 @@ def getLooseLeptonString(nMu, nE):
 
 def getLeptonString(nMu, nE):
 #  return getLooseLeptonString(nMu, nE)
-  return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE)
+  return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&l1_pt>25"
 
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
