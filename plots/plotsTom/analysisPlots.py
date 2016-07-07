@@ -66,7 +66,7 @@ cuts = [
     ("met50",             "met_pt>50"),
     ("met80",             "met_pt>80"),
     ("metSig5",           "metSig>5"),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<0.8"),
     ("mt2ll100",          "dl_mt2ll>100"),
     ("mt2ll140",          "dl_mt2ll>140"),
   ]
