@@ -17,7 +17,7 @@ import StopsDilepton.tools.logger as logger
 logger = logger.get_logger('INFO', logFile = None )
 histos = {}
 for m in ['doubleMu', 'doubleEle', 'muEle']:
-    plot_path = "png25ns_2l_mAODv2_2100_noPU_new/%s_offZ_standard_isOS-leadingLepIsTight-njet2-nbtag1-met80-metSig5-dPhiJet0-dPhiJet1/" % m
+    plot_path = "80X_looseIso/%s_offZ_standard_isOS-njet2-nbtag1-met80-metSig5-dPhiJet0-dPhiJet1/" % m
     for fh in ["leadingLepIso"]:
         for swap in ["L1", "L2"]:
             for fs in ["mm","me","em","ee"]:
@@ -27,6 +27,16 @@ for m in ['doubleMu', 'doubleEle', 'muEle']:
                     histos["%s_mt2ll_%s_swap%s_%s"%(m, fh, swap, fs)] = pickle.load( file( ofile) )
                 else:
                     logger.warning( "File not found: %s", ofile)
+
+def drawObjects( ):
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.04)
+    tex.SetTextAlign(11) # align right
+
+    lines = [ (0.15, 0.95, 'CMS Preliminary') ]
+    lines.append( (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(5400./100)/10. ) ) )
+    return [tex.DrawLatex(*l) for l in lines] 
 
 def transpose(l):
     return list(map(list, zip(*l)))
@@ -61,7 +71,7 @@ for name, fss in [
         #selectionString = selectionString,
         #weight = weight,
         )
-    dl_mt2ll.histos = [mc_histos[1:-1], [data_histo]]
+    dl_mt2ll.histos = [mc_histos[1:], [data_histo]]
     for m in mc_histos:
         m.legendText = ' '.join(m.GetName().split('_')[4:-5])
 
@@ -74,6 +84,6 @@ for name, fss in [
         logX = False, logY = True, #sorting = True,
          yRange = (0.003, "auto") ,
         # scaling = {0:1},
-        # drawObjects = drawObjects( dataMCScale )
+        drawObjects = drawObjects( )
     )
  

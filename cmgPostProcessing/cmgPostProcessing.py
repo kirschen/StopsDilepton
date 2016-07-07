@@ -115,7 +115,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v6',
+        default='postProcessed_80X_v7',
         help="Name of the processing era"
         )
 
@@ -626,6 +626,8 @@ def filler(s):
         # default lepton selection
         leptons_pt10 = getGoodLeptons(r, ptCut=10)
         leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
+
+    leptons.sort(key = lambda p:-p['pt'])
 
     s.met_pt  = r.met_pt
     s.met_phi = r.met_phi

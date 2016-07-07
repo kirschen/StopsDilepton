@@ -224,7 +224,7 @@ for index, mode in enumerate(allModes):
   lumi_scale = data_sample.lumi/1000
 
 #  mc = [ DY_HT_LO, Top, EWK, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
-  mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZincl]
+  mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZ_LO]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color)

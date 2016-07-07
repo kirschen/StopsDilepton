@@ -83,27 +83,38 @@ argParser.add_argument('--signals',
     )
 
 argParser.add_argument('--overwrite',
-    default = False,
     #default = True,
     action='store_true',
     help='overwrite?',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v4_systematics',
+    default='80X_v7_systematics',
     action='store',
 )
 
-argParser.add_argument('--pu',
-    default="reweightPU",
+argParser.add_argument('--analysisSelection',
+    default='',
     action='store',
-    choices=[None, "reweightPU", "reweightPUUp", "reweightPUDown", "reweightPUVUp", "reweightPUVDown", "reweightNVTX", "reweightNVTXUp", "reweightNVTXDown", "reweightNVTXVUp", "reweightNVTXVDown"],
-    help='PU weight',
 )
 
-argParser.add_argument('--scaling',
+#argParser.add_argument('--pu',
+#    default=None,#"reweightPU",
+#    action='store',
+#    choices=[None, "reweightPU", "reweightPUUp", "reweightPUDown", "reweightPUVUp", "reweightPUVDown", "reweightNVTX", "reweightNVTXUp", "reweightNVTXDown", "reweightNVTXVUp", "reweightNVTXVDown"],
+#    help='PU weight',
+#)
+
+argParser.add_argument('--sysScaling',
     action='store_true',
-    help='Scaling?',
+    #default=True,
+    help='sysScaling?',
+)
+
+argParser.add_argument('--dataMCScaling',
+    action='store_true',
+    #default=True,
+    help='dataMCScaling?',
 )
 
 
@@ -119,9 +130,9 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v4/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v7/dilep/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v2/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
 def getZCut(mode):
@@ -165,6 +176,7 @@ elif args.mode=="dilepton":
     DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
     DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
     MuonEG_Run2016B.setSelectionString([dataFilterCut, muEle_selectionString])
+
 elif args.mode=="sameFlavour":
     doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
     doubleEle_selectionString = "&&".join([ "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
@@ -197,7 +209,6 @@ if args.small:
     for sample in mc_samples+ data_samples:
         sample.reduceFiles(to = 1)
     
-
 for d in data_samples:
     d.style = styles.errorStyle( ROOT.kBlack )
 
@@ -207,8 +218,6 @@ logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 for sample in mc_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string])
     sample.style = styles.fillStyle( sample.color)
-    if args.pu is not None:
-        sample.weight = lambda data:getattr( data, args.pu )
 
 from StopsDilepton.tools.user import plot_directory
 
@@ -223,17 +232,26 @@ common_selection=[
     ("mll20", "dl_mass>20"),
 ]
 
-jet_systematics = ['JECUp', 'JECDown', 'JERUp', 'JERDown','JECVUp','JECVDown']
+
+analysis_selection=[
+]
+
+if "mt2ll100" in args.analysisSelection:
+    analysis_selection.append( ("mt2ll100", "dl_mt2ll>100") )
+
+jet_systematics = ['JECVUp','JECVDown']# 'JERDown','JECVUp','JECVDown']
 met_systematics = ['UnclusteredEnUp', 'UnclusteredEnDown']
-weight_systematics = ['PUUp', 'PUDown', 'TopPt', 'BTag_SF', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up']
+weight_systematics = ['PUUp', 'PUDown', 'TopPt']#, 'BTag_SF', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up']
 
 sys_pairs = [\
 #    ('JEC', 'JECUp', 'JECDown'),
     ('JECV', 'JECVUp', 'JECVDown'),
-#    ('JER', 'JERUp', 'JERDown'),
+
     ('Unclustered', 'UnclusteredEnUp', 'UnclusteredEnDown'),
     ('PU', 'PUUp', 'PUDown'),
     ('TopPt', 'TopPt', None),
+
+#    ('JER', 'JERUp', 'JERDown'),
 #    ('BTag_b', 'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
 #    ('BTag_l', 'BTag_SF_l_Down', 'BTag_SF_l_Up'),
 ]
@@ -255,12 +273,10 @@ def mCutStr( arg ):
         return '>=2'
     elif arg=='01':
         return '<=1'
-        
 
 jme_systematics = jet_systematics + met_systematics
 
 def systematic_selection( sys = None ):
-
     if sys is None: 
         res = [ \
             ("njet%s"%args.njet, "nJetGood%s"%mCutStr( args.njet )),
@@ -301,13 +317,16 @@ def systematic_selection( sys = None ):
         return systematic_selection( sys = None )
     else: raise ValueError( "Systematic %s not known"%sys )
 
-def weight( sys = None ):
+
+def weightMC( sys = None ):
     if sys is None:
-        return (lambda data:data.weight, "weight")
-    elif sys in weight_systematics:
+        return (lambda data:data.weight*data.reweightPU, "weight*reweightPU")
+    elif 'PU' in sys:
         return (lambda data:data.weight*getattr(data, "reweight"+sys), "weight*reweight"+sys)
+    elif sys in weight_systematics:
+        return (lambda data:data.weight*data.reweightPU*getattr(data, "reweight"+sys), "weight*reweightPU*reweight"+sys)
     elif sys in jme_systematics :
-        return weight( sys = None )
+        return weightMC( sys = None )
     else: raise ValueError( "Systematic %s not known"%sys )
 
 def drawObjects( dataMCScale ):
@@ -335,7 +354,8 @@ for sample in mc_samples:
     sample.read_variables += ["dl_mt2blbl_%s/F"%s for s in jme_systematics]
     sample.read_variables += ["nJetGood_%s/I"%s for s in jet_systematics]
     sample.read_variables += ["nBTag_%s/I"%s for s in jet_systematics]
-    if args.pu is not None: sample.read_variables += [args.pu+'/F']
+    #if args.pu is not None: sample.read_variables += [args.pu+'/F']
+    sample.read_variables += ['reweightPU/F']
 
 # Charge requirements
 if args.charges=="OS":
@@ -350,10 +370,11 @@ selection.extend( common_selection )
 ppfixes = [args.mode, args.zMode] if not args.mode=='dilepton' else [args.mode]
 if args.ttjets == "NLO": ppfixes.append( "TTJetsNLO" )
 if args.ttjets == "LO": ppfixes.append( "TTJetsLO" )
-if args.pu is not None: ppfixes = [args.pu] + ppfixes
-if args.scaling: ppfixes.append( "scaled" )
+#if args.pu is not None: ppfixes = [args.pu] + ppfixes
+if args.dataMCScaling: ppfixes.append( "sysScaled" )
+if args.sysScaling: ppfixes.append( "dataMCScaled" )
 if args.small: ppfixes = ['small'] + ppfixes
-prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in selection + systematic_selection( sys = None )] ) ] )
+prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in selection + analysis_selection + systematic_selection( sys = None )] ) ] )
 
 plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
 
@@ -364,7 +385,9 @@ common_selection_string = "&&".join( p[1] for p in selection )
 logger.info( "Prefix %s common_selection_string %s", prefix, common_selection_string )
 
 data_selection_string = "&&".join( s[1] for s in systematic_selection( sys = None ) )
-data_weight_func, data_weight_string = weight( sys = None )
+analysis_selection_string = "&&".join( s[1] for s in analysis_selection ) if len(analysis_selection)>0 else "1"
+
+data_weight_func, data_weight_string = lambda data:data.weight, "weight"
 
 sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
 
@@ -375,7 +398,7 @@ dl_mt2ll_data  = Plot(
     binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
     stack = stack_data,
     variable = Variable.fromString( "dl_mt2ll/F" ),
-    selectionString = "&&".join([ common_selection_string, data_selection_string] ),
+    selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
     addOverFlowBin = "upper",
     )
@@ -387,8 +410,8 @@ dl_mt2ll_mc  = { sys:Plot(\
     binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
     stack = sys_stacks[sys],
     variable = Variable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2ll_%s/F" % sys ),
-    selectionString = "&&".join( [common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
-    weight = weight( sys = sys )[0],
+    selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
+    weight = weightMC( sys = sys )[0],
     addOverFlowBin = "upper",
     ) for sys in [None] + weight_systematics + jme_systematics }
 roottools_plots.extend( dl_mt2ll_mc.values() )
@@ -399,7 +422,7 @@ dl_mt2bb_data  = Plot(
     stack = stack_data,
     variable = Variable.fromString( "dl_mt2bb/F" ),
     binning=Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
-    selectionString = "&&".join([ common_selection_string, data_selection_string] ),
+    selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
     addOverFlowBin = "upper",
     ) 
@@ -411,8 +434,8 @@ dl_mt2bb_mc  = {sys: Plot(
     stack = sys_stacks[sys],
     variable = Variable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2bb_%s/F" % sys ),
     binning=Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
-    selectionString = "&&".join( [common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
-    weight = weight( sys = sys )[0],
+    selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
+    weight = weightMC( sys = sys )[0],
     addOverFlowBin = "upper",
     ) for sys in [None] + weight_systematics + jme_systematics }
 roottools_plots.extend( dl_mt2bb_mc.values() )
@@ -423,7 +446,7 @@ dl_mt2blbl_data  = Plot(
     stack = stack_data,
     variable = Variable.fromString( "dl_mt2blbl/F" ),
     binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
-    selectionString = "&&".join([ common_selection_string, data_selection_string] ),
+    selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
     addOverFlowBin = "upper",
     ) 
@@ -435,8 +458,8 @@ dl_mt2blbl_mc  = {sys: Plot(
     stack = sys_stacks[sys],
     variable = Variable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2blbl_%s/F" % sys ),
     binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
-    selectionString = "&&".join( [common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
-    weight = weight( sys = sys )[0],
+    selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
+    weight = weightMC( sys = sys )[0],
     addOverFlowBin = "upper",
     ) for sys in [None] + weight_systematics + jme_systematics }
 roottools_plots.extend( dl_mt2blbl_mc.values() )
@@ -447,7 +470,7 @@ nbtags_data  = Plot(
     stack = stack_data,
     variable = Variable.fromString('nBTag/I'),
     binning=[5,1,6],
-    selectionString = "&&".join([ common_selection_string, data_selection_string] ),
+    selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
     addOverFlowBin = "upper",
     ) 
@@ -459,8 +482,8 @@ nbtags_mc  = {sys: Plot(
     stack = sys_stacks[sys],
     variable = Variable.fromString('nBTag/I') if sys is None or sys in weight_systematics or sys in met_systematics else Variable.fromString( "nBTag_%s/I" % sys ),
     binning=[5,1,6],
-    selectionString = "&&".join( [common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
-    weight = weight( sys = sys )[0],
+    selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
+    weight = weightMC( sys = sys )[0],
     addOverFlowBin = "upper",
     ) for sys in [None] + weight_systematics + jme_systematics }
 roottools_plots.extend( nbtags_mc.values() )
@@ -471,7 +494,7 @@ njets_data  = Plot(
     stack = stack_data,
     variable = Variable.fromString('nJetGood/I'),
     binning=[8,2,10],
-    selectionString = "&&".join([ common_selection_string, data_selection_string] ),
+    selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
     addOverFlowBin = "upper",
     )
@@ -483,8 +506,8 @@ njets_mc  = {sys: Plot(
     stack = sys_stacks[sys],
     variable = Variable.fromString('nJetGood/I') if sys is None or sys in weight_systematics or sys in met_systematics else Variable.fromString( "nJetGood_%s/I" % sys ),
     binning=[8,2,10],
-    selectionString = "&&".join( [common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
-    weight = weight( sys = sys )[0],
+    selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
+    weight = weightMC( sys = sys )[0],
     addOverFlowBin = "upper",
     ) for sys in [None] + weight_systematics + jme_systematics }
 roottools_plots.extend( njets_mc.values() )
@@ -495,7 +518,7 @@ met_data  = Plot(
     stack = stack_data, 
     variable = Variable.fromString( "met_pt/F" ),
     binning=Binning.fromThresholds( [0,80,130,180,230,280,320,420,520,800] if args.met != 'def' else [80,130,180,230,280,320,420,520,800]),
-    selectionString = "&&".join([ common_selection_string, data_selection_string] ),
+    selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
     addOverFlowBin = "upper",
     )
@@ -507,28 +530,34 @@ met_mc  = {sys: Plot(
     stack = sys_stacks[sys],
     variable = Variable.fromString('met_pt/F') if sys not in met_systematics else Variable.fromString( "met_pt_%s/F" % sys ),
     binning=Binning.fromThresholds( [0,80,130,180,230,280,320,420,520,800] if args.met != 'def'  else [80,130,180,230,280,320,420,520,800]),
-    selectionString = "&&".join( [common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
-    weight = weight( sys = sys )[0],
+    selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
+    weight = weightMC( sys = sys )[0],
     addOverFlowBin = "upper",
     ) for sys in [None] + weight_systematics + jme_systematics }
 roottools_plots.extend( met_mc.values() )
 
 plots = [\
-         [ dl_mt2ll_mc, dl_mt2ll_data , (0,100), 20],
-         [ dl_mt2bb_mc, dl_mt2bb_data , (70,170), 20],
-         [ dl_mt2blbl_mc, dl_mt2blbl_data, (0,100), 20],
-         [ njets_mc, njets_data, (3,3), -1],
-         [ nbtags_mc, nbtags_data, (1,1), -1],
-         [ met_mc, met_data, (80,80), 50],
+#         [ dl_mt2ll_mc, dl_mt2ll_data, (0,100), 20],
+#         [ dl_mt2bb_mc, dl_mt2bb_data, (70,170), 20],
+#         [ dl_mt2blbl_mc, dl_mt2blbl_data,  (0,100), 20],
+#         [ njets_mc, njets_data, (3,3), -1],
+#         [ nbtags_mc, nbtags_data, (1,1), -1],
+#         [ met_mc, met_data , (80,80), 50],
+         [ dl_mt2ll_mc, dl_mt2ll_data, 20],
+         [ dl_mt2bb_mc, dl_mt2bb_data, 20],
+         [ dl_mt2blbl_mc, dl_mt2blbl_data, 20],
+         [ njets_mc, njets_data, -1],
+         [ nbtags_mc, nbtags_data, -1],
+         [ met_mc, met_data, 50],
     ]
 
 if os.path.exists(result_file) and not args.overwrite:
 
-    #(dl_mt2ll_data_histos, dl_mt2ll_mc_histos, dataMCScale) = pickle.load(file( result_file ))
-    (all_histos,  dataMCScale) = pickle.load(file( result_file ))
+    (all_histos,  dataMCScale, sysScales) = pickle.load(file( result_file ))
     logger.info( "Loaded plots from %s", result_file )
     for i_plot, plot_ in enumerate(plots):
-        p_mc, p_data, x_norm, bin_width = plot_
+        #p_mc, p_data, x_norm, bin_width = plot_
+        p_mc, p_data, bin_width = plot_
         for k in p_mc.keys():
             p_mc[k].histos = all_histos[i_plot][0][k] 
         p_data.histos = all_histos[i_plot][1]
@@ -536,7 +565,7 @@ else:
     # Applying systematic variation
 
     mc_selection_string = "&&".join( s[1] for s in systematic_selection( sys = None ) )
-    mc_weight_func, mc_weight_string = weight( sys = None )
+    mc_weight_func, mc_weight_string = weightMC( sys = None )
 
     logger.info( "Calculating normalization constants:" )
     logger.info( "data_selection_string: %s", data_selection_string  )
@@ -544,22 +573,35 @@ else:
     logger.info( "data_weight_string:    %s", data_weight_string  )
     logger.info( "mc_weight_string:      %s", mc_weight_string  )
 
-    if args.scaling:
-        normalization_region_cut = "dl_mt2ll<100"
 
+    #Scaling MC to data in MT2ll<100 region
+    normalization_region_cut = "dl_mt2ll<100"
+    if args.dataMCScaling or args.sysScaling:
         yield_mc    = sum(s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, mc_selection_string, normalization_region_cut ] ), weightString = mc_weight_string)['val'] for s in mc_samples)
+    if args.dataMCScaling:
         yield_data  = sum(s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, data_selection_string, normalization_region_cut ] ), weightString = data_weight_string)['val'] for s in data_samples )
-
         dataMCScale = yield_data/(yield_mc*lumi_scale)
         logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
-
     else:
         dataMCScale = 1
 
+    #Scaling systematic shapes to MT2ll<100 region
+    sysScales = {}
+    for sys_pair in sys_pairs:
+        for sys in sys_pair[1:]:
+            if not sysScales.has_key( sys ):
+                if args.sysScaling:
+                    mc_sys_selection_string = "&&".join( s[1] for s in systematic_selection( sys = sys ) )
+                    mc_sys_weight_func, mc_sys_weight_string = weightMC( sys = sys )
+                    yield_sys_mc    = sum(s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, mc_sys_selection_string, normalization_region_cut ] ), weightString = mc_sys_weight_string)['val'] for s in mc_samples)
+                    sysScales[sys] = yield_mc/yield_sys_mc
+                    logger.info( "sysScale %s: nominal yield MC %4.4f sys yield MC  %4.4f sysScale %4.4f", sys, yield_mc, yield_sys_mc, sysScales[sys] )
+                else:
+                    sysScales[sys] = 1
+    # Global scales
     for sys in dl_mt2ll_mc.values():
         for sample in sys.stack.samples(): 
             sample.scale = lumi_scale*dataMCScale
-
 
     read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]"]
     plotting.fill(roottools_plots, read_variables = read_variables, sequence = sequence)
@@ -568,17 +610,19 @@ else:
         os.makedirs(os.path.dirname( result_file ))
 
     all_histos = []
-    for p_mc, p_data, x_norm, bin_width in plots:
+    #for p_mc, p_data, x_norm, bin_width in plots:
+    for p_mc, p_data, bin_width in plots:
         mc_histos = {k:p_mc[k].histos for k in p_mc.keys()}
         data_histos = p_data.histos
         all_histos.append( (mc_histos, data_histos) )
 
-    pickle.dump( (all_histos, dataMCScale), file( result_file, 'w' ) )
+    pickle.dump( (all_histos, dataMCScale, sysScales), file( result_file, 'w' ) )
     logger.info( "Written %s", result_file)
 
 if not os.path.exists( plot_path ): os.makedirs( plot_path )
 
-for plot_mc, plot_data, x_norm, bin_width in plots:
+#for plot_mc, plot_data, x_norm, bin_width in plots:
+for plot_mc, plot_data, bin_width in plots:
     if args.normalizeBinWidth and bin_width>0:
             for p in plot_mc.values() + [plot_data]:
                 for histo in sum(p.histos, []): 
@@ -592,20 +636,25 @@ for plot_mc, plot_data, x_norm, bin_width in plots:
     #Calculating systematics
     h_summed = {k: plot_mc[k].histos_added[0][0].Clone() for k in plot_mc.keys()}
 
-    #Normalize systematic shapes
-    for k in h_summed.keys():
-        if k is None: continue
-        try:
-            bin_low  = h_summed[None].FindBin(x_norm[0])
-            bin_high = h_summed[None].FindBin(x_norm[1])
-            # if 'njet' in plot_mc[k].name.lower(): print "before", k,h_summed[k], bin_low, bin_high, h_summed[k].Integral(bin_low, bin_high), [ h_summed[k][i] for i in range(10) ]
-            h_summed[k].Scale(
-                h_summed[None].Integral(bin_low, bin_high) / h_summed[k].Integral(bin_low, bin_high)
-            )
-            # if 'njet' in plot_mc[k].name.lower(): print "after", k,h_summed[k], bin_low, bin_high, h_summed[k].Integral(bin_low, bin_high), [ h_summed[k][i] for i in range(10) ]
-        except ZeroDivisionError:
-            logger.warning( "Found zero for variation %s of variable %s", k, plot_mc[k].name )
+#    #Normalize systematic shapes
+#    for k in h_summed.keys():
+#        if k is None: continue
+#        try:
+#            bin_low  = h_summed[None].FindBin(x_norm[0])
+#            bin_high = h_summed[None].FindBin(x_norm[1])
+#            # if 'njet' in plot_mc[k].name.lower(): print "before", k,h_summed[k], bin_low, bin_high, h_summed[k].Integral(bin_low, bin_high), [ h_summed[k][i] for i in range(10) ]
+#            h_summed[k].Scale(
+#                h_summed[None].Integral(bin_low, bin_high) / h_summed[k].Integral(bin_low, bin_high)
+#            )
+#            # if 'njet' in plot_mc[k].name.lower(): print "after", k,h_summed[k], bin_low, bin_high, h_summed[k].Integral(bin_low, bin_high), [ h_summed[k][i] for i in range(10) ]
+#        except ZeroDivisionError:
+#            logger.warning( "Found zero for variation %s of variable %s", k, plot_mc[k].name )
 
+    #Normalize systematic shapes
+    if args.sysScaling:
+        for k in h_summed.keys():
+            if k is None: continue
+            h_summed[k].Scale( sysScales[ k ] )
 
     h_rel_err = h_summed[None].Clone()
     h_rel_err.Reset()

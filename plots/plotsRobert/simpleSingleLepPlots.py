@@ -133,9 +133,11 @@ preselection=[
     ("dPhiJet0-dPhiJet1", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==1"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==1"),
-    ("njet2", "nJetGood>=2"),
+    ("l1pt40", "l1_pt>40"),
+    ("njet2p", "nJetGood>=1"),
+    ("nbtag1p", "nBTag>=1"),
     ("ht", "ht>200"),
-    ("met140", "met_pt>140"),
+    ("met140", "met_pt>80"),
 #    ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
 ]
 cuts = []
@@ -208,7 +210,7 @@ for i_comb in [len(cuts)]:
             stack = stack, 
             variable = ScalarType.uniqueFloat().addFiller(lambda data:sqrt(2.*data.l1_pt*data.met_pt*(1-cos(data.met_phi-data.l1_phi))), 
                 uses = ["l1_dxy/F", "met_pt/F", "met_phi/F", "l1_phi/F"]),
-            binning=[300/15,0,300],
+            binning=[510/15,0,510],
             selectionString = selectionString,
             weight = weight,
             ) 
