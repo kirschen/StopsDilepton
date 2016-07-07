@@ -72,7 +72,7 @@ for channel in allChannels:
   except:
     pass 
 
-  columns = ["expected","stat","PU","JEC","top-\\pt","b-tag SFb", "b-tag SFl","top","ttZ","DY"]
+  columns = ["expected","stat","PU","JEC","top-\\pt","b-tag SFb", "b-tag SFl","sample"]
 
   overviewTexfile = os.path.join(texdir, channel, "overview.tex")
   print "Writing to " + overviewTexfile
@@ -90,9 +90,11 @@ for channel in allChannels:
 	f.write("  estimator & " + "&".join(columns) + " \\\\ \n")
 	f.write("  \\hline \n")
 
-        topNorm = None
-        ttZNorm = None
-        dyNorm  = None
+        topErr        = None
+        ttzErr        = None
+        dyErr         = None
+        multiBosonErr = None
+        ttxErr        = None
 	
 	# One row for each estimator
 	for e in estimators:
@@ -112,14 +114,18 @@ for channel in allChannels:
 	  f.write(" $" + name + "$ ")
 	  expected = int(100*e.cachedEstimate(r, channel, setup).val+0.5)/100.
 
-          if e.name.count("TTJets"): topNorm = ("%.2f" % (0.3 if SR < 6 else 0.2 if SR < 12 else 1)*(1 if args.relError else expected) if expected > 0 else " - "
-          if e.name.count("TTZ"):    ttZNorm = ("%.2f" % (0.2*(1 if args.relError else expected)) if expected > 0 else " - "
+          if e.name.count("TTJets"): topErr = ("%.2f" % (0.3 if SR < 6 else 0.2 if SR < 12 else 1)*(1 if args.relError else expected) if expected > 0 else " - "
+          if e.name.count("TTZ"):    ttzErr = ("%.2f" % (0.2*(1 if args.relError else expected)) if expected > 0 else " - "
           if e.name.count("DY"):
 	     mc = int(100*DYestimators[0].cachedEstimate(r, channel, setup).val+0.5)/100.
 	     dd = int(100*DYestimators[1].cachedEstimate(r, channel, setup).val+0.5)/100.
              dyScale = dd/mc if mc > 0 else 0
              print "Scale of DY:" + str(dyScale)
-             dyNorm  = ("%.2f" % abs(mc-dd))*(1/expected if args.relError else 1) if (abs(mc-dd) > 0 and expected > 0) else " - "
+          #   dyNorm  = ("%.2f" % abs(mc-dd))*(1/expected if args.relError else 1) if (abs(mc-dd) > 0 and expected > 0) else " - "
+             dyErr    = "%.2f" % 0.50*(1 if args.relError else expected)
+	  if e.name.count("multiBoson"): multiBosonErr = "%.2f" % 0.25*(1 if args.relError else expected)
+          if e.name.count("TTXNoZ"):     ttxErr        = "%.2f" % 0.25*(1 if args.relError else expected)
+
 
 	  f.write(" & %.2f" % expected)
 	  f.write(" & " + displaySysValue(e.cachedEstimate(       r, channel, setup).sigma, expected))
@@ -129,8 +135,8 @@ for channel in allChannels:
 	  f.write(" & " + displaySysValue(e.topPtSystematic(      r, channel, setup).val,   expected))
 	  f.write(" & " + displaySysValue(e.btaggingSFbSystematic(r, channel, setup).val,   expected))
 	  f.write(" & " + displaySysValue(e.btaggingSFlSystematic(r, channel, setup).val,   expected))
-	  f.write(" & " + (topNorm if e.name=="TTJets" else " - "))
-	  f.write(" & " + (ttZNorm if e.name=="TTZ"    else " - "))
+	  f.write(" & " + (topErr if e.name=="TTJets" else " - "))
+	  f.write(" & " + (ttZErr if e.name=="TTZ"    else " - "))
 	  f.write(" & " + (dyNorm  if e.name=="DY"     else " - "))
 	  f.write(" \\\\ \n")
 
@@ -150,10 +156,12 @@ for channel in allChannels:
 	overviewTable.write(" & " + displaySysValue(e.topPtSystematic(      r, channel, setup).val,   expected))
 	overviewTable.write(" & " + displaySysValue(e.btaggingSFbSystematic(r, channel, setup).val,   expected))
 	overviewTable.write(" & " + displaySysValue(e.btaggingSFlSystematic(r, channel, setup).val,   expected))
-	overviewTable.write(" & " + topNorm)
-	overviewTable.write(" & " + ttZNorm)
-	overviewTable.write(" & " + dyNorm)
-	overviewTable.write(" \\\\ \n")
+	if e.name.count("TTJets"):     overviewTable.write(" & " + topErr)
+	if e.name.count("TTZ"):        overviewTable.write(" & " + ttzErr)
+	if e.name.count("DY"):         overviewTable.write(" & " + dyErr)
+	if e.name.count("TTX"):        overviewTable.write(" & " + ttxErr)
+	if e.name.count("multiBoson"): overviewTable.write(" & " + multiBosonErr)
+        overviewTable.write(" \\\\ \n")
 
       SR = SR+1
 
