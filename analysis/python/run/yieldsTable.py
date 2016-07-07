@@ -94,9 +94,12 @@ for channel in allChannels:
 	  if e.name.count("TTJets"): ttJetsErr = expected*(0.3 if i < 6 else 0.2 if i < 12 else 1)	# these should be absolute errors, because we will propagate it also to the sum
 	  if e.name.count("TTZ"):    ttzErr    = expected*0.2
 	  if e.name.count("DY"):     
-	    mc    = int(100*DYestimators[0].cachedEstimate(r, channel, setup).val+0.5)/100.
-	    dd    = int(100*DYestimators[1].cachedEstimate(r, channel, setup).val+0.5)/100.
-	    dyErr = abs(mc-dd)
+	#    mc    = int(100*DYestimators[0].cachedEstimate(r, channel, setup).val+0.5)/100.
+	#    dd    = int(100*DYestimators[1].cachedEstimate(r, channel, setup).val+0.5)/100.
+	#    dyErr = abs(mc-dd)
+	     dyErr = expected*0.5 #just assign 50% error
+	  if e.name.count("multiBoson"): multiBosonErr = expected*0.25
+	  if e.name.count("TTXNoZ"):     ttxErr        = expected*0.25
 
 	  errors   = [stat/expected if expected > 0 else 0]
 	  errors.append(e.PUSystematic(         r, channel, setup).val)
@@ -104,9 +107,11 @@ for channel in allChannels:
 	  errors.append(e.topPtSystematic(      r, channel, setup).val)
 	  errors.append(e.btaggingSFbSystematic(r, channel, setup).val)
 	  errors.append(e.btaggingSFlSystematic(r, channel, setup).val)
-	  if e.name.count("sum") or e.name.count("TTJets"): errors.append(ttJetsErr/expected if expected > 0 else 0) # Now to relative errors in order to combine with other errors
-	  if e.name.count("sum") or e.name.count("TTZ"):    errors.append(ttzErr/expected    if expected > 0 else 0)
-	  if e.name.count("sum") or e.name.count("DY"):     errors.append(dyErr/expected     if expected > 0 else 0)
+	  if e.name.count("sum") or e.name.count("TTJets"):     errors.append(ttJetsErr/expected     if expected > 0 else 0) # Now to relative errors in order to combine with other errors
+	  if e.name.count("sum") or e.name.count("TTZ"):        errors.append(ttzErr/expected        if expected > 0 else 0)
+	  if e.name.count("sum") or e.name.count("DY"):         errors.append(dyErr/expected         if expected > 0 else 0)
+	  if e.name.count("sum") or e.name.count("TTXNoZ"):     errors.append(ttxErr/expected        if expected > 0 else 0)
+	  if e.name.count("sum") or e.name.count("multiBoson"): errors.append(multiBosonErr/expected if expected > 0 else 0)
 
           totalError = sqrt(sum([err*err for err in errors]))
 	  yieldTable.write(" & $ %.2f \pm %.2f $" % (expected, totalError*expected))              # And back to absolute error

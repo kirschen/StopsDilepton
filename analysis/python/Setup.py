@@ -25,7 +25,7 @@ DYSample           = DY_HT_LO #LO, HT binned including a low HT bin starting fro
 #TTJetsSample      = TTJets #NLO
 TTJetsSample       = Sample.combine("TTJets", [TTJets_Lep, singleTop], texName = "t#bar{t}/single-t") #LO, very large dilep + single lep samples
 WJetsSample        = WJetsToLNu #WJetsToLNu_HT
-otherEWKComponents = [diBoson, triBoson,  TTXNoZ, WJetsSample]
+otherEWKComponents = [multiBoson, TTXNoZ, WJetsSample]
 otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations
@@ -42,7 +42,7 @@ zMassRange            = 15
 default_mllMin        = 20
 default_metMin        = 80
 default_metSigMin     = 5
-default_dPhiJetMet    = 0.25
+default_dPhiJetMet    = 0.25  # To fix: only applies on 2nd jet, leading jet cut is fixed see below
 default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
 default_leptonCharges = "isOS"
@@ -76,7 +76,7 @@ class Setup:
         self.sample = {
         'DY':         {c:DYSample     for c in channels},
         'TTJets' :    {c:TTJetsSample for c in channels},
-        'TTZ' :       {c:TTZ          for c in channels},
+        'TTZ' :       {c:TTZ_LO       for c in channels},
         'multiBoson' :{c:multiBoson   for c in channels},
         'TTX' :       {c:TTX          for c in channels},
         'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs]),
@@ -185,7 +185,7 @@ class Setup:
           res['cuts'].append('metSig'+sysStr+'>='+str(metSigMin))
           res['prefixes'].append('metSig'+str(metSigMin))
         if dPhiJetMet>=0.:
-          res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<cos('+str(dPhiJetMet)+')&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos('+str(dPhiJetMet)+')')
+          res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos('+str(dPhiJetMet)+')')
           res['prefixes'].append('dPhiJet0-dPhiJet')
 
         if not hadronicSelection:

@@ -66,7 +66,7 @@ cuts = [
     ("met50",             "met_pt>50"),
     ("met80",             "met_pt>80"),
     ("metSig5",           "metSig>5"),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
     ("mt2ll100",          "dl_mt2ll>100"),
     ("mt2ll140",          "dl_mt2ll>140"),
   ]
@@ -210,7 +210,7 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
 
-  mc = [ Top, TTZ, TTXNoZ, multiBoson, DY_HT_LO]
+  mc = [ Top, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
 #  if args.selection.count("btag0"): mc = [ Top, TTZ, TTXNoZ, WW, WZ, ZZ, triBoson, DY_HT_LO] # Split diboson up for the nbtag=0 control region
   for sample in mc:
     sample.scale = lumi_scale
@@ -425,6 +425,12 @@ for index, mode in enumerate(allModes):
       variable = Variable.fromString('cosMetJet1phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [10,-1,1],
     ))
+    
+    plots.append(Plot(
+      texX = 'Cos(#phi(#slash{E}_{T}, leading jet))', texY = 'Number of Events',
+      variable = Variable.fromString('cosMetJet1phi_smallBinning/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"])),
+      binning = [20,-1,1],
+    ))
 
     plots.append(Plot(
       texX = 'Cos(#phi(Z, leading jet))', texY = 'Number of Events',
@@ -456,6 +462,12 @@ for index, mode in enumerate(allModes):
       texX = 'Cos(#phi(#slash{E}_{T}, second jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosMetJet2phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [10,-1,1],
+    ))
+    
+    plots.append(Plot(
+      texX = 'Cos(#phi(#slash{E}_{T}, second jet))', texY = 'Number of Events',
+      variable = Variable.fromString('cosMetJet2phi_smallBinning/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"])),
+      binning = [20,-1,1],
     ))
 
     plots.append(Plot(
