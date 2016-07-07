@@ -60,7 +60,7 @@ cuts = [
     ("mll20",             "dl_mass>20"),
     ("met80",             "met_pt_photonEstimated>80"),
     ("metSig5",           "metSig_photonEstimated>5"),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi_photonEstimated-JetGood_phi[0])<cos(0.25)&&cos(met_phi_photonEstimated-JetGood_phi[1])<cos(0.25)"),
+    ("dPhiJet0-dPhiJet1", "cos(met_phi_photonEstimated-JetGood_phi[0])<0.8&&cos(met_phi_photonEstimated-JetGood_phi[1])<0.8"),
   ]
 
 
