@@ -131,11 +131,11 @@ def drawObjects( lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'),
-      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(lumi_scale*100)/100.) )
+      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(lumi_scale/1000*100)/100.) )
     ]
     return [tex.DrawLatex(*l) for l in lines]
 
-for channel in ['all']:
+for channel in ['all','SF','EE','EMu','MuMu']:
 
     regions_ = regions[1:]
 
@@ -187,7 +187,7 @@ for channel in ['all']:
         val = histos_summed[None].GetBinContent(ib)
         if val<0: continue
         sys = h_rel_err.GetBinContent(ib)
-        box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max([0.0015, (1-sys)*val]), h_rel_err.GetXaxis().GetBinUpEdge(ib), max([0.0015, (1+sys)*val]) )
+        box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max([0.006, (1-sys)*val]), h_rel_err.GetXaxis().GetBinUpEdge(ib), max([0.06, (1+sys)*val]) )
         box.SetLineColor(ROOT.kBlack)
         box.SetFillStyle(3444)
         box.SetFillColor(ROOT.kBlack)
@@ -205,9 +205,9 @@ for channel in ['all']:
         plot_directory = os.path.join(user.plot_directory, args.regions, args.estimateDY, args.estimateTTZ, args.estimateTTJets),
         logX = False, logY = True,
         sorting = True,
-        yRange = (0.0015, "auto"),
+        yRange = (0.006, "auto"),
         widths = {'x_width':1000, 'y_width':700},
-        drawObjects = (drawLabels(regions_) if args.labels else []) + boxes + drawObjects( 3.997 ),
-        legend = (0.6,0.9-0.02*(len(bkg_histos) + len(sig_histos)), 0.95, 0.9),
+        drawObjects = (drawLabels(regions_) if args.labels else []) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
+        legend = (0.55,0.9-0.03*(len(bkg_histos) + len(sig_histos)), 0.95, 0.9),
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
