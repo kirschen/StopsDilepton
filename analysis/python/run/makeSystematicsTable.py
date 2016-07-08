@@ -57,12 +57,30 @@ except:
 
 def displaySysValue(val, expected):
    if args.relativeError:
-     if val <=0 or expected <= 0: return "-"
-     return "%.0f" % (val*100+0.5) + " \\%" # round off to next percent
+     if val <=0 or expected <= 0: return "0 \\%"
+     return "%.0f" % (val*100) + " \\%"
    else:
      roundedVal = int(100*(val*expected)+0.99)/100.    # round to next 0.0x
      if roundedVal <= 0.: return "-"
      return "%.2f" % roundedVal
+
+def min((x, y), (xx, yy)):
+     if   isinstance(x, str): return (xx,yy)
+     elif isinstance(xx, str):return (x,y)
+     elif not y or y == 0:   return (xx,yy)
+     elif not yy or yy == 0: return (x,y)
+     elif abs(x) < abs(xx):       return (x,y)
+     else:                   return (xx,yy)
+
+def max((x, y), (xx, yy)):
+     if   isinstance(x, str): return (xx,yy)
+     elif isinstance(xx, str):return (x,y)
+     if   not y or y == 0:   return (xx,yy)
+     elif not yy or yy == 0: return (x,y)
+     elif abs(x) > abs(xx):       return (x,y)
+     else:                   return (xx,yy)
+
+
 
 
 # Make a separate table for each of regions
@@ -72,7 +90,35 @@ for channel in allChannels:
   except:
     pass 
 
-  columns = ["expected","stat","PU","JEC","top-\\pt","b-tag SFb", "b-tag SFl","sample"]
+  columns = ["expected","stat","PU","JEC","top-\\pt","b-tag SFb", "b-tag SFl","TTJets","TTZ","DY","TTXNoZ","multiBoson"]
+
+  minima = {}
+  maxima = {}
+
+  minima["stat"]  = (999999,None)
+  minima["PU"]    = (999999,None) 
+  minima["JEC"]   = (999999,None) 
+  minima["topPt"] = (999999,None)
+  minima["SFb"]   = (999999,None) 
+  minima["SFl"]   = (999999,None) 
+  minima["top"]   = (999999,None) 
+  minima["ttz"]   = (999999,None) 
+  minima["dy"]    = (999999,None) 
+  minima["ttx"]   = (999999,None) 
+  minima["multi"] = (999999,None) 
+
+  maxima["stat"]  = (0,None) 
+  maxima["PU"]    = (0,None) 
+  maxima["JEC"]   = (0,None) 
+  maxima["topPt"] = (0,None) 
+  maxima["SFb"]   = (0,None) 
+  maxima["SFl"]   = (0,None) 
+  maxima["top"]   = (0,None) 
+  maxima["ttz"]   = (0,None) 
+  maxima["dy"]    = (0,None) 
+  maxima["ttx"]   = (0,None) 
+  maxima["multi"] = (0,None)
+
 
   overviewTexfile = os.path.join(texdir, channel, "overview.tex")
   print "Writing to " + overviewTexfile
@@ -81,8 +127,7 @@ for channel in allChannels:
     overviewTable.write("  signal region & observed & " + "&".join(columns) + " \\\\ \n")
     overviewTable.write("  \\hline \n")
 
-    SR = 0
-    for r in regions[1:]:
+    for SR,r in enumerate(regions[1:]):
       texfile = os.path.join(texdir, channel, "signalRegion" + str(SR) + ".tex")
       print "Writing to " + texfile
       with open(texfile, "w") as f:
@@ -114,17 +159,17 @@ for channel in allChannels:
 	  f.write(" $" + name + "$ ")
 	  expected = int(100*e.cachedEstimate(r, channel, setup).val+0.5)/100.
 
-          if e.name.count("TTJets"): topErr = ("%.2f" % (0.3 if SR < 6 else 0.2 if SR < 12 else 1)*(1 if args.relError else expected) if expected > 0 else " - "
-          if e.name.count("TTZ"):    ttzErr = ("%.2f" % (0.2*(1 if args.relError else expected)) if expected > 0 else " - "
+          if e.name.count("TTJets"): topErr = 0.3 if SR < 6 else 0.2 if SR < 12 else 1
+          if e.name.count("TTZ"):    ttzErr = 0.2
           if e.name.count("DY"):
 	     mc = int(100*DYestimators[0].cachedEstimate(r, channel, setup).val+0.5)/100.
 	     dd = int(100*DYestimators[1].cachedEstimate(r, channel, setup).val+0.5)/100.
              dyScale = dd/mc if mc > 0 else 0
              print "Scale of DY:" + str(dyScale)
           #   dyNorm  = ("%.2f" % abs(mc-dd))*(1/expected if args.relError else 1) if (abs(mc-dd) > 0 and expected > 0) else " - "
-             dyErr    = "%.2f" % 0.50*(1 if args.relError else expected)
-	  if e.name.count("multiBoson"): multiBosonErr = "%.2f" % 0.25*(1 if args.relError else expected)
-          if e.name.count("TTXNoZ"):     ttxErr        = "%.2f" % 0.25*(1 if args.relError else expected)
+             dyErr    = 0.5
+	  if e.name.count("multiBoson"): multiBosonErr = 0.25
+          if e.name.count("TTXNoZ"):     ttxErr        = 0.25
 
 
 	  f.write(" & %.2f" % expected)
@@ -135,10 +180,20 @@ for channel in allChannels:
 	  f.write(" & " + displaySysValue(e.topPtSystematic(      r, channel, setup).val,   expected))
 	  f.write(" & " + displaySysValue(e.btaggingSFbSystematic(r, channel, setup).val,   expected))
 	  f.write(" & " + displaySysValue(e.btaggingSFlSystematic(r, channel, setup).val,   expected))
-	  f.write(" & " + (topErr if e.name=="TTJets" else " - "))
-	  f.write(" & " + (ttZErr if e.name=="TTZ"    else " - "))
-	  f.write(" & " + (dyNorm  if e.name=="DY"     else " - "))
+	  f.write(" & " + (displaySysValue(topErr                                        ,   expected) if e.name.count("TTJets")     else " - "))
+	  f.write(" & " + (displaySysValue(ttzErr                                        ,   expected) if e.name.count("TTZ")        else " - "))
+	  f.write(" & " + (displaySysValue(dyErr                                         ,   expected) if e.name.count("DY")         else " - "))
+	  f.write(" & " + (displaySysValue(ttxErr                                        ,   expected) if e.name.count("TTXNoZ")     else " - "))
+          f.write(" & " + (displaySysValue(multiBosonErr                                 ,   expected) if e.name.count("multiBoson") else " - "))
 	  f.write(" \\\\ \n")
+ 
+          # Convert to absolute
+          if e.name.count("TTJets"): topErr *= expected
+          if e.name.count("TTZ"): ttzErr *= expected
+          if e.name.count("DY"):  dyErr  *= expected
+          if e.name.count("TTXNoZ"):  ttxErr *= expected
+          if e.name.count("multiBoson"): multiBosonErr *= expected
+
 
 	f.write("\\end{tabular} \n")
 	f.write("\\caption{Yields and uncertainties for each background in the signal region $" + r.texString(useRootLatex = False) + "$ in channel " + channel + "} \n")
@@ -149,6 +204,15 @@ for channel in allChannels:
 	observed = observation.cachedObservation(r, channel, setup).val
 	overviewTable.write(" & %d" % observed)
 	overviewTable.write(" & %.2f" % expected)
+
+        # Convert back to relative
+	topErr = topErr/expected if expected > 0 else 0
+	ttzErr = ttzErr/expected if expected > 0 else 0
+	dyErr  = dyErr/expected if expected > 0 else 0
+	ttxErr = ttxErr/expected if expected > 0 else 0
+	multiBosonErr = multiBosonErr/expected if expected > 0 else 0
+
+
 	overviewTable.write(" & " + displaySysValue(e.cachedEstimate(       r, channel, setup).sigma, expected))
 	overviewTable.write(" & " + displaySysValue(e.PUSystematic(         r, channel, setup).val,   expected))
 	overviewTable.write(" & " + displaySysValue(e.JECSystematic(        r, channel, setup).val,   expected))
@@ -156,14 +220,67 @@ for channel in allChannels:
 	overviewTable.write(" & " + displaySysValue(e.topPtSystematic(      r, channel, setup).val,   expected))
 	overviewTable.write(" & " + displaySysValue(e.btaggingSFbSystematic(r, channel, setup).val,   expected))
 	overviewTable.write(" & " + displaySysValue(e.btaggingSFlSystematic(r, channel, setup).val,   expected))
-	if e.name.count("TTJets"):     overviewTable.write(" & " + topErr)
-	if e.name.count("TTZ"):        overviewTable.write(" & " + ttzErr)
-	if e.name.count("DY"):         overviewTable.write(" & " + dyErr)
-	if e.name.count("TTX"):        overviewTable.write(" & " + ttxErr)
-	if e.name.count("multiBoson"): overviewTable.write(" & " + multiBosonErr)
+	overviewTable.write(" & " + displaySysValue(topErr, expected))
+	overviewTable.write(" & " + displaySysValue(ttzErr, expected))
+	overviewTable.write(" & " + displaySysValue(dyErr, expected))
+	overviewTable.write(" & " + displaySysValue(ttxErr, expected))
+	overviewTable.write(" & " + displaySysValue(multiBosonErr, expected))
         overviewTable.write(" \\\\ \n")
 
-      SR = SR+1
+        temp1 = minima["stat"]
+        temp2 = maxima["stat"]
+
+        minima["stat"]  = min((e.cachedEstimate(       r, channel, setup).sigma, expected), minima["stat"])
+        minima["PU"]    = min((e.PUSystematic(         r, channel, setup).val,   expected), minima["PU"])
+        minima["JEC"]   = min((e.JECSystematic(        r, channel, setup).val,   expected), minima["JEC"])
+        minima["topPt"] = min((e.topPtSystematic(      r, channel, setup).val,   expected), minima["topPt"])
+        minima["SFb"]   = min((e.btaggingSFbSystematic(r, channel, setup).val,   expected), minima["SFb"])
+        minima["SFl"]   = min((e.btaggingSFlSystematic(r, channel, setup).val,   expected), minima["SFl"])
+        minima["top"]   = min((topErr,                                           expected), minima["top"])
+        minima["ttz"]   = min((ttzErr,                                           expected), minima["ttz"])
+        minima["dy"]    = min((dyErr,                                            expected), minima["dy"])
+        minima["ttx"]   = min((ttxErr,                                           expected), minima["ttx"])
+        minima["multi"] = min((multiBosonErr,                                    expected), minima["multi"])
+
+        maxima["stat"]  = max((e.cachedEstimate(       r, channel, setup).sigma, expected), maxima["stat"])
+        maxima["PU"]    = max((e.PUSystematic(         r, channel, setup).val,   expected), maxima["PU"])
+        maxima["JEC"]   = max((e.JECSystematic(        r, channel, setup).val,   expected), maxima["JEC"])
+        maxima["topPt"] = max((e.topPtSystematic(      r, channel, setup).val,   expected), maxima["topPt"])
+        maxima["SFb"]   = max((e.btaggingSFbSystematic(r, channel, setup).val,   expected), maxima["SFb"])
+        maxima["SFl"]   = max((e.btaggingSFlSystematic(r, channel, setup).val,   expected), maxima["SFl"])
+        maxima["top"]   = max((topErr,                                           expected), maxima["top"])
+        maxima["ttz"]   = max((ttzErr,                                           expected), maxima["ttz"])
+        maxima["dy"]    = max((dyErr,                                            expected), maxima["dy"])
+        maxima["ttx"]   = max((ttxErr,                                           expected), maxima['ttx']) 
+        maxima["multi"] = max((multiBosonErr,                                    expected), maxima["multi"])
 
     overviewTable.write("\\end{tabular} \n")
     overviewTable.write("\\caption{Yields and uncertainties for the total background in each of the signal regions for channel" + channel + "} \n")
+
+    temp = args.relativeError
+    args.relativeError = True # Following table always relative
+    minmaxFile = os.path.join(texdir, channel, "minmax.tex")
+    print "Writing to " + minmaxFile
+    with open(minmaxFile, "w") as minmaxTable:
+      minmaxTable.write("\\begin{tabular}{l|c} \n")
+      minmaxTable.write("  systematic & min-max of signal regions \\\\ \n")
+      minmaxTable.write("  \\hline \n")
+      systematics = {"statistical"           : "stat",
+                     "pile-up"               : "PU",
+                     "JEC"                   : "JEC",
+                     "top-\\pt"              : "topPt",
+                     "b-tag SF-b"            : "SFb",
+                     "b-tag SF-l"            : "SFl",
+                     "top background"        : "ttz",
+                     "ttZ background"        : "dy",
+                     "ttXNoZ background"     : "ttx",
+                     "top background"        : "top",
+                     "DY background"         : "dy",
+                     "multiboson background" : "multi"}
+      for i,j in systematics.iteritems():
+        if minima[j][0] > 0:  minmaxTable.write(i + " & " + displaySysValue(*minima[j]) + " - " + displaySysValue(*maxima[j]) + " \\\\ \n")
+        else:                 minmaxTable.write(i + " & $<$ " + displaySysValue(*maxima[j]) + " \\\\ \n")
+      minmaxTable.write("\\end{tabular} \n")
+    args.relativeError = temp
+
+

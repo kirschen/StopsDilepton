@@ -26,7 +26,7 @@ modifiers = [ {},
 #             {'reweight':['reweightBTag_SF_b_Down']},
             ]
 
-selections = [ "met80", "met50" ]
+selections = [ "met50", "met80", "met50\\_metSig5", "met80\\_metSig5", "met50\\_metSig5\\_dPhi", "met80\\_metSig5\\_dPhi"]
 
 texdir = os.path.join(setup.analysis_results, setup.prefix(), 'tables')
 try:
@@ -41,10 +41,16 @@ with open(texfile, "w") as table:
   table.write("  selection & " + "&".join(columns) + " \\\\ \n")
   table.write("  \\hline \n")
   for selection in selections:
-    if selection == "met50": setup.parameters['metMin'] = 50
+    if     selection.count("met50"):    setup.parameters['metMin'] = 50
+    elif   selection.count("met80"):    setup.parameters['metMin'] = 80
+    if     selection.count("metSig"):   setup.parameters['metSigMin'] = 5
+    else:                               setup.parameters['metSigMin'] = 0
+    if      selection.count("dPhi"):    setup.parameters['dPhiJetMet'] = 0.25 # also includes 0.8 for leading
+    else:                               setup.parameters['dPhiJetMet'] = 0
+    print setup.parameters
     for channel in ['MuMu']:  # is the same for EE
       for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a controlRegion
         for modifier in modifiers:
   	  (yields, data, scaleFactor) = estimateDY._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True)
-          table.write(selection + " & "+ " & ".join([str(yields[s].val) for s in ['DY','TTJets','multiBoson','TTX']]) + " & " + str(data.val) + " & " + str(scaleFactor) + " \\\\ \n")
+          table.write(selection + " & "+ " & ".join([("%.2f" % yields[s].val) for s in ['DY','TTJets','multiBoson','TTX']]) + " & " + "%d" % data.val + " & " + ("$%.2f\pm%.2f$" % (scaleFactor.val, scaleFactor.sigma)) + " \\\\ \n")
   table.write("\\end{tabular} \n")
