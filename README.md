@@ -1,7 +1,7 @@
 # Stops-dilepton + CMG in 80X
 ```
-cmsrel CMSSW_8_0_10_patch2
-cd CMSSW_8_0_10_patch2/src
+cmsrel CMSSW_8_0_11
+cd CMSSW_8_0_11/src
 cmsenv
 git cms-init
 git clone https://github.com/GhentAnalysis/StopsDilepton
