@@ -20,7 +20,7 @@ logger_rt = logger_rt.get_logger(logLevel, logFile = None )
 preselection = '(isEMu==1&&nGoodMuons==1&&nGoodElectrons==1 || isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2 )'
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-prefix="dilepton_allZ_isOS_4000pb"
+prefix="dilepton_allZ_isOS_5300pb"
 
 maxN = -1
 prefix = prefix+"_maxN_%i_"%maxN if maxN>0 else prefix
@@ -39,11 +39,11 @@ if maxN>0:
 
 #Get true PU from data
 from StopsDilepton.tools.helpers import getObjFromFile
-nTrueInt_data_XSecVUp = getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/PU_2016_4000_XSecVUp.root", "pileup")
-nTrueInt_data_XSecUp = getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/PU_2016_4000_XSecUp.root", "pileup")
-nTrueInt_data_XSecVDown = getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/PU_2016_4000_XSecVDown.root", "pileup")
-nTrueInt_data_XSecDown = getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/PU_2016_4000_XSecDown.root", "pileup")
-nTrueInt_data_XSecCentral = getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/PU_2016_4000_XSecCentral.root", "pileup")
+nTrueInt_data_XSecVUp = getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/PU_2016_5300_XSecVUp.root", "pileup")
+nTrueInt_data_XSecUp = getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/PU_2016_5300_XSecUp.root", "pileup")
+nTrueInt_data_XSecVDown = getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/PU_2016_5300_XSecVDown.root", "pileup")
+nTrueInt_data_XSecDown = getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/PU_2016_5300_XSecDown.root", "pileup")
+nTrueInt_data_XSecCentral = getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/PU_2016_5300_XSecCentral.root", "pileup")
 
 nTrueInt_data_XSecDown.Scale(nTrueInt_data_XSecCentral.Integral()/nTrueInt_data_XSecDown.Integral())
 nTrueInt_data_XSecVDown.Scale(nTrueInt_data_XSecCentral.Integral()/nTrueInt_data_XSecVDown.Integral())

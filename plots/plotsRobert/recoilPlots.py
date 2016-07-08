@@ -467,8 +467,8 @@ ratio = {'yRange':(0.8,1.2)}
 for plot in plots:
     plotting.draw(plot, 
         plot_directory = plot_path, ratio = ratio, 
-        logX = False, logY = False, sorting = False, 
-        yRange = (0, "auto"), 
+        logX = False, logY = True, sorting = False, 
+        yRange = (0.03, "auto"), 
         drawObjects = drawObjects( dataMCScale ),
     )
 

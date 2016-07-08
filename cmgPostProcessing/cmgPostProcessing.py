@@ -265,11 +265,11 @@ if isMC:
         puRWUp      = getReweightingFunction(data="PU_2100_XSecUp", mc="Spring15")
     else:
         # nTrueIntReweighting
-        nTrueInt_puRW        = getReweightingFunction(data="PU_2016_4000_XSecCentral", mc="Spring16")
-        nTrueInt_puRWDown    = getReweightingFunction(data="PU_2016_4000_XSecDown", mc="Spring16")
-        nTrueInt_puRWUp      = getReweightingFunction(data="PU_2016_4000_XSecUp", mc="Spring16")
-        nTrueInt_puRWVDown   = getReweightingFunction(data="PU_2016_4000_XSecVDown", mc="Spring16")
-        nTrueInt_puRWVUp     = getReweightingFunction(data="PU_2016_4000_XSecVUp", mc="Spring16")
+        nTrueInt_puRW        = getReweightingFunction(data="PU_2016_5300_XSecCentral", mc="Spring16")
+        nTrueInt_puRWDown    = getReweightingFunction(data="PU_2016_5300_XSecDown", mc="Spring16")
+        nTrueInt_puRWUp      = getReweightingFunction(data="PU_2016_5300_XSecUp", mc="Spring16")
+        nTrueInt_puRWVDown   = getReweightingFunction(data="PU_2016_5300_XSecVDown", mc="Spring16")
+        nTrueInt_puRWVUp     = getReweightingFunction(data="PU_2016_5300_XSecVUp", mc="Spring16")
         # 2016 NVTX reweighting
         from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
         nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_4000pb.pkl")
