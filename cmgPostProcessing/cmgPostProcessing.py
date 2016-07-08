@@ -115,7 +115,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v7',
+        default='postProcessed_80X_v8',
         help="Name of the processing era"
         )
 
@@ -734,6 +734,10 @@ def filler(s):
             s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
 
     if isDiLep:
+        if isMC:
+            s.reweightDilepTrigger       = 0 
+            s.reweightDilepTriggerUp     = 0 
+            s.reweightDilepTriggerDown   = 0 
         if len(leptons)>=2:
             mt2Calc.reset()
             s.l2_pt     = leptons[1]['pt']

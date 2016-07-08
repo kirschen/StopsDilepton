@@ -21,7 +21,7 @@ argParser.add_argument('--logLevel',
 )
 
 argParser.add_argument('--mode',
-    default='dilepton',
+    default='doubleMu',
     action='store',
     choices=['doubleMu', 'doubleEle',  'muEle', 'dilepton', 'sameFlavour'])
 
@@ -220,7 +220,7 @@ for sample in mc_samples:
         sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTrigger 
     else:
         sample.read_variables = ['reweightDilepTrigger/F']
-        sample.weight = lambda data: data.reweightDilepTrigger
+        #sample.weight = lambda data: data.reweightDilepTrigger
 
 from StopsDilepton.tools.user import plot_directory
 
@@ -268,8 +268,9 @@ def selection( ):
 
 cuts = selection()
 
-#cuts.extend( [ ("highMT2ll", "dl_mt2ll>100"),
-#    ] )
+cuts.extend( [ 
+#    ("mt2ll100", "dl_mt2ll>100"),
+    ] )
 #
 #cuts=[
 #    #("njet0", "nJetGood==0"),
@@ -442,6 +443,17 @@ for i_comb in [ len(cuts) ]:
             weight = weight,
             )
         plots.append( dl_phi )
+
+        cosMetLeadingLep  = Plot(
+            name = "cosMetLeadingLep",
+            texX = 'cos(#Delta #phi(#slash{E}_{T}, l_{1}) ) ', texY = 'Number of Events',
+            stack = stack, 
+            variable = ScalarType.uniqueFloat().addFiller( lambda data:cos(data.met_phi-data.l1_phi) ),
+            binning=[30,-1,1],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( cosMetLeadingLep )
 
         minDeltaRLepJets  = Plot(
             name = "minDeltaRLepJets",

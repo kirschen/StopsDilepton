@@ -84,7 +84,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v7_systematics',
+    default='80X_v7_systematics_withTriggerSF',
     action='store',
 )
 
@@ -305,11 +305,14 @@ def systematic_selection( sys = None ):
 
 def weightMC( sys = None ):
     if sys is None:
-        return (lambda data:data.weight*data.reweightPU*data.reweightDilepTrigger, "weight*reweightDilepTrigger*reweightPU")
+        return (lambda data:data.weight*data.reweightPU*data.reweightDilepTrigger, "weight*(reweightDilepTrigger>0?reweightDilepTrigger:0)*reweightPU")
+        #return (lambda data:data.weight*data.reweightPU, "weight*reweightPU")
     elif 'PU' in sys:
-        return (lambda data:data.weight*data.reweightDilepTrigger*getattr(data, "reweight"+sys), "weight*reweightDilepTrigger*reweight"+sys)
+        return (lambda data:data.weight*data.reweightDilepTrigger*getattr(data, "reweight"+sys), "weight*(reweightDilepTrigger>0?reweightDilepTrigger:0)*reweight"+sys)
+        #return (lambda data:data.weight*getattr(data, "reweight"+sys), "weight*reweight"+sys)
     elif sys in weight_systematics:
-        return (lambda data:data.weight*data.reweightDilepTrigger*data.reweightPU*getattr(data, "reweight"+sys), "weight*reweightDilepTrigger*reweightPU*reweight"+sys)
+        return (lambda data:data.weight*data.reweightDilepTrigger*data.reweightPU*getattr(data, "reweight"+sys), "weight*(reweightDilepTrigger>0?reweightDilepTrigger:0)*reweightPU*reweight"+sys)
+        #return (lambda data:data.weight*data.reweightPU*getattr(data, "reweight"+sys), "weight*reweightPU*reweight"+sys)
     elif sys in jme_systematics :
         return weightMC( sys = None )
     else: raise ValueError( "Systematic %s not known"%sys )
@@ -561,6 +564,7 @@ else:
     #Scaling MC to data in MT2ll<100 region
     normalization_region_cut = "dl_mt2ll<100"
     if args.dataMCScaling or args.sysScaling:
+        #for s in mc_samples:
         yield_mc    = sum(s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, mc_selection_string, normalization_region_cut ] ), weightString = mc_weight_string)['val'] for s in mc_samples)
     if args.dataMCScaling:
         yield_data  = sum(s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, data_selection_string, normalization_region_cut ] ), weightString = data_weight_string)['val'] for s in data_samples )
@@ -605,20 +609,20 @@ else:
 
 if not os.path.exists( plot_path ): os.makedirs( plot_path )
 
-## Ad Hoc
-for i_plot, plot_ in enumerate(plots):
-    p_mc, p_data, bin_width = plot_
-    for k in p_mc.keys():
-        for h in p_mc[k].histos[0]:
-            if 'DY' in h.GetName():
-                scale = 2
-                logger.info("Add hoc scaling of scaling DY by %3.2f for %s in plot %s", scale, k, p_mc[k].name)
-                h.Scale(scale)
-            if 'TTZ' in h.GetName():
-                scale = 1.3
-                logger.info("Add hoc scaling of scaling TTZ by %3.2f for %s in plot %s", scale, k, p_mc[k].name)
-                h.Scale(scale)
-
+### Ad Hoc
+#for i_plot, plot_ in enumerate(plots):
+#    p_mc, p_data, bin_width = plot_
+#    for k in p_mc.keys():
+#        for h in p_mc[k].histos[0]:
+#            if 'DY' in h.GetName():
+#                scale = 2
+#                logger.info("Add hoc scaling of scaling DY by %3.2f for %s in plot %s", scale, k, p_mc[k].name)
+#                h.Scale(scale)
+#            if 'TTZ' in h.GetName():
+#                scale = 1.3
+#                logger.info("Add hoc scaling of scaling TTZ by %3.2f for %s in plot %s", scale, k, p_mc[k].name)
+#                h.Scale(scale)
+#
 #for plot_mc, plot_data, x_norm, bin_width in plots:
 for plot_mc, plot_data, bin_width in plots:
     if args.normalizeBinWidth and bin_width>0:
