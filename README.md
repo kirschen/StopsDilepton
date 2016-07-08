@@ -1,4 +1,14 @@
-# Stops-dilepton 
+# Stops-dilepton + CMG in 80X
+```
+cmsrel CMSSW_8_0_10_patch2
+cd CMSSW_8_0_10_patch2/src
+cmsenv
+git cms-init
+git clone https://github.com/GhentAnalysis/StopsDilepton
+./StopsDilepton/setup80X.sh
+```
+
+# Stops-dilepton in 76X 
 ```
 cmsrel CMSSW_7_6_4
 cd CMSSW_7_6_4/src
@@ -9,7 +19,7 @@ git clone git@github.com:GhentAnalysis/PlotsSMS StopsDilepton/PlotsSMS #X-PAG co
 scram b -j9
 ```
 
-# for CMG
+# for CMG in 76X
 see here:
 https://twiki.cern.ch/twiki/bin/viewauth/CMS/CMGToolsReleasesExperimental#Git_MiniAOD_release_for_Summer_2
 
