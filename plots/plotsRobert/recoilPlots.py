@@ -23,7 +23,7 @@ argParser.add_argument('--logLevel',
 argParser.add_argument('--mode',
     default='doubleMu',
     action='store',
-    choices=['doubleMu', 'doubleEle',  'muEle'])
+    choices=['doubleMu', 'doubleEle'])
 
 argParser.add_argument('--zMode',
     default='onZ',
@@ -36,9 +36,21 @@ argParser.add_argument('--ttjets',
     action='store',
     choices=['LO', 'NLO'])
 
+argParser.add_argument('--dy',
+    default='HT',
+    action='store',
+    choices=['LO', 'NLO'])
+
+argParser.add_argument('--pu',
+    default="reweightPU",
+    action='store',
+    choices=["None", "reweightPU", "reweightPUUp", "reweightPUDown", "reweightPUVUp", "reweightPUVDown", "reweightNVTX", "reweightNVTXUp", "reweightNVTXDown", "reweightNVTXVUp", "reweightNVTXVDown"],
+    help='PU weight',
+)
+
 argParser.add_argument('--small',
     action='store_true',
-    # default=True,
+#    default=True,
     help='Small?',
 )
 
@@ -77,7 +89,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v7/dilep/"
+postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
@@ -113,13 +125,19 @@ elif args.ttjets == "LO":
     TTJets_sample = TTJets_Lep 
 else:
     raise ValueError
+if args.dy == "NLO":
+    dy_sample = DY
+elif args.dy == "LO":
+    dy_sample = DY_HT_LO
+else:
+    raise ValueError
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ DY_HT_LO, TTJets_sample, singleTop, TTZ, TTXNoZ, multiBoson]
+mc = [ dy_sample, TTJets_sample, singleTop, TTZ, TTXNoZ, multiBoson]
 #mc = [ TTX]
 if args.small:
-    for sample in mc:
+    for sample in mc + [ data_sample ]:
         sample.reduceFiles(to = 1)
     #TTJets_Dilep.reduceFiles(to = 1)
 
@@ -164,8 +182,6 @@ def drawObjects( dataMCScale ):
 
 stack = Stack(mc, [data_sample])
 
-#stack_TTJets_Dilep = Stack([TTJets_Dilep])
-
 sequence = []
 
 def makeQTZ( data ):
@@ -176,10 +192,13 @@ def makeQTZ( data ):
     data.qt = sqrt( data.qx**2 + data.qy**2 )
 
 def makeUParaUPerp( data ):
-    ux = -data.met_pt*cos(data.met_phi) - data.qx 
-    uy = -data.met_pt*sin(data.met_phi) - data.qy
+    mex = data.met_pt*cos(data.met_phi) 
+    mey = data.met_pt*sin(data.met_phi)
+    ux = -mex - data.qx 
+    uy = -mey - data.qy
     data.upara = (ux*data.qx+uy*data.qy)/data.qt
     data.uperp = (ux*data.qy-uy*data.qx)/data.qt
+    data.uPlusQPara = -(mex*data.qx + mey*data.qy)/data.qt
 
 sequence.append( makeQTZ )
 sequence.append( makeUParaUPerp )
@@ -235,8 +254,11 @@ presel = [("isOS","isOS")]
 presel.extend( cuts )
 
 ppfixes = [args.mode, args.zMode]
+if args.pu != "None": ppfixes.append( args.pu )
 if args.ttjets == "NLO": ppfixes.append( "TTJetsNLO" )
 if args.ttjets == "LO": ppfixes.append( "TTJetsLO" )
+if args.dy == "NLO": ppfixes.append( "DYNLO" )
+if args.dy == "LO": ppfixes.append( "DYLO" )
 if args.small: ppfixes = ['small'] + ppfixes
 prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
 
@@ -248,29 +270,54 @@ selectionString = "&&".join( [p[1] for p in presel] + [leptonSelectionString] )
 logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionString )
 
 logger.info( "Calculating normalization constants" )        
-yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc)
-yield_data  = data_sample.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
+#yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc)
+#yield_data  = data_sample.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
 
 for sample in mc:
-    dataMCScale = yield_data/(yield_mc*lumi_scale)
+    dataMCScale = 1. #yield_data/(yield_mc*lumi_scale)
     sample.scale = lumi_scale*dataMCScale
-    sample.weight = lambda data:data.reweightPU
-    sample.read_variables = ['reweightPU/F']
-logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
+    if args.pu != "None": 
+        sample.weight = lambda data:getattr(data, args.pu)
+        sample.read_variables = [args.pu+'/F']
+
+#logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
 
 plots = []
 plots2D = []
 
-dl_upara  = Plot(
+
+qt  = Plot(
+    name = "qt",
+    texX = 'q_{T} (GeV)', texY = 'Number of Events / 5 GeV',
+    stack = stack, 
+    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.qt),
+    binning=[400/5,0,200],
+    selectionString = selectionString,
+    weight = weight,
+    ) 
+plots.append( qt )
+
+upara  = Plot(
     name = "upara",
     texX = 'u_{\parallel} (GeV)', texY = 'Number of Events / 5 GeV',
-    stack = stack, 
+   stack = stack, 
     variable = ScalarType.uniqueFloat().addFiller(lambda data:data.upara),
     binning=[400/5,-200,200],
     selectionString = selectionString,
     weight = weight,
     ) 
-plots.append( dl_upara )
+plots.append( upara )
+
+dl_uPlusQPara  = Plot(
+    name = "uPlusQPara",
+    texX = '(u+q)_{\parallel} (GeV)', texY = 'Number of Events / 5 GeV',
+   stack = stack, 
+    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.uPlusQPara),
+    binning=[400/5,-200,200],
+    selectionString = selectionString,
+    weight = weight,
+    ) 
+plots.append( dl_uPlusQPara )
 
 dl_uperp  = Plot(
     name = "uperp",
@@ -282,6 +329,86 @@ dl_uperp  = Plot(
     weight = weight,
     ) 
 plots.append( dl_uperp )
+
+metZoomed  = Plot(
+    name = "met_pt_zoomed",
+    texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 10 GeV',
+    stack = stack, 
+    variable = Variable.fromString( "met_pt/F" ),
+    binning=[22,0,220],
+    selectionString = selectionString,
+    weight = weight,
+    )
+plots.append( metZoomed )
+
+met  = Plot(
+    texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
+    stack = stack, 
+    variable = Variable.fromString( "met_pt/F" ),
+    binning=[1050/50,0,1050],
+    selectionString = selectionString,
+    weight = weight,
+    )
+plots.append( met )
+
+metSig  = Plot(
+    texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
+    stack = stack, 
+    variable = Variable.fromString('metSig/F').addFiller (
+        helpers.uses( 
+            lambda data: data.met_pt/sqrt(data.ht) if data.ht>0 else float('nan') , 
+            ["met_pt/F", "ht/F"])
+    ), 
+    binning=[30,0,30],
+    selectionString = selectionString,
+    weight = weight,
+    )
+plots.append( metSig )
+
+ht  = Plot(
+    texX = 'H_{T} (GeV)', texY = 'Number of Events / 100 GeV',
+    stack = stack, 
+    variable = Variable.fromString( "ht/F" ),
+    binning=[2600/100,0,2600],
+    selectionString = selectionString,
+    weight = weight,
+    )
+plots.append( ht )
+
+ht_zoomed  = Plot(
+    name = "ht_zoomed",
+    texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
+    stack = stack, 
+    variable = Variable.fromString( "ht/F" ),
+    binning=[390/15,0,390],
+    selectionString = selectionString,
+    weight = weight,
+    )
+plots.append( ht_zoomed )
+
+cosMetJet0phi = Plot(\
+    texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
+    stack = stack, 
+    variable = Variable.fromString('cosMetJet0phi/F').addFiller (
+        helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
+    ), 
+    binning = [40,-1,1], 
+    selectionString = selectionString,
+    weight = weight,
+)
+plots.append( cosMetJet0phi )
+
+cosMetJet1phi = Plot(\
+    texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
+    stack = stack, 
+    variable = Variable.fromString('cosMetJet1phi/F').addFiller (
+        helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
+    ), 
+    binning = [40,-1,1], 
+    selectionString = selectionString,
+    weight = weight,
+)
+plots.append( cosMetJet1phi )
 
 #recoil_TT  = Plot(
 #    name = "recoil_TT",
@@ -316,7 +443,7 @@ def qt_cut_weight( qtb ):
     return w
 
 for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80, 90), (90,100), (100,120), (120,150), (150,200), (200,250), (250,350), (350,550)]:
-    dl_upara_qt  = Plot(
+    upara_qt  = Plot(
         name = "upara_qt_%i_%i"%qtb,
         texX = 'u_{\parallel} (GeV)', texY = 'Number of Events / 10 GeV',
         stack = stack, 
@@ -325,7 +452,18 @@ for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80,
         binning=[300/10,-150-qtb[0],150-qtb[0]],
         selectionString = selectionString,
         ) 
-    plots.append( dl_upara_qt )
+    plots.append( upara_qt )
+
+    uPlusQPara_qt  = Plot(
+        name = "uPlusQPara_qt_%i_%i"%qtb,
+        texX = '(u+q)_{\parallel} (GeV)', texY = 'Number of Events / 10 GeV',
+        stack = stack, 
+        variable = ScalarType.uniqueFloat().addFiller(lambda data:data.uPlusQPara),
+        weight   = qt_cut_weight(qtb),
+        binning=[300/10,-150,150],
+        selectionString = selectionString,
+        ) 
+    plots.append( uPlusQPara_qt )
 
     dl_uperp_qt  = Plot(
         name = "uperp_qt_%i_%i"%qtb,

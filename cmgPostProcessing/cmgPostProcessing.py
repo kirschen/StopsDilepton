@@ -25,7 +25,7 @@ from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection
 from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getLeptons, getMuons, getElectrons, muonSelector, eleSelector, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
+from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSelector, eleSelector, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
@@ -115,7 +115,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v8',
+        default='postProcessed_80X_v9',
         help="Name of the processing era"
         )
 
@@ -272,11 +272,11 @@ if isMC:
         nTrueInt_puRWVUp     = getReweightingFunction(data="PU_2016_5300_XSecVUp", mc="Spring16")
         # 2016 NVTX reweighting
         from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
-        nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_4000pb.pkl")
-        nvtx_reweight_up      = getNVTXReweightingFunction(key = 'up', filename = "dilepton_allZ_isOS_4000pb.pkl")
-        nvtx_reweight_down    = getNVTXReweightingFunction(key = 'down', filename = "dilepton_allZ_isOS_4000pb.pkl")
-        nvtx_reweight_vup      = getNVTXReweightingFunction(key = 'vup', filename = "dilepton_allZ_isOS_4000pb.pkl")
-        nvtx_reweight_vdown    = getNVTXReweightingFunction(key = 'vdown', filename = "dilepton_allZ_isOS_4000pb.pkl")
+        nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_5300pb.pkl")
+        nvtx_reweight_up      = getNVTXReweightingFunction(key = 'up', filename = "dilepton_allZ_isOS_5300pb.pkl")
+        nvtx_reweight_down    = getNVTXReweightingFunction(key = 'down', filename = "dilepton_allZ_isOS_5300pb.pkl")
+        nvtx_reweight_vup      = getNVTXReweightingFunction(key = 'vup', filename = "dilepton_allZ_isOS_5300pb.pkl")
+        nvtx_reweight_vdown    = getNVTXReweightingFunction(key = 'vdown', filename = "dilepton_allZ_isOS_5300pb.pkl")
         
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting

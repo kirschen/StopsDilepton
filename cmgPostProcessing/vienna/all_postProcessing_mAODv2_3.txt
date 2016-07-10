@@ -8,10 +8,10 @@ python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M50_HT6
 
 python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M10to50
 #python cmgPostProcessing.py --checkTTGJetsOverlap   --samples DYJetsToLL_M10to50 --LHEHTCut=100
-python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M10to50_LO
-python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M10to50_LO --LHEHTCut=100
-python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M5to50_LO
-python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M5to50_LO --LHEHTCut=100
+python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M10to50_LO &
+python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M10to50_LO --LHEHTCut=100 &
+python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M5to50_LO &
+python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M5to50_LO --LHEHTCut=100 &
 
 python cmgPostProcessing.py  --checkTTGJetsOverlap  --samples DYJetsToLL_M5to50_HT200to400_ext
 #python cmgPostProcessing.py --checkTTGJetsOverlap   --samples DYJetsToLL_M5to50_HT400to600

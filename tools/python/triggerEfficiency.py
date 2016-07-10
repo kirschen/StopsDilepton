@@ -30,7 +30,7 @@ class triggerEfficiency:
 
     def getSF(self, pt1, eta1, pdgId1, pt2, eta2, pdgId2):
 
-        if not pt1>pt2:
+        if pt1<pt2:
             raise ValueError ( "Sort leptons wrt pt." )
 #            pt1, eta1, pdgId1, pt2, eta2, pdgId2 = pt2, eta2, pdgId2, pt1, eta1, pdgId1
 

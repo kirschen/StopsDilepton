@@ -28,10 +28,10 @@ python cmgPostProcessing.py   --samples=QCD_Pt50to80_Mu5
 python cmgPostProcessing.py   --samples=QCD_Pt80to120_Mu5
 python cmgPostProcessing.py   --samples=QCD_Pt120to170_Mu5
 python cmgPostProcessing.py   --samples=QCD_Pt170to300_Mu5
-python cmgPostProcessing.py   --samples=QCD_Pt300to470_Mu5 QCD_Pt300to470_Mu5_ext
-python cmgPostProcessing.py   --samples=QCD_Pt470to600_Mu5 QCD_Pt470to600_Mu5_ext
-python cmgPostProcessing.py   --samples=QCD_Pt600to800_Mu5 QCD_Pt600to800_Mu5_ext
-python cmgPostProcessing.py   --samples=QCD_Pt800to1000_Mu5 QCD_Pt800to1000_Mu5_ext
+python cmgPostProcessing.py   --samples=QCD_Pt300to470_Mu5,QCD_Pt300to470_Mu5_ext
+python cmgPostProcessing.py   --samples=QCD_Pt470to600_Mu5,QCD_Pt470to600_Mu5_ext
+python cmgPostProcessing.py   --samples=QCD_Pt600to800_Mu5,QCD_Pt600to800_Mu5_ext
+python cmgPostProcessing.py   --samples=QCD_Pt800to1000_Mu5,QCD_Pt800to1000_Mu5_ext
 python cmgPostProcessing.py   --samples=QCD_Pt1000toInf_Mu5
 #
 #
