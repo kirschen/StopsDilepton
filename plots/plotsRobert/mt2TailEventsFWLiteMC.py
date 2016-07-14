@@ -36,7 +36,7 @@ def bold(s):
 
 ## 8X mAOD, assumes eos mount in home directory 
 ## from Directory
-dirname = "/data/rschoefbeck/pickEvents/StopsDilepton/" 
+dirname = "/data/rschoefbeck/pickEvents/StopsDilepton/tail_ttjetsDilep_80X" 
 s0 = FWLiteSample.fromDirectory("mt2Tail", directory = os.path.expanduser(dirname) )
 
 products = {
@@ -60,8 +60,43 @@ def vecSumPt(particles):
     px = sum(p.px() for p in particles)
     py = sum(p.py() for p in particles)
     return sqrt(px**2+py**2)
- 
+
 while r.run():
+#    if any(e in r.evt for e in [3991364, 4854452, 10356846, 21762195, 4532888, 15495640, 17276057, 20991689, 33607796, 40308549, 41117351, 42552044, 48024871, 51884514]):continue
+#    if any(e in r.evt for e in [53964677, 56369604, 56740873, 58872109, 60203349, 61608051, 68707320, 71158655, 78110867, 87973932, 94275792]):continue
+    print "At %i:%i:%i" % r.evt    
+
+    # 80X
+    # 0. 1:4953:3991364 # 300 GeV gamma lost in dead cell (drastic)
+    # 1. 1:5468:4532888 # 80 GeV jet mismeasurement , -0.934/2.9678 (drastic)
+    # 2. 1:6024:4854452 # 2x40 GeV lost 1.6/-2.4, 1.9/2.7 (gaussian), 40 GeV neutrino from jet
+    # 3. 1:6171:4972344 # drastic mismeasurement ecal 160 GeV 
+    # 4. 1:12852:10356846 # lost K_plus 117.1/1.391/-2.527
+    # 5. 1:13923:11219847 (most probably jet mismeasurement, no AOD)
+    # 6. 1:17046:13736425 jet mism. + 30 GeV neutrino in jet 
+    # 7. 1:18692:15495640 # overmeasured muon at 148->184 2.287/-0.282? 30 GeV jet mismeasurement
+    # 8. 1:20840:17276057 # lost high pt gammas at -1.5/0.6 (drastic), 40 GeV neutrino in jet
+    # 9. 1:25322:20991689 # neutrino in a jet, 100GeV, just passing the threshold (142GeV)
+    # 11. 1:27005:21762195 # lost gammas and neutrals in dead cell 1.152/-3.077 (drastic)
+    # 12. 1:40541:33607796 # lost mu- from W, picked up 60 GeV e- fake, EMu->EE, ,charged particles different at -2.175/0.183 (end of trk coverage?) (gaussian) (40 GeV)
+    # 13. 1:48624:40308549 # lost high pt gammas (drastic)
+    # 14. 1:49599:41117351 # lost 50 GeV mu- in a jet 52.2/-0.999/0.558 
+    # 15. 1:51330:42552044 # lost energy in ECAL (drastic, 100 GeV) -0.837/2.890
+    # 16. 1:57932:48024871 # overmeasured muon 125->330  0.289/-2.763, 50 GeV probably gaussian jet mismeasurement 
+    # 17. 1:62587:51884514 # likely gaussian jet mismeasurement (60 GeV in a 200GeV genjet), 40 GeV neutrino in jet
+    # 18. 1:65097:53964677 # mumu->emu, lost mu to pt, picked up fake e from conversion gamma, plus jet  mism 40 GeV (gaussian) 
+    # 19. 1:67998:56369604 # 60 GeV from neutrino from jet
+    # 20. 1:68445:56740873 # tauToHad + non-prompt mu
+    # 21. 1:71016:58872109  extra muon with 24 GeV inner track and 80 GeV global track
+    # 22. 1:72622:60203349 200 GeV neutrino in jet, plus 70 GeV photons lost 
+    # 23. 1:74317:61608051 overmeasured muon 114.0/-2.275/-1.514 -> 154.1/-2.275/-1.51, 20 GeV neutrino in jet4
+    # 24. 1:82880:68707320 ??? mu?
+    # 25. 1:85837:71158655 160 GeV neutrino from jet
+    # 26. 1:94223:78110867 360 GeV gamma lost
+    # 27. 1:106121:87973932 some 30 GeV mism. but fake MET is 150? leptons OK
+    # 28. 1:113723:94275792 jet mismeasurement at eta~3 + 20 GeV neutrino
+
+    # 76X
     #if not 3460888 in r.evt: continue  #Evt 1, EMu, 150 GeV, lost p0(103) ->e+/e- pair at 1.013/0.665
     #if not 3991364 in r.evt: continue  #Evt 2, EMu, 315 GeV lost 330 GeV ISR gamma at -2.1/ -2.5 (leading gen particle)
     #if not 4854452 in r.evt: continue  #Evt 3, MuMu, 50 GeV, lost few neutrals and gammas at 1.6/-2.3, 40 GeV neutrino 
@@ -84,7 +119,7 @@ while r.run():
     #if not 73435936 in r.evt: continue #Evt 33, 55 GeV, don't have the guy (2/38)
     #if not 78110867 in r.evt: continue #Evt 34, 350 GeV, lost 300 GeV gamma at 1.775/-2.024
     #if not 87143733 in r.evt: continue #Evt 35, 78 GeV, don't have the guy
-    if not 96010586 in r.evt: continue #Evt 36, 252 GeV, lost 50 GeV electron at 2.396/-1.872, MET comes from spurious (isolated??) e- of 311 GeV at 0.11/-1.57 (almost back to back)
+    #if not 96010586 in r.evt: continue #Evt 36, 252 GeV, lost 50 GeV electron at 2.396/-1.872, MET comes from spurious (isolated??) e- of 311 GeV at 0.11/-1.57 (almost back to back)
     #if not 99537081 in r.evt: continue #Evt 37, MuMu, 114 GeV, lost 40 GeV gamma at -0.101/2.089, lost a few more neutrals
 
 
@@ -94,46 +129,59 @@ while r.run():
     pf = list(r.products['pf'])
     pf.sort(key = lambda p: - p.pt() )
 
-    for i in range(min([20, len(gp)])):
-        p = gp[i]
-        print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
-            pdgToName(gp[i].pdgId()), gp[i].pt(), gp[i].eta(), gp[i].phi(),
-            )
+#    for i in range(min([20, len(gp)])):
+#        p = gp[i]
+#        print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+#            pdgToName(gp[i].pdgId()), gp[i].pt(), gp[i].eta(), gp[i].phi(),
+#            )
+##        print
+##        printHisto(p)
+##        print
+##    print
+#
+#    print "Matching leading gen particles"
+#    for i in range(min([20, len(gp)])):
+#        p = gp[i]
+#        print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+#            pdgToName(gp[i].pdgId()), gp[i].pt(), gp[i].eta(), gp[i].phi(),
+#            )
+#
+#        print 
+#        reco_matches = filter( lambda m:m[0]<0.2, [ ( deltaR(toDict(reco),toDict(p)), reco ) for reco in pf ] )
+#        reco_matches.sort( key = lambda m:m[0] )
+#        gen_matches = [gen for gen in gp if gen.status()==1 and abs(gen.pdgId()) not in [12,14,16] and deltaR(toDict(gen), toDict(p))<0.2 ]
+#        gen_matches = [(deltaR(toDict(gen),toDict(p)), gen ) for gen in gen_matches]
+#        gen_matches.sort( key = lambda m:m[0] )
+#        gen_sumPt, reco_sumPt = vecSumPt([g[1] for g in gen_matches]), vecSumPt([g[1] for g in reco_matches])
+#        mismatched =  abs(gen_sumPt-reco_sumPt)>30
+#        if mismatched: diff_str = bold("%5.1f"%(gen_sumPt-reco_sumPt))
+#        else         : diff_str = "%5.1f"%(gen_sumPt-reco_sumPt)
+#        print "   balancing 0.2 cone: gen %5.1f reco %5.1f diff %s" % (vecSumPt([g[1] for g in gen_matches]), vecSumPt([g[1] for g in reco_matches]) , diff_str)
+#        for dr, reco in reco_matches: 
+#            print "      reco %10s dr %3.2f pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+#                pdgToName(reco.pdgId()), dr, reco.pt(), reco.eta(), reco.phi(),
+#                )
 #        print
-#        printHisto(p)
-#        print
-#    print
+#        for dr, gen in gen_matches: 
+#            print "      gen  %10s dr %3.2f pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+#                pdgToName(gen.pdgId()), dr, gen.pt(), gen.eta(), gen.phi(),
+#                )
+#        print 
+#    break
 
-    print "Matching leading gen particles"
-    for i in range(min([20, len(gp)])):
-        p = gp[i]
-        print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
-            pdgToName(gp[i].pdgId()), gp[i].pt(), gp[i].eta(), gp[i].phi(),
-            )
-
-        print 
-        reco_matches = filter( lambda m:m[0]<0.2, [ ( deltaR(toDict(reco),toDict(p)), reco ) for reco in pf ] )
-        reco_matches.sort( key = lambda m:m[0] )
-        gen_matches = [gen for gen in gp if gen.status()==1 and abs(gen.pdgId()) not in [12,14,16] and deltaR(toDict(gen), toDict(p))<0.2 ]
-        gen_matches = [(deltaR(toDict(gen),toDict(p)), gen ) for gen in gen_matches]
+    reco_muons = filter( lambda p:abs(p.pdgId())==13, pf )
+    for i, m in enumerate(reco_muons):
+        if m.pt()<15: continue
+        gen_matches = [(deltaR(toDict(gen),toDict(m)), gen ) for gen in gp if gen.status()==1 and abs(gen.pdgId()) in [13] and deltaR(toDict(gen), toDict(m))<0.2 ]
         gen_matches.sort( key = lambda m:m[0] )
-        gen_sumPt, reco_sumPt = vecSumPt([g[1] for g in gen_matches]), vecSumPt([g[1] for g in reco_matches])
-        mismatched =  abs(gen_sumPt-reco_sumPt)>30
-        if mismatched: diff_str = bold("%5.1f"%(gen_sumPt-reco_sumPt))
-        else         : diff_str = "%5.1f"%(gen_sumPt-reco_sumPt)
-        print "   balancing 0.2 cone: gen %5.1f reco %5.1f diff %s" % (vecSumPt([g[1] for g in gen_matches]), vecSumPt([g[1] for g in reco_matches]) , diff_str)
-        for dr, reco in reco_matches: 
-            print "      reco %10s dr %3.2f pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
-                pdgToName(reco.pdgId()), dr, reco.pt(), reco.eta(), reco.phi(),
-                )
-        print
-        for dr, gen in gen_matches: 
-            print "      gen  %10s dr %3.2f pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
-                pdgToName(gen.pdgId()), dr, gen.pt(), gen.eta(), gen.phi(),
-                )
-        print 
+        if len(gen_matches) == 0:
+            print "No gen match found! Reco %3.2f/%3.2f/%3.2f"%(m.pt(), m.eta(), m.phi())
+            continue
+        if abs(m.pt()-gen_matches[0][1].pt())/m.pt()>0.1:
+            gm = gen_matches[0][1]
+            print "Muon mismeasurement. Reco %3.2f/%3.2f/%3.2f Gen %3.2f/%3.2f/%3.2f"%(m.pt(), m.eta(), m.phi(), gm.pt(), gm.eta(), gm.phi())
+
          
-    break
 
 #Type                                  Module                      Label             Process   
 #----------------------------------------------------------------------------------------------

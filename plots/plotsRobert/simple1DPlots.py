@@ -21,7 +21,7 @@ argParser.add_argument('--logLevel',
 )
 
 argParser.add_argument('--mode',
-    default='doubleMu',
+    default='dilepton',
     action='store',
     choices=['doubleMu', 'doubleEle',  'muEle', 'dilepton', 'sameFlavour'])
 
@@ -269,7 +269,7 @@ def selection( ):
 cuts = selection()
 
 cuts.extend( [ 
-#    ("mt2ll100", "dl_mt2ll>100"),
+    ("mt2ll140", "dl_mt2ll>140"),
     ] )
 #
 #cuts=[

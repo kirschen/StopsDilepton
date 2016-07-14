@@ -23,7 +23,7 @@ argParser.add_argument('--logLevel',
 argParser.add_argument('--mode',
     default='doubleMu',
     action='store',
-    choices=['doubleMu', 'doubleEle'])
+    choices=['doubleMu', 'doubleEle', 'sameFlavour'])
 
 argParser.add_argument('--zMode',
     default='onZ',
@@ -31,13 +31,8 @@ argParser.add_argument('--zMode',
     choices=['onZ', 'offZ', 'allZ']
 )
 
-argParser.add_argument('--ttjets',
-    default='LO',
-    action='store',
-    choices=['LO', 'NLO'])
-
 argParser.add_argument('--dy',
-    default='HT',
+    default='LO',
     action='store',
     choices=['LO', 'NLO'])
 
@@ -50,8 +45,14 @@ argParser.add_argument('--pu',
 
 argParser.add_argument('--small',
     action='store_true',
-#    default=True,
+    #default=True,
     help='Small?',
+)
+
+argParser.add_argument('--dPhiCut',
+    action='store_true',
+    #default=True,
+    help='dPhiCut?',
 )
 
 argParser.add_argument('--reversed',
@@ -89,7 +90,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v6/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
@@ -97,34 +98,54 @@ from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 def getZCut(mode):
     mZ = 91.2
     zstr = "abs(dl_mass - "+str(mZ)+")"
-    if mode.lower()=="onz": return zstr+"<15"
+    if mode.lower()=="onz": return zstr+"<8"
     if mode.lower()=="offz": return zstr+">15"
     return "(1)"
 
 if args.mode=="doubleMu":
-    leptonSelectionString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
-    data_sample = DoubleMuon_Run2016B
+    lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
+    lepton_selection_string_mc   = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
+    data_samples = [DoubleMuon_Run2016B]
+    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_sample_texName = "Data (2 #mu)"
     #qcd_sample = QCD_Mu5 #FIXME
-    trigger     = "HLT_mumuIso"
 elif args.mode=="doubleEle":
-    leptonSelectionString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
-    data_sample = DoubleEG_Run2016B
+    lepton_selection_string_data = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
+    lepton_selection_string_mc = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
+    data_samples = [DoubleEG_Run2016B]
+    DoubleEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_sample_texName = "Data (2 e)"
     #qcd_sample = QCD_EMbcToE
-    trigger   = "HLT_ee_DZ"
 elif args.mode=="muEle":
-    leptonSelectionString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
-    data_sample = MuonEG_Run2016B
+    lepton_selection_string_data = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue", getZCut(args.zMode)])
+    lepton_selection_string_mc = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
+    data_samples = [MuonEG_Run2016B]
+    MuonEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_sample_texName = "Data (1 #mu, 1 e)"
     #qcd_sample = QCD_Mu5EMbcToE
-    trigger    = "HLT_mue"
+#elif args.mode=="dilepton":
+#    doubleMu_selectionString = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso&&abs(dl_mass-91.2)>15"
+#    doubleEle_selectionString = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ&&abs(dl_mass-91.2)>15"
+#    muEle_selectionString = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue"
+#    lepton_selection_string_mc = "(isEMu==1&&nGoodMuons==1&&nGoodElectrons==1|| ( isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2 ) && abs(dl_mass-91.2)>15)"
+#    data_samples = [DoubleMuon_Run2016B, DoubleEG_Run2016B, MuonEG_Run2016B]
+#    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
+#    DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
+#    MuonEG_Run2016B.setSelectionString([dataFilterCut, muEle_selectionString])
+#    data_sample_texName = "Data"
+#    #qcd_sample = QCD_Mu5EMbcToE
+elif args.mode=="sameFlavour":
+    doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
+    doubleEle_selectionString = "&&".join([ "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
+    lepton_selection_string_mc = "&&".join([ "(isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2)", getZCut(args.zMode)])
+    data_samples = [DoubleMuon_Run2016B, DoubleEG_Run2016B]
+    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
+    DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
+    data_sample_texName = "Data (SF)"
+    #qcd_sample = QCD_Mu5EMbcToE
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
-if args.ttjets == "NLO":
-    TTJets_sample = TTJets
-elif args.ttjets == "LO":
-    TTJets_sample = TTJets_Lep 
-else:
-    raise ValueError
 if args.dy == "NLO":
     dy_sample = DY
 elif args.dy == "LO":
@@ -134,18 +155,40 @@ else:
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc = [ dy_sample, TTJets_sample, singleTop, TTZ, TTXNoZ, multiBoson]
+
+dy_highFakeMet = copy.deepcopy( dy_sample )
+dy_highFakeMet.name = "dy_highFakeMet"
+dy_highFakeMet.texName = "DY #slash{E}_{T, fake} > 100"
+dy_highFakeMet.addSelectionString( "abs(met_pt-met_genPt)>100" )
+dy_highFakeMet.color = ROOT.kGreen + 4
+
+dy_mediumFakeMet = copy.deepcopy( dy_sample )
+dy_mediumFakeMet.name = "dy_mediumFakeMet"
+dy_mediumFakeMet.texName = "DY  50<#slash{E}_{T,fake}<100"
+dy_mediumFakeMet.addSelectionString( "abs(met_pt-met_genPt)>50&&abs(met_pt-met_genPt)<100" )
+dy_mediumFakeMet.color = ROOT.kGreen + 2
+
+dy_lowFakeMet = copy.deepcopy( dy_sample )
+dy_lowFakeMet.name = "dy_lowFakeMet"
+dy_lowFakeMet.texName = "DY  #slash{E}_{T,fake}<50"
+dy_lowFakeMet.addSelectionString( "abs(met_pt-met_genPt)<=50" )
+dy_lowFakeMet.color = ROOT.kGreen 
+
+mc = [ dy_lowFakeMet, dy_mediumFakeMet, dy_highFakeMet, TTJets_Lep, singleTop, TTZ, TTXNoZ, multiBoson]
 #mc = [ TTX]
 if args.small:
-    for sample in mc + [ data_sample ]:
+    for sample in mc + data_samples:
         sample.reduceFiles(to = 1)
     #TTJets_Dilep.reduceFiles(to = 1)
 
-data_sample.style = styles.errorStyle( ROOT.kBlack )
-lumi_scale = data_sample.lumi/1000
+for s in data_samples:
+    s.style = styles.errorStyle( ROOT.kBlack )
+
+lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
 
 for sample in mc:
     sample.style = styles.fillStyle( sample.color)
+    sample.addSelectionString([ mcFilterCut, lepton_selection_string_mc])
 
 from StopsDilepton.tools.user import plot_directory
 
@@ -155,17 +198,21 @@ weight = lambda data:data.weight
 cuts=[
 #    ("leadingLepIsTight", "l1_miniRelIso<0.4"),
 #    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
-    ("njet1p", "nJetGood>=1"),
+#    ("njet12", "nJetGood>=1&&nJetGood<=2"),
+    ("njet2p", "nJetGood>=1&&nJetGood>=2"),
 #    ("nbtag1", "nBTag>=1"),
-#    ("nbtag0", "nBTag==0"),
+    ("nLooseBTag0", "Sum$(JetGood_pt>30&&JetGood_id&&abs(JetGood_eta)<2.4&&JetGood_btagCSV>0.460)==0"),
+#    ("ptZ100", "dl_pt>100"),
 #    ("mll20", "dl_mass>20"),
 #    ("met80", "met_pt>80"),
 #    ("metSig5", "met_pt/sqrt(ht)>5"),
 #    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
-
+    
 ]
+if args.dPhiCut:
+    cuts.append( ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0")  )
                 
 def drawObjects( dataMCScale ):
     tex = ROOT.TLatex()
@@ -175,12 +222,12 @@ def drawObjects( dataMCScale ):
 
     lines = [ (0.15, 0.95, 'CMS Preliminary') ]
     if dataMCScale is not None: 
-        lines.append( (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(data_sample.lumi/100)/10., dataMCScale ) ) )
+        lines.append( (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) ) )
     else:
         lines.append( (0.50, 0.95, '13 TeV' ) )
     return [tex.DrawLatex(*l) for l in lines] 
 
-stack = Stack(mc, [data_sample])
+stack = Stack(mc, data_samples)
 
 sequence = []
 
@@ -245,18 +292,11 @@ sequence.append( makeUParaUPerp )
 #            logger.warning( "Could not add signal %s", s)
 
 
-
-data_sample.setSelectionString([dataFilterCut, trigger])
-for sample in mc:
-    sample.setSelectionString([ mcFilterCut])
-
 presel = [("isOS","isOS")]
 presel.extend( cuts )
 
 ppfixes = [args.mode, args.zMode]
 if args.pu != "None": ppfixes.append( args.pu )
-if args.ttjets == "NLO": ppfixes.append( "TTJetsNLO" )
-if args.ttjets == "LO": ppfixes.append( "TTJetsLO" )
 if args.dy == "NLO": ppfixes.append( "DYNLO" )
 if args.dy == "LO": ppfixes.append( "DYLO" )
 if args.small: ppfixes = ['small'] + ppfixes
@@ -265,7 +305,7 @@ prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
 plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
 assert not os.path.exists(plot_path) or args.overwrite, "Path %s not empty. Skipping."
 
-selectionString = "&&".join( [p[1] for p in presel] + [leptonSelectionString] )
+selectionString = "&&".join( [p[1] for p in presel])
 
 logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionString )
 
@@ -310,10 +350,10 @@ plots.append( upara )
 
 dl_uPlusQPara  = Plot(
     name = "uPlusQPara",
-    texX = '(u+q)_{\parallel} (GeV)', texY = 'Number of Events / 5 GeV',
+    texX = '(u+q)_{\parallel} (GeV)', texY = 'Number of Events / 30 GeV',
    stack = stack, 
     variable = ScalarType.uniqueFloat().addFiller(lambda data:data.uPlusQPara),
-    binning=[400/5,-200,200],
+    binning=[600/30,-300,300],
     selectionString = selectionString,
     weight = weight,
     ) 
@@ -442,7 +482,7 @@ def qt_cut_weight( qtb ):
             return 0
     return w
 
-for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80, 90), (90,100), (100,120), (120,150), (150,200), (200,250), (250,350), (350,550)]:
+for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80, 90), (90,100), (100,120), (120,150), (150,200), (200,250), (250,350), (350,450), (450,550)]:
     upara_qt  = Plot(
         name = "upara_qt_%i_%i"%qtb,
         texX = 'u_{\parallel} (GeV)', texY = 'Number of Events / 10 GeV',
@@ -460,8 +500,9 @@ for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80,
         stack = stack, 
         variable = ScalarType.uniqueFloat().addFiller(lambda data:data.uPlusQPara),
         weight   = qt_cut_weight(qtb),
-        binning=[300/10,-150,150],
+        binning=[500/10,-250,250],
         selectionString = selectionString,
+        addOverFlowBin = 'both',
         ) 
     plots.append( uPlusQPara_qt )
 
@@ -531,11 +572,22 @@ dl_mt2ll  = Plot(
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
     stack = stack, 
     variable = Variable.fromString( "dl_mt2ll/F" ),
-    binning=[300/15,0,300],
+    binning=[300/20,0,300],
     selectionString = selectionString,
     weight = weight,
     )
 plots.append( dl_mt2ll )
+
+dl_mt2ll_100  = Plot(
+    name = "dl_mt2ll_100",
+    texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 25 GeV',
+    stack = stack, 
+    variable = Variable.fromString( "dl_mt2ll/F" ),
+    binning=[350/25,100,450],
+    selectionString = selectionString,
+    weight = weight,
+    )
+plots.append( dl_mt2ll_100 )
 
 dl_mt2bb  = Plot(
     texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
@@ -594,27 +646,38 @@ plotting.fill(plots \
     , read_variables = read_variables, sequence = sequence)
 if not os.path.exists( plot_path ): os.makedirs( plot_path )
 
-ratio = {'yRange':(0.8,1.2)}
+ratio = {'yRange':(0,2.2)}
 
-#plotting.draw(recoil_TT, 
-#    plot_directory = plot_path, ratio = None, 
-#    logX = False, logY = True, sorting = False, 
-#    yRange = (0, "auto"), 
-#)
 
 for plot in plots:
-    plotting.draw(plot, 
-        plot_directory = plot_path, ratio = ratio, 
-        logX = False, logY = True, sorting = False, 
-        yRange = (0.03, "auto"), 
-        drawObjects = drawObjects( dataMCScale ),
+    if args.mode in ['dilepton', 'sameFlavour']:
+        data_histo =  plot.histos_added[-1][0]
+        data_histo.style = styles.errorStyle( ROOT.kBlack )
+        plot.histos = plot.histos[:-1]+[[data_histo]]
+        plot.stack = plot.stack[:-1] + [[plot.stack[-1][0] ]]
+        plot.stack[-1][0].texName = data_sample_texName
+    plotting.draw(plot,
+        plot_directory = plot_path, ratio = ratio,
+        logX = False, logY = True, #sorting = True, 
+        #scaling = {0:1} if not args.noScaling else {},
+        yRange = (0.03, "auto"),
+        drawObjects = drawObjects( dataMCScale )
     )
+#logger.info( "Done with prefix %s and selectionString %s", prefix, selectionString )
 
-for plot in plots2D:
-    plotting.draw2D(
-        plot = plot,
-        plot_directory = plot_path,
-        logX = False, logY = False, logZ = True,
-    )
+#for plot in plots:
+#    plotting.draw(plot, 
+#        plot_directory = plot_path, ratio = ratio, 
+#        logX = False, logY = True, sorting = False, 
+#        yRange = (0.03, "auto"), 
+#        drawObjects = drawObjects( dataMCScale ),
+#    )
+
+#for plot in plots2D:
+#    plotting.draw2D(
+#        plot = plot,
+#        plot_directory = plot_path,
+#        logX = False, logY = False, logZ = True,
+#    )
 
 logger.info( "Done with prefix %s and selectionString %s", prefix, selectionString )

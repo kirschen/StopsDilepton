@@ -192,8 +192,10 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 # flags (I think string searching is slow, so let's not do it in the filler function)
 isDiLep     =   options.skim.lower().startswith('dilep')
+isTriLep     =   options.skim.lower().startswith('trilep')
 isSingleLep =   options.skim.lower().startswith('singlelep')
 isTiny      =   options.skim.lower().count('tiny') 
+isSmall      =   options.skim.lower().count('small') 
 isVeryLoose =  'veryloose' in options.skim.lower()
 isVeryLoosePt10 =  'veryloosept10' in options.skim.lower()
 isLoose     =  'loose' in options.skim.lower() and not isVeryLoose
@@ -203,6 +205,8 @@ isJet250    = 'jet250' in options.skim.lower()
 skimConds = []
 if isDiLep:
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=2" )
+if isTriLep:
+    skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)&&LepGood_miniRelIso<0.4) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5&&LepGood_miniRelIso<0.4)>=2 && Sum$(LepOther_pt>10&&abs(LepOther_eta)<2.5)+Sum$(LepGood_pt>10&&abs(LepGood_eta)<2.5)>=3" )
 elif isSingleLep:
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=1" )
 elif isJet250:
@@ -211,7 +215,7 @@ elif isJet250:
 #Samples: Load samples
 maxN = 2 if options.runSmallSample else None
 if options.T2tt:
-    from StopsDilepton.samples.cmgTuples_Signals_Spring15_mAODv2_25ns_0l import T2tt
+    from StopsDilepton.samples.cmgTuples_Signals_Spring16_mAODv2_25ns_0l import T2tt
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
     samples = filter( lambda s:s.name in options.samples, T2tt)
     logger.info( "T2tt signal samples to be processed: %s", ",".join(s.name for s in samples) )
@@ -312,13 +316,6 @@ if options.LHEHTCut>0:
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
 
-## MET group veto list
-#if sample.isData:
-#    import StopsDilepton.tools.vetoList as vetoList_
-#    # MET group veto lists from 74X
-#    fileNames  = ['Run2015D/csc2015_Dec01.txt.gz', 'Run2015D/ecalscn1043093_Dec01.txt.gz']
-#    vetoList = vetoList_.vetoList( [os.path.join(user.veto_lists, f) for f in fileNames] )
-
 # output directory
 outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sample.name)
 
@@ -360,7 +357,28 @@ if isTiny:
 
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
+elif isSmall:
+    #branches to be kept for data and MC
+    branchKeepStrings_DATAMC = [\
+        "run", "lumi", "evt", "isData", "rho", "nVert",
+        "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
+#        "metNoHF_pt", "metNoHF_phi",
+#        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
+        "Flag_*","HLT_*",
+#        "nDiscJet", "DiscJet_*",
+#        "nJetFailId", "JetFailId_*",
+        "nLepGood", "LepGood_*",
+        "nLepOther", "LepOther_*",
+#        "nTauGood", "TauGood_*",
+    ]
+    #branches to be kept for MC samples only
+    branchKeepStrings_MC = [\
+        "nTrueInt", "genWeight", "xsec", "met_gen*", "lheHTIncoming",
+#        "ngenPartAll","genPartAll_*","ngenLep","genLep_*"
+    ]
 
+    #branches to be kept for data only
+    branchKeepStrings_DATA = [ ]
 else:
     #branches to be kept for data and MC
     branchKeepStrings_DATAMC = [\
@@ -392,7 +410,7 @@ if options.T2tt: branchKeepStrings_MC += ['GenSusyMScan1', 'GenSusyMScan2']
 # Jet variables to be read from chain
 jetCorrInfo = ['corr/F', 'corr_JECUp/F', 'corr_JECDown/F'] if addSystematicVariations else []
 if isMC:
-    if isTiny:
+    if isTiny or isSmall:
         jetMCInfo = ['mcPt/F', 'hadronFlavour/I']
     else:
         jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
@@ -401,7 +419,7 @@ if isMC:
 else:
     jetMCInfo = []
 
-if not isTiny:
+if not (isTiny or isSmall):
     branchKeepStrings_DATAMC+=[
         "ngamma", "gamma_idCutBased", "gamma_hOverE", "gamma_r9", "gamma_sigmaIetaIeta", "gamma_chHadIso04", "gamma_chHadIso", "gamma_phIso",
         "gamma_neuHadIso", "gamma_relIso", "gamma_pdgId", "gamma_pt", "gamma_eta", "gamma_phi", "gamma_mass",
@@ -466,13 +484,13 @@ new_variables.extend( ['nJetGood/I','nBTag/I', 'ht/F', 'metSig/F'] )
 
 if isSingleLep:
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
-if isDiLep or isSingleLep:
+if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_dxy/F', 'l1_dz/F' ] )
     # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     new_variables.extend( ['mlmZ_mass/F'] )
     new_variables.extend( ['mt_photonEstimated/F'] )
-if isDiLep:
+if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_dxy/F', 'l2_dz/F' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
@@ -483,7 +501,7 @@ new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
 new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
 new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
-if isDiLep:
+if isTriLep or isDiLep:
   new_variables.extend( ['dlg_mass/F','dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
 
 if options.checkTTGJetsOverlap:
@@ -498,10 +516,10 @@ if addSystematicVariations:
     for var in ['JECUp', 'JECDown', 'JECVUp', 'JECVDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
         if 'Unclustered' not in var: new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
-        if isDiLep:
+        if isTriLep or isDiLep:
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
 	new_variables.extend( ['met_pt_photonEstimated_'+var+'/F', 'met_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
-	if isDiLep:
+	if isTriLep or isDiLep:
 	    new_variables.extend( ['dl_mt2ll_photonEstimated_'+var+'/F', 'dl_mt2bb_photonEstimated_'+var+'/F', 'dl_mt2blbl_photonEstimated_'+var+'/F'] )
     # Btag weights Method 1a
     for var in btagEff.btagWeightNames:
@@ -512,7 +530,7 @@ if options.T2tt:
     read_variables += map(Variable.fromString, ['GenSusyMScan1/I', 'GenSusyMScan2/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
 
-if options.fastSim and isDiLep:
+if options.fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
 # Define a reader
@@ -704,7 +722,7 @@ def filler(s):
                 ht = getattr(s, "ht_"+var) if 'Unclustered' not in var else s.ht 
                 setattr(s, "metSig" +i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
 
-    if isSingleLep or isDiLep:
+    if isSingleLep or isTriLep or isDiLep:
         s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
         s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
 
@@ -733,7 +751,7 @@ def filler(s):
             s.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
             s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
 
-    if isDiLep:
+    if isTriLep or isDiLep:
         if isMC:
             s.reweightDilepTrigger       = 0 
             s.reweightDilepTriggerUp     = 0 
@@ -838,7 +856,7 @@ def filler(s):
                 l["lepGoodMatchIndex"] = matched_lep['index']
                 if isSingleLep:
                     l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index]
-                elif isDiLep:
+                elif isTriLep or isDiLep:
                     l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index, s.l2_index]
                 else:
                     l["matchesPromptGoodLepton"] = 0

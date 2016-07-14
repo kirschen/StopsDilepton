@@ -16,16 +16,16 @@ config = Configuration()
 ##  Once the Configuration object is created, it is possible to add new sections into it with corresponding parameters
 config.section_("General")
 config.General.requestName = 'pickEvents'
-config.General.workArea = 'crab_pickevents_20160512_125825'
+config.General.workArea = 'crab_pickevents_20160711_232352'
 
 
 config.section_("JobType")
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = '/cvmfs/cms.cern.ch/slc6_amd64_gcc493/cms/cmssw/CMSSW_7_6_3/src/PhysicsTools/Utilities/configuration/copyPickMerge_cfg.py'
+config.JobType.psetName = '/cvmfs/cms.cern.ch/slc6_amd64_gcc493/cms/cmssw-patch/CMSSW_8_0_10_patch2/src/PhysicsTools/Utilities/configuration/copyPickMerge_cfg.py'
 config.JobType.pyCfgParams = ['eventsToProcess_load=pickevents_runEvents.txt', 'outputFile=pickevents.root']
 
 config.section_("Data")
-config.Data.inputDataset = '/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIIFall15DR76-PU25nsData2015v1_76X_mcRun2_asymptotic_v12_ext1-v1/AODSIM'
+config.Data.inputDataset = '/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring16DR80-PUSpring16_80X_mcRun2_asymptotic_2016_v3_ext1-v1/AODSIM'
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'LumiBased'

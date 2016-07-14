@@ -21,11 +21,11 @@ nuPdgs = [12,14,16]
 maxN = -1
 
 samples = [ Sample.fromDirectory(name="TTJets_Lep", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (lep)", \
-            directory=['/afs/hephy.at/data/rschoefbeck01/cmgTuples/postProcessed_Fall15_mAODv2/dilep/TTJets_DiLepton_comb/'], maxN = maxN) ]
+            directory=['/afs/hephy.at/data/rschoefbeck02/cmgTuples/postProcessed_80X_v7/dilep/TTJets_DiLepton_comb/'], maxN = maxN) ]
 
-from StopsDilepton.tools.objectSelection import multiIsoMuId, multiIsoEleId
-muID = multiIsoMuId("VT")
-eleID = multiIsoEleId("VT")
+#from StopsDilepton.tools.objectSelection import multiIsoMuId, multiIsoEleId
+#muID = multiIsoMuId("VT")
+#eleID = multiIsoEleId("VT")
 
 def vecPtSum(objs, subtract=[]):
     px = sum([o['pt']*cos(o['phi']) for o in objs])
@@ -38,22 +38,20 @@ def bold(s):
     return '\033[1m'+s+'\033[0m'
 
 from StopsDilepton.tools.objectSelection import multiIsoLepString
-multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
+#multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
-cuts=[
-  ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
-  ("filterCut", "Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter" ),
-  ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
-  ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
+cuts=[\
+  ("filterCut", "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon" ),
+  ("leptons", "(isEMu==1&&nGoodMuons==1&&nGoodElectrons==1 || ( isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2 ) && abs(dl_mass-91.2)>15)"),
   ("mll20", "dl_mass>20"),
-  ("met80", "met_pt>80"),
-  ("metSig5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
-  ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+  ("l1pt25", "l1_pt>25"),
+  ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
+  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
   ("isOS","isOS==1"),
-  ("SFZVeto","( (isMuMu==1||isEE==1)&&abs(dl_mass-91.2)>=15 || isEMu==1 )"),
-#  ("multiIsoWP", multiIsoWP),
-#  ("tauVeto","Sum$(TauGood_pt>20 && abs(TauGood_eta)<2.4 && TauGood_idDecayModeNewDMs>=1 && TauGood_idCI3hit>=1 && TauGood_idAntiMu>=1 && TauGood_idAntiE>=1)==0"),
-#  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
+  ("njet2", "nJetGood>=2" ),
+  ("nbtag1", "nBTag>=1" ),
+  ("met80", "met_pt>80" ),
+  ("metSig5", "metSig>5" ),
     ]
 
 #prefix+="_tauVeto_mRelIso01_looseLepVeto"

@@ -146,7 +146,7 @@ TTJets_1l.color = ROOT.kAzure - 2
 TTJets_l2_prompt    = TTJets_Dilep
 TTJets_l2_prompt.name = "TTJets_2l_prompt"
 TTJets_l2_prompt.texName = "TTJets 2l (prompt)"
-TTJets_l2_prompt.weight =    lambda data: not data.l2_matched_nonPrompt
+TTJets_l2_prompt.weight = lambda data: not data.l2_matched_nonPrompt
 
 TTJets_l2_nonPrompt = copy.deepcopy(TTJets_Dilep)
 TTJets_l2_nonPrompt.name = "TTJets_2l_nonPrompt"

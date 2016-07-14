@@ -84,7 +84,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v7_systematics_withTriggerSF',
+    default='80X_v9_systematics_withTriggerSF',
     action='store',
 )
 
@@ -125,9 +125,9 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v9/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v9/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
 def getZCut(mode):
