@@ -25,9 +25,9 @@ def toFlavourKey(pdgId):
 
 # get the combinatorical weights for jet efficiency list eff
 #Method 1ab
-effFile             = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTJets_DiLepton_comb_2j_2l.pkl'
-sfFile           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2.csv'
-sfFile_FastSim   = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSV_13TEV_Combined_20_11_2015.csv'
+effFile          = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTJets_DiLepton_comb_2j_2l.pkl'
+sfFile           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2_4invfb.csv'
+sfFile_FastSim   = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSV_13TEV_TTJets_11_7_2016.csv'
 
 class btagEfficiency:
 
@@ -87,9 +87,9 @@ class btagEfficiency:
         self.readerMuUp        = ROOT.BTagCalibrationReader(self.calib, WP, "mujets", "up")
         self.readerMuCentral   = ROOT.BTagCalibrationReader(self.calib, WP, "mujets", "central")
         self.readerMuDown      = ROOT.BTagCalibrationReader(self.calib, WP, "mujets", "down")
-        self.readerCombUp      = ROOT.BTagCalibrationReader(self.calib, WP, "comb", "up")
-        self.readerCombCentral = ROOT.BTagCalibrationReader(self.calib, WP, "comb", "central")
-        self.readerCombDown    = ROOT.BTagCalibrationReader(self.calib, WP, "comb", "down")
+        self.readerLightUp      = ROOT.BTagCalibrationReader(self.calib, WP, "incl", "up")
+        self.readerLightCentral = ROOT.BTagCalibrationReader(self.calib, WP, "incl", "central")
+        self.readerLightDown    = ROOT.BTagCalibrationReader(self.calib, WP, "incl", "down")
         if fastSim:
             logger.info( "Loading FullSim/FastSim scale factors from %s", os.path.expandvars( self.scaleFactorFileFS ) )
             self.calibFS = ROOT.BTagCalibration("csv", os.path.expandvars( self.scaleFactorFileFS ) )
@@ -147,11 +147,11 @@ class btagEfficiency:
             sf_l_d = 1.
             sf_l_u = 1.
         else: #SF for light flavours
-            sf     = sf_fs*self.readerCombCentral.eval(ROOT.BTagEntry.FLAV_UDSG, eta, pt_)
+            sf     = sf_fs*self.readerLightCentral.eval(ROOT.BTagEntry.FLAV_UDSG, eta, pt_)
             sf_b_d = 1.
             sf_b_u = 1.
-            sf_l_d = sf_fs*self.readerCombDown .eval(ROOT.BTagEntry.FLAV_UDSG, eta, pt_)
-            sf_l_u = sf_fs*self.readerCombUp   .eval(ROOT.BTagEntry.FLAV_UDSG, eta, pt_)
+            sf_l_d = sf_fs*self.readerLightDown .eval(ROOT.BTagEntry.FLAV_UDSG, eta, pt_)
+            sf_l_u = sf_fs*self.readerLightUp   .eval(ROOT.BTagEntry.FLAV_UDSG, eta, pt_)
         if doubleUnc:
             sf_b_d = sf + 2.*(sf_b_d - sf)
             sf_b_u = sf + 2.*(sf_b_u - sf)

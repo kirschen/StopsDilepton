@@ -262,11 +262,9 @@ else:
 
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
-    if options.T2tt or options.TTDM:
+    if options.TTDM:
         # T2tt signal is 74X with Spring15 profile!
-        puRW        = getReweightingFunction(data="PU_2100_XSecCentral", mc="Spring15")
-        puRWDown    = getReweightingFunction(data="PU_2100_XSecDown", mc="Spring15")
-        puRWUp      = getReweightingFunction(data="PU_2100_XSecUp", mc="Spring15")
+        raise NotImplementedError( 'Hope you are not in a hurry.' )
     else:
         # nTrueIntReweighting
         nTrueInt_puRW        = getReweightingFunction(data="PU_2016_5300_XSecCentral", mc="Spring16")
@@ -405,7 +403,7 @@ else:
 if isSingleLep:
     branchKeepStrings_DATAMC += ['HLT_*']
 
-if options.T2tt: branchKeepStrings_MC += ['GenSusyMScan1', 'GenSusyMScan2']
+if options.T2tt: branchKeepStrings_MC += ['GenSusyMStop', 'GenSusyMNeutralino']
 
 # Jet variables to be read from chain
 jetCorrInfo = ['corr/F', 'corr_JECUp/F', 'corr_JECDown/F'] if addSystematicVariations else []
@@ -527,7 +525,7 @@ if addSystematicVariations:
             new_variables.append('reweightBTag_'+var+'/F')
 
 if options.T2tt:
-    read_variables += map(Variable.fromString, ['GenSusyMScan1/I', 'GenSusyMScan2/I'] )
+    read_variables += map(Variable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
 
 if options.fastSim and (isTriLep or isDiLep):
@@ -585,11 +583,11 @@ def filler(s):
 
     # weight
     if options.T2tt:
-        s.weight=signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['weight']
-        s.mStop = r.GenSusyMScan1
-        s.mNeu  = r.GenSusyMScan2
-        s.reweightXSecUp    = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacUp']
-        s.reweightXSecDown  = signalWeight[(r.GenSusyMScan1, r.GenSusyMScan2)]['xSecFacDown']
+        s.weight=signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['weight']
+        s.mStop = r.GenSusyMStop
+        s.mNeu  = r.GenSusyMNeutralino
+        s.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
+        s.reweightXSecDown  = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacDown']
     elif isMC:
         s.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
     elif isData:
@@ -973,7 +971,7 @@ if isData:
 if options.T2tt:
     output = Sample.fromDirectory("T2tt_output", outDir)
     for s in signalWeight.keys():
-        cut = "GenSusyMScan1=="+str(s[0])+"&&GenSusyMScan2=="+str(s[1])
+        cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1])
         signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
         if not os.path.exists(signalFile) or options.overwrite:
             t = output.chain.CopyTree(cut)

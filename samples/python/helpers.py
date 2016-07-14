@@ -75,7 +75,7 @@ def getT2ttSignalWeight(sample, lumi):
     signalWeight={}
     mMax = 1500
     bStr = str(mMax)+','+str(mMax)
-    sample.chain.Draw("GenSusyMScan2:GenSusyMScan1>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
+    sample.chain.Draw("GenSusyMNeutralino:GenSusyMStop>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
     hNEvents = ROOT.gDirectory.Get("hNEvents")
     for i in range (mMax):
         for j in range (mMax):
