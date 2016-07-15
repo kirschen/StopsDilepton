@@ -52,6 +52,11 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
+argParser.add_argument('--splitDiBoson',
+    action='store_true',
+    help='splitDiBoson?',
+)
+
 argParser.add_argument('--noScaling',
     action='store_true',
     #default = True,
@@ -106,7 +111,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v7',
+    default='80X_v9',
     action='store',
 )
 
@@ -128,9 +133,9 @@ def getZCut(mode):
 # Extra requirements on data
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v9/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v9/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
 if args.mode=="doubleMu":
@@ -191,7 +196,10 @@ else:
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
-mc_samples = [ TTJets_sample, singleTop, diBoson, DY_HT_LO, TTZ, TTW, triBoson]
+if args.splitDiBoson:
+    mc_samples = [ TTJets_sample, singleTop, VVTo2L2Nu, WW,WZ,ZZ, DY_HT_LO, TTZ, TTW, triBoson]
+else:
+    mc_samples = [ TTJets_sample, singleTop, diBoson, DY_HT_LO, TTZ, TTW, triBoson]
 #mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, WWInclusive, WZInclusive, ZZInclusive, WZZ]
 #mc = [ TTX]
 if args.small:
@@ -269,7 +277,7 @@ def selection( ):
 cuts = selection()
 
 cuts.extend( [ 
-    ("mt2ll140", "dl_mt2ll>140"),
+#    ("mt2ll140", "dl_mt2ll>140"),
     ] )
 #
 #cuts=[
@@ -372,6 +380,7 @@ for i_comb in [ len(cuts) ]:
         ppfixes = [args.mode, args.zMode]
         if args.ttjets == "NLO": ppfixes.append( "TTJetsNLO" )
         if args.ttjets == "LO": ppfixes.append( "TTJetsLO" )
+        if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
         if args.pu != "None": ppfixes = [args.pu] + ppfixes
         if args.small: ppfixes = ['small'] + ppfixes
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )

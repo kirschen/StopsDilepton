@@ -47,8 +47,9 @@ argParser.add_argument('--dileptonTrigger',
     action='store',
 )
 
+
 argParser.add_argument('--sample',
-    default='JetHT',
+    default='MET',
     type=str,
     action='store',
 )
@@ -82,7 +83,12 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 maxN = 10 if args.small else -1 
 
 from StopsDilepton.samples.helpers import fromHeppySample
-data = fromHeppySample("%s_Run2016B_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l', maxN = maxN)
+data_Run2016B = fromHeppySample("%s_Run2016B_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_9', maxN = maxN)
+data_Run2016C = fromHeppySample("%s_Run2016C_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_9', maxN = maxN)
+
+data=Sample.combine( "Run2016BC", [data_Run2016B, data_Run2016C] )
+preprefix = "Run2016BC"
+triggerName = args.dileptonTrigger.replace('||','_OR_')
 
 pt_thresholds = range(0,30,2)+range(30,50,5)+range(50,210,10)
 eta_thresholds = [x/10. for x in range(-25,26,1) ]
@@ -91,22 +97,22 @@ pt_thresholds_veryCoarse = range(5,25,10)+[25] + range(50,200,50)+[250]
 eta_thresholds_coarse = [x/10. for x in range(-25,26,5) ]
 
 eff_pt1 = ROOT.TProfile("eff_pt1","eff_pt1", len(pt_thresholds)-1, array.array('d',pt_thresholds), 0,1)
-eff_pt1.GetYaxis().SetTitle(args.dileptonTrigger)
+eff_pt1.GetYaxis().SetTitle(triggerName)
 eff_pt1.GetXaxis().SetTitle("p_{T} of leading lepton")
 eff_pt1.style = styles.errorStyle( ROOT.kBlack )
 
 eff_pt2 = ROOT.TProfile("eff_pt2","eff_pt2", len(pt_thresholds)-1, array.array('d',pt_thresholds), 0,1)
-eff_pt2.GetYaxis().SetTitle(args.dileptonTrigger)
+eff_pt2.GetYaxis().SetTitle(triggerName)
 eff_pt2.GetXaxis().SetTitle("p_{T} of trailing lepton")
 eff_pt2.style = styles.errorStyle( ROOT.kBlack )
 
 eff_eta1 = ROOT.TProfile("eff_eta1","eff_eta1", len(eta_thresholds)-1, array.array('d',eta_thresholds), 0,1)
-eff_eta1.GetYaxis().SetTitle(args.dileptonTrigger)
+eff_eta1.GetYaxis().SetTitle(triggerName)
 eff_eta1.GetXaxis().SetTitle("#eta of leading lepton")
 eff_eta1.style = styles.errorStyle( ROOT.kBlack )
 
 eff_eta2 = ROOT.TProfile("eff_eta2","eff_eta2", len(eta_thresholds)-1, array.array('d',eta_thresholds), 0,1)
-eff_eta2.GetYaxis().SetTitle(args.dileptonTrigger)
+eff_eta2.GetYaxis().SetTitle(triggerName)
 eff_eta2.GetXaxis().SetTitle("#eta of trailing lepton")
 eff_eta2.style = styles.errorStyle( ROOT.kBlack )
 
@@ -211,14 +217,15 @@ data.chain.Draw(plot_string_pt1_eta1, selection_string+"&&LepGood_pt==MaxIf$(Lep
 plot_string_pt2_eta2   = args.dileptonTrigger+":LepGood_eta:MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt2_eta2"
 data.chain.Draw(plot_string_pt2_eta2, selection_string+"&&LepGood_pt==MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff')
 
-prefix = "%s_%s_measuredIn%s_minLeadLepPt%i" % ( args.dileptonTrigger, args.baseTrigger if args.baseTrigger is not '' else 'None', args.sample, args.minLeadingLeptonPt)
+
+prefix = preprefix+"_%s_%s_measuredIn%s_minLeadLepPt%i" % ( triggerName, args.baseTrigger if args.baseTrigger is not '' else 'None', args.sample, args.minLeadingLeptonPt)
 if args.small: prefix = "small_" + prefix
 
 from StopsDilepton.tools.user import plot_directory
 plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
 
 plotting.draw(
-    Plot.fromHisto(name = 'pt1_'+args.dileptonTrigger, histos = [[ eff_pt1 ]], texX = "p_{T} of leading lepton", texY = args.dileptonTrigger),
+    Plot.fromHisto(name = 'pt1_'+triggerName, histos = [[ eff_pt1 ]], texX = "p_{T} of leading lepton", texY = triggerName),
     plot_directory = plot_path, #ratio = ratio, 
     logX = False, logY = False, sorting = False,
      yRange = (0,1), legend = None ,
@@ -226,7 +233,7 @@ plotting.draw(
     # drawObjects = drawObjects( dataMCScale )
 )
 plotting.draw(
-    Plot.fromHisto(name = 'pt2_'+args.dileptonTrigger, histos = [[ eff_pt2 ]], texX = "p_{T} of trailing lepton", texY = args.dileptonTrigger),
+    Plot.fromHisto(name = 'pt2_'+triggerName, histos = [[ eff_pt2 ]], texX = "p_{T} of trailing lepton", texY = triggerName),
     plot_directory = plot_path, #ratio = ratio, 
     logX = False, logY = False, sorting = False,
      yRange = (0,1), legend = None ,
@@ -234,7 +241,7 @@ plotting.draw(
     # drawObjects = drawObjects( dataMCScale )
 )
 plotting.draw(
-    Plot.fromHisto(name = 'eta1_'+args.dileptonTrigger, histos = [[ eff_eta1 ]], texX = "#eta of leading lepton", texY = args.dileptonTrigger),
+    Plot.fromHisto(name = 'eta1_'+triggerName, histos = [[ eff_eta1 ]], texX = "#eta of leading lepton", texY = triggerName),
     plot_directory = plot_path, #ratio = ratio, 
     logX = False, logY = False, sorting = False,
      yRange = (0,1), legend = None ,
@@ -242,7 +249,7 @@ plotting.draw(
     # drawObjects = drawObjects( dataMCScale )
 )
 plotting.draw(
-    Plot.fromHisto(name = 'eta2_'+args.dileptonTrigger, histos = [[ eff_eta2 ]], texX = "#eta of trailing lepton", texY = args.dileptonTrigger),
+    Plot.fromHisto(name = 'eta2_'+triggerName, histos = [[ eff_eta2 ]], texX = "#eta of trailing lepton", texY = triggerName),
     plot_directory = plot_path, #ratio = ratio, 
     logX = False, logY = False, sorting = False,
      yRange = (0,1), legend = None ,
@@ -250,7 +257,7 @@ plotting.draw(
     # drawObjects = drawObjects( dataMCScale )
 )
 plotting.draw(
-    Plot.fromHisto(name = "ht_"+args.dileptonTrigger, histos = [[ ht ]], texX = "H_{T} (GeV)", texY = "Number of events"),
+    Plot.fromHisto(name = "ht_"+triggerName, histos = [[ ht ]], texX = "H_{T} (GeV)", texY = "Number of events"),
     plot_directory = plot_path, #ratio = ratio, 
     logX = False, logY = True, sorting = False,
      yRange = (0.3,"auto"), legend = None ,
@@ -276,9 +283,9 @@ for name, plot in [
         plot.Draw("COLZ" )
 
     plot.GetZaxis().SetRangeUser(0,1)
-    c1.Print(os.path.join(plot_path, args.dileptonTrigger+'_'+name+'.png') )
-    c1.Print(os.path.join(plot_path, args.dileptonTrigger+'_'+name+'.pdf') )
-    c1.Print(os.path.join(plot_path, args.dileptonTrigger+'_'+name+'.root') )
+    c1.Print(os.path.join(plot_path, triggerName+'_'+name+'.png') )
+    c1.Print(os.path.join(plot_path, triggerName+'_'+name+'.pdf') )
+    c1.Print(os.path.join(plot_path, triggerName+'_'+name+'.root') )
     del c1
 
 ofile = ROOT.TFile.Open(os.path.join(plot_path, prefix+'.root'), 'recreate')

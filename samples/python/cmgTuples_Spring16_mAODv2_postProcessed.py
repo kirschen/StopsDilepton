@@ -42,11 +42,11 @@ dirs['WJetsToLNu_HT']    = ["WJetsToLNu_HT100to200_comb", "WJetsToLNu_HT200to400
 dirs['diBosonInclusive'] = ["WW", "WZ", "ZZ"]
 dirs['WW']               = ["WWTo1L1Nu2Q", "WWToLNuQQ_comb"]
 dirs['WW_']              = ["WWTo1L1Nu2Q", "WWToLNuQQ_comb","WWTo2L2Nu"]
-dirs['VV']               = ["VVTo2L2Nu"]
+dirs['VVTo2L2Nu']        = ["VVTo2L2Nu"]
 dirs['WZ']               = ["WZTo1L1Nu2Q", "WZTo1L3Nu", "WZTo2L2Q", "WZTo3LNu"]
 dirs['ZZ']              = ["ZZTo2L2Q", "ZZTo2Q2Nu"]
 dirs['ZZ_']              = ["ZZTo2L2Q", "ZZTo2Q2Nu","ZZTo2L2Nu"]
-dirs['diBoson']          = dirs['WW'] + dirs['WZ'] + dirs['ZZ'] + dirs['VV']
+dirs['diBoson']          = dirs['WW'] + dirs['WZ'] + dirs['ZZ'] + dirs['VVTo2L2Nu']
 dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] 
 dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 #dirs['QCD_HT']           = ["QCD_HT100to200", "QCD_HT200to300", "QCD_HT300to500", "QCD_HT500to700", "QCD_HT700to1000", "QCD_HT1000to1500", "QCD_HT1500to2000", "QCD_HT2000toInf"]
@@ -89,7 +89,7 @@ diBosonInclusive = Sample.fromDirectory(name="diBosonInclusive",treeName="Events
 ZZ             = Sample.fromDirectory(name="ZZ",               treeName="Events", isData=False, color=color.ZZ,              texName="ZZ",                                directory=directories['ZZ_'])
 WZ             = Sample.fromDirectory(name="WZ",               treeName="Events", isData=False, color=color.WZ,              texName="WZ",                                directory=directories['WZ'])
 WW             = Sample.fromDirectory(name="WW",               treeName="Events", isData=False, color=color.WW,              texName="WW",                                directory=directories['WW_'])
-VV             = Sample.fromDirectory(name="VV",               treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",                    directory=directories['VV'])
+VVTo2L2Nu      = Sample.fromDirectory(name="VVTo2L2Nu",               treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",                    directory=directories['VVTo2L2Nu'])
 triBoson       = Sample.fromDirectory(name="triBoson",         treeName="Events", isData=False, color=color.triBoson,        texName="WWZ,WZZ,ZZZ",                       directory=directories['triBoson'])
 multiBoson     = Sample.fromDirectory(name="multiBoson",       treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                       directory=directories['multiBoson'])
 #QCD_HT         = Sample.fromDirectory(name="QCD_HT",           treeName="Events", isData=False, color=color.QCD,             texName="QCD (HT)",                          directory=directories['QCD_HT'])
