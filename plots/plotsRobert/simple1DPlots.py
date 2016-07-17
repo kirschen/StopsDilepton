@@ -125,7 +125,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v10',
+    default='80X_v10_2',
     action='store',
 )
 
@@ -133,6 +133,7 @@ args = argParser.parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
+from StopsDilepton.tools.user import plot_directory
 logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
@@ -208,10 +209,8 @@ else:
 
 TTJets_sample = Top
 
-mc_samples = [ TTJets_sample, singleTop] + diBoson_samples + [DY_HT_LO, TTZ, TTW, triBoson]
+mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ, TTW, triBoson]
 
-#mc = [ DY_HT_LO, TTJets_sample, singleTop, qcd_sample, TTZ, TTXNoZ, WWInclusive, WZInclusive, ZZInclusive, WZZ]
-#mc = [ TTX]
 if args.small:
     for sample in mc_samples + data_samples:
         sample.reduceFiles(to = 1)
@@ -224,24 +223,20 @@ lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
 
 logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 
-# 2016 PU reweighting
-#from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
-
-#nvtx_reweight = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_4000pb.pkl")
-
+mc_weight_string = "weight*reweightDilepTrigger*reweightBTag_SF"
+if args.pu != "None":
+    mc_weight_string+="*"+args.pu
+data_weight_string = "weight"
 
 for sample in mc_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     sample.style = styles.fillStyle( sample.color)
     if args.pu != "None":
-        sample.read_variables = [args.pu+'/F', 'reweightDilepTrigger/F']
-        sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTrigger 
+        sample.read_variables = [args.pu+'/F', 'reweightDilepTrigger/F', 'reweightBTag_SF/F']
+        sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTrigger*data.reweightBTag_SF
     else:
-        sample.read_variables = ['reweightDilepTrigger/F']
-        #sample.weight = lambda data: data.reweightDilepTrigger
-
-from StopsDilepton.tools.user import plot_directory
-
+        sample.read_variables = ['reweightDilepTrigger/F', 'reweightBTag_SF/F']
+        sample.weight = lambda data: data.reweightDilepTrigger*data.reweightBTag_SF
 
 weight = lambda data:data.weight
 
@@ -382,8 +377,6 @@ for i_comb in [ len(cuts) ]:
         ppfixes.append( "DBS%i"%(100*args.diBosonScaleFactor) )
         if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
 
-
-        if args.pu != "None": ppfixes = [args.pu] + ppfixes
         if args.small: ppfixes = ['small'] + ppfixes
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
 
@@ -407,9 +400,9 @@ for i_comb in [ len(cuts) ]:
             s.scale*=args.diBosonScaleFactor
 
         if not args.noData and not args.noScaling:
-            logger.info( "Calculating normalization constants" )        
-            yield_mc    = {s.name: s.scale*s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc_samples}
-            yield_data  = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in data_samples)
+            logger.info( "Calculating normalization constants" )
+            yield_mc    = {s.name: s.scale*s.getYieldFromDraw( selectionString = selectionString+"&&dl_mt2ll<100", weightString = mc_weight_string)['val'] for s in mc_samples}
+            yield_data  = sum(s.getYieldFromDraw( selectionString = selectionString+"&&dl_mt2ll<100", weightString = data_weight_string)['val'] for s in data_samples)
             
             non_top = sum(yield_mc[s.name] for s in mc_samples if s.name != TTJets_sample.name)
             top_sf  = (yield_data - non_top)/yield_mc[TTJets_sample.name]
