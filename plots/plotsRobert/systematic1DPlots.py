@@ -382,7 +382,7 @@ roottools_plots = []
 dl_mt2ll_data  = Plot(
     name = "dl_mt2ll_data",
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
-    binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
+    binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,240,340]),
     stack = stack_data,
     variable = Variable.fromString( "dl_mt2ll/F" ),
     selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
@@ -394,7 +394,7 @@ roottools_plots.append( dl_mt2ll_data )
 dl_mt2ll_mc  = { sys:Plot(\
     name = "dl_mt2ll" if sys is None else "dl_mt2ll_mc_%s" % sys,
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
-    binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
+    binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,240,340]),
     stack = sys_stacks[sys],
     variable = Variable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2ll_%s/F" % sys ),
     selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
