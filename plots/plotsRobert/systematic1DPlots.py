@@ -53,7 +53,7 @@ argParser.add_argument('--nbtag',
 
 argParser.add_argument('--small',
     action='store_true',
-    #default=True,
+    default=True,
     help='Small?',
 )
 
@@ -78,13 +78,13 @@ argParser.add_argument('--signals',
     )
 
 argParser.add_argument('--overwrite',
-    #default = True,
+    default = True,
     action='store_true',
     help='overwrite?',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v9_systematics_withTriggerSF',
+    default='80X_v10_systematics',
     action='store',
 )
 
@@ -93,24 +93,17 @@ argParser.add_argument('--analysisSelection',
     action='store',
 )
 
-#argParser.add_argument('--pu',
-#    default=None,#"reweightPU",
-#    action='store',
-#    choices=[None, "reweightPU", "reweightPUUp", "reweightPUDown", "reweightPUVUp", "reweightPUVDown", "reweightNVTX", "reweightNVTXUp", "reweightNVTXDown", "reweightNVTXVUp", "reweightNVTXVDown"],
-#    help='PU weight',
-#)
-
 argParser.add_argument('--sysScaling',
     action='store_true',
-    #default=True,
+    default=True,
     help='sysScaling?',
 )
 
-argParser.add_argument('--dataMCScaling',
-    action='store_true',
-    #default=True,
-    help='dataMCScaling?',
-)
+#argParser.add_argument('--dataMCScaling',
+#    action='store_true',
+#    #default=True,
+#    help='dataMCScaling?',
+#)
 
 
 args = argParser.parse_args()
@@ -125,9 +118,9 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v9/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v10/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v9/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v10/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
 def getZCut(mode):
@@ -187,7 +180,7 @@ else:
     raise ValueError( "Mode %s not known"%args.mode )
 
 
-mc_samples = [ DY_HT_LO, Top, TTZ, TTXNoZ, multiBoson]
+mc_samples = [ DY_HT_LO, Top, TTZ_LO, TTXNoZ, multiBoson]
 DY_HT_LO.texName  = "DY + jets"
 
 if args.small:
@@ -206,11 +199,7 @@ for sample in mc_samples:
 
 from StopsDilepton.tools.user import plot_directory
 
-from StopsDilepton.tools.objectSelection import multiIsoLepString
-multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
-
 common_selection=[
-#    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
     ("l1pt25", "l1_pt>25"),
     ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
@@ -224,21 +213,21 @@ analysis_selection=[
 if "mt2ll100" in args.analysisSelection:
     analysis_selection.append( ("mt2ll100", "dl_mt2ll>100") )
 
-jet_systematics = ['JECVUp','JECVDown']# 'JERDown','JECVUp','JECVDown']
+jet_systematics = ['JECUp','JECDown']# 'JERDown','JECVUp','JECVDown']
 met_systematics = ['UnclusteredEnUp', 'UnclusteredEnDown']
-weight_systematics = ['PUUp', 'PUDown', 'TopPt']#, 'BTag_SF', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up']
+weight_systematics = ['PUUp', 'PUDown', 'TopPt', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up']
 
 sys_pairs = [\
-#    ('JEC', 'JECUp', 'JECDown'),
-    ('JECV', 'JECVUp', 'JECVDown'),
+    ('JEC', 'JECUp', 'JECDown'),
+#    ('JECV', 'JECVUp', 'JECVDown'),
 
     ('Unclustered', 'UnclusteredEnUp', 'UnclusteredEnDown'),
     ('PU', 'PUUp', 'PUDown'),
     ('TopPt', 'TopPt', None),
 
 #    ('JER', 'JERUp', 'JERDown'),
-#    ('BTag_b', 'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
-#    ('BTag_l', 'BTag_SF_l_Down', 'BTag_SF_l_Up'),
+    ('BTag_b', 'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
+    ('BTag_l', 'BTag_SF_l_Down', 'BTag_SF_l_Up'),
 ]
 
 def mCutStr( arg ):
@@ -305,14 +294,13 @@ def systematic_selection( sys = None ):
 
 def weightMC( sys = None ):
     if sys is None:
-        return (lambda data:data.weight*data.reweightPU*data.reweightDilepTrigger, "weight*(reweightDilepTrigger>0?reweightDilepTrigger:0)*reweightPU")
-        #return (lambda data:data.weight*data.reweightPU, "weight*reweightPU")
+        return (lambda data:data.weight*data.reweightPU*data.reweightDilepTrigger*data.reweightBTag_SF, "weight*reweightDilepTrigger*reweightPU*reweightBTag_SF")
     elif 'PU' in sys:
-        return (lambda data:data.weight*data.reweightDilepTrigger*getattr(data, "reweight"+sys), "weight*(reweightDilepTrigger>0?reweightDilepTrigger:0)*reweight"+sys)
-        #return (lambda data:data.weight*getattr(data, "reweight"+sys), "weight*reweight"+sys)
+        return (lambda data:data.weight*getattr(data, "reweight"+sys)*data.reweightDilepTrigger*data.reweightBTag_SF, "weight*reweightDilepTrigger*reweight"+sys+"*reweightBTag_SF")
+    elif 'BTag' in sys:
+        return (lambda data:data.weight*data.reweightPU*data.reweightDilepTrigger*getattr(data, "reweight"+sys), "weight*reweightDilepTrigger*reweightPU*reweight"+sys)
     elif sys in weight_systematics:
-        return (lambda data:data.weight*data.reweightDilepTrigger*data.reweightPU*getattr(data, "reweight"+sys), "weight*(reweightDilepTrigger>0?reweightDilepTrigger:0)*reweightPU*reweight"+sys)
-        #return (lambda data:data.weight*data.reweightPU*getattr(data, "reweight"+sys), "weight*reweightPU*reweight"+sys)
+        return (lambda data:data.weight*data.reweightDilepTrigger*data.reweightPU*data.reweightBTag_SF*getattr(data, "reweight"+sys), "weight*reweightDilepTrigger*reweightPU*reweightBTag_SF*reweight"+sys)
     elif sys in jme_systematics :
         return weightMC( sys = None )
     else: raise ValueError( "Systematic %s not known"%sys )
@@ -343,7 +331,7 @@ for sample in mc_samples:
     sample.read_variables += ["nJetGood_%s/I"%s for s in jet_systematics]
     sample.read_variables += ["nBTag_%s/I"%s for s in jet_systematics]
     #if args.pu is not None: sample.read_variables += [args.pu+'/F']
-    sample.read_variables += ['reweightPU/F', 'reweightDilepTrigger/F']
+    sample.read_variables += ['reweightPU/F', 'reweightDilepTrigger/F', 'reweightBTag_SF/F']
 
 # Charge requirements
 if args.charges=="OS":
@@ -357,8 +345,8 @@ selection.extend( common_selection )
 
 ppfixes = [args.mode, args.zMode] if not args.mode=='dilepton' else [args.mode]
 #if args.pu is not None: ppfixes = [args.pu] + ppfixes
-if args.dataMCScaling: ppfixes.append( "sysScaled" )
-if args.sysScaling: ppfixes.append( "dataMCScaled" )
+#if args.dataMCScaling: ppfixes.append( "dataMCScaled" )
+if args.sysScaling: ppfixes.append( "sysScaled" )
 ppfixes.append('triggerSF')
 if args.small: ppfixes = ['small'] + ppfixes
 prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in selection + analysis_selection + systematic_selection( sys = None )] ) ] )
@@ -382,7 +370,7 @@ roottools_plots = []
 dl_mt2ll_data  = Plot(
     name = "dl_mt2ll_data",
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
-    binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,240,340]),
+    binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
     stack = stack_data,
     variable = Variable.fromString( "dl_mt2ll/F" ),
     selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
@@ -394,7 +382,7 @@ roottools_plots.append( dl_mt2ll_data )
 dl_mt2ll_mc  = { sys:Plot(\
     name = "dl_mt2ll" if sys is None else "dl_mt2ll_mc_%s" % sys,
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
-    binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,240,340]),
+    binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
     stack = sys_stacks[sys],
     variable = Variable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2ll_%s/F" % sys ),
     selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
@@ -540,7 +528,7 @@ plots = [\
 
 if os.path.exists(result_file) and not args.overwrite:
 
-    (all_histos,  dataMCScale, sysScales) = pickle.load(file( result_file ))
+    (all_histos, top_sf) = pickle.load(file( result_file ))
     logger.info( "Loaded plots from %s", result_file )
     for i_plot, plot_ in enumerate(plots):
         #p_mc, p_data, x_norm, bin_width = plot_
@@ -560,40 +548,44 @@ else:
     logger.info( "data_weight_string:    %s", data_weight_string  )
     logger.info( "mc_weight_string:      %s", mc_weight_string  )
 
+    for s in data_samples:
+        s.scale = 1
+    for s in mc_samples:
+        s.scale = lumi_scale
+    #for s in diBoson_samples:
+    #    s.scale*=args.diBosonScaleFactor
 
     #Scaling MC to data in MT2ll<100 region
     normalization_region_cut = "dl_mt2ll<100"
-    if args.dataMCScaling or args.sysScaling:
+    top_sf = {}
+    if args.sysScaling:
         #for s in mc_samples:
-        yield_mc    = sum(s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, mc_selection_string, normalization_region_cut ] ), weightString = mc_weight_string)['val'] for s in mc_samples)
-    if args.dataMCScaling:
+        yield_mc    = {s.name:s.scale*s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, mc_selection_string, normalization_region_cut ] ), weightString = mc_weight_string)['val'] for s in mc_samples}
         yield_data  = sum(s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, data_selection_string, normalization_region_cut ] ), weightString = data_weight_string)['val'] for s in data_samples )
-        dataMCScale = yield_data/(yield_mc*lumi_scale)
-        logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
+        non_top = sum(yield_mc[s.name] for s in mc_samples if s.name != Top.name)
+        top_sf[None]  = (yield_data - non_top)/yield_mc[Top.name]
+        logger.info( "Data: %i MC TT %3.2f MC other %3.2f SF %3.2f", yield_data, yield_mc[Top.name], non_top, top_sf[None] )
     else:
-        dataMCScale = 1
+        top_sf[None] = 1
 
     #Scaling systematic shapes to MT2ll<100 region
-    sysScales = {}
     for sys_pair in sys_pairs:
         for sys in sys_pair[1:]:
-            if not sysScales.has_key( sys ):
+            if not top_sf.has_key( sys ):
                 if args.sysScaling:
                     mc_sys_selection_string = "&&".join( s[1] for s in systematic_selection( sys = sys ) )
                     mc_sys_weight_func, mc_sys_weight_string = weightMC( sys = sys )
-                    yield_sys_mc    = sum(s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, mc_sys_selection_string, normalization_region_cut ] ), weightString = mc_sys_weight_string)['val'] for s in mc_samples)
-                    sysScales[sys] = yield_mc/yield_sys_mc
-                    logger.info( "sysScale %s: nominal yield MC %4.4f sys yield MC  %4.4f sysScale %4.4f", sys, yield_mc, yield_sys_mc, sysScales[sys] )
+                    yield_sys_mc = {s.name:s.scale*s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, mc_sys_selection_string, normalization_region_cut ] ), weightString = mc_sys_weight_string)['val'] for s in mc_samples}
+                    non_top = sum(yield_sys_mc[s.name] for s in mc_samples if s.name != Top.name)
+                    top_sf[sys]  = (yield_data - non_top)/yield_sys_mc[Top.name]
+                    logger.info( "Data: %i sys %s MC TT %3.2f MC other %3.2f SF %3.2f", yield_data, sys, yield_sys_mc[Top.name], non_top, top_sf[sys] )
                 else:
-                    sysScales[sys] = 1
-    # Global scales
-    for sys in dl_mt2ll_mc.values():
-        for sample in sys.stack.samples(): 
-            sample.scale = lumi_scale*dataMCScale
+                     top_sf[sys] = 1
 
     read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]"]
     plotting.fill(roottools_plots, read_variables = read_variables, sequence = sequence)
 
+    
     if not os.path.exists(os.path.dirname( result_file )):
         os.makedirs(os.path.dirname( result_file ))
 
@@ -604,7 +596,7 @@ else:
         data_histos = p_data.histos
         all_histos.append( (mc_histos, data_histos) )
 
-    pickle.dump( (all_histos, dataMCScale, sysScales), file( result_file, 'w' ) )
+    pickle.dump( (all_histos, top_sf), file( result_file, 'w' ) )
     logger.info( "Written %s", result_file)
 
 if not os.path.exists( plot_path ): os.makedirs( plot_path )
@@ -635,14 +627,22 @@ for plot_mc, plot_data, bin_width in plots:
                         histo.SetBinContent(ib, val / (width / bin_width)) 
                         histo.SetBinError(ib, err / (width / bin_width)) 
 
+    # Scaling Top
+    for k in plot_mc.keys():
+        for s in plot_mc[k].histos:
+            for h in s:
+                h.Scale(lumi_scale)
+            pos_top = [i for i,x in enumerate(mc_samples) if x == Top][0]
+            plot_mc[k].histos[0][pos_top].Scale(top_sf[k]) 
+                    
     #Calculating systematics
     h_summed = {k: plot_mc[k].histos_added[0][0].Clone() for k in plot_mc.keys()}
 
-    #Normalize systematic shapes
-    if args.sysScaling:
-        for k in h_summed.keys():
-            if k is None: continue
-            h_summed[k].Scale( sysScales[ k ] )
+    ##Normalize systematic shapes
+    #if args.sysScaling:
+    #    for k in h_summed.keys():
+    #        if k is None: continue
+    #        h_summed[k].Scale( top_sf[ k ] )
 
     h_rel_err = h_summed[None].Clone()
     h_rel_err.Reset()
@@ -701,5 +701,5 @@ for plot_mc, plot_data, bin_width in plots:
         plot_directory = plot_path, ratio = ratio,
         logX = False, logY = True, sorting = True,
         yRange = (0.03, "auto"),
-        drawObjects = drawObjects( dataMCScale ) + boxes
+        drawObjects = drawObjects( top_sf[None] ) + boxes
     )

@@ -47,7 +47,7 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
-argParser.add_argument('--dPhiMetLep',
+argParser.add_argument('--dPhiLepMET',
     action='store_true',
     #default = True,
     help='Small?',
@@ -125,7 +125,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v10_2',
+    default='80X_v10_3',
     action='store',
 )
 
@@ -209,7 +209,7 @@ else:
 
 TTJets_sample = Top
 
-mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ, TTW, triBoson]
+mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson]
 
 if args.small:
     for sample in mc_samples + data_samples:
@@ -281,13 +281,9 @@ def selection( ):
 
 cuts = selection()
 
-if args.highMT2ll:
+if args.dPhiLepMET:
     cuts.extend( [ 
-        ("mt2ll100", "dl_mt2ll>100"),
-        ] )
-if args.dPhiMetLep:
-    cuts.extend( [ 
-        ("dPhiMetLep", "cos(l1_phi-met_phi)>-0.9"),
+        ("dPhiLepMET", "cos(l1_phi-met_phi)>-0.9"),
         ] )
 
 
@@ -376,14 +372,10 @@ for i_comb in [ len(cuts) ]:
         ppfixes = [args.mode, args.zMode]
         ppfixes.append( "DBS%i"%(100*args.diBosonScaleFactor) )
         if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
+        if args.noScaling: ppfixes.append( "noScaling" )
 
         if args.small: ppfixes = ['small'] + ppfixes
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
-
-        plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
-        if os.path.exists(plot_path) and not args.overwrite:
-            logger.info( "Path %s not empty. Skipping."%plot_path )
-            continue
 
         selectionString = "&&".join( [p[1] for p in presel] )
 
@@ -405,13 +397,25 @@ for i_comb in [ len(cuts) ]:
             yield_data  = sum(s.getYieldFromDraw( selectionString = selectionString+"&&dl_mt2ll<100", weightString = data_weight_string)['val'] for s in data_samples)
             
             non_top = sum(yield_mc[s.name] for s in mc_samples if s.name != TTJets_sample.name)
-            top_sf  = (yield_data - non_top)/yield_mc[TTJets_sample.name]
+            if yield_data - non_top>0 and yield_mc[TTJets_sample.name]>0:
+                top_sf  = (yield_data - non_top)/yield_mc[TTJets_sample.name]
+            else:
+                top_sf = 1.
             logger.info( "Data: %i MC TT %3.2f MC other %3.2f SF %3.2f", yield_data, yield_mc[TTJets_sample.name], non_top, top_sf )
 
         else:
             top_sf = 1 
 
         TTJets_sample.scale *= top_sf
+
+        if args.highMT2ll:
+            prefix+='-mt2ll100'
+            selectionString+='&&dl_mt2ll>100'
+
+        plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
+        if os.path.exists(plot_path) and not args.overwrite:
+            logger.info( "Path %s not empty. Skipping."%plot_path )
+            continue
 
         plots = []
 
@@ -497,6 +501,17 @@ for i_comb in [ len(cuts) ]:
             weight = weight,
             )
         plots.append( dl_mt2ll )
+
+        dl_mt2ll_coarse  = Plot(
+            name = "dl_mt2ll_coarse",
+            texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
+            stack = stack, 
+            variable = Variable.fromString( "dl_mt2ll/F" ),
+            binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,240,340]),
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( dl_mt2ll_coarse )
 
         dl_mt2bb  = Plot(
             texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
