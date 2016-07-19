@@ -125,7 +125,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v10_3',
+    default='80X_v10_TrigFix',
     action='store',
 )
 
@@ -154,7 +154,7 @@ postProcessing_directory = "postProcessed_80X_v10/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
 if args.mode=="doubleMu":
-    lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
+    lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&(HLT_mumuIso||HLT_mumuNoiso)", getZCut(args.zMode)])
     lepton_selection_string_mc   = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
     data_samples = [DoubleMuon_Run2016B]
     DoubleMuon_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
@@ -175,7 +175,7 @@ elif args.mode=="muEle":
     data_sample_texName = "Data (1 #mu, 1 e)"
     #qcd_sample = QCD_Mu5EMbcToE
 elif args.mode=="dilepton":
-    doubleMu_selectionString = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso&&abs(dl_mass-91.2)>15"
+    doubleMu_selectionString = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&(HLT_mumuIso||HLT_mumuNoiso)&&abs(dl_mass-91.2)>15"
     doubleEle_selectionString = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ&&abs(dl_mass-91.2)>15"
     muEle_selectionString = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue"
     lepton_selection_string_mc = "(isEMu==1&&nGoodMuons==1&&nGoodElectrons==1|| ( isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2 ) && abs(dl_mass-91.2)>15)"
@@ -187,7 +187,7 @@ elif args.mode=="dilepton":
     #qcd_sample = QCD_Mu5EMbcToE
 
 elif args.mode=="sameFlavour":
-    doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
+    doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&(HLT_mumuIso||HLT_mumuNoiso)", getZCut(args.zMode)])
     doubleEle_selectionString = "&&".join([ "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join([ "(isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2)", getZCut(args.zMode)])
 
@@ -496,7 +496,7 @@ for i_comb in [ len(cuts) ]:
             texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
             variable = Variable.fromString( "dl_mt2ll/F" ),
-            binning=[300/15,0,300],
+            binning=[300/20,0,300],
             selectionString = selectionString,
             weight = weight,
             )
@@ -507,7 +507,7 @@ for i_comb in [ len(cuts) ]:
             texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
             variable = Variable.fromString( "dl_mt2ll/F" ),
-            binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,240,340]),
+            binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
             selectionString = selectionString,
             weight = weight,
             )

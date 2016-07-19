@@ -341,9 +341,9 @@ if isTiny:
        ["run", "lumi", "evt", "isData", "nVert",
         "met_pt", "met_phi",
 #        "puppiMet_pt","puppiMet_phi",
-        "Flag_*",
-        "HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
-        "HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
+        "Flag_*", "HLT_*",
+        #"HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
+        #"HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
         "LepGood_eta","LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId",
         "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits","LepGood_jetPtRelv2", "LepGood_jetPtRatiov2", "LepGood_eleCutIdSpring15_25ns_v1"
         ]
@@ -474,7 +474,7 @@ if isVeryLoose:
         VectorType.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
     ]
 new_variables += [\
-    'JetGood[%s]'% ( ','.join(jetVars + ['JECVUp/F', 'JECVDown/F']) )
+    'JetGood[%s]'% ( ','.join(jetVars) )
 ]
 
 if isData: new_variables.extend( ['jsonPassed/I'] )
@@ -511,7 +511,7 @@ if addSystematicVariations:
     "met_UnclusteredEnUp_Pt/F", "met_UnclusteredEnUp_Phi/F", "met_UnclusteredEnDown_Pt/F", "met_UnclusteredEnDown_Phi/F", 
     ] )
 
-    for var in ['JECUp', 'JECDown', 'JECVUp', 'JECVDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
+    for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
         if 'Unclustered' not in var: new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
         if isTriLep or isDiLep:
@@ -694,11 +694,9 @@ def filler(s):
         for j in allJets:
             j['pt_JECUp']   =j['pt']/j['corr']*j['corr_JECUp']
             j['pt_JECDown'] =j['pt']/j['corr']*j['corr_JECDown']
-            j['pt_JECVUp']   =1.02*j['pt']/j['corr']*j['corr_JECUp']
-            j['pt_JECVDown'] =0.98*j['pt']/j['corr']*j['corr_JECDown']
             # JERUp, JERDown, JER
             addJERScaling(j)
-        for var in ['JECUp', 'JECDown', 'JECVUp', 'JECVDown', 'JERUp', 'JERDown']:
+        for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown']:
             jets_sys[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt_'+var), allJets)
             bjets_sys[var]      = filter(isBJet, jets_sys[var])
             nonBjets_sys[var]   = filter(lambda j: not isBJet(j), jets_sys[var])
@@ -707,7 +705,7 @@ def filler(s):
             setattr(s, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
             setattr(s, "nBTag_"+var,    len(bjets_sys[var]))
 
-        for var in ['JECUp', 'JECDown', 'JECVUp', 'JECVDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
+        for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
             for i in metVariants:
                 # use cmg MET correction values ecept for JER where it is zero. There, propagate jet variations.
                 if 'JER' in var or 'JECV' in var:
@@ -814,7 +812,7 @@ def filler(s):
                     setattr(s, "dl_mt2blbl"+i, mt2Calc.mt2blbl())
 
                 if addSystematicVariations:
-                    for var in ['JECUp', 'JECDown', 'JECVUp', 'JECVDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
+                    for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
                         mt2Calc.setMet( getattr(s, "met_pt"+i+"_"+var), getattr(s, "met_phi"+i+"_"+var) )
                         setattr(s, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
                         if not 'Unclustered' in var:

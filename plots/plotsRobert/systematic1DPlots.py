@@ -95,15 +95,15 @@ argParser.add_argument('--analysisSelection',
 
 argParser.add_argument('--sysScaling',
     action='store_true',
-    default=True,
+    #default=True,
     help='sysScaling?',
 )
 
-#argParser.add_argument('--dataMCScaling',
-#    action='store_true',
-#    #default=True,
-#    help='dataMCScaling?',
-#)
+argParser.add_argument('--dataMCScaling',
+    action='store_true',
+    #default=True,
+    help='dataMCScaling?',
+)
 
 
 args = argParser.parse_args()
@@ -345,7 +345,7 @@ selection.extend( common_selection )
 
 ppfixes = [args.mode, args.zMode] if not args.mode=='dilepton' else [args.mode]
 #if args.pu is not None: ppfixes = [args.pu] + ppfixes
-#if args.dataMCScaling: ppfixes.append( "dataMCScaled" )
+if args.dataMCScaling: ppfixes.append( "dataMCScaled" )
 if args.sysScaling: ppfixes.append( "sysScaled" )
 ppfixes.append('triggerSF')
 if args.small: ppfixes = ['small'] + ppfixes
@@ -558,13 +558,18 @@ else:
     #Scaling MC to data in MT2ll<100 region
     normalization_region_cut = "dl_mt2ll<100"
     top_sf = {}
-    if args.sysScaling:
+    if args.dataMCScaling or args.sysScaling:
         #for s in mc_samples:
         yield_mc    = {s.name:s.scale*s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, mc_selection_string, normalization_region_cut ] ), weightString = mc_weight_string)['val'] for s in mc_samples}
+    if args.dataMCScaling:
         yield_data  = sum(s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, data_selection_string, normalization_region_cut ] ), weightString = data_weight_string)['val'] for s in data_samples )
-        non_top = sum(yield_mc[s.name] for s in mc_samples if s.name != Top.name)
-        top_sf[None]  = (yield_data - non_top)/yield_mc[Top.name]
-        logger.info( "Data: %i MC TT %3.2f MC other %3.2f SF %3.2f", yield_data, yield_mc[Top.name], non_top, top_sf[None] )
+        yield_non_top = sum(yield_mc[s.name] for s in mc_samples if s.name != Top.name)
+        top_sf[None]  = (yield_data - yield_non_top)/yield_mc[Top.name]
+        total = yield_data
+        logger.info( "Data: %i MC TT %3.2f MC other %3.2f SF %3.2f", yield_data, yield_mc[Top.name], yield_non_top, top_sf[None] )
+    elif args.sysScaling:
+        top_sf[None] = 1
+        total = sum(yield_mc.values())
     else:
         top_sf[None] = 1
 
@@ -577,10 +582,10 @@ else:
                     mc_sys_weight_func, mc_sys_weight_string = weightMC( sys = sys )
                     yield_sys_mc = {s.name:s.scale*s.getYieldFromDraw( selectionString = "&&".join([ common_selection_string, mc_sys_selection_string, normalization_region_cut ] ), weightString = mc_sys_weight_string)['val'] for s in mc_samples}
                     non_top = sum(yield_sys_mc[s.name] for s in mc_samples if s.name != Top.name)
-                    top_sf[sys]  = (yield_data - non_top)/yield_sys_mc[Top.name]
-                    logger.info( "Data: %i sys %s MC TT %3.2f MC other %3.2f SF %3.2f", yield_data, sys, yield_sys_mc[Top.name], non_top, top_sf[sys] )
+                    top_sf[sys]  = (total - non_top)/yield_sys_mc[Top.name]
+                    logger.info( "Total: %i sys %s MC TT %3.2f MC other %3.2f SF %3.2f", total, sys, yield_sys_mc[Top.name], non_top, top_sf[sys] )
                 else:
-                     top_sf[sys] = 1
+                     top_sf[sys] = top_sf[None]
 
     read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F]"]
     plotting.fill(roottools_plots, read_variables = read_variables, sequence = sequence)
