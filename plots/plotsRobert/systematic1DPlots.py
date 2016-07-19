@@ -53,7 +53,7 @@ argParser.add_argument('--nbtag',
 
 argParser.add_argument('--small',
     action='store_true',
-    default=True,
+    #default=True,
     help='Small?',
 )
 
@@ -105,6 +105,10 @@ argParser.add_argument('--dataMCScaling',
     help='dataMCScaling?',
 )
 
+argParser.add_argument('--splitDiBoson',
+    action='store_true',
+    help='splitDiBoson?',
+)
 
 args = argParser.parse_args()
 
@@ -180,7 +184,14 @@ else:
     raise ValueError( "Mode %s not known"%args.mode )
 
 
-mc_samples = [ DY_HT_LO, Top, TTZ_LO, TTXNoZ, multiBoson]
+if args.splitDiBoson:
+   diBoson_samples = [VVTo2L2Nu, WW,WZ,ZZ, triBoson]
+else:
+   diBoson_samples = [multiBoson] 
+
+
+mc_samples = [ DY_HT_LO, Top, TTZ_LO] + diBoson_samples + [ TTXNoZ ]
+
 DY_HT_LO.texName  = "DY + jets"
 
 if args.small:
@@ -704,7 +715,7 @@ for plot_mc, plot_data, bin_width in plots:
 
     plotting.draw(plot,
         plot_directory = plot_path, ratio = ratio,
-        logX = False, logY = True, sorting = True,
+        logX = False, logY = True, #sorting = True,
         yRange = (0.03, "auto"),
         drawObjects = drawObjects( top_sf[None] ) + boxes
     )
