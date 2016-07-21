@@ -73,7 +73,7 @@ argParser.add_argument('--diBosonScaleFactor',
 
 argParser.add_argument('--noScaling',
     action='store_true',
-    #default = True,
+    default = True,
     help='Small?',
 )
 
@@ -125,7 +125,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v10_TrigFix',
+    default='80X_v10_2',
     action='store',
 )
 
@@ -353,8 +353,8 @@ def makeMinDeltaRLepJets( data ):
 sequence.append( makeMinDeltaRLepJets )
 
 rev = reversed if args.reversed else lambda x:x
-#for i_comb in rev( range( len(cuts)+1 ) ):
-for i_comb in [ len(cuts) ]:
+for i_comb in rev( range( len(cuts)+1 ) ):
+#for i_comb in [ len(cuts) ]:
     for comb in itertools.combinations( cuts, i_comb ):
 
         if args.charges=="OS":
@@ -364,12 +364,12 @@ for i_comb in [ len(cuts) ]:
         else:
             raise ValueError
 
-        # presel += [("highMiniRelIso","max(l1_miniRelIso,l2_miniRelIso)>0.4")]
  
         presel.extend( basic_cuts )
         presel.extend( comb )
 
-        ppfixes = [args.mode, args.zMode]
+        ppfixes = [args.mode]
+        if args.mode.lower() != "dilepton": ppfixes.append( args.zMode )
         ppfixes.append( "DBS%i"%(100*args.diBosonScaleFactor) )
         if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
         if args.noScaling: ppfixes.append( "noScaling" )
@@ -391,13 +391,13 @@ for i_comb in [ len(cuts) ]:
         for s in diBoson_samples:
             s.scale*=args.diBosonScaleFactor
 
-        if not args.noData and not args.noScaling:
+        if not args.noData:
             logger.info( "Calculating normalization constants" )
             yield_mc    = {s.name: s.scale*s.getYieldFromDraw( selectionString = selectionString+"&&dl_mt2ll<100", weightString = mc_weight_string)['val'] for s in mc_samples}
             yield_data  = sum(s.getYieldFromDraw( selectionString = selectionString+"&&dl_mt2ll<100", weightString = data_weight_string)['val'] for s in data_samples)
             
             non_top = sum(yield_mc[s.name] for s in mc_samples if s.name != TTJets_sample.name)
-            if yield_data - non_top>0 and yield_mc[TTJets_sample.name]>0:
+            if (not args.noScaling) and yield_data - non_top>0 and yield_mc[TTJets_sample.name]>0:
                 top_sf  = (yield_data - non_top)/yield_mc[TTJets_sample.name]
             else:
                 top_sf = 1.
@@ -861,7 +861,7 @@ for i_comb in [ len(cuts) ]:
             )
         plots.append( nVert )
 
-        read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F,btagCSV/F,id/I]", "nJetGood/I"]
+        read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F,btagCSV/F,id/I]", "nJetGood/I", "isOS/I", 'nGoodMuons/I', 'nGoodElectrons/I']
         plotting.fill(plots, read_variables = read_variables, sequence = sequence)
         if not os.path.exists( plot_path ): os.makedirs( plot_path )
 
@@ -880,7 +880,7 @@ for i_comb in [ len(cuts) ]:
                 logX = False, logY = True, #sorting = True, 
                 #scaling = {0:1} if not args.noScaling else {},
                 yRange = (0.03, "auto"), 
-                drawObjects = drawObjects( top_sf )
+                drawObjects = drawObjects( yield_data/sum(yield_mc.values()) if args.noScaling else top_sf )
             )
         logger.info( "Done with prefix %s and selectionString %s", prefix, selectionString )
 

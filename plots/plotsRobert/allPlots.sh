@@ -1,9 +1,13 @@
-nohup krenew -t -K 10 -- bash -c "python simple1DPlots.py $1 $2 --zMode=allZ --mode=doubleMu > output.log" &
-nohup krenew -t -K 10 -- bash -c "python simple1DPlots.py $1 $2 --zMode=allZ --mode=doubleEle > output.log" &
-nohup krenew -t -K 10 -- bash -c "python simple1DPlots.py $1 $2 --zMode=onZ --mode=doubleMu > output.log" &
-nohup krenew -t -K 10 -- bash -c "python simple1DPlots.py $1 $2 --zMode=onZ --mode=doubleEle > output.log" &
-nohup krenew -t -K 10 -- bash -c "python simple1DPlots.py $1 $2 --zMode=offZ --mode=doubleEle > output.log" &
-nohup krenew -t -K 10 -- bash -c "python simple1DPlots.py $1 $2 --zMode=offZ --mode=doubleMu > output.log" &
-nohup krenew -t -K 10 -- bash -c "python simple1DPlots.py $1 $2 --zMode=allZ --mode=muEle > output.log" &
-nohup krenew -t -K 10 -- bash -c "python simple1DPlots.py $1 $2 --zMode=onZ --mode=muEle > output.log" &
-nohup krenew -t -K 10 -- bash -c "python simple1DPlots.py $1 $2 --zMode=offZ --mode=muEle > output.log" &
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=allZ --mode=doubleMu "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=allZ --mode=doubleEle "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=onZ --mode=doubleMu "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=onZ --mode=doubleEle "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=offZ --mode=doubleEle "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=offZ --mode=doubleMu "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=allZ --mode=muEle "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=onZ --mode=muEle "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=offZ --mode=muEle "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=allZ --mode=sameFlavour "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=onZ --mode=sameFlavour "
+./submit.sh "python simple1DPlots.py $1 $2 --zMode=offZ --mode=sameFlavour "
+./submit.sh "python simple1DPlots.py $1 $2 --mode=dilepton "

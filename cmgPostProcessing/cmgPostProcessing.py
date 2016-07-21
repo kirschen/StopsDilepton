@@ -728,7 +728,6 @@ def filler(s):
             s.l1_phi    = leptons[0]['phi']
             s.l1_pdgId  = leptons[0]['pdgId']
             s.l1_index  = leptons[0]['index']
-            s.l1_jetPtRelv2  = leptons[0]['jetPtRelv2']
             s.l1_jetPtRatiov2  = leptons[0]['jetPtRatiov2']
             s.l1_jetPtRelv2    = leptons[0]['jetPtRelv2']
             s.l1_miniRelIso = leptons[0]['miniRelIso']
