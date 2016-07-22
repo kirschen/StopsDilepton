@@ -300,33 +300,29 @@ def drawObjects( scale ):
         lines.append( (0.50, 0.95, '13 TeV' ) )
     return [tex.DrawLatex(*l) for l in lines] 
 
-stack = Stack(mc_samples)
-if not args.noData:
-    stack.append( data_samples )
-
-if len(args.signals)>0:
-    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
-    for s in args.signals:
-        if "*" in s:
-            split = s.split("*")
-            sig, fac = split[0], int(split[1])
-        else:
-            sig, fac = s, 1
-        try:
-            stack.append( [eval(sig)] )
-            if hasattr(stack[-1][0], "scale"): 
-                stack[-1][0].scale*=fac
-            elif fac!=1:
-                stack[-1][0].scale = fac
-            else: pass
-
-            if fac!=1:
-                stack[-1][0].name+=" x"+str(fac)                
-            logger.info( "Adding sample %s with factor %3.2f", sig, fac)
-        except NameError:
-            logger.warning( "Could not add signal %s", s)
-
+#if len(args.signals)>0:
+#    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
+#    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
+#    for s in args.signals:
+#        if "*" in s:
+#            split = s.split("*")
+#            sig, fac = split[0], int(split[1])
+#        else:
+#            sig, fac = s, 1
+#        try:
+#            stack.append( [eval(sig)] )
+#            if hasattr(stack[-1][0], "scale"): 
+#                stack[-1][0].scale*=fac
+#            elif fac!=1:
+#                stack[-1][0].scale = fac
+#            else: pass
+#
+#            if fac!=1:
+#                stack[-1][0].name+=" x"+str(fac)                
+#            logger.info( "Adding sample %s with factor %3.2f", sig, fac)
+#        except NameError:
+#            logger.warning( "Could not add signal %s", s)
+#
 sequence = []
 
 from StopsDilepton.tools.helpers import deltaR
@@ -356,6 +352,8 @@ rev = reversed if args.reversed else lambda x:x
 for i_comb in rev( range( len(cuts)+1 ) ):
 #for i_comb in [ len(cuts) ]:
     for comb in itertools.combinations( cuts, i_comb ):
+
+        stack = Stack(mc_samples) if args.noData else Stack(mc_samples, data_samples)
 
         if args.charges=="OS":
             presel = [("isOS","isOS")]

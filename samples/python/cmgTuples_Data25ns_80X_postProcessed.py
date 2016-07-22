@@ -38,9 +38,9 @@ MuonEG_Run2016B         = Sample.fromDirectory(name="MuonEG_Run2016B",         t
 #SingleElectron_Run2016B = Sample.fromDirectory(name="SingleElectron_Run2016B", treeName="Events", texName="SingleElectron (Run2016B)", directory=dirs["SingleElectron"])
 #SingleMuon_Run2016B     = Sample.fromDirectory(name="SingleMuon_Run2016B",     treeName="Events", texName="SingleMuon (Run2016B)",     directory=dirs["SingleMuon"])
 
-DoubleEG_Run2016B      .lumi = 5.907 
-DoubleMuon_Run2016B    .lumi = 5.876 
-MuonEG_Run2016B        .lumi = 5.916
+DoubleEG_Run2016B      .lumi = 5.907*1000 
+DoubleMuon_Run2016B    .lumi = 5.876*1000 
+MuonEG_Run2016B        .lumi = 5.916*1000
 #SingleElectron_Run2016B.lumi =  1000*(2.165)
 #SingleMuon_Run2016B    .lumi =  1000*(2.165)
 
