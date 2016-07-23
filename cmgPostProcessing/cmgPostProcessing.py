@@ -267,18 +267,18 @@ if isMC:
         raise NotImplementedError( 'Hope you are not in a hurry.' )
     else:
         # nTrueIntReweighting
-        nTrueInt_puRW        = getReweightingFunction(data="PU_2016_5300_XSecCentral", mc="Spring16")
-        nTrueInt_puRWDown    = getReweightingFunction(data="PU_2016_5300_XSecDown", mc="Spring16")
-        nTrueInt_puRWUp      = getReweightingFunction(data="PU_2016_5300_XSecUp", mc="Spring16")
-        nTrueInt_puRWVDown   = getReweightingFunction(data="PU_2016_5300_XSecVDown", mc="Spring16")
-        nTrueInt_puRWVUp     = getReweightingFunction(data="PU_2016_5300_XSecVUp", mc="Spring16")
-        # 2016 NVTX reweighting
-        from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
-        nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_5300pb.pkl")
-        nvtx_reweight_up      = getNVTXReweightingFunction(key = 'up', filename = "dilepton_allZ_isOS_5300pb.pkl")
-        nvtx_reweight_down    = getNVTXReweightingFunction(key = 'down', filename = "dilepton_allZ_isOS_5300pb.pkl")
-        nvtx_reweight_vup      = getNVTXReweightingFunction(key = 'vup', filename = "dilepton_allZ_isOS_5300pb.pkl")
-        nvtx_reweight_vdown    = getNVTXReweightingFunction(key = 'vdown', filename = "dilepton_allZ_isOS_5300pb.pkl")
+        nTrueInt_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
+        nTrueInt_puRWDown    = getReweightingFunction(data="PU_2016_12000_XSecDown", mc="Spring16")
+        nTrueInt_puRWUp      = getReweightingFunction(data="PU_2016_12000_XSecUp", mc="Spring16")
+        nTrueInt_puRWVDown   = getReweightingFunction(data="PU_2016_12000_XSecVDown", mc="Spring16")
+        nTrueInt_puRWVUp     = getReweightingFunction(data="PU_2016_12000_XSecVUp", mc="Spring16")
+        ## 2016 NVTX reweighting
+        #from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
+        #nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_5300pb.pkl")
+        #nvtx_reweight_up      = getNVTXReweightingFunction(key = 'up', filename = "dilepton_allZ_isOS_5300pb.pkl")
+        #nvtx_reweight_down    = getNVTXReweightingFunction(key = 'down', filename = "dilepton_allZ_isOS_5300pb.pkl")
+        #nvtx_reweight_vup      = getNVTXReweightingFunction(key = 'vup', filename = "dilepton_allZ_isOS_5300pb.pkl")
+        #nvtx_reweight_vdown    = getNVTXReweightingFunction(key = 'vdown', filename = "dilepton_allZ_isOS_5300pb.pkl")
         
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
@@ -608,13 +608,13 @@ def filler(s):
         s.reweightPUUp   = nTrueInt_puRWUp     ( r.nTrueInt ) 
         s.reweightPUVDown = nTrueInt_puRWVDown ( r.nTrueInt ) 
         s.reweightPUVUp   = nTrueInt_puRWVUp   ( r.nTrueInt ) 
-        # 2016 NVTX reweighting
-        from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
-        s.reweightNVTX     = nvtx_reweight_central( r.nVert ) 
-        s.reweightNVTXUp   = nvtx_reweight_up     ( r.nVert ) 
-        s.reweightNVTXDown  = nvtx_reweight_down  ( r.nVert ) 
-        s.reweightNVTXVUp   = nvtx_reweight_vup   ( r.nVert ) 
-        s.reweightNVTXVDown = nvtx_reweight_vdown ( r.nVert ) 
+        ## 2016 NVTX reweighting
+        #from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
+        #s.reweightNVTX     = nvtx_reweight_central( r.nVert ) 
+        #s.reweightNVTXUp   = nvtx_reweight_up     ( r.nVert ) 
+        #s.reweightNVTXDown  = nvtx_reweight_down  ( r.nVert ) 
+        #s.reweightNVTXVUp   = nvtx_reweight_vup   ( r.nVert ) 
+        #s.reweightNVTXVDown = nvtx_reweight_vdown ( r.nVert ) 
 
     # top pt reweighting
     if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.

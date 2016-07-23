@@ -84,7 +84,7 @@ elif args.mode=="muEle":
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
-mc = [ DY, Top, multiBoson, TTZ, TTXNoZ]
+mc = [ DY_LO_HT, Top, multiBoson, TTZ, TTXNoZ]
 
 for d in data_samples:
     d.style = styles.errorStyle( ROOT.kBlack )

@@ -108,6 +108,13 @@ argParser.add_argument('--pu',
     help='PU weight',
 )
 
+argParser.add_argument('--ttjets',
+    default='def',
+    action='store',
+    choices=['def', 'pow'],
+    help='ttjets cut',
+)
+
 
 argParser.add_argument('--signals',
     action='store',
@@ -125,7 +132,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v10_2',
+    default='80X_v10_2_noReweights',
     action='store',
 )
 
@@ -207,7 +214,11 @@ if args.splitDiBoson:
 else:
    diBoson_samples = [diBoson] 
 
-TTJets_sample = Top
+if args.ttjets=='def':
+    TTJets_sample = Top
+elif args.ttjets=='pow':
+    TTJets_sample = Sample.combine("TandTTPowHeg", [TTLep_pow, singleTop])
+    TTJets_sample.texName = Top.texName+"(powHeg)"
 
 mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson]
 
@@ -223,9 +234,9 @@ lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
 
 logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 
-mc_weight_string = "weight*reweightDilepTrigger*reweightBTag_SF"
-if args.pu != "None":
-    mc_weight_string+="*"+args.pu
+mc_weight_string = "weight"#*reweightDilepTrigger*reweightBTag_SF"
+#if args.pu != "None":
+#    mc_weight_string+="*"+args.pu
 data_weight_string = "weight"
 
 for sample in mc_samples:
@@ -233,10 +244,10 @@ for sample in mc_samples:
     sample.style = styles.fillStyle( sample.color)
     if args.pu != "None":
         sample.read_variables = [args.pu+'/F', 'reweightDilepTrigger/F', 'reweightBTag_SF/F']
-        sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTrigger*data.reweightBTag_SF
+        #sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTrigger*data.reweightBTag_SF
     else:
         sample.read_variables = ['reweightDilepTrigger/F', 'reweightBTag_SF/F']
-        sample.weight = lambda data: data.reweightDilepTrigger*data.reweightBTag_SF
+        #sample.weight = lambda data: data.reweightDilepTrigger*data.reweightBTag_SF
 
 weight = lambda data:data.weight
 
@@ -272,7 +283,8 @@ def selection( ):
         ("nbtag%s"%args.nbtag, "nBTag%s"%mCutStr( args.nbtag ))]
     if args.met=='def': res.extend([\
         ("met80", "met_pt>80"),
-        ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)")])
+        ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
+        ])
     elif args.met=='low':
         res.extend([  ("metSm80", "met_pt<80")] )
     elif args.met=='none':
@@ -347,13 +359,16 @@ def makeMinDeltaRLepJets( data ):
         
 
 sequence.append( makeMinDeltaRLepJets )
+        
+stack = Stack(mc_samples) if args.noData else Stack(mc_samples, data_samples)
 
 rev = reversed if args.reversed else lambda x:x
 for i_comb in rev( range( len(cuts)+1 ) ):
 #for i_comb in [ len(cuts) ]:
     for comb in itertools.combinations( cuts, i_comb ):
 
-        stack = Stack(mc_samples) if args.noData else Stack(mc_samples, data_samples)
+        for s in mc_samples + data_samples:
+            s.clear()
 
         if args.charges=="OS":
             presel = [("isOS","isOS")]
@@ -362,7 +377,6 @@ for i_comb in rev( range( len(cuts)+1 ) ):
         else:
             raise ValueError
 
- 
         presel.extend( basic_cuts )
         presel.extend( comb )
 
@@ -371,6 +385,7 @@ for i_comb in rev( range( len(cuts)+1 ) ):
         ppfixes.append( "DBS%i"%(100*args.diBosonScaleFactor) )
         if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
         if args.noScaling: ppfixes.append( "noScaling" )
+        if args.ttjets=='pow': ppfixes.append( "TTPowHeg" )
 
         if args.small: ppfixes = ['small'] + ppfixes
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
