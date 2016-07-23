@@ -83,17 +83,17 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 maxN = 10 if args.small else -1 
 
 from StopsDilepton.samples.helpers import fromHeppySample
-data_Run2016B = fromHeppySample("%s_Run2016B_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_9', maxN = maxN)
-data_Run2016C = fromHeppySample("%s_Run2016C_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_9', maxN = maxN)
+data_Run2016B = fromHeppySample("%s_Run2016B_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_10', maxN = maxN)
+data_Run2016C = fromHeppySample("%s_Run2016C_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_10', maxN = maxN)
 
 data=Sample.combine( "Run2016BC", [data_Run2016B, data_Run2016C] )
-preprefix = "Run2016BC"
+preprefix = "12fb_Run2016BC"
 triggerName = args.dileptonTrigger.replace('||','_OR_')
 
 pt_thresholds = range(0,30,2)+range(30,50,5)+range(50,210,10)
 eta_thresholds = [x/10. for x in range(-25,26,1) ]
 pt_thresholds_coarse = range(5,25,10)+range(25,130,15)+range(130,330,50)
-pt_thresholds_veryCoarse = range(5,25,10)+[25] + range(50,200,50)+[250]
+pt_thresholds_veryCoarse = [20,25,35] + range(50,200,50)+[250]
 eta_thresholds_coarse = [x/10. for x in range(-25,26,5) ]
 
 eff_pt1 = ROOT.TProfile("eff_pt1","eff_pt1", len(pt_thresholds)-1, array.array('d',pt_thresholds), 0,1)

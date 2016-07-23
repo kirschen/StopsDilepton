@@ -32,7 +32,10 @@ python cmgPostProcessing.py  --samples WZTo3LNu
 python cmgPostProcessing.py  --samples WZTo1L3Nu
 #python cmgPostProcessing.py  --samples WZJets
 python cmgPostProcessing.py  --samples VVTo2L2Nu
+
 python cmgPostProcessing.py  --samples WGToLNuG
+python cmgPostProcessing.py  --samples WGJets
+python cmgPostProcessing.py  --samples ZGJets
 
 python cmgPostProcessing.py  --checkTTGJetsOverlap --samples TTGJets  
 python cmgPostProcessing.py SPLIT10 --checkTTGJetsOverlap --samples ZGTo2LG

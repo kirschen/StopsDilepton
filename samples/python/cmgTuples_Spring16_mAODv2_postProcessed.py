@@ -10,16 +10,16 @@ try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "postProcessed_80X_v6/dilepTiny/"
+  postProcessing_directory = "postProcessed_80X_v10/dilepTiny/"
 
 dirs = {}
-dirs['DY']               = ["DYJetsToLL_M10to50", "DYJetsToLL_M50"]
+dirs['DY']               = ["DYJetsToLL_M50", "DYJetsToLL_M10to50" ]
 dirs['DY_LO']            = ["DYJetsToLL_M10to50_LO", "DYJetsToLL_M50_LO"]
 #dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200_ext", "DYJetsToLL_M50_HT200to400_ext", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf", "DYJetsToLL_M5to50_LO_lheHT100", "DYJetsToLL_M5to50_HT100to200_ext", "DYJetsToLL_M5to50_HT200to400_ext", "DYJetsToLL_M5to50_HT400to600_ext", "DYJetsToLL_M5to50_HT600toInf"]
 dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200_ext", "DYJetsToLL_M50_HT200to400_ext", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf", "DYJetsToLL_M5to50_LO_lheHT100", "DYJetsToLL_M5to50_HT200to400_ext"]
 dirs['TTJets']           = ["TTJets"]
 #dirs['TTJets_LO']        = ["TTJets_LO"]
-#dirs['TTLep_pow']        = ["TTLep_pow_comb"]
+dirs['TTLep_pow']        = ["TT_pow_ext3_comb"]
 dirs['TTJets_Lep']       = ["TTJets_DiLepton_comb", "TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT"]
 dirs['TTJets_Dilep']       = ["TTJets_DiLepton_comb"]
 dirs['TTJets_Singlelep']       = ["TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT"]
@@ -29,7 +29,9 @@ dirs['top']              = dirs['singleTop'] + dirs['TTJets_Lep']
 dirs['TZQ']              = ["tZq_ll", "tZq_nunu"]
 dirs['TZQ']              = ["tZq_ll"]
 dirs['TTW']              = ["TTWToLNu", "TTWToQQ"]
-dirs['TTH']              = ["TTHbb_ext3", "TTHnobb_mWCutfix_ch0"]
+dirs['TTH']              = [ \
+#        "TTHbb_ext3", 
+        "TTHnobb_mWCutfix_ch0"]
 dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu"]
 dirs['TTZtoQQ']          = ["TTZToQQ"]
 dirs['TTZ']              = ["TTZToLLNuNu", "TTZToQQ"]
@@ -58,6 +60,11 @@ dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 #dirs['QCD']              = ["QCD_Pt30to50", "QCD_Pt50to80", "QCD_Pt80to120", "QCD_Pt120to170", "QCD_Pt170to300", "QCD_Pt300to470", "QCD_Pt470to600", "QCD_Pt600to800", "QCD_Pt800to1000", "QCD_Pt1000to1400", "QCD_Pt1400to1800", "QCD_Pt1800to2400", "QCD_Pt2400to3200"]
 #dirs['QCD']             = ["QCD_Pt10to15", "QCD_Pt15to30", "QCD_Pt30to50", "QCD_Pt50to80", "QCD_Pt80to120", "QCD_Pt120to170", "QCD_Pt170to300", "QCD_Pt300to470", "QCD_Pt470to600", "QCD_Pt600to800", "QCD_Pt800to1000", "QCD_Pt1000to1400", "QCD_Pt1400to1800", "QCD_Pt1800to2400", "QCD_Pt2400to3200", "QCD_Pt3200"]
 
+#dirs['WGToLNuG']     = ["WGToLNuG"]
+#dirs['ZGTo2LG']      = ["ZGTo2LG"]
+#dirs['WGJets']       = ["WGJets"]
+#dirs['ZGJets']       = ["ZGJets"]
+
 directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
 
 DY             = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=color.DY,              texName="DY",                                directory=directories['DY'])
@@ -67,7 +74,7 @@ TTJets         = Sample.fromDirectory(name="TTJets",           treeName="Events"
 TTJets_Singlelep= Sample.fromDirectory(name="TTJets_Singlelep",           treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}",                          directory=directories['TTJets_Singlelep'])
 TTJets_Dilep    = Sample.fromDirectory(name="TTJets_Dilep",           treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}",                          directory=directories['TTJets_Dilep'])
 #TTJets_LO      = Sample.fromDirectory(name="TTJets_LO",        treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t} + Jets (LO)",              directory=directories['TTJets_LO'])
-#TTLep_pow      = Sample.fromDirectory(name="TTLep_pow",        treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t} + Jets (lep,pow)",         directory=directories['TTLep_pow'])
+TTLep_pow      = Sample.fromDirectory(name="TTLep_pow",        treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t} + Jets (lep,pow)",         directory=directories['TTLep_pow'])
 TTJets_Lep     = Sample.fromDirectory(name="TTJets_Lep",       treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}(lep)",                     directory=directories['TTJets_Lep'])
 Top            = Sample.fromDirectory(name="Top",              treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['top'])
 #TTJets_HT_LO   = Sample.fromDirectory(name="TTJets_HT_LO",     treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t} + Jets (HT,LO)",           directory=directories['TTJets_HT_LO'])
@@ -87,9 +94,11 @@ WJetsToLNu     = Sample.fromDirectory(name="WJetsToLNu",       treeName="Events"
 diBoson        = Sample.fromDirectory(name="diBoson",          treeName="Events", isData=False, color=color.diBoson,         texName="VV (excl.)",                        directory=directories['diBoson'])
 diBosonInclusive = Sample.fromDirectory(name="diBosonInclusive",treeName="Events", isData=False, color=color.diBoson,        texName="VV (incl.)",                        directory=directories['diBosonInclusive'])
 ZZ             = Sample.fromDirectory(name="ZZ",               treeName="Events", isData=False, color=color.ZZ,              texName="ZZ",                                directory=directories['ZZ_'])
+ZZNo2L2Nu      = Sample.fromDirectory(name="ZZNo2L2Nu",        treeName="Events", isData=False, color=color.ZZ,              texName="ZZ (no 2L2Nu)",                     directory=directories['ZZ'])
 WZ             = Sample.fromDirectory(name="WZ",               treeName="Events", isData=False, color=color.WZ,              texName="WZ",                                directory=directories['WZ'])
 WW             = Sample.fromDirectory(name="WW",               treeName="Events", isData=False, color=color.WW,              texName="WW",                                directory=directories['WW_'])
-VVTo2L2Nu      = Sample.fromDirectory(name="VVTo2L2Nu",               treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",                    directory=directories['VVTo2L2Nu'])
+WWNo2L2Nu      = Sample.fromDirectory(name="WWNo2L2Nu",        treeName="Events", isData=False, color=color.WW,              texName="WW (no 2L2Nu)",                     directory=directories['WW'])
+VVTo2L2Nu      = Sample.fromDirectory(name="VVTo2L2Nu",               treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",             directory=directories['VVTo2L2Nu'])
 triBoson       = Sample.fromDirectory(name="triBoson",         treeName="Events", isData=False, color=color.triBoson,        texName="WWZ,WZZ,ZZZ",                       directory=directories['triBoson'])
 multiBoson     = Sample.fromDirectory(name="multiBoson",       treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                       directory=directories['multiBoson'])
 #QCD_HT         = Sample.fromDirectory(name="QCD_HT",           treeName="Events", isData=False, color=color.QCD,             texName="QCD (HT)",                          directory=directories['QCD_HT'])
@@ -97,3 +106,8 @@ multiBoson     = Sample.fromDirectory(name="multiBoson",       treeName="Events"
 #QCD_EMbcToE    = Sample.fromDirectory(name="QCD_EM+bcToE",     treeName="Events", isData=False, color=color.QCD,             texName="QCD (Em+bcToE)",                    directory=directories['QCD_EM+bcToE'])
 #QCD_Mu5EMbcToE = Sample.fromDirectory(name="QCD_Mu5+EM+bcToE", treeName="Events", isData=False, color=color.QCD,             texName="QCD (Mu5+Em+bcToE)",                directory=directories['QCD_Mu5+EM+bcToE'])
 #QCD_Pt         = Sample.fromDirectory(name="QCD",              treeName="Events", isData=False, color=color.QCD,             texName="QCD",                               directory=directories['QCD'])
+
+#WGToLNuG = Sample.fromDirectory(name="WGToLNuG",       treeName="Events", isData=False, color=color.diBoson,       texName="WGToLNuG",                       directory=directories['WGToLNuG'])
+#ZGTo2LG  = Sample.fromDirectory(name="ZGTo2LG",       treeName="Events", isData=False, color=color.diBoson,        texName="ZGTo2LG",                       directory=directories['ZGTo2LG'] )
+#WGJets   = Sample.fromDirectory(name="WGJets",       treeName="Events", isData=False, color=color.diBoson,         texName="WGJets",                       directory=directories['WGJets']  )
+#ZGJets   = Sample.fromDirectory(name="ZGJets",       treeName="Events", isData=False, color=color.diBoson,         texName="ZGJets",                       directory=directories['ZGJets']  )

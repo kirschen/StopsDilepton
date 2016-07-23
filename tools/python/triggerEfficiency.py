@@ -6,9 +6,13 @@ import os
 #mue_trigger_SF  = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/HLT_mue_None_measuredInMET_minLeadLepPt0.root'
 #mumu_trigger_SF = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/HLT_mumuIso_None_measuredInMET_minLeadLepPt0.root'
 
-ee_trigger_SF   = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_ee_DZ_OR_HLT_SingleEle_noniso_None_measuredInMET_minLeadLepPt0.root'
-mue_trigger_SF  = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mue_OR_HLT_SingleEle_noniso_OR_HLT_SingleMu_noniso_None_measuredInMET_minLeadLepPt0.root'
-mumu_trigger_SF = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mumuIso_OR_HLT_mumuNoiso_OR_HLT_SingleMu_noniso_None_measuredInMET_minLeadLepPt0.root'
+#OR of all backput triggers
+#ee_trigger_SF   = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_ee_DZ_OR_HLT_SingleEle_noniso_None_measuredInMET_minLeadLepPt0.root'
+ee_trigger_SF   = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_ee_DZ_None_measuredInMET_minLeadLepPt0.root'
+#mue_trigger_SF  = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mue_OR_HLT_SingleEle_noniso_OR_HLT_SingleMu_noniso_None_measuredInMET_minLeadLepPt0.root'
+mue_trigger_SF  = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mue_None_measuredInMET_minLeadLepPt0.root'
+#mumu_trigger_SF = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mumuIso_OR_HLT_mumuNoiso_OR_HLT_SingleMu_noniso_None_measuredInMET_minLeadLepPt0.root'
+mumu_trigger_SF = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mumuIso_OR_HLT_mumuNoiso_None_measuredInMET_minLeadLepPt0.root'
 
 class triggerEfficiency:
     def __init__(self):
