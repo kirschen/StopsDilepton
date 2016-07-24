@@ -335,6 +335,10 @@ if options.fastSim:
    from StopsDilepton.tools.leptonFastSimSF import leptonFastSimSF as leptonFastSimSF_
    leptonFastSimSF = leptonFastSimSF_()
 
+from StopsDilepton.tools.leptonSF import leptonSF as leptonSF_
+leptonSF = leptonSF_()
+
+
 # systematic variations
 addSystematicVariations = (not isData) and (not options.skipSystematicVariations)
 if addSystematicVariations:
@@ -565,6 +569,9 @@ if options.T2tt:
 if options.fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
+if isTriLep or isDiLep:
+    new_variables  += ['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F']
+
 # Define a reader
 reader = sample.treeReader( \
     variables = read_variables ,
@@ -782,6 +789,12 @@ def filler(s):
             s.reweightDilepTriggerBackup       = 0 
             s.reweightDilepTriggerBackupUp     = 0 
             s.reweightDilepTriggerBackupDown   = 0 
+
+            leptonsForSF = (leptons[:2] if isDiLep else (leptons[:3] if isTrilep else leptons))
+            s.reweightLeptonSF           = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta']) for l in leptonsForSF], 1)
+            s.reweightLeptonSFUp         = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = +1) for l in leptonsForSF], 1)
+            s.reweightLeptonSFDown       = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = -1) for l in leptonsForSF], 1)
+
         if len(leptons)>=2:
             mt2Calc.reset()
             s.l2_pt     = leptons[1]['pt']
