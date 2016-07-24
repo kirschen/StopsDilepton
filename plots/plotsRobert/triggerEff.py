@@ -87,7 +87,7 @@ data_Run2016B = fromHeppySample("%s_Run2016B_PromptReco_v2" % args.sample, data_
 data_Run2016C = fromHeppySample("%s_Run2016C_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_10', maxN = maxN)
 
 data=Sample.combine( "Run2016BC", [data_Run2016B, data_Run2016C] )
-preprefix = "12fb_Run2016BC"
+preprefix = "Run2016BC"
 triggerName = args.dileptonTrigger.replace('||','_OR_')
 
 pt_thresholds = range(0,30,2)+range(30,50,5)+range(50,210,10)

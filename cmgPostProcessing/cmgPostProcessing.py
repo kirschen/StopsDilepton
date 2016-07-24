@@ -29,7 +29,8 @@ from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSele
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
-triggerEff = triggerEfficiency()
+triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
+triggerEff            = triggerEfficiency(with_backup_triggers = False)
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
 genSearch = GenSearch()
@@ -62,6 +63,15 @@ def get_parser():
 #        default=['MuonEG_Run2015D_16Dec'],
         default=['WZZ'],
         help="List of samples to be post-processed, given as CMG component name"
+        )
+
+    argParser.add_argument('--triggerSelection',
+        action='store',
+        nargs='?',
+        type=str,
+        default=None,
+        choices=['mumu', 'ee', 'mue', 'mu_for_mumu', 'e_for_ee', 'mu_for_mue', 'e_for_mue'],
+        help="Trigger selection?"
         )
 
     argParser.add_argument('--eventsPerJob',
@@ -115,7 +125,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v10',
+        default='postProcessed_80X_v11',
         help="Name of the processing era"
         )
 
@@ -135,7 +145,7 @@ def get_parser():
         help="LHE cut."
         )
 
-    argParser.add_argument('--runSmallSample',
+    argParser.add_argument('--small',
         action='store_true',
         help="Run the file on a small sample (for test purpose), bool flag set to True if used"
         )
@@ -213,7 +223,7 @@ elif isJet250:
     skimConds.append( "Sum$(Jet_pt>250) +  Sum$(DiscJet_pt>250) + Sum$(JetFailId_pt>250) + Sum$(gamma_pt>250) > 0" )
 
 #Samples: Load samples
-maxN = 2 if options.runSmallSample else None
+maxN = 2 if options.small else None
 if options.T2tt:
     from StopsDilepton.samples.cmgTuples_Signals_Spring16_mAODv2_25ns_0l import T2tt
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
@@ -246,6 +256,29 @@ else:
 
     xSection = samples[0].heppy.xSection if isMC else None
 
+
+if isData and options.triggerSelection is not None:
+    if options.triggerSelection == 'mumu':
+        skimConds.append( "(HLT_mumuIso||HLT_mumuNoiso)" )
+    elif options.triggerSelection == 'ee':
+        skimConds.append( "(HLT_ee_DZ||HLT_ee_33||HLT_ee_33_MW)" )
+    elif options.triggerSelection == 'mue':
+        skimConds.append( "(HLT_mue||HLT_mu30e30)" )
+    elif options.triggerSelection == 'mu_for_mumu':
+        skimConds.append( "HLT_SingleMu_noniso&&(!(HLT_mumuIso||HLT_mumuNoiso))" )
+    elif options.triggerSelection == 'e_for_ee':
+        skimConds.append( "HLT_SingleEle_noniso&&(!(HLT_ee_DZ||HLT_ee_33||HLT_ee_33_MW))" )
+    elif options.triggerSelection == 'e_for_mue':
+        skimConds.append( "HLT_SingleEle_noniso && (!(HLT_mue||HLT_mu30e30))" )
+    elif options.triggerSelection == 'mu_for_mue':
+        skimConds.append( "HLT_SingleMu_noniso && (!(HLT_mue||HLT_mu30e30)) && (!HLT_SingleEle_noniso)" )
+    else:
+        raise ValueError( "Don't know about triggerSelection %s"%options.triggerSelection )
+    sample_name_postFix = "_Trig_"+options.triggerSelection
+    logger.info( "Added trigger selection %s and postFix %s", options.triggerSelection, sample_name_postFix )
+else:
+    sample_name_postFix = ""
+
 #Samples: combine if more than one
 if len(samples)>1:
     sample_name =  samples[0].name+"_comb"
@@ -256,9 +289,9 @@ if len(samples)>1:
         sample.clear()
 elif len(samples)==1:
     sample = samples[0]
+    sample.name+=sample_name_postFix
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
-
 
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
@@ -267,11 +300,12 @@ if isMC:
         raise NotImplementedError( 'Hope you are not in a hurry.' )
     else:
         # nTrueIntReweighting
-        nTrueInt_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
-        nTrueInt_puRWDown    = getReweightingFunction(data="PU_2016_12000_XSecDown", mc="Spring16")
-        nTrueInt_puRWUp      = getReweightingFunction(data="PU_2016_12000_XSecUp", mc="Spring16")
-        nTrueInt_puRWVDown   = getReweightingFunction(data="PU_2016_12000_XSecVDown", mc="Spring16")
-        nTrueInt_puRWVUp     = getReweightingFunction(data="PU_2016_12000_XSecVUp", mc="Spring16")
+        nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
+        nTrueInt12fb_puRWDown    = getReweightingFunction(data="PU_2016_12000_XSecDown", mc="Spring16")
+        nTrueInt12fb_puRWUp      = getReweightingFunction(data="PU_2016_12000_XSecUp", mc="Spring16")
+        nTrueInt_puRW        = getReweightingFunction(data="PU_2016_5300_XSecCentral", mc="Spring16")
+        nTrueInt_puRWDown    = getReweightingFunction(data="PU_2016_5300_XSecDown", mc="Spring16")
+        nTrueInt_puRWUp      = getReweightingFunction(data="PU_2016_5300_XSecUp", mc="Spring16")
         ## 2016 NVTX reweighting
         #from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
         #nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_5300pb.pkl")
@@ -432,7 +466,7 @@ if sample.isData:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
-    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_271036-275783_13TeV_PromptReco_Collisions16_JSON_NoL1T.txt'
+    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_271036-276811_13TeV_PromptReco_Collisions16_JSON_NoL1T.txt'
     lumiList = LumiList(os.path.expandvars(sample.heppy.json))
     logger.info( "Loaded json %s", sample.heppy.json )
 else:
@@ -457,7 +491,7 @@ if isMC:
     read_variables.append( Variable.fromString('genWeight/F') )
     read_variables.append( VectorType.fromString('gamma[mcPt/F]') )
 
-    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPUVUp/F','reweightPUVDown/F', 'reweightNVTX/F','reweightNVTXUp/F','reweightNVTXDown/F', 'reweightNVTXVUp/F','reweightNVTXVDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F'])
     if not options.skipGenLepMatching:
         Variable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
@@ -477,7 +511,7 @@ new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) )
 ]
 
-if isData: new_variables.extend( ['jsonPassed/I'] )
+if isData: new_variables.extend( ['jsonPassed/I', 'unblindWeight/F'] )
 new_variables.extend( ['nJetGood/I','nBTag/I', 'ht/F', 'metSig/F'] )
 
 if isSingleLep:
@@ -493,7 +527,7 @@ if isTriLep or isDiLep:
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
-    if isMC: new_variables.extend( ['zBoson_genPt/F', 'zBoson_genEta/F', 'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F'] )
+    if isMC: new_variables.extend( ['zBoson_genPt/F', 'zBoson_genEta/F', 'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F', 'reweightDilepTriggerBackup/F', 'reweightDilepTriggerBackupUp/F', 'reweightDilepTriggerBackupDown/F' ] )
 
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
@@ -606,15 +640,9 @@ def filler(s):
         s.reweightPU     = nTrueInt_puRW       ( r.nTrueInt ) 
         s.reweightPUDown = nTrueInt_puRWDown   ( r.nTrueInt ) 
         s.reweightPUUp   = nTrueInt_puRWUp     ( r.nTrueInt ) 
-        s.reweightPUVDown = nTrueInt_puRWVDown ( r.nTrueInt ) 
-        s.reweightPUVUp   = nTrueInt_puRWVUp   ( r.nTrueInt ) 
-        ## 2016 NVTX reweighting
-        #from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
-        #s.reweightNVTX     = nvtx_reweight_central( r.nVert ) 
-        #s.reweightNVTXUp   = nvtx_reweight_up     ( r.nVert ) 
-        #s.reweightNVTXDown  = nvtx_reweight_down  ( r.nVert ) 
-        #s.reweightNVTXVUp   = nvtx_reweight_vup   ( r.nVert ) 
-        #s.reweightNVTXVDown = nvtx_reweight_vdown ( r.nVert ) 
+        s.reweightPU12fb     = nTrueInt12fb_puRW       ( r.nTrueInt ) 
+        s.reweightPU12fbDown = nTrueInt12fb_puRWDown   ( r.nTrueInt ) 
+        s.reweightPU12fbUp   = nTrueInt12fb_puRWUp     ( r.nTrueInt ) 
 
     # top pt reweighting
     if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
@@ -751,6 +779,9 @@ def filler(s):
             s.reweightDilepTrigger       = 0 
             s.reweightDilepTriggerUp     = 0 
             s.reweightDilepTriggerDown   = 0 
+            s.reweightDilepTriggerBackup       = 0 
+            s.reweightDilepTriggerBackupUp     = 0 
+            s.reweightDilepTriggerBackupDown   = 0 
         if len(leptons)>=2:
             mt2Calc.reset()
             s.l2_pt     = leptons[1]['pt']
@@ -789,6 +820,11 @@ def filler(s):
               s.reweightDilepTrigger       = trig_eff 
               s.reweightDilepTriggerUp     = trig_eff + trig_eff_err
               s.reweightDilepTriggerDown   = trig_eff - trig_eff_err
+              trig_eff, trig_eff_err =  triggerEff_withBackup.getSF(s.l1_pt, s.l1_eta, s.l1_pdgId, s.l2_pt, s.l2_eta, s.l2_pdgId)
+              s.reweightDilepTriggerBackup       = trig_eff 
+              s.reweightDilepTriggerBackupUp     = trig_eff + trig_eff_err
+              s.reweightDilepTriggerBackupDown   = trig_eff - trig_eff_err
+
               zBoson          = getGenZ(gPart)
               s.zBoson_genPt  = zBoson['pt']  if zBoson is not None else float('nan')
               s.zBoson_genEta = zBoson['eta'] if zBoson is not None else float('nan')
@@ -833,6 +869,11 @@ def filler(s):
         for var in btagEff.btagWeightNames:
             if var!='MC':
                 setattr(s, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
+
+    if isData and isDiLep:
+        s.unblindWeight = s.weight
+        if s.nBTag>=1 and s.nJetGood>=2 and r.run>275376 and s.dl_mt2ll>100:
+            s.weight = 0
 
     # gen information on extra leptons
     if isMC and not options.skipGenLepMatching:

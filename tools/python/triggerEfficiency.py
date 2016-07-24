@@ -7,22 +7,32 @@ import os
 #mumu_trigger_SF = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/HLT_mumuIso_None_measuredInMET_minLeadLepPt0.root'
 
 #OR of all backput triggers
-#ee_trigger_SF   = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_ee_DZ_OR_HLT_SingleEle_noniso_None_measuredInMET_minLeadLepPt0.root'
 ee_trigger_SF   = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_ee_DZ_None_measuredInMET_minLeadLepPt0.root'
-#mue_trigger_SF  = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mue_OR_HLT_SingleEle_noniso_OR_HLT_SingleMu_noniso_None_measuredInMET_minLeadLepPt0.root'
 mue_trigger_SF  = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mue_None_measuredInMET_minLeadLepPt0.root'
-#mumu_trigger_SF = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mumuIso_OR_HLT_mumuNoiso_OR_HLT_SingleMu_noniso_None_measuredInMET_minLeadLepPt0.root'
 mumu_trigger_SF = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mumuIso_OR_HLT_mumuNoiso_None_measuredInMET_minLeadLepPt0.root'
 
-class triggerEfficiency:
-    def __init__(self):
+ee_trigger_SF_with_backup   = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_ee_DZ_OR_HLT_ee_33_OR_HLT_ee_33_MW_OR_HLT_SingleEle_noniso_None_measuredInMET_minLeadLepPt0.root'
+mue_trigger_SF_with_backup  = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mue_OR_HLT_mu30e30_OR_HLT_SingleEle_noniso_OR_HLT_SingleMu_noniso_None_measuredInMET_minLeadLepPt0.root'
+mumu_trigger_SF_with_backup = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/Run2016BC_HLT_mumuIso_OR_HLT_mumuNoiso_OR_HLT_SingleMu_noniso_None_measuredInMET_minLeadLepPt0.root'
 
-        self.mumu_highEta   = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_highEta1_veryCoarse")
-        self.mumu_lowEta    = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_lowEta1_veryCoarse")
-        self.ee_highEta     = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "eff_pt1_pt2_highEta1_veryCoarse")
-        self.ee_lowEta      = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "eff_pt1_pt2_lowEta1_veryCoarse")
-        self.mue_highEta    = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_highEta1_veryCoarse")
-        self.mue_lowEta     = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_lowEta1_veryCoarse")
+class triggerEfficiency:
+    def __init__(self, with_backup_triggers = False):
+
+        if not with_backup_triggers:
+            self.mumu_highEta   = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_highEta1_veryCoarse")
+            self.mumu_lowEta    = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_lowEta1_veryCoarse")
+            self.ee_highEta     = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "eff_pt1_pt2_highEta1_veryCoarse")
+            self.ee_lowEta      = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "eff_pt1_pt2_lowEta1_veryCoarse")
+            self.mue_highEta    = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_highEta1_veryCoarse")
+            self.mue_lowEta     = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_lowEta1_veryCoarse")
+        else:
+            self.mumu_highEta   = getObjFromFile(os.path.expandvars(mumu_trigger_SF_with_backup),   "eff_pt1_pt2_highEta1_veryCoarse")
+            self.mumu_lowEta    = getObjFromFile(os.path.expandvars(mumu_trigger_SF_with_backup),   "eff_pt1_pt2_lowEta1_veryCoarse")
+            self.ee_highEta     = getObjFromFile(os.path.expandvars(ee_trigger_SF_with_backup),     "eff_pt1_pt2_highEta1_veryCoarse")
+            self.ee_lowEta      = getObjFromFile(os.path.expandvars(ee_trigger_SF_with_backup),     "eff_pt1_pt2_lowEta1_veryCoarse")
+            self.mue_highEta    = getObjFromFile(os.path.expandvars(mue_trigger_SF_with_backup),    "eff_pt1_pt2_highEta1_veryCoarse")
+            self.mue_lowEta     = getObjFromFile(os.path.expandvars(mue_trigger_SF_with_backup),    "eff_pt1_pt2_lowEta1_veryCoarse")
+
         h_ = [self.mumu_highEta, self.mumu_lowEta, self.ee_highEta, self.ee_lowEta, self.mue_highEta, self.mue_lowEta]
         assert False not in [bool(x) for x in h_], "Could not load trigger SF: %r"%h_
 

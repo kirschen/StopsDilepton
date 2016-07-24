@@ -2,6 +2,22 @@
 #python cmgPostProcessing.py  --samples SingleElectron_Run2016B_PromptReco_v2
 #python cmgPostProcessing.py  --samples SingleMuon_Run2016B_PromptReco_v2
 
-python cmgPostProcessing.py --samples DoubleMuon_Run2016B_PromptReco_v2
-python cmgPostProcessing.py --samples MuonEG_Run2016B_PromptReco_v2
-python cmgPostProcessing.py --samples DoubleEG_Run2016B_PromptReco_v2
+python cmgPostProcessing.py --samples DoubleMuon_Run2016B_PromptReco_v2 --triggerSelection=mumu
+python cmgPostProcessing.py --samples SingleMuon_Run2016B_PromptReco_v2 --triggerSelection=mu_for_mumu
+
+python cmgPostProcessing.py --samples MuonEG_Run2016B_PromptReco_v2 --triggerSelection=mue
+python cmgPostProcessing.py --samples SingleElectron_Run2016B_PromptReco_v2 --triggerSelection=e_for_mue
+python cmgPostProcessing.py --samples SingleMuon_Run2016B_PromptReco_v2 --triggerSelection=mu_for_mue
+
+python cmgPostProcessing.py --samples DoubleEG_Run2016B_PromptReco_v2 --triggerSelection=ee
+python cmgPostProcessing.py --samples SingleElectron_Run2016B_PromptReco_v2 --triggerSelection=e_for_ee
+
+python cmgPostProcessing.py --samples DoubleMuon_Run2016C_PromptReco_v2 --triggerSelection=mumu
+python cmgPostProcessing.py --samples SingleMuon_Run2016C_PromptReco_v2 --triggerSelection=mu_for_mumu
+
+python cmgPostProcessing.py --samples MuonEG_Run2016C_PromptReco_v2 --triggerSelection=mue
+python cmgPostProcessing.py --samples SingleElectron_Run2016C_PromptReco_v2 --triggerSelection=e_for_mue
+python cmgPostProcessing.py --samples SingleMuon_Run2016C_PromptReco_v2 --triggerSelection=mu_for_mue
+
+python cmgPostProcessing.py --samples DoubleEG_Run2016C_PromptReco_v2 --triggerSelection=ee
+python cmgPostProcessing.py --samples SingleElectron_Run2016C_PromptReco_v2 --triggerSelection=e_for_ee
