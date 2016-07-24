@@ -34,10 +34,10 @@ class leptonSF:
 	  sf_iso_err = self.muIso.GetBinError(  self.muIso.GetXaxis().FindBin(pt), self.muIso.GetYaxis().FindBin(abs(eta)))
         elif abs(pdgId)==11:
           if pt >= 200: pt = 199 # last bin is valid to infinity
-	  sf_id      = self.eleId.GetBinContent( self.eleId.GetXaxis().FindBin(eta),  self.eleId.GetYaxis().FindBin(pt))
-	  sf_id_err  = self.eleId.GetBinError(   self.eleId.GetXaxis().FindBin(eta),  self.eleId.GetYaxis().FindBin(pt))
-	  sf_iso     = self.eleIso.GetBinContent(self.eleIso.GetXaxis().FindBin(eta), self.eleIso.GetYaxis().FindBin(pt))
-	  sf_iso_err = self.eleIso.GetBinError(  self.eleIso.GetXaxis().FindBin(eta), self.eleIso.GetYaxis().FindBin(pt))
+	  sf_id      = self.eleId.GetBinContent( self.eleId.GetXaxis().FindBin(pt),  self.eleId.GetYaxis().FindBin(abs(eta)))
+	  sf_id_err  = self.eleId.GetBinError(   self.eleId.GetXaxis().FindBin(pt),  self.eleId.GetYaxis().FindBin(abs(eta)))
+	  sf_iso     = self.eleIso.GetBinContent(self.eleIso.GetXaxis().FindBin(pt), self.eleIso.GetYaxis().FindBin(abs(eta)))
+	  sf_iso_err = self.eleIso.GetBinError(  self.eleIso.GetXaxis().FindBin(pt), self.eleIso.GetYaxis().FindBin(abs(eta)))
         else:
             raise Exception("FastSim SF for PdgId %i not known"%pdgId)
 
