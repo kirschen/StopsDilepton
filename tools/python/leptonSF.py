@@ -28,6 +28,7 @@ class leptonSF:
 
     def getSF(self, pdgId, pt, eta, sigma=0):
         if abs(pdgId)==13: 
+          if pt >= 120: pt = 119 # last bin is valid to infinity
 	  sf_id      = self.muId.GetBinContent( self.muId.GetXaxis().FindBin(pt),  self.muId.GetYaxis().FindBin(abs(eta)))
 	  sf_id_err  = self.muId.GetBinError(   self.muId.GetXaxis().FindBin(pt),  self.muId.GetYaxis().FindBin(abs(eta)))
 	  sf_iso     = self.muIso.GetBinContent(self.muIso.GetXaxis().FindBin(pt), self.muIso.GetYaxis().FindBin(abs(eta)))
