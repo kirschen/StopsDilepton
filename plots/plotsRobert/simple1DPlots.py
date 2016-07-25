@@ -47,6 +47,12 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
+argParser.add_argument('--trigger',
+    action='store_true',
+    #default = True,
+    help='Small?',
+)
+
 argParser.add_argument('--dPhiLepMET',
     action='store_true',
     #default = True,
@@ -132,7 +138,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v10_2_noReweights',
+    default='80X_v11',
     action='store',
 )
 
@@ -155,52 +161,67 @@ def getZCut(mode):
 # Extra requirements on data
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v10/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v11/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v10/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v11/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
+sample_DoubleMuon_Run2016B  = DoubleMuon_Run2016B_backup
+sample_DoubleEG_Run2016B    = DoubleEG_Run2016B_backup
+sample_MuonEG_Run2016B      = MuonEG_Run2016B_backup
+
 if args.mode=="doubleMu":
-    lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&(HLT_mumuIso||HLT_mumuNoiso)", getZCut(args.zMode)])
+    lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
     lepton_selection_string_mc   = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
-    data_samples = [DoubleMuon_Run2016B]
-    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_samples = [sample_DoubleMuon_Run2016B]
+    sample_DoubleMuon_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    if args.trigger: sample_DoubleMuon_Run2016B.addSelectionString( "(HLT_mumuIso||HLT_mumuNoiso)" )
     data_sample_texName = "Data (2 #mu)"
     #qcd_sample = QCD_Mu5 #FIXME
 elif args.mode=="doubleEle":
-    lepton_selection_string_data = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
+    lepton_selection_string_data = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
-    data_samples = [DoubleEG_Run2016B]
-    DoubleEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_samples = [sample_DoubleEG_Run2016B]
+    sample_DoubleEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    if args.trigger: sample_DoubleEG_Run2016B.addSelectionString( "HLT_ee_DZ" )
     data_sample_texName = "Data (2 e)"
     #qcd_sample = QCD_EMbcToE
 elif args.mode=="muEle":
-    lepton_selection_string_data = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue", getZCut(args.zMode)])
+    lepton_selection_string_data = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
-    data_samples = [MuonEG_Run2016B]
-    MuonEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_samples = [sample_MuonEG_Run2016B]
+    sample_MuonEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    if args.trigger: sample_MuonEG_Run2016B.addSelectionString( "HLT_mue" )
     data_sample_texName = "Data (1 #mu, 1 e)"
     #qcd_sample = QCD_Mu5EMbcToE
 elif args.mode=="dilepton":
-    doubleMu_selectionString = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&(HLT_mumuIso||HLT_mumuNoiso)&&abs(dl_mass-91.2)>15"
-    doubleEle_selectionString = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ&&abs(dl_mass-91.2)>15"
-    muEle_selectionString = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue"
+    doubleMu_selectionString    = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&abs(dl_mass-91.2)>15"
+    doubleEle_selectionString   = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&abs(dl_mass-91.2)>15"
+    muEle_selectionString       = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1"
     lepton_selection_string_mc = "(isEMu==1&&nGoodMuons==1&&nGoodElectrons==1|| ( isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2 ) && abs(dl_mass-91.2)>15)"
-    data_samples = [DoubleMuon_Run2016B, DoubleEG_Run2016B, MuonEG_Run2016B]
-    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
-    DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
-    MuonEG_Run2016B.setSelectionString([dataFilterCut, muEle_selectionString])
+    data_samples = [sample_DoubleMuon_Run2016B, sample_DoubleEG_Run2016B, sample_MuonEG_Run2016B]
+    sample_DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
+    sample_DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
+    sample_MuonEG_Run2016B.setSelectionString([dataFilterCut, muEle_selectionString])
+    if args.trigger: 
+        sample_DoubleMuon_Run2016B.addSelectionString( "(HLT_mumuIso||HLT_mumuNoiso)" )
+        sample_DoubleEG_Run2016B.addSelectionString( "HLT_ee_DZ" )
+        sample_MuonEG_Run2016B.addSelectionString( "HLT_mue" )
+
     data_sample_texName = "Data"
     #qcd_sample = QCD_Mu5EMbcToE
 
 elif args.mode=="sameFlavour":
-    doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&(HLT_mumuIso||HLT_mumuNoiso)", getZCut(args.zMode)])
-    doubleEle_selectionString = "&&".join([ "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
+    doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
+    doubleEle_selectionString = "&&".join([ "isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join([ "(isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2)", getZCut(args.zMode)])
 
-    data_samples = [DoubleMuon_Run2016B, DoubleEG_Run2016B]
-    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
-    DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
+    data_samples = [sample_DoubleMuon_Run2016B, sample_DoubleEG_Run2016B]
+    sample_DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
+    sample_DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
+    if args.trigger: 
+        sample_DoubleMuon_Run2016B.addSelectionString( "(HLT_mumuIso||HLT_mumuNoiso)" )
+        sample_DoubleEG_Run2016B.addSelectionString( "HLT_ee_DZ" )
 
     data_sample_texName = "Data (SF)"
     #qcd_sample = QCD_Mu5EMbcToE
@@ -220,7 +241,7 @@ elif args.ttjets=='pow':
     TTJets_sample = Sample.combine("TandTTPowHeg", [TTLep_pow, singleTop])
     TTJets_sample.texName = Top.texName+"(powHeg)"
 
-mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson]
+mc_samples = [ TTJets_sample] + diBoson_samples + [DY, TTZ_LO, TTW, triBoson]
 
 if args.small:
     for sample in mc_samples + data_samples:
@@ -234,20 +255,20 @@ lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
 
 logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 
-mc_weight_string = "weight"#*reweightDilepTrigger*reweightBTag_SF"
-#if args.pu != "None":
-#    mc_weight_string+="*"+args.pu
+mc_weight_string = "weight*reweightDilepTriggerBackup*reweightBTag_SF*reweightLeptonSF"
+if args.pu != "None":
+    mc_weight_string+="*"+args.pu
 data_weight_string = "weight"
 
 for sample in mc_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     sample.style = styles.fillStyle( sample.color)
     if args.pu != "None":
-        sample.read_variables = [args.pu+'/F', 'reweightDilepTrigger/F', 'reweightBTag_SF/F']
-        #sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTrigger*data.reweightBTag_SF
+        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F']
+        sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF
     else:
-        sample.read_variables = ['reweightDilepTrigger/F', 'reweightBTag_SF/F']
-        #sample.weight = lambda data: data.reweightDilepTrigger*data.reweightBTag_SF
+        sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F']
+        sample.weight = lambda data: data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF
 
 weight = lambda data:data.weight
 

@@ -18,33 +18,40 @@ except:
 try:
     postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-    postProcessing_directory = "postProcessed_80X_v6/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v11/dilepTiny"
 
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
 dirs = {}
-dirs['DoubleEG']       = ["DoubleEG_Run2016B_PromptReco_v2"]
-dirs['DoubleMuon']     = ["DoubleMuon_Run2016B_PromptReco_v2"]
-dirs['MuonEG']         = ["MuonEG_Run2016B_PromptReco_v2"]
-#dirs['SingleElectron'] = ["SingleElectron_Run2016B_PromptReco"]
-#dirs['SingleMuon']     = ["SingleMuon_Run2016B_PromptReco"]
+dirs['DoubleEG_Run2016B']       = ["DoubleEG_Run2016B_PromptReco_v2"]
+dirs['DoubleMuon_Run2016B']     = ["DoubleMuon_Run2016B_PromptReco_v2"]
+dirs['MuonEG_Run2016B']         = ["MuonEG_Run2016B_PromptReco_v2"]
+
+dirs["DoubleEG_Run2016B_backup"]    = ["DoubleEG_Run2016B_PromptReco_v2_Trig_ee", "SingleElectron_Run2016B_PromptReco_v2_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016B_backup"]  = ["DoubleMuon_Run2016B_PromptReco_v2_Trig_mumu", "SingleMuon_Run2016B_PromptReco_v2_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016B_backup"]      = ["MuonEG_Run2016B_PromptReco_v2_Trig_mue", "SingleElectron_Run2016B_PromptReco_v2_Trig_e_for_mue", "SingleMuon_Run2016B_PromptReco_v2_Trig_mu_for_mue"]
 
 for key in dirs:
   dirs[key] = [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]]
 
-DoubleEG_Run2016B       = Sample.fromDirectory(name="DoubleEG_Run2016B",       treeName="Events", texName="DoubleEG (Run2016B)",       directory=dirs["DoubleEG"])
-DoubleMuon_Run2016B     = Sample.fromDirectory(name="DoubleMuon_Run2016B",     treeName="Events", texName="DoubleMuon (Run2016B)",     directory=dirs["DoubleMuon"])
-MuonEG_Run2016B         = Sample.fromDirectory(name="MuonEG_Run2016B",         treeName="Events", texName="MuonEG (Run2016B)",         directory=dirs["MuonEG"])
-#SingleElectron_Run2016B = Sample.fromDirectory(name="SingleElectron_Run2016B", treeName="Events", texName="SingleElectron (Run2016B)", directory=dirs["SingleElectron"])
-#SingleMuon_Run2016B     = Sample.fromDirectory(name="SingleMuon_Run2016B",     treeName="Events", texName="SingleMuon (Run2016B)",     directory=dirs["SingleMuon"])
+#DoubleEG_Run2016B       = Sample.fromDirectory(name="DoubleEG_Run2016B",       treeName="Events", texName="DoubleEG (Run2016B)",       directory=dirs["DoubleEG_Run2016B"])
+#DoubleMuon_Run2016B     = Sample.fromDirectory(name="DoubleMuon_Run2016B",     treeName="Events", texName="DoubleMuon (Run2016B)",     directory=dirs["DoubleMuon_Run2016B"])
+#MuonEG_Run2016B         = Sample.fromDirectory(name="MuonEG_Run2016B",         treeName="Events", texName="MuonEG (Run2016B)",         directory=dirs["MuonEG_Run2016B"])
+#DoubleEG_Run2016B      .lumi = 5.907*1000 
+#DoubleMuon_Run2016B    .lumi = 5.876*1000 
+#MuonEG_Run2016B        .lumi = 5.916*1000
 
-DoubleEG_Run2016B      .lumi = 5.907*1000 
-DoubleMuon_Run2016B    .lumi = 5.876*1000 
-MuonEG_Run2016B        .lumi = 5.916*1000
-#SingleElectron_Run2016B.lumi =  1000*(2.165)
-#SingleMuon_Run2016B    .lumi =  1000*(2.165)
+DoubleEG_Run2016B_backup       = Sample.fromDirectory(name="DoubleEG_Run2016B_backup",       treeName="Events", texName="DoubleEG (Run2016B)",       directory=dirs["DoubleEG_Run2016B_backup"])
+DoubleMuon_Run2016B_backup     = Sample.fromDirectory(name="DoubleMuon_Run2016B_backup",     treeName="Events", texName="DoubleMuon (Run2016B)",     directory=dirs["DoubleMuon_Run2016B_backup"])
+MuonEG_Run2016B_backup         = Sample.fromDirectory(name="MuonEG_Run2016B_backup",         treeName="Events", texName="MuonEG (Run2016B)",         directory=dirs["MuonEG_Run2016B_backup"])
 
-allSamples_Data25ns = [DoubleEG_Run2016B, MuonEG_Run2016B, DoubleMuon_Run2016B]#, SingleElectron_Run2016B, SingleMuon_Run2016B]
+DoubleEG_Run2016B_backup      .lumi = 5.93*1000 
+DoubleMuon_Run2016B_backup    .lumi = 5.93*1000 
+MuonEG_Run2016B_backup        .lumi = 5.93*1000
+
+allSamples_Data25ns = []
+#allSamples_Data25ns += [DoubleEG_Run2016B, MuonEG_Run2016B, DoubleMuon_Run2016B]#, SingleElectron_Run2016B, SingleMuon_Run2016B]
+allSamples_Data25ns += [DoubleEG_Run2016B_backup, MuonEG_Run2016B_backup, DoubleMuon_Run2016B_backup]#, SingleElectron_Run2016B_backup, SingleMuon_Run2016B_backup]
 for s in allSamples_Data25ns:
   s.color   = ROOT.kBlack
   s.isData  = True
