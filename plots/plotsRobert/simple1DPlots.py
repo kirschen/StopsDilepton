@@ -241,7 +241,7 @@ elif args.ttjets=='pow':
     TTJets_sample = Sample.combine("TandTTPowHeg", [TTLep_pow, singleTop])
     TTJets_sample.texName = Top.texName+"(powHeg)"
 
-mc_samples = [ TTJets_sample] + diBoson_samples + [DY, TTZ_LO, TTW, triBoson]
+mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson]
 
 if args.small:
     for sample in mc_samples + data_samples:
