@@ -80,6 +80,22 @@ def multiIsoSelector(WP):
             and (l["jetPtRatiov2"]>multiIsoWP[WP]['ptRatiov2'] or l['jetPtRelv2']>multiIsoWP[WP]['ptRelv2'] )
     return func
 
+
+__VT = multiIsoSelector('VT')
+__T = multiIsoSelector('T')
+__M = multiIsoSelector('M')
+__L = multiIsoSelector('L')
+__VL = multiIsoSelector('VL')
+def multiIsoWPInt( l ):
+    #Static functions so we don't construct them for each lepton
+
+    if   __VT( l ): return 5
+    elif __T ( l ): return 4
+    elif __M ( l ): return 3
+    elif __L ( l ): return 2
+    elif __VL( l ): return 1
+    return 0
+
 def miniIsoSelector( miniRelIso ):
     assert isinstance(miniRelIso, numbers.Number), "Don't know what to do with miniRelIso %r"%miniRelIso
     def func(l):
