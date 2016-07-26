@@ -28,9 +28,14 @@ from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSelector, eleSelector, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
+
 from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
 triggerEff            = triggerEfficiency(with_backup_triggers = False)
+
+from StopsDilepton.tools.leptonHIPEfficiency import leptonHIPEfficiency
+leptonHIPSF = leptonHIPEfficiency()
+
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
 genSearch = GenSearch()
@@ -382,7 +387,7 @@ if isTiny:
         "Flag_*", "HLT_*",
         #"HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
         #"HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
-        "LepGood_eta","LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId",
+        "LepGood_eta", "LepGood_etaSc", "LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId",
         "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits","LepGood_jetPtRelv2", "LepGood_jetPtRatiov2", "LepGood_eleCutIdSpring15_25ns_v1"
         ]
 
@@ -502,14 +507,14 @@ if isMC:
 
 read_variables += [\
     Variable.fromString('nLepGood/I'),
-    VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
+    VectorType.fromString('LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
     Variable.fromString('nJet/I'),
     VectorType.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
 ]
 if isVeryLoose:
     read_variables += [\
         Variable.fromString('nLepOther/I'),
-        VectorType.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
+        VectorType.fromString('LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
     ]
 new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) )
@@ -531,7 +536,12 @@ if isTriLep or isDiLep:
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
-    if isMC: new_variables.extend( ['zBoson_genPt/F', 'zBoson_genEta/F', 'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F', 'reweightDilepTriggerBackup/F', 'reweightDilepTriggerBackupUp/F', 'reweightDilepTriggerBackupDown/F' ] )
+    if isMC: new_variables.extend( \
+        [   'zBoson_genPt/F', 'zBoson_genEta/F', 
+            'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F', 'reweightDilepTriggerBackup/F', 'reweightDilepTriggerBackupUp/F', 'reweightDilepTriggerBackupDown/F',
+            'reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F',
+            'reweightLeptonHIPSF/F',
+         ] )
 
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
@@ -569,8 +579,6 @@ if options.T2tt:
 if options.fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
-if isTriLep or isDiLep:
-    new_variables  += ['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F']
 
 # Define a reader
 reader = sample.treeReader( \
@@ -794,6 +802,12 @@ def filler(s):
             s.reweightLeptonSF           = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta']) for l in leptonsForSF], 1)
             s.reweightLeptonSFUp         = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = +1) for l in leptonsForSF], 1)
             s.reweightLeptonSFDown       = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = -1) for l in leptonsForSF], 1)
+
+            s.reweightLeptonHIPSF      = reduce(mul, [leptonHIPSF.getSF( \
+                pdgId = l['pdgId'],
+                pt  =   l['pt'], 
+                eta =   (l['etaSc'] if abs(l['pdgId'])==11 else l['eta'])
+                )[0]  for l in leptonsForSF], 1)
 
         if len(leptons)>=2:
             mt2Calc.reset()
