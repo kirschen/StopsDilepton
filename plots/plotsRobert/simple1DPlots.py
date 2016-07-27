@@ -47,6 +47,12 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
+argParser.add_argument('--noLoop',
+    action='store_true',
+    #default = True,
+    help='Loop all cuts?',
+)
+
 argParser.add_argument('--trigger',
     action='store_true',
     #default = True,
@@ -138,7 +144,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v11',
+    default='80X_v12_3',
     action='store',
 )
 
@@ -161,9 +167,9 @@ def getZCut(mode):
 # Extra requirements on data
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v11/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v11/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
 sample_DoubleMuon_Run2016B  = DoubleMuon_Run2016B_backup
@@ -238,8 +244,7 @@ else:
 if args.ttjets=='def':
     TTJets_sample = Top
 elif args.ttjets=='pow':
-    TTJets_sample = Sample.combine("TandTTPowHeg", [TTLep_pow, singleTop])
-    TTJets_sample.texName = Top.texName+"(powHeg)"
+    TTJets_sample = Top_pow 
 
 mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson]
 
@@ -255,7 +260,7 @@ lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
 
 logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 
-mc_weight_string = "weight*reweightDilepTriggerBackup*reweightBTag_SF*reweightLeptonSF"
+mc_weight_string = "weight*reweightDilepTriggerBackup*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF"
 if args.pu != "None":
     mc_weight_string+="*"+args.pu
 data_weight_string = "weight"
@@ -264,17 +269,18 @@ for sample in mc_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     sample.style = styles.fillStyle( sample.color)
     if args.pu != "None":
-        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F']
-        sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF
+        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
+        sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
     else:
-        sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F']
-        sample.weight = lambda data: data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF
+        sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
+        sample.weight = lambda data: data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
 
 weight = lambda data:data.weight
 
 basic_cuts=[
     ("mll20", "dl_mass>20"),
     ("l1pt25", "l1_pt>25"),
+    ("mIsoVT", "l1_mIsoWP>=5&&l2_mIsoWP>=5"),
     ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
@@ -383,10 +389,14 @@ sequence.append( makeMinDeltaRLepJets )
         
 stack = Stack(mc_samples) if args.noData else Stack(mc_samples, data_samples)
 
-rev = reversed if args.reversed else lambda x:x
-for i_comb in rev( range( len(cuts)+1 ) ):
-#for i_comb in [ len(cuts) ]:
-    for comb in itertools.combinations( cuts, i_comb ):
+if args.noLoop:
+    l_combs = [ len(cuts) ]
+else:
+    rev = reversed if args.reversed else lambda x:x
+    l_combs = rev( range( len(cuts)+1 ) )
+
+for l_comb in l_combs:
+    for comb in itertools.combinations( cuts, l_comb ):
 
         for s in mc_samples + data_samples:
             s.clear()
