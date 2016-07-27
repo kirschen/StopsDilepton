@@ -20,6 +20,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--subtract',       action='store_true', default=False,       help='subtract residual backgrounds?')
+argParser.add_argument('--add2015',        action='store_true', default=False,       help='add 2015?')
 argParser.add_argument('--plot_directory', action='store',      default='TTG')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
@@ -38,8 +39,13 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selections (two leptons with pt > 20 GeV, photon)
 #
-def getLeptonString(nMu, nE):
-  return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&l1_pt>25"
+from StopsDilepton.tools.objectSelection import multiIsoLepString
+multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
+def getLeptonString(nMu, nE, multiIso=False, is74x=False):
+  leptonString = "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&l1_pt>25"
+  if multiIso and is74x: leptonString += "&&l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP
+  elif multiIso:         leptonString += "&&l1_mIsoWP>4&&l2_mIsoWP>4"
+  return leptonString
 
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
@@ -51,6 +57,7 @@ bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGoo
 #
 cuts = [
     ("njet2",             jetSelection+"2"),
+    ("multiIsoWP",        "(1)"),                       # implemented below
     ("photon30",          "(1)"),
     ("llgNoZ",            "(1)"),			# Cut implemented in lepton selection
     ("gJetdR",            "(1)"),			# Implenented in otherSelections() method
@@ -94,14 +101,15 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./ttG.py --selection=" + selection + (" --subtract" if args.subtract else "")
+    command = "./ttG.py --selection=" + selection + (" --subtract" if args.subtract else "") + (" --add2015" if args.add2015 else "")
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
   logger.info("All jobs launched")
   exit(0)
 
-
+if args.add2015:
+  args.plot_directory += "_combined"
 
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -115,6 +123,7 @@ from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed_photonSamples
 # Text on the plots
 #
 def drawObjects( dataMCScale, lumi_scale ):
+    if args.add2015: lumi_scale += 2.16
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
@@ -169,10 +178,12 @@ sequence = [makeDeltaR, filterJets, otherSelections]
 
 offZ            = "&&abs(dl_mass-91.1876)>15"
 offZ_dlg        = "&&abs(dlg_mass-91.1876)>15"
-mumuSelection   = getLeptonString(2, 0) + "&&isOS&&isMuMu" + offZ
-mueSelection    = getLeptonString(1, 1) + "&&isOS&&isEMu"
-eeSelection     = getLeptonString(0, 2) + "&&isOS&&isEE" + offZ
 photonSelection = "nPhotonGood>0&&photon_eta<2.5&&photon_idCutBased>2&&photon_pt>" + args.selection.split('photon')[1].split('-')[0]
+
+def getLeptonSelection(mode, llgCut = False):
+  if   mode=="mumu": return getLeptonString(2, 0, args.selection.count("multiIsoWP")) + "&&isOS&&isMuMu" + offZ + (offZ_dlg if llgCut else "")
+  elif mode=="mue":  return getLeptonString(1, 1, args.selection.count("multiIsoWP")) + "&&isOS&&isEMu"
+  elif mode=="ee":   return getLeptonString(0, 2, args.selection.count("multiIsoWP")) + "&&isOS&&isEE" + offZ + (offZ_dlg if llgCut else "")
 
 #
 # Loop over channels
@@ -183,50 +194,35 @@ allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
   if mode=="mumu":
-    data_sample           = DoubleMuon_Run2016B
-#    qcd_sample            = QCD_Mu5 #FIXME
-    leptonSelection       = mumuSelection + offZ_dlg
-    leptonSelection_nollg = mumuSelection
-    trigger               = "HLT_mumuIso"
+    data_sample           = DoubleMuon_Run2016B_backup
+    data_sample.texName   = "data (2 #mu)"
   elif mode=="ee":
-    data_sample           = DoubleEG_Run2016B
-#    qcd_sample            = QCD_EMbcToE
-    leptonSelection       = eeSelection + offZ_dlg
-    leptonSelection_nollg = eeSelection
-    trigger               = "HLT_ee_DZ"
+    data_sample           = DoubleEG_Run2016B_backup
+    data_sample.texName   = "data (2 e)"
   elif mode=="mue":
-    data_sample           = MuonEG_Run2016B
-#    qcd_sample            = QCD_Mu5EMbcToE
-    leptonSelection       = mueSelection
-    leptonSelection_nollg = mueSelection
-    trigger               = "HLT_mue"
+    data_sample           = MuonEG_Run2016B_backup
+    data_sample.texName   = "data (1 #mu, 1 e)"
 
-  if not args.selection.count('llgNoZ'):
-    leptonSelection = leptonSelection_nollg
-
-#  qcd_sample.name  = "QCD"  # Give same name in all modes such that it combines easily
-  data_sample.name = "data"
-
+  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
+  data_sample.name  = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
-  lumi_scale = data_sample.lumi/1000
-#  lumi_scale = 804.2/1000   # current data is 0.8 /fb
+  lumi_scale        = data_sample.lumi/1000
 
-  mc = [TTG, ZG, DY_HT_LO, multiBoson, TTJets_Lep, singleTop, TTX]
+  mc    = [TTG, ZG, DY_HT_LO, multiBoson, TTJets_Lep, singleTop, TTX]
   stack = Stack(mc, [data_sample])
 
   for sample in mc:
-    sample.scale = lumi_scale
-    sample.style = styles.fillStyle(sample.color)
-    sample.read_variables = ['reweightDilepTrigger/F','reweightPU/F']
-    sample.weight = lambda data: data.reweightDilepTrigger*data.reweightPU
+    sample.scale          = lumi_scale
+    sample.style          = styles.fillStyle(sample.color)
+    sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightPU/F']
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU/F']
+    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU
+    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
 
-  data_sample.setSelectionString([getFilterCut(isData=True), trigger, leptonSelection, photonSelection])
-  for sample in mc:
-    sample.setSelectionString([getFilterCut(isData=False), leptonSelection, photonSelection])
 
   # For TTJets, do TTGJets overlap events removal
-  TTJets_Lep.setSelectionString(["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
-  DY_HT_LO.setSelectionString( ["TTGJetsEventType<4", getFilterCut(isData=False), leptonSelection, photonSelection])
+  TTJets_Lep.setSelectionString(["TTGJetsEventType<4", getFilterCut(isData=False), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
+  DY_HT_LO.setSelectionString(  ["TTGJetsEventType<4", getFilterCut(isData=False), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])
@@ -396,15 +392,16 @@ for index, mode in enumerate(allModes):
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
+  if args.add2015:
+    for plot in plots:
+      plot.addPlot(os.path.join("/user/tomc/StopsDilepton/plots/ttG2015", mode, args.selection))
+
   # Subtract other MC's from data
   if args.subtract:
     for plot in plots:
       for j, h in enumerate(plot.histos[0]):
-        if plot.stack[0][j].name != 'TTGJets':
-          plot.histos[1][0].Add(h, -1)
-      for j, h in enumerate(plot.histos[0]):
-        if plot.stack[0][j].name == 'TTGJets':
-          plot.histos[0] = [h]
+        if plot.stack[0][j].name != 'TTGJets': plot.histos[1][0].Add(h, -1)
+        else:                                  plot.histos[0] = [h]
       plot.stack = Stack([TTG], [data_sample])
 
 
@@ -448,10 +445,8 @@ for index, mode in enumerate(allModes):
 # Add yields in channels
 yields["all"] = {}
 for y in yields[allModes[0]]:
-  try:
-    yields["all"][y] = sum(yields[mode][y] for mode in allModes)
-  except:
-    yields["all"][y] = 0
+  try:    yields["all"][y] = sum(yields[mode][y] for mode in allModes)
+  except: yields["all"][y] = 0
 dataMCScale = yields["all"]["data"]/(yields["all"]["MC"])
 
 
@@ -468,10 +463,9 @@ with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
     f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")
 
 
-try:
-  os.makedirs(os.path.join(plot_directory, args.plot_directory, "all", args.selection, 'comp'))
-except:
-  pass
+try:    os.makedirs(os.path.join(plot_directory, args.plot_directory, "all", args.selection, 'comp'))
+except: pass
+
 # Add the different channels and plot the sums
 for plot in allPlots[allModes[0]]:
   logger.info("Adding " + plot.name + " for mode " + allModes[0] + " to all")
@@ -484,7 +478,7 @@ for plot in allPlots[allModes[0]]:
             j.Add(l)
 
 for plot in allPlots[allModes[0]]:
-  plot.histos[1][0].legendText = "Data 2016 (all channels)"
+  plot.histos[1][0].legendText = "Data 2015+2016 (all)" if args.add2015 else "Data 2016 (all channels)"
   plotting.draw(plot,
         plot_directory = os.path.join(plot_directory, args.plot_directory, "all", args.selection),
         ratio = {'yRange':(0.1,1.9)},
