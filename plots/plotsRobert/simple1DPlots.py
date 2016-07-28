@@ -137,14 +137,14 @@ argParser.add_argument('--signals',
     )
 
 argParser.add_argument('--overwrite',
-    #default = False,
-    default = True,
+    default = False,
+    #default = True,
     action='store_true',
     help='overwrite?',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v12_3',
+    default='80X_v12_4',
     action='store',
 )
 
@@ -280,7 +280,7 @@ weight = lambda data:data.weight
 basic_cuts=[
     ("mll20", "dl_mass>20"),
     ("l1pt25", "l1_pt>25"),
-    ("mIsoVT", "l1_mIsoWP>=5&&l2_mIsoWP>=5"),
+#    ("mIsoVT", "l1_mIsoWP>=5&&l2_mIsoWP>=5"),
     ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
