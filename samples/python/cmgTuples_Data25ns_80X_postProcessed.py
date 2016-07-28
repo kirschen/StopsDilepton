@@ -72,6 +72,7 @@ MuonEG_Run2016BCD_backup        .lumi = (5.870+2.646+4.271)*1000
 allSamples_Data25ns = []
 #allSamples_Data25ns += [DoubleEG_Run2016B, MuonEG_Run2016B, DoubleMuon_Run2016B]#, SingleElectron_Run2016B, SingleMuon_Run2016B]
 allSamples_Data25ns += [DoubleEG_Run2016B_backup, MuonEG_Run2016B_backup, DoubleMuon_Run2016B_backup]#, SingleElectron_Run2016B_backup, SingleMuon_Run2016B_backup]
+allSamples_Data25ns += [DoubleEG_Run2016BCD_backup, MuonEG_Run2016BCD_backup, DoubleMuon_Run2016BCD_backup]#, SingleElectron_Run2016BCD_backup, SingleMuon_Run2016BCD_backup]
 for s in allSamples_Data25ns:
   s.color   = ROOT.kBlack
   s.isData  = True

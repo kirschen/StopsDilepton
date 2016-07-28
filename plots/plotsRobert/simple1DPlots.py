@@ -121,9 +121,9 @@ argParser.add_argument('--met',
     help='met cut',
 )
 argParser.add_argument('--pu',
-    default="reweightPU",
+    default="reweightPU12fb",
     action='store',
-    choices=["None", "reweightPU", "reweightPUUp", "reweightPUDown", "reweightPUVUp", "reweightPUVDown", "reweightNVTX", "reweightNVTXUp", "reweightNVTXDown", "reweightNVTXVUp", "reweightNVTXVDown"],
+    choices=["None", "reweightPU12fb", "reweightPU12fbUp", "reweightPU12fbDown"],
     help='PU weight',
 )
 
