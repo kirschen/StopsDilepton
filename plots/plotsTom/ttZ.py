@@ -41,7 +41,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 isoCut="VT" if args.selection and args.selection.count("VT") else 0.6
 from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
 def getLooseLeptonString(nMu, nE):
-  return muonSelectorString(ptCut=10, iso=isoCut) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, absEtaCut=2.5, iso=isoCut) + "==" + str(nE)
+  return muonSelectorString(ptCut=10, iso=isoCut) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, eleId = 3, absEtaCut=2.5, iso=isoCut) + "==" + str(nE)
 
 def getLeptonString(nMu, nE):
   return getLooseLeptonString(nMu, nE)
@@ -50,12 +50,11 @@ def getPtThresholdString(firstPt, secondPt):
     return "&&".join([muonSelectorString(ptCut=firstPt,  iso=isoCut) + "+" + eleSelectorString(ptCut=firstPt,  iso=isoCut) + ">=1",
                       muonSelectorString(ptCut=secondPt, iso=isoCut) + "+" + eleSelectorString(ptCut=secondPt, iso=isoCut) + ">=2"])
 
-lllSelection          = {}
-lllSelection['MuMu']  = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)])
-lllSelection['MuMuE'] = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)])
-lllSelection['MuEE']  = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)])
-lllSelection['EE']    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)])
-lllSelection['EMu']   = "(("+lllSelection['MuMuE']+")||("+lllSelection['MuEE']+"))"
+def getLeptonSelection(mode):
+  if   mode=="3mu":   return "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)])
+  elif mode=="2mu1e": return "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)])
+  elif mode=="2e1mu": return "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)])
+  elif mode=="3e":    return "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)])
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
@@ -176,6 +175,7 @@ sequence = [makeDeltaR, calcBTag, calcInvMass]
 #
 # Make samples, will be searched for in the postProcessing directory
 #
+postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
@@ -201,24 +201,20 @@ for index, mode in enumerate(allModes):
   yields[mode] = {}
 
   if mode=="3mu":
-    data_sample     = DoubleMuon_Run2016B
-    leptonSelection = lllSelection['MuMu']
-    trigger         = "HLT_mumuIso"
+    data_sample         = DoubleMuon_Run2016BCD_backup
+    data_sample.texName = "data (3 #mu)"
   elif mode=="3e":
-    data_sample     = DoubleEG_Run2016B
-    leptonSelection = lllSelection['EE']
-    trigger         = "HLT_ee_DZ"
+    data_sample         = DoubleEG_Run2016BCD_backup
+    data_sample.texName = "data (3 e)"
   elif mode=="2mu1e":
-    data_sample     = MuonEG_Run2016B
-    leptonSelection = lllSelection['MuMuE']
-    trigger         = "HLT_mue"
+    data_sample         = MuonEG_Run2016BCD_backup
+    data_sample.texName = "data (2 #mu, 1 e)"
   elif mode=="2e1mu":
-    data_sample     = MuonEG_Run2016B
-    leptonSelection = lllSelection['MuEE']
-    trigger         = "HLT_mue"
+    data_sample         = MuonEG_Run2016BCD_backup
+    data_sample.texName = "data (2 e, 1 #mu)"
 
-  print leptonSelection
 
+  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
   data_sample.name = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
@@ -226,15 +222,13 @@ for index, mode in enumerate(allModes):
 #  mc = [ DY_HT_LO, Top, EWK, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
   mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZ_LO]
   for sample in mc:
-    sample.scale = lumi_scale
-    sample.style = styles.fillStyle(sample.color)
-    sample.read_variables = ['reweightDilepTrigger/F','reweightPU/F']
-    sample.weight = lambda data: data.reweightDilepTrigger*data.reweightPU
+    sample.scale          = lumi_scale
+    sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU/F']
+    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU
+    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
-  stack = Stack(mc, [data_sample])
-  data_sample.setSelectionString([getFilterCut(isData=True), leptonSelection, trigger])
-  for sample in mc:
-    sample.setSelectionString([getFilterCut(isData=False), leptonSelection])
+  stack = Stack(mc, data_sample)
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])
@@ -479,7 +473,6 @@ for index, mode in enumerate(allModes):
 
   yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc)
   dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
-  logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yields[mode]["MC"], yields[mode]["data"], lumi_scale )
 
   for plot in plots:
     plotting.draw(plot, 
