@@ -10,13 +10,16 @@ try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "postProcessed_80X_v10/dilepTiny/"
+  postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+
+DY_M5to50_HT = ["DYJetsToLL_M5to50_LO_lheHT100", "DYJetsToLL_M5to50_HT100to200_comb", "DYJetsToLL_M5to50_HT200to400_comb", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf_comb"] 
+DY_M50_HT = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200_comb", "DYJetsToLL_M50_HT200to400_comb", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf_comb"] 
 
 dirs = {}
 dirs['DY']               = ["DYJetsToLL_M50", "DYJetsToLL_M10to50" ]
 dirs['DY_LO']            = ["DYJetsToLL_M10to50_LO", "DYJetsToLL_M50_LO"]
-dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200_ext", "DYJetsToLL_M50_HT200to400_ext", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf", "DYJetsToLL_M10to50_LO"]
-#dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200_ext", "DYJetsToLL_M50_HT200to400_ext", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf", "DYJetsToLL_M5to50_LO_lheHT100", "DYJetsToLL_M5to50_HT200to400_ext"]
+#dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200_ext", "DYJetsToLL_M50_HT200to400_ext", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf_comb", "DYJetsToLL_M10to50_LO"]
+dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 dirs['TTJets']           = ["TTJets"]
 #dirs['TTJets_LO']        = ["TTJets_LO"]
 dirs['TTLep_pow']        = ["TT_pow_ext3_comb"]
