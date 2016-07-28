@@ -25,6 +25,7 @@ argParser.add_argument('--noData',         action='store_true', default=False,  
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--splitBosons',    action='store_true', default=False)
+argParser.add_argument('--powheg',         action='store_true', default=False)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--unblind',        action='store_true', default=False,       help='unblind?')
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
@@ -71,6 +72,7 @@ cuts = [
     ("met80",             "met_pt>80"),
     ("metSig5",           "metSig>5"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+    ("dPhiInv",           "cos(met_phi-JetGood_phi[0])>0.8||cos(met_phi-JetGood_phi[1])>cos(0.25)"),
     ("mt2ll100",          "dl_mt2ll>100"),
     ("mt2ll140",          "dl_mt2ll>140"),
   ]
@@ -86,7 +88,6 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel = [] 
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
-        if not selection.count("multiIsoWP"):      continue
         if not selection.count("looseLeptonVeto"): continue
         if not selection.count("mll20"):           continue
         if selection.count("met50")  and selection.count("met80"):      continue
@@ -114,22 +115,28 @@ if not args.isChild and args.selection is None:
     command = "./analysisPlots.py --selection=" + selection + (" --noData" if args.noData else "")\
                                                             + (" --unblind" if args.unblind else "")\
                                                             + (" --splitBosons" if args.splitBosons else "")\
+                                                            + (" --powheg" if args.powheg else "")\
                                                             + (" --signal=" + args.signal if args.signal else "")\
                                                             + (" --plot_directory=" + args.plot_directory)\
                                                             + (" --logLevel=" + args.logLevel)
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=3:00:00 runPlotsOnCream02.sh")
+    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=5:00:00 runPlotsOnCream02.sh")
   logger.info("All jobs launched")
   exit(0)
 
 if args.selection.count("btag0"): args.signal = None
+if args.selection.count("mt2ll"): args.noData = True
 if args.noData:                   args.plot_directory += "_noData"
+if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
+if args.powheg:                   args.plot_directory += "_topPowheg"
+
 
 
 #
 # Make samples, will be searched for in the postProcessing directory
 #
+postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
@@ -202,13 +209,13 @@ allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
   if mode=="mumu":
-    data_sample         = DoubleMuon_Run2016B_backup
+    data_sample         = DoubleMuon_Run2016BCD_backup
     data_sample.texName = "data (2 #mu)"
   elif mode=="ee":
-    data_sample         = DoubleEG_Run2016B_backup 
+    data_sample         = DoubleEG_Run2016BCD_backup 
     data_sample.texName = "data (2 e)"
   elif mode=="mue":
-    data_sample         = MuonEG_Run2016B_backup 
+    data_sample         = MuonEG_Run2016BCD_backup 
     data_sample.texName = "data (1 #mu, 1 e)"
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
@@ -216,8 +223,10 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
 
-  if args.splitBosons: mc = [ Top, TTZ_LO, TTXNoZ, WW, WZ, ZZ, triBoson, DY_HT_LO]
-  else:                mc = [ Top, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
+  if args.splitBosons:                   mc = [ Top, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
+  elif args.powheg and args.splitBosons: mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
+  elif args.powheg:                      mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
+  else:                                  mc = [ Top, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
 
   for sample in mc:
     sample.scale          = lumi_scale
@@ -249,6 +258,12 @@ for index, mode in enumerate(allModes):
     name = 'yield', texX = 'yield', texY = 'Number of Events',
     variable = Variable.fromString( "yield/F" ).addFiller(lambda data: 0.5 + index),
     binning=[3, 0, 3],
+  ))
+
+  plots.append(Plot(
+    name = 'nVtxs', texX = 'vertex multiplicity', texY = 'Number of Events',
+    variable = Variable.fromString( "nVert/I" ),
+    binning=[50,0,50],
   ))
 
   plots.append(Plot(
@@ -490,7 +505,6 @@ for mode in ["SF","all"]:
   dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
 
   for plot in allPlots['mumu']:
-    logger.info("Adding " + plot.name + " for ee and mumu to SF")
     for plot2 in (p for p in (allPlots['ee'] if mode=="SF" else allPlots["mue"]) if p.name == plot.name):  #For SF add EE, second round add EMu for all
       for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
 	for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):

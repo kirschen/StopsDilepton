@@ -114,6 +114,7 @@ if args.add2015:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
+postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed_photonSamples import *
@@ -194,13 +195,13 @@ allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
   if mode=="mumu":
-    data_sample           = DoubleMuon_Run2016B_backup
+    data_sample           = DoubleMuon_Run2016BCD_backup
     data_sample.texName   = "data (2 #mu)"
   elif mode=="ee":
-    data_sample           = DoubleEG_Run2016B_backup
+    data_sample           = DoubleEG_Run2016BCD_backup
     data_sample.texName   = "data (2 e)"
   elif mode=="mue":
-    data_sample           = MuonEG_Run2016B_backup
+    data_sample           = MuonEG_Run2016BCD_backup
     data_sample.texName   = "data (1 #mu, 1 e)"
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
