@@ -31,6 +31,18 @@ dirs["DoubleEG_Run2016B_backup"]    = ["DoubleEG_Run2016B_PromptReco_v2_Trig_ee"
 dirs["DoubleMuon_Run2016B_backup"]  = ["DoubleMuon_Run2016B_PromptReco_v2_Trig_mumu", "SingleMuon_Run2016B_PromptReco_v2_Trig_mu_for_mumu"]
 dirs["MuonEG_Run2016B_backup"]      = ["MuonEG_Run2016B_PromptReco_v2_Trig_mue", "SingleElectron_Run2016B_PromptReco_v2_Trig_e_for_mue", "SingleMuon_Run2016B_PromptReco_v2_Trig_mu_for_mue"]
 
+dirs["DoubleEG_Run2016C_backup"]    = ["DoubleEG_Run2016C_PromptReco_v2_Trig_ee", "SingleElectron_Run2016C_PromptReco_v2_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016C_backup"]  = ["DoubleMuon_Run2016C_PromptReco_v2_Trig_mumu", "SingleMuon_Run2016C_PromptReco_v2_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016C_backup"]      = ["MuonEG_Run2016C_PromptReco_v2_Trig_mue", "SingleElectron_Run2016C_PromptReco_v2_Trig_e_for_mue", "SingleMuon_Run2016C_PromptReco_v2_Trig_mu_for_mue"]
+
+dirs["DoubleEG_Run2016D_backup"]    = ["DoubleEG_Run2016D_PromptReco_v2_Trig_ee", "SingleElectron_Run2016D_PromptReco_v2_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016D_backup"]  = ["DoubleMuon_Run2016D_PromptReco_v2_Trig_mumu", "SingleMuon_Run2016D_PromptReco_v2_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016D_backup"]      = ["MuonEG_Run2016D_PromptReco_v2_Trig_mue", "SingleElectron_Run2016D_PromptReco_v2_Trig_e_for_mue", "SingleMuon_Run2016D_PromptReco_v2_Trig_mu_for_mue"]
+
+dirs["DoubleEG_Run2016BCD_backup"]   =  dirs["DoubleEG_Run2016B_backup"]   + dirs["DoubleEG_Run2016C_backup"]   +  dirs["DoubleEG_Run2016D_backup"]  
+dirs["DoubleMuon_Run2016BCD_backup"] =  dirs["DoubleMuon_Run2016B_backup"] + dirs["DoubleMuon_Run2016C_backup"] +  dirs["DoubleMuon_Run2016D_backup"]
+dirs["MuonEG_Run2016BCD_backup"]     =  dirs["MuonEG_Run2016B_backup"]     + dirs["MuonEG_Run2016C_backup"]     +  dirs["MuonEG_Run2016D_backup"]    
+
 for key in dirs:
   dirs[key] = [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]]
 
@@ -48,6 +60,14 @@ MuonEG_Run2016B_backup         = Sample.fromDirectory(name="MuonEG_Run2016B_back
 DoubleEG_Run2016B_backup      .lumi = 5.93*1000 
 DoubleMuon_Run2016B_backup    .lumi = 5.93*1000 
 MuonEG_Run2016B_backup        .lumi = 5.93*1000
+
+DoubleEG_Run2016BCD_backup       = Sample.fromDirectory(name="DoubleEG_Run2016BCD_backup",       treeName="Events", texName="DoubleEG (Run2016BCD)",       directory=dirs["DoubleEG_Run2016BCD_backup"])
+DoubleMuon_Run2016BCD_backup     = Sample.fromDirectory(name="DoubleMuon_Run2016BCD_backup",     treeName="Events", texName="DoubleMuon (Run2016BCD)",     directory=dirs["DoubleMuon_Run2016BCD_backup"])
+MuonEG_Run2016BCD_backup         = Sample.fromDirectory(name="MuonEG_Run2016BCD_backup",         treeName="Events", texName="MuonEG (Run2016BCD)",         directory=dirs["MuonEG_Run2016BCD_backup"])
+
+DoubleEG_Run2016BCD_backup      .lumi = (5.884+2.646+4.353)*1000 
+DoubleMuon_Run2016BCD_backup    .lumi = (5.869+2.645+4.353)*1000 
+MuonEG_Run2016BCD_backup        .lumi = (5.870+2.646+4.271)*1000
 
 allSamples_Data25ns = []
 #allSamples_Data25ns += [DoubleEG_Run2016B, MuonEG_Run2016B, DoubleMuon_Run2016B]#, SingleElectron_Run2016B, SingleMuon_Run2016B]

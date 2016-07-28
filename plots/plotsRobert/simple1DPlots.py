@@ -47,6 +47,13 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
+argParser.add_argument('--dPhi',
+    action='store',
+    default = 'def',
+    choices=['def', 'inv','none'],
+    help='dPhi?',
+)
+
 argParser.add_argument('--noLoop',
     action='store_true',
     #default = True,
@@ -121,10 +128,10 @@ argParser.add_argument('--pu',
 )
 
 argParser.add_argument('--ttjets',
-    default='def',
+    default='pow',
     action='store',
-    choices=['def', 'pow'],
-    help='ttjets cut',
+    choices=['mg', 'pow'],
+    help='ttjets sample',
 )
 
 
@@ -144,7 +151,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v12_4',
+    default='80X_v12_5',
     action='store',
 )
 
@@ -172,9 +179,9 @@ from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
-sample_DoubleMuon_Run2016B  = DoubleMuon_Run2016B_backup
-sample_DoubleEG_Run2016B    = DoubleEG_Run2016B_backup
-sample_MuonEG_Run2016B      = MuonEG_Run2016B_backup
+sample_DoubleMuon_Run2016B  = DoubleMuon_Run2016BCD_backup
+sample_DoubleEG_Run2016B    = DoubleEG_Run2016BCD_backup
+sample_MuonEG_Run2016B      = MuonEG_Run2016BCD_backup
 
 if args.mode=="doubleMu":
     lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
@@ -237,11 +244,11 @@ else:
 
 
 if args.splitDiBoson:
-    diBoson_samples = [VVTo2L2Nu, WW,WZ,ZZ]
+    diBoson_samples = [VVTo2L2Nu, WWNo2L2Nu, WZ, ZZNo2L2Nu]
 else:
-   diBoson_samples = [diBoson] 
+    diBoson_samples = [diBoson] 
 
-if args.ttjets=='def':
+if args.ttjets=='mg':
     TTJets_sample = Top
 elif args.ttjets=='pow':
     TTJets_sample = Top_pow 
@@ -277,11 +284,18 @@ for sample in mc_samples:
 
 weight = lambda data:data.weight
 
+if args.dPhi == 'inv':
+    dPhi = [ ("dPhiJetMETInv", "(!(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0))") ]
+elif args.dPhi=='def':
+    dPhi = [ ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0") ]
+else:
+    dPhi = []
+
 basic_cuts=[
     ("mll20", "dl_mass>20"),
     ("l1pt25", "l1_pt>25"),
-#    ("mIsoVT", "l1_mIsoWP>=5&&l2_mIsoWP>=5"),
-    ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
+    ("mIsoVT", "l1_mIsoWP>=5&&l2_mIsoWP>=5"),
+    ] + dPhi + [
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
 ]
@@ -416,7 +430,7 @@ for l_comb in l_combs:
         ppfixes.append( "DBS%i"%(100*args.diBosonScaleFactor) )
         if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
         if args.noScaling: ppfixes.append( "noScaling" )
-        if args.ttjets=='pow': ppfixes.append( "TTPowHeg" )
+        if args.ttjets=='mg': ppfixes.append( "TTMG" )
 
         if args.small: ppfixes = ['small'] + ppfixes
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
