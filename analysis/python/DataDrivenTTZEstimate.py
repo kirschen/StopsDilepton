@@ -65,12 +65,11 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 
             else:
 	      # pt leptons > 30, 20, 10 GeV
-	      useTrigger            = False # setup.parameters['useTriggers'] # better not to use three lepton triggers, seems to be too inefficient
               lllSelection          = {}
-	      lllSelection['MuMu']  = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)]) + ("&&HLT_mumuIso"            if useTrigger else "")
-	      lllSelection['MuMuE'] = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)]) + ("&&(HLT_mue||HLT_mumuIso)" if useTrigger else "") 
-	      lllSelection['MuEE']  = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)]) + ("&&(HLT_mue||HLT_ee_DZ)"   if useTrigger else "")
-	      lllSelection['EE']    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)]) + ("&&HLT_ee_DZ"              if useTrigger else "")
+	      lllSelection['MuMu']  = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)])
+	      lllSelection['MuMuE'] = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)])
+	      lllSelection['MuEE']  = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)])
+	      lllSelection['EE']    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)])
               lllSelection['EMu']   = "(("+lllSelection['MuMuE']+")||("+lllSelection['MuEE']+"))"
 
 	      bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
