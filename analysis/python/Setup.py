@@ -11,10 +11,6 @@ logger = logging.getLogger(__name__)
 #user specific
 from StopsDilepton.tools.user import analysis_results
 
-#multi-iso workpoint
-from StopsDilepton.tools.objectSelection import multiIsoLepString, getFilterCut
-multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
-
 #define samples
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
@@ -23,16 +19,18 @@ from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 #DYSample          = DY
 DYSample           = DY_HT_LO #LO, HT binned including a low HT bin starting from zero from the inclusive sample
 #TTJetsSample      = TTJets #NLO
-TTJetsSample       = Sample.combine("TTJets", [TTJets_Lep, singleTop], texName = "t#bar{t}/single-t") #LO, very large dilep + single lep samples
+#TTJetsSample       = Sample.combine("TTJets", [TTJets_Lep, singleTop], texName = "t#bar{t}/single-t") #LO, very large dilep + single lep samples
+TTJetsSample       = Top_pow
 WJetsSample        = WJetsToLNu #WJetsToLNu_HT
 otherEWKComponents = [multiBoson, TTXNoZ, WJetsSample]
 otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations
 from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels
+from StopsDilepton.tools.objectSelection import getFilterCut
 
 #to run on data
-dataLumi = {'EMu': MuonEG_Run2016B.lumi, 'MuMu':DoubleMuon_Run2016B.lumi, 'EE':DoubleEG_Run2016B.lumi}
+dataLumi = {'EMu': MuonEG_Run2016BCD_backup.lumi, 'MuMu':DoubleMuon_Run2016BCD_backup.lumi, 'EE':DoubleEG_Run2016BCD_backup.lumi}
 #10/fb to run on MC
 #lumi = {c:10000 for c in channels}
 lumi = dataLumi
@@ -46,7 +44,6 @@ default_dPhiJetMet    = 0.25  # To fix: only applies on 2nd jet, leading jet cut
 default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
 default_leptonCharges = "isOS"
-default_useTriggers   = False
 
 class Setup:
     def __init__(self):
@@ -64,12 +61,10 @@ class Setup:
             'nJets':         default_nJets,
             'nBTags':        default_nBTags,
             'leptonCharges': default_leptonCharges,
-            'useTriggers':   default_useTriggers
         }
 
 
-        self.sys      = {'weight':'weight', 'reweight':['reweightPU'], 'selectionModifier':None}
-#        self.sys      = {'weight':'weight', 'reweight':[],             'selectionModifier':None}
+        self.sys      = {'weight':'weight', 'reweight':['reweightPU12fb','reweightDilepTriggerBackup','reweightBTag_SF','reweightLeptonSF','reweightLeptonHIPSF'], 'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
 
@@ -82,9 +77,9 @@ class Setup:
         'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs]),
                        'EE':   Sample.combine('other', [otherEWKBkgs]),
                        'EMu':  Sample.combine('other', [otherEWKBkgs])},
-        'Data'   :    {'MuMu': DoubleMuon_Run2016B,
-                       'EE':   DoubleEG_Run2016B,
-                       'EMu':  MuonEG_Run2016B},
+        'Data'   :    {'MuMu': DoubleMuon_Run2016BCD_backup,
+                       'EE':   DoubleEG_Run2016BCD_backup,
+                       'EMu':  MuonEG_Run2016BCD_backup},
         }
 
     def prefix(self):
@@ -105,8 +100,13 @@ class Setup:
             for k in sys.keys():
                 if k=='reweight':
                     res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
-                    if 'reweightPUUp' in res.sys[k] or 'reweightPUDown' in res.sys[k]:                     res.sys[k].remove('reweightPU')
-                    if 'reweightDilepTriggerUp' in res.sys[k] or 'reweightDilepTriggerDown' in res.sys[k]: res.sys[k].remove('reweightDilepTrigger')
+                    for upOrDown in ['Up','Down']:
+                      if 'reweight12fbPU'+upOrDown             in res.sys[k]: res.sys[k].remove('reweight12fbPU')
+                      if 'reweightDilepTriggerBackup'+upOrDown in res.sys[k]: res.sys[k].remove('reweightDilepTriggerBackup')
+                      if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
+                      if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
+                      if 'reweightLeptonSF'+upOrDown           in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
+                      if 'reweightLeptonHIPSF'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightLeptonHIPSF')
                 else:
                     res.sys[k] = sys[k] # if sys[k] else res.sys[k]
 
@@ -132,7 +132,7 @@ class Setup:
 
     def selection(self, dataMC,
 			mllMin, metMin, metSigMin, dPhiJetMet,
-			nJets, nBTags, leptonCharges, useTriggers,
+			nJets, nBTags, leptonCharges, 
 			channel = 'all', zWindow = 'offZ', hadronicSelection = False, applyFilterCut = True):
         '''Define full selection
 	   dataMC: 'Data' or 'MC'
@@ -193,9 +193,6 @@ class Setup:
               res['cuts'].append('dl_mass>='+str(mllMin))
               res['prefixes'].append('mll'+str(mllMin))
 
-            triggerMuMu   = "HLT_mumuIso"
-            triggerEleEle = "HLT_ee_DZ"
-            triggerMuEle  = "HLT_mue"
             preselMuMu = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0"
             preselEE   = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2"
             preselEMu  = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1"
@@ -207,26 +204,18 @@ class Setup:
 
             #lepton channel
             assert channel in allChannels, "channel must be one of "+",".join(allChannels)+". Got %r."%channel
-            if useTriggers or (dataMC=='Data'):
-                pMuMu = preselMuMu + "&&" + triggerMuMu
-                pEE   = preselEE   + "&&" + triggerEleEle
-                pEMu  = preselEMu  + "&&" + triggerMuEle
-            else:
-                pMuMu = preselMuMu
-                pEE   = preselEE
-                pEMu  = preselEMu
 
-            if channel=="MuMu":  chStr = pMuMu
-            elif channel=="EE":  chStr = pEE
-            elif channel=="EMu": chStr = pEMu
-            elif channel=="all": chStr = "("+pMuMu+'||'+pEE+'||'+pEMu+')'
-            elif channel=="SF":  chStr = "("+pMuMu+'||'+pEE+')'
+            if channel=="MuMu":  chStr = preselMuMu
+            elif channel=="EE":  chStr = preselEE
+            elif channel=="EMu": chStr = preselEMu
+            elif channel=="all": chStr = "("+preselMuMu+'||'+preselEE+'||'+preselEMu+')'
+            elif channel=="SF":  chStr = "("+preselMuMu+'||'+preselEE+')'
             res['cuts'].append(chStr)
 
             res['prefixes'].append('looseLeptonVeto')
             res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
             res['prefixes'].append('multiIsoVT')
-            res['cuts'].append("l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP)
+            res['cuts'].append("l1_mIsoWP>4&&l2_mIsoWP>4")
             res['cuts'].append("l1_pt>25")
 
         if applyFilterCut: res['cuts'].append(getFilterCut(isData=(dataMC=='Data')))
