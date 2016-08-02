@@ -1,4 +1,4 @@
-jmeVariations = ["JER", "JERUp", "JERDown", "JECUp", "JECDown","JECVUp","JECVDown"]
+jmeVariations = ["JER", "JERUp", "JERDown", "JECUp", "JECDown"]
 
 # Standard imports
 import os
@@ -88,8 +88,8 @@ class SystematicEstimator:
 
     def JECSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECVUp'}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECVDown'}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECUp'}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECDown'}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def leptonFSSystematic(self, region, channel, setup):
@@ -141,8 +141,6 @@ class SystematicEstimator:
 
             (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
             (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
-            (region, channel, setup.sysClone({'selectionModifier':'JECVUp'})),
-            (region, channel, setup.sysClone({'selectionModifier':'JECVDown'})),
 
             (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
             (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
