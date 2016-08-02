@@ -150,8 +150,8 @@ class SystematicEstimator:
             (region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']})),
             (region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']})),
 
-            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerDown']})),
-            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerUp']})),
+            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']})),
+            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupUp']})),
         ]
         return l
 
