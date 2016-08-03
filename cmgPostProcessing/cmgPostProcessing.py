@@ -254,6 +254,8 @@ isMC   =  True not in [s.isData for s in samples]
 
 if options.T2tt:
     xSection = None
+    # special filet for bad jets in FastSim: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16#Cleaning_up_of_fastsim_jets_from
+    skimConds.append( "Sum$(JetFailId_pt>30&&abs(JetFailId_eta)<2.5&&JetFailId_mcPt==0&&JetFailId_chHEF<0.1)+Sum$(Jet_pt>30&&abs(Jet_eta)<2.5&&Jet_mcPt==0&&Jet_chHEF<0.1)==0" )
 else:
     # Check that all samples which are concatenated have the same x-section.
     assert isData or len(set([s.heppy.xSection for s in samples]))==1, "Not all samples have the same xSection: %s !"%(",".join([s.name for s in samples]))
@@ -903,7 +905,7 @@ def filler(s):
 
     if isData and isDiLep:
         s.unblindWeight = s.weight
-        if s.nBTag>=1 and s.nJetGood>=2 and r.run>275376 and s.dl_mt2ll>100:
+        if s.nBTag>=1 and s.nJetGood>=2 and r.run>275376 and s.dl_mt2ll>140 and ( (abs(s.l1_pdgId)!=abs(s.l2_pdgId)) or ( (abs(s.l1_pdgId)==abs(s.l2_pdgId)) and abs(s.dl_mass - 91.2) > 15) ):
             s.weight = 0
 
     # gen information on extra leptons
