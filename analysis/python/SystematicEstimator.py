@@ -1,4 +1,4 @@
-jmeVariations = ["JER", "JERUp", "JERDown", "JECUp", "JECDown","JECVUp","JECVDown"]
+jmeVariations = ["JER", "JERUp", "JERDown", "JECUp", "JECDown"]
 
 # Standard imports
 import os
@@ -71,8 +71,8 @@ class SystematicEstimator:
 
     def PUSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUUp']}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUDown']}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU12fbUp']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU12fbDown']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up,down)
 
     def topPtSystematic(self, region, channel, setup):
@@ -88,8 +88,8 @@ class SystematicEstimator:
 
     def JECSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECVUp'}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECVDown'}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECUp'}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECDown'}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def leptonFSSystematic(self, region, channel, setup):
@@ -99,27 +99,40 @@ class SystematicEstimator:
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def btaggingSFbSystematic(self, region, channel, setup):
-        ref  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
+        ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def btaggingSFlSystematic(self, region, channel, setup):
-        ref  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
+        ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def btaggingSFFSSystematic(self, region, channel, setup):
-        ref  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF']}))
+        ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Up']}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
+    def leptonSFSystematic(self, region, channel, setup):
+        ref  = self.cachedEstimate(region, channel, setup)
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']}))
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
+
+    def triggerSystematic(self, region, channel, setup):
+        ref  = self.cachedEstimate(region, channel, setup)
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupUp']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']}))
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
+
+
     def getBkgSysJobs(self, region, channel, setup):
         l = [
-            (region, channel, setup.sysClone({'reweight':['reweightPUUp']})),
-            (region, channel, setup.sysClone({'reweight':['reweightPUDown']})),
+            (region, channel, setup.sysClone({'reweight':['reweightPU12fbUp']})),
+            (region, channel, setup.sysClone({'reweight':['reweightPU12fbDown']})),
 
             (region, channel, setup.sysClone({'reweight':['reweightTopPt']})),
 
@@ -128,16 +141,17 @@ class SystematicEstimator:
 
             (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
             (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
-            (region, channel, setup.sysClone({'selectionModifier':'JECVUp'})),
-            (region, channel, setup.sysClone({'selectionModifier':'JECVDown'})),
 
-
-            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF']})),
             (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
             (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
             (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']})),
             (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']})),
 
+            (region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']})),
+            (region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']})),
+
+            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerDown']})),
+            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerUp']})),
         ]
         return l
 
