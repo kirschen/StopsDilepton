@@ -155,13 +155,36 @@ class SystematicEstimator:
         ]
         return l
 
+    # TODO: update when new signal samples are available
     def getSigSysJobs(self, region, channel, setup, isFastSim = False):
-        l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
+       # l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
+        l = [
+            (region, channel, setup.sysClone({'reweight':['reweightPUUp']})),   # old
+            (region, channel, setup.sysClone({'reweight':['reweightPUDown']})), # old
+
+            (region, channel, setup.sysClone({'reweight':['reweightTopPt']})),
+
+            (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
+            (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
+
+            (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
+            (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
+
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']})),
+
+           # (region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']})),
+           # (region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']})),
+
+            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerDown']})), # old
+            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerUp']})),   # old
+        ]
         if isFastSim:
             l.extend( [\
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Up']})),
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']})),
-                (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSF']})),
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']})),
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
             ] )

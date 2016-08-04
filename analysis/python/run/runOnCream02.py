@@ -9,7 +9,8 @@ estimators = ["TTJets",
               "TTZ",
               "TTZ-DD",
               "TTZ-DD-Top16009",
-              "EWK",
+              "multiBoson",
+              "T2tt"
              ]
 
 from StopsDilepton.analysis.regions import regions80X, reducedRegionsNew, superRegion, superRegion140
