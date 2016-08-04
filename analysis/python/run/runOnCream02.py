@@ -14,7 +14,7 @@ estimators = ["TTJets",
              ]
 
 from StopsDilepton.analysis.regions import regions80X, reducedRegionsNew, superRegion, superRegion140
-allRegions = set(regions80X + reducedRegionsNew + superRegion + superRegion140)
+allRegions = set(regions80X + superRegion + superRegion140)
 
 for i, estimator in enumerate(estimators):
   for j, region in enumerate(allRegions):
