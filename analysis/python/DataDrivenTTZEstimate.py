@@ -79,7 +79,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 	      # Start from base hadronic selection and add loose b-tag and Z-mass requirement
 	      selection       = {}
 	      for dataOrMC in ["Data", "MC"]:
-		selection[dataOrMC]  = setup.selection(dataOrMC, hadronicSelection = True, **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 0., 'metSigMin':0., 'dPhiJetMet':0. }))['cut']
+		selection[dataOrMC]  = setup.selection(dataOrMC, hadronicSelection = True, **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 0., 'metSigMin':0., 'dPhi':False }))['cut']
 		selection[dataOrMC] += "&&" + bJetSelectionL+">="+str(self.nLooseBTags[0])
 		selection[dataOrMC] += "&&" + zMassSelection 
 

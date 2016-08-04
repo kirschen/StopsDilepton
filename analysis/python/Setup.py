@@ -46,7 +46,8 @@ zMassRange            = 15
 default_mllMin        = 20
 default_metMin        = 80
 default_metSigMin     = 5
-default_dPhiJetMet    = 0.25  # To fix: only applies on 2nd jet, leading jet cut is fixed see below
+default_dPhi          = True
+default_dPhiInv       = False
 default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
 default_leptonCharges = "isOS"
@@ -63,7 +64,8 @@ class Setup:
             'mllMin':        default_mllMin,
             'metMin':        default_metMin,
             'metSigMin':     default_metSigMin,
-            'dPhiJetMet':    default_dPhiJetMet,
+            'dPhi':          default_dPhi,
+            'dPhiInv':       default_dPhiInv,
             'nJets':         default_nJets,
             'nBTags':        default_nBTags,
             'leptonCharges': default_leptonCharges,
@@ -139,7 +141,7 @@ class Setup:
         return self.selection(dataMC, channel = channel, zWindow = zWindow, hadronicSelection = False, isSignal=isSignal, **self.parameters)
 
     def selection(self, dataMC,
-			mllMin, metMin, metSigMin, dPhiJetMet,
+			mllMin, metMin, metSigMin, dPhi, dPhiInv,
 			nJets, nBTags, leptonCharges, 
 			channel = 'all', zWindow = 'offZ', hadronicSelection = False, isSignal = False):
         '''Define full selection
@@ -192,9 +194,12 @@ class Setup:
         if metSigMin and metSigMin>0:
           res['cuts'].append('metSig'+sysStr+'>='+str(metSigMin))
           res['prefixes'].append('metSig'+str(metSigMin))
-        if dPhiJetMet>=0.:
-          res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos('+str(dPhiJetMet)+')')
+        if dPhi:
+          res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos(0.25)')
           res['prefixes'].append('dPhiJet0-dPhiJet')
+        elif dPhiInv:
+          res['cuts'].append('!(cos(met_phi'+sysStr+'-JetGood_phi[0])>0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos(0.25))')
+          res['prefixes'].append('dPhiInv')
 
         if not hadronicSelection:
             if mllMin and mllMin>0:
