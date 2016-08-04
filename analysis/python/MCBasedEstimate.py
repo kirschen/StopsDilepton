@@ -10,7 +10,6 @@ class MCBasedEstimate(SystematicEstimator):
     def __init__(self, name, sample, cacheDir=None):
         super(MCBasedEstimate, self).__init__(name, cacheDir=cacheDir)
         self.sample=sample
-        self.isSignal=False
 
     def _estimate(self, region, channel, setup):
 

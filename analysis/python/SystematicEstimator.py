@@ -21,6 +21,7 @@ class SystematicEstimator:
     def __init__(self, name, cacheDir=None):
         self.name = name
         self.initCache(cacheDir)
+        self.isSignal = False
 
     def initCache(self, cacheDir):
         if cacheDir:
