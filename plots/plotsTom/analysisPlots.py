@@ -72,7 +72,7 @@ cuts = [
     ("met80",             "met_pt>80"),
     ("metSig5",           "metSig>5"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
-    ("dPhiInv",           "cos(met_phi-JetGood_phi[0])>0.8||cos(met_phi-JetGood_phi[1])>cos(0.25)"),
+    ("dPhiInv",           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))"),
     ("mt2ll100",          "dl_mt2ll>100"),
     ("mt2ll140",          "dl_mt2ll>140"),
   ]
@@ -88,8 +88,10 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel = [] 
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
+        if not selection.count("multiIsoWP"):      continue
         if not selection.count("looseLeptonVeto"): continue
         if not selection.count("mll20"):           continue
+        if not selection.count("njet"):            continue
         if selection.count("met50")  and selection.count("met80"):      continue
         if selection.count("onZ")    and selection.count("allZ"):       continue
         if selection.count("met80")  and not selection.count("mll"):    continue
@@ -97,6 +99,8 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("metSig") and not (selection.count("met80") or selection.count("met50")):  continue
         if selection.count("dPhi")   and not selection.count("metSig"): continue
         if selection.count("dPhi")   and not selection.count("njet2"):  continue
+        if selection.count("dPhiInv") and selection.count("PhiJet1"):   continue
+        if selection.count("dPhiInv") and selection.count("mt2ll140"):  continue
         if selection.count("mt2")    and not selection.count("met"):    continue
         if selection.count("njet") > 1:    continue
         if selection.count("btag") > 1:    continue
@@ -126,10 +130,10 @@ if not args.isChild and args.selection is None:
   exit(0)
 
 if args.selection.count("btag0"): args.signal = None
-if args.selection.count("mt2ll"): args.noData = True
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.powheg:                   args.plot_directory += "_topPowheg"
+if args.selection.count("mt2ll") and args.selection.count('btagM'): args.noData = True
 
 
 
@@ -141,8 +145,8 @@ from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi1_Mphi100
-T2tt                    = T2tt_450_0 # Take 450,0 as default to plot
-T2ttCompressed          = T2tt_450_250 # Take 450,0 as default to plot
+T2tt                    = T2tt_450_1 # Take 450,0 as default to plot
+T2ttCompressed          = T2tt_450_275 # Take 450,0 as default to plot
 T2ttCompressed.style    = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
 T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
 
@@ -223,16 +227,16 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
 
-  if args.splitBosons:                   mc = [ Top, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
-  elif args.powheg and args.splitBosons: mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
+  if args.powheg and args.splitBosons:   mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
+  elif args.splitBosons:                 mc = [ Top, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
   elif args.powheg:                      mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
   else:                                  mc = [ Top, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
 
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU/F']
-    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
+    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
@@ -246,7 +250,11 @@ for index, mode in enumerate(allModes):
     elif args.signal == "T2tt": stack = Stack(mc, T2tt, T2ttCompressed)
 
   for sample in [T2tt, T2ttCompressed]: 
-    sample.setSelectionString([getFilterCut(isData=False, is74x=True), getLeptonSelection(mode, is74x=True)])
+#    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
+#    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
+    sample.read_variables = ['reweightDilepTrigger/F','reweightBTag_SF/F','reweightPU/F']
+    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightDilepTrigger*data.reweightPU
+    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode, is74x=True)])
 
 
   # Use some defaults
@@ -281,7 +289,7 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2ll/F" ),
-    binning=[300/20,0,300],
+    binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
   ))
 
   plots.append(Plot(
