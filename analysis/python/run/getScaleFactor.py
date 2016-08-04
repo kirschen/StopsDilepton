@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from StopsDilepton.analysis.Region import Region
 from StopsDilepton.analysis.estimators import setup, DataDrivenDYEstimate
-from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
 from StopsDilepton.analysis.regions import regions80X
+import os
 
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger("INFO", logFile = None )
@@ -26,7 +26,7 @@ modifiers = [ {},
 #             {'reweight':['reweightBTag_SF_b_Down']},
             ]
 
-selections = [ "met50", "met80", "met50\\_metSig5", "met80\\_metSig5", "met50\\_metSig5\\_dPhi", "met80\\_metSig5\\_dPhi"]
+selections = [ "met50", "met80", "met50\\_metSig5", "met80\\_metSig5", "met50\\_metSig5\\_dPhi", "met80\\_metSig5\\_dPhi", "met50\\_metSig5\\_dPhiInv", "met80\\_metSig5\\_dPhiInv"]
 
 texdir = os.path.join(setup.analysis_results, setup.prefix(), 'tables')
 try:
@@ -45,8 +45,8 @@ with open(texfile, "w") as table:
     elif   selection.count("met80"):    setup.parameters['metMin'] = 80
     if     selection.count("metSig"):   setup.parameters['metSigMin'] = 5
     else:                               setup.parameters['metSigMin'] = 0
-    if      selection.count("dPhi"):    setup.parameters['dPhiJetMet'] = 0.25 # also includes 0.8 for leading
-    else:                               setup.parameters['dPhiJetMet'] = 0
+    setup.parameters['dPhi']    = selection.count("dPhi") and not selection.count("dPhiInv")
+    setup.parameters['dPhiInv'] = selection.count("dPhiInv")
     print setup.parameters
     for channel in ['MuMu']:  # is the same for EE
       for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a controlRegion

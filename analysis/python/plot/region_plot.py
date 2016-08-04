@@ -10,7 +10,7 @@ import itertools
 from RootTools.core.standard import *
 
 from StopsDilepton.analysis.estimators import setup, constructEstimatorList, MCBasedEstimate
-from StopsDilepton.analysis.regions import regions80X, reducedRegionsNew
+from StopsDilepton.analysis.regions import regions80X as regions
 import StopsDilepton.tools.user as user
 from StopsDilepton.samples.color import color
 
@@ -20,7 +20,6 @@ from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
-argParser.add_argument("--regions",        action='store', default='regions80X',        nargs='?', choices=["reducedRegionsNew", "regions80X"],                                                           help="which regions setup?")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal to plot?")
 argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
@@ -28,13 +27,8 @@ argParser.add_argument("--estimateTTJets", action='store', default='TTJets',    
 argParser.add_argument("--labels",         action='store_true', default=False,          help="plot labels?")
 args = argParser.parse_args()
 
-
-if   args.regions == "reducedRegionsNew": regions = reducedRegionsNew
-elif args.regions == "regions80X":        regions = regions80X
-else: raise Exception("Unknown regions setup")
-
 detailedEstimators = constructEstimatorList([args.estimateTTJets,'other-detailed', args.estimateDY, args.estimateTTZ])
-signalSetup = setup.sysClone(parameters={'useTriggers':False})
+signalSetup = setup.sysClone(isSignal=(args.signal=="T2tt")) # little hack for the old trees
 
 for estimator in detailedEstimators:
     estimatorColor = getattr( color, estimator.name.split('-')[0] ) 
@@ -42,10 +36,10 @@ for estimator in detailedEstimators:
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_0] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
-for estimator in signalEstimators:
-    estimator.style = styles.lineStyle( getattr(color, estimator.name ), width=2 )
-    estimator.applyFilterCut=False
+signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_1, T2tt_450_275] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
+for i, estimator in enumerate(signalEstimators):
+    estimator.style = styles.lineStyle( ROOT.kBlack, width=2, dotted=(i==1) )
+    estimator.isSignal=True
  
 estimators = detailedEstimators + signalEstimators
 for e in estimators:
@@ -62,9 +56,9 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-systematics = { 'JEC' :      ['JECVUp', 'JECVDown'],
+systematics = { 'JEC' :      ['JECUp', 'JECDown'],
        #         'JER' :      ['JERUp', 'JERDown'],
-                'PU' :       ['reweightPUUp', 'reweightPUDown'],
+                'PU' :       ['reweightPU12fbUp', 'reweightPU12fbDown'],
                 'stat' :     ['statLow', 'statHigh'],
                 'topPt' :    ['reweightTopPt', None],
        #         'b-tag-b' :  ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
@@ -202,7 +196,7 @@ for channel in ['all','SF','EE','EMu','MuMu']:
 
 
     plotting.draw( region_plot, \
-        plot_directory = os.path.join(user.plot_directory, args.regions, args.estimateDY, args.estimateTTZ, args.estimateTTJets),
+        plot_directory = os.path.join(user.plot_directory, 'regions_80X', args.estimateDY, args.estimateTTZ, args.estimateTTJets),
         logX = False, logY = True,
         sorting = True,
         yRange = (0.006, "auto"),

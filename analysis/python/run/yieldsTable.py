@@ -4,7 +4,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument("--metSigMin",      action='store', default=5,                   type=int,                                                                                                         help="metSigMin?")
 argParser.add_argument("--metMin",         action='store', default=80,                  type=int,                                                                                                         help="metMin?")
-argParser.add_argument("--regions",        action='store', default='regions80X', nargs='?', choices=["defaultRegions","superRegion","superRegion140"],                                             help="which regions setup?")
+argParser.add_argument("--regions",        action='store', default='regions80X',        nargs='?', choices=["superRegion","superRegion140"],                                                              help="which regions setup?")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal?")
 argParser.add_argument("--estimates",      action='store', default='mc',                nargs='?', choices=["mc","dd"],                                                                                   help="mc estimators or data-driven estimators?")
 argParser.add_argument("--onlyStat",       action='store_true', default=False,          help="show only stat errors?")
@@ -41,31 +41,32 @@ observation = DataObservation(name='Data', sample=setup.sample['Data'])
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-signalEstimator = [MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_0] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])][0]
-signalEstimator.applyFilterCut=False
+signalEstimator = [MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_1] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])][0]
+signalEstimator.isSignal=True
+
+
+setup.verbose = False
+setup.parameters['metMin']    = args.metMin
+setup.parameters['metSigMin'] = args.metSigMin
+
+signalSetup = setup.sysClone(isSignal=(args.signal=="T2tt")) # little hack for the old trees
 
 for e in estimators + [summedEstimate, observation] + DYestimators + [signalEstimator]:
     e.initCache(setup.defaultCacheDir())
 
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
-from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 from StopsDilepton.analysis.u_float                                           import u_float
 from math                                                                     import sqrt
 
 
-texdir      = os.path.join(setup.analysis_results, setup.prefix(), 'tables' + ("_dd" if args.estimates == "dd" else ""), args.signal, args.regions)
+texdir  = os.path.join(setup.analysis_results, setup.prefix(), 'tables' + ("_dd" if args.estimates == "dd" else ""), args.signal, args.regions)
 
-try:
-  os.makedirs(texdir)
-except:
-  pass 
+try:    os.makedirs(texdir)
+except: pass
 
 
 for channel in allChannels:
-  try:
-    os.makedirs(os.path.join(texdir, channel))
-  except:
-    pass 
+  try:    os.makedirs(os.path.join(texdir, channel))
+  except: pass
 
   yieldTexfile = os.path.join(texdir, channel, "yields_onlyStat.tex" if args.onlyStat else "yields.tex")
   print "Writing to " + yieldTexfile
@@ -77,14 +78,14 @@ for channel in allChannels:
     ttJetsErr = None
     ttzErr    = None
     dyErr     = None
-
+                 
     for i, r in enumerate(regions[1:]):
       yieldTable.write(" $" + str(i) + "$ ")
       
       for e in estimators + [signalEstimator, summedEstimate]:
 
-	expected = int(100*e.cachedEstimate(r, channel, setup).val+0.5)/100.
-        stat     = int(100*e.cachedEstimate(r, channel, setup).sigma+0.99)/100.
+	expected = int(100*e.cachedEstimate(r, channel, signalSetup if e.name.count('T2tt') else setup).val+0.5)/100.
+        stat     = int(100*e.cachedEstimate(r, channel, signalSetup if e.name.count('T2tt') else setup).sigma+0.99)/100.
 
         if args.onlyStat: 
           yieldTable.write(" & $ %.2f \pm %.2f $" % (expected, stat))
