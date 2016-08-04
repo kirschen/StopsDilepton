@@ -216,8 +216,8 @@ for index, mode in enumerate(allModes):
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color)
     sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightPU/F']
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU/F']
-    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
+    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
 
 
@@ -463,9 +463,6 @@ with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
   for mode in allModes + ["all"]:
     f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")
 
-
-try:    os.makedirs(os.path.join(plot_directory, args.plot_directory, "all", args.selection, 'comp'))
-except: pass
 
 # Add the different channels and plot the sums
 for plot in allPlots[allModes[0]]:
