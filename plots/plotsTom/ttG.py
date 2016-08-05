@@ -344,7 +344,7 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX = 'p_{T}(#gamma)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "photon_pt/F" ),
-    binning=[10, 50,250],
+    binning=[10, 30,230],
   ))
 
   plots.append(Plot(
