@@ -58,7 +58,7 @@ from StopsDilepton.analysis.u_float                                           im
 from math                                                                     import sqrt
 
 
-texdir  = os.path.join(setup.analysis_results, setup.prefix(), 'tables' + ("_dd" if args.estimates == "dd" else ""), args.signal, args.regions)
+texdir  = os.path.join(setup.analysis_results, setup.prefix(), 'tables' + ("_dd" if args.estimates == "dd" else ""), args.regions, args.signal)
 
 try:    os.makedirs(texdir)
 except: pass
