@@ -198,7 +198,7 @@ class Setup:
           res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos(0.25)')
           res['prefixes'].append('dPhiJet0-dPhiJet')
         elif dPhiInv:
-          res['cuts'].append('!(cos(met_phi'+sysStr+'-JetGood_phi[0])>0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos(0.25))')
+          res['cuts'].append('!(cos(met_phi'+sysStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos(0.25))')
           res['prefixes'].append('dPhiInv')
 
         if not hadronicSelection:
