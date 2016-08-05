@@ -7,10 +7,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 class DataDrivenDYEstimate(SystematicEstimator):
-    def __init__(self, name, controlRegion=None, combineChannels = True, cacheDir=None):
+    def __init__(self, name, controlRegion=None, combineChannels = True, cacheDir=None, dPhi=False, dPhiInv=True, metMin=50, metSigMin=5):
         super(DataDrivenDYEstimate, self).__init__(name, cacheDir=cacheDir)
         self.controlRegion   = controlRegion
         self.combineChannels = combineChannels
+        self.metMin          = metMin
+        self.metSigMin       = metSigMin
+        self.dPhi            = dPhi
+        self.dPhiInv         = dPhiInv
 
     #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup, returnScaleFactor = False):
@@ -42,8 +46,8 @@ class DataDrivenDYEstimate(SystematicEstimator):
 	    cut_onZ_0b      = {}
 	    cut_data_onZ_0b = {}
             for c in channels:
-	      cut_onZ_0b[c]      = "&&".join([normRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=c, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': True, 'metMin': 50}))['cut']])
-	      cut_data_onZ_0b[c] = "&&".join([normRegion.cutString(),                               setup.selection('Data', channel=c, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': True, 'metMin': 50}))['cut']])
+	      cut_onZ_0b[c]      = "&&".join([normRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=c, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
+	      cut_data_onZ_0b[c] = "&&".join([normRegion.cutString(),                               setup.selection('Data', channel=c, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
 
             yield_data    = sum(self.yieldFromCache(setup, 'Data',   c, cut_data_onZ_0b[c], "(1)")                         for c in channels)
             yield_onZ_0b  = sum(self.yieldFromCache(setup, 'DY',     c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels)
