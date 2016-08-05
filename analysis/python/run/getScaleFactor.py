@@ -5,9 +5,9 @@ from StopsDilepton.analysis.regions import regions80X
 import os
 
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger("DEBUG", logFile = None )
+logger = logger.get_logger("INFO", logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger("DEBUG", logFile = None )
+logger_rt = logger_rt.get_logger("INFO", logFile = None )
 
 
 modifiers = [ {},
@@ -24,11 +24,17 @@ modifiers = [ {},
 #             {'reweight':['reweightBTag_SF_b_Down']},
             ]
 
-selections = [ "met50", "met80",
-               "met50\\_metSig5", "met80\\_metSig5",
-               "met50\\_dPhiInv", "met80\\_dPhiInv",
-               "met50\\_metSig5\\_dPhi", "met80\\_metSig5\\_dPhi",
-               "met50\\_metSig5\\_dPhiInv", "met80\\_metSig5\\_dPhiInv"]
+selections = [ ("met50",                 "$\\met > 50 GeV$"),
+               ("met80",                 "$\\met > 80 GeV$"),
+               ("met50_metSig5",         "$\\met > 50 GeV, \\metSig > 5$"),
+               ("met80_metSig5",         "$\\met > 80 GeV, \\metSig > 5$"),
+               ("met50_dPhiInv",         "$\\met > 50 GeV, inv. \\Delta\\phi$"),
+               ("met80_dPhiInv",         "$\\met > 80 GeV, inv. \\Delta\\phi$"),
+               ("met50_metSig5_dPhi",    "$\\met > 50 GeV, \\metSig > 5, \\Delta\\phi$"),
+               ("met80_metSig5_dPhi",    "$\\met > 80 GeV, \\metSig > 5, \\Delta\\phi$"),
+               ("met50_metSig5_dPhiInv", "$\\met > 50 GeV, \\metSig > 5, inv. \\Delta\\phi$"),
+               ("met80_metSig5_dPhiInv", "$\\met > 80 GeV, \\metSig > 5, inv. \\Delta\\phi$")
+             ]
 
 texdir = os.path.join(setup.analysis_results, setup.prefix(), 'tables')
 try:
@@ -37,12 +43,12 @@ except:
   pass 
 
 columns = ["DY","TTJets","multiBoson","TTX","observed","scale factor", "DY purity"]
-texfile = os.path.join(texdir, "DY_scalefactors.tex")
+texfile = os.path.join(texdir, "scalefactorsDY.tex")
 with open(texfile, "w") as table:
   table.write("\\begin{tabular}{l|c" + "c"*len(columns) + "} \n")
   table.write("  selection & " + "&".join(columns) + " \\\\ \n")
   table.write("  \\hline \n")
-  for selection in selections:
+  for selection, tex in selections:
     logger.info("Getting scalefactor for " + selection)
     metMin     = 80 if selection.count("met80") else 50 if selection.count("met50") else 0
     metSigMin  = 5 if selection.count("metSig") else 0
@@ -55,7 +61,7 @@ with open(texfile, "w") as table:
       for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a controlRegion
         for modifier in modifiers:
   	  (yields, data, scaleFactor) = estimateDY._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True)
-          table.write(selection + " & "+ " & ".join([("%.2f" % yields[s].val) for s in ['DY','TTJets','multiBoson','TTX']]) + " & " + "%d" % data.val)
+          table.write("  " + tex + " & "+ " & ".join([("%.2f" % yields[s].val) for s in ['DY','TTJets','multiBoson','TTX']]) + " & " + "%d" % data.val)
           table.write("& $%.2f\pm%.2f$" % (scaleFactor.val, scaleFactor.sigma))
           table.write(" & $%.0f\\%%$" % (100*yields['DY'].val/sum(yields[s].val for s in ['DY','TTJets','multiBoson','TTX'])))
           table.write("\\\\ \n")
