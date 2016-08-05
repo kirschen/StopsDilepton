@@ -97,7 +97,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("met80")  and not selection.count("mll"):    continue
         if selection.count("met50")  and not selection.count("btag0"):  continue #met50 only for btag0
         if selection.count("metSig") and not (selection.count("met80") or selection.count("met50")):  continue
-        if selection.count("dPhi")   and not selection.count("metSig"): continue
+        if selection.count("dPhi")   and not selection.count("mll20"):    continue
         if selection.count("dPhi")   and not selection.count("njet2"):  continue
         if selection.count("dPhiInv") and selection.count("PhiJet1"):   continue
         if selection.count("dPhiInv") and selection.count("mt2ll140"):  continue
@@ -178,7 +178,7 @@ def drawPlots(plots, mode, dataMCScale):
 	    plot_directory = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection),
 	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
 	    logX = False, logY = log, sorting = True,
-	    yRange = (0.03, "auto") if log else (0.00001, "auto"),
+	    yRange = (0.03, "auto") if log else (0.001, "auto"),
 	    scaling = {},
 	    legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),
 	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
@@ -281,6 +281,12 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+      texX = '#phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
+      variable = Variable.fromString( "met_phi/F" ),
+      binning=[10,-pi,pi],
+  ))
+
+  plots.append(Plot(
     texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
     variable = Variable.fromString('metSig/F'),
     binning=[15,5,20] if args.selection.count('metSig') else [15,0,15],
@@ -329,7 +335,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = '#phi(ll) (GeV)', texY = 'Number of Events',
+    texX = '#phi(ll)', texY = 'Number of Events',
     variable = Variable.fromString( "dl_phi/F" ),
     binning=[10,-pi,pi],
   ))
@@ -395,13 +401,13 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      texX = '#eta_{T}(leading jet) (GeV)', texY = 'Number of Events',
+      texX = '#eta(leading jet) (GeV)', texY = 'Number of Events',
       variable = Variable.fromString('jet1_eta/F').addFiller(helpers.uses(lambda data: abs(data.JetGood_eta[0]), "JetGood[eta/F]")),
       binning=[10,0,3],
     ))
 
     plots.append(Plot(
-      texX = '#phi_{T}(leading jet) (GeV)', texY = 'Number of Events',
+      texX = '#phi(leading jet) (GeV)', texY = 'Number of Events',
       variable = Variable.fromString('jet1_phi/F').addFiller(helpers.uses(lambda data: data.JetGood_phi[0], "JetGood[phi/F]")),
       binning=[10,-pi,pi],
     ))
@@ -433,13 +439,13 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      texX = '#eta_{T}(2nd leading jet) (GeV)', texY = 'Number of Events',
+      texX = '#eta(2nd leading jet) (GeV)', texY = 'Number of Events',
       variable = Variable.fromString('jet2_eta/F').addFiller(helpers.uses(lambda data: abs(data.JetGood_eta[1]), "JetGood[eta/F]")),
       binning=[10,0,3],
     ))
 
     plots.append(Plot(
-      texX = '#phi_{T}(2nd leading jet) (GeV)', texY = 'Number of Events',
+      texX = '#phi(2nd leading jet) (GeV)', texY = 'Number of Events',
       variable = Variable.fromString('jet2_phi/F').addFiller(helpers.uses(lambda data: data.JetGood_phi[1], "JetGood[phi/F]")),
       binning=[10,-pi,pi],
     ))
