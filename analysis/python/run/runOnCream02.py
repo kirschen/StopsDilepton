@@ -10,6 +10,7 @@ estimators = ["TTJets",
               "TTZ-DD",
               "TTZ-DD-Top16009",
               "multiBoson",
+              "other",
              ]
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import signals_T2tt
