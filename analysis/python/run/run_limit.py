@@ -2,8 +2,6 @@
 import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument("--metSigMin",      action='store', default=5,                   type=int,                                                                                                         help="metSigMin?")
-argParser.add_argument("--metMin",         action='store', default=80,                  type=int,                                                                                                         help="metMin?")
 argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
 argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTZJets","TTJets-DD"],                                                                       help="which TTJets estimate?")
@@ -16,9 +14,6 @@ from StopsDilepton.analysis.DataObservation import DataObservation
 from StopsDilepton.analysis.regions      import regions80X
 from StopsDilepton.analysis.Cache        import Cache
 
-setup.verbose = False
-setup.parameters['metMin']    = args.metMin
-setup.parameters['metSigMin'] = args.metSigMin
 
 regions = regions80X
 
@@ -64,9 +59,11 @@ def wrapper(s):
 	c.addUncertainty('JER',      'lnN')
 	c.addUncertainty('SFb',      'lnN')
 	c.addUncertainty('SFl',      'lnN')
+	c.addUncertainty('trigger',  'lnN')
+	c.addUncertainty('leptonSF', 'lnN')
         if fastSim:
  	  c.addUncertainty('SFFS',     'lnN')
-  	  c.addUncertainty('leptonSF', 'lnN')
+  	  c.addUncertainty('leptonFS', 'lnN')
 
 	eSignal = MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() )
         for r in regions[1:]:
@@ -82,12 +79,14 @@ def wrapper(s):
                     c.specifyExpectation(binname, e.name, expected.val )
 
                     if expected.val>0:
-                        c.specifyUncertainty('PU',    binname, e.name, 1 + e.PUSystematic(         r, channel, setup).val )
-                        c.specifyUncertainty('JEC',   binname, e.name, 1 + e.JECSystematic(        r, channel, setup).val )
-                        c.specifyUncertainty('JER',   binname, e.name, 1 + e.JERSystematic(        r, channel, setup).val )
-                        c.specifyUncertainty('topPt', binname, e.name, 1 + e.topPtSystematic(      r, channel, setup).val )
-                        c.specifyUncertainty('SFb',   binname, e.name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
-                        c.specifyUncertainty('SFl',   binname, e.name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
+                        c.specifyUncertainty('PU',      binname, e.name, 1 + e.PUSystematic(          r, channel, setup).val )
+                        c.specifyUncertainty('JEC',      binname, e.name, 1 + e.JECSystematic(        r, channel, setup).val )
+                        c.specifyUncertainty('JER',      binname, e.name, 1 + e.JERSystematic(        r, channel, setup).val )
+                        c.specifyUncertainty('topPt',    binname, e.name, 1 + e.topPtSystematic(      r, channel, setup).val )
+                        c.specifyUncertainty('SFb',      binname, e.name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
+                        c.specifyUncertainty('SFl',      binname, e.name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
+                        c.specifyUncertainty('trigger',  binname, e.name, 1 + e.triggerSystematic(    r, channel, setup).val )
+                        c.specifyUncertainty('leptonSF', binname, e.name, 1 + e.leptonSFSystematic(   r, channel, setup).val )
 
                         #MC bkg stat (some condition to neglect the smaller ones?)
                         uname = 'Stat_'+binname+'_'+e.name
@@ -98,20 +97,25 @@ def wrapper(s):
 
                 #signal
                 e = eSignal
-                if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, parameters={'useTriggers':False})
-                else:       signalSetup = setup.sysClone(parameters={'useTriggers':False})
+                eSignal.isSignal = True
+                if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, isSignal=True)
+                else:       signalSetup = setup.sysClone(isSignal=True)
                 signal = e.cachedEstimate(r, channel, signalSetup)
 
                 c.specifyExpectation(binname, 'signal', signal.val )
 
                 if signal.val>0:
-                    c.specifyUncertainty('PU',  binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
-                    c.specifyUncertainty('JEC', binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
-                    c.specifyUncertainty('JER', binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
-                    c.specifyUncertainty('SFb', binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
-                    c.specifyUncertainty('SFl', binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
+                    c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematicSignal(         r, channel, signalSetup).val )
+                    c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
+                    c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
+                    c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
+                    c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
+                    c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematicSignal(    r, channel, signalSetup).val )
+                   # c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
+                    c.specifyUncertainty('leptonSF', binname, 'signal', 1) # To update with new signal trees
                     if fastSim: 
-                      c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
+                   #   c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
+                      c.specifyUncertainty('leptonFS', binname, 'signal', 1 ) # To update with new signal trees
                       c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
 
                     #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated
