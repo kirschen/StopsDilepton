@@ -71,6 +71,8 @@ def evaluateEstimate(e, SR, estimators=None):
      e.rel["top-\\pt"]   = e.topPtSystematic(      r, channel, setup).val
      e.rel["b-tag SF-b"] = e.btaggingSFbSystematic(r, channel, setup).val
      e.rel["b-tag SF-l"] = e.btaggingSFlSystematic(r, channel, setup).val
+     e.rel["trigger"]    = e.triggerSystematic(    r, channel, setup).val
+     e.rel["lepton SF"]  = e.leptonSFSystematic(   r, channel, setup).val
      e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else 0.3 if SR < 6 else 0.2 if SR < 12 else 1
      e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else 0.2
      e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else 0.25
@@ -101,7 +103,7 @@ for channel in allChannels:
   try:    os.makedirs(os.path.join(texdir, channel))
   except: pass
 
-  sysColumns = ["stat","PU","JEC","top-\\pt","b-tag SF-b", "b-tag SF-l", "TTJets", "TTZ", "multiBoson", "TTXNoZ", "DY"]
+  sysColumns = ["stat","PU","JEC","top-\\pt","trigger","lepton SF","b-tag SF-b", "b-tag SF-l", "TTJets", "TTZ", "multiBoson", "TTXNoZ", "DY"]
   columns    = ["expected"] + sysColumns
 
   minima = {}
@@ -114,7 +116,7 @@ for channel in allChannels:
   overviewTexfile = os.path.join(texdir, channel, "overview.tex")
   print "Writing to " + overviewTexfile
   with open(overviewTexfile, "w") as overviewTable:
-    overviewTable.write("\\begin{tabular}{l|c" + "c"*len(columns) + "} \n")
+    overviewTable.write("\\begin{tabular}{l|cc|" + "c"*len(sysColumns) + "} \n")
     overviewTable.write("  signal region & observed & " + "&".join(columns) + " \\\\ \n")
     overviewTable.write("  \\hline \n")
 
@@ -150,11 +152,10 @@ for channel in allChannels:
         overviewTable.write(" \\\\ \n")
 
         for i in sysColumns:
-          minima[i] = min(e.rel[i], minima[i])
-          maxima[i] = max(e.rel[i], maxima[i])
+          minima[i] = min(summedEstimate.rel[i], minima[i])
+          maxima[i] = max(summedEstimate.rel[i], maxima[i])
 
     overviewTable.write("\\end{tabular} \n")
-    overviewTable.write("\\caption{Yields and uncertainties for the total background in each of the signal regions for channel" + channel + "} \n")
 
     minmaxFile = os.path.join(texdir, channel, "minmax.tex")
     print "Writing to " + minmaxFile
@@ -172,6 +173,7 @@ for channel in allChannels:
 
       for i in sysColumns:
         name = longNames[i] if i in longNames else i
-        if minima[i] > 0:  minmaxTable.write(name + " & " + displayRelSysValue(minima[i]) + " - " + displayRelSysValue(maxima[i]) + " \\\\ \n")
-        else:              minmaxTable.write(name + " & $<$ " + displayRelSysValue(maxima[i]) + " \\\\ \n")
+        if minima[i] > 0:            minmaxTable.write(name + " & " + displayRelSysValue(minima[i]) + " - " + displayRelSysValue(maxima[i]) + " \\\\ \n")
+        elif minima[i] == maxima[i]: minmaxTable.write(name + " & " + displayRelSysValue(minima[i]) + " \\\\ \n")
+        else:                        minmaxTable.write(name + " & $<$ " + displayRelSysValue(maxima[i]) + " \\\\ \n")
       minmaxTable.write("\\end{tabular} \n")
