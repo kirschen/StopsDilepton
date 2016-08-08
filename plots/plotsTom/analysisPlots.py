@@ -59,7 +59,8 @@ bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGoo
 # Cuts to iterate over
 #
 cuts = [
-    ("njet01",            jetSelection+"<=1"),
+    ("njet0",             jetSelection+"==0"),
+    ("njet1",             jetSelection+"==1"),
     ("njet2",             jetSelection+">=2"),
     ("btag0",             bJetSelectionM+"==0"),
     ("btagM",             bJetSelectionM+">=1"),
@@ -102,6 +103,12 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("dPhiInv") and selection.count("PhiJet1"):   continue
         if selection.count("dPhiInv") and selection.count("mt2ll140"):  continue
         if selection.count("mt2")    and not selection.count("met"):    continue
+        if selection.count("njet0")  and selection.count("metSig"):    continue
+        if selection.count("njet0")  and selection.count("dPhi"):    continue
+        if selection.count("njet0")  and selection.count("mt2"):    continue
+        if selection.count("njet1")  and selection.count("dPhi"):    continue
+        if selection.count("njet1")  and selection.count("mt2"):    continue
+        if selection.count("njet0")  and selection.count("btag"):    continue
         if selection.count("njet") > 1:    continue
         if selection.count("btag") > 1:    continue
         if selection.count("mt2ll") > 1:   continue
