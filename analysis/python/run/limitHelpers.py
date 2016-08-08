@@ -1,8 +1,7 @@
-import ROOT
+import ROOT,os
 import ctypes
-from StopsDilepton.tools.user import plot_directory
 
-def getContours(h):
+def getContours(h, plotDir):
     _h = h.Clone()
     contlist = [0.5,1,2]
     idx = contlist.index(1)
@@ -20,11 +19,11 @@ def getContours(h):
             contours.append( graph_list.At(i).Clone("cont_"+str(i)) )
     for c in contours:
         c.Draw('same')
-    ctmp.Print(plot_directory+h.GetName()+".png")
+    ctmp.Print(os.path.join(plotDir, h.GetName()+".png"))
     _h.Draw("colz")
     for c in contours:
         c.Draw('same')
-    ctmp.Print(plot_directory+h.GetName()+"_colz.png")
+    ctmp.Print(os.path.join(plotDir, h.GetName()+"_colz.png"))
     del ctmp
     return contours
 
