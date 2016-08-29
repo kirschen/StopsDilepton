@@ -84,8 +84,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 		selection[dataOrMC] += "&&" + zMassSelection 
 
 	      # Calculate yields (take together channels together)
-            #  channels      = ['MuMu','EE','EMu'] #something is wrong for the MuMuMu and eee, too much data
-              channels      = [channel]
+              channels      = ['MuMu','EE','EMu']
 	      yield_ttZ_3l  = sum(self.yieldFromCache(setup, 'TTZ',  c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels)
 	      yield_other   = sum(self.yieldFromCache(setup, s,      c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels for s in ['TTJets', 'DY', 'other'])
 	      yield_data_3l = sum(self.yieldFromCache(setup, 'Data', c, "&&".join([lllSelection[c], selection["Data"]]), "(1)")                               for c in channels)

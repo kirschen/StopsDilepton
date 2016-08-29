@@ -1,8 +1,9 @@
-from StopsDilepton.analysis.MCBasedEstimate          import MCBasedEstimate
-from StopsDilepton.analysis.DataDrivenDYEstimate     import DataDrivenDYEstimate
-from StopsDilepton.analysis.DataDrivenTTZEstimate    import DataDrivenTTZEstimate
-from StopsDilepton.analysis.DataDrivenTTJetsEstimate import DataDrivenTTJetsEstimate
-from StopsDilepton.analysis.regions import reducedRegionsNew
+from StopsDilepton.analysis.MCBasedEstimate              import MCBasedEstimate
+from StopsDilepton.analysis.DataDrivenDYEstimate         import DataDrivenDYEstimate
+from StopsDilepton.analysis.DataDrivenMultiBosonEstimate import DataDrivenMultiBosonEstimate
+from StopsDilepton.analysis.DataDrivenTTZEstimate        import DataDrivenTTZEstimate
+from StopsDilepton.analysis.DataDrivenTTJetsEstimate     import DataDrivenTTJetsEstimate
+from StopsDilepton.analysis.regions                      import reducedRegionsNew
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from SetupHelpers import channels 
 from Setup import Setup, otherEWKComponents
@@ -12,7 +13,8 @@ setup = Setup()
 estimators = {}
 
 # Data-driven estimators
-estimators['DY-DD']           = [DataDrivenDYEstimate( name='DY-DD', controlRegion=Region('dl_mt2ll', (100,-1)))]
+estimators['DY-DD']           = [DataDrivenDYEstimate( name='DY-DD',         controlRegion=Region('dl_mt2ll', (100,-1)))]
+estimators['multiBoson-DD']   = [DataDrivenMultiBosonEstimate( name='multiBoson-DD', controlRegion=Region('dl_mt2ll', (100,-1)))]
 estimators['TTZ-DD']          = [DataDrivenTTZEstimate(name='TTZ-DD')]
 estimators['TTZ-DD-Top16009'] = [DataDrivenTTZEstimate(name='TTZ-DD-Top16009', useTop16009=True)]
 estimators['TTJets-DD']       = [DataDrivenTTJetsEstimate(name='TTJets-DD', controlRegion=reducedRegionsNew[0])]
