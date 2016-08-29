@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class DataDrivenDYEstimate(SystematicEstimator):
-    def __init__(self, name, controlRegion=None, combineChannels = True, cacheDir=None, dPhi=False, dPhiInv=True, metMin=50, metSigMin=5):
+    def __init__(self, name, controlRegion=None, combineChannels = True, cacheDir=None, dPhi=False, dPhiInv=True, metMin=80, metSigMin=5):
         super(DataDrivenDYEstimate, self).__init__(name, cacheDir=cacheDir)
         self.controlRegion   = controlRegion
         self.combineChannels = combineChannels
