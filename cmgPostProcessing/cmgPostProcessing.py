@@ -324,7 +324,7 @@ if isMC:
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
 # Decision based on sample name -> whether TTJets or TTLep is in the sample name
-isTT = sample.name.startswith("TTJets") or sample.name.startswith("TTLep")
+isTT = sample.name.startswith("TTJets") or sample.name.startswith("TTLep") or sample.name.startswith("TT_pow")
 doTopPtReweighting = isTT and not options.noTopPtReweighting
 if doTopPtReweighting:
     logger.info( "Sample will have top pt reweighting." )
