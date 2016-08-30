@@ -4,8 +4,8 @@ import os
 
 #https://twiki.cern.ch/twiki/bin/view/CMS/SUSLeptonSFMC#How_to_retrieve_SF_and_stat_unce
 
-muSFFile = "sf_mu_mediumID_mini02"
-eleSFFile = "sf_el_tight_mini01" #FIXME!!! This is not quite appropriate but there are no mRelIso 0.2 ele SF
+muSFFile = "sf_mu_stop"
+eleSFFile = "sf_el_stop" #FIXME!!! This is not quite appropriate but there are no mRelIso 0.2 ele SF
 
 class leptonFastSimSF:
     def __init__(self):
