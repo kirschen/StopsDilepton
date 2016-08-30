@@ -237,17 +237,17 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 4 GeV',
+    texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / GeV',
     variable = Variable.fromString( "dl_mass/F" ),
     binning=[200/4,0,200],
   ))
 
   theDlgPlot = Plot(
-    texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / 4 GeV',
+    texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / GeV',
     variable = Variable.fromString( "dlg_mass/F" ),
     binning=Binning.fromThresholds([50,70,80,84,88,92,94,100,120,140,160,180,200,230,260,290,320,360]),
   )
-  theDlgPlot.binWidth = 20
+  theDlgPlot.binWidth = 1
   plots.append(theDlgPlot)
 
   plots.append(Plot(
@@ -276,13 +276,13 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = '#slash{E}_{T} (including #gamma) (GeV)', texY = 'Number of Events / 50 GeV',
+    texX = 'E_{T}^{miss} (including #gamma) (GeV)', texY = 'Number of Events / 50 GeV',
     variable = Variable.fromString( "met_pt_photonEstimated/F" ),
     binning=[300/50,0,300],
   ))
 
   plots.append(Plot(
-    texX = '#slash{E}_{T}/#sqrt{H_{T}} (including #gamma) (GeV^{1/2})', texY = 'Number of Events',
+    texX = 'E_{T}^{miss}/#sqrt{H_{T}} (including #gamma) (GeV^{1/2})', texY = 'Number of Events',
     variable = Variable.fromString('metSig_photonEstimated/F').addFiller(lambda data: data.met_pt_photonEstimated/sqrt(data.ht)),
     binning=[15,0,15],
   ))
@@ -294,13 +294,13 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
+    texX = 'Cos(#phi(E_{T}^{miss}, Jet[0]))', texY = 'Number of Events',
     variable = Variable.fromString('cosMetJet0phi/F').addFiller(lambda data: data.dPhiMetJet[0] if data.nJetGood > 0 else -1),
     binning = [10,-1,1], 
   ))
 
   plots.append(Plot(
-    texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
+    texX = 'Cos(#phi(E_{T}^{miss}, Jet[1]))', texY = 'Number of Events',
     variable = Variable.fromString('cosMetJet1phi/F').addFiller(lambda data: data.dPhiMetJet[1] if data.nJetGood > 1 else -1),
     binning = [10,-1,1], 
   ))

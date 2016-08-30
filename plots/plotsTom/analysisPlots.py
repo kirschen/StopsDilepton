@@ -25,6 +25,7 @@ argParser.add_argument('--noData',         action='store_true', default=False,  
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--splitBosons',    action='store_true', default=False)
+argParser.add_argument('--splitTop',       action='store_true', default=False)
 argParser.add_argument('--powheg',         action='store_true', default=False)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--unblind',        action='store_true', default=False,       help='unblind?')
@@ -72,6 +73,7 @@ cuts = [
     ("met50",             "met_pt>50"),
     ("met80",             "met_pt>80"),
     ("metSig5",           "metSig>5"),
+    ("metSigInv",         "metSig<5"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
     ("dPhiInv",           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))"),
     ("mt2ll100",          "dl_mt2ll>100"),
@@ -102,6 +104,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("dPhi")   and not selection.count("njet2"):  continue
         if selection.count("dPhiInv") and selection.count("PhiJet1"):   continue
         if selection.count("dPhiInv") and selection.count("mt2ll140"):  continue
+        if selection.count("metSigInv") and selection.count("mt2ll140"):  continue
         if selection.count("mt2")    and not selection.count("met"):    continue
         if selection.count("njet0")  and selection.count("metSig"):    continue
         if selection.count("njet0")  and selection.count("dPhi"):    continue
@@ -114,6 +117,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("mt2ll") > 1:   continue
         if selection.count("mt2blbl") > 1: continue
         if selection.count("mt2bb") > 1:   continue
+        if selection.count("metSig") > 1:  continue
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 #
@@ -126,6 +130,7 @@ if not args.isChild and args.selection is None:
     command = "./analysisPlots.py --selection=" + selection + (" --noData" if args.noData else "")\
                                                             + (" --unblind" if args.unblind else "")\
                                                             + (" --splitBosons" if args.splitBosons else "")\
+                                                            + (" --splitTop" if args.splitTop else "")\
                                                             + (" --powheg" if args.powheg else "")\
                                                             + (" --signal=" + args.signal if args.signal else "")\
                                                             + (" --plot_directory=" + args.plot_directory)\
@@ -140,6 +145,7 @@ if args.selection.count("btag0"): args.signal = None
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.powheg:                   args.plot_directory += "_topPowheg"
+if args.splitTop:                 args.plot_directory += "_splitTop"
 if args.selection.count("mt2ll") and args.selection.count('btagM'): args.noData = True
 
 
@@ -153,8 +159,10 @@ from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi1_Mphi100
 T2tt                    = T2tt_450_1 # Take 450,0 as default to plot
-T2ttCompressed          = T2tt_450_275 # Take 450,0 as default to plot
-T2ttCompressed.style    = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+T2tt2                   = T2tt_450_150
+T2tt3                   = T2tt_450_250
+T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+T2tt3.style             = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
 T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
 
 
@@ -236,6 +244,7 @@ for index, mode in enumerate(allModes):
 
   if args.powheg and args.splitBosons:   mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
   elif args.splitBosons:                 mc = [ Top, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
+  elif args.splitTop:                    mc = [ TTLep_pow, singleTop, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
   elif args.powheg:                      mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
   else:                                  mc = [ Top, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
 
@@ -250,13 +259,13 @@ for index, mode in enumerate(allModes):
   if not args.noData:
     if not args.signal:         stack = Stack(mc, data_sample)
     elif args.signal == "DM":   stack = Stack(mc, data_sample, TTbarDMJets_scalar_Mchi1_Mphi100)
-    elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt, T2ttCompressed)
+    elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt, T2tt2, T2tt3)
   else:
     if not args.signal:         stack = Stack(mc)
     elif args.signal == "DM":   stack = Stack(mc, TTbarDMJets_scalar_Mchi1_Mphi100)
-    elif args.signal == "T2tt": stack = Stack(mc, T2tt, T2ttCompressed)
+    elif args.signal == "T2tt": stack = Stack(mc, T2tt, T2tt2, T2tt3)
 
-  for sample in [T2tt, T2ttCompressed]: 
+  for sample in [T2tt, T2tt2, T2tt3]:
 #    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
 #    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
     sample.read_variables = ['reweightDilepTrigger/F','reweightBTag_SF/F','reweightPU/F']
@@ -294,7 +303,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
+    texX = 'E_{T}^{miss}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
     variable = Variable.fromString('metSig/F'),
     binning=[15,5,20] if args.selection.count('metSig') else [15,0,15],
   ))
@@ -348,7 +357,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'Cos(#phi(ll, #slash{E}_{T}))', texY = 'Number of Events',
+    texX = 'Cos(#phi(ll, E_{T}^{miss}))', texY = 'Number of Events',
     variable = Variable.fromString('cosZMetphi/F').addFiller(helpers.uses(lambda data: cos( data.dl_phi - data.met_phi ) , ["met_phi/F", "dl_phi/F"])),
     binning = [10,-1,1],
   ))
@@ -420,13 +429,13 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      texX = 'Cos(#phi(#slash{E}_{T}, leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosMetJet1phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [10,-1,1],
     ))
     
     plots.append(Plot(
-      texX = 'Cos(#phi(#slash{E}_{T}, leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosMetJet1phi_smallBinning/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [20,-1,1],
     ))
@@ -458,13 +467,13 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      texX = 'Cos(#phi(#slash{E}_{T}, second jet))', texY = 'Number of Events',
+      texX = 'Cos(#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosMetJet2phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [10,-1,1],
     ))
     
     plots.append(Plot(
-      texX = 'Cos(#phi(#slash{E}_{T}, second jet))', texY = 'Number of Events',
+      texX = 'Cos(#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosMetJet2phi_smallBinning/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [20,-1,1],
     ))
