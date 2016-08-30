@@ -36,9 +36,9 @@ for estimator in detailedEstimators:
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_1, T2tt_450_275] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
+signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_1, T2tt_450_150, T2tt_450_250] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
 for i, estimator in enumerate(signalEstimators):
-    estimator.style = styles.lineStyle( ROOT.kBlack, width=2, dotted=(i==1) )
+    estimator.style = styles.lineStyle( ROOT.kBlack, width=2, dotted=(i==1), dashed=(i==2) )
     estimator.isSignal=True
  
 estimators = detailedEstimators + signalEstimators
@@ -61,8 +61,10 @@ systematics = { 'JEC' :      ['JECUp', 'JECDown'],
                 'PU' :       ['reweightPU12fbUp', 'reweightPU12fbDown'],
                 'stat' :     ['statLow', 'statHigh'],
                 'topPt' :    ['reweightTopPt', None],
-       #         'b-tag-b' :  ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
-       #         'b-tag-l' :  ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'] 
+                'b-tag-b' :  ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
+                'b-tag-l' :  ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'],
+                'trigger' :  ['reweightDilepTriggerBackupUp', 'reweightDilepTriggerDown'],
+                'leptonSF' : ['reweightLeptonSFUp','reweightLeptonSFDown'],
 }
 
 sysVariations = [None]
@@ -202,6 +204,6 @@ for channel in ['all','SF','EE','EMu','MuMu']:
         yRange = (0.006, "auto"),
         widths = {'x_width':1000, 'y_width':700},
         drawObjects = (drawLabels(regions_) if args.labels else []) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
-        legend = (0.55,0.9-0.03*(len(bkg_histos) + len(sig_histos)), 0.95, 0.9),
+        legend = (0.55,0.9-0.015*(len(bkg_histos) + len(sig_histos)), 0.95, 0.9),
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
