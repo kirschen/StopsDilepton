@@ -31,25 +31,23 @@ SingleElectron_Run2016D_PromptReco_v2 --triggerSelection=e_for_ee
 
 # MC
 TTGJets                 --checkTTGJetsOverlap
-TTJets TTJets_ext       --checkTTGJetsOverlap
+TTJets                  --checkTTGJetsOverlap
 TT_pow_ext3 TT_pow_ext4 --checkTTGJetsOverlap
-TTLep_pow TTLep_pow_ext --checkTTGJetsOverlap
+TTLep_pow_ext           --checkTTGJetsOverlap
 
 TTJets_SingleLeptonFromTbar TTJets_SingleLeptonFromTbar_ext
-TTJets_SingleLeptonFromT TTJets_SingleLeptonFromT_ext
+TTJets_SingleLeptonFromT
 
 TTHnobb_pow
 TTHnobb_mWCutfix_ch0
 TTHbb_ext3
 
-TToLeptons_tch_amcatnlo TToLeptons_tch_amcatnlo_ext
+#TToLeptons_tch_amcatnlo TToLeptons_tch_amcatnlo_ext
 TBarToLeptons_tch_powheg
 TToLeptons_tch_powheg
 TToLeptons_sch_amcatnlo
 TBar_tWch
-TBar_tWch_DS
 T_tWch
-T_tWch_DS
 
 tZq_ll
 tZq_nunu
@@ -160,13 +158,10 @@ TTZToQQ
 TTZToLLNuNu
 TTZ_LO
 
-#SMS_T2tt_mStop_100_125_mLSP_1to50 --fastSim --T2tt
-#SMS_T2tt_mStop_150_175_mLSP_1to100 --fastSim --T2tt
-#SMS_T2tt_mStop_200_mLSP_1to125 --fastSim --T2tt
-#SMS_T2tt_mStop_225_mLSP_25to150 --fastSim --T2tt
-#SMS_T2tt_mStop_250_mLSP_1to175 --fastSim --T2tt
-#SMS_T2tt_mStop_275_mLSP_75to200 --fastSim --T2tt
-#SMS_T2tt_mStop_300to375_mLSP_1to300 --fastSim --T2tt
-#SMS_T2tt_mStop_400to475_mLSP_1to400 --fastSim --T2tt
-#SMS_T2tt_mStop_500_525_550_mLSP_1to425_325to450_1to475 --fastSim --T2tt
-#SMS_T2tt_mStop_600_950_mLSP_1to450 --fastSim --T2tt
+SMS_T2tt_mStop_150to250 --fastSim --T2tt 
+SMS_T2tt_mStop_250to350 --fastSim --T2tt
+SMS_T2tt_mStop_350to400 --fastSim --T2tt
+SMS_T2tt_mStop_400to1200 --fastSim --T2tt
+SMS_T2tt_mStop_425_mLSP_325 --fastSim --T2tt
+SMS_T2tt_mStop_500_mLSP_325 --fastSim --T2tt
+SMS_T2tt_mStop_850_mLSP_100 --fastSim --T2tt
