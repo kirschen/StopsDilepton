@@ -14,7 +14,7 @@ estimators = {}
 
 # Data-driven estimators
 estimators['DY-DD']           = [DataDrivenDYEstimate( name='DY-DD',         controlRegion=Region('dl_mt2ll', (100,-1)))]
-estimators['multiBoson-DD']   = [DataDrivenMultiBosonEstimate( name='multiBoson-DD', controlRegion=Region('dl_mt2ll', (100,-1)))]
+estimators['multiBoson-DD']   = [DataDrivenMultiBosonEstimate( name='multiBoson-DD', controlRegion=Region('dl_mt2ll', (100,-1)), estimateDY=estimators['DY-DD'][0])]
 estimators['TTZ-DD']          = [DataDrivenTTZEstimate(name='TTZ-DD')]
 estimators['TTZ-DD-Top16009'] = [DataDrivenTTZEstimate(name='TTZ-DD-Top16009', useTop16009=True)]
 estimators['TTJets-DD']       = [DataDrivenTTJetsEstimate(name='TTJets-DD', controlRegion=reducedRegionsNew[0])]

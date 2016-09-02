@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
-estimators = ["TTJets",
-              "TTJets-DD",
+estimators = [#"TTJets",
+              #"TTJets-DD",
               "DY",
               "DY-DD",
               "singleTop",
@@ -9,7 +9,8 @@ estimators = ["TTJets",
               "TTZ",
               "TTZ-DD",
               "TTZ-DD-Top16009",
-              "multiBoson",
+#              "multiBoson",
+#              "multiBoson-DD",
               "other",
              ]
 

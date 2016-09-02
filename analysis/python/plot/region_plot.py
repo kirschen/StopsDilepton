@@ -28,7 +28,7 @@ argParser.add_argument("--labels",         action='store_true', default=False,  
 args = argParser.parse_args()
 
 detailedEstimators = constructEstimatorList([args.estimateTTJets,'other-detailed', args.estimateDY, args.estimateTTZ])
-signalSetup = setup.sysClone(isSignal=(args.signal=="T2tt")) # little hack for the old trees
+signalSetup = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
 
 for estimator in detailedEstimators:
     estimatorColor = getattr( color, estimator.name.split('-')[0] ) 

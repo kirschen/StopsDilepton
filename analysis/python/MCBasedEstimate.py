@@ -31,7 +31,7 @@ class MCBasedEstimate(SystematicEstimator):
             # Important! We use 'allZ' (mll>20) in case of EMu 
             zWindow= 'allZ' if channel=='EMu' else 'offZ'
 
-            preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel, isSignal=self.isSignal)
+            preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel)
             cut = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
             weight = preSelection['weightStr']
 

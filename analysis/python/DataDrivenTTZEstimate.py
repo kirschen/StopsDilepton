@@ -9,7 +9,7 @@ from StopsDilepton.tools.user import analysis_results
 import logging
 logger = logging.getLogger(__name__)
 
-isoCut = 0.2
+isoCut = 'VT'
 
 def getLooseLeptonString(nMu, nE):
     return muonSelectorString(ptCut=10, iso=isoCut) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, iso=isoCut) + "==" + str(nE)
@@ -31,9 +31,9 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         self.nMediumBTags = (0,-1) # bjet selection (min, max)
 
         self.useTop16009       = useTop16009
-        self.ratioTop16009     = 1.27 #
-        self.sysErrTop16009    = (-0.17, +0.20)
-        self.statErrTop16009   = (-0.37, +0.42)
+        self.ratioTop16009     = 0.70 #
+        self.sysErrTop16009    = (-0.12, +0.14)
+        self.statErrTop16009   = (-0.15, +0.16)
 
     #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup):

@@ -35,8 +35,10 @@ if not estimate:
 
 
 if estimate.name.count('T2tt') or estimate.name.count('DM'): estimate.isSignal = True
-if estimate.name.count('T2tt'):                              isFastSim         = True
-if estimate.name.count('T2tt'):                              setup             = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, isSignal=True)
+
+isFastSim = estimate.name.count('T2tt')
+if isFastSim:
+  setup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
 
 setup.verbose=True
 

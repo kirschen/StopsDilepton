@@ -98,8 +98,7 @@ def wrapper(s):
                 #signal
                 e = eSignal
                 eSignal.isSignal = True
-                if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']}, isSignal=True)
-                else:       signalSetup = setup.sysClone(isSignal=True)
+                if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
                 signal = e.cachedEstimate(r, channel, signalSetup)
 
                 c.specifyExpectation(binname, 'signal', signal.val )
@@ -111,11 +110,9 @@ def wrapper(s):
                     c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematicSignal(    r, channel, signalSetup).val )
-                   # c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
-                    c.specifyUncertainty('leptonSF', binname, 'signal', 1) # To update with new signal trees
+                    c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                     if fastSim: 
-                   #   c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
-                      c.specifyUncertainty('leptonFS', binname, 'signal', 1 ) # To update with new signal trees
+                      c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                       c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
 
                     #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated

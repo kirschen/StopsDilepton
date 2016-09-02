@@ -97,14 +97,12 @@ class Setup:
         return os.path.join(self.analysis_results, self.prefix(), 'cacheFiles')
 
     #Clone the setup and optinally modify the systematic variation
-    def sysClone(self, sys=None, parameters=None, isSignal = False):
+    def sysClone(self, sys=None, parameters=None):
         '''Clone setup and change systematic if provided'''
 
         res            = copy.copy(self)
         res.sys        = copy.deepcopy(self.sys)
         res.parameters = copy.deepcopy(self.parameters)
-
-        if isSignal: res.sys = {'weight':'weight', 'reweight':['reweightPU','reweightDilepTrigger','reweightBTag_SF'], 'selectionModifier':None} # To be updated with new signal samples
 
         if sys:
             for k in sys.keys():
@@ -116,6 +114,7 @@ class Setup:
                       if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightLeptonSF'+upOrDown           in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
+                      if 'reweightLeptonFastSimSF'+upOrDown    in res.sys[k]: res.sys[k].remove('reweightLeptonFastSimSF')
                       if 'reweightLeptonHIPSF'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightLeptonHIPSF')
                 else:
                     res.sys[k] = sys[k] # if sys[k] else res.sys[k]
@@ -136,14 +135,14 @@ class Setup:
     def weightString(self):
         return "*".join([self.sys['weight']] + (self.sys['reweight'] if self.sys['reweight'] else []))
 
-    def preselection(self, dataMC , zWindow, channel='all', isSignal=False):
+    def preselection(self, dataMC , zWindow, channel='all'):
         '''Get preselection  cutstring.'''
-        return self.selection(dataMC, channel = channel, zWindow = zWindow, hadronicSelection = False, isSignal=isSignal, **self.parameters)
+        return self.selection(dataMC, channel = channel, zWindow = zWindow, hadronicSelection = False, **self.parameters)
 
     def selection(self, dataMC,
 			mllMin, metMin, metSigMin, dPhi, dPhiInv,
 			nJets, nBTags, leptonCharges, 
-			channel = 'all', zWindow = 'offZ', hadronicSelection = False, isSignal = False):
+			channel = 'all', zWindow = 'offZ', hadronicSelection = False):
         '''Define full selection
 	   dataMC: 'Data' or 'MC'
 	   channel: all, EE, MuMu or EMu
@@ -228,8 +227,7 @@ class Setup:
             res['prefixes'].append('looseLeptonVeto')
             res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
             res['prefixes'].append('multiIsoVT')
-            if isSignal: res['cuts'].append("l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP) # To update with new samples
-            else:        res['cuts'].append("l1_mIsoWP>4&&l2_mIsoWP>4")
+            res['cuts'].append("l1_mIsoWP>4&&l2_mIsoWP>4")
             res['cuts'].append("l1_pt>25")
 
         res['cuts'].append(getFilterCut(isData=(dataMC=='Data')))

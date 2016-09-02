@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # Very similar to DY control region, but with dPhi cut instead of dPhiInv
 class DataDrivenMultiBosonEstimate(SystematicEstimator):
-    def __init__(self, name, controlRegion=None, combineChannels = True, cacheDir=None, dPhi=True, dPhiInv=False, metMin=80, metSigMin=5):
+    def __init__(self, name, controlRegion=None, combineChannels = True, cacheDir=None, dPhi=True, dPhiInv=False, metMin=80, metSigMin=5, estimateDY=None):
         super(DataDrivenMultiBosonEstimate, self).__init__(name, cacheDir=cacheDir)
         self.controlRegion   = controlRegion
         self.combineChannels = combineChannels
@@ -16,6 +16,7 @@ class DataDrivenMultiBosonEstimate(SystematicEstimator):
         self.metSigMin       = metSigMin
         self.dPhi            = dPhi
         self.dPhiInv         = dPhiInv
+        self.estimateDY      = estimateDY
 
     #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup, returnScaleFactor = False, estimateDY=None):
@@ -50,6 +51,7 @@ class DataDrivenMultiBosonEstimate(SystematicEstimator):
 	      cut_onZ_0b[c]      = "&&".join([normRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=c, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
 	      cut_data_onZ_0b[c] = "&&".join([normRegion.cutString(),                               setup.selection('Data', channel=c, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
 
+            if not estimateDY: estimateDY = self.estimateDY
             scalefactorDY = estimateDY._estimate(region, channel, setup, returnScaleFactor=True)[2] if estimateDY else 1
             yield_data    = sum(self.yieldFromCache(setup, 'Data',       c, cut_data_onZ_0b[c], "(1)")                         for c in channels)
             yield_onZ_0b  = sum(self.yieldFromCache(setup, 'multiBoson', c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels)
