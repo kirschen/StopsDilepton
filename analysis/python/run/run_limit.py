@@ -66,6 +66,7 @@ def wrapper(s):
 	c.addUncertainty('SFl',      'lnN')
 	c.addUncertainty('trigger',  'lnN')
 	c.addUncertainty('leptonSF', 'lnN')
+	c.addUncertainty('scale',    'lnN')
         if fastSim:
  	  c.addUncertainty('SFFS',     'lnN')
   	  c.addUncertainty('leptonFS', 'lnN')
@@ -116,7 +117,7 @@ def wrapper(s):
                     c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
-                    c.specifyUncertainty('PDF',      binname, 'signal', 1 + scaleUncCache.get(      r, channel, eSignal.name) )
+                    c.specifyUncertainty('scale',    binname, 'signal', 1 + scaleUncCache.get(eSignal.name, r, channel) )
                     if fastSim: 
                       c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                       c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
