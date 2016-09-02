@@ -32,8 +32,8 @@ elif args.regions == "superRegion":       regions = superRegion
 elif args.regions == "superRegion140":    regions = superRegion140
 else: raise Exception("Unknown regions setup")
 
-if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'other-detailed'])
-elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'other-detailed'])
+if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ'])
+elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'multiBoson-DD', 'TTXNoZ'])
 summedEstimate = SumEstimate(name="sum" if args.estimates == "mc" else "sum_dd")
 
 DYestimators = constructEstimatorList(["DY", "DY-DD"])

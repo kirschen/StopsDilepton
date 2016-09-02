@@ -23,13 +23,14 @@ estimators['DY-DD'][0].texName           = "DY"
 estimators['TTZ-DD'][0].texName          = "t#bar{t}Z"
 estimators['TTZ-DD-Top16009'][0].texName = "t#bar{t}Z"
 estimators['TTJets-DD'][0].texName       = "t#bar{t}/single-t"
+estimators['multiBoson-DD'][0].texName   = "diboson/triboson"
 
 # main MC based estimators
-for mc in ['DY','TTJets','TTZ','other']:
+for mc in ['DY','TTJets','TTZ','multiBoson','TTXNoZ']:
   estimators[mc] = [MCBasedEstimate(name=mc, sample=setup.sample[mc])]
 
 # detailed MC based estimators (used for plotting so leave out the small ones)
-estimators['other-detailed']  = [ MCBasedEstimate(name=comp.name, sample={c:comp for c in channels}) for comp in [multiBoson,  TTXNoZ] ]
+#estimators['other-detailed']  = [ MCBasedEstimate(name=comp.name, sample={c:comp for c in channels}) for comp in [multiBoson,  TTXNoZ] ]
 # estimators['other-detailed'] += [ MCBasedEstimate(name="QCD", sample= {'MuMu': QCD_Mu5, 'EE': QCD_EMbcToE, 'EMu': QCD_Mu5EMbcToE}) ]
 
 
@@ -47,7 +48,7 @@ def constructEstimatorList(eList):
     estimatorList += estimators[e]
   return estimatorList
 
-defaultAnalysisEstimators = constructEstimatorList(['DY-DD','TTZ-DD','TTJets-DD','other'])
-mcAnalysisEstimators      = constructEstimatorList(['DY',   'TTZ',   'TTJets','other'])
-mcDetailedEstimators      = constructEstimatorList(['DY',   'TTZ',   'TTJets','other-detailed'])
+defaultAnalysisEstimators = constructEstimatorList(['DY-DD','TTZ-DD','TTJets-DD','multiBoson-DD', 'TTXNoZ'])
+mcAnalysisEstimators      = constructEstimatorList(['DY',   'TTZ',   'TTJets',   'multiBoson',    'TTXNoZ'])
+#mcDetailedEstimators      = constructEstimatorList(['DY',   'TTZ',   'TTJets','other-detailed'])
 allEstimators             = constructEstimatorList(estimators.keys())

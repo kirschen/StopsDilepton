@@ -5,6 +5,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
 argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTZJets","TTJets-DD"],                                                                       help="which TTJets estimate?")
+argParser.add_argument("--estimateMB",     action='store', default='multiBoson',        nargs='?', choices=["multiBoson","multiBoson-DD"],                                                                help="which multiBoson estimate?")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal?")
 args = argParser.parse_args()
 
@@ -17,7 +18,7 @@ from StopsDilepton.analysis.Cache        import Cache
 
 regions = regions80X
 
-estimators = constructEstimatorList([args.estimateTTJets, 'other', args.estimateDY, args.estimateTTZ])
+estimators = constructEstimatorList([args.estimateTTJets, 'other', args.estimateDY, args.estimateTTZ, args.estimateMB])
 observation = DataObservation(name='Data', sample=setup.sample['Data'])
 
 for e in estimators + [observation]:
@@ -33,7 +34,7 @@ from StopsDilepton.tools.user           import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 limitPrefix = "regions80X"
-limitDir    = os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, 'cardFiles', args.signal, limitPrefix)
+limitDir    = os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB, 'cardFiles', args.signal, limitPrefix)
 overWrite   = False
 useCache    = True
 verbose     = True
@@ -44,6 +45,13 @@ limitCache    = Cache(cacheFileName, verbosity=2)
 
 if   args.signal == "T2tt": fastSim = True
 elif args.signal == "DM":   fastSim = False
+
+
+def getScaleUncertainty(r, channel, signalName):
+    # Implement scale uncertainty
+    return 0
+
+
 
 def wrapper(s):
     c = cardFileWriter.cardFileWriter()
@@ -79,7 +87,7 @@ def wrapper(s):
                     c.specifyExpectation(binname, e.name, expected.val )
 
                     if expected.val>0:
-                        c.specifyUncertainty('PU',       binname, e.name, 1 + e.PUSystematic(          r, channel, setup).val )
+                        c.specifyUncertainty('PU',       binname, e.name, 1 + e.PUSystematic(         r, channel, setup).val )
                         c.specifyUncertainty('JEC',      binname, e.name, 1 + e.JECSystematic(        r, channel, setup).val )
                         c.specifyUncertainty('JER',      binname, e.name, 1 + e.JERSystematic(        r, channel, setup).val )
                         c.specifyUncertainty('topPt',    binname, e.name, 1 + e.topPtSystematic(      r, channel, setup).val )
@@ -111,6 +119,7 @@ def wrapper(s):
                     c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
+                    c.specifyUncertainty('PDF',      binname, 'signal', 1 + getScaleUncertainty(    r, channel, signalName) )
                     if fastSim: 
                       c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                       c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
@@ -170,7 +179,7 @@ if args.signal == "T2tt":
     for hist, qE in [(exp, '0.500'), (exp_up, '0.160'), (exp_down, '0.840'), (obs, '-1.000')]:
       hist.Fill(mStop, mNeu, res[qE])
 
-  limitResultsFilename = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, 'limits', args.signal, limitPrefix,'limitResults.root'))
+  limitResultsFilename = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB, 'limits', args.signal, limitPrefix,'limitResults.root'))
   if not os.path.exists(os.path.dirname(limitResultsFilename)):
       os.makedirs(os.path.dirname(limitResultsFilename))
 
@@ -186,7 +195,7 @@ if args.signal == "T2tt":
 # Make table for DM
 if args.signal == "DM":
   # Create table
-  texdir = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, 'limits', args.signal, limitPrefix))
+  texdir = os.path.join(os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB, 'limits', args.signal, limitPrefix))
   if not os.path.exists(texdir): os.makedirs(texdir)
 
   for type in sorted(set([type_ for ((mChi, mPhi, type_), res) in results])):
