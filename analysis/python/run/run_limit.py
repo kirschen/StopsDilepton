@@ -104,12 +104,12 @@ def wrapper(s):
                 c.specifyExpectation(binname, 'signal', signal.val )
 
                 if signal.val>0:
-                    c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematicSignal(         r, channel, signalSetup).val )
+                    c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
                     c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
                     c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
                     c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
-                    c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematicSignal(    r, channel, signalSetup).val )
+                    c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                     if fastSim: 
                       c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
