@@ -229,10 +229,10 @@ elif isJet250:
 
 #Samples: Load samples
 maxN = 2 if options.small else None
+from StopsDilepton.samples.helpers import fromHeppySample
 if options.T2tt:
-    from StopsDilepton.samples.cmgTuples_Signals_Spring16_mAODv2_25ns_0l import T2tt
+    samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
-    samples = filter( lambda s:s.name in options.samples, T2tt)
     logger.info( "T2tt signal samples to be processed: %s", ",".join(s.name for s in samples) )
     # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
     assert len(samples)==1, "Can only process one T2tt sample at a time."
@@ -241,12 +241,10 @@ if options.T2tt:
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
     logger.debug("Done fetching signal weights.")
 elif options.TTDM:
-    from StopsDilepton.samples.helpers import fromHeppySample
     samples = [ fromHeppySample(s, data_path = "/data/rschoefbeck/cmgTuples/TTBar_DM/", \
                     module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring15MiniAODv2",  maxN = maxN)\
                 for s in options.samples ]
 else:
-    from StopsDilepton.samples.helpers import fromHeppySample
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
 
 isData = False not in [s.isData for s in samples]
@@ -792,9 +790,9 @@ def filler(s):
 #              setattr(s, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(s, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(s, "met_phi"+i)))))
 
         if options.fastSim:
-            s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
-            s.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
-            s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get3DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
+            s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
+            s.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
+            s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
 
     if isTriLep or isDiLep:
         if isMC:

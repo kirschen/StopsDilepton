@@ -284,13 +284,13 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
+    texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV',
     variable = Variable.fromString( "met_pt/F" ),
     binning=[15,0,300],
   ))
 
   plots.append(Plot(
-    texX = '#slash{E}_{T}/#sqrt(H_{T}) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
+    texX = 'E_{T}^{miss}/#sqrt(H_{T}) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
     variable = Variable.fromString('metSig/F').addFiller(helpers.uses(lambda data: data.met_pt/sqrt(data.ht) if data.ht>0 else float('nan'), ["met_pt/F", "ht/F"])),
     binning=[15,0,15],
   )), 
@@ -302,13 +302,13 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(\
-    texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
+    texX = 'Cos(#phi(#E_{T}^{miss} Jet[0]))', texY = 'Number of Events',
     variable = Variable.fromString('cosMetJet0phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"])),
     binning = [10,-1,1], 
   ))
 
   plots.append(Plot(\
-    texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
+    texX = 'Cos(#phi(E_{T}^{miss}, Jet[1]))', texY = 'Number of Events',
     variable = Variable.fromString('cosMetJet1phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"])),
     binning = [10,-1,1], 
   ))

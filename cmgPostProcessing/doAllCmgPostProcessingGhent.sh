@@ -6,7 +6,7 @@ if [ ! -d "/user/$USER/.cmgdataset" ]; then
   cp -r ~/.cmgdataset /user/$USER
 fi
 
-skim="dilepTiny_new"
+skim="dilepTiny"
 # Run over samples given in input file
 while read -r sample; do
     if [[ ${sample} = \#* || -z "${sample}" ]] ; then
@@ -14,7 +14,7 @@ while read -r sample; do
     fi
     echo "${sample}"
     wallTime="20:00:00"
-    if [[ ${sample} = TTJets* || ${sample} = TTLep* ]]; then
+    if [[ ${sample} = TTJets* || ${sample} = TTLep* || ${sample} = TT_pow* ]]; then
       wallTime="168:00:00"
     fi
     mkdir -p "/user/$USER/cmgPostProcessing/$skim/${sample// /}"

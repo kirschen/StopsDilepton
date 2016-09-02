@@ -67,7 +67,7 @@ def wrapper(s):
 
 	eSignal = MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() )
         for r in regions[1:]:
-            for channel in ['MuMu', 'EE', 'EMu']:                                         # for channel in ['all']:
+            for channel in ['MuMu', 'EE', 'EMu']:
                 niceName = ' '.join([channel, r.__str__()])
                 binname = 'Bin'+str(counter)
                 counter += 1
@@ -79,7 +79,7 @@ def wrapper(s):
                     c.specifyExpectation(binname, e.name, expected.val )
 
                     if expected.val>0:
-                        c.specifyUncertainty('PU',      binname, e.name, 1 + e.PUSystematic(          r, channel, setup).val )
+                        c.specifyUncertainty('PU',       binname, e.name, 1 + e.PUSystematic(          r, channel, setup).val )
                         c.specifyUncertainty('JEC',      binname, e.name, 1 + e.JECSystematic(        r, channel, setup).val )
                         c.specifyUncertainty('JER',      binname, e.name, 1 + e.JERSystematic(        r, channel, setup).val )
                         c.specifyUncertainty('topPt',    binname, e.name, 1 + e.topPtSystematic(      r, channel, setup).val )
@@ -130,7 +130,7 @@ def wrapper(s):
                     if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
         c.addUncertainty('Lumi', 'lnN')
-        c.specifyFlatUncertainty('Lumi', 1.02)
+        c.specifyFlatUncertainty('Lumi', 1.062)
         cardFileName = c.writeToFile(cardFileName)
     else:
         print "File %s found. Reusing."%cardFileName
