@@ -37,9 +37,9 @@ argParser.add_argument('--dy',
     choices=['LO', 'NLO'])
 
 argParser.add_argument('--pu',
-    default="reweightPU",
+    default="reweightPU12fb",
     action='store',
-    choices=["None", "reweightPU", "reweightPUUp", "reweightPUDown", "reweightPUVUp", "reweightPUVDown", "reweightNVTX", "reweightNVTXUp", "reweightNVTXDown", "reweightNVTXVUp", "reweightNVTXVDown"],
+    choices=["None", "reweightPU12fb", "reweightPU12fbUp", "reweightPU12fbDown", 'reweightPU'],
     help='PU weight',
 )
 
@@ -49,10 +49,11 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
-argParser.add_argument('--dPhiCut',
-    action='store_true',
-    #default=True,
-    help='dPhiCut?',
+argParser.add_argument('--dPhi',
+    action='store',
+    default = 'none',
+    choices=['def', 'inv','none'],
+    help='dPhi?',
 )
 
 argParser.add_argument('--reversed',
@@ -76,8 +77,14 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='recoil_80X',
+    default='recoil_80X_Run2016BCD',
     action='store',
+)
+
+argParser.add_argument('--trigger',
+    action='store_true',
+    #default = True,
+    help='Small?',
 )
 
 args = argParser.parse_args()
@@ -90,10 +97,6 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v6/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v7/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
 def getZCut(mode):
     mZ = 91.2
@@ -102,47 +105,53 @@ def getZCut(mode):
     if mode.lower()=="offz": return zstr+">15"
     return "(1)"
 
+postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+
+sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
+sample_DoubleEG    = DoubleEG_Run2016BCD_backup
+sample_MuonEG      = MuonEG_Run2016BCD_backup
+
 if args.mode=="doubleMu":
-    lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
+    lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
     lepton_selection_string_mc   = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
-    data_samples = [DoubleMuon_Run2016B]
-    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_samples = [sample_DoubleMuon]
+    sample_DoubleMuon.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    if args.trigger: sample_DoubleMuon.addSelectionString( "(HLT_mumuIso||HLT_mumuNoiso)" )
     data_sample_texName = "Data (2 #mu)"
     #qcd_sample = QCD_Mu5 #FIXME
 elif args.mode=="doubleEle":
-    lepton_selection_string_data = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
+    lepton_selection_string_data = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
-    data_samples = [DoubleEG_Run2016B]
-    DoubleEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_samples = [sample_DoubleEG]
+    sample_DoubleEG.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    if args.trigger: sample_DoubleEG.addSelectionString( "HLT_ee_DZ" )
     data_sample_texName = "Data (2 e)"
     #qcd_sample = QCD_EMbcToE
 elif args.mode=="muEle":
-    lepton_selection_string_data = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue", getZCut(args.zMode)])
+    lepton_selection_string_data = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
-    data_samples = [MuonEG_Run2016B]
-    MuonEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_samples = [sample_MuonEG]
+    sample_MuonEG.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    if args.trigger: sample_MuonEG.addSelectionString( "HLT_mue" )
     data_sample_texName = "Data (1 #mu, 1 e)"
-    #qcd_sample = QCD_Mu5EMbcToE
-#elif args.mode=="dilepton":
-#    doubleMu_selectionString = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso&&abs(dl_mass-91.2)>15"
-#    doubleEle_selectionString = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ&&abs(dl_mass-91.2)>15"
-#    muEle_selectionString = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1&&HLT_mue"
-#    lepton_selection_string_mc = "(isEMu==1&&nGoodMuons==1&&nGoodElectrons==1|| ( isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2 ) && abs(dl_mass-91.2)>15)"
-#    data_samples = [DoubleMuon_Run2016B, DoubleEG_Run2016B, MuonEG_Run2016B]
-#    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
-#    DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
-#    MuonEG_Run2016B.setSelectionString([dataFilterCut, muEle_selectionString])
-#    data_sample_texName = "Data"
-#    #qcd_sample = QCD_Mu5EMbcToE
 elif args.mode=="sameFlavour":
-    doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0&&HLT_mumuIso", getZCut(args.zMode)])
-    doubleEle_selectionString = "&&".join([ "isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&HLT_ee_DZ", getZCut(args.zMode)])
+    doubleMu_selectionString =  "&&".join([ "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
+    doubleEle_selectionString = "&&".join([ "isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join([ "(isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2)", getZCut(args.zMode)])
-    data_samples = [DoubleMuon_Run2016B, DoubleEG_Run2016B]
-    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, doubleMu_selectionString])
-    DoubleEG_Run2016B.setSelectionString([dataFilterCut, doubleEle_selectionString])
+
+    data_samples = [sample_DoubleMuon, sample_DoubleEG]
+    sample_DoubleMuon.setSelectionString([dataFilterCut, doubleMu_selectionString])
+    sample_DoubleEG.setSelectionString([dataFilterCut, doubleEle_selectionString])
+    if args.trigger:
+        sample_DoubleMuon.addSelectionString( "(HLT_mumuIso||HLT_mumuNoiso)" )
+        sample_DoubleEG.addSelectionString( "HLT_ee_DZ" )
+
     data_sample_texName = "Data (SF)"
     #qcd_sample = QCD_Mu5EMbcToE
+
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
@@ -195,6 +204,13 @@ from StopsDilepton.tools.user import plot_directory
 # official PU reweighting
 weight = lambda data:data.weight
 
+if args.dPhi == 'inv':
+    dPhi = [ ("dPhiJetMETInv", "(!(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0))") ]
+elif args.dPhi=='def':
+    dPhi = [ ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0") ]
+else:
+    dPhi = []
+
 cuts=[
 #    ("leadingLepIsTight", "l1_miniRelIso<0.4"),
 #    ("multiIsoWP", "l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP),
@@ -210,9 +226,8 @@ cuts=[
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     
-]
-if args.dPhiCut:
-    cuts.append( ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0")  )
+] + dPhi
+
                 
 def drawObjects( dataMCScale ):
     tex = ROOT.TLatex()
@@ -316,8 +331,13 @@ logger.info( "Calculating normalization constants" )
 for sample in mc:
     dataMCScale = 1. #yield_data/(yield_mc*lumi_scale)
     sample.scale = lumi_scale*dataMCScale
-    if args.pu != "None": 
-        sample.weight = lambda data:getattr(data, args.pu)
+    if args.pu != "None":
+        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
+        sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
+    else:
+        sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
+        sample.weight = lambda data: data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
+
         sample.read_variables = [args.pu+'/F']
 
 #logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yield_mc, yield_data, lumi_scale )
@@ -333,6 +353,7 @@ qt  = Plot(
     variable = ScalarType.uniqueFloat().addFiller(lambda data:data.qt),
     binning=[400/5,0,200],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     ) 
 plots.append( qt )
@@ -344,6 +365,7 @@ upara  = Plot(
     variable = ScalarType.uniqueFloat().addFiller(lambda data:data.upara),
     binning=[400/5,-200,200],
     selectionString = selectionString,
+    addOverFlowBin = 'both',
     weight = weight,
     ) 
 plots.append( upara )
@@ -355,6 +377,7 @@ dl_uPlusQPara  = Plot(
     variable = ScalarType.uniqueFloat().addFiller(lambda data:data.uPlusQPara),
     binning=[600/30,-300,300],
     selectionString = selectionString,
+    addOverFlowBin = 'both',
     weight = weight,
     ) 
 plots.append( dl_uPlusQPara )
@@ -366,6 +389,7 @@ dl_uperp  = Plot(
     variable = ScalarType.uniqueFloat().addFiller(lambda data:data.uperp),
     binning=[400/5,-200,200],
     selectionString = selectionString,
+    addOverFlowBin = 'both',
     weight = weight,
     ) 
 plots.append( dl_uperp )
@@ -377,6 +401,7 @@ metZoomed  = Plot(
     variable = Variable.fromString( "met_pt/F" ),
     binning=[22,0,220],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( metZoomed )
@@ -387,6 +412,7 @@ met  = Plot(
     variable = Variable.fromString( "met_pt/F" ),
     binning=[1050/50,0,1050],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( met )
@@ -401,6 +427,7 @@ metSig  = Plot(
     ), 
     binning=[30,0,30],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( metSig )
@@ -411,6 +438,7 @@ ht  = Plot(
     variable = Variable.fromString( "ht/F" ),
     binning=[2600/100,0,2600],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( ht )
@@ -523,16 +551,18 @@ dl_mass  = Plot(
     variable = Variable.fromString( "dl_mass/F" ),
     binning=[150/3,0,150],
     selectionString = selectionString,
+    addOverFlowBin = 'both',
     weight = weight,
     )
 plots.append( dl_mass )
 
 dl_pt  = Plot(
-    texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 10 GeV',
+    texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
     stack = stack, 
     variable = Variable.fromString( "dl_pt/F" ),
-    binning=[40,0,400],
+    binning=[40,0,800],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( dl_pt )
@@ -544,6 +574,7 @@ dl_qt  = Plot(
     variable = ScalarType.uniqueFloat().addFiller(lambda data:data.qt),
     binning=[40,0,400],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( dl_qt )
@@ -574,6 +605,7 @@ dl_mt2ll  = Plot(
     variable = Variable.fromString( "dl_mt2ll/F" ),
     binning=[300/20,0,300],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( dl_mt2ll )
@@ -585,6 +617,7 @@ dl_mt2ll_100  = Plot(
     variable = Variable.fromString( "dl_mt2ll/F" ),
     binning=[350/25,100,450],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( dl_mt2ll_100 )
@@ -595,6 +628,7 @@ dl_mt2bb  = Plot(
     variable = Variable.fromString( "dl_mt2bb/F" ),
     binning=[300/15,0,300],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( dl_mt2bb )
@@ -605,6 +639,7 @@ dl_mt2blbl  = Plot(
     variable = Variable.fromString( "dl_mt2blbl/F" ),
     binning=[300/15,0,300],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     ) 
 plots.append( dl_mt2blbl )
@@ -616,6 +651,7 @@ nbtags  = Plot(
     variable = Variable.fromString('nBTag/I'),
     binning=[8,0,8],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( nbtags )
@@ -626,6 +662,7 @@ njets  = Plot(
     variable = Variable.fromString('nJetGood/I'),
     binning=[14,0,14],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( njets )
@@ -636,6 +673,7 @@ nVert  = Plot(
     variable = Variable.fromString( "nVert/I" ),
     binning=[50,0,50],
     selectionString = selectionString,
+    addOverFlowBin = 'upper',
     weight = weight,
     )
 plots.append( nVert )

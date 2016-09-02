@@ -83,11 +83,12 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 maxN = 10 if args.small else -1 
 
 from StopsDilepton.samples.helpers import fromHeppySample
-data_Run2016B = fromHeppySample("%s_Run2016B_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_10', maxN = maxN)
-data_Run2016C = fromHeppySample("%s_Run2016C_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_10', maxN = maxN)
+data_Run2016B = fromHeppySample("%s_Run2016B_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_12', maxN = maxN)
+data_Run2016C = fromHeppySample("%s_Run2016C_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_12', maxN = maxN)
+data_Run2016D = fromHeppySample("%s_Run2016D_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_12', maxN = maxN)
 
-data=Sample.combine( "Run2016BC", [data_Run2016B, data_Run2016C] )
-preprefix = "Run2016BC"
+data=Sample.combine( "Run2016BCD", [data_Run2016B, data_Run2016C, data_Run2016D] )
+preprefix = "Run2016BCD"
 triggerName = args.dileptonTrigger.replace('||','_OR_')
 
 pt_thresholds = range(0,30,2)+range(30,50,5)+range(50,210,10)

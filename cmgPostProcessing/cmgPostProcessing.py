@@ -445,6 +445,11 @@ else:
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
 
+if options.T2tt:
+    branchKeepStrings_MC += ["nIsr"]
+if options.keepLHEWeights or options.T2tt:
+        branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
+
 if isSingleLep:
     branchKeepStrings_DATAMC += ['HLT_*']
 
@@ -468,9 +473,6 @@ if not (isTiny or isSmall):
         "gamma_neuHadIso", "gamma_relIso", "gamma_pdgId", "gamma_pt", "gamma_eta", "gamma_phi", "gamma_mass",
         "gamma_chHadIsoRC04", "gamma_chHadIsoRC"]
     if isMC: branchKeepStrings_DATAMC+=[ "gamma_mcMatchId", "gamma_mcPt", "gamma_genIso04", "gamma_genIso03", "gamma_drMinParton"]
-
-#if options.keepLHEWeights:
-#        branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
 
 if sample.isData:
     lumiScaleFactor=None

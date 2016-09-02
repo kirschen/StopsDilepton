@@ -67,33 +67,33 @@ while r.run():
     print "At %i:%i:%i" % r.evt    
 
     # 80X
-    # 0. 1:4953:3991364 # 300 GeV gamma lost in dead cell (drastic)
-    # 1. 1:5468:4532888 # 80 GeV jet mismeasurement , -0.934/2.9678 (drastic)
-    # 2. 1:6024:4854452 # 2x40 GeV lost 1.6/-2.4, 1.9/2.7 (gaussian), 40 GeV neutrino from jet
+    # 0. 1:4953:3991364 # 300 GeV gamma lost in dead cell (jet mism.)
+    # 1. 1:5468:4532888 # 80 GeV jet mismeasurement , -0.934/2.9678 (jet mism.)
+    # 2. 1:6024:4854452 # 2x40 GeV lost 1.6/-2.4, 1.9/2.7 (gaussian jet mism.), 40 GeV neutrino from jet
     # 3. 1:6171:4972344 # drastic mismeasurement ecal 160 GeV 
     # 4. 1:12852:10356846 # lost K_plus 117.1/1.391/-2.527
-    # 5. 1:13923:11219847 (most probably jet mismeasurement, no AOD)
+    # 5. 1:13923:11219847 (most probably jet mismeasurement, no AOD available)
     # 6. 1:17046:13736425 jet mism. + 30 GeV neutrino in jet 
     # 7. 1:18692:15495640 # overmeasured muon at 148->184 2.287/-0.282? 30 GeV jet mismeasurement
-    # 8. 1:20840:17276057 # lost high pt gammas at -1.5/0.6 (drastic), 40 GeV neutrino in jet
-    # 9. 1:25322:20991689 # neutrino in a jet, 100GeV, just passing the threshold (142GeV)
-    # 11. 1:27005:21762195 # lost gammas and neutrals in dead cell 1.152/-3.077 (drastic)
-    # 12. 1:40541:33607796 # lost mu- from W, picked up 60 GeV e- fake, EMu->EE, ,charged particles different at -2.175/0.183 (end of trk coverage?) (gaussian) (40 GeV)
-    # 13. 1:48624:40308549 # lost high pt gammas (drastic)
+    # 8. 1:20840:17276057 # lost high pt gammas at -1.5/0.6 (jet mism.), 40 GeV neutrino in jet
+    # 9. 1:25322:20991689 # neutrino in a jet of 100GeV, just passing the threshold (142GeV)
+    # 11. 1:27005:21762195 # lost gammas and neutrals in dead cell 1.152/-3.077 (jet mism.)
+    # 12. 1:40541:33607796 # lost mu- from W, picked up 60 GeV e- fake, EMu->EE, some trk inefficieny at -2.175/0.183 (end of trk coverage, seems gaussian)
+    # 13. 1:48624:40308549 # lost high pt gammas (jet mism.)
     # 14. 1:49599:41117351 # lost 50 GeV mu- in a jet 52.2/-0.999/0.558 
-    # 15. 1:51330:42552044 # lost energy in ECAL (drastic, 100 GeV) -0.837/2.890
-    # 16. 1:57932:48024871 # overmeasured muon 125->330  0.289/-2.763, 50 GeV probably gaussian jet mismeasurement 
-    # 17. 1:62587:51884514 # likely gaussian jet mismeasurement (60 GeV in a 200GeV genjet), 40 GeV neutrino in jet
-    # 18. 1:65097:53964677 # mumu->emu, lost mu to pt, picked up fake e from conversion gamma, plus jet  mism 40 GeV (gaussian) 
+    # 15. 1:51330:42552044 # lost energy in ECAL (jet mism., 100 GeV) -0.837/2.890
+    # 16. 1:57932:48024871 # overmeasured muon 125->330  0.289/-2.763, 50 GeV probably gaussian jet mismeasurement) 
+    # 17. 1:62587:51884514 # likely gaussian jet mismeasurement (60 GeV in a 200GeV genjet plus 40 GeV neutrino in another jet)
+    # 18. 1:65097:53964677 # mumu->emu, lost mu to pt cut, picked up fake e from conversion gamma, plus jet mism 40 GeV (gaussian) 
     # 19. 1:67998:56369604 # 60 GeV from neutrino from jet
-    # 20. 1:68445:56740873 # tauToHad + non-prompt mu
-    # 21. 1:71016:58872109  extra muon with 24 GeV inner track and 80 GeV global track
+    # 20. 1:68445:56740873 # tau decaying hadronically + non-prompt mu
+    # 21. 1:71016:58872109  fake muon with 60 GeV inconsistency btw inner track and global track
     # 22. 1:72622:60203349 200 GeV neutrino in jet, plus 70 GeV photons lost 
     # 23. 1:74317:61608051 overmeasured muon 114.0/-2.275/-1.514 -> 154.1/-2.275/-1.51, 20 GeV neutrino in jet4
-    # 24. 1:82880:68707320 ??? mu?
+    # 24. 1:82880:68707320 likely non-prompt mu, no AOD available
     # 25. 1:85837:71158655 160 GeV neutrino from jet
-    # 26. 1:94223:78110867 360 GeV gamma lost
-    # 27. 1:106121:87973932 some 30 GeV mism. but fake MET is 150? leptons OK
+    # 26. 1:94223:78110867 360 GeV gamma lost in crack
+    # 27. 1:106121:87973932 150 GeV fake MET from various hadronic mism.
     # 28. 1:113723:94275792 jet mismeasurement at eta~3 + 20 GeV neutrino
 
     # 76X
