@@ -47,10 +47,7 @@ if   args.signal == "T2tt": fastSim = True
 elif args.signal == "DM":   fastSim = False
 
 
-def getScaleUncertainty(r, channel, signalName):
-    # Implement scale uncertainty
-    return 0
-
+scaleUncertaintyCache = Cache('<TODO>.pkl', verbosity=2)
 
 
 def wrapper(s):
@@ -119,7 +116,7 @@ def wrapper(s):
                     c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
-                    c.specifyUncertainty('PDF',      binname, 'signal', 1 + getScaleUncertainty(    r, channel, signalName) )
+                    c.specifyUncertainty('PDF',      binname, 'signal', 1 + scaleUncCache.get(      r, channel, eSignal.name) )
                     if fastSim: 
                       c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                       c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
