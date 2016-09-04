@@ -24,10 +24,11 @@ argParser.add_argument("--signal",         action='store', default='T2tt',      
 argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
 argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTJets","TTJets-DD"],                                                                        help="which TTJets estimate?")
+argParser.add_argument("--estimateMB",     action='store', default='multiBoson',        nargs='?', choices=["multiBoson","multiBoson-DD"],                                                                help="which multiBoson estimate?")
 argParser.add_argument("--labels",         action='store_true', default=False,          help="plot labels?")
 args = argParser.parse_args()
 
-detailedEstimators = constructEstimatorList([args.estimateTTJets,'other-detailed', args.estimateDY, args.estimateTTZ])
+detailedEstimators = constructEstimatorList([args.estimateTTJets,  args.estimateDY, args.estimateTTZ, args.estimateMB, 'TTXNoZ'])
 signalSetup = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
 
 for estimator in detailedEstimators:
@@ -198,7 +199,7 @@ for channel in ['all','SF','EE','EMu','MuMu']:
 
 
     plotting.draw( region_plot, \
-        plot_directory = os.path.join(user.plot_directory, 'regions_80X', args.estimateDY, args.estimateTTZ, args.estimateTTJets),
+        plot_directory = os.path.join(user.plot_directory, 'regions_80X', args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB),
         logX = False, logY = True,
         sorting = True,
         yRange = (0.006, "auto"),
