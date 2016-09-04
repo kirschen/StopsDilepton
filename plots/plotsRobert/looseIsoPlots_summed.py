@@ -17,7 +17,7 @@ import StopsDilepton.tools.logger as logger
 logger = logger.get_logger('INFO', logFile = None )
 histos = {}
 for m in ['doubleMu', 'doubleEle', 'muEle']:
-    plot_path = "80X_looseIso/%s_offZ_standard_isOS-njet2-nbtag1-met80-metSig5-dPhiJet0-dPhiJet1/" % m
+    plot_path = "80X_looseIso/%s_offZ_standard_isOS-njet2-nbtag1-met80-metSig5-dPhiJetMET/" % m
     for fh in ["leadingLepIso"]:
         for swap in ["L1", "L2"]:
             for fs in ["mm","me","em","ee"]:
@@ -35,7 +35,7 @@ def drawObjects( ):
     tex.SetTextAlign(11) # align right
 
     lines = [ (0.15, 0.95, 'CMS Preliminary') ]
-    lines.append( (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(5400./100)/10. ) ) )
+    lines.append( (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(12700./100)/10. ) ) )
     return [tex.DrawLatex(*l) for l in lines] 
 
 def transpose(l):

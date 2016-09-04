@@ -134,7 +134,7 @@ for i in lhe.keys():
     for j in range(len(bins)):
         lhe[i].GetXaxis().SetBinLabel(j+1, getBinName(bins[j]))
 
-#p10 https://indico.cern.ch/event/459797/contribution/2/attachments/1181555/1710844/mcaod-Nov4-2015.pdf
+#p10 https://indico.cern.ch/event/459797/contributions/1961581/attachments/1181555/1800214/mcaod-Feb15-2016.pdf 
 #Computing Q2
 q2  = central.Clone("q2")
 pdf = central.Clone("pdf")
@@ -143,6 +143,16 @@ pdfKeys = filter(lambda k:k>=2000, lhe.keys())
 #for i in pdfKeys:
 for i in lhe.keys():
     lhe[i].Scale(central.Integral()/lhe[i].Integral())
+
+#<weight id="1001"> muR=0.10000E+01 muF=0.10000E+01 </weight>
+#<weight id="1002"> muR=0.10000E+01 muF=0.20000E+01 </weight>
+#<weight id="1003"> muR=0.10000E+01 muF=0.50000E+00 </weight>
+#<weight id="1004"> muR=0.20000E+01 muF=0.10000E+01 </weight>
+#<weight id="1005"> muR=0.20000E+01 muF=0.20000E+01 </weight>
+#<weight id="1006"> muR=0.20000E+01 muF=0.50000E+00 </weight>
+#<weight id="1007"> muR=0.50000E+00 muF=0.10000E+01 </weight>
+#<weight id="1008"> muR=0.50000E+00 muF=0.20000E+01 </weight>
+#<weight id="1009"> muR=0.50000E+00 muF=0.50000E+00 </weight>
 
 for j, b in enumerate(bins):
     maxQ2=0.
