@@ -15,10 +15,8 @@ try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny"
+  postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
 
-postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny"
-#for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
     if f.endswith('.root') and f.startswith('T2tt_'):
         name = f.replace('.root','')
