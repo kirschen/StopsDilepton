@@ -35,6 +35,8 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
         module_ = module
     elif "Run2016" in sample:
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_DATA2016'
+    elif "T2tt" in sample:
+        module_ = 'CMGTools.RootTools.samples.samples_13TeV_signals'
     else: 
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_RunIISpring16MiniAODv2'
 

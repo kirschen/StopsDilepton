@@ -9,9 +9,9 @@ python cmgPostProcessing.py  --samples ZZZ
 python cmgPostProcessing.py  --samples TTWToLNu
 python cmgPostProcessing.py  --samples TTWToQQ
 python cmgPostProcessing.py  --samples TTW_LO
-python cmgPostProcessing.py  --samples TTZToLLNuNu
-python  cmgPostProcessing.py  --samples TTZToQQ
-python cmgPostProcessing.py  --samples TTZ_LO
+python cmgPostProcessing.py  --samples TTZToLLNuNu --keepLHEWeights
+python cmgPostProcessing.py  --samples TTZToQQ --keepLHEWeights
+python cmgPostProcessing.py  --samples TTZ_LO --keepLHEWeights
 
 
 python cmgPostProcessing.py  --samples WW

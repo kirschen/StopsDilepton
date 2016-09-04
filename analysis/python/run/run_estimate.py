@@ -47,7 +47,6 @@ def wrapper(args):
         res = estimate.cachedEstimate(r, channel, setup, save=True)
         return (estimate.uniqueKey(r, channel, setup), res )
 
-
 estimate.initCache(setup.defaultCacheDir())
 
 jobs=[]

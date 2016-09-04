@@ -1,4 +1,4 @@
-'r'' Analysis script for 1D 2l plots (RootTools)
+''' Analysis script for 1D 2l plots (RootTools)
 '''
 
 #Standard imports
@@ -935,7 +935,7 @@ for l_comb in l_combs:
             #scale_corr = plot.histos_added[1][0].Integral()/plot.histos_added[0][0].Integral() if not args.noScaling else 1
             plotting.draw(plot, 
                 plot_directory = plot_path, ratio = ratio, 
-                logX = False, logY = True, #sorting = True, 
+                logX = False, logY = True, sorting = True, 
                 #scaling = {0:1} if not args.noScaling else {},
                 yRange = (0.03, "auto"), 
                 drawObjects = drawObjects( yield_data/sum(yield_mc.values()) if args.noScaling else top_sf )

@@ -130,7 +130,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v12',
+        default='postProcessed_80X_v12_tmp',
         help="Name of the processing era"
         )
 

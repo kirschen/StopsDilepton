@@ -9,7 +9,7 @@ from RootTools.core.standard import *
 
 #StopsDilepton
 from StopsDilepton.tools.helpers import getCollection, deltaR
-from StopsDilepton.tools.objectSelection import getGoodAndOtherLeptons, leptonVars, default_ele_selector, default_muon_selector, getLeptons, getOtherLeptons, getGoodLeptons
+from StopsDilepton.tools.objectSelection import getGoodAndOtherLeptons, leptonVars, default_ele_selector, default_muon_selector, getLeptons, getOtherLeptons, getGoodLeptons, eleSelector, muonSelector
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator() 
 
@@ -57,11 +57,6 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
-argParser.add_argument('--noTrigger',
-    action='store_true',
-    help='noTrigger?',
-)
-
 argParser.add_argument('--reversed',
     action='store_true',
     help='Reversed?',
@@ -98,14 +93,13 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 #make samples
 
 if args.isolation=='standard':
-    postProcessing_directory = "postProcessed_80X_v7/dilep/"
-    from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-    postProcessing_directory = "postProcessed_80X_v7/dilep/"
-    from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+    postProcessing_directory = "postProcessed_80X_v12/dilep/"
 elif args.isolation=="VeryLoose" or args.isolation=="VeryLooseInverted":
-    data_directory = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/" 
-    postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepVeryLoose/" 
+    postProcessing_directory = "postProcessed_80X_v12/dilepVeryLoose/" 
 else: raise ValueError
+    
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
 def getZCut(mode):
     mZ = 91.2
@@ -116,19 +110,16 @@ def getZCut(mode):
 
 if args.mode=="doubleMu":
     leptonSelectionString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
-    data_sample = DoubleMuon_Run2016B if not args.noData else None
+    data_sample = DoubleMuon_Run2016BCD_backup if not args.noData else None
     #qcd_sample = QCD_Mu5 #FIXME
-    trigger     = "HLT_mumuIso" if not args.noTrigger else "(1)"
 elif args.mode=="doubleEle":
     leptonSelectionString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
-    data_sample = DoubleEG_Run2016B if not args.noData else None
+    data_sample = DoubleEG_Run2016BCD_backup if not args.noData else None
     #qcd_sample = QCD_EMbcToE
-    trigger   = "HLT_ee_DZ" if not args.noTrigger else "(1)"
 elif args.mode=="muEle":
     leptonSelectionString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
-    data_sample = MuonEG_Run2016B if not args.noData else None
+    data_sample = MuonEG_Run2016BCD_backup if not args.noData else None
     #qcd_sample = QCD_Mu5EMbcToE
-    trigger    = "HLT_mue" if not args.noTrigger else "(1)"
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
@@ -186,7 +177,7 @@ cuts+=[
 #    ("mll20", "dl_mass>20"),
     ("met80", "met_pt>80"),
     ("metSig5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+    ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"), 
 ]
 
 def add_histos( l ):
@@ -245,8 +236,8 @@ read_variables = [\
 ]
 
 read_variables.extend([\
-    "nLepGood/I",  "LepGood[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]",
-    "nLepOther/I", "LepOther[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]",
+    "nLepGood/I",  "LepGood[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I,etaSc/F]",
+    "nLepOther/I", "LepOther[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I,etaSc/F]",
 ])
 
 def fs(pdgId):
@@ -255,6 +246,9 @@ def fs(pdgId):
     elif abs(pdgId)==13:
         return "m"
     else: raise ValueError
+
+mu_selector = muonSelector( iso = 0.2 )
+ele_selector = eleSelector( iso = 0.2 )
 
 sequence = []
 
@@ -294,12 +288,16 @@ if args.isolation == "standard":
     verbose = False
     def makeNonIsoLeptons( data ):
 
-        goodLeptons = getGoodLeptons( data, collVars = leptonVars )
+        goodLeptons = getGoodLeptons( data, collVars = leptonVars , mu_selector = mu_selector, ele_selector = ele_selector)
         allExtraLeptons = sorted( \
             [l for l in getLeptons( data, collVars = leptonVars ) if l not in goodLeptons] + getOtherLeptons( data , collVars = leptonVars ), 
                         key=lambda l: -l['pt'] )
 
-        # print len(allLeptons), len(goodLeptons), len(allExtraLeptons) 
+        #for l in goodLeptons:
+        #    print "good", l
+        #for l in allExtraLeptons:
+        #    print "extra", l
+        #print len(goodLeptons), len(allExtraLeptons) 
         assert len(goodLeptons)==2, "Analysis leptons not found!"
         l1, l2 = goodLeptons
         #print l1['pt'] - data.l1_pt, l2['pt'] - data.l2_pt
@@ -330,7 +328,7 @@ for sample in [TTJets_l2_prompt, TTJets_l2_nonPrompt]:
 for i_comb in [len(cuts)]:
     for comb in itertools.combinations( cuts, i_comb ):
 
-        if not args.noData: data_sample.setSelectionString([dataFilterCut, trigger])
+        if not args.noData: data_sample.setSelectionString([dataFilterCut])
         for sample in mc:
             sample.setSelectionString([ mcFilterCut ])
 
@@ -347,7 +345,6 @@ for i_comb in [len(cuts)]:
 
         ppfixes = [args.mode, args.zMode, args.isolation]
         if args.small: ppfixes = ['small'] + ppfixes
-        if args.noTrigger: ppfixes.append( "noTrigger" )
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
 
         plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
