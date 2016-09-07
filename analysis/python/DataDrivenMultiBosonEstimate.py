@@ -55,7 +55,7 @@ class DataDrivenMultiBosonEstimate(SystematicEstimator):
             scalefactorDY = estimateDY._estimate(region, channel, setup, returnScaleFactor=True)[2] if estimateDY else 1
             yield_data    = sum(self.yieldFromCache(setup, 'Data',       c, cut_data_onZ_0b[c], "(1)")                         for c in channels)
             yield_onZ_0b  = sum(self.yieldFromCache(setup, 'multiBoson', c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels)
-            yield_other   = sum(self.yieldFromCache(setup, s,            c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels for s in ['TTJets' , 'TTZ', 'TTX'])
+            yield_other   = sum(self.yieldFromCache(setup, s,            c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels for s in ['TTJets' , 'TTZ', 'other'])
             yield_DY      = sum(self.yieldFromCache(setup, 'DY',         c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels)*scalefactorDY
             yield_other  += yield_DY
 
@@ -63,7 +63,7 @@ class DataDrivenMultiBosonEstimate(SystematicEstimator):
 
             # To make this table in the getScaleFactor script
             if returnScaleFactor:
-              yields = {i: sum(self.yieldFromCache(setup, i, c, cut_onZ_0b[c], weight)*setup.dataLumi[c]/1000 for c in channels) for i in ['TTJets', 'TTZ', 'TTX', 'multiBoson']}
+              yields = {i: sum(self.yieldFromCache(setup, i, c, cut_onZ_0b[c], weight)*setup.dataLumi[c]/1000 for c in channels) for i in ['TTJets', 'TTZ', 'TTXNoZ', 'multiBoson']}
               yields['DY-DD'] = yield_DY 
               return (yields, yield_data, scaleFactor)
 

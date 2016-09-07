@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
-estimators = [#"TTJets",
-              #"TTJets-DD",
+estimators = ["TTJets",
+              "TTJets-DD",
               "DY",
               "DY-DD",
               "singleTop",
@@ -9,8 +9,8 @@ estimators = [#"TTJets",
               "TTZ",
               "TTZ-DD",
               "TTZ-DD-Top16009",
-#              "multiBoson",
-#              "multiBoson-DD",
+              "multiBoson",
+              "multiBoson-DD",
               "other",
              ]
 
@@ -29,4 +29,4 @@ for i, estimator in enumerate(estimators):
 # For signals, do not split up in regions, because otherwise you easily reach the maximum of allowed jobs, they are fast anyway
 for i, estimator in enumerate(signalEstimators):
   logfile = "log/" + estimator + ".log"
-  os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + "\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
+#  os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + "\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")

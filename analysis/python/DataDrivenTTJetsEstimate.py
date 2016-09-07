@@ -32,7 +32,7 @@ class DataDrivenTTJetsEstimate(SystematicEstimator):
             # Calculate yields for CR (normalized to data lumi)
             yield_data    = self.yieldFromCache(setup, 'Data',   channel, cut_data_CR, "(1)")
             yield_ttjets  = self.yieldFromCache(setup, 'TTJets', channel, cut_MC_CR,   weight)*setup.dataLumi[channel]/1000
-            yield_other   = sum(self.yieldFromCache(setup, s,    channel, cut_MC_CR,   weight) for s in ['DY' , 'TTZ' , 'other'])*setup.dataLumi[channel]/1000
+            yield_other   = sum(self.yieldFromCache(setup, s,    channel, cut_MC_CR,   weight) for s in ['DY' , 'TTZ' , 'multiBoson','other'])*setup.dataLumi[channel]/1000
 
             # The ttjets yield in the signal regions
             sr_ttjets     = self.yieldFromCache(setup, 'TTJets', channel, cut_MC_SR,   weight)*setup.lumi[channel]/1000

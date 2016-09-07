@@ -31,9 +31,9 @@ class DataDrivenTTZEstimate(SystematicEstimator):
         self.nMediumBTags = (0,-1) # bjet selection (min, max)
 
         self.useTop16009       = useTop16009
-        self.ratioTop16009     = 0.70 #
-        self.sysErrTop16009    = (-0.12, +0.14)
-        self.statErrTop16009   = (-0.15, +0.16)
+        self.ratioTop16009     = 0.89 #
+        self.sysErrTop16009    = (-0.13, +0.15)
+        self.statErrTop16009   = (-0.16, +0.18)
 
     #Concrete implementation of abstract method 'estimate' as defined in Systematic
     def _estimate(self, region, channel, setup):
@@ -86,7 +86,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
 	      # Calculate yields (take together channels together)
               channels      = ['MuMu','EE','EMu']
 	      yield_ttZ_3l  = sum(self.yieldFromCache(setup, 'TTZ',  c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels)
-	      yield_other   = sum(self.yieldFromCache(setup, s,      c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels for s in ['TTJets', 'DY', 'other'])
+	      yield_other   = sum(self.yieldFromCache(setup, s,      c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels for s in ['TTJets', 'DY', 'multiBoson', 'other'])
 	      yield_data_3l = sum(self.yieldFromCache(setup, 'Data', c, "&&".join([lllSelection[c], selection["Data"]]), "(1)")                               for c in channels)
 
               if not yield_ttZ_3l > 0:

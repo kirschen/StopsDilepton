@@ -73,11 +73,11 @@ def evaluateEstimate(e, SR, estimators=None):
      e.rel["b-tag SF-l"] = e.btaggingSFlSystematic(r, channel, setup).val
      e.rel["trigger"]    = e.triggerSystematic(    r, channel, setup).val
      e.rel["lepton SF"]  = e.leptonSFSystematic(   r, channel, setup).val
-     e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else 0.3 if SR < 6 else 0.2 if SR < 12 else 1
+     e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else 0.5 if SR < 12 else 1
      e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else 0.2
      e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else 0.25
      e.rel["TTXNoZ"]     = 0 if not e.name.count("TTXNoZ")     else 0.25
-     e.rel["DY"]         = 0 if not e.name.count("DY")         else 0.5
+     e.rel["DY"]         = 0 if not e.name.count("DY")         else 0.25
 
 #    if e.name.count("DY"):
 #      mc = DYestimators[0].cachedEstimate(r, channel, setup).val

@@ -19,8 +19,8 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 
 # These are the ones we are going to sum
-if   options.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'other-detailed'])
-elif options.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'other-detailed'])
+if   options.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", "multiBoson", 'other'])
+elif options.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", "multiBoson-DD", 'other'])
 
 regions = set(regions80X + superRegion + superRegion140)
 

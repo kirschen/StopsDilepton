@@ -64,7 +64,7 @@ systematics = { 'JEC' :      ['JECUp', 'JECDown'],
                 'topPt' :    ['reweightTopPt', None],
                 'b-tag-b' :  ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
                 'b-tag-l' :  ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'],
-                'trigger' :  ['reweightDilepTriggerBackupUp', 'reweightDilepTriggerDown'],
+                'trigger' :  ['reweightDilepTriggerBackupUp', 'reweightDilepTriggerBackupDown'],
                 'leptonSF' : ['reweightLeptonSFUp','reweightLeptonSFDown'],
 }
 
