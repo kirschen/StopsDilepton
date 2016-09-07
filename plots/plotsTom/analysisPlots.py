@@ -28,7 +28,6 @@ argParser.add_argument('--splitBosons',    action='store_true', default=False)
 argParser.add_argument('--splitTop',       action='store_true', default=False)
 argParser.add_argument('--powheg',         action='store_true', default=False)
 argParser.add_argument('--isChild',        action='store_true', default=False)
-argParser.add_argument('--unblind',        action='store_true', default=False,       help='unblind?')
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
 
@@ -52,15 +51,14 @@ def getLeptonString(nMu, nE, multiIso=False, is74x=False):
   return leptonString
 
 
-jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
-bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
-bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))"
+jetSelection    = "nJetGood"
+bJetSelectionM  = "nBTag"
 
 #
 # Cuts to iterate over
 #
 cuts = [
-    ("njet0",             jetSelection+"==0"),
+    ("njet01",            jetSelection+"<=1"),
     ("njet1",             jetSelection+"==1"),
     ("njet2",             jetSelection+">=2"),
     ("btag0",             bJetSelectionM+"==0"),
@@ -72,6 +70,7 @@ cuts = [
     ("onZ",               "abs(dl_mass-91.1876)<15"),
     ("met50",             "met_pt>50"),
     ("met80",             "met_pt>80"),
+    ("metInv",            "met_pt<80"),
     ("metSig5",           "metSig>5"),
     ("metSigInv",         "metSig<5"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
@@ -96,6 +95,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if not selection.count("mll20"):           continue
         if not selection.count("njet"):            continue
         if selection.count("met50")  and selection.count("met80"):      continue
+        if (selection.count("met50")  or selection.count("met80")) and selection.count('metInv'):      continue
         if selection.count("onZ")    and selection.count("allZ"):       continue
         if selection.count("met80")  and not selection.count("mll"):    continue
         if selection.count("met50")  and not selection.count("btag0"):  continue #met50 only for btag0
@@ -106,12 +106,14 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("dPhiInv") and selection.count("mt2ll140"):  continue
         if selection.count("metSigInv") and selection.count("mt2ll140"):  continue
         if selection.count("mt2")    and not selection.count("met"):    continue
-        if selection.count("njet0")  and selection.count("metSig"):    continue
+        if selection.count("njet0")  and not selection.count('njet01') and selection.count("metSig"):    continue
         if selection.count("njet0")  and selection.count("dPhi"):    continue
         if selection.count("njet0")  and selection.count("mt2"):    continue
         if selection.count("njet1")  and selection.count("dPhi"):    continue
         if selection.count("njet1")  and selection.count("mt2"):    continue
-        if selection.count("njet0")  and selection.count("btag"):    continue
+        if selection.count("njet0")  and selection.count("btag") and not selection.count("njet01"):    continue
+        if selection.count("njet01")  and selection.count("onZ"):    continue
+        if selection.count("njet01")  and selection.count("allZ"):    continue
         if selection.count("njet") > 1:    continue
         if selection.count("btag") > 1:    continue
         if selection.count("mt2ll") > 1:   continue
@@ -128,7 +130,6 @@ if not args.isChild and args.selection is None:
   os.system("mkdir -p log")
   for selection in selectionStrings:
     command = "./analysisPlots.py --selection=" + selection + (" --noData" if args.noData else "")\
-                                                            + (" --unblind" if args.unblind else "")\
                                                             + (" --splitBosons" if args.splitBosons else "")\
                                                             + (" --splitTop" if args.splitTop else "")\
                                                             + (" --powheg" if args.powheg else "")\
@@ -141,10 +142,9 @@ if not args.isChild and args.selection is None:
   logger.info("All jobs launched")
   exit(0)
 
-if args.selection.count("btag0"): args.signal = None
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
-if args.powheg:                   args.plot_directory += "_topPowheg"
+if args.powheg:                   args.plot_directory += "_topPowheg_new"
 if args.splitTop:                 args.plot_directory += "_splitTop"
 if args.selection.count("mt2ll") and args.selection.count('btagM'): args.noData = True
 
@@ -164,7 +164,6 @@ T2tt3                   = T2tt_450_250
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
 T2tt3.style             = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
 T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
-
 
 #
 # Text on the plots
@@ -206,7 +205,7 @@ def drawPlots(plots, mode, dataMCScale):
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F" , "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
+read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
                   "met_pt/F", "met_phi/F",
                   "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
 
@@ -239,6 +238,7 @@ for index, mode in enumerate(allModes):
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
   data_sample.name  = "data"
+  data_sample.read_variables = ["weight/F"]
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
 
@@ -266,15 +266,14 @@ for index, mode in enumerate(allModes):
     elif args.signal == "T2tt": stack = Stack(mc, T2tt, T2tt2, T2tt3)
 
   for sample in [T2tt, T2tt2, T2tt3]:
-#    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-#    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
-    sample.read_variables = ['reweightDilepTrigger/F','reweightBTag_SF/F','reweightPU/F']
-    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightDilepTrigger*data.reweightPU
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode, is74x=True)])
+    sample.scale          = lumi_scale
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F']
+    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonFastSimSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
+    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = lambda data: (data.unblindWeight if args.unblind else data.weight), selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(stack = stack, weight = lambda data: data.weight, selectionString = selectionStrings[args.selection])
   
   plots = []
 
@@ -305,7 +304,7 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX = 'E_{T}^{miss}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
     variable = Variable.fromString('metSig/F'),
-    binning=[15,5,20] if args.selection.count('metSig') else [15,0,15],
+    binning=[25,5,30] if args.selection.count('metSig') else [30,0,30],
   ))
 
   plots.append(Plot(
@@ -357,7 +356,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'Cos(#phi(ll, E_{T}^{miss}))', texY = 'Number of Events',
+    texX = 'Cos(#Delta#phi(ll, E_{T}^{miss}))', texY = 'Number of Events',
     variable = Variable.fromString('cosZMetphi/F').addFiller(helpers.uses(lambda data: cos( data.dl_phi - data.met_phi ) , ["met_phi/F", "dl_phi/F"])),
     binning = [10,-1,1],
   ))
@@ -429,19 +428,19 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      texX = 'Cos(#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosMetJet1phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [10,-1,1],
     ))
     
     plots.append(Plot(
-      texX = 'Cos(#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosMetJet1phi_smallBinning/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [20,-1,1],
     ))
 
     plots.append(Plot(
-      texX = 'Cos(#phi(Z, leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(Z, leading jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosZJet1phi/F').addFiller(helpers.uses(lambda data: cos( data.dl_phi - data.JetGood_phi[0] ) , ["dl_phi/F", "JetGood[phi/F]"])),
       binning = [10,-1,1],
     ))
@@ -467,25 +466,25 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      texX = 'Cos(#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosMetJet2phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [10,-1,1],
     ))
     
     plots.append(Plot(
-      texX = 'Cos(#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosMetJet2phi_smallBinning/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"])),
       binning = [20,-1,1],
     ))
 
     plots.append(Plot(
-      texX = 'Cos(#phi(Z, 2nd leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(Z, 2nd leading jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosZJet2phi/F').addFiller(helpers.uses(lambda data: cos( data.dl_phi - data.JetGood_phi[0] ) , ["dl_phi/F", "JetGood[phi/F]"])),
       binning = [10,-1,1],
     ))
 
     plots.append(Plot(
-      texX = 'Cos(#phi(leading jet, 2nd leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(leading jet, 2nd leading jet))', texY = 'Number of Events',
       variable = Variable.fromString('cosJet1Jet2phi/F').addFiller(helpers.uses(lambda data: cos( data.JetGood_phi[1] - data.JetGood_phi[0] ) , ["JetGood[phi/F]"])),
       binning = [10,-1,1],
     ))
