@@ -61,15 +61,20 @@ def wrapper(s):
     if not os.path.exists(cardFileName) or overWrite:
 	counter=0
 	c.reset()
-	c.addUncertainty('PU',       'lnN')
-	c.addUncertainty('topPt',    'lnN')
-	c.addUncertainty('JEC',      'lnN')
-	c.addUncertainty('JER',      'lnN')
-	c.addUncertainty('SFb',      'lnN')
-	c.addUncertainty('SFl',      'lnN')
-	c.addUncertainty('trigger',  'lnN')
-	c.addUncertainty('leptonSF', 'lnN')
-	c.addUncertainty('scale',    'lnN')
+	c.addUncertainty('PU',         'lnN')
+	c.addUncertainty('topPt',      'lnN')
+	c.addUncertainty('JEC',        'lnN')
+	c.addUncertainty('JER',        'lnN')
+	c.addUncertainty('SFb',        'lnN')
+	c.addUncertainty('SFl',        'lnN')
+	c.addUncertainty('trigger',    'lnN')
+	c.addUncertainty('leptonSF',   'lnN')
+	c.addUncertainty('scale',      'lnN')
+	c.addUncertainty('top',        'lnN')
+	c.addUncertainty('multiBoson', 'lnN')
+	c.addUncertainty('DY',         'lnN')
+	c.addUncertainty('ttZ',        'lnN')
+	c.addUncertainty('other',      'lnN')
         if fastSim:
  	  c.addUncertainty('SFFS',     'lnN')
   	  c.addUncertainty('leptonFS', 'lnN')
@@ -96,6 +101,12 @@ def wrapper(s):
                         c.specifyUncertainty('SFl',      binname, e.name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
                         c.specifyUncertainty('trigger',  binname, e.name, 1 + e.triggerSystematic(    r, channel, setup).val )
                         c.specifyUncertainty('leptonSF', binname, e.name, 1 + e.leptonSFSystematic(   r, channel, setup).val )
+
+                        if e.name.count('TTJets'):     c.specifyUncertainty('top',        binname, e.name, 2 if r == regions[-1] else 1.5)
+                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, e.name, 1.25)
+                        if e.name.count('DY'):         c.specifyUncertainty('DY',         binname, e.name, 1.25)
+                        if e.name.count('TTZ'):        c.specifyUncertainty('ttZ',        binname, e.name, 1.2)
+                        if e.name.count('other'):      c.specifyUncertainty('other',      binname, e.name, 1.25)
 
                         #MC bkg stat (some condition to neglect the smaller ones?)
                         uname = 'Stat_'+binname+'_'+e.name
