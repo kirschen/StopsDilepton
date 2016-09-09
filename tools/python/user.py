@@ -23,14 +23,14 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
 
 if os.environ['USER'] in ['tomc']:
     # Where you store cmg output
-    cmg_directory              = "/pnfs/iihe/cms/store/user/tomc/cmgTuples/763_4"
+    cmg_directory              = "/pnfs/iihe/cms/store/user/tomc/cmgTuples/80X_v6"
     # Where postprocessed data goes 
     data_output_directory      = "/user/tomc/StopsDilepton/data"
     # Where you store the data for plotting, analysis etc.
     data_directory             = "/user/tomc/StopsDilepton/data"
     # Where the plots go
-    plot_directory             = "/user/tomc/StopsDilepton/plots_80X_v12_full"
+    plot_directory             = "/user/tomc/StopsDilepton/plots_80X_v13"
     # Analysis result files
-    analysis_results           = "/user/tomc/StopsDilepton/results_80X_v12_full"
+    analysis_results           = "/user/tomc/StopsDilepton/results_80X_v13"
     # Release for limit calculation (seems the 74X release is now also recommended for users)
     combineReleaseLocation     = '/user/tomc/StopsDilepton/CMSSW_7_4_7/src/'

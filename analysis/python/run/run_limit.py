@@ -7,6 +7,7 @@ argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',       
 argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTZJets","TTJets-DD"],                                                                       help="which TTJets estimate?")
 argParser.add_argument("--estimateMB",     action='store', default='multiBoson',        nargs='?', choices=["multiBoson","multiBoson-DD"],                                                                help="which multiBoson estimate?")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal?")
+argParser.add_argument("--only",           action='store', default=None,                nargs='?',                                                                                                        help="pick only one masspoint?")
 args = argParser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
@@ -35,7 +36,7 @@ from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 limitPrefix = "regions80X"
 limitDir    = os.path.join(setup.analysis_results, setup.prefix(), args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB, 'cardFiles', args.signal, limitPrefix)
-overWrite   = False
+overWrite   = (args.only is not None)
 useCache    = True
 verbose     = True
 
@@ -43,11 +44,13 @@ if not os.path.exists(limitDir): os.makedirs(limitDir)
 cacheFileName = os.path.join(limitDir, 'calculatedLimits.pkl')
 limitCache    = Cache(cacheFileName, verbosity=2)
 
+
 if   args.signal == "T2tt": fastSim = True
 elif args.signal == "DM":   fastSim = False
 
 
-scaleUncertaintyCache = Cache('<TODO>.pkl', verbosity=2)
+#scaleUncertaintyCache = Cache('<TODO>.pkl', verbosity=2)
+
 
 
 def wrapper(s):
@@ -117,7 +120,8 @@ def wrapper(s):
                     c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
-                    c.specifyUncertainty('scale',    binname, 'signal', 1 + scaleUncCache.get(eSignal.name, r, channel) )
+#                    c.specifyUncertainty('scale',    binname, 'signal', 1 + scaleUncCache.get(eSignal.name, r, channel) )
+                    c.specifyUncertainty('scale',    binname, 'signal', 1)
                     if fastSim: 
                       c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                       c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
@@ -142,7 +146,7 @@ def wrapper(s):
     if   args.signal == "DM":   sConfig = s.mChi, s.mPhi, s.type
     elif args.signal == "T2tt": sConfig = s.mStop, s.mNeu
 
-    if useCache and not overWrite and limitCache.contains(s):
+    if useCache and not overWrite and limitCache.contains(sConfig):
       res = limitCache.get(sConfig)
     else:
       res = c.calcLimit(cardFileName)
@@ -160,6 +164,10 @@ def wrapper(s):
 
 if   args.signal == "T2tt": jobs = signals_T2tt 
 elif args.signal == "DM":   jobs = signals_TTDM
+
+if args.only is not None:
+  wrapper(jobs[int(args.only)])
+  exit(0)
 
 results = map(wrapper, jobs)
 results = [r for r in results if r]

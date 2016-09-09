@@ -84,7 +84,7 @@ if not args.isChild and args.selection is None:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_Fall15_mAODv2/gen"
+postProcessing_directory = "80X_v6/gen"
 from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_gen import *
 
 #
@@ -97,8 +97,8 @@ def drawObjects( dataMCScale, lumi_scale ):
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
-      (0.15, 0.95, 'CMS Preliminary'), 
-      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(lumi_scale*100)/100., dataMCScale ) )
+      (0.15, 0.95, 'CMS Simulation 13 TeV'), 
+#      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(lumi_scale*100)/100., dataMCScale ) )
     ]
     return [tex.DrawLatex(*l) for l in lines] 
 
@@ -109,7 +109,7 @@ def drawPlot(plot, subdir, useScaling, TTG_scale):
     subdir += "_normalized"
   plotting.draw(plot,
     plot_directory = os.path.join(plot_directory, args.plot_directory, subdir, args.selection),
-    ratio          = {'yRange':(0.1,1.9),'style':styles.errorStyle(ROOT.kBlack)},
+    ratio          = {'yRange':(0.1,1.9),'style':styles.errorStyle(ROOT.kBlack),'texY':'t#bar{t}#gamma/t#bar{t}Z'},
     logX           = False, logY = False, sorting = False,
     yRange         = (0.003, "auto"),
     scaling        = {} if not useScaling else {0:1,2:3} if len(plot.histos) == 4 else {0:1},
@@ -133,8 +133,8 @@ read_variables = ["weight/F" , "leptonicDecays/I", "mt2ll/F", "mt2bb/F", "mt2blb
                  ]
 
 # Variables only to be read/available for specific samples (i.e. variables only in MC)
-TTG.read_variables         = ["photon_genPt/F", "photon_genEta/F", "photon_genPhi/F", "met_pt_photon/F", "met_phi_photon/F", "mt2ll_photon/F","mt2bb_photon/F","mt2blbl_photon/F"]
-TTZtoLLNuNu.read_variables = ["zBoson_genPt/F", "zBoson_genEta/F", "zBoson_genPhi/F", "zBoson_isNeutrinoDecay/O"]
+TTG.read_variables = ["photon_genPt/F", "photon_genEta/F", "photon_genPhi/F", "met_pt_photon/F", "met_phi_photon/F", "mt2ll_photon/F","mt2bb_photon/F","mt2blbl_photon/F"]
+TTZ.read_variables = ["zBoson_genPt/F", "zBoson_genEta/F", "zBoson_genPhi/F", "zBoson_isNeutrinoDecay/O"]
 
 minBosonPt = int(args.selection.split('ptGamma')[1].split('-')[0]) if args.selection.count('ptGamma') else 0
 minMt2ll   = int(args.selection.split('mt2ll')[1].split('-')[0])   if args.selection.count('mt2ll') else 0
@@ -152,7 +152,7 @@ def otherSelections(data, sample):
 
 # Compare different variable types for TTZ vs TTG
 def makeCompareVariables(data, sample):
-  if sample == TTZtoLLNuNu:
+  if sample == TTZ:
     data.boson_genPt   = data.zBoson_genPt
     data.boson_genEta  = data.zBoson_genEta
     data.boson_genPhi  = data.zBoson_genPhi
@@ -173,7 +173,7 @@ def makeCompareVariables(data, sample):
 
 def doReweighting(data, sample):
   if sample == TTG:
-    ttzHist = TTZtoLLNuNu.ptHists[TTG.mode]
+    ttzHist = TTZ.ptHists[TTG.mode]
     ttgHist = TTG.ptHists[TTG.mode]
     ttz = ttzHist.GetBinContent(ttzHist.FindBin(data.photon_genPt)) / ttzHist.Integral()
     ttg = ttgHist.GetBinContent(ttgHist.FindBin(data.photon_genPt)) / ttgHist.Integral()
@@ -188,7 +188,7 @@ mumuSelection   = "leptonicDecays==2&&abs(l1_pdgId)==13&&abs(l2_pdgId)==13"
 mueSelection    = "leptonicDecays==2&&((abs(l1_pdgId)==11&&abs(l2_pdgId)==13)||(abs(l1_pdgId)==13&&abs(l2_pdgId)==11))"
 eeSelection     = "leptonicDecays==2&&abs(l1_pdgId)==11&&abs(l2_pdgId)==11"
 
-TTZtoLLNuNu.ptHists = {}
+TTZ.ptHists = {}
 TTG.ptHists = {}
 
 
@@ -211,16 +211,15 @@ for doPtReweight in [False, True]:
     elif mode=="mue": leptonSelection = mueSelection
 
 
-    mc = [ TTZtoLLNuNu,  TTG ]
+    mc = [ TTZ,  TTG ]
     for sample in mc:
       sample.scale = lumi_scale
-      sample.style = styles.lineStyle(sample.color, 2)
-#     sample.reduceFiles(to = 1)
+      sample.style = styles.errorStyle(sample.color)
 
-    TTZtoLLNuNu.setSelectionString([leptonSelection, "zBoson_isNeutrinoDecay"])
+    TTZ.setSelectionString([leptonSelection, "zBoson_isNeutrinoDecay"])
     TTG.setSelectionString([leptonSelection])
 
-    stack = Stack(TTZtoLLNuNu, TTG)
+    stack = Stack(TTZ, TTG)
 
     weight = lambda data: data.weight if data.passed else 0
 
@@ -317,13 +316,13 @@ for doPtReweight in [False, True]:
     ))
 
     plots.append(Plot(
-      texX     = '#slash{E}_{T} (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 20 GeV",
+      texX     = 'E_{T}^{miss} (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 20 GeV",
       variable = Variable.fromString( "met_photonIncluded/F" ).addFiller(lambda data: data.boson_met),
       binning  = [15, 0, 300],
     ))
 
     plots.append(Plot(
-      texX     = '#slash{E}_{T} (GeV)', texY = "Events / 20 GeV",
+      texX     = 'E_{T}^{miss} (GeV)', texY = "Events / 20 GeV",
       variable = Variable.fromString( "met/F" ).addFiller(lambda data: data.met_pt),
       binning  = [15, 0, 300],
     ))
@@ -392,7 +391,7 @@ for doPtReweight in [False, True]:
     plots2D.append(Plot2D(
       name  = "TTZ_met_vs_pt",
       texX  = 'p_{T}^{gen} (Z) (GeV)', texY = "#slash{E}_{T} (GeV)'",
-      stack = Stack([TTZtoLLNuNu]),
+      stack = Stack([TTZ]),
       variables = (
           Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
           Variable.fromString( "met/F" ).addFiller(lambda data: data.met_pt),
@@ -440,7 +439,7 @@ for doPtReweight in [False, True]:
 	    h.GetXaxis().SetBinLabel(2, "e#mu")
 	    h.GetXaxis().SetBinLabel(3, "ee")
 
-    TTG_scale = yields[mode][TTG.name]/yields[mode][TTZtoLLNuNu.name]
+    TTG_scale = yields[mode][TTG.name]/yields[mode][TTZ.name]
 
     for plot in plots:
       if not min(l[0].GetMaximum() for l in plot.histos) > 0: continue # Plot has empty contributions
@@ -478,7 +477,7 @@ for doPtReweight in [False, True]:
   for y in yields[allModes[0]]:
     yields["all"][y] = sum(yields[mode][y] for mode in allModes)
 
-  TTG_scale = yields[mode][TTG.name]/yields[mode][TTZtoLLNuNu.name]
+  TTG_scale = yields[mode][TTG.name]/yields[mode][TTZ.name]
 
   # Add the different channels and plot the sums
   for plot in allPlots[allModes[0]]:

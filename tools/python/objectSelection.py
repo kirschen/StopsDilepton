@@ -102,15 +102,17 @@ def miniIsoSelector( miniRelIso ):
         return  l["miniRelIso"] < miniRelIso
     return func
 
-# MUONS
-def muonSelector(iso, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
 
-    if isinstance(iso, numbers.Number):
-        iso_ = miniIsoSelector( iso )
-    elif type(iso)==type(""):
-        iso_ = multiIsoSelector( iso )
-    else:
-        raise ValueError( "Don't know what to do with iso %r"%iso )
+def alwaysTrue():
+  return True
+
+# MUONS
+def muonSelector(iso, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, loose=False):
+
+    if isinstance(iso, numbers.Number): iso_ = miniIsoSelector( iso )
+    elif type(iso)==type(""):           iso_ = multiIsoSelector( iso )
+    elif not iso:                       iso_ = alwaysTrue
+    else:                               raise ValueError( "Don't know what to do with iso %r"%iso )
 
     def func(l, ptCut = 20):
         return \
@@ -123,7 +125,16 @@ def muonSelector(iso, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
             and abs(l["dxy"])<dxy\
             and abs(l["dz"])<dz
 
-    return func
+    def funcLoose(l, ptCut = 20):
+        return \
+            l["pt"]>=ptCut\
+            and abs(l["pdgId"])==13\
+            and abs(l["eta"])<absEtaCut\
+            and iso_(l) \
+            and abs(l["dxy"])<dxy\
+            and abs(l["dz"])<dz
+
+    return func if not loose else funcLoose
 
 default_muon_selector = muonSelector( iso = 'VT', absEtaCut = 2.4)
 
@@ -165,19 +176,16 @@ def eleCutIDSelector( ele_cut_Id = 4):
         return l["eleCutIdSpring15_25ns_v1"]>=ele_cut_Id 
     return func
 
-def eleSelector(iso, eleId = 4, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
-    if isinstance(iso, numbers.Number):
-        iso_ = miniIsoSelector( iso )
-    elif type(iso)==type(""):
-        iso_ = multiIsoSelector( iso )
-    else:
-        raise ValueError( "Don't know what to do with iso %r" % iso )
-    if isinstance(eleId, numbers.Number):
-        id_ = eleCutIDSelector( eleId )
-    elif type(eleId)==type(""):
-        id_ = eleMVAIDSelector( eleId )
-    else:
-        raise ValueError( "Don't know what to do with eleId %r" % eleId )
+def eleSelector(iso, eleId = 4, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, noMissingHits=True, loose=False):
+
+    if isinstance(iso, numbers.Number): iso_ = miniIsoSelector( iso )
+    elif type(iso)==type(""):           iso_ = multiIsoSelector( iso )
+    elif not iso:                       iso_ = alwaysTrue
+    else:                               raise ValueError( "Don't know what to do with iso %r" % iso )
+
+    if isinstance(eleId, numbers.Number): id_ = eleCutIDSelector( eleId )
+    elif type(eleId)==type(""):           id_ = eleMVAIDSelector( eleId )
+    else:                                 raise ValueError( "Don't know what to do with eleId %r" % eleId )
 
     def func(l, ptCut = 20):
         return \
@@ -187,11 +195,24 @@ def eleSelector(iso, eleId = 4, absEtaCut = 2.4, dxy = 0.05, dz = 0.1):
             and id_(l)\
             and iso_(l)\
             and l["convVeto"]\
-            and l["lostHits"]==0\
+            and (l["lostHits"]==0 or not noMissingHits)\
             and l["sip3d"] < 4.0\
             and abs(l["dxy"]) < dxy\
             and abs(l["dz"]) < dz
-    return func
+
+    def funcLoose(l, ptCut = 20):
+        return \
+            l["pt"]>=ptCut\
+            and abs(l["eta"])<absEtaCut\
+            and abs(l["pdgId"])==11\
+            and id_(l)\
+            and iso_(l)\
+            and abs(l["dxy"]) < dxy\
+            and abs(l["dz"]) < dz
+
+    return func if not loose else funcLoose
+
+
 
 default_ele_selector = eleSelector( iso = 'VT', eleId = 4, absEtaCut = 2.4 )
 
@@ -220,7 +241,7 @@ def eleMVAString( eleId, index = None):
 
     return "("+'||'.join(strings)+')'
 
-def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum"):
+def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum", noMissingHits=True):
     idx = None if (index is None) or (type(index)==type("") and index.lower()=="sum") else index
     index_str = get_index_str( index  = idx)
     string = [\
@@ -228,7 +249,7 @@ def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 
                    "abs(LepGood_eta"+index_str+")<%s" % absEtaCut ,
                    "abs(LepGood_pdgId"+index_str+")==11" ,
                    "LepGood_convVeto"+index_str+"",
-                   "LepGood_lostHits"+index_str+"==0",
+                   "LepGood_lostHits"+index_str+"==0" if noMissingHits else "(1)",
                    "LepGood_sip3d"+index_str+"<4.0" ,
                    "abs(LepGood_dxy"+index_str+")<%s" % dxy ,
                    "abs(LepGood_dz"+index_str+")<%s" % dz ,
@@ -295,7 +316,7 @@ def getGoodPhotons(c, ptCut=50, idLevel="loose", isData=True, collVars=None):
     if collVars is None: collVars = photonVars if isData else photonVarsMC
     return [p for p in getPhotons(c, collVars) if p['idCutBased'] >= idCutBased[idLevel] and p['pt'] > ptCut and p['pdgId']==22]
 
-def getFilterCut(isData=False, is74x=False):
+def getFilterCut(isData=False):
     filterCut            = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
-    if isData: filterCut += "&&unblindWeight>0"
+    if isData: filterCut += "&&weight>0"
     return filterCut

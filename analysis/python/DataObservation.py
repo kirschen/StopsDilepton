@@ -59,4 +59,4 @@ class DataObservation():
 
             logger.debug( "Using cut %s"% cut )
 
-            return u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut) )
+            return u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = 'weight') )
