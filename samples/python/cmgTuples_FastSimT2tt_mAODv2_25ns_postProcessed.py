@@ -2,8 +2,6 @@
 import copy, os, sys
 import ROOT
 
-#user specific
-from StopsDilepton.tools.user import data_directory
 
 #RootTools
 from RootTools.core.standard import *
@@ -16,6 +14,14 @@ try:
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
   postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
+
+try:
+    import sys
+    data_directory = sys.modules['__main__'].data_directory
+except:
+    #user specific
+    import StopsDilepton.tools.user as user
+    data_directory = user.data_directory
 
 #for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):

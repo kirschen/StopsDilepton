@@ -19,15 +19,16 @@ from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 from StopsDilepton.analysis.estimators   import setup
 from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140
 
+isFastSim         = True
+#setup             = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
+setup.sys['reweight'] = [] #Fall15 doesn't have the reweights. Not needed.
+setup.verbose     = True
+
 # Logging
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
-
-isFastSim         = True
-setup             = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
-setup.verbose     = True
 
 regions = regions80X #Use all the regions that are used in the limit setting
 
@@ -41,6 +42,9 @@ if not options.overwrite:
         logger.warning( "Found file %s. Exiting. Use --overwrite if you want.", ofile ) 
         sys.exit(0)
 
+#Loading Fall15 with PDF weights
+data_directory           = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+postProcessing_directory = "postProcessed_Fall15_v3/dilepTiny" 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
 signals = signals_T2tt
 

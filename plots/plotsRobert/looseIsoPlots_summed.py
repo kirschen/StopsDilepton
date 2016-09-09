@@ -59,6 +59,15 @@ for name, fss in [
         to_be_added.append( key )
 
     mc_histos = map( add_histos, transpose( [ histos[key][0] for key in to_be_added ] ) )
+    mc_histos = [add_histos(mc_histos[1:4]+[mc_histos[8]]), add_histos(mc_histos[4:6]), add_histos(mc_histos[6:8])]
+    mc_histos[0].legendText = "t#bar{t}/single-t"
+    mc_histos[1].legendText = "TT+V"
+    # mc_histos[1].style = styles.fillStyle(ROOT.kOrange )
+    mc_histos[2].legendText = "multiboson"
+    mc_histos[2].style = styles.fillStyle(ROOT.kOrange )
+    #for m in mc_histos:
+    #    m.legendText = ' '.join(m.GetName().split('_')[4:-5])
+
     data_histo = add_histos( [ histos[key][1][0] for key in to_be_added ] )
     data_histo.style = styles.errorStyle( ROOT.kBlack )
 
@@ -71,11 +80,9 @@ for name, fss in [
         #selectionString = selectionString,
         #weight = weight,
         )
-    dl_mt2ll.histos = [mc_histos[1:], [data_histo]]
-    for m in mc_histos:
-        m.legendText = ' '.join(m.GetName().split('_')[4:-5])
+    dl_mt2ll.histos = [mc_histos, [data_histo]]
 
-    data_histo.legendText = "Data (all flavours)"
+    data_histo.legendText = "Data ( 3 lep. )"
 
     ratio = {'yRange':(0.1,1.9)}
     plotting.draw(
@@ -83,7 +90,7 @@ for name, fss in [
         plot_directory = plot_directory+'/etc/', ratio = ratio, 
         logX = False, logY = True, #sorting = True,
          yRange = (0.003, "auto") ,
-        # scaling = {0:1},
+         scaling = {0:1},
         drawObjects = drawObjects( )
     )
  
