@@ -2,6 +2,8 @@ allowedVars = ["dl_mt2ll", "dl_mt2blbl", "dl_mt2bb"]
 texString  = { "dl_mt2ll":"M_{T2}(ll)", "dl_mt2blbl":"M_{T2}(blbl)", "dl_mt2bb":"M_{T2}(bb)" }
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations
+from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplacements
+
 class Region:
 
     def __init__(self, var, val):
@@ -38,6 +40,8 @@ class Region:
             s1=svar+">="+str(self.vals[var][0])
             if self.vals[var][1]>0: s1+="&&"+svar+"<"+str(self.vals[var][1])
             res.append(s1)
+        if selectionModifier=='genMet':
+            res = [fastSimGenMetReplacements(r) for r in res]
         return "&&".join(res)
 
     def texStringForVar(self, var = None, useRootLatex = True):
