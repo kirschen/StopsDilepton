@@ -6,6 +6,7 @@ from StopsDilepton.analysis.Region import Region
 from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.analysis.SystematicEstimator import SystematicEstimator
 
+
 class MCBasedEstimate(SystematicEstimator):
     def __init__(self, name, sample, cacheDir=None):
         super(MCBasedEstimate, self).__init__(name, cacheDir=cacheDir)
@@ -40,5 +41,4 @@ class MCBasedEstimate(SystematicEstimator):
             weight = preSelection['weightStr']
 
             logger.debug( "Using cut %s and weight %s"%(cut, weight) )
-
             return setup.lumi[channel]/1000.*u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = weight) )

@@ -16,7 +16,6 @@ from StopsDilepton.tools.objectSelection import multiIsoLepString
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 
-
 #define samples
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
@@ -33,6 +32,7 @@ otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations
 from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels
+from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplacements
 from StopsDilepton.tools.objectSelection import getFilterCut
 
 #to run on data
@@ -51,6 +51,7 @@ default_dPhiInv       = False
 default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
 default_leptonCharges = "isOS"
+
 
 class Setup:
     def __init__(self):
@@ -153,11 +154,13 @@ class Setup:
 	'''
         #Consistency checks
         assert dataMC in ['Data','MC'],                                                          "dataMC = Data or MC, got %r."%dataMC
-        if self.sys['selectionModifier']: assert self.sys['selectionModifier'] in jmeVariations, "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations))
+        if self.sys['selectionModifier']: assert self.sys['selectionModifier'] in jmeVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
         assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                           "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
 
-        #Postfix for variables (only for MC)
-        sysStr="" if (not self.sys['selectionModifier'] or dataMC=='Data') else "_"+self.sys['selectionModifier']
+        #Postfix for variables (only for MC and if we have a jme variation)
+        sysStr = ""
+        if dataMC == "MC" and self.sys['selectionModifier'] in jmeVariations:
+            sysStr = self.sys['selectionModifier']
 
         res={'cuts':[], 'prefixes':[]}
 
@@ -238,5 +241,7 @@ class Setup:
         res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
 
-        return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr': self.weightString()}
+        if self.sys['selectionModifier'] == 'genMet':
+            res['cuts'] = [ fastSimGenMetReplacements(r) for r in res['cuts'] ]
 
+        return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr': self.weightString()}
