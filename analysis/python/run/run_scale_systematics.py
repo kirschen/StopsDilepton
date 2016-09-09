@@ -9,15 +9,17 @@ parser.add_option('--overwrite',            dest="overwrite", default = False, a
 (options, args) = parser.parse_args()
 
 # Standard imports
-import pickle
 import ROOT
 import os
 import sys
+import pickle
 
 # Analysis
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 from StopsDilepton.analysis.estimators   import setup
 from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140
+from StopsDilepton.analysis.u_float      import u_float 
+from StopsDilepton.analysis.Region       import Region 
 
 isFastSim         = True
 #setup             = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
@@ -82,7 +84,7 @@ results = {}
 scale_systematics = {}
 for estimate in signalEstimators:
     logger.info("Calculating scale uncertainty for signal %s", estimate.name)
-    estimate.initCache(setup.defaultCacheDir())
+    estimate.initCache("/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/76X_for_Q2/")
 
     def wrapper(args):
             r,channel,setup = args

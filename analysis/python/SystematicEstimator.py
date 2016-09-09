@@ -129,6 +129,11 @@ class SystematicEstimator:
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
+    def fastSimMETSystematic(self, region, channel, setup):
+        ref  = self.cachedEstimate(region, channel, setup)
+        gen   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
+        return abs(0.5*(ref-gen)/ref) if ref > 0 else max(up, down)
+
     def getBkgSysJobs(self, region, channel, setup):
         l = [
             (region, channel, setup.sysClone({'reweight':['reweightPU12fbUp']})),
@@ -163,6 +168,7 @@ class SystematicEstimator:
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']})),
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']})),
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
+                (region, channel, setup.sysClone({'selectionModifier':'genMet'})),
             ] )
         return l
 
