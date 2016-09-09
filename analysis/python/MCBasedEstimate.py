@@ -11,6 +11,10 @@ class MCBasedEstimate(SystematicEstimator):
         super(MCBasedEstimate, self).__init__(name, cacheDir=cacheDir)
         self.sample=sample
 
+        # FastSim and 76X only for the MCBasedEstimate. Dirty. Looks whether one of the samples is fastsim.
+        self.isFastSim = getattr(sample.values()[0], "isFastSim", False) 
+        self.is76X     = getattr(sample.values()[0], "is76X", False) 
+        
     def _estimate(self, region, channel, setup):
 
         ''' Concrete implementation of abstract method 'estimate' as defined in Systematic
@@ -30,8 +34,8 @@ class MCBasedEstimate(SystematicEstimator):
 
             # Important! We use 'allZ' (mll>20) in case of EMu 
             zWindow= 'allZ' if channel=='EMu' else 'offZ'
-
-            preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel)
+        
+            preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel, isFastSim = self.isFastSim, is76X = self.is76X)
             cut = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
             weight = preSelection['weightStr']
 

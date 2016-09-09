@@ -2,8 +2,6 @@
 import copy, os, sys
 import ROOT
 
-#user specific
-from StopsDilepton.tools.user import data_directory
 
 #RootTools
 from RootTools.core.standard import *
@@ -17,6 +15,15 @@ try:
 except:
   postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
 
+try:
+    import sys
+    data_directory = sys.modules['__main__'].data_directory
+except:
+    #user specific
+    import StopsDilepton.tools.user as user
+    data_directory = user.data_directory
+
+#for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
     if f.endswith('.root') and f.startswith('T2tt_'):
         name = f.replace('.root','')
@@ -30,8 +37,10 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt
             color = 8 ,
             texName = "T2tt("+mStop+","+mNeu+")"
         )
+
         tmp.mStop = int(mStop)
         tmp.mNeu = int(mNeu)
+        tmp.isFastSim = True
 
         exec("%s=tmp"%name)
         exec("signals_T2tt.append(%s)"%name)

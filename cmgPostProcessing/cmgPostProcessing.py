@@ -130,7 +130,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v12_tmp',
+        default='postProcessed_80X_v12_tmp2',
         help="Name of the processing era"
         )
 
@@ -210,7 +210,8 @@ isDiLep     =   options.skim.lower().startswith('dilep')
 isTriLep     =   options.skim.lower().startswith('trilep')
 isSingleLep =   options.skim.lower().startswith('singlelep')
 isTiny      =   options.skim.lower().count('tiny') 
-isSmall      =   options.skim.lower().count('small') 
+isSmall      =   options.skim.lower().count('small')
+isInclusive  = options.skim.lower().count('inclusive') 
 isVeryLoose =  'veryloose' in options.skim.lower()
 isVeryLoosePt10 =  'veryloosept10' in options.skim.lower()
 isLoose     =  'loose' in options.skim.lower() and not isVeryLoose
@@ -227,6 +228,9 @@ elif isSingleLep:
 elif isJet250:
     skimConds.append( "Sum$(Jet_pt>250) +  Sum$(DiscJet_pt>250) + Sum$(JetFailId_pt>250) + Sum$(gamma_pt>250) > 0" )
 
+if isInclusive:
+    skimConds = []
+
 #Samples: Load samples
 maxN = 2 if options.small else None
 from StopsDilepton.samples.helpers import fromHeppySample
@@ -242,7 +246,8 @@ if options.T2tt:
     logger.debug("Done fetching signal weights.")
 elif options.TTDM:
     samples = [ fromHeppySample(s, data_path = "/data/rschoefbeck/cmgTuples/TTBar_DM/", \
-                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring15MiniAODv2",  maxN = maxN)\
+                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring15MiniAODv2",  
+                    maxN = maxN)\
                 for s in options.samples ]
 else:
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
@@ -522,7 +527,7 @@ new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) )
 ]
 
-if isData: new_variables.extend( ['jsonPassed/I', 'unblindWeight/F'] )
+if isData: new_variables.extend( ['jsonPassed/I'] )
 new_variables.extend( ['nJetGood/I','nBTag/I', 'ht/F', 'metSig/F'] )
 
 if isSingleLep:
@@ -544,7 +549,8 @@ if isTriLep or isDiLep:
             'reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F',
             'reweightLeptonHIPSF/F',
          ] )
-
+    if options.T2tt:
+        new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
 new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
@@ -575,7 +581,7 @@ if addSystematicVariations:
             new_variables.append('reweightBTag_'+var+'/F')
 
 if options.T2tt:
-    read_variables += map(Variable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
+    read_variables += map(Variable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I', 'met_genPt/F', 'met_genPhi/F'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
 
 if options.fastSim and (isTriLep or isDiLep):
@@ -868,8 +874,17 @@ def filler(s):
               dlg = dl + gamma
               s.dlg_mass = dlg.M()
 
+            if options.T2tt:
+                mt2Calc.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
+                setattr(s, "dl_mt2ll_gen", mt2Calc.mt2ll())
+                if len(jets)>=2:
+                    bj0, bj1 = (bJets+nonBJets)[:2]
+                    mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                    setattr(s, "dl_mt2bb_gen",   mt2Calc.mt2bb())
+                    setattr(s, "dl_mt2blbl_gen", mt2Calc.mt2blbl())
+                
             for i in metVariants:
-                mt2Calc.setMet(getattr(s, 'met_pt'+i), getattr(s, 'met_phi', i))
+                mt2Calc.setMet(getattr(s, 'met_pt'+i), getattr(s, 'met_phi'+i))
                 setattr(s, "dl_mt2ll"+i, mt2Calc.mt2ll())
 
                 bj0, bj1 = None, None
@@ -903,10 +918,14 @@ def filler(s):
             if var!='MC':
                 setattr(s, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
 
+    #TESTING the unblind cut
     if isData and isDiLep:
-        s.unblindWeight = s.weight
+        unblindWeight = s.weight
         if s.nBTag>=1 and s.nJetGood>=2 and r.run>275376 and s.dl_mt2ll>140 and ( (abs(s.l1_pdgId)!=abs(s.l2_pdgId)) or ( (abs(s.l1_pdgId)==abs(s.l2_pdgId)) and abs(s.dl_mass - 91.2) > 15) ):
-            s.weight = 0
+            if s.dl_mt2ll<=140:
+                print "What is going on? ", s.nBTag, s.nJetGood, r.run, s.dl_mt2ll, s.l1_pdgId, s.l2_pdgId, s.dl_mass
+                print r.run, r.lumi, r.evt
+                sys.exit(0)
 
     # gen information on extra leptons
     if isMC and not options.skipGenLepMatching:
