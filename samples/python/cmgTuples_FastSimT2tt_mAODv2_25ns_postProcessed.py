@@ -37,8 +37,10 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt
             color = 8 ,
             texName = "T2tt("+mStop+","+mNeu+")"
         )
+
         tmp.mStop = int(mStop)
         tmp.mNeu = int(mNeu)
+        tmp.isFastSim = True
 
         exec("%s=tmp"%name)
         exec("signals_T2tt.append(%s)"%name)

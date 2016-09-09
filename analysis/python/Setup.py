@@ -135,19 +135,21 @@ class Setup:
     def weightString(self):
         return "*".join([self.sys['weight']] + (self.sys['reweight'] if self.sys['reweight'] else []))
 
-    def preselection(self, dataMC , zWindow, channel='all'):
+    def preselection(self, dataMC , zWindow, channel='all', isFastSim = False, is76X = False):
         '''Get preselection  cutstring.'''
-        return self.selection(dataMC, channel = channel, zWindow = zWindow, hadronicSelection = False, **self.parameters)
+        return self.selection(dataMC, channel = channel, zWindow = zWindow, isFastSim = isFastSim, is76X = is76X, hadronicSelection = False, **self.parameters)
 
     def selection(self, dataMC,
 			mllMin, metMin, metSigMin, dPhi, dPhiInv,
 			nJets, nBTags, leptonCharges, 
-			channel = 'all', zWindow = 'offZ', hadronicSelection = False):
+			channel = 'all', zWindow = 'offZ', hadronicSelection = False,  isFastSim = False, is76X = False):
         '''Define full selection
 	   dataMC: 'Data' or 'MC'
 	   channel: all, EE, MuMu or EMu
 	   zWindow: offZ, onZ, or allZ
 	   hadronicSelection: whether to return only the hadronic selection
+       isFastSim: adjust filter cut etc. for fastsim
+       is76X: only 76X preselection
 	'''
         #Consistency checks
         assert dataMC in ['Data','MC'],                                                          "dataMC = Data or MC, got %r."%dataMC
@@ -226,11 +228,14 @@ class Setup:
 
             res['prefixes'].append('looseLeptonVeto')
             res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
-            res['prefixes'].append('multiIsoVT')
-            res['cuts'].append("l1_mIsoWP>4&&l2_mIsoWP>4")
+
+            if not is76X: 
+                res['prefixes'].append('multiIsoVT')
+                res['cuts'].append("l1_mIsoWP>4&&l2_mIsoWP>4")
+
             res['cuts'].append("l1_pt>25")
 
-        res['cuts'].append(getFilterCut(isData=(dataMC=='Data')))
+        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
 
         return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr': self.weightString()}

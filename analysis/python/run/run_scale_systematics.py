@@ -46,6 +46,9 @@ if not options.overwrite:
 data_directory           = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
 postProcessing_directory = "postProcessed_Fall15_v3/dilepTiny" 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
+for s in signals_T2tt:
+    s.is76X = True
+
 signals = signals_T2tt
 
 ## Temporary:
