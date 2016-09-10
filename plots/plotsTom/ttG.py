@@ -258,19 +258,19 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'MT_{2}^{ll} (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'M_{T2}(ll) (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2ll_photonEstimated/F" ),
     binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
-    texX = 'MT_{2}^{bb} (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'M_{T2}(bb) (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2bb_photonEstimated/F" ),
     binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
-    texX = 'MT_{2}^{blbl} (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'M_{T2}(blbl) (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2blbl_photonEstimated/F" ),
     binning=[300/20,0,300],
   ))
@@ -476,7 +476,7 @@ for plot in allPlots[allModes[0]]:
             j.Add(l)
 
 for plot in allPlots[allModes[0]]:
-  plot.histos[1][0].legendText = "Data 2015+2016 (all)" if args.add2015 else "Data 2016 (all channels)"
+  plot.histos[1][0].legendText = "Data 2015+2016 (all)" if args.add2015 else "Data"
   plotting.draw(plot,
         plot_directory = os.path.join(plot_directory, args.plot_directory, "all", args.selection),
         ratio = {'yRange':(0.1,1.9)},

@@ -72,6 +72,7 @@ cuts = [
     ("met80",             "met_pt>80"),
     ("metInv",            "met_pt<80"),
     ("metSig5",           "metSig>5"),
+#    ("metSig20",          "metSig>20"),
     ("metSigInv",         "metSig<5"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
     ("dPhiInv",           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))"),
@@ -138,13 +139,13 @@ if not args.isChild and args.selection is None:
                                                             + (" --logLevel=" + args.logLevel)
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=5:00:00 runPlotsOnCream02.sh")
+    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
   logger.info("All jobs launched")
   exit(0)
 
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
-if args.powheg:                   args.plot_directory += "_topPowheg_new"
+if args.powheg:                   args.plot_directory += "_topPowheg"
 if args.splitTop:                 args.plot_directory += "_splitTop"
 if args.selection.count("mt2ll") and args.selection.count('btagM'): args.noData = True
 
@@ -175,7 +176,7 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
-      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(lumi_scale*100)/100., dataMCScale ) ) if plotData else (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(lumi_scale*100)/100.) )
+      (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV) Scale %3.2f'% ( dataMCScale ) ) if plotData else (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
     ]
     return [tex.DrawLatex(*l) for l in lines] 
 
@@ -273,7 +274,7 @@ for index, mode in enumerate(allModes):
 
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = lambda data: data.weight, selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(stack = stack, weight = lambda data: data.weight, selectionString = selectionStrings[args.selection], addOverFlowBin='upper')
   
   plots = []
 
@@ -304,11 +305,11 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX = 'E_{T}^{miss}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
     variable = Variable.fromString('metSig/F'),
-    binning=[25,5,30] if args.selection.count('metSig') else [30,0,30],
+    binning= [80,20,100] if args.selection.count('metSig20') else ([25,5,30] if args.selection.count('metSig') else [30,0,30]),
   ))
 
   plots.append(Plot(
-    texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
     variable = Variable.fromString( "dl_mt2ll/F" ),
     binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
   ))
@@ -490,13 +491,13 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 30 GeV',
+      texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 30 GeV',
       variable = Variable.fromString( "dl_mt2bb/F" ),
       binning=[420/30,70,470],
     ))
 
     plots.append(Plot(
-      texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 30 GeV',
+      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
       variable = Variable.fromString( "dl_mt2blbl/F" ),
       binning=[420/30,0,400],
     ))
