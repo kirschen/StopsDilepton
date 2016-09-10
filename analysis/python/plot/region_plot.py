@@ -72,6 +72,7 @@ sysVariations = [None]
 for var in systematics.values():
   sysVariations += var
 
+
 def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
     h = {}
@@ -80,17 +81,14 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
 
     # Legend text
-    try:
-      h[None].legendText = estimate.sample[channel].texName
-    except:
-      try:
-	texNames = [estimate.sample[c].texName for c in ['MuMu','EMu','EE']]		# If all, only take texName if it is the same for all channels
-	if texNames.count(texNames[0]) == len(texNames):
-	  h[None].legendText = texNames[0]
-	else:
-	  h[None].legendText = estimate.name
-      except:
-	h[None].legendText = estimate.name
+    if estimate.name == "Data":
+      if channel == "all":  h[None].legendText = "Data"
+      if channel == "EE":   h[None].legendText = "Data (2e)"
+      if channel == "MuMu": h[None].legendText = "Data (2#mu)"
+      if channel == "EMu":  h[None].legendText = "Data (1e, 1#mu)"
+      if channel == "SF":   h[None].legendText = "Data (SF)"
+    else:
+      h[None].legendText = estimate.getTexName(channel)
 
     for i, r in enumerate(regions):
       for var in variations:
@@ -173,7 +171,6 @@ for channel in ['all','SF','EE','EMu','MuMu']:
 
     # For signal histos we don't need the systematics, so only access the "None"
     sig_histos = [ [getRegionHisto(e, regions=regions_, channel=channel, setup = signalSetup)[None]] for e in signalEstimators ]
-
     data_histo = [ [getRegionHisto(observation, regions=regions_, channel=channel, setup=setup)[None]]]
  
     region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos[None] ] + sig_histos + data_histo, texX = "signal region number", texY = "Events" )

@@ -2,8 +2,8 @@
 import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument("--regions",        action='store', default='regions80X', nargs='?', choices=["defaultRegions","superRegion","superRegion140"],                                             help="which regions setup?")
-argParser.add_argument("--estimates",      action='store', default='mc',                nargs='?', choices=["mc","dd"],                                                                                   help="mc estimators or data-driven estimators?")
+argParser.add_argument("--regions",        action='store', default='regions80X', nargs='?', choices=["defaultRegions","superRegion","superRegion140"], help="which regions setup?")
+argParser.add_argument("--estimates",      action='store', default='mc',                nargs='?', choices=["mc","dd"],                                help="mc estimators or data-driven estimators?")
 argParser.add_argument("--relativeError",  action='store_true', default=False,          help="show relative errors?")
 args = argParser.parse_args()
 
@@ -16,9 +16,9 @@ from StopsDilepton.analysis.Cache           import Cache
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger("INFO", logFile = None )
+logger = logger.get_logger("WARN", logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger("INFO", logFile = None )
+logger_rt = logger_rt.get_logger("WARN", logFile = None )
 
 setup.verbose = False
 
@@ -48,11 +48,11 @@ except: pass
 
 def displayRelSysValue(val):
      if val <=0: return "0 \\%"
-     return "%.0f" % (val*100) + " \\%"
+     return "%.0f" % (val*100+1) + " \\%"   # Round to next percent
 
 def displayAbsSysValue(val):
      roundedVal = int(100*val+0.99)/100.    # round to next 0.0x
-     if roundedVal <= 0.: return "-"
+     if roundedVal <= 0.: return "0.00"
      return "%.2f" % roundedVal
 
 # Evaluate absolute and relative errors
@@ -63,8 +63,9 @@ def evaluateEstimate(e, SR, estimators=None):
      e.abs               = {}
      e.displayRel        = {}
      e.displayAbs        = {}
+     e.displayYieldAbs   = {}
 
-     e.abs["stat"]       = e.cachedEstimate(       r, channel, setup).sigma
+     e.abs["MC stat"]    = e.cachedEstimate(       r, channel, setup).sigma
      e.rel["PU"]         = e.PUSystematic(         r, channel, setup).val
      e.rel["JEC"]        = e.JECSystematic(        r, channel, setup).val
      e.rel["JER"]        = e.JERSystematic(        r, channel, setup).val
@@ -87,7 +88,8 @@ def evaluateEstimate(e, SR, estimators=None):
      # For sum assume the individual estimators are already evaluated such that we can pick their corresponding absolute error
      if e.name.count("sum"):
        for i in ['TTJets','DY','TTXNoZ','TTZ','multiBoson']:
-         summedEstimate.abs[i] = next(e for e in estimators if e.name.count(i)).abs[i]
+         summedEstimate.abs[i]             = next(e for e in estimators if e.name.count(i)).abs[i]
+         summedEstimate.displayYieldAbs[i] = next(e for e in estimators if e.name.count(i)).displayYieldAbs[i]
 
      for i in e.abs: e.rel[i] = e.abs[i]/expected if expected > 0 else 0
      for i in e.rel: e.abs[i] = e.rel[i]*expected
@@ -95,7 +97,12 @@ def evaluateEstimate(e, SR, estimators=None):
      for i in e.rel: e.displayAbs[i] = displayAbsSysValue(e.abs[i])
 
      e.expected = int(100*expected+0.5)/100.
+     for i in e.displayAbs:
+       if not e.name.count("sum") and e.rel[i] > 0:
+         e.displayYieldAbs[i] = str(e.expected) + " $\pm$ " + e.displayAbs[i]
 
+def rotate(tex):
+    return "\\rotatebox[origin=c]{50}{"+tex+"}"
 
 
 # Make a separate table for each of regions
@@ -103,12 +110,13 @@ for channel in allChannels:
   try:    os.makedirs(os.path.join(texdir, channel))
   except: pass
 
-  sysColumns = ["stat","PU","JEC","top-\\pt","trigger","lepton SF","b-tag SF-b", "b-tag SF-l", "TTJets", "TTZ", "multiBoson", "TTXNoZ", "DY"]
-  columns    = ["expected"] + sysColumns
+  sysColumnsA = ["MC stat","PU","JEC","top-\\pt","trigger","lepton SF","b-tag SF-b", "b-tag SF-l"]
+  sysColumnsB = ["TTJets", "TTZ", "multiBoson", "TTXNoZ", "DY"]
+  columns     = ["expected"] + sysColumnsA + sysColumnsB
 
   minima = {}
   maxima = {}
-  for i in sysColumns:
+  for i in columns[1:]:
     minima[i]  = 9999
     maxima[i]  = 0
 
@@ -116,8 +124,8 @@ for channel in allChannels:
   overviewTexfile = os.path.join(texdir, channel, "overview.tex")
   print "Writing to " + overviewTexfile
   with open(overviewTexfile, "w") as overviewTable:
-    overviewTable.write("\\begin{tabular}{l|cc|" + "c"*len(sysColumns) + "} \n")
-    overviewTable.write("  signal region & observed & " + "&".join(columns) + " \\\\ \n")
+    overviewTable.write("\\begin{tabular}{l|cc|" + "c"*len(sysColumnsA) + "|" + "c"*len(sysColumnsB) + "} \n")
+    overviewTable.write("  " + rotate("signal region") + " & " + rotate("observed") + " & " + "&".join([rotate(c) for c in columns]) + " \\\\ \n")
     overviewTable.write("  \\hline \n")
 
     for SR,r in enumerate(regions[1:]):
@@ -134,7 +142,7 @@ for channel in allChannels:
  
 	  f.write(" $" + e.getTexName(channel, rootTex=False) + "$ ")
 	  f.write(" & %.2f" % e.expected)
-          for i in sysColumns:
+          for i in columns[1:]:
             f.write(" & " + e.displayAbs[i])
 	  f.write(" \\\\ \n")
 
@@ -147,11 +155,13 @@ for channel in allChannels:
 	overviewTable.write(" & %d" % observation.cachedObservation(r, channel, setup).val)
 	overviewTable.write(" & %.2f" % summedEstimate.expected)
 
-	for i in sysColumns:
+	for i in sysColumnsA:
 	  overviewTable.write(" & " + summedEstimate.displayAbs[i])
+	for i in sysColumnsB:
+	  overviewTable.write(" & " + summedEstimate.displayYieldAbs[i])  # For those we display yield +- error
         overviewTable.write(" \\\\ \n")
 
-        for i in sysColumns:
+        for i in columns[1:]:
           minima[i] = min(summedEstimate.rel[i], minima[i])
           maxima[i] = max(summedEstimate.rel[i], maxima[i])
 
@@ -163,7 +173,7 @@ for channel in allChannels:
       minmaxTable.write("\\begin{tabular}{l|c} \n")
       minmaxTable.write("  systematic & min-max of signal regions \\\\ \n")
       minmaxTable.write("  \\hline \n")
-      longNames = {"stat":        "statistical",
+      longNames = {"MC stat":     "MC statistics",
                    "PU":          "pile-up",
                    "TTJets" :     "top background",
                    "TTZ":         "$t\\bar{t}Z$ background",
@@ -171,9 +181,9 @@ for channel in allChannels:
                    "DY" :         "DY background",
                    "multiBoson" : "multiboson background"}
 
-      for i in sysColumns:
+      for i in columns[1:]:
         name = longNames[i] if i in longNames else i
-        if minima[i] > 0:            minmaxTable.write(name + " & " + displayRelSysValue(minima[i]) + " - " + displayRelSysValue(maxima[i]) + " \\\\ \n")
+        if minima[i] > 0.0099:       minmaxTable.write(name + " & " + displayRelSysValue(minima[i]) + " - " + displayRelSysValue(maxima[i]) + " \\\\ \n")
         elif minima[i] == maxima[i]: minmaxTable.write(name + " & " + displayRelSysValue(minima[i]) + " \\\\ \n")
         else:                        minmaxTable.write(name + " & $<$ " + displayRelSysValue(maxima[i]) + " \\\\ \n")
       minmaxTable.write("\\end{tabular} \n")
