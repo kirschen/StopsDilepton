@@ -33,10 +33,10 @@ class Region:
         return res
 
     def cutString(self, selectionModifier=None):
-        if selectionModifier: assert selectionModifier in jmeVariations, "Don't know about systematic variation %r, take one of %s"%(selectionModifier, ",".join(jmeVariations))
+        if selectionModifier: assert selectionModifier in jmeVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(selectionModifier, ",".join(jmeVariations+['genMet']))
         res=[]
         for var in self.variables():
-            svar = var if not selectionModifier else var+"_"+selectionModifier
+            svar = var if (not selectionModifier or selectionModifier == 'genMet') else var+"_"+selectionModifier
             s1=svar+">="+str(self.vals[var][0])
             if self.vals[var][1]>0: s1+="&&"+svar+"<"+str(self.vals[var][1])
             res.append(s1)

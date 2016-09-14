@@ -53,6 +53,14 @@ elif args.signal == "DM":   fastSim = False
 scaleUncCache = Cache('scale.pkl', verbosity=2)
 isrUncCache   = Cache('isr.pkl', verbosity=2)
 
+def getScaleUnc(name, r, channel):
+  if scaleUncCache.contains((name, r, channel)): return max(0.01, scaleUncCache.get((name, r, channel)))
+  else:                                          return 0.01
+
+def getIsrUnc(name, r, channel):
+  unc = isrUncCache.get((name, r, channel))
+  return abs(unc)
+
 def wrapper(s):
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = combineReleaseLocation
@@ -79,40 +87,42 @@ def wrapper(s):
         if fastSim:
  	  c.addUncertainty('SFFS',     'lnN')
   	  c.addUncertainty('leptonFS', 'lnN')
+  	  c.addUncertainty('FSmet',    'lnN')
 
 	eSignal = MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() )
         for r in regions[1:]:
-            for channel in ['MuMu', 'EE', 'EMu']:
+            for channel in ['SF', 'EMu']:
                 niceName = ' '.join([channel, r.__str__()])
                 binname = 'Bin'+str(counter)
                 counter += 1
                 total_exp_bkg = 0
-                c.addBin(binname, [e.name for e in estimators], niceName)
+                c.addBin(binname, [e.name.split('-')[0] for e in estimators], niceName)
                 for e in estimators:
+                    name = e.name.split('-')[0]
                     expected = e.cachedEstimate(r, channel, setup)
                     total_exp_bkg += expected.val
-                    c.specifyExpectation(binname, e.name, expected.val )
+                    c.specifyExpectation(binname, name, expected.val )
 
                     if expected.val>0:
-                        c.specifyUncertainty('PU',       binname, e.name, 1 + e.PUSystematic(         r, channel, setup).val )
-                        c.specifyUncertainty('JEC',      binname, e.name, 1 + e.JECSystematic(        r, channel, setup).val )
-                        c.specifyUncertainty('JER',      binname, e.name, 1 + e.JERSystematic(        r, channel, setup).val )
-                        c.specifyUncertainty('topPt',    binname, e.name, 1 + e.topPtSystematic(      r, channel, setup).val )
-                        c.specifyUncertainty('SFb',      binname, e.name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
-                        c.specifyUncertainty('SFl',      binname, e.name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
-                        c.specifyUncertainty('trigger',  binname, e.name, 1 + e.triggerSystematic(    r, channel, setup).val )
-                        c.specifyUncertainty('leptonSF', binname, e.name, 1 + e.leptonSFSystematic(   r, channel, setup).val )
+                        c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val )
+                        c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val )
+                        c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val )
+                        c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val )
+                        c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
+                        c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
+                        c.specifyUncertainty('trigger',  binname, name, 1 + e.triggerSystematic(    r, channel, setup).val )
+                        c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val )
 
-                        if e.name.count('TTJets'):     c.specifyUncertainty('top',        binname, e.name, 2 if r == regions[-1] else 1.5)
-                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, e.name, 1.25)
-                        if e.name.count('DY'):         c.specifyUncertainty('DY',         binname, e.name, 1.25)
-                        if e.name.count('TTZ'):        c.specifyUncertainty('ttZ',        binname, e.name, 1.2)
-                        if e.name.count('other'):      c.specifyUncertainty('other',      binname, e.name, 1.25)
+                        if e.name.count('TTJets'):     c.specifyUncertainty('top',        binname, name, 2 if r == regions[-1] else 1.5)
+                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.25)
+                        if e.name.count('DY'):         c.specifyUncertainty('DY',         binname, name, 1.25)
+                        if e.name.count('TTZ'):        c.specifyUncertainty('ttZ',        binname, name, 1.2)
+                        if e.name.count('other'):      c.specifyUncertainty('other',      binname, name, 1.25)
 
                         #MC bkg stat (some condition to neglect the smaller ones?)
-                        uname = 'Stat_'+binname+'_'+e.name
+                        uname = 'Stat_'+binname+'_'+name
                         c.addUncertainty(uname, 'lnN')
-                        c.specifyUncertainty('Stat_'+binname+'_'+e.name, binname, e.name, 1+expected.sigma/expected.val )
+                        c.specifyUncertainty(uname, binname, name, 1+expected.sigma/expected.val )
 
                 c.specifyObservation(binname, int(observation.cachedObservation(r, channel, setup).val))
 
@@ -124,6 +134,8 @@ def wrapper(s):
 
                 c.specifyExpectation(binname, 'signal', signal.val )
 
+
+
                 if signal.val>0:
                     c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
                     c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
@@ -132,11 +144,12 @@ def wrapper(s):
                     c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
-                  #  c.specifyUncertainty('scale',    binname, 'signal', 1 + scaleUncCache.get((eSignal.name, r, channel)))
-                    c.specifyUncertainty('isr',      binname, 'signal', 1 + isrUncCache.get(  (eSignal.name, r, channel)))
+                    c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, channel))
+                    c.specifyUncertainty('isr',      binname, 'signal', 1 + getIsrUnc(  eSignal.name, r, channel))
                     if fastSim: 
                       c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                       c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
+                      c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(r, channel, signalSetup).val )
 
                     #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated
                     uname = 'Stat_'+binname+'_signal'
@@ -178,8 +191,6 @@ if   args.signal == "T2tt": jobs = signals_T2tt
 elif args.signal == "DM":   jobs = signals_TTDM
 
 if args.only is not None:
-  jobs = [j for j in jobs if j.name.count("425_325")]
-  print [j.name for j in jobs]
   wrapper(jobs[int(args.only)])
   exit(0)
 

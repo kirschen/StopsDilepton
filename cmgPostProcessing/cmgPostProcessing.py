@@ -809,7 +809,7 @@ def filler(s):
             s.reweightDilepTriggerBackupUp     = 0 
             s.reweightDilepTriggerBackupDown   = 0 
 
-            leptonsForSF = (leptons[:2] if isDiLep else (leptons[:3] if isTrilep else leptons))
+            leptonsForSF = (leptons[:2] if isDiLep else (leptons[:3] if isTriLep else leptons))
             s.reweightLeptonSF           = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta']) for l in leptonsForSF], 1)
             s.reweightLeptonSFUp         = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = +1) for l in leptonsForSF], 1)
             s.reweightLeptonSFDown       = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = -1) for l in leptonsForSF], 1)
