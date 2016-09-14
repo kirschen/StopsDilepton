@@ -33,7 +33,7 @@ from StopsDilepton.tools.user           import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 if args.estimates == "mc": baseDir = os.path.join(setup.analysis_results, setup.prefix(), "DY", "TTZ", "TTJets", "multiBoson")
-if args.estimates == "dd": baseDir = os.path.join(setup.analysis_results, setup.prefix(), "DY-DD", "TTZ-DD", "TTJets-DD-Top16009", "multiBoson-DD")
+if args.estimates == "dd": baseDir = os.path.join(setup.analysis_results, setup.prefix(), "DY-DD", "TTZ-DD-Top16009", "TTJets-DD", "multiBoson-DD")
 
 limitPrefix = "regions80X"
 limitDir    = os.path.join(baseDir, 'cardFiles', args.signal, limitPrefix)
