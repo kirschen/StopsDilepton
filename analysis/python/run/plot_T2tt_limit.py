@@ -9,7 +9,7 @@ from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 ROOT.gROOT.SetBatch(True)
 
-defFile= os.path.join(analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-multiIsoVT/DY/TTZ/TTJets/multiBoson/limits/T2tt/regions80X/limitResults.root")
+defFile= os.path.join(analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-multiIsoVT/DY-DD/TTZ-DD-Top16009/TTJets-DD/multiBoson-DD/limits/T2tt/regions80X/limitResults.root")
 
 from optparse import OptionParser
 parser = OptionParser()
