@@ -37,7 +37,7 @@ for estimator in detailedEstimators:
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_450_1, T2tt_450_150, T2tt_450_250] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
+signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_650_1] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
 for i, estimator in enumerate(signalEstimators):
     estimator.style = styles.lineStyle( ROOT.kBlack, width=2, dotted=(i==1), dashed=(i==2) )
     estimator.isSignal=True
@@ -102,6 +102,8 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
           h['statHigh'].SetBinContent(i+1, res.val+res.sigma)
 
     h[None].style = estimate.style
+    h[None].GetXaxis().SetLabelOffset(99)
+    h[None].GetXaxis().SetTitleOffset(1.5)
 
     return h
 
@@ -119,6 +121,34 @@ def drawLabels( regions ):
     lines += [(min+(i+0.5)*diff, 0.285,  r.texStringForVar('dl_mt2bb'))   for i, r in enumerate(regions)]
     return [tex.DrawLatex(*l) for l in lines] 
 
+def drawSR( regions ):
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.03)
+    tex.SetTextAngle(90)
+    tex.SetTextAlign(32) # align right
+    min = 0.15
+    max = 0.95
+    diff = (max-min) / len(regions)
+    lines = [(min+(i+0.5)*diff, .12,  str(i)) for i, r in enumerate(regions)]
+
+    tex2 = tex.Clone();
+    tex2.SetTextColor(ROOT.kGray)
+    tex2.SetTextAlign(31)
+    tex2.SetTextSize(0.025)
+
+    lines2  = [(min+5.35*diff,  .9, '100 GeV < M_{T2}(ll) < 140 GeV')]
+    lines2 += [(min+11.35*diff, .9, '140 GeV < M_{T2}(ll) < 240 GeV')]
+    lines2 += [(min+12.35*diff, .9, 'M_{T2}(ll) > 240 GeV')]
+
+    line = ROOT.TLine()
+    line.SetLineColor(ROOT.kGray)
+    line.SetLineWidth(2)
+    line1 = (min+6*diff,  0.15, min+6*diff, 0.93);
+    line2 = (min+12*diff, 0.15, min+12*diff, 0.93);
+    return [tex.DrawLatex(*l) for l in lines] + [line.DrawLineNDC(*l) for l in [line1, line2]] + [tex2.DrawLatex(*l) for l in lines2]
+
+
 def drawObjects( lumi_scale ):
     tex = ROOT.TLatex()
     tex.SetNDC()
@@ -126,7 +156,7 @@ def drawObjects( lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'),
-      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(lumi_scale/1000*100)/100.) )
+      (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
     ]
     return [tex.DrawLatex(*l) for l in lines]
 
@@ -201,7 +231,7 @@ for channel in ['all','SF','EE','EMu','MuMu']:
         sorting = True,
         yRange = (0.006, "auto"),
         widths = {'x_width':1000, 'y_width':700},
-        drawObjects = (drawLabels(regions_) if args.labels else []) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
+        drawObjects = (drawLabels(regions_) if args.labels else drawSR(regions_)) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
         legend = (0.55,0.9-0.015*(len(bkg_histos) + len(sig_histos)), 0.95, 0.9),
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
