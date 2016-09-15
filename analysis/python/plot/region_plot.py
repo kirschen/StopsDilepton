@@ -49,7 +49,7 @@ for e in estimators:
 from StopsDilepton.analysis.DataObservation import DataObservation
 from RootTools.core.standard import *
 observation = DataObservation(name='Data', sample=setup.sample['Data'])
-observation.style = styles.errorStyle( ROOT.kBlack )
+observation.style = styles.errorStyle( ROOT.kBlack, markerSize = 1.5 )
 
 # Logging
 import StopsDilepton.tools.logger as logger
@@ -104,7 +104,10 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
     h[None].style = estimate.style
     h[None].GetXaxis().SetLabelOffset(99)
     h[None].GetXaxis().SetTitleOffset(1.5)
-
+    h[None].GetXaxis().SetTitleSize(2)
+    h[None].GetYaxis().SetTitleSize(2)
+    h[None].GetYaxis().SetLabelSize(0.7)
+ 
     return h
 
 def drawLabels( regions ):
@@ -124,29 +127,31 @@ def drawLabels( regions ):
 def drawSR( regions ):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.03)
-    tex.SetTextAngle(90)
-    tex.SetTextAlign(32) # align right
+    tex.SetTextSize(0.04)
+    tex.SetTextAlign(23) # align right
     min = 0.15
     max = 0.95
     diff = (max-min) / len(regions)
     lines = [(min+(i+0.5)*diff, .12,  str(i)) for i, r in enumerate(regions)]
 
-    tex2 = tex.Clone();
+    tex2 = tex.Clone()
+    tex2.SetTextSize(0.03)
     tex2.SetTextColor(ROOT.kGray)
-    tex2.SetTextAlign(31)
-    tex2.SetTextSize(0.025)
 
-    lines2  = [(min+5.35*diff,  .9, '100 GeV < M_{T2}(ll) < 140 GeV')]
-    lines2 += [(min+11.35*diff, .9, '140 GeV < M_{T2}(ll) < 240 GeV')]
-    lines2 += [(min+12.35*diff, .9, 'M_{T2}(ll) > 240 GeV')]
+    lines2  = [(min+3*diff,  .9, '100 GeV < M_{T2}(ll) < 140 GeV')]
+    lines2 += [(min+9*diff, .9, '140 GeV < M_{T2}(ll) < 240 GeV')]
+
+    tex3= tex2.Clone()
+    tex3.SetTextAngle(90)
+    tex3.SetTextAlign(31)
+    lines3  = [(min+12.5*diff, .9, 'M_{T2}(ll) > 240 GeV')]
 
     line = ROOT.TLine()
     line.SetLineColor(ROOT.kGray)
     line.SetLineWidth(2)
-    line1 = (min+6*diff,  0.15, min+6*diff, 0.93);
-    line2 = (min+12*diff, 0.15, min+12*diff, 0.93);
-    return [tex.DrawLatex(*l) for l in lines] + [line.DrawLineNDC(*l) for l in [line1, line2]] + [tex2.DrawLatex(*l) for l in lines2]
+    line1 = (min+6*diff,  0.13, min+6*diff, 0.93);
+    line2 = (min+12*diff, 0.13, min+12*diff, 0.93);
+    return [tex.DrawLatex(*l) for l in lines] + [line.DrawLineNDC(*l) for l in [line1, line2]] + [tex2.DrawLatex(*l) for l in lines2] + [tex3.DrawLatex(*l) for l in lines3]
 
 
 def drawObjects( lumi_scale ):
@@ -156,7 +161,7 @@ def drawObjects( lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'),
-      (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
+      (0.71, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
     ]
     return [tex.DrawLatex(*l) for l in lines]
 
@@ -202,7 +207,7 @@ for channel in ['all','SF','EE','EMu','MuMu']:
     # For signal histos we don't need the systematics, so only access the "None"
     sig_histos = [ [getRegionHisto(e, regions=regions_, channel=channel, setup = signalSetup)[None]] for e in signalEstimators ]
     data_histo = [ [getRegionHisto(observation, regions=regions_, channel=channel, setup=setup)[None]]]
- 
+
     region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos[None] ] + sig_histos + data_histo, texX = "signal region number", texY = "Events" )
 
     boxes = []
@@ -232,6 +237,6 @@ for channel in ['all','SF','EE','EMu','MuMu']:
         yRange = (0.006, "auto"),
         widths = {'x_width':1000, 'y_width':700},
         drawObjects = (drawLabels(regions_) if args.labels else drawSR(regions_)) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
-        legend = (0.55,0.9-0.015*(len(bkg_histos) + len(sig_histos)), 0.95, 0.9),
+        legend = (0.55,0.85-0.015*(len(bkg_histos) + len(sig_histos)), 0.95, 0.85),
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
