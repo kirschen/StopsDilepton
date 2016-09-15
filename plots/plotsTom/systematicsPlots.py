@@ -99,7 +99,7 @@ cuts = [
     ("met80",             "met_pt>80"),
     ("metSig5",           "metSig>5"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
-#    ("mt2ll100",          "dl_mt2ll>100"),
+    ("mt2ll100",          "dl_mt2ll>100"),
   ]
 
 
@@ -143,17 +143,17 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("mt2bb") > 1:   continue
         if selection.count("metSig") > 1:  continue
         if selection.count("met80") > 1:   continue
-        if not (selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-             or selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-             or selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv')
-             or selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv')
-             or selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv')
-             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv')
-             or selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
-        ): continue
-       # if not selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv'): continue
+#        if not (selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
+#             or selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
+#             or selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv')
+#             or selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv')
+#             or selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv')
+#             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv')
+#             or selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
+#             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
+#             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
+#        ): continue
+        if not selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv'): continue
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 
@@ -208,7 +208,7 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
 
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
-if args.powheg:                   args.plot_directory += "_topPowheg"
+if args.powheg:                   args.plot_directory += "_topPowheg_500_250"
 if args.splitTop:                 args.plot_directory += "_splitTop"
 
 
@@ -219,7 +219,7 @@ postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-T2tt                    = T2tt_450_1
+T2tt                    = T2tt_500_250
 T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
 T2tt2                   = T2tt_700_100
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
@@ -282,7 +282,7 @@ def getLeptonSelection(mode):
 # Loop over channels
 #
 allPlots   = {}
-allModes   = ['ee','mumu','mue','all']
+allModes   =['mue','ee','mumu','all']
 for index, mode in enumerate(allModes):
   if mode=="mumu":
     data_sample         = DoubleMuon_Run2016BCD_backup
@@ -337,16 +337,17 @@ for index, mode in enumerate(allModes):
 
 
   if args.signal == "T2tt":
-    T2tt.scale          = lumi_scale
-    T2tt.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    T2tt.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonFastSimSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
-    T2tt.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+    for s in [T2tt, T2tt2]:
+      s.scale          = lumi_scale
+      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F']
+      s.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonFastSimSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
+      s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   # Use some defaults
   Plot.setDefaults(weight = lambda data: data.weight, selectionString = selectionStrings[args.selection])
   
   stack_mc   = Stack( mc )
-  stack_data = Stack( data_sample ) if not args.signal == "T2tt" else Stack(data_sample, T2tt, T2tt2)
+  stack_data = Stack( data_sample ) if not args.signal == "T2tt" else Stack(data_sample, T2tt)
   sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
   plots = []
   
@@ -622,6 +623,11 @@ for index, mode in enumerate(allModes):
 			    width = histo.GetBinWidth( ib )
 			    histo.SetBinContent(ib, val / (width / bin_width)) 
 			    histo.SetBinError(ib, err / (width / bin_width)) 
+        topHist = None
+        ttzHist = None
+        ttxHist = None
+        mbHist  = None
+        dyHist  = None
 
 	# Scaling Top
 	for k in plot_mc.keys():
@@ -629,7 +635,16 @@ for index, mode in enumerate(allModes):
   #	      for h in s:
   #		  h.Scale(lumi_scale)
 		pos_top = [i for i,x in enumerate(mc) if x == (Top_pow if args.powheg else Top)][0]
-		plot_mc[k].histos[0][pos_top].Scale(top_sf[k]) 
+		pos_ttz = [i for i,x in enumerate(mc) if x == TTZ_LO][0]
+		pos_ttx = [i for i,x in enumerate(mc) if x == TTXNoZ][0]
+		pos_dy  = [i for i,x in enumerate(mc) if x == DY_HT_LO][0]
+		pos_mb  = [i for i,x in enumerate(mc) if x == multiBoson][0]
+		plot_mc[k].histos[0][pos_top].Scale(top_sf[k])
+		topHist = plot_mc[k].histos[0][pos_top]
+		ttzHist = plot_mc[k].histos[0][pos_ttz]
+		ttxHist = plot_mc[k].histos[0][pos_ttx]
+		mbHist  = plot_mc[k].histos[0][pos_mb]
+		dyHist  = plot_mc[k].histos[0][pos_dy]
 			
 	#Calculating systematics
 	h_summed = {k: plot_mc[k].histos_added[0][0].Clone() for k in plot_mc.keys()}
@@ -661,6 +676,15 @@ for index, mode in enumerate(allModes):
 	    for ib in range( 1 + h_rel_err.GetNbinsX() ):
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
+        # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
+        if args.selection.count('mt2ll100'):
+	    for ib in range( 1 + h_rel_err.GetNbinsX() ):
+		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.5*topHist.GetBinContent(ib))**2 )
+		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
+		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
+		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
+		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
+
 	# take sqrt
 	for ib in range( 1 + h_rel_err.GetNbinsX() ):
 	    h_rel_err.SetBinContent(ib, sqrt( h_rel_err.GetBinContent(ib) ) )
@@ -671,19 +695,16 @@ for index, mode in enumerate(allModes):
 	plot = plot_mc[None]
 	if args.normalizeBinWidth: plot.name += "_normalizeBinWidth"
         T2tt_histo  =  plot_data.histos[1][0]
-        T2tt2_histo =  plot_data.histos[2][0]
 	data_histo  =  plot_data.histos[0][0]
         for h in plot_data.histos[0][1:]:
           data_histo.Add(h)
 
 	data_histo.style = styles.errorStyle( ROOT.kBlack )
         T2tt_histo.style = styles.lineStyle( ROOT.kBlack, width=3 )
-        T2tt2_histo.style = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-	plot.histos += [[ data_histo ], [T2tt_histo ], [T2tt2_histo ]]
+	plot.histos += [[ data_histo ], [T2tt_histo ]]
 	plot_data.stack[0][0].texName = data_sample.texName if mode != "all" else data_sample[0].texName 
 	plot_data.stack[1][0].texName = T2tt.texName
-	plot_data.stack[2][0].texName = T2tt2.texName
-	plot.stack += [[ plot_data.stack[0][0] ] , [ plot_data.stack[1][0] ], [ plot_data.stack[2][0] ]]
+	plot.stack += [[ plot_data.stack[0][0] ] , [ plot_data.stack[1][0] ]]
 
 	boxes = []
 	ratio_boxes = []

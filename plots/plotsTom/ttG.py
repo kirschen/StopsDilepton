@@ -91,6 +91,13 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("mll20")             and not selection.count("llgNoZ"):   continue
         if selection.count("mll20")             and not selection.count("gJetdR"):   continue
         if selection.count("mll20")             and not selection.count("gLepdR"):   continue
+        if not selection in ["njet2-photon30-llgNoZ-gJetdR-gLepdR-btagM-mll20",
+                             "njet2-photon30-llgNoZ-gJetdR-gLepdR-btagM-mll20-met80-metSig5-dPhiJet0-dPhiJet1",
+                             "njet2-photon30",
+                             "njet2-photon30-gJetdR-gLepdR-btagM",
+                             "njet2-photon30-llgNoZ-gJetdR-gLepdR-btagM-mll20-met80",
+                             "njet2-photon30-llgNoZ",
+                             "njet2-photon30-llgNoZ-gJetdR-gLepdR-btagM"]: continue
 
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
@@ -131,7 +138,7 @@ def drawObjects( dataMCScale, lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'), 
-      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(lumi_scale*100)/100., dataMCScale ) )
+      (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV) Scale %3.2f'% ( dataMCScale ) )
     ]
     return [tex.DrawLatex(*l) for l in lines] 
 

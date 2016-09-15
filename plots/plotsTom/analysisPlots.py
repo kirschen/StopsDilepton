@@ -26,7 +26,7 @@ argParser.add_argument('--plot_directory', action='store',      default='analysi
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--splitBosons',    action='store_true', default=False)
 argParser.add_argument('--splitTop',       action='store_true', default=False)
-argParser.add_argument('--powheg',         action='store_true', default=False)
+argParser.add_argument('--powheg',         action='store_true', default=True)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
@@ -121,6 +121,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("mt2blbl") > 1: continue
         if selection.count("mt2bb") > 1:   continue
         if selection.count("metSig") > 1:  continue
+
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 #
@@ -139,7 +140,8 @@ if not args.isChild and args.selection is None:
                                                             + (" --logLevel=" + args.logLevel)
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
+    if not args.dryRun:          os.system("qsub -v command=\"" + command + "          --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
+    if selection.count('mt2ll'): os.system("qsub -v command=\"" + command + " --noData --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
   logger.info("All jobs launched")
   exit(0)
 
@@ -147,9 +149,9 @@ if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.powheg:                   args.plot_directory += "_topPowheg"
 if args.splitTop:                 args.plot_directory += "_splitTop"
-if args.selection.count("mt2ll") and args.selection.count('btagM'): args.noData = True
+#if args.selection.count("mt2ll") and args.selection.count('btagM'): args.noData = True
 
-
+if args.selection.count("btag0"): args.signal = None
 
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -159,7 +161,7 @@ from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi1_Mphi100
-T2tt                    = T2tt_450_1 # Take 450,0 as default to plot
+T2tt                    = T2tt_650_1 # Take 450,0 as default to plot
 T2tt2                   = T2tt_450_150
 T2tt3                   = T2tt_450_250
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
@@ -260,11 +262,11 @@ for index, mode in enumerate(allModes):
   if not args.noData:
     if not args.signal:         stack = Stack(mc, data_sample)
     elif args.signal == "DM":   stack = Stack(mc, data_sample, TTbarDMJets_scalar_Mchi1_Mphi100)
-    elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt, T2tt2, T2tt3)
+    elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt)
   else:
     if not args.signal:         stack = Stack(mc)
     elif args.signal == "DM":   stack = Stack(mc, TTbarDMJets_scalar_Mchi1_Mphi100)
-    elif args.signal == "T2tt": stack = Stack(mc, T2tt, T2tt2, T2tt3)
+    elif args.signal == "T2tt": stack = Stack(mc, T2tt)
 
   for sample in [T2tt, T2tt2, T2tt3]:
     sample.scale          = lumi_scale
@@ -546,8 +548,9 @@ for mode in ["SF","all"]:
 
 
 # Write to tex file
-columns = [i.name for i in mc] + ["MC", "data"] + ([TTbarDMJets_scalar_Mchi1_Mphi100.name] if args.signal=="DM" else []) + ([T2tt.name] if args.signal=="T2tt" else [])
+columns = [i.name for i in mc] + ["MC", "data"] + ([TTbarDMJets_scalar_Mchi1_Mphi100.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name, T2tt3.name] if args.signal=="T2tt" else [])
 texdir = "tex"
+if args.powheg: texdir += "_powheg"
 try:
   os.makedirs("./" + texdir)
 except:
@@ -555,7 +558,7 @@ except:
 with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
   f.write("&" + " & ".join(columns) + "\\\\ \n")
   for mode in allModes + ["SF","all"]:
-    f.write(mode + " & " + " & ".join([ " %12.2f" % yields[mode][i] for i in columns]) + "\\\\ \n")
+    f.write(mode + " & " + " & ".join([ (" %12.0f" if i == "data" else " %12.2f") % yields[mode][i] for i in columns]) + "\\\\ \n")
 
 
 
