@@ -1,6 +1,8 @@
+#!/bin/sh
 
 OPTIMASS=OptiMass-v1.0.3
 EXROOT=ExRootAnalysis_V1.1.2
+
 # Set up ExRootAnalysis -> only used because it is necessary to compile the Optimass main program (which is not ued)
 cd $CMSSW_BASE/src
 wget http://madgraph.physics.illinois.edu/Downloads/ExRootAnalysis/${EXROOT}.tar.gz
