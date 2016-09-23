@@ -119,14 +119,16 @@ for estimate in signalEstimators:
         total[wgt] = sum([ estimate.cachedEstimate(r, channel, setup.sysClone(sys={'reweight':[wgt]})) for r in regions for channel in channels ] )
     
     for r in regions:
-        for c in channels:
+        for c in channels + ['SF', 'all']:
             l = []
             for var in variations:
                 if total[var]>0:
                     ref = estimate.cachedEstimate(r, channel, setup.sysClone(sys={'reweight':[nominal]}) )
                     if ref>0:
-                        scale = total[nominal]/total[var] 
-                        l.append( abs( scale*estimate.cachedEstimate(r, channel, setup.sysClone(sys={'reweight':[var]})) - ref ) / ref )
+                        scale = total[nominal]/total[var]
+                        unc = abs( scale*estimate.cachedEstimate(r, channel, setup.sysClone(sys={'reweight':[var]})) - ref ) / ref 
+                        l.append( unc.val )
+
             scale_systematics[(estimate.name, r, c)] = max(l) if len(l)>0 else 0
 
 if not os.path.exists(os.path.dirname(ofile)):

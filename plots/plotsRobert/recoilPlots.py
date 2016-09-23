@@ -217,7 +217,7 @@ cuts=[
 #    ("njet12", "nJetGood>=1&&nJetGood<=2"),
     ("njet2p", "nJetGood>=1&&nJetGood>=2"),
 #    ("nbtag1", "nBTag>=1"),
-    ("nLooseBTag0", "Sum$(JetGood_pt>30&&JetGood_id&&abs(JetGood_eta)<2.4&&JetGood_btagCSV>0.460)==0"),
+#    ("nLooseBTag0", "Sum$(JetGood_pt>30&&JetGood_id&&abs(JetGood_eta)<2.4&&JetGood_btagCSV>0.460)==0"),
 #    ("ptZ100", "dl_pt>100"),
 #    ("mll20", "dl_mass>20"),
 #    ("met80", "met_pt>80"),

@@ -52,32 +52,32 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v7/dilep/"
+postProcessing_directory = "postProcessed_80X_v12/dilep/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v7/dilep/"
+postProcessing_directory = "postProcessed_80X_v12/dilep/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 
 if args.mode=="doubleMu":
-    lepton_selection_string_data = "&&".join(["nGoodMuons>=1&&(HLT_mumuIso||HLT_mumuNoiso)"])
+    lepton_selection_string_data = "&&".join(["nGoodMuons>=1"])
     lepton_selection_string_mc   = "&&".join(["nGoodMuons>=1"])
-    data_samples = [DoubleMuon_Run2016B]
-    DoubleMuon_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_samples = [DoubleMuon_Run2016BCD_backup]
+    DoubleMuon_Run2016BCD_backup.setSelectionString([dataFilterCut, lepton_selection_string_data])
     data_sample_texName = "Data (2 #mu)"
     #qcd_sample = QCD_Mu5 #FIXME
 
 elif args.mode=="doubleEle":
-    lepton_selection_string_data = "&&".join(["nGoodElectrons>=1&&HLT_ee_DZ"])
+    lepton_selection_string_data = "&&".join(["nGoodElectrons>=1"])
     lepton_selection_string_mc   = "&&".join(["nGoodElectrons>=1"])
-    data_samples = [DoubleEG_Run2016B]
-    DoubleEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_samples = [DoubleEG_Run2016BCD_backup]
+    DoubleEG_Run2016BCD_backup.setSelectionString([dataFilterCut, lepton_selection_string_data])
     data_sample_texName = "Data (2 e)"
     #qcd_sample = QCD_EMbcToE
 
 elif args.mode=="muEle":
-    lepton_selection_string_data = "&&".join(["nGoodElectrons+nGoodMuons>=1&&HLT_mue"])
+    lepton_selection_string_data = "&&".join(["nGoodElectrons+nGoodMuons>=1"])
     lepton_selection_string_mc   = "&&".join(["nGoodElectrons+nGoodMuons>=1"])
-    data_samples = [MuonEG_Run2016B]
-    MuonEG_Run2016B.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    data_samples = [MuonEG_Run2016BCD_backup]
+    MuonEG_Run2016BCD_backup.setSelectionString([dataFilterCut, lepton_selection_string_data])
     data_sample_texName = "Data (2 e)"
     #qcd_sample = QCD_EMbcToE
 
@@ -188,7 +188,7 @@ sequence.append( makeNonIsoLeptons )
 
 cuts=[
     ("njet2p", "nJetGood>=2"),
-    ("nbtag0", "nBTag==0"),
+    ("nbtag1p", "nBTag>=1"),
     ("met80", "met_pt>80"),
 ]
                 

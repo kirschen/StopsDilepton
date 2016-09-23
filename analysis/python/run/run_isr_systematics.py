@@ -50,19 +50,17 @@ logger.info( "Loaded ISR normalization file %s", norm_file )
 postProcessing_directory = "postProcessed_80X_v12_tmp2/dilepTiny"
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
 #temporary:
-signals = [T2tt_425_325]
-#signals = signals_T2tt
+#signals = [T2tt_425_325]
+signals = signals_T2tt
 for s in signals:
     s.isFastSim = True
     s.is76X     = False
-
 
 nominal     = "(1)"
 from StopsDilepton.analysis.robert.helpers import isrWeight
 wgts        = [ nominal, isrWeight ]
 
 signalEstimators = [ MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}) for s in signals ]
-
 
 results = {}
 

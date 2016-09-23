@@ -50,7 +50,7 @@ argParser.add_argument('--small',
 argParser.add_argument('--dPhi',
     action='store',
     default = 'def',
-    choices=['def', 'inv','none'],
+    choices=['def', 'inv','none', 'lead'],
     help='dPhi?',
 )
 
@@ -92,7 +92,7 @@ argParser.add_argument('--diBosonScaleFactor',
 
 argParser.add_argument('--noScaling',
     action='store_true',
-    default = True,
+    #default = True,
     help='Small?',
 )
 
@@ -106,6 +106,13 @@ argParser.add_argument('--njet',
     type=str,
     action='store',
     choices=['0', '0p', '1', '1p', '2', '2p', '01']
+)
+
+argParser.add_argument('--mIsoWP',
+    default=5,
+    type=int,
+    action='store',
+    choices=[0,1,2,3,4,5]
 )
 
 argParser.add_argument('--nbtag',
@@ -286,15 +293,18 @@ weight = lambda data:data.weight
 
 if args.dPhi == 'inv':
     dPhi = [ ("dPhiJetMETInv", "(!(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0))") ]
+if args.dPhi == 'lead':
+    dPhi = [ ("dPhiJetMETLead", "Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0") ]
 elif args.dPhi=='def':
     dPhi = [ ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0") ]
 else:
     dPhi = []
 
+wpStr = { 5: "VT", 4: "T", 3: "M" , 2: "L" , 1: "VL", 0:"None"}
 basic_cuts=[
     ("mll20", "dl_mass>20"),
     ("l1pt25", "l1_pt>25"),
-    ("mIsoVT", "l1_mIsoWP>=5&&l2_mIsoWP>=5"),
+    ("mIso%s"%wpStr[args.mIsoWP], "l1_mIsoWP>=%i&&l2_mIsoWP>=%i"%( args.mIsoWP, args.mIsoWP)),
     ] + dPhi + [
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
@@ -339,7 +349,6 @@ if args.dPhiLepMET:
         ("dPhiLepMET", "cos(l1_phi-met_phi)>-0.9"),
         ] )
 
-
 def drawObjects( scale ):
     tex = ROOT.TLatex()
     tex.SetNDC()
@@ -382,15 +391,16 @@ from StopsDilepton.tools.helpers import deltaR
 from StopsDilepton.tools.objectSelection import getJets
 
 def makeMinDeltaRLepJets( data ):
-    jets = filter(lambda j: j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(data, jetColl="JetGood"))
-    if len(jets)>0:
-        dr =  [deltaR(j, {'eta':data.l1_eta, 'phi':data.l1_phi}) for j in jets] 
-        dr += [deltaR(j, {'eta':data.l2_eta, 'phi':data.l2_phi}) for j in jets] 
+    data.jets = filter(lambda j: j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(data, jetColl="JetGood"))
+    if len(data.jets)>0:
+        dr =  [deltaR(j, {'eta':data.l1_eta, 'phi':data.l1_phi}) for j in data.jets] 
+        dr += [deltaR(j, {'eta':data.l2_eta, 'phi':data.l2_phi}) for j in data.jets] 
         setattr( data, "minDeltaRLepJets", min(dr) )
     else:
         setattr( data, "minDeltaRLepJets", float('nan') )
 
-    loose_bjets = filter(lambda j: j['btagCSV']>0.605, jets)
+    data.bjets = filter(lambda j: j['btagCSV']>0.8, data.jets)
+    loose_bjets = filter(lambda j: j['btagCSV']>0.605, data.jets)
     if len(loose_bjets)>0:
         dr =  [deltaR(j, {'eta':data.l1_eta, 'phi':data.l1_phi}) for j in loose_bjets] 
         dr += [deltaR(j, {'eta':data.l2_eta, 'phi':data.l2_phi}) for j in loose_bjets] 
@@ -398,9 +408,14 @@ def makeMinDeltaRLepJets( data ):
     else:
         setattr( data, "minDeltaRLepBJets", float('nan') )
         
-
 sequence.append( makeMinDeltaRLepJets )
-        
+
+def makeMT2BJetDisc( data ):
+    sortedJets = data.bjets + [j for j in data.jets if j not in data.bjets]
+    data.mt2BJetDisc = sortedJets[1]['btagCSV'] if len( sortedJets )>=2 else float('nan')        
+
+sequence.append( makeMT2BJetDisc )
+
 stack = Stack(mc_samples) if args.noData else Stack(mc_samples, data_samples)
 
 if args.noLoop:
@@ -898,6 +913,17 @@ for l_comb in l_combs:
             weight = weight,
             )
         plots.append( nbtags )
+
+        CSVv2SubLeadingJet  = Plot(
+            name = "CSVv2SubLeadingJet",
+            texX = 'CSVv2 of sub-leading jet', texY = 'Number of Events',
+            stack = stack, 
+            variable = ScalarType.uniqueFloat().addFiller(lambda data:data.mt2BJetDisc),
+            binning=[10,0,1],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( CSVv2SubLeadingJet )
 
         njets  = Plot(
             texX = 'number of jets', texY = 'Number of Events',
