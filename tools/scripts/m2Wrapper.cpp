@@ -132,7 +132,7 @@ class m2Wrapper {
         
         delete optm;
 
-        return sqrt( optm->GetOptiMass() );
+        return result;
  
     }; 
  

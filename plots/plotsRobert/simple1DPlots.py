@@ -146,7 +146,7 @@ argParser.add_argument('--signals',
     action='store',
     nargs='*',
     type=str,
-    default=[],
+    default=["T2tt_450_1"],
     help="Signals?"
     )
 
@@ -362,30 +362,6 @@ def drawObjects( scale ):
         lines.append( (0.50, 0.95, '13 TeV' ) )
     return [tex.DrawLatex(*l) for l in lines] 
 
-if len(args.signals)>0:
-#    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
-    postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-    for s in args.signals:
-        if "*" in s:
-            split = s.split("*")
-            sig, fac = split[0], int(split[1])
-        else:
-            sig, fac = s, 1
-        try:
-            stack.append( [eval(sig)] )
-            if hasattr(stack[-1][0], "scale"): 
-                stack[-1][0].scale*=fac
-            elif fac!=1:
-                stack[-1][0].scale = fac
-            else: pass
-
-            if fac!=1:
-                stack[-1][0].name+=" x"+str(fac)                
-            logger.info( "Adding sample %s with factor %3.2f", sig, fac)
-        except NameError:
-            logger.warning( "Could not add signal %s", s)
-
 sequence = []
 
 from StopsDilepton.tools.helpers import deltaR
@@ -431,11 +407,35 @@ def makeM2CC( data ):
     else:
         data.m2CC = float('nan') 
 
-    print data.m2CC
-
 sequence.append( makeM2CC )
 
 stack = Stack(mc_samples) if args.noData else Stack(mc_samples, data_samples)
+
+if len(args.signals)>0:
+#    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
+    postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+    for s in args.signals:
+        if "*" in s:
+            split = s.split("*")
+            sig, fac = split[0], int(split[1])
+        else:
+            sig, fac = s, 1
+
+        try:
+            stack.append( [eval(sig)] )
+            if hasattr(stack[-1][0], "scale"): 
+                stack[-1][0].scale*=fac
+            elif fac!=1:
+                stack[-1][0].scale = fac
+            else: pass
+
+            if fac!=1:
+                stack[-1][0].name+=" x"+str(fac)                
+            logger.info( "Adding sample %s with factor %3.2f", sig, fac)
+        except NameError:
+            logger.warning( "Could not add signal %s", s)
+
 
 if args.noLoop:
     l_combs = [ len(cuts) ]
