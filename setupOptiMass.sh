@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#Tom, if you see this you probably cry. Feel free to make it a nice install script
+
 OPTIMASS=OptiMass-v1.0.3
 EXROOT=ExRootAnalysis_V1.1.2
 

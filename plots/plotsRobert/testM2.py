@@ -1,4 +1,4 @@
-from m2Calculator import m2Calculator
+from StopsDilepton.tools.m2Calculator import m2Calculator
 m=m2Calculator()
 
 for i in range(10):
