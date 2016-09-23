@@ -7,6 +7,10 @@ git cms-init
 git clone https://github.com/GhentAnalysis/StopsDilepton
 ./StopsDilepton/setup80X.sh
 ```
+# for OptiMass M2 variables
+```
+./StopsDilepton/setupOptiMass.sh
+```
 
 # for limit setting
 Make a 7_1_5 WS following the recipe at [SWGuideHiggsAnalysisCombinedLimit](https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideHiggsAnalysisCombinedLimit)
