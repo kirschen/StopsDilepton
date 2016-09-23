@@ -362,29 +362,30 @@ def drawObjects( scale ):
         lines.append( (0.50, 0.95, '13 TeV' ) )
     return [tex.DrawLatex(*l) for l in lines] 
 
-#if len(args.signals)>0:
+if len(args.signals)>0:
 #    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
-#    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_2l_postProcessed import *
-#    for s in args.signals:
-#        if "*" in s:
-#            split = s.split("*")
-#            sig, fac = split[0], int(split[1])
-#        else:
-#            sig, fac = s, 1
-#        try:
-#            stack.append( [eval(sig)] )
-#            if hasattr(stack[-1][0], "scale"): 
-#                stack[-1][0].scale*=fac
-#            elif fac!=1:
-#                stack[-1][0].scale = fac
-#            else: pass
-#
-#            if fac!=1:
-#                stack[-1][0].name+=" x"+str(fac)                
-#            logger.info( "Adding sample %s with factor %3.2f", sig, fac)
-#        except NameError:
-#            logger.warning( "Could not add signal %s", s)
-#
+    postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+    for s in args.signals:
+        if "*" in s:
+            split = s.split("*")
+            sig, fac = split[0], int(split[1])
+        else:
+            sig, fac = s, 1
+        try:
+            stack.append( [eval(sig)] )
+            if hasattr(stack[-1][0], "scale"): 
+                stack[-1][0].scale*=fac
+            elif fac!=1:
+                stack[-1][0].scale = fac
+            else: pass
+
+            if fac!=1:
+                stack[-1][0].name+=" x"+str(fac)                
+            logger.info( "Adding sample %s with factor %3.2f", sig, fac)
+        except NameError:
+            logger.warning( "Could not add signal %s", s)
+
 sequence = []
 
 from StopsDilepton.tools.helpers import deltaR
@@ -411,10 +412,28 @@ def makeMinDeltaRLepJets( data ):
 sequence.append( makeMinDeltaRLepJets )
 
 def makeMT2BJetDisc( data ):
-    sortedJets = data.bjets + [j for j in data.jets if j not in data.bjets]
-    data.mt2BJetDisc = sortedJets[1]['btagCSV'] if len( sortedJets )>=2 else float('nan')        
+    data.sortedJetsForMT2 = data.bjets + [j for j in data.jets if j not in data.bjets]
+    data.mt2BJetDisc = data.sortedJetsForMT2[1]['btagCSV'] if len( data.sortedJetsForMT2 )>=2 else float('nan')        
 
 sequence.append( makeMT2BJetDisc )
+
+from StopsDilepton.tools.m2Calculator import m2Calculator
+m2Calc = m2Calculator()
+def makeM2CC( data ):
+    m2Calc.reset()
+    if len(data.sortedJetsForMT2)>=2:
+        bj0, bj1 = data.sortedJetsForMT2[:2]
+        m2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+        m2Calc.setLepton1(data.l1_pt, data.l1_eta, data.l1_phi)
+        m2Calc.setLepton2(data.l2_pt, data.l2_eta, data.l2_phi)
+        m2Calc.setMet(data.met_pt, data.met_phi)
+        data.m2CC = m2Calc.m2CC()
+    else:
+        data.m2CC = float('nan') 
+
+    print data.m2CC
+
+sequence.append( makeM2CC )
 
 stack = Stack(mc_samples) if args.noData else Stack(mc_samples, data_samples)
 
@@ -605,6 +624,17 @@ for l_comb in l_combs:
             weight = weight,
             ) 
         plots.append( dl_mt2blbl )
+
+        dl_m2cc  = Plot(
+            name = "M2CC",
+            texX = 'M_{2CC}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
+            stack = stack, 
+            variable = ScalarType.uniqueFloat().addFiller( lambda data:abs(data.m2CC) ),
+            binning=[300/20,0,300],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( dl_m2cc )
  
         l1_pt  = Plot(
             texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
