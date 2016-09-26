@@ -21,7 +21,7 @@ argParser.add_argument('--logLevel',
 )
 
 argParser.add_argument('--mode',
-    default='dilepton',
+    default='doubleMu',
     action='store',
     choices=['doubleMu', 'doubleEle',  'muEle', 'dilepton', 'sameFlavour'])
 
@@ -146,7 +146,7 @@ argParser.add_argument('--signals',
     action='store',
     nargs='*',
     type=str,
-    default=["T2tt_450_1"],
+    default=[],
     help="Signals?"
     )
 
@@ -630,7 +630,7 @@ for l_comb in l_combs:
             texX = 'M_{2CC}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
             variable = ScalarType.uniqueFloat().addFiller( lambda data:abs(data.m2CC) ),
-            binning=[300/20,0,300],
+            binning=[800/20,0,800],
             selectionString = selectionString,
             weight = weight,
             )

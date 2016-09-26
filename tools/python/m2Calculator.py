@@ -52,9 +52,20 @@ class m2Calculator:
         self.setBJet2(pt2,eta2,phi2)
 
 #M2CC
-    def m2CC(self):
+    def m2CC(self, strategy = "minMaxMass"):
         # Check inputs
         assert self.met and self.lepton1 and self.lepton2 and self.bjet1 and self.bjet2, "Incomplete specification, need met/lepton1/lepton2/bjet1/bjet2"
+
+        #select lepton/bjet pairing by minimizing maximum mass
+        if strategy=="minMaxMass":
+            max1 = max([(self.lepton1 + self.bjet1).M(), (self.lepton2 + self.bjet2).M()])
+            max2 = max([(self.lepton1 + self.bjet2).M(), (self.lepton2 + self.bjet1).M()])
+            if max1<max2: #Choose pairing with smaller invariant mass
+                l1,b1,l2,b2 = self.lepton1, self.bjet1, self.lepton2, self.bjet2
+            else:
+                l1,b1,l2,b2 = self.lepton1, self.bjet2, self.lepton2, self.bjet1
+        else:
+            assert False, "only minMaxMass implemented"
 
         # control verbosity
         self.m2Wrapper.verbose = self.verbose
@@ -64,7 +75,7 @@ class m2Calculator:
         ROOT.gErrorIgnoreLevel = 1001
 
         # Calculate result
-        result = self.m2Wrapper.calcM2( self.lepton1, self.lepton2, self.bjet1, self.bjet2, self.met, ROOT.m2Wrapper.M2CC )
+        result = self.m2Wrapper.calcM2( l1, l2, b1, b2, self.met, ROOT.m2Wrapper.M2CC )
 
         # reset logLevel
         ROOT.gErrorIgnoreLevel = errorLevel
