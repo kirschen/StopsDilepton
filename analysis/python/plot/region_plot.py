@@ -66,6 +66,11 @@ systematics = { 'JEC' :      ['JECUp', 'JECDown'],
                 'b-tag-l' :  ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'],
                 'trigger' :  ['reweightDilepTriggerBackupUp', 'reweightDilepTriggerBackupDown'],
                 'leptonSF' : ['reweightLeptonSFUp','reweightLeptonSFDown'],
+                'TTJets' :   ['shape-TTJetsUp', 'shape-TTJetsDown'],
+                'TTZ' :      ['shape-TTZUp', 'shape-TTZDown'],
+                'TTX' :      ['shape-TTXUp', 'shape-TTXDown'],
+                'MB' :       ['shape-MBUp', 'shape-MBDown'],
+                'DY' :       ['shape-DYUp', 'shape-DYDown'],
 }
 
 sysVariations = [None]
@@ -92,11 +97,23 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
     for i, r in enumerate(regions):
       for var in variations:
-        if var == 'statLow' or var == 'statHigh': continue
-        setup_ = setup if not var else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
+        if var in ['statLow', 'statHigh']: continue
+
+        setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
+        if var and var.count('TTJetsUp') and estimate.name.count('TTJets'):   res *= 1.5
+        if var and var.count('TTJetsDown') and estimate.name.count('TTJets'): res *= 0.5
+        if var and var.count('TTZUp') and estimate.name.count('TTZ'):         res *= 1.2
+        if var and var.count('TTZDown') and estimate.name.count('TTZ'):       res *= 0.8
+        if var and var.count('TTXUp') and estimate.name.count('TTX'):         res *= 1.25
+        if var and var.count('TTXDown') and estimate.name.count('TTX'):       res *= 0.75
+        if var and var.count('MBUp') and estimate.name.count('multiBoson'):   res *= 1.25
+        if var and var.count('MBDown') and estimate.name.count('multiBoson'): res *= 0.75
+        if var and var.count('DYUp') and estimate.name.count('DYBoson'):      res *= 1.25
+        if var and var.count('DYDown') and estimate.name.count('DYBoson'):    res *= 0.75
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
+
         if not var and ('statLow' in variations or 'statHigh' in variations):
           h['statLow'].SetBinContent(i+1,  res.val-res.sigma)
           h['statHigh'].SetBinContent(i+1, res.val+res.sigma)
@@ -136,7 +153,7 @@ def drawSR( regions ):
 
     tex2 = tex.Clone()
     tex2.SetTextSize(0.03)
-    tex2.SetTextColor(ROOT.kGray)
+    tex2.SetTextColor(12)
 
     lines2  = [(min+3*diff,  .9, '100 GeV < M_{T2}(ll) < 140 GeV')]
     lines2 += [(min+9*diff, .9, '140 GeV < M_{T2}(ll) < 240 GeV')]
@@ -147,7 +164,7 @@ def drawSR( regions ):
     lines3  = [(min+12.5*diff, .9, 'M_{T2}(ll) > 240 GeV')]
 
     line = ROOT.TLine()
-    line.SetLineColor(ROOT.kGray)
+    line.SetLineColor(12)
     line.SetLineWidth(2)
     line1 = (min+6*diff,  0.13, min+6*diff, 0.93);
     line2 = (min+12*diff, 0.13, min+12*diff, 0.93);
@@ -237,6 +254,6 @@ for channel in ['all','SF','EE','EMu','MuMu']:
         yRange = (0.006, "auto"),
         widths = {'x_width':1000, 'y_width':700},
         drawObjects = (drawLabels(regions_) if args.labels else drawSR(regions_)) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
-        legend = (0.55,0.85-0.015*(len(bkg_histos) + len(sig_histos)), 0.95, 0.85),
+        legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85),
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
