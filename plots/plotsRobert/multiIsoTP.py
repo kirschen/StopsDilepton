@@ -42,6 +42,13 @@ argParser.add_argument('--plot_directory',
     action='store',
 )
 
+argParser.add_argument('--pu',
+    default="reweightPU12fb",
+    action='store',
+    choices=["None", "reweightPU12fb", "reweightPU12fbUp", "reweightPU12fbDown"],
+    help='PU weight',
+)
+
 args = argParser.parse_args()
 
 # Logging
@@ -84,7 +91,7 @@ elif args.mode=="muEle":
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
-mc = [ DY_LO_HT, Top, multiBoson, TTZ, TTXNoZ]
+mc = [ DY_HT_LO, Top, multiBoson, TTZ, TTXNoZ]
 
 for d in data_samples:
     d.style = styles.errorStyle( ROOT.kBlack )
@@ -107,6 +114,9 @@ from StopsDilepton.tools.user import plot_directory
 # official PU reweighting
 weight = lambda data: data.weight
 
+for sample in mc:
+    sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
+    sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
 
 sequence = []    
 
@@ -187,9 +197,14 @@ def makeNonIsoLeptons( data ):
 sequence.append( makeNonIsoLeptons )
 
 cuts=[
+    ("mll20", "dl_mass>20"),
     ("njet2p", "nJetGood>=2"),
     ("nbtag1p", "nBTag>=1"),
     ("met80", "met_pt>80"),
+    ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
+    ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
+    ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
+    ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),  
 ]
                 
 def drawObjects( dataMCScale ):
@@ -276,7 +291,7 @@ tag_jetPtRatiov2  = Plot(
     texX = 'jetPtRatiov2(tag)', texY = 'Number of Events',
     stack = stack, 
     variable = ScalarType.uniqueFloat().addFiller(lambda data:data.tag_jetPtRatiov2),
-    binning=[40,0,1],
+    binning=[28,0,1.4],
     selectionString = selectionString,
     weight = weight,
     )
@@ -337,16 +352,49 @@ probe_jetPtRelv2  = Plot(
     )
 plots.append( probe_jetPtRelv2 )
 
+probe_jetPtRelv2_miniRelIsoVT  = Plot(
+    name = "probe_jetPtRelv2_miniRelIsoVT",
+    texX = 'jetPtRelv2(probe)', texY = 'Number of Events',
+    stack = stack, 
+    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_jetPtRelv2 if data.probe_miniRelIso<0.09 else float('nan')),
+    binning=[50,0,50],
+    selectionString = selectionString,
+    weight = weight,
+    )
+plots.append( probe_jetPtRelv2_miniRelIsoVT )
+
 probe_jetPtRatiov2  = Plot(
     name = "probe_jetPtRatiov2",
     texX = 'jetPtRatiov2(probe)', texY = 'Number of Events',
     stack = stack, 
     variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_jetPtRatiov2),
-    binning=[40,0,1],
+    binning=[28,0,1.4],
     selectionString = selectionString,
     weight = weight,
     )
 plots.append( probe_jetPtRatiov2 )
+
+probe_jetPtRatiov2_miniRelIsoVT  = Plot(
+    name = "probe_jetPtRatiov2_miniRelIsoVT",
+    texX = 'jetPtRatiov2(probe)', texY = 'Number of Events',
+    stack = stack, 
+    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_jetPtRatiov2 if data.probe_miniRelIso<0.09 else float('nan')),
+    binning=[28,0,1.4],
+    selectionString = selectionString,
+    weight = weight,
+    )
+plots.append( probe_jetPtRatiov2_miniRelIsoVT )
+
+probe_jetPtRatiov2_miniRelIsoVT_ptRel07  = Plot(
+    name = "probe_jetPtRatiov2_miniRelIsoVT_ptRel07",
+    texX = 'jetPtRatiov2(probe)', texY = 'Number of Events',
+    stack = stack, 
+    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_jetPtRatiov2 if (data.probe_miniRelIso<0.09 and data.probe_jetPtRelv2<7.2) else float('nan')),
+    binning=[28,0,1.4],
+    selectionString = selectionString,
+    weight = weight,
+    )
+plots.append( probe_jetPtRatiov2_miniRelIsoVT_ptRel07 )
 
 tp_mass  = Plot(
     name = "tp_mass",
@@ -374,8 +422,8 @@ plots.append( tp_mt2ll )
 read_variables = ["weight/F" , "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "met_pt/F", "met_phi/F"]
 
 read_variables.extend([\
-    "nLepGood/I",  "LepGood[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]",
-    "nLepOther/I", "LepOther[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]",
+    "nLepGood/I",  "LepGood[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I,etaSc/F]",
+    "nLepOther/I", "LepOther[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I,etaSc/F]",
 ])
 
 plotting.fill(plots, read_variables = read_variables, sequence = sequence)
@@ -390,6 +438,14 @@ for plot in plots:
 
     plotting.draw(plot, 
         plot_directory = plot_path, ratio = {'yRange':(0.1,1.9)}, 
+        logX = False, logY = False, sorting = True, 
+        yRange = (0.03, "auto"), 
+        scaling = {0:1},
+        drawObjects = drawObjects(plot.histos_added[1][0].Integral()/(lumi_scale*plot.histos_added[0][0].Integral()) )
+    )
+
+    plotting.draw(plot, 
+        plot_directory = plot_path+'/log/', ratio = {'yRange':(0.1,1.9)}, 
         logX = False, logY = True, sorting = True, 
         yRange = (0.03, "auto"), 
         scaling = {0:1},
