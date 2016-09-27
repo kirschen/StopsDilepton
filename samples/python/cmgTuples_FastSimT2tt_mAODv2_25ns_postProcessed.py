@@ -35,7 +35,7 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt
             treeName = "Events",
             isData = False,
             color = 8 ,
-            texName = "T2tt("+mStop+","+mNeu+")"
+            texName = "#tilde{t} #rightarrow t#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{0}} ("+mStop+","+mNeu+")"
         )
 
         tmp.mStop = int(mStop)
