@@ -143,17 +143,17 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("mt2bb") > 1:   continue
         if selection.count("metSig") > 1:  continue
         if selection.count("met80") > 1:   continue
-#        if not (selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-#             or selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-#             or selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv')
-#             or selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv')
-#             or selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv')
-#             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv')
-#             or selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-#             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-#             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
-#        ): continue
-        if not selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv'): continue
+        if not (selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
+             or selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
+             or selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv')
+             or selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv')
+             or selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv')
+             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv')
+             or selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
+             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
+             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
+        ): continue
+    #    if not selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv'): continue
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 
@@ -208,7 +208,7 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
 
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
-if args.powheg:                   args.plot_directory += "_topPowheg_500_250"
+if args.powheg:                   args.plot_directory += "_topPowheg"
 if args.splitTop:                 args.plot_directory += "_splitTop"
 
 
@@ -219,7 +219,7 @@ postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-T2tt                    = T2tt_500_250
+T2tt                    = T2tt_650_1
 T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
 T2tt2                   = T2tt_700_100
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
@@ -236,7 +236,7 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
-      (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV) Scale %3.2f'% ( dataMCScale ) ) if plotData else (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
+      (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV) Scale %3.2f'% ( dataMCScale ) ) if False else (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
     ]
     return [tex.DrawLatex(*l) for l in lines] 
 
@@ -677,9 +677,11 @@ for index, mode in enumerate(allModes):
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
         # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
-        if args.selection.count('mt2ll100'):
-	    for ib in range( 1 + h_rel_err.GetNbinsX() ):
-		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.5*topHist.GetBinContent(ib))**2 )
+        if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
+	    for ib in range(1 + h_rel_err.GetNbinsX() ):
+                if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
+                topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
+		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
@@ -733,7 +735,8 @@ for index, mode in enumerate(allModes):
 	  plotting.draw(plot,
 	      plot_directory = plotDir,
 	      ratio = ratio,
+	      legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.95,0.88),
 	      logX = False, logY = log, #sorting = True,
 	      yRange = (0.03, "auto"),
-	      drawObjects = drawObjects( False, top_sf[None], lumi_scale ) + boxes
+	      drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes
 	  )

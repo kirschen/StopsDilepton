@@ -74,6 +74,7 @@ cuts = [
     ("metSig5",           "metSig>5"),
 #    ("metSig20",          "metSig>20"),
     ("metSigInv",         "metSig<5"),
+    ("dPhiJet0",          "cos(met_phi-JetGood_phi[0])<0.8"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
     ("dPhiInv",           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))"),
     ("mt2ll100",          "dl_mt2ll>100"),
@@ -94,7 +95,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if not selection.count("multiIsoWP"):      continue
         if not selection.count("looseLeptonVeto"): continue
         if not selection.count("mll20"):           continue
-        if not selection.count("njet"):            continue
+ #       if not selection.count("njet"):            continue
         if selection.count("met50")  and selection.count("met80"):      continue
         if (selection.count("met50")  or selection.count("met80")) and selection.count('metInv'):      continue
         if selection.count("onZ")    and selection.count("allZ"):       continue
@@ -121,6 +122,22 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("mt2blbl") > 1: continue
         if selection.count("mt2bb") > 1:   continue
         if selection.count("metSig") > 1:  continue
+        if selection.count("dPhiJet0") > 1:  continue
+
+        if selection not in ['njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100']: continue
+
+#        if selection not in ['multiIsoWP-looseLeptonVeto-mll20',
+#                             'njet2-multiIsoWP-looseLeptonVeto-mll20',
+#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20',
+#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80',
+#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0',
+#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
+#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140']: continue
+
 
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
@@ -151,7 +168,9 @@ if args.powheg:                   args.plot_directory += "_topPowheg"
 if args.splitTop:                 args.plot_directory += "_splitTop"
 #if args.selection.count("mt2ll") and args.selection.count('btagM'): args.noData = True
 
-if args.selection.count("btag0"): args.signal = None
+if args.selection.count("btag0") and args.selection.count("onZ"): args.signal = None
+if args.selection.count("njet2-multiIsoWP-looseLeptonVeto-mll20-onZ"): args.signal = None
+if args.selection.count("njet2-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100"): args.signal = None
 
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -162,7 +181,7 @@ from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi1_Mphi100
 T2tt                    = T2tt_650_1 # Take 450,0 as default to plot
-T2tt2                   = T2tt_450_150
+T2tt2                   = T2tt_500_250
 T2tt3                   = T2tt_450_250
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
 T2tt3.style             = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
@@ -180,6 +199,8 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
       (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
       (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV) Scale %3.2f'% ( dataMCScale ) ) if plotData else (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
     ]
+    if args.selection=="njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100" and args.noData:
+      lines += [(0.55, 0.5, 'M_{T2}(ll) > 100 GeV')]
     return [tex.DrawLatex(*l) for l in lines] 
 
 
@@ -197,7 +218,7 @@ def drawPlots(plots, mode, dataMCScale):
 	    logX = False, logY = log, sorting = True,
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
 	    scaling = {},
-	    legend = (0.50,0.93-0.04*sum(map(len, plot.histos)),0.95,0.93),
+	    legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88) if not args.noData else (0.50,0.9-0.047*sum(map(len, plot.histos)),0.85,0.9),
 	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
       )
 
@@ -262,11 +283,11 @@ for index, mode in enumerate(allModes):
   if not args.noData:
     if not args.signal:         stack = Stack(mc, data_sample)
     elif args.signal == "DM":   stack = Stack(mc, data_sample, TTbarDMJets_scalar_Mchi1_Mphi100)
-    elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt)
+    elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt, T2tt2)
   else:
     if not args.signal:         stack = Stack(mc)
     elif args.signal == "DM":   stack = Stack(mc, TTbarDMJets_scalar_Mchi1_Mphi100)
-    elif args.signal == "T2tt": stack = Stack(mc, T2tt)
+    elif args.signal == "T2tt": stack = Stack(mc, T2tt, T2tt2)
 
   for sample in [T2tt, T2tt2, T2tt3]:
     sample.scale          = lumi_scale
@@ -548,7 +569,7 @@ for mode in ["SF","all"]:
 
 
 # Write to tex file
-columns = [i.name for i in mc] + ["MC", "data"] + ([TTbarDMJets_scalar_Mchi1_Mphi100.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name, T2tt3.name] if args.signal=="T2tt" else [])
+columns = [i.name for i in mc] + ["MC", "data"] + ([TTbarDMJets_scalar_Mchi1_Mphi100.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
 texdir = "tex"
 if args.powheg: texdir += "_powheg"
 try:
