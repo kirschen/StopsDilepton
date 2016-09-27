@@ -30,7 +30,7 @@ WJetsSample        = WJetsToLNu #WJetsToLNu_HT
 otherEWKComponents = [TTXNoZ, WJetsSample]
 otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
 
-from StopsDilepton.analysis.SystematicEstimator import jmeVariations
+from StopsDilepton.analysis.SystematicEstimator import jmeVariations, metVariations
 from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels
 from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplacements
 from StopsDilepton.tools.objectSelection import getFilterCut
@@ -154,13 +154,16 @@ class Setup:
 	'''
         #Consistency checks
         assert dataMC in ['Data','MC'],                                                          "dataMC = Data or MC, got %r."%dataMC
-        if self.sys['selectionModifier']: assert self.sys['selectionModifier'] in jmeVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
+        if self.sys['selectionModifier']: assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
         assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                           "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
 
         #Postfix for variables (only for MC and if we have a jme variation)
         sysStr = ""
+        metStr = ""
         if dataMC == "MC" and self.sys['selectionModifier'] in jmeVariations:
             sysStr = self.sys['selectionModifier']
+        if dataMC == "MC" and self.sys['selectionModifier'] in metVariations:
+            metStr = self.sys['selectionModifier']
 
         res={'cuts':[], 'prefixes':[]}
 

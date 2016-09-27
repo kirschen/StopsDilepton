@@ -95,6 +95,10 @@ xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPE
 xsecPlot.Draw()
 xsecPlot.Save("%sXSEC" %outputname)
 
+temp = ROOT.TFile("tmp.root","update")
+xsecPlot.c.Write("cCONT_XSEC")
+temp.Close()
+
 # only lines
 contPlot = smsPlotCONT(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
 contPlot.Draw()

@@ -1,4 +1,5 @@
 jmeVariations = ["JER", "JERUp", "JERDown", "JECUp", "JECDown"]
+metVariations = ['UnclusteredEnUp', 'UnclusteredEnDown']
 
 # Standard imports
 import os
