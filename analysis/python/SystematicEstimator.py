@@ -94,6 +94,12 @@ class SystematicEstimator:
         down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECDown'}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
+    def unclusteredSystematic(self, region, channel, setup):
+        ref  = self.cachedEstimate(region, channel, setup)
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'unclusteredEnUp'}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'unclusteredEnDown'}))
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
+
     def leptonFSSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSF']}))
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']}))

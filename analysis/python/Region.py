@@ -1,7 +1,7 @@
 allowedVars = ["dl_mt2ll", "dl_mt2blbl", "dl_mt2bb"]
 texString  = { "dl_mt2ll":"M_{T2}(ll)", "dl_mt2blbl":"M_{T2}(blbl)", "dl_mt2bb":"M_{T2}(bb)" }
 
-from StopsDilepton.analysis.SystematicEstimator import jmeVariations
+from StopsDilepton.analysis.SystematicEstimator import jmeVariations, metVariations
 from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplacements
 
 class Region:
@@ -33,7 +33,7 @@ class Region:
         return res
 
     def cutString(self, selectionModifier=None):
-        if selectionModifier: assert selectionModifier in jmeVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(selectionModifier, ",".join(jmeVariations+['genMet']))
+        if selectionModifier: assert selectionModifier in jmeVariations+metVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(selectionModifier, ",".join(jmeVariations+['genMet']))
         res=[]
         for var in self.variables():
             svar = var if (not selectionModifier or selectionModifier == 'genMet') else var+"_"+selectionModifier

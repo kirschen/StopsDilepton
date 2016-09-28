@@ -196,16 +196,16 @@ class Setup:
             res['prefixes'].append(prefix)
 
         if metMin and metMin>0:
-          res['cuts'].append('met_pt'+sysStr+'>='+str(metMin))
+          res['cuts'].append('met_pt'+sysStr+metStr+'>='+str(metMin))
           res['prefixes'].append('met'+str(metMin))
         if metSigMin and metSigMin>0:
-          res['cuts'].append('metSig'+sysStr+'>='+str(metSigMin))
+          res['cuts'].append('metSig'+sysStr+metStr+'>='+str(metSigMin))
           res['prefixes'].append('metSig'+str(metSigMin))
         if dPhi:
-          res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos(0.25)')
+          res['cuts'].append('cos(met_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25)')
           res['prefixes'].append('dPhiJet0-dPhiJet')
         elif dPhiInv:
-          res['cuts'].append('!(cos(met_phi'+sysStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos(0.25))')
+          res['cuts'].append('!(cos(met_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25))')
           res['prefixes'].append('dPhiInv')
 
         if not hadronicSelection:
