@@ -21,10 +21,10 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal to plot?")
-argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
-argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
-argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTJets","TTJets-DD"],                                                                        help="which TTJets estimate?")
-argParser.add_argument("--estimateMB",     action='store', default='multiBoson',        nargs='?', choices=["multiBoson","multiBoson-DD"],                                                                help="which multiBoson estimate?")
+argParser.add_argument("--estimateDY",     action='store', default='DY-DD',             nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
+argParser.add_argument("--estimateTTZ",    action='store', default='TTZ-DD-Top16009',   nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
+argParser.add_argument("--estimateTTJets", action='store', default='TTJets-DD',         nargs='?', choices=["TTJets","TTJets-DD"],                                                                        help="which TTJets estimate?")
+argParser.add_argument("--estimateMB",     action='store', default='multiBoson-DD',     nargs='?', choices=["multiBoson","multiBoson-DD"],                                                                help="which multiBoson estimate?")
 argParser.add_argument("--labels",         action='store_true', default=False,          help="plot labels?")
 args = argParser.parse_args()
 
@@ -212,7 +212,7 @@ for channel in ['all','SF','EE','EMu','MuMu']:
     # Adding the systematics in quadrature
     for k in h_sys.keys():
         for ib in range( 1 + h_rel_err.GetNbinsX() ):
-            h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
+            h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (h_sys[k].GetBinContent(ib)/2)**2 )
 
     for ib in range( 1 + h_rel_err.GetNbinsX() ):
         h_rel_err.SetBinContent(ib, sqrt( h_rel_err.GetBinContent(ib) ) )
