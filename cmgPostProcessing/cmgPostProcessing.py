@@ -306,8 +306,7 @@ else:
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
     if options.TTDM:
-        # T2tt signal is 74X with Spring15 profile!
-        raise NotImplementedError( 'Hope you are not in a hurry.' )
+        raise NotImplementedError ("Careful.")
     else:
         # nTrueIntReweighting
         nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
