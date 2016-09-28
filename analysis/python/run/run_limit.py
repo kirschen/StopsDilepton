@@ -72,6 +72,7 @@ def wrapper(s):
 	c.addUncertainty('PU',         'lnN')
 	c.addUncertainty('topPt',      'lnN')
 	c.addUncertainty('JEC',        'lnN')
+	c.addUncertainty('unclEn',     'lnN')
 	c.addUncertainty('JER',        'lnN')
 	c.addUncertainty('SFb',        'lnN')
 	c.addUncertainty('SFl',        'lnN')
@@ -106,6 +107,7 @@ def wrapper(s):
                     if expected.val>0:
                         c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val )
                         c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val )
+                        c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val )
                         c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val )
                         c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val )
                         c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
@@ -139,6 +141,7 @@ def wrapper(s):
                 if signal.val>0:
                     c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
                     c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
+                    c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
                     c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
