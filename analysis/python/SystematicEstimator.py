@@ -96,8 +96,8 @@ class SystematicEstimator:
 
     def unclusteredSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'unclusteredEnUp'}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'unclusteredEnDown'}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnUp'}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnDown'}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def leptonFSSystematic(self, region, channel, setup):
@@ -148,11 +148,15 @@ class SystematicEstimator:
 
             (region, channel, setup.sysClone({'reweight':['reweightTopPt']})),
 
+
             (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
             (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
 
             (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
             (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
+
+            (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnUp'})),
+            (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnDown'})),
 
             (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
             (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
