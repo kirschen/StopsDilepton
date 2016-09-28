@@ -161,9 +161,9 @@ class Setup:
         sysStr = ""
         metStr = ""
         if dataMC == "MC" and self.sys['selectionModifier'] in jmeVariations:
-            sysStr = self.sys['selectionModifier']
+            sysStr = "_" + self.sys['selectionModifier']
         if dataMC == "MC" and self.sys['selectionModifier'] in metVariations:
-            metStr = self.sys['selectionModifier']
+            metStr = "_" + self.sys['selectionModifier']
 
         res={'cuts':[], 'prefixes':[]}
 
