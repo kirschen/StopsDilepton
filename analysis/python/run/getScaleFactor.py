@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from StopsDilepton.analysis.Region import Region
 from StopsDilepton.analysis.estimators import setup, DataDrivenDYEstimate, DataDrivenMultiBosonEstimate
-from StopsDilepton.analysis.regions import regions80X
 import os
 
 import StopsDilepton.tools.logger as logger
@@ -58,7 +57,7 @@ with open(texfile, "w") as table:
     estimateDY.initCache(setup.defaultCacheDir())
 
     for channel in ['MuMu']:  # is the same for EE
-      for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a controlRegion
+      for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a control
         for modifier in modifiers:
   	  (yields, data, scaleFactor) = estimateDY._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True)
           table.write("  " + tex + " & "+ " & ".join([("%.2f" % yields[s].val) for s in ['DY','TTJets','multiBoson','TTX']]) + " & " + "%d" % data.val)

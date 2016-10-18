@@ -3,18 +3,24 @@ import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument("--estimates",      action='store', default='dd',                nargs='?', choices=["mc","dd"],                                                                                   help="mc estimators or data-driven estimators?")
-argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal?")
+argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM"],                                                                                 help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,                nargs='?',                                                                                                        help="pick only one masspoint?")
+argParser.add_argument("--scale",          action='store', default=1.0, type=float,    nargs='?',                                                                                                        help="scaling all yields")
+argParser.add_argument("--overwrite",  default = False, action = "store_true", help="Overwrite existing output files")
+
 args = argParser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.estimators   import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTZEstimate, DataDrivenDYEstimate, DataDrivenTTJetsEstimate
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions      import regions80X
+from StopsDilepton.analysis.regions      import regions80X, regions80X_2D, superRegion140 
 from StopsDilepton.analysis.Cache        import Cache
 
-
-regions = regions80X
+if args.signal == "T2tt":
+    regions = regions80X
+elif args.signal == "TTbarDM":
+    regions = regions80X_2D
+    #regions = superRegion140
 
 if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ'])
 elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'multiBoson-DD', 'TTXNoZ'])
@@ -37,7 +43,7 @@ if args.estimates == "dd": baseDir = os.path.join(setup.analysis_results, setup.
 
 limitPrefix = "regions80X"
 limitDir    = os.path.join(baseDir, 'cardFiles', args.signal, limitPrefix)
-overWrite   = (args.only is not None)
+overWrite   = (args.only is not None) or args.overwrite
 useCache    = True
 verbose     = True
 
@@ -47,11 +53,10 @@ limitCache    = Cache(cacheFileName, verbosity=2)
 
 
 if   args.signal == "T2tt": fastSim = True
-elif args.signal == "DM":   fastSim = False
+elif args.signal == "TTbarDM":   fastSim = False
 
-
-scaleUncCache = Cache('scale.pkl', verbosity=2)
-isrUncCache   = Cache('isr.pkl', verbosity=2)
+scaleUncCache = Cache('scale_%s.pkl' % args.signal, verbosity=2)
+isrUncCache   = Cache('isr_%s.pkl'   % args.signal, verbosity=2)
 
 def getScaleUnc(name, r, channel):
   if scaleUncCache.contains((name, r, channel)): return max(0.01, scaleUncCache.get((name, r, channel)))
@@ -102,7 +107,7 @@ def wrapper(s):
                     name = e.name.split('-')[0]
                     expected = e.cachedEstimate(r, channel, setup)
                     total_exp_bkg += expected.val
-                    c.specifyExpectation(binname, name, expected.val )
+                    c.specifyExpectation(binname, name, expected.val*args.scale )
 
                     if expected.val>0:
                         c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val )
@@ -126,17 +131,16 @@ def wrapper(s):
                         c.addUncertainty(uname, 'lnN')
                         c.specifyUncertainty(uname, binname, name, 1+expected.sigma/expected.val )
 
-                c.specifyObservation(binname, int(observation.cachedObservation(r, channel, setup).val))
+                c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
                 #signal
                 e = eSignal
                 eSignal.isSignal = True
                 if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
+                else:       signalSetup = setup.sysClone()
                 signal = e.cachedEstimate(r, channel, signalSetup)
 
-                c.specifyExpectation(binname, 'signal', signal.val )
-
-
+                c.specifyExpectation(binname, 'signal', args.scale*signal.val )
 
                 if signal.val>0:
                     c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
@@ -171,7 +175,7 @@ def wrapper(s):
     else:
         print "File %s found. Reusing."%cardFileName
 
-    if   args.signal == "DM":   sConfig = s.mChi, s.mPhi, s.type
+    if   args.signal == "TTbarDM":   sConfig = s.mChi, s.mPhi, s.type
     elif args.signal == "T2tt": sConfig = s.mStop, s.mNeu
 
     if useCache and not overWrite and limitCache.contains(sConfig):
@@ -181,7 +185,7 @@ def wrapper(s):
       limitCache.add(sConfig, res, save=True)
 
     if res: 
-      if   args.signal == "DM":   sString = "mChi %i mPhi %i type %i" % sConfig
+      if   args.signal == "TTbarDM":   sString = "mChi %i mPhi %i type %s" % sConfig
       elif args.signal == "T2tt": sString = "mStop %i mNeu %i" % sConfig
       try:
         print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
@@ -191,7 +195,7 @@ def wrapper(s):
         return None
 
 if   args.signal == "T2tt": jobs = signals_T2tt 
-elif args.signal == "DM":   jobs = signals_TTDM
+elif args.signal == "TTbarDM":   jobs = signals_TTbarDM
 
 if args.only is not None:
   wrapper(jobs[int(args.only)])
@@ -227,30 +231,32 @@ if args.signal == "T2tt":
 
 
 # Make table for DM
-if args.signal == "DM":
+if args.signal == "TTbarDM":
   # Create table
   texdir = os.path.join(baseDir, 'limits', args.signal, limitPrefix)
   if not os.path.exists(texdir): os.makedirs(texdir)
 
   for type in sorted(set([type_ for ((mChi, mPhi, type_), res) in results])):
-    chiList = sorted(set([mChi  for ((mChi, mPhi, type_), res) in results if type_ == type]))
-    phiList = sorted(set([mPhi  for ((mChi, mPhi, type_), res) in results if type_ == type]))
-    print "Writing to " + texdir + "/" + type + ".tex"
-    with open(texdir + "/" + type + ".tex", "w") as f:
-      f.write("\\begin{tabular}{cc|" + "c"*len(phiList) + "} \n")
-      f.write(" & & \multicolumn{" + str(len(phiList)) + "}{c}{$m_\\phi$ (GeV)} \\\\ \n")
-      f.write("& &" + " & ".join(str(x) for x in phiList) + "\\\\ \n \\hline \\hline \n")
-      for chi in chiList:
-	resultList = []
-	for phi in phiList:
-	  result = ''
-	  try:
-	    for ((c, p, t), r) in results:
-	      if c == chi and p == phi and t == type:
-		  result = "%.3f" % r['0.500']
-	  except:
-	    pass
-	  resultList.append(result)
-	if chi == chiList[0]: f.write("\\multirow{" + str(len(chiList)) + "}{*}{$m_\\chi$ (GeV)}")
-	f.write(" & " + str(chi) + " & " + " & ".join(resultList) + "\\\\ \n")
-      f.write(" \\end{tabular}")
+    for lim, key in [['exp','0.500'], ['obs', '-1.000']]:
+        chiList = sorted(set([mChi  for ((mChi, mPhi, type_), res) in results if type_ == type]))
+        phiList = sorted(set([mPhi  for ((mChi, mPhi, type_), res) in results if type_ == type]))
+        ofilename = texdir + "/%s_%s.tex"%(type, lim)
+        print "Writing to ", ofilename 
+        with open(ofilename, "w") as f:
+          f.write("\\begin{tabular}{cc|" + "c"*len(phiList) + "} \n")
+          f.write(" & & \multicolumn{" + str(len(phiList)) + "}{c}{$m_\\phi$ (GeV)} \\\\ \n")
+          f.write("& &" + " & ".join(str(x) for x in phiList) + "\\\\ \n \\hline \\hline \n")
+          for chi in chiList:
+            resultList = []
+            for phi in phiList:
+              result = ''
+              try:
+                for ((c, p, t), r) in results:
+                  if c == chi and p == phi and t == type:
+                      result = "%.2f" % r[key]
+              except:
+                pass
+              resultList.append(result)
+            if chi == chiList[0]: f.write("\\multirow{" + str(len(chiList)) + "}{*}{$m_\\chi$ (GeV)}")
+            f.write(" & " + str(chi) + " & " + " & ".join(resultList) + "\\\\ \n")
+          f.write(" \\end{tabular}")

@@ -8,7 +8,7 @@ from StopsDilepton.tools.user import data_directory
 #RootTools
 from RootTools.core.standard import *
 
-signals_TTDM=[]
+signals_TTbarDM = []
 
 # Take post processing directory if defined in main module
 try:
@@ -20,9 +20,13 @@ except:
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory)):
     if f.startswith('TTbarDMJets_'):
         s = f.split('_')
-        type = s[1]
-        mChi = int(s[2].replace('Mchi',''))
-        mPhi = int(s[3].replace('Mphi',''))
+        if s[1] == 'pseudoscalar':
+            tp_ = "PS"
+        elif s[1] == 'scalar':
+            tp_ = "S"
+
+        mChi = int(s[3])
+        mPhi = int(s[5])
 
         tmp = Sample.fromDirectory(\
             name = f,
@@ -30,13 +34,13 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory)):
             treeName = "Events",
             isData = False,
             color = 8 ,
-            texName = "%s(m_{#chi}=%i, m_{#phi}=%i)"%(type, mChi, mPhi)
+            texName = "%s(m_{#chi}=%i, m_{#phi}=%i)"%(tp_, mChi, mPhi)
         )
         tmp.mChi = mChi
         tmp.mPhi = mPhi
-        tmp.type = type
+        tmp.type = tp_
 
         exec("%s=tmp"%f)
-        exec("signals_TTDM.append(%s)"%f)
+        exec("signals_TTbarDM.append(%s)"%f)
 
-print "Loaded %i TTDM signals: %s"%(len(signals_TTDM), ",".join([s.name for s in signals_TTDM]))
+print "Loaded %i TTDM signals: %s"%(len(signals_TTbarDM), ",".join([s.name for s in signals_TTbarDM]))

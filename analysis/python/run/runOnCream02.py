@@ -19,7 +19,8 @@ signalEstimators = [s.name for s in signals_T2tt]
 
 
 from StopsDilepton.analysis.regions import regions80X, reducedRegionsNew, superRegion, superRegion140
-allRegions = set(regions80X + superRegion + superRegion140)
+
+allRegions = regions80X + superRegion + superRegion140 #Cannot be a set! A set has no order and you enumerate below
 
 for i, estimator in enumerate(estimators):
   for j, region in enumerate(allRegions):

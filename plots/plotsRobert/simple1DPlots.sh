@@ -1,12 +1,29 @@
 #!/bin/sh
 
-#mIsoWP
-python simple1DPlots.py  --noLoop --overwrite --mIsoWP 0 &
-python simple1DPlots.py  --noLoop --overwrite --mIsoWP 1 &
-python simple1DPlots.py  --noLoop --overwrite --mIsoWP 2 &
-python simple1DPlots.py  --noLoop --overwrite --mIsoWP 3 &
-python simple1DPlots.py  --noLoop --overwrite --mIsoWP 4 &
-python simple1DPlots.py  --noLoop --overwrite --mIsoWP 5 &
+# TTbarDM
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_10 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10 --overwrite $1 $2 --mode=doubleMu --zMode=offZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_10"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_20 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_20 --overwrite $1 $2 --mode=doubleMu --zMode=offZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_20"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_50 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50 --overwrite $1 $2 --mode=doubleMu --zMode=offZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_50"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_10 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10 --overwrite $1 $2 --mode=doubleEle --zMode=offZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_10"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_20 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_20 --overwrite $1 $2 --mode=doubleEle --zMode=offZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_20"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_50 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50 --overwrite $1 $2 --mode=doubleEle --zMode=offZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_50"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_10 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10 --overwrite $1 $2 --mode=muEle --zMode=allZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_10"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_20 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_20 --overwrite $1 $2 --mode=muEle --zMode=allZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_20"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_50 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50 --overwrite $1 $2 --mode=muEle --zMode=allZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_50"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_10 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10 --overwrite $1 $2 --mode=sameFlavour --zMode=offZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_10"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_20 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_20 --overwrite $1 $2 --mode=sameFlavour --zMode=offZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_20"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_50 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50 --overwrite $1 $2 --mode=sameFlavour --zMode=offZ  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_50"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_10 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10 --overwrite $1 $2 --mode=dilepton  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_10"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_20 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_20 --overwrite $1 $2 --mode=dilepton  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_20"
+./submit.sh "python simple1DPlots.py --signals TTbarDMJets_scalar_Mchi_1_Mphi_50 TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50 --overwrite $1 $2 --mode=dilepton  --plot_directory=80X_v12_TTDM/Mchi_1_Mphi_50"
+
+##mIsoWP
+#python simple1DPlots.py  --noLoop --overwrite --mIsoWP 0 &
+#python simple1DPlots.py  --noLoop --overwrite --mIsoWP 1 &
+#python simple1DPlots.py  --noLoop --overwrite --mIsoWP 2 &
+#python simple1DPlots.py  --noLoop --overwrite --mIsoWP 3 &
+#python simple1DPlots.py  --noLoop --overwrite --mIsoWP 4 &
+#python simple1DPlots.py  --noLoop --overwrite --mIsoWP 5 &
 #./submit.sh "python simple1DPlots.py  --noLoop --overwrite --mIsoWP 0"
 #./submit.sh "python simple1DPlots.py  --noLoop --overwrite --mIsoWP 1"
 #./submit.sh "python simple1DPlots.py  --noLoop --overwrite --mIsoWP 2"
