@@ -20,7 +20,7 @@ from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
-argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","DM"],                                                                                 help="which signal to plot?")
+argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM"],                                                                                 help="which signal to plot?")
 argParser.add_argument("--estimateDY",     action='store', default='DY-DD',             nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ-DD-Top16009',   nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
 argParser.add_argument("--estimateTTJets", action='store', default='TTJets-DD',         nargs='?', choices=["TTJets","TTJets-DD"],                                                                        help="which TTJets estimate?")
@@ -29,7 +29,10 @@ argParser.add_argument("--labels",         action='store_true', default=False,  
 args = argParser.parse_args()
 
 detailedEstimators = constructEstimatorList([args.estimateTTJets,  args.estimateDY, args.estimateTTZ, args.estimateMB, 'TTXNoZ'])
-signalSetup = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
+if args.signal=='T2tt':
+    signalSetup = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
+else:
+    signalSetup = setup
 
 for estimator in detailedEstimators:
     estimatorColor = getattr( color, estimator.name.split('-')[0] ) 
@@ -37,9 +40,21 @@ for estimator in detailedEstimators:
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in ([T2tt_650_1] if args.signal == "T2tt" else [TTbarDMJets_scalar_Mchi1_Mphi100])]
+
+
+if args.signal == "T2tt":
+    signals = [T2tt_650_1, T2tt_450_1]
+    postfix = "regions_80X"
+elif args.signal == "TTbarDM":
+    #postfix = "regions_80X_scalar"
+    #signals = [TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_scalar_Mchi_1_Mphi_20, TTbarDMJets_scalar_Mchi_1_Mphi_50]
+    postfix = "regions_80X_pseudoscalar"
+    signals = [TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_20, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50]
+
+signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals]
+
 for i, estimator in enumerate(signalEstimators):
-    estimator.style = styles.lineStyle( ROOT.kBlack, width=2, dotted=(i==1), dashed=(i==2) )
+    estimator.style = styles.lineStyle( ROOT.kBlack, width=2, dotted=(i==1), dashed=(i==2), errors = True)
     estimator.isSignal=True
  
 estimators = detailedEstimators + signalEstimators
@@ -246,14 +261,17 @@ for channel in ['all','SF','EE','EMu','MuMu']:
    #     ratio_boxes.append( r_box )
 
 
-
+    if args.signal == "T2tt":
+        legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
+    elif args.signal == "TTbarDM":
+        legend = (0.55,0.85-0.010*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
     plotting.draw( region_plot, \
-        plot_directory = os.path.join(user.plot_directory, 'regions_80X', args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB),
+        plot_directory = os.path.join(user.plot_directory, postfix, args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB),
         logX = False, logY = True,
         sorting = True,
         yRange = (0.006, "auto"),
         widths = {'x_width':1000, 'y_width':700},
         drawObjects = (drawLabels(regions_) if args.labels else drawSR(regions_)) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
-        legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85),
+        legend = legend,
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )

@@ -130,7 +130,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v12_tmp2',
+        default='postProcessed_80X_v12_forwardJets',
         help="Name of the processing era"
         )
 
@@ -148,6 +148,11 @@ def get_parser():
         type=int,
         default=-1,
         help="LHE cut."
+        )
+
+    argParser.add_argument('--keepForwardJets',
+        action='store_true',
+        help="Is T2tt signal?"
         )
 
     argParser.add_argument('--small',
@@ -245,8 +250,8 @@ if options.T2tt:
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
     logger.debug("Done fetching signal weights.")
 elif options.TTDM:
-    samples = [ fromHeppySample(s, data_path = "/data/rschoefbeck/cmgTuples/TTBar_DM/", \
-                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring15MiniAODv2",  
+    samples = [ fromHeppySample(s, data_path = "/scratch/rschoefbeck/cmgTuples/80X_0l_TTDM/", \
+                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2",  
                     maxN = maxN)\
                 for s in options.samples ]
 else:
@@ -305,23 +310,20 @@ else:
 
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
-    if options.TTDM:
-        raise NotImplementedError ("Careful.")
-    else:
-        # nTrueIntReweighting
-        nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
-        nTrueInt12fb_puRWDown    = getReweightingFunction(data="PU_2016_12000_XSecDown", mc="Spring16")
-        nTrueInt12fb_puRWUp      = getReweightingFunction(data="PU_2016_12000_XSecUp", mc="Spring16")
-        nTrueInt_puRW        = getReweightingFunction(data="PU_2016_5300_XSecCentral", mc="Spring16")
-        nTrueInt_puRWDown    = getReweightingFunction(data="PU_2016_5300_XSecDown", mc="Spring16")
-        nTrueInt_puRWUp      = getReweightingFunction(data="PU_2016_5300_XSecUp", mc="Spring16")
-        ## 2016 NVTX reweighting
-        #from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
-        #nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_5300pb.pkl")
-        #nvtx_reweight_up      = getNVTXReweightingFunction(key = 'up', filename = "dilepton_allZ_isOS_5300pb.pkl")
-        #nvtx_reweight_down    = getNVTXReweightingFunction(key = 'down', filename = "dilepton_allZ_isOS_5300pb.pkl")
-        #nvtx_reweight_vup      = getNVTXReweightingFunction(key = 'vup', filename = "dilepton_allZ_isOS_5300pb.pkl")
-        #nvtx_reweight_vdown    = getNVTXReweightingFunction(key = 'vdown', filename = "dilepton_allZ_isOS_5300pb.pkl")
+    # nTrueIntReweighting
+    nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
+    nTrueInt12fb_puRWDown    = getReweightingFunction(data="PU_2016_12000_XSecDown", mc="Spring16")
+    nTrueInt12fb_puRWUp      = getReweightingFunction(data="PU_2016_12000_XSecUp", mc="Spring16")
+    nTrueInt_puRW        = getReweightingFunction(data="PU_2016_5300_XSecCentral", mc="Spring16")
+    nTrueInt_puRWDown    = getReweightingFunction(data="PU_2016_5300_XSecDown", mc="Spring16")
+    nTrueInt_puRWUp      = getReweightingFunction(data="PU_2016_5300_XSecUp", mc="Spring16")
+    ## 2016 NVTX reweighting
+    #from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
+    #nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_5300pb.pkl")
+    #nvtx_reweight_up      = getNVTXReweightingFunction(key = 'up', filename = "dilepton_allZ_isOS_5300pb.pkl")
+    #nvtx_reweight_down    = getNVTXReweightingFunction(key = 'down', filename = "dilepton_allZ_isOS_5300pb.pkl")
+    #nvtx_reweight_vup      = getNVTXReweightingFunction(key = 'vup', filename = "dilepton_allZ_isOS_5300pb.pkl")
+    #nvtx_reweight_vdown    = getNVTXReweightingFunction(key = 'vdown', filename = "dilepton_allZ_isOS_5300pb.pkl")
         
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
@@ -447,9 +449,9 @@ else:
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
 
-if options.T2tt:
+if options.T2tt or options.TTDM:
     branchKeepStrings_MC += ["nIsr"]
-if options.keepLHEWeights or options.T2tt:
+if options.keepLHEWeights or options.T2tt or options.TTDM:
         branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
 
 if isSingleLep:
@@ -548,7 +550,7 @@ if isTriLep or isDiLep:
             'reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F',
             'reweightLeptonHIPSF/F',
          ] )
-    if options.T2tt:
+    if options.T2tt or options.TTDM:
         new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
@@ -579,8 +581,10 @@ if addSystematicVariations:
         if var!='MC':
             new_variables.append('reweightBTag_'+var+'/F')
 
+if options.T2tt or options.TTDM:
+    read_variables += map(Variable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
 if options.T2tt:
-    read_variables += map(Variable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I', 'met_genPt/F', 'met_genPhi/F'] )
+    read_variables += map(Variable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
 
 if options.fastSim and (isTriLep or isDiLep):
@@ -670,8 +674,12 @@ def filler(s):
     if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
 
     # jet/met related quantities, also load the leptons already
-    allJets      = getGoodJets(r, ptCut=0, jetVars = jetVarNames )
-    jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4), allJets)
+    if options.keepForwardJets:
+        jetAbsEtaCut = 99.
+    else:
+        jetAbsEtaCut = 2.4
+    allJets      = getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=jetAbsEtaCut)
+    jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)
     bJets        = filter(lambda j:isBJet(j), jets)
     nonBJets     = filter(lambda j:not isBJet(j), jets)
     if isVeryLoose:
@@ -749,7 +757,7 @@ def filler(s):
             # JERUp, JERDown, JER
             addJERScaling(j)
         for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown']:
-            jets_sys[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt_'+var), allJets)
+            jets_sys[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_'+var), allJets)
             bjets_sys[var]      = filter(isBJet, jets_sys[var])
             nonBjets_sys[var]   = filter(lambda j: not isBJet(j), jets_sys[var])
 
@@ -873,7 +881,7 @@ def filler(s):
               dlg = dl + gamma
               s.dlg_mass = dlg.M()
 
-            if options.T2tt:
+            if options.T2tt or options.TTDM:
                 mt2Calc.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
                 setattr(s, "dl_mt2ll_gen", mt2Calc.mt2ll())
                 if len(jets)>=2:

@@ -10,8 +10,8 @@ def getJets(c, jetVars=jetVars, jetColl="Jet"):
 def jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt'):
   return j[ptVar]>ptCut and abs(j['eta'])<absEtaCut and j['id']
 
-def getGoodJets(c, ptCut=30, absEtaCut=2.4, jetVars=jetVars):
-    return filter(lambda j:jetId(j, ptCut=ptCut, absEtaCut=absEtaCut), getJets(c, jetVars))
+def getGoodJets(c, ptCut=30, absEtaCut=2.4, jetVars=jetVars, jetColl="Jet"):
+    return filter(lambda j:jetId(j, ptCut=ptCut, absEtaCut=absEtaCut), getJets(c, jetVars, jetColl=jetColl))
 
 def isBJet(j):
     return j['btagCSV']>0.800
@@ -25,7 +25,7 @@ def getGenLeps(c):
 def getGenParts(c):
     return [getObjDict(c, 'GenPart_', ['eta','pt','phi','charge', 'pdgId', 'motherId', 'grandmotherId'], i) for i in range(int(getVarValue(c, 'nGenPart')))]
 
-genVars = ['eta','pt','phi','charge', 'status', 'pdgId', 'motherId', 'grandmotherId','nDaughters','daughterIndex1','daughterIndex2','nMothers','motherIndex1','motherIndex2'] 
+genVars = ['eta','pt','phi','charge', 'status', 'pdgId', 'motherId', 'grandmotherId','nDaughters','daughterIndex1','daughterIndex2','nMothers','motherIndex1','motherIndex2','isPromptHard'] 
 def getGenPartsAll(c):
     return [getObjDict(c, 'genPartAll_', genVars, i) for i in range(int(getVarValue(c, 'ngenPartAll')))]
 
@@ -103,7 +103,7 @@ def miniIsoSelector( miniRelIso ):
     return func
 
 
-def alwaysTrue():
+def alwaysTrue(*args, **kwargs):
   return True
 
 # MUONS
@@ -211,8 +211,6 @@ def eleSelector(iso, eleId = 4, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, noMissing
             and abs(l["dz"]) < dz
 
     return func if not loose else funcLoose
-
-
 
 default_ele_selector = eleSelector( iso = 'VT', eleId = 4, absEtaCut = 2.4 )
 
