@@ -4,6 +4,7 @@ parser = OptionParser()
 parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
 #parser.add_option("--selectEstimator",       dest="selectEstimator",       default=None,                action="store",      help="select estimator?")
 #parser.add_option("--selectRegion",          dest="selectRegion",          default=None, type="int",    action="store",      help="select region?")
+parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt","TTbarDM"],                                                                                 help="which signal?")
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option('--overwrite',            dest="overwrite", default = False, action = "store_true", help="Overwrite existing output files, bool flag set to True  if used")
 (options, args) = parser.parse_args()
@@ -17,7 +18,7 @@ import pickle
 # Analysis
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 from StopsDilepton.analysis.estimators   import setup
-from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140
+from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140, regions80X_2D
 from StopsDilepton.analysis.u_float      import u_float 
 from StopsDilepton.analysis.Region       import Region 
 
@@ -32,32 +33,17 @@ logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-regions = regions80X #Use all the regions that are used in the limit setting
+regions = regions80X + regions80X_2D #Use all the regions that are used in the limit setting
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 
 from StopsDilepton.tools.user import analysis_results
 
-ofile = os.path.join( analysis_results, "systematics", "scale.pkl" )
+ofile = os.path.join( analysis_results, "systematics", "scale_%s.pkl" % options.signal )
 if not options.overwrite:
     if os.path.exists( ofile ):
         logger.warning( "Found file %s. Exiting. Use --overwrite if you want.", ofile ) 
         sys.exit(0)
-
-#Loading Fall15 with PDF weights
-data_directory           = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
-postProcessing_directory = "postProcessed_Fall15_v3/dilepTiny" 
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
-for s in signals_T2tt:
-    s.is76X = True
-
-signals = signals_T2tt
-
-## Temporary:
-#from RootTools.core.standard import *
-#T2tt_425_325 = Sample.fromFiles(name="T2tt_425_325", treeName="Events", isData=False, color=ROOT.kBlack, texName="T2tt(425,325)", \
-#    files=['/afs/hephy.at/data/rschoefbeck02/cmgTuples/postProcessed_80X_v12/dilepTiny/T2tt/T2tt_425_325.root'], maxN = -1)
-#signals = [T2tt_425_325]
 
 ##  Information on scale variations:
 #p10 https://indico.cern.ch/event/459797/contributions/1961581/attachments/1181555/1800214/mcaod-Feb15-2016.pdf 
@@ -72,6 +58,23 @@ signals = signals_T2tt
 #7<weight id="1008"> muR=0.50000E+00 muF=0.20000E+01 </weight>
 #8<weight id="1009"> muR=0.50000E+00 muF=0.50000E+00 </weight>
 #n.b \1001" is index 0 in the weights() vector
+
+if options.signal == "T2tt":
+    #Loading Fall15 with PDF weights
+    data_directory           = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
+    postProcessing_directory = "postProcessed_Fall15_v3/dilepTiny" 
+    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
+    for s in signals_T2tt:
+        s.is76X = True
+    signals = signals_T2tt
+
+elif options.signal == "TTbarDM":
+    postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
+    signals = signals_TTbarDM
+    for s in signals:
+        s.isFastSim = False
+        s.is76X     = False
 
 nominal     = "LHEweight_original"
 variations  = [ "LHEweight_wgt[%i]"%i for i in [0,1,2,3,4,6,8] ]

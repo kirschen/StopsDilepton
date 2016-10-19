@@ -35,7 +35,7 @@ def drawObjects( ):
     tex.SetTextAlign(11) # align right
 
     lines = [ (0.15, 0.95, 'CMS Preliminary') ]
-    lines.append( (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV)'% ( int(12700./100)/10. ) ) )
+    lines.append( (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( 12.9 ) ) )
     return [tex.DrawLatex(*l) for l in lines] 
 
 def transpose(l):
@@ -63,8 +63,10 @@ for name, fss in [
     mc_histos[0].legendText = "t#bar{t}/single-t"
     mc_histos[1].legendText = "TT+V"
     # mc_histos[1].style = styles.fillStyle(ROOT.kOrange )
-    mc_histos[2].legendText = "multiboson"
-    mc_histos[2].style = styles.fillStyle(ROOT.kOrange )
+    mc_histos[2].legendText = "multi boson"
+    mc_histos[2].SetFillColor( ROOT.kOrange )
+    for h in mc_histos:
+        h.style = styles.fillStyle(h.GetFillColor(), lineColor = h.GetFillColor())
     #for m in mc_histos:
     #    m.legendText = ' '.join(m.GetName().split('_')[4:-5])
 
@@ -73,7 +75,7 @@ for name, fss in [
 
     dl_mt2ll  = Plot(
         name = "%s_dl_mt2ll"%name,
-        texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 15 GeV',
+        texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 15 GeV',
         stack = None, 
         variable = Variable.fromString( "dl_mt2ll/F" ),
         binning=[300/15,0,300],
@@ -91,6 +93,7 @@ for name, fss in [
         logX = False, logY = True, #sorting = True,
          yRange = (0.003, "auto") ,
          scaling = {0:1},
+         legend = [0.50,0.88-0.05*4,0.92,0.88],
         drawObjects = drawObjects( )
     )
  

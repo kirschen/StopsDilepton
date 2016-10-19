@@ -54,7 +54,7 @@ argParser.add_argument('--dPhi',
     help='dPhi?',
 )
 
-argParser.add_argument('--noLoop',
+argParser.add_argument('--loop',
     action='store_true',
     #default = True,
     help='Loop all cuts?',
@@ -262,12 +262,44 @@ elif args.ttjets=='pow':
 
 mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson]
 
+signal_samples = []
+if len(args.signals)>0:
+#    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
+    signal_colors = [ROOT.kBlue, ROOT.kRed, ROOT.kGreen]
+    postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
+
+    for i_s, s in enumerate( args.signals ):
+        if "*" in s:
+            split = s.split("*")
+            sig, fac = split[0], int(split[1])
+        else:
+            sig, fac = s, 1
+
+        try:
+            sample = eval(sig)
+
+            if fac!=1:
+                sample.name+=" x"+str(fac)              
+                raise NotImplementedError( "Need to scale signal sample" )
+            sample.style = styles.lineStyle( signal_colors[i_s], width = 2)
+            signal_samples.append( sample )
+            logger.info( "Adding sample %s with factor %3.2f", sig, fac)
+        except NameError:
+            logger.warning( "Could not add signal %s", s)
+
 if args.small:
-    for sample in mc_samples + data_samples:
+    for sample in mc_samples + data_samples + signal_samples:
         sample.reduceFiles(to = 1)
 
 for d in data_samples:
     d.style = styles.errorStyle( ROOT.kBlack )
+
+stack = Stack(mc_samples) 
+stack.extend( [ [s] for s in signal_samples ] )
+if not args.noData:
+    stack.append( data_samples ) 
 
 #Averaging lumi
 lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
@@ -277,11 +309,14 @@ logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 mc_weight_string = "weight*reweightDilepTriggerBackup*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF"
 if args.pu != "None":
     mc_weight_string+="*"+args.pu
+
 data_weight_string = "weight"
 
-for sample in mc_samples:
-    sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
+for sample in mc_samples :
     sample.style = styles.fillStyle( sample.color)
+
+for sample in mc_samples + signal_samples:
+    sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     if args.pu != "None":
         sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
         sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
@@ -409,44 +444,17 @@ def makeM2CC( data ):
 
 sequence.append( makeM2CC )
 
-stack = Stack(mc_samples) if args.noData else Stack(mc_samples, data_samples)
 
-if len(args.signals)>0:
-#    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
-    postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-    for s in args.signals:
-        if "*" in s:
-            split = s.split("*")
-            sig, fac = split[0], int(split[1])
-        else:
-            sig, fac = s, 1
-
-        try:
-            stack.append( [eval(sig)] )
-            if hasattr(stack[-1][0], "scale"): 
-                stack[-1][0].scale*=fac
-            elif fac!=1:
-                stack[-1][0].scale = fac
-            else: pass
-
-            if fac!=1:
-                stack[-1][0].name+=" x"+str(fac)                
-            logger.info( "Adding sample %s with factor %3.2f", sig, fac)
-        except NameError:
-            logger.warning( "Could not add signal %s", s)
-
-
-if args.noLoop:
-    l_combs = [ len(cuts) ]
-else:
+if args.loop:
     rev = reversed if args.reversed else lambda x:x
     l_combs = rev( range( len(cuts)+1 ) )
+else:
+    l_combs = [ len(cuts) ]
 
 for l_comb in l_combs:
     for comb in itertools.combinations( cuts, l_comb ):
 
-        for s in mc_samples + data_samples:
+        for s in mc_samples + data_samples + signal_samples:
             s.clear()
 
         if args.charges=="OS":
@@ -465,7 +473,7 @@ for l_comb in l_combs:
         if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
         if args.noScaling: ppfixes.append( "noScaling" )
         if args.ttjets=='mg': ppfixes.append( "TTMG" )
-
+        if args.noData : ppfixes.append( "noData" )
         if args.small: ppfixes = ['small'] + ppfixes
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
 
@@ -478,7 +486,7 @@ for l_comb in l_combs:
 
         for s in data_samples:
             s.scale = 1
-        for s in mc_samples:
+        for s in mc_samples + signal_samples:
             s.scale = lumi_scale
         for s in diBoson_samples:
             s.scale*=args.diBosonScaleFactor
@@ -979,10 +987,13 @@ for l_comb in l_combs:
         plotting.fill(plots, read_variables = read_variables, sequence = sequence)
         if not os.path.exists( plot_path ): os.makedirs( plot_path )
 
-        ratio = {'yRange':(0.1,1.9)} if not args.noData else None
+        if args.noData:
+            ratio = None
+        else:
+            ratio = {'yRange':(0.1,1.9), 'num': -1} 
 
         for plot in plots:
-            if args.mode in ['dilepton', 'sameFlavour']:
+            if args.mode in ['dilepton', 'sameFlavour'] and not args.noData:
                 data_histo =  plot.histos_added[-1][0]
                 data_histo.style = styles.errorStyle( ROOT.kBlack )
                 plot.histos = plot.histos[:-1]+[[data_histo]]

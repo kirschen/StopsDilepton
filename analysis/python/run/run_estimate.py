@@ -9,7 +9,7 @@ parser.add_option('--logLevel',              dest="logLevel",              defau
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 from StopsDilepton.analysis.estimators   import setup, allEstimators
-from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140
+from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140, regions80X_2D
 
 
 # Logging
@@ -18,13 +18,12 @@ logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-allRegions = set(regions80X + superRegion + superRegion140)
-
+allRegions = regions80X + superRegion + superRegion140 + regions80X_2D #This cannot be a set!!! No ordering in a set, enumerate changes!!
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
-allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}) for s in signals_TTDM + signals_T2tt ]
+allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}) for s in signals_TTbarDM + signals_T2tt ]
 
 
 # Select estimate
@@ -34,7 +33,7 @@ if not estimate:
   exit(0)
 
 
-if estimate.name.count('T2tt') or estimate.name.count('DM'): estimate.isSignal = True
+if estimate.name.count('T2tt') or estimate.name.count('TTbarDM'): estimate.isSignal = True
 
 isFastSim = estimate.name.count('T2tt')
 if isFastSim:

@@ -36,3 +36,19 @@ superRegion140     = getRegions3D( mt2llThresholds = [0, 100, 140, -1], mt2blblT
 regions80X         = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))]
 regions80X        += getRegions3D( mt2llThresholds = [100, 140, 240], mt2blblThresholds = [0, 100, 200,-1], mt2bbThresholds  = [70,170,-1])
 regions80X        += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2bb", (0, -1)) + Region("dl_mt2blbl", (0, -1))]
+
+# same as reducedRegionsNew, but with collapsed hith mt2ll > 240 GeV region and without Mt2bb
+def getRegions2D(mt2llThresholds, mt2blblThresholds):
+  regions_mt2ll   = getRegionsFromThresholds('dl_mt2ll',   mt2llThresholds)
+  regions_mt2blbl = getRegionsFromThresholds('dl_mt2blbl', mt2blblThresholds)
+
+  regions2D = []
+  for r1 in regions_mt2ll:
+    for r3 in regions_mt2blbl:
+        regions2D.append(r1+r3)
+
+  return regions2D
+
+regions80X_2D         = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1))]
+regions80X_2D        += getRegions2D( mt2llThresholds = [100, 140, 240], mt2blblThresholds = [0, 100, 200,-1])
+regions80X_2D        += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1))]

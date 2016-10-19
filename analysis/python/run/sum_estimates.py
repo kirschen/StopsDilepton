@@ -7,7 +7,7 @@ parser.add_option("--estimates",             dest="estimates",             defau
 
 from StopsDilepton.analysis.SetupHelpers import allChannels, channels
 from StopsDilepton.analysis.estimators import setup, constructEstimatorList
-from StopsDilepton.analysis.regions import regions80X, superRegion, superRegion140
+from StopsDilepton.analysis.regions import regions80X, superRegion, superRegion140, regions80X_2D
 from StopsDilepton.analysis.Cache import Cache
 import os
 
@@ -22,7 +22,7 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 if   options.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", "multiBoson", 'other'])
 elif options.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", "multiBoson-DD", 'other'])
 
-regions = set(regions80X + superRegion + superRegion140)
+regions = regions80X + superRegion + superRegion140 + regions80X_2D #Better have ordering and swallow duplicates
 
 for e in estimators:
     e.initCache(setup.defaultCacheDir())
