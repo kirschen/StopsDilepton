@@ -20,7 +20,7 @@ from StopsDilepton.plots.pieChart        import makePieChart
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',         action='store',      default='T2tt',      nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
+argParser.add_argument('--signal',         action='store',      default='DM',        nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
 argParser.add_argument('--noData',         action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
@@ -124,19 +124,19 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("metSig") > 1:  continue
         if selection.count("dPhiJet0") > 1:  continue
 
-        if selection not in ['njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100']: continue
+#        if selection not in ['njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+#                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+#                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100']: continue
 
-#        if selection not in ['multiIsoWP-looseLeptonVeto-mll20',
-#                             'njet2-multiIsoWP-looseLeptonVeto-mll20',
-#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20',
-#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80',
-#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
-#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0',
-#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
-#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
-#			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140']: continue
+        if selection not in ['multiIsoWP-looseLeptonVeto-mll20',
+                             'njet2-multiIsoWP-looseLeptonVeto-mll20',
+			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20',
+			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80',
+			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0',
+			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
+			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140']: continue
 
 
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
@@ -179,13 +179,29 @@ postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-#from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi1_Mphi100
+from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 T2tt                    = T2tt_650_1 # Take 450,0 as default to plot
 T2tt2                   = T2tt_500_250
 T2tt3                   = T2tt_450_250
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
 T2tt3.style             = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
 T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
+
+DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
+DM2                     = TTbarDMJets_pseudoscalar_Mchi_10_Mphi_100
+DM3                     = TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200
+DM4                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
+DM5                     = TTbarDMJets_scalar_Mchi_10_Mphi_100
+DM6                     = TTbarDMJets_scalar_Mchi_50_Mphi_200
+DM.style                = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+DM2.style               = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
+DM3.style               = styles.lineStyle( ROOT.kBlack, width=3 )
+DM4.style               = styles.lineStyle( 28,          width=3, dotted=True )
+DM5.style               = styles.lineStyle( 28,          width=3, dashed=True )
+DM6.style               = styles.lineStyle( 28,          width=3 )
+
+
+
 
 #
 # Text on the plots
@@ -282,11 +298,11 @@ for index, mode in enumerate(allModes):
 
   if not args.noData:
     if not args.signal:         stack = Stack(mc, data_sample)
-    elif args.signal == "DM":   stack = Stack(mc, data_sample, TTbarDMJets_scalar_Mchi1_Mphi100)
+    elif args.signal == "DM":   stack = Stack(mc, data_sample, DM, DM2, DM3, DM4, DM5, DM6)
     elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt, T2tt2)
   else:
     if not args.signal:         stack = Stack(mc)
-    elif args.signal == "DM":   stack = Stack(mc, TTbarDMJets_scalar_Mchi1_Mphi100)
+    elif args.signal == "DM":   stack = Stack(mc, DM1, DM2, DM3, DM4, DM5, DM6)
     elif args.signal == "T2tt": stack = Stack(mc, T2tt, T2tt2)
 
   for sample in [T2tt, T2tt2, T2tt3]:
@@ -294,6 +310,13 @@ for index, mode in enumerate(allModes):
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F']
     sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonFastSimSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+
+  for sample in [DM, DM2, DM3, DM4, DM5, DM6]:
+    sample.scale          = lumi_scale
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
+    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
+    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+
 
 
   # Use some defaults
@@ -569,7 +592,7 @@ for mode in ["SF","all"]:
 
 
 # Write to tex file
-columns = [i.name for i in mc] + ["MC", "data"] + ([TTbarDMJets_scalar_Mchi1_Mphi100.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
+columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
 texdir = "tex"
 if args.powheg: texdir += "_powheg"
 try:
