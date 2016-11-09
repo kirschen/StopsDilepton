@@ -9,7 +9,7 @@ parser.add_option('--logLevel',              dest="logLevel",              defau
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 from StopsDilepton.analysis.estimators   import setup, allEstimators
-from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140, regions80X_2D
+from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140, regions80X_2D, regionsA, regionsB, regionsC, regionsD, regionsE, regionsF, regionsG, regionsH, regionsI, regionsJ, regionsK, regionsL, regionsM, regionsN
 
 
 # Logging
@@ -19,6 +19,7 @@ import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 allRegions = regions80X + superRegion + superRegion140 + regions80X_2D #This cannot be a set!!! No ordering in a set, enumerate changes!!
+allRegions += regionsA + regionsB + regionsC + regionsD + regionsE + regionsF + regionsG + regionsH + regionsI + regionsJ + regionsK + regionsL + regionsM + regionsN
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *

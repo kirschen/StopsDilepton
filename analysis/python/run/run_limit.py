@@ -3,9 +3,10 @@ import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument("--estimates",      action='store', default='dd',                nargs='?', choices=["mc","dd"],                                                                                   help="mc estimators or data-driven estimators?")
-argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM"],                                                                                 help="which signal?")
+argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM"],                                                                            help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,                nargs='?',                                                                                                        help="pick only one masspoint?")
-argParser.add_argument("--scale",          action='store', default=1.0, type=float,    nargs='?',                                                                                                        help="scaling all yields")
+argParser.add_argument("--scale",          action='store', default=1.0, type=float,     nargs='?',                                                                                                        help="scaling all yields")
+argParser.add_argument("--regions",        action='store', default=None,                nargs='?',                                                                                                        help="select region setup")
 argParser.add_argument("--overwrite",  default = False, action = "store_true", help="Overwrite existing output files")
 
 args = argParser.parse_args()
@@ -13,14 +14,14 @@ args = argParser.parse_args()
 from StopsDilepton.analysis.SetupHelpers import allChannels
 from StopsDilepton.analysis.estimators   import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTZEstimate, DataDrivenDYEstimate, DataDrivenTTJetsEstimate
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions      import regions80X, regions80X_2D, superRegion140 
+from StopsDilepton.analysis.regions      import regions80X, regions80X_2D, superRegion140, regionsA, regionsB, regionsC, regionsD, regionsE, regionsF, regionsG, regionsH, regionsI, regionsJ, regionsK, regionsL, regionsM, regionsN
 from StopsDilepton.analysis.Cache        import Cache
 
 if args.signal == "T2tt":
-    regions = regions80X
+    limitPrefix = "regions80X"
 elif args.signal == "TTbarDM":
-    regions = regions80X
-    #regions = superRegion140
+    if not args.regions: limitPrefix = "regions80X_2D"
+    else:                limitPrefix = "regions" + args.regions
 
 if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ'])
 elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'multiBoson-DD', 'TTXNoZ'])
@@ -41,7 +42,6 @@ from StopsDilepton.tools.cardFileWriter import cardFileWriter
 if args.estimates == "mc": baseDir = os.path.join(setup.analysis_results, setup.prefix(), "DY", "TTZ", "TTJets", "multiBoson")
 if args.estimates == "dd": baseDir = os.path.join(setup.analysis_results, setup.prefix(), "DY-DD", "TTZ-DD-Top16009", "TTJets-DD", "multiBoson-DD")
 
-limitPrefix = "regions80X"
 limitDir    = os.path.join(baseDir, 'cardFiles', args.signal, limitPrefix)
 overWrite   = (args.only is not None) or args.overwrite
 useCache    = True
@@ -52,8 +52,8 @@ cacheFileName = os.path.join(limitDir, 'calculatedLimits.pkl')
 limitCache    = Cache(cacheFileName, verbosity=2)
 
 
-if   args.signal == "T2tt": fastSim = True
-elif args.signal == "TTbarDM":   fastSim = False
+if   args.signal == "T2tt":    fastSim = True
+elif args.signal == "TTbarDM": fastSim = False
 
 scaleUncCache = Cache('scale_%s.pkl' % args.signal, verbosity=2)
 isrUncCache   = Cache('isr_%s.pkl'   % args.signal, verbosity=2)
@@ -175,8 +175,8 @@ def wrapper(s):
     else:
         print "File %s found. Reusing."%cardFileName
 
-    if   args.signal == "TTbarDM":   sConfig = s.mChi, s.mPhi, s.type
-    elif args.signal == "T2tt": sConfig = s.mStop, s.mNeu
+    if   args.signal == "TTbarDM": sConfig = s.mChi, s.mPhi, s.type
+    elif args.signal == "T2tt":    sConfig = s.mStop, s.mNeu
 
     if useCache and not overWrite and limitCache.contains(sConfig):
       res = limitCache.get(sConfig)
@@ -194,8 +194,8 @@ def wrapper(s):
         print "Problem with limit: %r" + str(res)
         return None
 
-if   args.signal == "T2tt": jobs = signals_T2tt 
-elif args.signal == "TTbarDM":   jobs = signals_TTbarDM
+if   args.signal == "T2tt":    jobs = signals_T2tt 
+elif args.signal == "TTbarDM": jobs = signals_TTbarDM
 
 if args.only is not None:
   wrapper(jobs[int(args.only)])

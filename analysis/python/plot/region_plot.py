@@ -28,7 +28,7 @@ argParser.add_argument("--estimateMB",     action='store', default='multiBoson-D
 argParser.add_argument("--labels",         action='store_true', default=False,          help="plot labels?")
 args = argParser.parse_args()
 
-detailedEstimators = constructEstimatorList([args.estimateTTJets,  args.estimateDY, args.estimateTTZ, args.estimateMB, 'TTXNoZ'])
+detailedEstimators = constructEstimatorList([args.estimateTTJets, args.estimateTTZ, args.estimateMB, 'TTXNoZ', args.estimateDY])
 if args.signal=='T2tt':
     signalSetup = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
 else:
@@ -168,7 +168,7 @@ def drawSR( regions ):
 
     tex2 = tex.Clone()
     tex2.SetTextSize(0.03)
-    tex2.SetTextColor(12)
+    tex2.SetTextColor(38)
 
     lines2  = [(min+3*diff,  .9, '100 GeV < M_{T2}(ll) < 140 GeV')]
     lines2 += [(min+9*diff, .9, '140 GeV < M_{T2}(ll) < 240 GeV')]
@@ -179,8 +179,9 @@ def drawSR( regions ):
     lines3  = [(min+12.5*diff, .9, 'M_{T2}(ll) > 240 GeV')]
 
     line = ROOT.TLine()
-    line.SetLineColor(12)
+    line.SetLineColor(38)
     line.SetLineWidth(2)
+    line.SetLineStyle(3)
     line1 = (min+6*diff,  0.13, min+6*diff, 0.93);
     line2 = (min+12*diff, 0.13, min+12*diff, 0.93);
     return [tex.DrawLatex(*l) for l in lines] + [line.DrawLineNDC(*l) for l in [line1, line2]] + [tex2.DrawLatex(*l) for l in lines2] + [tex3.DrawLatex(*l) for l in lines3]
@@ -235,10 +236,12 @@ for channel in ['all','SF','EE','EMu','MuMu']:
     # Divide by the summed hist to get relative errors
     h_rel_err.Divide(histos_summed[None])
 
-
     # For signal histos we don't need the systematics, so only access the "None"
     sig_histos = [ [getRegionHisto(e, regions=regions_, channel=channel, setup = signalSetup)[None]] for e in signalEstimators ]
     data_histo = [ [getRegionHisto(observation, regions=regions_, channel=channel, setup=setup)[None]]]
+
+    data_histo[0][0].Sumw2(ROOT.kFALSE)
+    data_histo[0][0].SetBinErrorOption(ROOT.TH1.kPoisson) # Set poissonian errors
 
     region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos[None] ] + sig_histos + data_histo, texX = "signal region number", texY = "Events" )
 
@@ -248,7 +251,7 @@ for channel in ['all','SF','EE','EMu','MuMu']:
         val = histos_summed[None].GetBinContent(ib)
         if val<0: continue
         sys = h_rel_err.GetBinContent(ib)
-        box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max([0.006, (1-sys)*val]), h_rel_err.GetXaxis().GetBinUpEdge(ib), max([0.06, (1+sys)*val]) )
+        box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max([0.006, (1-sys)*val]), h_rel_err.GetXaxis().GetBinUpEdge(ib), max([0.006, (1+sys)*val]) )
         box.SetLineColor(ROOT.kBlack)
         box.SetFillStyle(3444)
         box.SetFillColor(ROOT.kBlack)
@@ -268,7 +271,7 @@ for channel in ['all','SF','EE','EMu','MuMu']:
     plotting.draw( region_plot, \
         plot_directory = os.path.join(user.plot_directory, postfix, args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB),
         logX = False, logY = True,
-        sorting = True,
+        sorting = False,
         yRange = (0.006, "auto"),
         widths = {'x_width':1000, 'y_width':700},
         drawObjects = (drawLabels(regions_) if args.labels else drawSR(regions_)) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),

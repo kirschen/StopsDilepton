@@ -22,7 +22,7 @@ import errno
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',            action='store',      default='T2tt',      nargs='?', choices=['None', "T2tt"], help="Add signal to plot")
+argParser.add_argument('--signal',            action='store',      default='DM',        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots')
 argParser.add_argument('--selection',         action='store',      default=None)
@@ -219,11 +219,28 @@ postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 T2tt                    = T2tt_650_1
 T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
 T2tt2                   = T2tt_700_100
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
 
+DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
+DM2                     = TTbarDMJets_pseudoscalar_Mchi_10_Mphi_100
+DM3                     = TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200
+DM4                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
+DM5                     = TTbarDMJets_scalar_Mchi_10_Mphi_100
+DM6                     = TTbarDMJets_scalar_Mchi_50_Mphi_200
+DM.style                = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+DM2.style               = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
+DM3.style               = styles.lineStyle( ROOT.kBlack, width=3 )
+DM4.style               = styles.lineStyle( 28,          width=3, dotted=True )
+DM5.style               = styles.lineStyle( 28,          width=3, dashed=True )
+DM6.style               = styles.lineStyle( 28,          width=3 )
+
+signals = []
+if   args.signal == "T2tt": signals = [T2tt]
+elif args.signal == "DM":   signals = [DM, DM2, DM3, DM4, DM5, DM6]
 
 
 #
@@ -337,17 +354,28 @@ for index, mode in enumerate(allModes):
 
 
   if args.signal == "T2tt":
-    for s in [T2tt, T2tt2]:
+    for s in signals:
       s.scale          = lumi_scale
       s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F']
       s.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonFastSimSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
+  if args.signal == "DM":
+    for s in signals:
+      s.scale          = lumi_scale
+      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
+      s.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
+      s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+
+
   # Use some defaults
   Plot.setDefaults(weight = lambda data: data.weight, selectionString = selectionStrings[args.selection])
   
   stack_mc   = Stack( mc )
-  stack_data = Stack( data_sample ) if not args.signal == "T2tt" else Stack(data_sample, T2tt)
+
+  if   args.signal == "T2tt": stack_data = Stack( data_sample, T2tt ) 
+  if   args.signal == "DM":   stack_data = Stack( data_sample, DM, DM2, DM3, DM4, DM5, DM6) 
+  else:                       stack_data = Stack( data_sample )
   sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
   plots = []
   
@@ -696,17 +724,20 @@ for index, mode in enumerate(allModes):
 
 	plot = plot_mc[None]
 	if args.normalizeBinWidth: plot.name += "_normalizeBinWidth"
-        T2tt_histo  =  plot_data.histos[1][0]
-	data_histo  =  plot_data.histos[0][0]
+        signal_histos = plot_data.histos[1:][0]
+	data_histo    = plot_data.histos[0][0]
         for h in plot_data.histos[0][1:]:
           data_histo.Add(h)
 
 	data_histo.style = styles.errorStyle( ROOT.kBlack )
         T2tt_histo.style = styles.lineStyle( ROOT.kBlack, width=3 )
-	plot.histos += [[ data_histo ], [T2tt_histo ]]
+	plot.histos += [[ data_histo ]]
+        for h in signal_histos: plot.histos += [[h]]
 	plot_data.stack[0][0].texName = data_sample.texName if mode != "all" else data_sample[0].texName 
-	plot_data.stack[1][0].texName = T2tt.texName
-	plot.stack += [[ plot_data.stack[0][0] ] , [ plot_data.stack[1][0] ]]
+	plot.stack += [[ plot_data.stack[0][0] ]]
+        for i, signal in enumerate(signals):
+	  plot_data.stack[i+1][0].texName = signal.texName
+          plot_data.stack += [[ plot_data.stack[i+1][0] ]]
 
 	boxes = []
 	ratio_boxes = []
