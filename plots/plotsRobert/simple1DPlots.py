@@ -319,12 +319,12 @@ for sample in mc_samples + signal_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     if args.pu != "None":
         sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
+        sample.weight = lambda event: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
     else:
         sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda data: data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
+        sample.weight = lambda event: event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
 
-weight = lambda data:data.weight
+weight = lambda event:event.weight
 
 if args.dPhi == 'inv':
     dPhi = [ ("dPhiJetMETInv", "(!(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0))") ]
@@ -402,45 +402,45 @@ sequence = []
 from StopsDilepton.tools.helpers import deltaR
 from StopsDilepton.tools.objectSelection import getJets
 
-def makeMinDeltaRLepJets( data ):
-    data.jets = filter(lambda j: j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(data, jetColl="JetGood"))
-    if len(data.jets)>0:
-        dr =  [deltaR(j, {'eta':data.l1_eta, 'phi':data.l1_phi}) for j in data.jets] 
-        dr += [deltaR(j, {'eta':data.l2_eta, 'phi':data.l2_phi}) for j in data.jets] 
-        setattr( data, "minDeltaRLepJets", min(dr) )
+def makeMinDeltaRLepJets( event, sample ):
+    event.jets = filter(lambda j: j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(event, jetColl="JetGood"))
+    if len(event.jets)>0:
+        dr =  [deltaR(j, {'eta':event.l1_eta, 'phi':event.l1_phi}) for j in event.jets] 
+        dr += [deltaR(j, {'eta':event.l2_eta, 'phi':event.l2_phi}) for j in event.jets] 
+        setattr( event, "minDeltaRLepJets", min(dr) )
     else:
-        setattr( data, "minDeltaRLepJets", float('nan') )
+        setattr( event, "minDeltaRLepJets", float('nan') )
 
-    data.bjets = filter(lambda j: j['btagCSV']>0.8, data.jets)
-    loose_bjets = filter(lambda j: j['btagCSV']>0.605, data.jets)
+    event.bjets = filter(lambda j: j['btagCSV']>0.8, event.jets)
+    loose_bjets = filter(lambda j: j['btagCSV']>0.605, event.jets)
     if len(loose_bjets)>0:
-        dr =  [deltaR(j, {'eta':data.l1_eta, 'phi':data.l1_phi}) for j in loose_bjets] 
-        dr += [deltaR(j, {'eta':data.l2_eta, 'phi':data.l2_phi}) for j in loose_bjets] 
-        setattr( data, "minDeltaRLepBJets", min(dr) )
+        dr =  [deltaR(j, {'eta':event.l1_eta, 'phi':event.l1_phi}) for j in loose_bjets] 
+        dr += [deltaR(j, {'eta':event.l2_eta, 'phi':event.l2_phi}) for j in loose_bjets] 
+        setattr( event, "minDeltaRLepBJets", min(dr) )
     else:
-        setattr( data, "minDeltaRLepBJets", float('nan') )
+        setattr( event, "minDeltaRLepBJets", float('nan') )
         
-sequence.append( makeMinDeltaRLepJets )
+sequence.append( makeMinDeltaRLepJets, sample )
 
-def makeMT2BJetDisc( data ):
-    data.sortedJetsForMT2 = data.bjets + [j for j in data.jets if j not in data.bjets]
-    data.mt2BJetDisc = data.sortedJetsForMT2[1]['btagCSV'] if len( data.sortedJetsForMT2 )>=2 else float('nan')        
+def makeMT2BJetDisc( event, sample ):
+    event.sortedJetsForMT2 = event.bjets + [j for j in event.jets if j not in event.bjets]
+    event.mt2BJetDisc = event.sortedJetsForMT2[1]['btagCSV'] if len( event.sortedJetsForMT2 )>=2 else float('nan')        
 
 sequence.append( makeMT2BJetDisc )
 
 from StopsDilepton.tools.m2Calculator import m2Calculator
 m2Calc = m2Calculator()
-def makeM2CC( data ):
+def makeM2CC( event, sample ):
     m2Calc.reset()
-    if len(data.sortedJetsForMT2)>=2:
-        bj0, bj1 = data.sortedJetsForMT2[:2]
+    if len(event.sortedJetsForMT2)>=2:
+        bj0, bj1 = event.sortedJetsForMT2[:2]
         m2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-        m2Calc.setLepton1(data.l1_pt, data.l1_eta, data.l1_phi)
-        m2Calc.setLepton2(data.l2_pt, data.l2_eta, data.l2_phi)
-        m2Calc.setMet(data.met_pt, data.met_phi)
-        data.m2CC = m2Calc.m2CC()
+        m2Calc.setLepton1(event.l1_pt, event.l1_eta, event.l1_phi)
+        m2Calc.setLepton2(event.l2_pt, event.l2_eta, event.l2_phi)
+        m2Calc.setMet(event.met_pt, event.met_phi)
+        event.m2CC = m2Calc.m2CC()
     else:
-        data.m2CC = float('nan') 
+        event.m2CC = float('nan') 
 
 sequence.append( makeM2CC )
 
@@ -522,7 +522,7 @@ for l_comb in l_combs:
         dl_mass  = Plot(
             texX = 'm(ll) (GeV)', texY = 'Number of Events / 3 GeV',
             stack = stack, 
-            variable = Variable.fromString( "dl_mass/F" ),
+            attribute = TreeVariable.fromString( "dl_mass/F" ),
             binning=[150/3,0,150],
             selectionString = selectionString,
             weight = weight,
@@ -532,7 +532,7 @@ for l_comb in l_combs:
         dl_pt  = Plot(
             texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 10 GeV',
             stack = stack, 
-            variable = Variable.fromString( "dl_pt/F" ),
+            attribute = TreeVariable.fromString( "dl_pt/F" ),
             binning=[40,0,400],
             selectionString = selectionString,
             weight = weight,
@@ -542,7 +542,7 @@ for l_comb in l_combs:
         dl_eta  = Plot(
             texX = '#eta(ll) ', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "dl_eta/F" ),
+            attribute = TreeVariable.fromString( "dl_eta/F" ),
             binning=[30,-3,3],
             selectionString = selectionString,
             weight = weight,
@@ -552,7 +552,7 @@ for l_comb in l_combs:
         dl_phi  = Plot(
             texX = '#phi(ll) (GeV)', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "dl_phi/F" ),
+            attribute = TreeVariable.fromString( "dl_phi/F" ),
             binning=[30,-pi,pi],
             selectionString = selectionString,
             weight = weight,
@@ -563,7 +563,7 @@ for l_comb in l_combs:
             name = "cosMetLeadingLep",
             texX = 'cos(#Delta #phi(#slash{E}_{T}, l_{1}) ) ', texY = 'Number of Events',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller( lambda data:cos(data.met_phi-data.l1_phi) ),
+            attribute = ScalarType.uniqueFloat().addFiller( lambda event:cos(event.met_phi-event.l1_phi) ),
             binning=[40,-1,1],
             selectionString = selectionString,
             weight = weight,
@@ -574,7 +574,7 @@ for l_comb in l_combs:
             name = "minDeltaRLepJets",
             texX = 'min #Delta R(loose b-jets, leptons) ', texY = 'Number of Events',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.minDeltaRLepJets)),
+            attribute = ScalarType.uniqueFloat().addFiller(lambda event:abs(event.minDeltaRLepJets)),
             binning=[30,0,4],
             selectionString = selectionString,
             weight = weight,
@@ -585,7 +585,7 @@ for l_comb in l_combs:
             name = "minDeltaRLepBJets",
             texX = 'min #Delta R(loose b-jets, leptons) ', texY = 'Number of Events',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.minDeltaRLepBJets)),
+            attribute = ScalarType.uniqueFloat().addFiller(lambda event:abs(event.minDeltaRLepBJets)),
             binning=[30,0,4],
             selectionString = selectionString,
             weight = weight,
@@ -595,7 +595,7 @@ for l_comb in l_combs:
         dl_mt2ll  = Plot(
             texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString( "dl_mt2ll/F" ),
+            attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
             binning=[300/20,0,300],
             selectionString = selectionString,
             weight = weight,
@@ -606,7 +606,7 @@ for l_comb in l_combs:
             name = "dl_mt2ll_coarse",
             texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString( "dl_mt2ll/F" ),
+            attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
             binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
             selectionString = selectionString,
             weight = weight,
@@ -616,7 +616,7 @@ for l_comb in l_combs:
         dl_mt2bb  = Plot(
             texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString( "dl_mt2bb/F" ),
+            attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
             binning=[300/15,0,300],
             selectionString = selectionString,
             weight = weight,
@@ -626,7 +626,7 @@ for l_comb in l_combs:
         dl_mt2blbl  = Plot(
             texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString( "dl_mt2blbl/F" ),
+            attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
             binning=[300/15,0,300],
             selectionString = selectionString,
             weight = weight,
@@ -637,7 +637,7 @@ for l_comb in l_combs:
             name = "M2CC",
             texX = 'M_{2CC}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller( lambda data:abs(data.m2CC) ),
+            attribute = ScalarType.uniqueFloat().addFiller( lambda event:abs(event.m2CC) ),
             binning=[800/20,0,800],
             selectionString = selectionString,
             weight = weight,
@@ -647,7 +647,7 @@ for l_comb in l_combs:
         l1_pt  = Plot(
             texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
             stack = stack, 
-            variable = Variable.fromString( "l1_pt/F" ),
+            attribute = TreeVariable.fromString( "l1_pt/F" ),
             binning=[60,0,300],
             selectionString = selectionString,
             weight = weight,
@@ -657,7 +657,7 @@ for l_comb in l_combs:
         l1_eta  = Plot(
             texX = '#eta(l_{1})', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "l1_eta/F" ),
+            attribute = TreeVariable.fromString( "l1_eta/F" ),
             binning=[36,-3.3,3.3],
             selectionString = selectionString,
             weight = weight,
@@ -667,7 +667,7 @@ for l_comb in l_combs:
         l1_phi  = Plot(
             texX = '#phi(l_{1})', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "l1_phi/F" ),
+            attribute = TreeVariable.fromString( "l1_phi/F" ),
             binning=[30,-pi,pi],
             selectionString = selectionString,
             weight = weight,
@@ -677,7 +677,7 @@ for l_comb in l_combs:
         l1_miniRelIso  = Plot(
             texX = 'I_{rel.mini}', texY = 'Number of Events / 5 GeV',
             stack = stack, 
-            variable = Variable.fromString( "l1_miniRelIso/F" ),
+            attribute = TreeVariable.fromString( "l1_miniRelIso/F" ),
             binning=[40,0,2],
             selectionString = selectionString,
             weight = weight,
@@ -688,7 +688,7 @@ for l_comb in l_combs:
             name = "l1_dxy",
             texX = '|d_{xy}|', texY = 'Number of Events',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.l1_dxy), uses = "l1_dxy/F"),
+            attribute = ScalarType.uniqueFloat().addFiller(lambda event:abs(event.l1_dxy), uses = "l1_dxy/F"),
             binning=[40,0,1],
             selectionString = selectionString,
             weight = weight,
@@ -699,7 +699,7 @@ for l_comb in l_combs:
             name = "l1_dz",
             texX = '|d_{z}|', texY = 'Number of Events',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.l1_dz), uses = "l1_dz/F"),
+            attribute = ScalarType.uniqueFloat().addFiller(lambda event:abs(event.l1_dz), uses = "l1_dz/F"),
             binning=[40,0,0.15],
             selectionString = selectionString,
             weight = weight,
@@ -709,7 +709,7 @@ for l_comb in l_combs:
         l1_pdgId  = Plot(
             texX = 'pdgId(l_{1})', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "l1_pdgId/I" ),
+            attribute = TreeVariable.fromString( "l1_pdgId/I" ),
             binning=[32,-16,16],
             selectionString = selectionString,
             weight = weight,
@@ -719,7 +719,7 @@ for l_comb in l_combs:
         l2_pt  = Plot(
             texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 5 GeV',
             stack = stack, 
-            variable = Variable.fromString( "l2_pt/F" ),
+            attribute = TreeVariable.fromString( "l2_pt/F" ),
             binning=[60,0,300],
             selectionString = selectionString,
             weight = weight,
@@ -729,7 +729,7 @@ for l_comb in l_combs:
         l2_eta  = Plot(
             texX = '#eta(l_{2})', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "l2_eta/F" ),
+            attribute = TreeVariable.fromString( "l2_eta/F" ),
             binning=[30,-3,3],
             selectionString = selectionString,
             weight = weight,
@@ -739,7 +739,7 @@ for l_comb in l_combs:
         l2_phi  = Plot(
             texX = '#phi(l_{2})', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "l2_phi/F" ),
+            attribute = TreeVariable.fromString( "l2_phi/F" ),
             binning=[30,-pi,pi],
             selectionString = selectionString,
             weight = weight,
@@ -749,7 +749,7 @@ for l_comb in l_combs:
         l2_miniRelIso  = Plot(
             texX = 'I_{rel.mini}', texY = 'Number of Events / 5 GeV',
             stack = stack, 
-            variable = Variable.fromString( "l2_miniRelIso/F" ),
+            attribute = TreeVariable.fromString( "l2_miniRelIso/F" ),
             binning=[40,0,2],
             selectionString = selectionString,
             weight = weight,
@@ -760,7 +760,7 @@ for l_comb in l_combs:
             name = "l2_dxy",
             texX = '|d_{xy}|', texY = 'Number of Events',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.l2_dxy), uses = "l2_dxy/F"),
+            attribute = ScalarType.uniqueFloat().addFiller(lambda event:abs(event.l2_dxy), uses = "l2_dxy/F"),
             binning=[40,0,1],
             selectionString = selectionString,
             weight = weight,
@@ -771,7 +771,7 @@ for l_comb in l_combs:
             name = "l2_dz",
             texX = '|d_{z}|', texY = 'Number of Events',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.l2_dz), uses = "l2_dz/F"),
+            attribute = ScalarType.uniqueFloat().addFiller(lambda event:abs(event.l2_dz), uses = "l2_dz/F"),
             binning=[40,0,0.15],
             selectionString = selectionString,
             weight = weight,
@@ -781,7 +781,7 @@ for l_comb in l_combs:
         l2_pdgId  = Plot(
             texX = 'pdgId(l_{2})', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "l2_pdgId/I" ),
+            attribute = TreeVariable.fromString( "l2_pdgId/I" ),
             binning=[32,-16,16],
             selectionString = selectionString,
             weight = weight,
@@ -792,7 +792,7 @@ for l_comb in l_combs:
             name = "met_pt_zoomed",
             texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 10 GeV',
             stack = stack, 
-            variable = Variable.fromString( "met_pt/F" ),
+            attribute = TreeVariable.fromString( "met_pt/F" ),
             binning=[22,0,220],
             selectionString = selectionString,
             weight = weight,
@@ -802,7 +802,7 @@ for l_comb in l_combs:
         met  = Plot(
             texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
             stack = stack, 
-            variable = Variable.fromString( "met_pt/F" ),
+            attribute = TreeVariable.fromString( "met_pt/F" ),
             binning=[1050/50,0,1050],
             selectionString = selectionString,
             weight = weight,
@@ -812,9 +812,9 @@ for l_comb in l_combs:
         JZB  = Plot(
             texX = 'JZB (GeV)', texY = 'Number of Events / 32 GeV',
             stack = stack, 
-            variable = Variable.fromString('JZB/F').addFiller (
+            attribute = TreeVariable.fromString('JZB/F').addFiller (
                 helpers.uses( 
-                    lambda data: sqrt( (data.met_pt*cos(data.met_phi)+data.dl_pt*cos(data.dl_phi))**2 + (data.met_pt*sin(data.met_phi)+data.dl_pt*sin(data.dl_phi))**2) - data.dl_pt, 
+                    lambda event: sqrt( (event.met_pt*cos(event.met_phi)+event.dl_pt*cos(event.dl_phi))**2 + (event.met_pt*sin(event.met_phi)+event.dl_pt*sin(event.dl_phi))**2) - event.dl_pt, 
                     ["met_phi/F", "dl_phi/F", "met_pt/F", "dl_pt/F"])
             ), 
             binning=[25,-200,600],
@@ -826,9 +826,9 @@ for l_comb in l_combs:
         metSig  = Plot(
             texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
             stack = stack, 
-            variable = Variable.fromString('metSig/F').addFiller (
+            attribute = TreeVariable.fromString('metSig/F').addFiller (
                 helpers.uses( 
-                    lambda data: data.met_pt/sqrt(data.ht) if data.ht>0 else float('nan') , 
+                    lambda event: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan') , 
                     ["met_pt/F", "ht/F"])
             ), 
             binning=[30,0,30],
@@ -840,7 +840,7 @@ for l_comb in l_combs:
         ht  = Plot(
             texX = 'H_{T} (GeV)', texY = 'Number of Events / 100 GeV',
             stack = stack, 
-            variable = Variable.fromString( "ht/F" ),
+            attribute = TreeVariable.fromString( "ht/F" ),
             binning=[2600/100,0,2600],
             selectionString = selectionString,
             weight = weight,
@@ -851,7 +851,7 @@ for l_comb in l_combs:
             name = "ht_zoomed",
             texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
             stack = stack, 
-            variable = Variable.fromString( "ht/F" ),
+            attribute = TreeVariable.fromString( "ht/F" ),
             binning=[390/15,0,390],
             selectionString = selectionString,
             weight = weight,
@@ -861,8 +861,8 @@ for l_comb in l_combs:
         cosMetJet0phi = Plot(\
             texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString('cosMetJet0phi/F').addFiller (
-                helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
+            attribute = TreeVariable.fromString('cosMetJet0phi/F').addFiller (
+                helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
             ), 
             binning = [40,-1,1], 
             selectionString = selectionString,
@@ -873,8 +873,8 @@ for l_comb in l_combs:
         cosMetJet1phi = Plot(\
             texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString('cosMetJet1phi/F').addFiller (
-                helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
+            attribute = TreeVariable.fromString('cosMetJet1phi/F').addFiller (
+                helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
             ), 
             binning = [40,-1,1], 
             selectionString = selectionString,
@@ -885,8 +885,8 @@ for l_comb in l_combs:
         jet0pt  = Plot(
             texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet0pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[0], "JetGood[pt/F]" )
+            attribute = TreeVariable.fromString('jet0pt/F').addFiller (
+                helpers.uses(lambda event: event.JetGood_pt[0], "JetGood[pt/F]" )
             ), 
             binning=[980/20,0,980],
             selectionString = selectionString,
@@ -897,8 +897,8 @@ for l_comb in l_combs:
         jet1pt  = Plot(
             texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet1pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[1], "JetGood[pt/F]" )
+            attribute = TreeVariable.fromString('jet1pt/F').addFiller (
+                helpers.uses(lambda event: event.JetGood_pt[1], "JetGood[pt/F]" )
             ), 
             binning=[980/20,0,980],
             selectionString = selectionString,
@@ -909,8 +909,8 @@ for l_comb in l_combs:
         jet2pt  = Plot(
             texX = 'p_{T}(3^{rd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet2pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[2], "JetGood[pt/F]" )
+            attribute = TreeVariable.fromString('jet2pt/F').addFiller (
+                helpers.uses(lambda event: event.JetGood_pt[2], "JetGood[pt/F]" )
             ), 
             binning=[400/20,0,400],
             selectionString = selectionString,
@@ -921,8 +921,8 @@ for l_comb in l_combs:
         jet3pt  = Plot(
             texX = 'p_{T}(4^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet3pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[3], "JetGood[pt/F]" )
+            attribute = TreeVariable.fromString('jet3pt/F').addFiller (
+                helpers.uses(lambda event: event.JetGood_pt[3], "JetGood[pt/F]" )
             ), 
             binning=[400/20,0,400],
             selectionString = selectionString,
@@ -933,8 +933,8 @@ for l_comb in l_combs:
         jet4pt  = Plot(
             texX = 'p_{T}(5^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet4pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[4], "JetGood[pt/F]" )
+            attribute = TreeVariable.fromString('jet4pt/F').addFiller (
+                helpers.uses(lambda event: event.JetGood_pt[4], "JetGood[pt/F]" )
             ), 
             binning=[400/20,0,400],
             selectionString = selectionString,
@@ -945,7 +945,7 @@ for l_comb in l_combs:
         nbtags  = Plot(
             texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString('nBTag/I'),
+            attribute = TreeVariable.fromString('nBTag/I'),
             binning=[8,0,8],
             selectionString = selectionString,
             weight = weight,
@@ -956,7 +956,7 @@ for l_comb in l_combs:
             name = "CSVv2SubLeadingJet",
             texX = 'CSVv2 of sub-leading jet', texY = 'Number of Events',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:data.mt2BJetDisc),
+            attribute = ScalarType.uniqueFloat().addFiller(lambda event:event.mt2BJetDisc),
             binning=[10,0,1],
             selectionString = selectionString,
             weight = weight,
@@ -966,7 +966,7 @@ for l_comb in l_combs:
         njets  = Plot(
             texX = 'number of jets', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString('nJetGood/I'),
+            attribute = TreeVariable.fromString('nJetGood/I'),
             binning=[14,0,14],
             selectionString = selectionString,
             weight = weight,
@@ -976,7 +976,7 @@ for l_comb in l_combs:
         nVert  = Plot(
             texX = 'vertex multiplicity', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "nVert/I" ),
+            attribute = TreeVariable.fromString( "nVert/I" ),
             binning=[50,0,50],
             selectionString = selectionString,
             weight = weight,
