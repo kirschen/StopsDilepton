@@ -153,6 +153,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
              or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
              or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
         ): continue
+        if not selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv'): continue
     #    if not selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv'): continue
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
@@ -202,7 +203,7 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
 								 + (" --selectSys=" + sys)
       logfile = "log/systematicPlots_" + selection + "_" + sys + ".log"
       logger.info("Launching " + selection + " on cream02 with child command: " + command)
-      if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=15:00:00 runPlotsOnCream02.sh")
+      if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=50:00:00 runPlotsOnCream02.sh")
     logger.info("All jobs launched")
   exit(0)
 
@@ -226,21 +227,21 @@ T2tt2                   = T2tt_700_100
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
 
 DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-DM2                     = TTbarDMJets_pseudoscalar_Mchi_10_Mphi_100
+DM4                     = TTbarDMJets_pseudoscalar_Mchi_10_Mphi_100
 DM3                     = TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200
-DM4                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
+DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
 DM5                     = TTbarDMJets_scalar_Mchi_10_Mphi_100
 DM6                     = TTbarDMJets_scalar_Mchi_50_Mphi_200
-DM.style                = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-DM2.style               = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-DM3.style               = styles.lineStyle( ROOT.kBlack, width=3 )
-DM4.style               = styles.lineStyle( 28,          width=3, dotted=True )
+DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
+DM4.style               = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
+DM3.style               = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+DM2.style               = styles.lineStyle( 28,          width=3)
 DM5.style               = styles.lineStyle( 28,          width=3, dashed=True )
-DM6.style               = styles.lineStyle( 28,          width=3 )
+DM6.style               = styles.lineStyle( 28,          width=3, dotted=True )
 
 signals = []
 if   args.signal == "T2tt": signals = [T2tt]
-elif args.signal == "DM":   signals = [DM, DM2, DM3, DM4, DM5, DM6]
+elif args.signal == "DM":   signals = [DM, DM2]
 
 
 #
@@ -374,7 +375,7 @@ for index, mode in enumerate(allModes):
   stack_mc   = Stack( mc )
 
   if   args.signal == "T2tt": stack_data = Stack( data_sample, T2tt ) 
-  if   args.signal == "DM":   stack_data = Stack( data_sample, DM, DM2, DM3, DM4, DM5, DM6) 
+  if   args.signal == "DM":   stack_data = Stack( data_sample, DM, DM2) 
   else:                       stack_data = Stack( data_sample )
   sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
   plots = []
@@ -382,7 +383,7 @@ for index, mode in enumerate(allModes):
 
   dl_mt2ll_data  = Plot(
       name = "dl_mt2ll_data",
-      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
       binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
       stack = stack_data,
       variable = Variable.fromString( "dl_mt2ll/F" ),
@@ -392,7 +393,7 @@ for index, mode in enumerate(allModes):
 
   dl_mt2ll_mc  = { sys:Plot(\
       name            = "dl_mt2ll" if sys is None else "dl_mt2ll_mc_%s" % sys,
-      texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+      texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
       binning         = Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
       stack           = sys_stacks[sys],
       variable        = Variable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2ll_%s/F" % sys ),
@@ -404,7 +405,7 @@ for index, mode in enumerate(allModes):
   if args.selection.count('njet2'):
     dl_mt2bb_data  = Plot( 
 	name            = "dl_mt2bb_data",
-	texX            = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+	texX            = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack           = stack_data,
 	variable        = Variable.fromString( "dl_mt2bb/F" ),
 	binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
@@ -413,7 +414,7 @@ for index, mode in enumerate(allModes):
 
     dl_mt2bb_mc  = {sys: Plot(
 	name = "dl_mt2bb" if sys is None else "dl_mt2bb_mc_%s" % sys,
-	texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+	texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
 	variable = Variable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2bb_%s/F" % sys ),
 	binning=Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
@@ -424,7 +425,7 @@ for index, mode in enumerate(allModes):
 
     dl_mt2bb_data_2 = Plot( 
 	name            = "dl_mt2bb_data_2",
-	texX            = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+	texX            = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack           = stack_data,
 	variable        = Variable.fromString( "dl_mt2bb/F" ),
 	binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450,500,550,600,700,800,1000]),
@@ -433,7 +434,7 @@ for index, mode in enumerate(allModes):
 
     dl_mt2bb_mc_2  = {sys: Plot(
 	name = "dl_mt2bb_2" if sys is None else "dl_mt2bb_mc_2_%s" % sys,
-	texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+	texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
 	variable = Variable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2bb_%s/F" % sys ),
 	binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450,500,550,600,700,800,1000]),
@@ -446,7 +447,7 @@ for index, mode in enumerate(allModes):
 
     dl_mt2blbl_data  = Plot( 
 	name = "dl_mt2blbl_data",
-	texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+	texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = stack_data,
 	variable = Variable.fromString( "dl_mt2blbl/F" ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
@@ -455,7 +456,7 @@ for index, mode in enumerate(allModes):
 
     dl_mt2blbl_mc  = {sys: Plot(
 	name = "dl_mt2blbl" if sys is None else "dl_mt2blbl_mc_%s" % sys,
-	texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+	texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
 	variable = Variable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2blbl_%s/F" % sys ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
@@ -467,7 +468,7 @@ for index, mode in enumerate(allModes):
 
     dl_mt2blbl_data_2  = Plot( 
 	name = "dl_mt2blbl_data_2",
-	texX = 'M_{T2}{blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+	texX = 'M_{T2}{blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = stack_data,
 	variable = Variable.fromString( "dl_mt2blbl/F" ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350,400,450,500,600,700]),
@@ -476,7 +477,7 @@ for index, mode in enumerate(allModes):
 
     dl_mt2blbl_mc_2  = {sys: Plot(
 	name = "dl_mt2blbl_2" if sys is None else "dl_mt2blbl_mc_2_%s" % sys,
-	texX = 'M_{T2}{blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+	texX = 'M_{T2}{blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
 	variable = Variable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2blbl_%s/F" % sys ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350,400,450,500,600,700]),
@@ -724,20 +725,22 @@ for index, mode in enumerate(allModes):
 
 	plot = plot_mc[None]
 	if args.normalizeBinWidth: plot.name += "_normalizeBinWidth"
-        signal_histos = plot_data.histos[1:][0]
+        signal_histos = plot_data.histos[1:]
 	data_histo    = plot_data.histos[0][0]
         for h in plot_data.histos[0][1:]:
           data_histo.Add(h)
 
 	data_histo.style = styles.errorStyle( ROOT.kBlack )
-        T2tt_histo.style = styles.lineStyle( ROOT.kBlack, width=3 )
 	plot.histos += [[ data_histo ]]
-        for h in signal_histos: plot.histos += [[h]]
+        for h in signal_histos: plot.histos += [h]
 	plot_data.stack[0][0].texName = data_sample.texName if mode != "all" else data_sample[0].texName 
 	plot.stack += [[ plot_data.stack[0][0] ]]
         for i, signal in enumerate(signals):
 	  plot_data.stack[i+1][0].texName = signal.texName
-          plot_data.stack += [[ plot_data.stack[i+1][0] ]]
+	  plot_data.stack[i+1][0].style   = signal.style
+          plot.stack += [[ plot_data.stack[i+1][0] ]]
+        print plot.histos
+        print plot.stack
 
 	boxes = []
 	ratio_boxes = []
