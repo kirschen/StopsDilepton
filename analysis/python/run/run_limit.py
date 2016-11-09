@@ -65,7 +65,6 @@ def getScaleUnc(name, r, channel):
   else:                                          return 0.01
 
 def getIsrUnc(name, r, channel):
-  return 0 # for now ignore isr
   unc = isrUncCache.get((name, r, channel))
   return abs(unc)
 
