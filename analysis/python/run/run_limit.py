@@ -19,7 +19,7 @@ from StopsDilepton.analysis.Cache        import Cache
 if args.signal == "T2tt":
     regions = regions80X
 elif args.signal == "TTbarDM":
-    regions = regions80X_2D
+    regions = regions80X
     #regions = superRegion140
 
 if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ'])
