@@ -23,6 +23,8 @@ elif args.signal == "TTbarDM":
     if not args.regions: limitPrefix = "regions80X_2D"
     else:                limitPrefix = "regions" + args.regions
 
+regions = globals()[limitPrefix]
+
 if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ'])
 elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'multiBoson-DD', 'TTXNoZ'])
 observation = DataObservation(name='Data', sample=setup.sample['Data'])
