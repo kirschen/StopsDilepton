@@ -118,13 +118,13 @@ if not args.noData:
 
 for sample in mc:
     sample.read_variables = ["reweightPU/F"]
-    sample.weight = lambda data:data.reweightPU
+    sample.weight = lambda event:event.reweightPU
     sample.style = styles.fillStyle( sample.color)
 
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
-weight = lambda data:data.weight
+weight = lambda event:event.weight
 
 from StopsDilepton.tools.objectSelection import multiIsoLepString
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index'))
@@ -208,7 +208,7 @@ for i_comb in [len(cuts)]:
             name = "MT",
             texX = 'M_{T} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:sqrt(2.*data.l1_pt*data.met_pt*(1-cos(data.met_phi-data.l1_phi))), 
+            attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:sqrt(2.*event.l1_pt*event.met_pt*(1-cos(event.met_phi-event.l1_phi))), 
                 uses = ["l1_dxy/F", "met_pt/F", "met_phi/F", "l1_phi/F"]),
             binning=[510/15,0,510],
             selectionString = selectionString,
@@ -219,7 +219,7 @@ for i_comb in [len(cuts)]:
         l1_pt  = Plot(
             texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
             stack = stack, 
-            variable = Variable.fromString( "l1_pt/F" ),
+            attribute = TreeVariable.fromString( "l1_pt/F" ),
             binning=[60,0,300],
             selectionString = selectionString,
             weight = weight,
@@ -229,7 +229,7 @@ for i_comb in [len(cuts)]:
         l1_eta  = Plot(
             texX = '#eta(l_{1})', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "l1_eta/F" ),
+            attribute = TreeVariable.fromString( "l1_eta/F" ),
             binning=[36,-3.3,3.3],
             selectionString = selectionString,
             weight = weight,
@@ -239,7 +239,7 @@ for i_comb in [len(cuts)]:
         l1_phi  = Plot(
             texX = '#phi(l_{1})', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "l1_phi/F" ),
+            attribute = TreeVariable.fromString( "l1_phi/F" ),
             binning=[30,-pi,pi],
             selectionString = selectionString,
             weight = weight,
@@ -249,7 +249,7 @@ for i_comb in [len(cuts)]:
         l1_miniRelIso  = Plot(
             texX = 'I_{rel.mini}', texY = 'Number of Events / 5 GeV',
             stack = stack, 
-            variable = Variable.fromString( "l1_miniRelIso/F" ),
+            attribute = TreeVariable.fromString( "l1_miniRelIso/F" ),
             binning=[40,0,2],
             selectionString = selectionString,
             weight = weight,
@@ -260,7 +260,7 @@ for i_comb in [len(cuts)]:
             name = "l1_dxy",
             texX = '|d_{xy}|', texY = 'Number of Events',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.l1_dxy), uses = "l1_dxy/F"),
+            attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:abs(event.l1_dxy), uses = "l1_dxy/F"),
             binning=[40,0,1],
             selectionString = selectionString,
             weight = weight,
@@ -271,7 +271,7 @@ for i_comb in [len(cuts)]:
             name = "l1_dz",
             texX = '|d_{z}|', texY = 'Number of Events',
             stack = stack, 
-            variable = ScalarType.uniqueFloat().addFiller(lambda data:abs(data.l1_dz), uses = "l1_dz/F"),
+            attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:abs(event.l1_dz), uses = "l1_dz/F"),
             binning=[40,0,0.15],
             selectionString = selectionString,
             weight = weight,
@@ -281,7 +281,7 @@ for i_comb in [len(cuts)]:
         l1_pdgId  = Plot(
             texX = 'pdgId(l_{1})', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "l1_pdgId/I" ),
+            attribute = TreeVariable.fromString( "l1_pdgId/I" ),
             binning=[32,-16,16],
             selectionString = selectionString,
             weight = weight,
@@ -293,7 +293,7 @@ for i_comb in [len(cuts)]:
             name = "met_pt_zoomed",
             texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 10 GeV',
             stack = stack, 
-            variable = Variable.fromString( "met_pt/F" ),
+            attribute = TreeVariable.fromString( "met_pt/F" ),
             binning=[22,0,220],
             selectionString = selectionString,
             weight = weight,
@@ -303,7 +303,7 @@ for i_comb in [len(cuts)]:
         met  = Plot(
             texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
             stack = stack, 
-            variable = Variable.fromString( "met_pt/F" ),
+            attribute = TreeVariable.fromString( "met_pt/F" ),
             binning=[1050/50,0,1050],
             selectionString = selectionString,
             weight = weight,
@@ -313,9 +313,9 @@ for i_comb in [len(cuts)]:
         metSig  = Plot(
             texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
             stack = stack, 
-            variable = Variable.fromString('metSig/F').addFiller (
+            attribute = TreeVariable.fromString('metSig/F').addFiller (
                 helpers.uses( 
-                    lambda data: data.met_pt/sqrt(data.ht) if data.ht>0 else float('nan') , 
+                    lambda event: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan') , 
                     ["met_pt/F", "ht/F"])
             ), 
             binning=[30,0,30],
@@ -327,7 +327,7 @@ for i_comb in [len(cuts)]:
         ht  = Plot(
             texX = 'H_{T} (GeV)', texY = 'Number of Events / 100 GeV',
             stack = stack, 
-            variable = Variable.fromString( "ht/F" ),
+            attribute = TreeVariable.fromString( "ht/F" ),
             binning=[2600/100,0,2600],
             selectionString = selectionString,
             weight = weight,
@@ -338,7 +338,7 @@ for i_comb in [len(cuts)]:
             name = "ht_zoomed",
             texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
             stack = stack, 
-            variable = Variable.fromString( "ht/F" ),
+            attribute = TreeVariable.fromString( "ht/F" ),
             binning=[390/15,0,390],
             selectionString = selectionString,
             weight = weight,
@@ -348,8 +348,8 @@ for i_comb in [len(cuts)]:
         cosMetJet0phi = Plot(\
             texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString('cosMetJet0phi/F').addFiller (
-                helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
+            attribute = TreeVariable.fromString('cosMetJet0phi/F').addFiller (
+                helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
             ), 
             binning = [10,-1,1], 
             selectionString = selectionString,
@@ -360,8 +360,8 @@ for i_comb in [len(cuts)]:
         cosMetJet1phi = Plot(\
             texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString('cosMetJet1phi/F').addFiller (
-                helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
+            attribute = TreeVariable.fromString('cosMetJet1phi/F').addFiller (
+                helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
             ), 
             binning = [10,-1,1], 
             selectionString = selectionString,
@@ -372,8 +372,8 @@ for i_comb in [len(cuts)]:
         jet0pt  = Plot(
             texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet0pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[0], "JetGood[pt/F]" )
+            attribute = TreeVariable.fromString('jet0pt/F').addFiller (
+                helpers.uses(lambda event: event.JetGood_pt[0], "JetGood[pt/F]" )
             ), 
             binning=[980/20,0,980],
             selectionString = selectionString,
@@ -384,8 +384,8 @@ for i_comb in [len(cuts)]:
         jet1pt  = Plot(
             texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet1pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[1], "JetGood[pt/F]" )
+            attribute = TreeVariable.fromString('jet1pt/F').addFiller (
+                helpers.uses(lambda event: event.JetGood_pt[1], "JetGood[pt/F]" )
             ), 
             binning=[980/20,0,980],
             selectionString = selectionString,
@@ -396,8 +396,8 @@ for i_comb in [len(cuts)]:
         jet2pt  = Plot(
             texX = 'p_{T}(3^{rd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet2pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[2], "JetGood[pt/F]" )
+            attribute = TreeVariable.fromString('jet2pt/F').addFiller (
+                helpers.uses(lambda event: event.JetGood_pt[2], "JetGood[pt/F]" )
             ), 
             binning=[400/20,0,400],
             selectionString = selectionString,
@@ -408,8 +408,8 @@ for i_comb in [len(cuts)]:
         jet3pt  = Plot(
             texX = 'p_{T}(4^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet3pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[3], "JetGood[pt/F]" )
+            attribute = TreeVariable.fromString('jet3pt/F').addFiller (
+                helpers.uses(lambda event: event.JetGood_pt[3], "JetGood[pt/F]" )
             ), 
             binning=[400/20,0,400],
             selectionString = selectionString,
@@ -420,8 +420,8 @@ for i_comb in [len(cuts)]:
         jet4pt  = Plot(
             texX = 'p_{T}(5^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString('jet4pt/F').addFiller (
-                helpers.uses(lambda data: data.JetGood_pt[4], "JetGood[pt/F]" )
+            attribute = TreeVariable.fromString('jet4pt/F').addFiller (
+                helpers.uses(lambda event: event.JetGood_pt[4], "JetGood[pt/F]" )
             ), 
             binning=[400/20,0,400],
             selectionString = selectionString,
@@ -432,7 +432,7 @@ for i_comb in [len(cuts)]:
         nbtags  = Plot(
             texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString('nBTag/I'),
+            attribute = TreeVariable.fromString('nBTag/I'),
             binning=[8,0,8],
             selectionString = selectionString,
             weight = weight,
@@ -442,7 +442,7 @@ for i_comb in [len(cuts)]:
         njets  = Plot(
             texX = 'number of jets', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString('nJetGood/I'),
+            attribute = TreeVariable.fromString('nJetGood/I'),
             binning=[14,0,14],
             selectionString = selectionString,
             weight = weight,
@@ -452,7 +452,7 @@ for i_comb in [len(cuts)]:
         nVert  = Plot(
             texX = 'vertex multiplicity', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "nVert/I" ),
+            attribute = TreeVariable.fromString( "nVert/I" ),
             binning=[50,0,50],
             selectionString = selectionString,
             weight = weight,

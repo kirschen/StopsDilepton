@@ -305,13 +305,13 @@ def systematic_selection( sys = None ):
 
 def weightMC( sys = None ):
     if sys is None:
-        return (lambda data:data.weight*data.reweightPU12fb*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF")
+        return (lambda event:event.weight*event.reweightPU12fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF")
     elif 'PU' in sys:
-        return (lambda data:data.weight*getattr(data, "reweight"+sys)*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF")
+        return (lambda event:event.weight*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF")
     elif 'BTag' in sys:
-        return (lambda data:data.weight*data.reweightPU12fb*data.reweightDilepTriggerBackup*getattr(data, "reweight"+sys)*data.reweightLeptonSF*data.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweight"+sys+"*reweightLeptonSF*reweightLeptonHIPSF")
+        return (lambda event:event.weight*event.reweightPU12fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys)*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweight"+sys+"*reweightLeptonSF*reweightLeptonHIPSF")
     elif sys in weight_systematics:
-        return (lambda data:data.weight*data.reweightDilepTriggerBackup*data.reweightPU12fb*data.reweightBTag_SF*getattr(data, "reweight"+sys)*data.reweightLeptonSF*data.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweight"+sys+"*reweightLeptonSF*reweightLeptonHIPSF")
+        return (lambda event:event.weight*event.reweightDilepTriggerBackup*event.reweightPU12fb*event.reweightBTag_SF*getattr(event, "reweight"+sys)*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweight"+sys+"*reweightLeptonSF*reweightLeptonHIPSF")
     elif sys in jme_systematics :
         return weightMC( sys = None )
     else: raise ValueError( "Systematic %s not known"%sys )
@@ -373,7 +373,7 @@ logger.info( "Prefix %s common_selection_string %s", prefix, common_selection_st
 data_selection_string = "&&".join( s[1] for s in systematic_selection( sys = None ) )
 analysis_selection_string = "&&".join( s[1] for s in analysis_selection ) if len(analysis_selection)>0 else "1"
 
-data_weight_func, data_weight_string = lambda data:data.weight, "weight"
+data_weight_func, data_weight_string = lambda event:event.weight, "weight"
 
 sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
 
@@ -383,7 +383,7 @@ dl_mt2ll_data  = Plot(
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
     stack = stack_data,
-    variable = Variable.fromString( "dl_mt2ll/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
     selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
     addOverFlowBin = "upper",
@@ -395,7 +395,7 @@ dl_mt2ll_mc  = { sys:Plot(\
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
     stack = sys_stacks[sys],
-    variable = Variable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2ll_%s/F" % sys ),
+    attribute = TreeVariable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2ll_%s/F" % sys ),
     selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
     weight = weightMC( sys = sys )[0],
     addOverFlowBin = "upper",
@@ -406,7 +406,7 @@ dl_mt2bb_data  = Plot(
     name = "dl_mt2bb_data",
     texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = stack_data,
-    variable = Variable.fromString( "dl_mt2bb/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
     binning=Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
     selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
@@ -418,7 +418,7 @@ dl_mt2bb_mc  = {sys: Plot(
     name = "dl_mt2bb" if sys is None else "dl_mt2bb_mc_%s" % sys,
     texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = sys_stacks[sys],
-    variable = Variable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2bb_%s/F" % sys ),
+    attribute = TreeVariable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2bb_%s/F" % sys ),
     binning=Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
     selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
     weight = weightMC( sys = sys )[0],
@@ -430,7 +430,7 @@ dl_mt2blbl_data  = Plot(
     name = "dl_mt2blbl_data",
     texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = stack_data,
-    variable = Variable.fromString( "dl_mt2blbl/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
     binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
     selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
@@ -442,7 +442,7 @@ dl_mt2blbl_mc  = {sys: Plot(
     name = "dl_mt2blbl" if sys is None else "dl_mt2blbl_mc_%s" % sys,
     texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = sys_stacks[sys],
-    variable = Variable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2blbl_%s/F" % sys ),
+    attribute = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
     binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
     selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
     weight = weightMC( sys = sys )[0],
@@ -454,7 +454,7 @@ nbtags_data  = Plot(
     name = "nbtags_data",
     texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
     stack = stack_data,
-    variable = Variable.fromString('nBTag/I'),
+    attribute = TreeVariable.fromString('nBTag/I'),
     binning=[5,1,6],
     selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
@@ -466,7 +466,7 @@ nbtags_mc  = {sys: Plot(
     name = "nbtags" if sys is None else "nbtags_mc_%s" % sys,
     texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
     stack = sys_stacks[sys],
-    variable = Variable.fromString('nBTag/I') if sys is None or sys in weight_systematics or sys in met_systematics else Variable.fromString( "nBTag_%s/I" % sys ),
+    attribute = TreeVariable.fromString('nBTag/I') if sys is None or sys in weight_systematics or sys in met_systematics else TreeVariable.fromString( "nBTag_%s/I" % sys ),
     binning=[5,1,6],
     selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
     weight = weightMC( sys = sys )[0],
@@ -478,7 +478,7 @@ njets_data  = Plot(
     name = "njets_data",
     texX = 'number of jets', texY = 'Number of Events',
     stack = stack_data,
-    variable = Variable.fromString('nJetGood/I'),
+    attribute = TreeVariable.fromString('nJetGood/I'),
     binning=[8,2,10],
     selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
@@ -490,7 +490,7 @@ njets_mc  = {sys: Plot(
     name = "njets" if sys is None else "njets_mc_%s" % sys,
     texX = 'number of jets', texY = 'Number of Events',
     stack = sys_stacks[sys],
-    variable = Variable.fromString('nJetGood/I') if sys is None or sys in weight_systematics or sys in met_systematics else Variable.fromString( "nJetGood_%s/I" % sys ),
+    attribute = TreeVariable.fromString('nJetGood/I') if sys is None or sys in weight_systematics or sys in met_systematics else TreeVariable.fromString( "nJetGood_%s/I" % sys ),
     binning=[8,2,10],
     selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
     weight = weightMC( sys = sys )[0],
@@ -502,7 +502,7 @@ met_data  = Plot(
     name = "met_data",
     texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = stack_data, 
-    variable = Variable.fromString( "met_pt/F" ),
+    attribute = TreeVariable.fromString( "met_pt/F" ),
     binning=Binning.fromThresholds( [0,80,130,180,230,280,320,420,520,800] if args.met != 'def' else [80,130,180,230,280,320,420,520,800]),
     selectionString = "&&".join([ analysis_selection_string, common_selection_string, data_selection_string] ),
     weight = data_weight_func,
@@ -514,7 +514,7 @@ met_mc  = {sys: Plot(
     name = "met_pt" if sys is None else "met_pt_mc_%s" % sys,
     texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Event",
     stack = sys_stacks[sys],
-    variable = Variable.fromString('met_pt/F') if sys not in met_systematics else Variable.fromString( "met_pt_%s/F" % sys ),
+    attribute = TreeVariable.fromString('met_pt/F') if sys not in met_systematics else TreeVariable.fromString( "met_pt_%s/F" % sys ),
     binning=Binning.fromThresholds( [0,80,130,180,230,280,320,420,520,800] if args.met != 'def'  else [80,130,180,230,280,320,420,520,800]),
     selectionString = "&&".join( [analysis_selection_string, common_selection_string] + [ s[1] for s in systematic_selection( sys = sys ) ] ),
     weight = weightMC( sys = sys )[0],
@@ -546,7 +546,7 @@ if os.path.exists(result_file) and not args.overwrite:
         p_mc, p_data, bin_width = plot_
         for k in p_mc.keys():
             p_mc[k].histos = all_histos[i_plot][0][k] 
-        p_data.histos = all_histos[i_plot][1]
+        p_event.histos = all_histos[i_plot][1]
 else:
     # Applying systematic variation
 
@@ -609,7 +609,7 @@ else:
     #for p_mc, p_data, x_norm, bin_width in plots:
     for p_mc, p_data, bin_width in plots:
         mc_histos = {k:p_mc[k].histos for k in p_mc.keys()}
-        data_histos = p_data.histos
+        data_histos = p_event.histos
         all_histos.append( (mc_histos, data_histos) )
 
     pickle.dump( (all_histos, top_sf), file( result_file, 'w' ) )
@@ -687,11 +687,11 @@ for plot_mc, plot_data, bin_width in plots:
 
     plot = plot_mc[None]
     if args.normalizeBinWidth: plot.name += "_normalizeBinWidth"
-    data_histo =  plot_data.histos_added[0][0]
+    data_histo =  plot_event.histos_added[0][0]
     data_histo.style = styles.errorStyle( ROOT.kBlack )
     plot.histos += [[ data_histo ]]
-    plot_data.stack[0][0].texName = data_sample_texName 
-    plot.stack += [[ plot_data.stack[0][0] ]]
+    plot_event.stack[0][0].texName = data_sample_texName 
+    plot.stack += [[ plot_event.stack[0][0] ]]
 
     boxes = []
     ratio_boxes = []

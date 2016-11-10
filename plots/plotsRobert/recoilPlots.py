@@ -202,7 +202,7 @@ for sample in mc:
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
-weight = lambda data:data.weight
+weight = lambda event:event.weight
 
 if args.dPhi == 'inv':
     dPhi = [ ("dPhiJetMETInv", "(!(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0))") ]
@@ -248,27 +248,27 @@ sequence = []
 
 def makeQTZ( data ):
      
-    data.qx = data.dl_pt*cos(data.dl_phi)  
-    data.qy = data.dl_pt*sin(data.dl_phi)
+    event.qx = event.dl_pt*cos(event.dl_phi)  
+    event.qy = event.dl_pt*sin(event.dl_phi)
 
-    data.qt = sqrt( data.qx**2 + data.qy**2 )
+    event.qt = sqrt( event.qx**2 + event.qy**2 )
 
 def makeUParaUPerp( data ):
-    mex = data.met_pt*cos(data.met_phi) 
-    mey = data.met_pt*sin(data.met_phi)
-    ux = -mex - data.qx 
-    uy = -mey - data.qy
-    data.upara = (ux*data.qx+uy*data.qy)/data.qt
-    data.uperp = (ux*data.qy-uy*data.qx)/data.qt
-    data.uPlusQPara = -(mex*data.qx + mey*data.qy)/data.qt
+    mex = event.met_pt*cos(event.met_phi) 
+    mey = event.met_pt*sin(event.met_phi)
+    ux = -mex - event.qx 
+    uy = -mey - event.qy
+    event.upara = (ux*event.qx+uy*event.qy)/event.qt
+    event.uperp = (ux*event.qy-uy*event.qx)/event.qt
+    event.uPlusQPara = -(mex*event.qx + mey*event.qy)/event.qt
 
 sequence.append( makeQTZ )
 sequence.append( makeUParaUPerp )
 
 
 #TTJets_Dilep.read_variables = [
-#    Variable.fromString('ngenPartAll/I'),
-#    VectorType.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/F,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I]', nMax=200 ),
+#    TreeVariable.fromString('ngenPartAll/I'),
+#    VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/F,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I]', nMax=200 ),
 #]
 #def makeTTJetsQT( data ):
 #    
@@ -279,7 +279,7 @@ sequence.append( makeUParaUPerp )
 #    qx = sum([p['pt']*cos(p['phi']) for p in genW ],0.) 
 #    qy = sum([p['pt']*sin(p['phi']) for p in genW ],0.)
 #    qt = sqrt( qx**2 + qy**2 )
-#    data.ttjets_qt = qt 
+#    event.ttjets_qt = qt 
 #
 #TTJets_Dilep.sequence = [ makeTTJetsQT ]
 #
@@ -333,10 +333,10 @@ for sample in mc:
     sample.scale = lumi_scale*dataMCScale
     if args.pu != "None":
         sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
+        sample.weight = lambda event: getattr( data, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
     else:
         sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda data: data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
+        sample.weight = lambda event: event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
 
         sample.read_variables = [args.pu+'/F']
 
@@ -350,7 +350,7 @@ qt  = Plot(
     name = "qt",
     texX = 'q_{T} (GeV)', texY = 'Number of Events / 5 GeV',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.qt),
+    attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.qt),
     binning=[400/5,0,200],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -362,7 +362,7 @@ upara  = Plot(
     name = "upara",
     texX = 'u_{\parallel} (GeV)', texY = 'Number of Events / 5 GeV',
    stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.upara),
+    attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.upara),
     binning=[400/5,-200,200],
     selectionString = selectionString,
     addOverFlowBin = 'both',
@@ -374,7 +374,7 @@ dl_uPlusQPara  = Plot(
     name = "uPlusQPara",
     texX = '(u+q)_{\parallel} (GeV)', texY = 'Number of Events / 30 GeV',
    stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.uPlusQPara),
+    attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.uPlusQPara),
     binning=[600/30,-300,300],
     selectionString = selectionString,
     addOverFlowBin = 'both',
@@ -386,7 +386,7 @@ dl_uperp  = Plot(
     name = "uperp",
     texX = 'u_{\perp} (GeV)', texY = 'Number of Events / 5 GeV',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.uperp),
+    attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.uperp),
     binning=[400/5,-200,200],
     selectionString = selectionString,
     addOverFlowBin = 'both',
@@ -398,7 +398,7 @@ metZoomed  = Plot(
     name = "met_pt_zoomed",
     texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 10 GeV',
     stack = stack, 
-    variable = Variable.fromString( "met_pt/F" ),
+    attribute = TreeVariable.fromString( "met_pt/F" ),
     binning=[22,0,220],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -409,7 +409,7 @@ plots.append( metZoomed )
 met  = Plot(
     texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
     stack = stack, 
-    variable = Variable.fromString( "met_pt/F" ),
+    attribute = TreeVariable.fromString( "met_pt/F" ),
     binning=[1050/50,0,1050],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -420,9 +420,9 @@ plots.append( met )
 metSig  = Plot(
     texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
     stack = stack, 
-    variable = Variable.fromString('metSig/F').addFiller (
+    attribute = TreeVariable.fromString('metSig/F').addFiller (
         helpers.uses( 
-            lambda data: data.met_pt/sqrt(data.ht) if data.ht>0 else float('nan') , 
+            lambda event: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan') , 
             ["met_pt/F", "ht/F"])
     ), 
     binning=[30,0,30],
@@ -435,7 +435,7 @@ plots.append( metSig )
 ht  = Plot(
     texX = 'H_{T} (GeV)', texY = 'Number of Events / 100 GeV',
     stack = stack, 
-    variable = Variable.fromString( "ht/F" ),
+    attribute = TreeVariable.fromString( "ht/F" ),
     binning=[2600/100,0,2600],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -447,7 +447,7 @@ ht_zoomed  = Plot(
     name = "ht_zoomed",
     texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
     stack = stack, 
-    variable = Variable.fromString( "ht/F" ),
+    attribute = TreeVariable.fromString( "ht/F" ),
     binning=[390/15,0,390],
     selectionString = selectionString,
     weight = weight,
@@ -457,8 +457,8 @@ plots.append( ht_zoomed )
 cosMetJet0phi = Plot(\
     texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
     stack = stack, 
-    variable = Variable.fromString('cosMetJet0phi/F').addFiller (
-        helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
+    attribute = TreeVariable.fromString('cosMetJet0phi/F').addFiller (
+        helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
     ), 
     binning = [40,-1,1], 
     selectionString = selectionString,
@@ -469,8 +469,8 @@ plots.append( cosMetJet0phi )
 cosMetJet1phi = Plot(\
     texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
     stack = stack, 
-    variable = Variable.fromString('cosMetJet1phi/F').addFiller (
-        helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
+    attribute = TreeVariable.fromString('cosMetJet1phi/F').addFiller (
+        helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
     ), 
     binning = [40,-1,1], 
     selectionString = selectionString,
@@ -482,7 +482,7 @@ plots.append( cosMetJet1phi )
 #    name = "recoil_TT",
 #    texX = 'q_{T} (TTJets Dilep)', texY = 'Number of Events / 10 GeV',
 #    stack = stack_TTJets_Dilep, 
-#    variable = ScalarType.uniqueFloat().addFiller ( lambda data: data.ttjets_qt ),
+#    variable = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.ttjets_qt ),
 #    binning=[200/10,0,200],
 #    selectionString = selectionString,
 #    weight = weight,
@@ -493,8 +493,8 @@ plots.append( cosMetJet1phi )
 #    texX = 'M_{T2}(ll)', texY = 'q_{T}=|p_{T}(W_{1}) + p_{T}(W_{2})|',
 #    stack = stack_TTJets_Dilep, 
 #    variables = (
-#        ScalarType.uniqueFloat().addFiller ( lambda data: data.dl_mt2ll ),
-#        ScalarType.uniqueFloat().addFiller ( lambda data: data.ttjets_qt ),
+#        ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.dl_mt2ll ),
+#        ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.ttjets_qt ),
 #    ),
 #    binning=[30,0,200, 30,0,100],
 #    weight = weight,
@@ -504,8 +504,8 @@ plots.append( cosMetJet1phi )
 
 def qt_cut_weight( qtb ):
     def w( data ):
-        if data.qt>qtb[0] and data.qt<qtb[1]:
-            return data.weight
+        if event.qt>qtb[0] and event.qt<qtb[1]:
+            return event.weight
         else:
             return 0
     return w
@@ -515,7 +515,7 @@ for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80,
         name = "upara_qt_%i_%i"%qtb,
         texX = 'u_{\parallel} (GeV)', texY = 'Number of Events / 10 GeV',
         stack = stack, 
-        variable = ScalarType.uniqueFloat().addFiller(lambda data:data.upara),
+        attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.upara),
         weight   = qt_cut_weight(qtb),
         binning=[300/10,-150-qtb[0],150-qtb[0]],
         selectionString = selectionString,
@@ -526,7 +526,7 @@ for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80,
         name = "uPlusQPara_qt_%i_%i"%qtb,
         texX = '(u+q)_{\parallel} (GeV)', texY = 'Number of Events / 10 GeV',
         stack = stack, 
-        variable = ScalarType.uniqueFloat().addFiller(lambda data:data.uPlusQPara),
+        attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.uPlusQPara),
         weight   = qt_cut_weight(qtb),
         binning=[500/10,-250,250],
         selectionString = selectionString,
@@ -538,7 +538,7 @@ for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80,
         name = "uperp_qt_%i_%i"%qtb,
         texX = 'u_{\perp} (GeV)', texY = 'Number of Events / 5 GeV',
         stack = stack, 
-        variable = ScalarType.uniqueFloat().addFiller(lambda data:data.uperp),
+        attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.uperp),
         weight   = qt_cut_weight(qtb),
         binning=[300/10,-150,150],
         selectionString = selectionString,
@@ -548,7 +548,7 @@ for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80,
 dl_mass  = Plot(
     texX = 'm(ll) (GeV)', texY = 'Number of Events / 3 GeV',
     stack = stack, 
-    variable = Variable.fromString( "dl_mass/F" ),
+    attribute = TreeVariable.fromString( "dl_mass/F" ),
     binning=[150/3,0,150],
     selectionString = selectionString,
     addOverFlowBin = 'both',
@@ -559,7 +559,7 @@ plots.append( dl_mass )
 dl_pt  = Plot(
     texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
     stack = stack, 
-    variable = Variable.fromString( "dl_pt/F" ),
+    attribute = TreeVariable.fromString( "dl_pt/F" ),
     binning=[40,0,800],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -571,7 +571,7 @@ dl_qt  = Plot(
     name = "qt",
     texX = 'q_{T}(ll) (GeV)', texY = 'Number of Events / 10 GeV',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.qt),
+    attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.qt),
     binning=[40,0,400],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -582,7 +582,7 @@ plots.append( dl_qt )
 dl_eta  = Plot(
     texX = '#eta(ll) ', texY = 'Number of Events',
     stack = stack, 
-    variable = Variable.fromString( "dl_eta/F" ),
+    attribute = TreeVariable.fromString( "dl_eta/F" ),
     binning=[30,-3,3],
     selectionString = selectionString,
     weight = weight,
@@ -592,7 +592,7 @@ plots.append( dl_eta )
 dl_phi  = Plot(
     texX = '#phi(ll) (GeV)', texY = 'Number of Events',
     stack = stack, 
-    variable = Variable.fromString( "dl_phi/F" ),
+    attribute = TreeVariable.fromString( "dl_phi/F" ),
     binning=[30,-pi,pi],
     selectionString = selectionString,
     weight = weight,
@@ -602,7 +602,7 @@ plots.append( dl_phi )
 dl_mt2ll  = Plot(
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
     stack = stack, 
-    variable = Variable.fromString( "dl_mt2ll/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
     binning=[300/20,0,300],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -614,7 +614,7 @@ dl_mt2ll_100  = Plot(
     name = "dl_mt2ll_100",
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 25 GeV',
     stack = stack, 
-    variable = Variable.fromString( "dl_mt2ll/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
     binning=[350/25,100,450],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -625,7 +625,7 @@ plots.append( dl_mt2ll_100 )
 dl_mt2bb  = Plot(
     texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
     stack = stack, 
-    variable = Variable.fromString( "dl_mt2bb/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
     binning=[300/15,0,300],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -636,7 +636,7 @@ plots.append( dl_mt2bb )
 dl_mt2blbl  = Plot(
     texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
     stack = stack, 
-    variable = Variable.fromString( "dl_mt2blbl/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
     binning=[300/15,0,300],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -648,7 +648,7 @@ plots.append( dl_mt2blbl )
 nbtags  = Plot(
     texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
     stack = stack, 
-    variable = Variable.fromString('nBTag/I'),
+    attribute = TreeVariable.fromString('nBTag/I'),
     binning=[8,0,8],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -659,7 +659,7 @@ plots.append( nbtags )
 njets  = Plot(
     texX = 'number of jets', texY = 'Number of Events',
     stack = stack, 
-    variable = Variable.fromString('nJetGood/I'),
+    attribute = TreeVariable.fromString('nJetGood/I'),
     binning=[14,0,14],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -670,7 +670,7 @@ plots.append( njets )
 nVert  = Plot(
     texX = 'vertex multiplicity', texY = 'Number of Events',
     stack = stack, 
-    variable = Variable.fromString( "nVert/I" ),
+    attribute = TreeVariable.fromString( "nVert/I" ),
     binning=[50,0,50],
     selectionString = selectionString,
     addOverFlowBin = 'upper',

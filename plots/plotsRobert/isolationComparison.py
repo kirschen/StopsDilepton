@@ -111,8 +111,8 @@ lepton_fr_counters = {pdgId:{x:0 for x in ['fake', 'prompt', 'nonPrompt']} for p
 sequence = []
 
 #Make lumi weight
-def makeLumiWeight ( data ):
-        data.lumi_weight = lumiScaleFactor*data.genWeight
+def makeLumiWeight ( event, sample ):
+        event.lumi_weight = lumiScaleFactor*event.genWeight
 
 sequence.append( makeLumiWeight )
 
@@ -167,50 +167,50 @@ else:
 
 from StopsDilepton.tools.objectSelection import getGenPartsAll 
 
-def makeObjects( data ):
+def makeObjects( event, sample ):
 
     # fake MET
-    fake_MEx = data.met_pt*cos(data.met_phi) - data.met_genPt*cos(data.met_genPhi)
-    fake_MEy = data.met_pt*sin(data.met_phi) - data.met_genPt*sin(data.met_genPhi)
+    fake_MEx = event.met_pt*cos(event.met_phi) - event.met_genPt*cos(event.met_genPhi)
+    fake_MEy = event.met_pt*sin(event.met_phi) - event.met_genPt*sin(event.met_genPhi)
 
-    data.fakeMET = sqrt(fake_MEx**2 + fake_MEy**2)
+    event.fakeMET = sqrt(fake_MEx**2 + fake_MEy**2)
 
     # Leptons
-    data.all_leptons = getGoodAndOtherLeptons(data, ptCut=20, 
+    event.all_leptons = getGoodAndOtherLeptons(event, ptCut=20, 
             collVars = leptonVars + ['mcMatchPdgId', 'mcMatchAny', 'relIso03', 'sigmaIEtaIEta', 'dEtaScTrkIn', 'dPhiScTrkIn', 'hadronicOverEm', 'eInvMinusPInv'], 
             mu_selector  = loose_mu_selector, 
             ele_selector = loose_ele_selector
         )
-    data.selected_muons      = filter( lambda l: mu_selector(l)  and isolation(l), data.all_leptons  )
-    data.selected_electrons  = filter( lambda l: ele_selector(l) and isolation(l), data.all_leptons  )
+    event.selected_muons      = filter( lambda l: mu_selector(l)  and isolation(l), event.all_leptons  )
+    event.selected_electrons  = filter( lambda l: ele_selector(l) and isolation(l), event.all_leptons  )
 
-    #print "#mu %i #ele %i" %( len(data.selected_muons), len(data.selected_electrons) )
+    #print "#mu %i #ele %i" %( len(event.selected_muons), len(event.selected_electrons) )
 
-    #print data.selected_muons
-    data.selected_leptons = data.selected_muons + data.selected_electrons
-    data.selected_leptons.sort( key = lambda p: -p['pt'] )
+    #print event.selected_muons
+    event.selected_leptons = event.selected_muons + event.selected_electrons
+    event.selected_leptons.sort( key = lambda p: -p['pt'] )
 
     # Gen leptons
-    data.genPartsAll = getGenPartsAll( data )
-    data.genHadTau = filter( lambda p: abs(p['pdgId'])==15 and p['daughterIndex2']<200 and p['isPromptHard'] and ( abs(data.genPartsAll[p['daughterIndex1']]['pdgId'])>20 or abs(data.genPartsAll[p['daughterIndex2']]['pdgId'])>100), data.genPartsAll)
+    event.genPartsAll = getGenPartsAll( event )
+    event.genHadTau = filter( lambda p: abs(p['pdgId'])==15 and p['daughterIndex2']<200 and p['isPromptHard'] and ( abs(event.genPartsAll[p['daughterIndex1']]['pdgId'])>20 or abs(event.genPartsAll[p['daughterIndex2']]['pdgId'])>100), event.genPartsAll)
 
-    data.promptHardGenLep =  filter( lambda p:abs(p['pdgId']) in [11, 13] and p['status']==1 and p['isPromptHard'] and p['pt']>20 and abs(p['eta'])<2.1, data.genPartsAll )
+    event.promptHardGenLep =  filter( lambda p:abs(p['pdgId']) in [11, 13] and p['status']==1 and p['isPromptHard'] and p['pt']>20 and abs(p['eta'])<2.1, event.genPartsAll )
 
 sequence.append( makeObjects )
 
 def match( l1, l2 ):
     return l1['pdgId'] == l2['pdgId'] and deltaR(l1, l2)<0.3
 
-def increment_lepton_counters( data ):
+def increment_lepton_counters( event, sample ):
        
-    for gl in data.promptHardGenLep:
-        if not any(match(gl, l) for l in data.selected_leptons):
-            #print "unmatched", gl, data.selected_leptons
+    for gl in event.promptHardGenLep:
+        if not any(match(gl, l) for l in event.selected_leptons):
+            #print "unmatched", gl, event.selected_leptons
             lepton_eff_counters[abs(gl['pdgId'])]['hasNoMatch'] += 1
         else:
             lepton_eff_counters[abs(gl['pdgId'])]['hasMatch'] += 1
 
-    for l in data.selected_leptons:
+    for l in event.selected_leptons:
         if  abs(l['mcMatchPdgId']) not in [11,13]: 
             lepton_fr_counters[abs(l['pdgId'])]['fake'] += 1
         elif abs(l['mcMatchAny']) in [4,5]:
@@ -220,81 +220,81 @@ def increment_lepton_counters( data ):
 
 sequence.append( increment_lepton_counters )
 
-def makeWeights( data ):
+def makeWeights( event, sample ):
     # boolean weights
-    data.other = 1
-    #data.fakeMET_40_60 = data.fakeMET>40 and data.fakeMET<60
-    data.fakeMET_50 = data.fakeMET>50
-    #if data.fakeMET_40_60 or data.fakeMET_60: data.other = 0
-    if data.fakeMET_50: data.other = 0
+    event.other = 1
+    #event.fakeMET_40_60 = event.fakeMET>40 and event.fakeMET<60
+    event.fakeMET_50 = event.fakeMET>50
+    #if event.fakeMET_40_60 or event.fakeMET_60: event.other = 0
+    if event.fakeMET_50: event.other = 0
 
-    data.hasGenHadTau = 0
-    if data.other == 1: #Avoid overlap
-        if len(data.genHadTau) > 0:
-            data.hasGenHadTau = 1
-            data.other = 0
+    event.hasGenHadTau = 0
+    if event.other == 1: #Avoid overlap
+        if len(event.genHadTau) > 0:
+            event.hasGenHadTau = 1
+            event.other = 0
 
-    data.fake = 0
-    data.nonPrompt = 0
-    if data.other == 1: #Avoid overlap
-        for l in data.selected_leptons:
+    event.fake = 0
+    event.nonPrompt = 0
+    if event.other == 1: #Avoid overlap
+        for l in event.selected_leptons:
             #if ( abs(l['mcMatchPdgId']) not in [11,13] ) or ( abs(l['mcMatchAny']) not in [1] ):
             #    print "pdgId %3i mcMatchPdgId %3i mcMatchAny %3i pt %3.2f" % ( l['pdgId'], l['mcMatchPdgId'], l['mcMatchAny'], l['pt'] )
             if  abs(l['mcMatchPdgId']) not in [11,13]: 
-                data.fake    = 1
-                data.other   = 0
+                event.fake    = 1
+                event.other   = 0
                 break
             elif abs(l['mcMatchAny']) in [4,5]:
-                data.nonPrompt  = 1
-                data.other      = 0
+                event.nonPrompt  = 1
+                event.other      = 0
                 break
 
-    data.mt2ll = float('nan')
-    data.mll = float('nan')
-    data.OS = False
-    data.SF = False 
-    data.OF = False
-    data.MuMu = False
-    data.EE = False
-    data.EMu = False
+    event.mt2ll = float('nan')
+    event.mll = float('nan')
+    event.OS = False
+    event.SF = False 
+    event.OF = False
+    event.MuMu = False
+    event.EE = False
+    event.EMu = False
 
-    data.highMT2ll = False
-    data.selection = False    
+    event.highMT2ll = False
+    event.selection = False    
 
-    if len(data.selected_leptons)>=2:
-        data.l1, data.l2 = data.selected_leptons[:2]
-        pdgIds = [abs(data.l1['pdgId']), abs(data.l2['pdgId'])]
+    if len(event.selected_leptons)>=2:
+        event.l1, event.l2 = event.selected_leptons[:2]
+        pdgIds = [abs(event.l1['pdgId']), abs(event.l2['pdgId'])]
         pdgIds.sort() 
         mt2Calc.reset()
-        mt2Calc.setLeptons(data.l1['pt'], data.l1['eta'], data.l1['phi'], data.l2['pt'], data.l2['eta'], data.l2['phi'] )
-        mt2Calc.setMet( data.met_pt, data.met_phi )
+        mt2Calc.setLeptons(event.l1['pt'], event.l1['eta'], event.l1['phi'], event.l2['pt'], event.l2['eta'], event.l2['phi'] )
+        mt2Calc.setMet( event.met_pt, event.met_phi )
 
-        data.mt2ll = mt2Calc.mt2ll() 
-        data.highMT2ll = data.mt2ll>140
-        data.mll = sqrt(2.0*data.l1['pt']*data.l2['pt']*(cosh(data.l1['eta']-data.l2['eta']) - cos(data.l1['phi'] - data.l2['phi'])))
-        data.OS = data.l1['pdgId']*data.l2['pdgId'] < 0
-        data.SF = ( abs(data.l1['pdgId'] ) == abs( data.l2['pdgId'] ) )
-        data.OF = not data.SF
+        event.mt2ll = mt2Calc.mt2ll() 
+        event.highMT2ll = event.mt2ll>140
+        event.mll = sqrt(2.0*event.l1['pt']*event.l2['pt']*(cosh(event.l1['eta']-event.l2['eta']) - cos(event.l1['phi'] - event.l2['phi'])))
+        event.OS = event.l1['pdgId']*event.l2['pdgId'] < 0
+        event.SF = ( abs(event.l1['pdgId'] ) == abs( event.l2['pdgId'] ) )
+        event.OF = not event.SF
         if pdgIds == [11,11]:
-            data.EE = True
+            event.EE = True
         elif pdgIds == [11,13]:
-            data.EMu = True
+            event.EMu = True
         elif pdgIds == [13,13]:
-            data.MuMu = True
+            event.MuMu = True
 
-        data.selection = ( data.selected_leptons[0]['pt']>25 and data.mll>20 and data.OS and (data.OF or (abs(data.mll - 91.2)>15) ) ) 
+        event.selection = ( event.selected_leptons[0]['pt']>25 and event.mll>20 and event.OS and (event.OF or (abs(event.mll - 91.2)>15) ) ) 
 
 sequence.append( makeWeights )
 
-def increment_yields( data ):
+def increment_yields( event, sample ):
     #yields = {s:{c:{wgt:0 for wgt in selectionWeights} for c in channels} for s in ['inclusive', 'highMT2ll']}
     for  wgt in selectionWeights:
-        if getattr(data, wgt): 
+        if getattr(event, wgt): 
             for channel in channels:
-                if channel=='all' or getattr(data, channel):
-                    weight = data.selection*lumi_scale*data.lumi_weight
+                if channel=='all' or getattr(event, channel):
+                    weight = event.selection*lumi_scale*event.lumi_weight
                     yields['inclusive'][channel][wgt]     += weight
-                    if data.highMT2ll:
+                    if event.highMT2ll:
                         yields['highMT2ll'][channel][wgt] += weight 
              
 sequence.append( increment_yields )
@@ -320,22 +320,22 @@ plots = []
 
 def weigthFunc( wgt, channel = 'all'):
     if channel == 'all':
-        def func( data ):
-            return lumi_scale*data.lumi_weight*getattr( data, wgt )*(len(data.selected_muons)+len(data.selected_electrons)==2)*data.selection
+        def func( event, sample ):
+            return lumi_scale*event.lumi_weight*getattr( event, wgt )*(len(event.selected_muons)+len(event.selected_electrons)==2)*event.selection
         return func
     else:
-        def func( data ):
-            return lumi_scale*data.lumi_weight*getattr( data, wgt )*(len(data.selected_muons)+len(data.selected_electrons)==2)*data.selection*getattr(data, channel)
+        def func( event, sample ):
+            return lumi_scale*event.lumi_weight*getattr( event, wgt )*(len(event.selected_muons)+len(event.selected_electrons)==2)*event.selection*getattr(event, channel)
         return func
 
 met  = {channel: { wgt:Plot(
     name = "met_%s_%s" % (wgt, channel),
     texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
     stack = stack, 
-    variable = Variable.fromString( "met_pt/F" ),
+    attribute = TreeVariable.fromString( "met_pt/F" ),
     binning=[1050/50,0,1050],
     selectionString = selectionString,
-    weight = weigthFunc( wgt, channel ), #, lambda data: 12.9*0.03#*getattr(data,  wgt),
+    weight = weigthFunc( wgt, channel ), #, lambda event: 12.9*0.03#*getattr(event,  wgt),
     ) for wgt in selectionWeights } for channel in channels }
 
 plots.append( met )
@@ -344,10 +344,10 @@ mt2ll  = {channel: { wgt:Plot(
     name = "mt2ll_%s_%s" % (wgt, channel),
     texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 50 GeV',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller( lambda data:data.mt2ll ),
+    attribute = ScalarTreeVariable.uniqueFloat().addFiller( lambda event:event.mt2ll ),
     binning=[320/20,0,320],
     selectionString = selectionString,
-    weight = weigthFunc( wgt, channel ), #, lambda data: 12.9*0.03#*getattr(data,  wgt),
+    weight = weigthFunc( wgt, channel ), #, lambda event: 12.9*0.03#*getattr(event,  wgt),
     ) for wgt in selectionWeights } for channel in channels }
 
 plots.append( mt2ll )
@@ -355,7 +355,7 @@ plots.append( mt2ll )
 read_variables = ["genWeight/F", 'met_pt/F', 'met_phi/F', 'met_genPt/F', 'met_genPhi/F'] #["weight/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F,id/I]", "nJetGood/I", "l1_eta/F", "l2_eta/F", 'l1_phi/F', 'l2_phi/F', 'met_pt/F', 'l1_pt/F', 'l2_pt/F']
 read_variables.extend( ['nLepGood/I',   'LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I,mcMatchPdgId/I,mcMatchAny/I,relIso03/F,sigmaIEtaIEta/F,dEtaScTrkIn/F,dPhiScTrkIn/F,hadronicOverEm/F,eInvMinusPInv/F]'] )
 read_variables.extend( ['nLepOther/I', 'LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I,mcMatchPdgId/I,mcMatchAny/I,relIso03/F,sigmaIEtaIEta/F,dEtaScTrkIn/F,dPhiScTrkIn/F,hadronicOverEm/F,eInvMinusPInv/F]'] )
-read_variables.extend( ['ngenPartAll/I', VectorType.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/F,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 ) ] )
+read_variables.extend( ['ngenPartAll/I', VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/F,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 ) ] )
 
 to_fill = []
 for p in plots:
