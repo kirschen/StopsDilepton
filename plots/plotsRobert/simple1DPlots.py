@@ -562,28 +562,27 @@ for l_comb in l_combs:
             )
         plots.append( dl_phi )
 
-        cosMetLeadingLep  = Plot(
-            name = "cosMetLeadingLep",
-            texX = 'cos(#Delta #phi(#slash{E}_{T}, l_{1}) ) ', texY = 'Number of Events',
+        cosMetJet0phi = Plot(\
+            name = "cosMetJet0phi",
+            texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
             stack = stack, 
-            attribute = lambda event,sample:cos(event.met_phi-event.l1_phi),
-            read_variables = ["met_phi/F", "l1_phi/F"],
-            binning=[40,-1,1],
+            attribute =  lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ),  
+            binning = [10,-1,1], 
             selectionString = selectionString,
             weight = weight,
-            )
-        plots.append( cosMetLeadingLep )
+        )
+        plots.append( cosMetJet0phi )
 
-        minDeltaRLepJets  = Plot(
-            name = "minDeltaRLepJets",
-            texX = 'min #Delta R(loose b-jets, leptons) ', texY = 'Number of Events',
+        cosMetJet1phi = Plot(\
+            name = "cosMetJet1phi",
+            texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
             stack = stack, 
-            attribute = lambda event,sample:abs(event.minDeltaRLepJets),
-            binning=[30,0,4],
+            attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) 
+            binning = [10,-1,1], 
             selectionString = selectionString,
             weight = weight,
-            )
-        plots.append( minDeltaRLepJets )
+        )
+        plots.append( cosMetJet1phi )
 
         minDeltaRLepBJets  = Plot(
             name = "minDeltaRLepBJets",

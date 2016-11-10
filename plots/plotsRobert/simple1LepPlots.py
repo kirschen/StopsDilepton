@@ -93,7 +93,7 @@ for sample in mc:
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
-weight = lambda event:event.weight
+weight = lambda event, sample:event.weight
 
 cuts=[
     ("njet4", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=4"),
@@ -165,13 +165,11 @@ for i_comb in [len(cuts)]:
         plots.append( m3 )
 
         maxM3BTag  = Plot(
+            name = "maxM3BTag",
             texX = 'max. b-disc of M_{3} sub jets', texY = 'Number of Events',
             stack = stack, 
-            attribute = TreeVariable.fromString('maxM3BTag/F').addFiller (
-                helpers.uses( 
-                    lambda event: max([ event.JetGood_btagCSV[k] for k in [event.m3_ind1, event.m3_ind2, event.m3_ind3] if k>=0] + [-1]) , 
-                    ["m3_ind1/I", "m3_ind2/I", "m3_ind3/I"])
-            ), 
+            attribute =  lambda event, sample: max([ event.JetGood_btagCSV[k] for k in [event.m3_ind1, event.m3_ind2, event.m3_ind3] if k>=0] + [-1]), 
+            read_variables = ["m3_ind1/I", "m3_ind2/I", "m3_ind3/I"],
             binning=[30,-1,2],
             selectionString = selectionString,
             weight = weight,
@@ -192,9 +190,10 @@ for i_comb in [len(cuts)]:
             return mW
  
         m3_mW  = Plot(
+            name = "m3_mW",
             texX = 'm3_mW', texY = 'Number of Events / 10 GeV',
             stack = stack, 
-            attribute = TreeVariable.fromString('m3_mW/F').addFiller ( m3_mW ),
+            attribute =  m3_mW,
             binning=[400/10,0,400],
             selectionString = selectionString,
             weight = weight,
@@ -222,9 +221,10 @@ for i_comb in [len(cuts)]:
             return mt2Calc.mt2ll()
 
         mt2ll_Pred  = Plot(
+            name = "mt2ll_Pred",
             texX = 'mt2ll_Pred', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            attribute = TreeVariable.fromString('mt2ll_Pred/F').addFiller ( mt2ll_Pred ),
+            attribute = mt2ll_Pred,
             binning=[300/15,0,300],
             selectionString = selectionString,
             weight = weight,
@@ -295,13 +295,11 @@ for i_comb in [len(cuts)]:
         plots.append( met )
 
         metSig  = Plot(
+            name = "metSig",
             texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
             stack = stack, 
-            attribute = TreeVariable.fromString('metSig/F').addFiller (
-                helpers.uses( 
-                    lambda event: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan') , 
-                    ["met_pt/F", "ht/F"])
-            ), 
+            attribute = lambda event, sample: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan'), 
+            read_variables = [["met_pt/F", "ht/F"],
             binning=[30,0,30],
             selectionString = selectionString,
             weight = weight,
@@ -330,11 +328,10 @@ for i_comb in [len(cuts)]:
         plots.append( ht_zoomed )
 
         cosMetJet0phi = Plot(\
+            name = "cosMetJet0phi",
             texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
             stack = stack, 
-            attribute = TreeVariable.fromString('cosMetJet0phi/F').addFiller (
-                helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[0] ) , ["met_phi/F"] )
-            ), 
+            attribute =  lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ),  
             binning = [10,-1,1], 
             selectionString = selectionString,
             weight = weight,
@@ -342,66 +339,15 @@ for i_comb in [len(cuts)]:
         plots.append( cosMetJet0phi )
 
         cosMetJet1phi = Plot(\
+            name = "cosMetJet1phi",
             texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
             stack = stack, 
-            attribute = TreeVariable.fromString('cosMetJet1phi/F').addFiller (
-                helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[1] ) , ["met_phi/F"] )
-            ), 
+            attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) 
             binning = [10,-1,1], 
             selectionString = selectionString,
             weight = weight,
         )
         plots.append( cosMetJet1phi )
-
-        jet0pt  = Plot(
-            texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            attribute = TreeVariable.fromString('jet0pt/F').addFiller ( lambda event: event.JetGood_pt[0] ), 
-            binning=[980/20,0,980],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet0pt )
-
-        jet1pt  = Plot(
-            texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            attribute = TreeVariable.fromString('jet1pt/F').addFiller ( lambda event: event.JetGood_pt[1] ), 
-            binning=[980/20,0,980],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet1pt )
-
-        jet2pt  = Plot(
-            texX = 'p_{T}(3^{rd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            attribute = TreeVariable.fromString('jet2pt/F').addFiller ( lambda event: event.JetGood_pt[2] ), 
-            binning=[400/20,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet2pt )
-
-        jet3pt  = Plot(
-            texX = 'p_{T}(4^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            attribute = TreeVariable.fromString('jet3pt/F').addFiller ( lambda event: event.JetGood_pt[3] ), 
-            binning=[400/20,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet3pt )
-
-        jet4pt  = Plot(
-            texX = 'p_{T}(5^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            attribute = TreeVariable.fromString('jet4pt/F').addFiller ( lambda event: event.JetGood_pt[4] ), 
-            binning=[400/20,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet4pt )
 
         nbtags  = Plot(
             texX = 'number of b-tags (CSVM)', texY = 'Number of Events',

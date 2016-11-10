@@ -80,7 +80,7 @@ if args.small:
 from StopsDilepton.tools.user import plot_directory
 
 ## official PU reweighting
-#weight = lambda event:event.weight
+#weight = lambda event, sample:event.weight
 
 cuts=[
     ("dijet500", "nJetGood>=1&&JetGood_pt[1]>500"),
@@ -169,90 +169,6 @@ ht_zoomed  = Plot(
     # weight = weight,
     )
 plots.append( ht_zoomed )
-
-#cosMetJet0phi = Plot(\
-#    texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
-#    stack = stack, 
-#    variable = TreeVariable.fromString('cosMetJet0phi/F').addFiller (
-#        helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
-#    ), 
-#    binning = [10,-1,1], 
-#    selectionString = selectionString,
-#    # weight = weight,
-#)
-#plots.append( cosMetJet0phi )
-#
-#cosMetJet1phi = Plot(\
-#    texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
-#    stack = stack, 
-#    variable = TreeVariable.fromString('cosMetJet1phi/F').addFiller (
-#        helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
-#    ), 
-#    binning = [10,-1,1], 
-#    selectionString = selectionString,
-#    # weight = weight,
-#)
-#plots.append( cosMetJet1phi )
-#
-#jet0pt  = Plot(
-#    texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-#    stack = stack, 
-#    variable = TreeVariable.fromString('jet0pt/F').addFiller (
-#        helpers.uses(lambda event: event.JetGood_pt[0], "JetGood[pt/F]" )
-#    ), 
-#    binning=[980/20,0,980],
-#    selectionString = selectionString,
-#    # weight = weight,
-#    )
-#plots.append( jet0pt )
-#
-#jet1pt  = Plot(
-#    texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-#    stack = stack, 
-#    variable = TreeVariable.fromString('jet1pt/F').addFiller (
-#        helpers.uses(lambda event: event.JetGood_pt[1], "JetGood[pt/F]" )
-#    ), 
-#    binning=[980/20,0,980],
-#    selectionString = selectionString,
-#    # weight = weight,
-#    )
-#plots.append( jet1pt )
-#
-#jet2pt  = Plot(
-#    texX = 'p_{T}(3^{rd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-#    stack = stack, 
-#    variable = TreeVariable.fromString('jet2pt/F').addFiller (
-#        helpers.uses(lambda event: event.JetGood_pt[2], "JetGood[pt/F]" )
-#    ), 
-#    binning=[400/20,0,400],
-#    selectionString = selectionString,
-#    # weight = weight,
-#    )
-#plots.append( jet2pt )
-#
-#jet3pt  = Plot(
-#    texX = 'p_{T}(4^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-#    stack = stack, 
-#    variable = TreeVariable.fromString('jet3pt/F').addFiller (
-#        helpers.uses(lambda event: event.JetGood_pt[3], "JetGood[pt/F]" )
-#    ), 
-#    binning=[400/20,0,400],
-#    selectionString = selectionString,
-#    # weight = weight,
-#    )
-#plots.append( jet3pt )
-#
-#jet4pt  = Plot(
-#    texX = 'p_{T}(5^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-#    stack = stack, 
-#    variable = TreeVariable.fromString('jet4pt/F').addFiller (
-#        helpers.uses(lambda event: event.JetGood_pt[4], "JetGood[pt/F]" )
-#    ), 
-#    binning=[400/20,0,400],
-#    selectionString = selectionString,
-#    # weight = weight,
-#    )
-#plots.append( jet4pt )
 
 nbtags  = Plot(
     texX = 'number of b-tags (CSVM)', texY = 'Number of Events',

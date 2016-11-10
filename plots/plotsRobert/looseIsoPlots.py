@@ -137,12 +137,12 @@ TTJets_1l.color = ROOT.kAzure - 2
 TTJets_l2_prompt    = TTJets_Dilep
 TTJets_l2_prompt.name = "TTJets_2l_prompt"
 TTJets_l2_prompt.texName = "TTJets 2l (prompt)"
-TTJets_l2_prompt.weight = lambda event: not event.l2_matched_nonPrompt
+TTJets_l2_prompt.weight = lambda event, sample: not event.l2_matched_nonPrompt
 
 TTJets_l2_nonPrompt = copy.deepcopy(TTJets_Dilep)
 TTJets_l2_nonPrompt.name = "TTJets_2l_nonPrompt"
 TTJets_l2_nonPrompt.texName = "TTJets 2l (non-prompt)"
-TTJets_l2_nonPrompt.weight = lambda event: event.l2_matched_nonPrompt
+TTJets_l2_nonPrompt.weight = lambda event, sample: event.l2_matched_nonPrompt
 TTJets_l2_nonPrompt.color = ROOT.kAzure + 9
 
 mc = [ DY_HT_LO, TTJets_l2_prompt, TTJets_1l, singleTop, TTZ, TTXNoZ, diBoson, triBoson, TTJets_l2_nonPrompt]
@@ -162,7 +162,7 @@ for sample in mc:
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
-weight = lambda event:event.weight
+weight = lambda event, sample:event.weight
 
 cuts=[
 ]
@@ -414,20 +414,6 @@ for i_comb in [len(cuts)]:
             )
         plots.append( dl_phi )
 
-#        dl_dphi  = Plot(
-#            texX = '#Delta#phi(l_{1},l_{2})', texY = 'Number of Events',
-#            stack = stack, 
-#            variable = TreeVariable.fromString('dl_dphi/F').addFiller(
-#                helpers.uses( 
-#                    lambda event: acos(cos(l1_phi-l2_phi)), 
-#                    ["l1_phi/F", "l2_phi/F"])
-#            ), 
-#            binning=[60,-2*pi,2*pi],
-#            selectionString = selectionString,
-#            weight = weight,
-#            )
-#        plots.append( dl_dphi )
-
         dl_mt2ll  = Plot(
             texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 15 GeV',
             stack = stack, 
@@ -443,7 +429,7 @@ for i_comb in [len(cuts)]:
                 name = "mt2ll_leadingLepIso_swapL1_mm",
                 texX = 'MT_{2}^{ll}(l.l. Iso, swap l1, mm)', texY = 'Number of Events / 15 GeV',
                 stack = stack, 
-                attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.dl_mt2ll_leadingLepIso_swapL1_mm),
+                attribute = lambda event, sample:event.dl_mt2ll_leadingLepIso_swapL1_mm,
                 binning=[300/15,0,300],
                 selectionString = selectionString,
                 weight = weight,
@@ -454,7 +440,7 @@ for i_comb in [len(cuts)]:
                 name = "mt2ll_leadingLepIso_swapL2_mm",
                 texX = 'MT_{2}^{ll}(l.l. Iso, swap l2, mm)', texY = 'Number of Events / 15 GeV',
                 stack = stack, 
-                attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.dl_mt2ll_leadingLepIso_swapL2_mm),
+                attribute = lambda event, sample:event.dl_mt2ll_leadingLepIso_swapL2_mm,
                 binning=[300/15,0,300],
                 selectionString = selectionString,
                 weight = weight,
@@ -465,7 +451,7 @@ for i_comb in [len(cuts)]:
                 name = "mt2ll_leadingLepIso_swapL1_me",
                 texX = 'MT_{2}^{ll}(l.l. Iso, swap l1, me)', texY = 'Number of Events / 15 GeV',
                 stack = stack, 
-                attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.dl_mt2ll_leadingLepIso_swapL1_me),
+                attribute = lambda event, sample:event.dl_mt2ll_leadingLepIso_swapL1_me,
                 binning=[300/15,0,300],
                 selectionString = selectionString,
                 weight = weight,
@@ -476,7 +462,7 @@ for i_comb in [len(cuts)]:
                 name = "mt2ll_leadingLepIso_swapL2_me",
                 texX = 'MT_{2}^{ll}(l.l. Iso, swap l2, me)', texY = 'Number of Events / 15 GeV',
                 stack = stack, 
-                attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.dl_mt2ll_leadingLepIso_swapL2_me),
+                attribute = lambda event, sample:event.dl_mt2ll_leadingLepIso_swapL2_me,
                 binning=[300/15,0,300],
                 selectionString = selectionString,
                 weight = weight,
@@ -487,7 +473,7 @@ for i_comb in [len(cuts)]:
                 name = "mt2ll_leadingLepIso_swapL1_em",
                 texX = 'MT_{2}^{ll}(l.l. Iso, swap l1, em)', texY = 'Number of Events / 15 GeV',
                 stack = stack, 
-                attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.dl_mt2ll_leadingLepIso_swapL1_em),
+                attribute = lambda event, sample:event.dl_mt2ll_leadingLepIso_swapL1_em,
                 binning=[300/15,0,300],
                 selectionString = selectionString,
                 weight = weight,
@@ -498,7 +484,7 @@ for i_comb in [len(cuts)]:
                 name = "mt2ll_leadingLepIso_swapL2_em",
                 texX = 'MT_{2}^{ll}(l.l. Iso, swap l2, em)', texY = 'Number of Events / 15 GeV',
                 stack = stack, 
-                attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.dl_mt2ll_leadingLepIso_swapL2_em),
+                attribute = lambda event, sample:event.dl_mt2ll_leadingLepIso_swapL2_em,
                 binning=[300/15,0,300],
                 selectionString = selectionString,
                 weight = weight,
@@ -509,7 +495,7 @@ for i_comb in [len(cuts)]:
                 name = "mt2ll_leadingLepIso_swapL1_ee",
                 texX = 'MT_{2}^{ll}(l.l. Iso, swap l1, ee)', texY = 'Number of Events / 15 GeV',
                 stack = stack, 
-                attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.dl_mt2ll_leadingLepIso_swapL1_ee),
+                attribute = lambda event, sample:event.dl_mt2ll_leadingLepIso_swapL1_ee,
                 binning=[300/15,0,300],
                 selectionString = selectionString,
                 weight = weight,
@@ -520,7 +506,7 @@ for i_comb in [len(cuts)]:
                 name = "mt2ll_leadingLepIso_swapL2_ee",
                 texX = 'MT_{2}^{ll}(l.l. Iso, swap l2, ee)', texY = 'Number of Events / 15 GeV',
                 stack = stack, 
-                attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.dl_mt2ll_leadingLepIso_swapL2_ee),
+                attribute = lambda event, sample:event.dl_mt2ll_leadingLepIso_swapL2_ee,
                 binning=[300/15,0,300],
                 selectionString = selectionString,
                 weight = weight,
@@ -531,7 +517,7 @@ for i_comb in [len(cuts)]:
                 name = "extra_mu_pt",
                 texX = 'p_{T}(extra #mu) (GeV)', texY = 'Number of Events / 1 GeV',
                 stack = stack, 
-                attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.nonIsoMu['pt'] if event.nonIsoMu is not None else float('nan') ),
+                attribute = lambda event, sample:event.nonIsoMu['pt'] if event.nonIsoMu is not None else float('nan'),
                 binning=[30,0,30],
                 selectionString = selectionString,
                 weight = weight,
@@ -542,7 +528,7 @@ for i_comb in [len(cuts)]:
                 name = "extra_ele_pt",
                 texX = 'p_{T}(extra e) (GeV)', texY = 'Number of Events / 1 GeV',
                 stack = stack, 
-                attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.nonIsoEle['pt'] if event.nonIsoEle is not None else float('nan') ),
+                attribute = lambda event, sample:event.nonIsoEle['pt'] if event.nonIsoEle is not None else float('nan'),
                 binning=[30,0,30],
                 selectionString = selectionString,
                 weight = weight,
@@ -613,7 +599,8 @@ for i_comb in [len(cuts)]:
             name = "l1_dxy",
             texX = '|d_{xy}|', texY = 'Number of Events',
             stack = stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:abs(event.l1_dxy), uses = "l1_dxy/F"),
+            attribute = lambda event, sample:abs(event.l1_dxy), 
+            read_variables = ["l1_dxy/F"],
             binning=[40,0,1],
             selectionString = selectionString,
             weight = weight,
@@ -624,7 +611,8 @@ for i_comb in [len(cuts)]:
             name = "l1_dz",
             texX = '|d_{z}|', texY = 'Number of Events',
             stack = stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:abs(event.l1_dz), uses = "l1_dz/F"),
+            attribute = lambda event, sample:abs(event.l1_dz), 
+            read_variables = "l1_dz/F",
             binning=[40,0,0.15],
             selectionString = selectionString,
             weight = weight,
@@ -685,7 +673,8 @@ for i_comb in [len(cuts)]:
             name = "l2_dxy",
             texX = '|d_{xy}|', texY = 'Number of Events',
             stack = stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:abs(event.l2_dxy), uses = "l2_dxy/F"),
+            attribute = lambda event, sample:abs(event.l2_dxy), 
+            read_variables = "l2_dxy/F",
             binning=[40,0,1],
             selectionString = selectionString,
             weight = weight,
@@ -696,7 +685,8 @@ for i_comb in [len(cuts)]:
             name = "l2_dz",
             texX = '|d_{z}|', texY = 'Number of Events',
             stack = stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:abs(event.l2_dz), uses = "l2_dz/F"),
+            attribute = lambda event, sample:abs(event.l2_dz), 
+            read_variables = "l2_dz/F",
             binning=[40,0,0.15],
             selectionString = selectionString,
             weight = weight,
@@ -735,13 +725,11 @@ for i_comb in [len(cuts)]:
         plots.append( met )
 
         JZB  = Plot(
+            name = "JZB",
             texX = 'JZB (GeV)', texY = 'Number of Events / 32 GeV',
             stack = stack, 
-            attribute = TreeVariable.fromString('JZB/F').addFiller (
-                helpers.uses( 
-                    lambda event: sqrt( (event.met_pt*cos(event.met_phi)+event.dl_pt*cos(event.dl_phi))**2 + (event.met_pt*sin(event.met_phi)+event.dl_pt*sin(event.dl_phi))**2) - event.dl_pt, 
-                    ["met_phi/F", "dl_phi/F", "met_pt/F", "dl_pt/F"])
-            ), 
+            attribute = lambda event, sample: sqrt( (event.met_pt*cos(event.met_phi)+event.dl_pt*cos(event.dl_phi))**2 + (event.met_pt*sin(event.met_phi)+event.dl_pt*sin(event.dl_phi))**2) - event.dl_pt, 
+            read_variables =  ["met_phi/F", "dl_phi/F", "met_pt/F", "dl_pt/F"],
             binning=[25,-200,600],
             selectionString = selectionString,
             weight = weight,
@@ -749,13 +737,11 @@ for i_comb in [len(cuts)]:
         plots.append( JZB )
 
         metSig  = Plot(
+            name = "metSig",
             texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
             stack = stack, 
-            attribute = TreeVariable.fromString('metSig/F').addFiller (
-                helpers.uses( 
-                    lambda event: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan') , 
-                    ["met_pt/F", "ht/F"])
-            ), 
+            attribute = lambda event, sample: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan'), 
+            read_variables = ["met_pt/F", "ht/F"],
             binning=[30,0,30],
             selectionString = selectionString,
             weight = weight,
@@ -782,90 +768,6 @@ for i_comb in [len(cuts)]:
             weight = weight,
             )
         plots.append( ht_zoomed )
-
-        cosMetJet0phi = Plot(\
-            texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
-            stack = stack, 
-            attribute = TreeVariable.fromString('cosMetJet0phi/F').addFiller (
-                helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
-            ), 
-            binning = [10,-1,1], 
-            selectionString = selectionString,
-            weight = weight,
-        )
-        plots.append( cosMetJet0phi )
-
-        cosMetJet1phi = Plot(\
-            texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
-            stack = stack, 
-            attribute = TreeVariable.fromString('cosMetJet1phi/F').addFiller (
-                helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
-            ), 
-            binning = [10,-1,1], 
-            selectionString = selectionString,
-            weight = weight,
-        )
-        plots.append( cosMetJet1phi )
-
-        jet0pt  = Plot(
-            texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            attribute = TreeVariable.fromString('jet0pt/F').addFiller (
-                helpers.uses(lambda event: event.JetGood_pt[0], "JetGood[pt/F]" )
-            ), 
-            binning=[980/20,0,980],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet0pt )
-
-        jet1pt  = Plot(
-            texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            attribute = TreeVariable.fromString('jet1pt/F').addFiller (
-                helpers.uses(lambda event: event.JetGood_pt[1], "JetGood[pt/F]" )
-            ), 
-            binning=[980/20,0,980],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet1pt )
-
-        jet2pt  = Plot(
-            texX = 'p_{T}(3^{rd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            attribute = TreeVariable.fromString('jet2pt/F').addFiller (
-                helpers.uses(lambda event: event.JetGood_pt[2], "JetGood[pt/F]" )
-            ), 
-            binning=[400/20,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet2pt )
-
-        jet3pt  = Plot(
-            texX = 'p_{T}(4^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            attribute = TreeVariable.fromString('jet3pt/F').addFiller (
-                helpers.uses(lambda event: event.JetGood_pt[3], "JetGood[pt/F]" )
-            ), 
-            binning=[400/20,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet3pt )
-
-        jet4pt  = Plot(
-            texX = 'p_{T}(5^{th.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-            stack = stack, 
-            attribute = TreeVariable.fromString('jet4pt/F').addFiller (
-                helpers.uses(lambda event: event.JetGood_pt[4], "JetGood[pt/F]" )
-            ), 
-            binning=[400/20,0,400],
-            selectionString = selectionString,
-            weight = weight,
-            )
-        plots.append( jet4pt )
 
         nbtags  = Plot(
             texX = 'number of b-tags (CSVM)', texY = 'Number of Events',

@@ -305,13 +305,13 @@ def systematic_selection( sys = None ):
 
 def weightMC( sys = None ):
     if sys is None:
-        return (lambda event:event.weight*event.reweightPU12fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF")
+        return (lambda event, sample:event.weight*event.reweightPU12fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF")
     elif 'PU' in sys:
-        return (lambda event:event.weight*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF")
+        return (lambda event, sample:event.weight*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF")
     elif 'BTag' in sys:
-        return (lambda event:event.weight*event.reweightPU12fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys)*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweight"+sys+"*reweightLeptonSF*reweightLeptonHIPSF")
+        return (lambda event, sample:event.weight*event.reweightPU12fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys)*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweight"+sys+"*reweightLeptonSF*reweightLeptonHIPSF")
     elif sys in weight_systematics:
-        return (lambda event:event.weight*event.reweightDilepTriggerBackup*event.reweightPU12fb*event.reweightBTag_SF*getattr(event, "reweight"+sys)*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweight"+sys+"*reweightLeptonSF*reweightLeptonHIPSF")
+        return (lambda event, sample:event.weight*event.reweightDilepTriggerBackup*event.reweightPU12fb*event.reweightBTag_SF*getattr(event, "reweight"+sys)*event.reweightLeptonSF*event.reweightLeptonHIPSF, "weight*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweight"+sys+"*reweightLeptonSF*reweightLeptonHIPSF")
     elif sys in jme_systematics :
         return weightMC( sys = None )
     else: raise ValueError( "Systematic %s not known"%sys )
@@ -373,7 +373,7 @@ logger.info( "Prefix %s common_selection_string %s", prefix, common_selection_st
 data_selection_string = "&&".join( s[1] for s in systematic_selection( sys = None ) )
 analysis_selection_string = "&&".join( s[1] for s in analysis_selection ) if len(analysis_selection)>0 else "1"
 
-data_weight_func, data_weight_string = lambda event:event.weight, "weight"
+data_weight_func, data_weight_string = lambda event, sample:event.weight, "weight"
 
 sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
 

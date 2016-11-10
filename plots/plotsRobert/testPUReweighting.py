@@ -135,18 +135,18 @@ if args.small:
 from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
 pu_reweight = getNVTXReweightingFunction(filename = "dilepton_allZ_isOS_4000pb.pkl")
 
-weight = lambda event: event.weight
+weight = lambda event, sample: event.weight
 
 for sample in mc_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
 
-#dy.weight = lambda event:pu_reweight( event.nVert )['reweight']
+#dy.weight = lambda event, sample:pu_reweight( event.nVert )['reweight']
 dy.style = styles.lineStyle( ROOT.kBlack )
-dy_Central.weight = lambda event:pu_reweight( event.nVert )['reweight']
+dy_Central.weight = lambda event, sample:pu_reweight( event.nVert )['reweight']
 dy_Central.style = styles.lineStyle( ROOT.kBlue )
-dy_Up.weight = lambda event:pu_reweight( event.nVert )['reweight_Up']
+dy_Up.weight = lambda event, sample:pu_reweight( event.nVert )['reweight_Up']
 dy_Up.style = styles.lineStyle( ROOT.kRed )
-dy_Down.weight = lambda event:pu_reweight( event.nVert )['reweight_Down']
+dy_Down.weight = lambda event, sample:pu_reweight( event.nVert )['reweight_Down']
 dy_Down.style = styles.lineStyle( ROOT.kRed )
 
 from StopsDilepton.tools.user import plot_directory

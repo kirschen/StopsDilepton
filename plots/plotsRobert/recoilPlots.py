@@ -202,7 +202,7 @@ for sample in mc:
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
-weight = lambda event:event.weight
+weight = lambda event, sample:event.weight
 
 if args.dPhi == 'inv':
     dPhi = [ ("dPhiJetMETInv", "(!(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0))") ]
@@ -333,10 +333,10 @@ for sample in mc:
     sample.scale = lumi_scale*dataMCScale
     if args.pu != "None":
         sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda event: getattr( data, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+        sample.weight = lambda event, sample: getattr( data, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
     else:
         sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda event: event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
 
         sample.read_variables = [args.pu+'/F']
 
@@ -350,7 +350,7 @@ qt  = Plot(
     name = "qt",
     texX = 'q_{T} (GeV)', texY = 'Number of Events / 5 GeV',
     stack = stack, 
-    attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.qt),
+    attribute = lambda event, sample:event.qt,
     binning=[400/5,0,200],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -362,7 +362,7 @@ upara  = Plot(
     name = "upara",
     texX = 'u_{\parallel} (GeV)', texY = 'Number of Events / 5 GeV',
    stack = stack, 
-    attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.upara),
+    attribute = lambda event, sample:event.upara,
     binning=[400/5,-200,200],
     selectionString = selectionString,
     addOverFlowBin = 'both',
@@ -374,7 +374,7 @@ dl_uPlusQPara  = Plot(
     name = "uPlusQPara",
     texX = '(u+q)_{\parallel} (GeV)', texY = 'Number of Events / 30 GeV',
    stack = stack, 
-    attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.uPlusQPara),
+    attribute = lambda event, sample:event.uPlusQPara,
     binning=[600/30,-300,300],
     selectionString = selectionString,
     addOverFlowBin = 'both',
@@ -386,7 +386,7 @@ dl_uperp  = Plot(
     name = "uperp",
     texX = 'u_{\perp} (GeV)', texY = 'Number of Events / 5 GeV',
     stack = stack, 
-    attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.uperp),
+    attribute = lambda event, sample:event.uperp,
     binning=[400/5,-200,200],
     selectionString = selectionString,
     addOverFlowBin = 'both',
@@ -418,13 +418,11 @@ met  = Plot(
 plots.append( met )
 
 metSig  = Plot(
+    name = "metSig",
     texX = '#slash{E}_{T}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
     stack = stack, 
-    attribute = TreeVariable.fromString('metSig/F').addFiller (
-        helpers.uses( 
-            lambda event: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan') , 
-            ["met_pt/F", "ht/F"])
-    ), 
+    attribute = lambda event, sample: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan') , 
+    read_variables =  ["met_pt/F", "ht/F"],
     binning=[30,0,30],
     selectionString = selectionString,
     addOverFlowBin = 'upper',
@@ -455,11 +453,10 @@ ht_zoomed  = Plot(
 plots.append( ht_zoomed )
 
 cosMetJet0phi = Plot(\
+    name = "cosMetJet0phi",
     texX = 'Cos(#phi(#slash{E}_{T}, Jet[0]))', texY = 'Number of Events',
     stack = stack, 
-    attribute = TreeVariable.fromString('cosMetJet0phi/F').addFiller (
-        helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"] )
-    ), 
+    attribute =  lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ), 
     binning = [40,-1,1], 
     selectionString = selectionString,
     weight = weight,
@@ -467,40 +464,15 @@ cosMetJet0phi = Plot(\
 plots.append( cosMetJet0phi )
 
 cosMetJet1phi = Plot(\
+    name = "cosMetJet1phi",
     texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
     stack = stack, 
-    attribute = TreeVariable.fromString('cosMetJet1phi/F').addFiller (
-        helpers.uses(lambda event: cos( event.met_phi - event.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"] )
-    ), 
+    attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ), 
     binning = [40,-1,1], 
     selectionString = selectionString,
     weight = weight,
 )
 plots.append( cosMetJet1phi )
-
-#recoil_TT  = Plot(
-#    name = "recoil_TT",
-#    texX = 'q_{T} (TTJets Dilep)', texY = 'Number of Events / 10 GeV',
-#    stack = stack_TTJets_Dilep, 
-#    variable = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.ttjets_qt ),
-#    binning=[200/10,0,200],
-#    selectionString = selectionString,
-#    weight = weight,
-#    ) 
-#
-#mt2ll_vs_recoil_TT  = Plot2D(
-#    name = "mt2ll_vs_recoil_TT",
-#    texX = 'M_{T2}(ll)', texY = 'q_{T}=|p_{T}(W_{1}) + p_{T}(W_{2})|',
-#    stack = stack_TTJets_Dilep, 
-#    variables = (
-#        ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.dl_mt2ll ),
-#        ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.ttjets_qt ),
-#    ),
-#    binning=[30,0,200, 30,0,100],
-#    weight = weight,
-#    selectionString = selectionString
-#    )
-#plots2D.append( mt2ll_vs_recoil_TT )
 
 def qt_cut_weight( qtb ):
     def w( data ):
@@ -515,7 +487,7 @@ for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80,
         name = "upara_qt_%i_%i"%qtb,
         texX = 'u_{\parallel} (GeV)', texY = 'Number of Events / 10 GeV',
         stack = stack, 
-        attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.upara),
+        attribute = lambda event, sample:event.upara,
         weight   = qt_cut_weight(qtb),
         binning=[300/10,-150-qtb[0],150-qtb[0]],
         selectionString = selectionString,
@@ -526,7 +498,7 @@ for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80,
         name = "uPlusQPara_qt_%i_%i"%qtb,
         texX = '(u+q)_{\parallel} (GeV)', texY = 'Number of Events / 10 GeV',
         stack = stack, 
-        attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.uPlusQPara),
+        attribute = lambda event, sample:event.uPlusQPara,
         weight   = qt_cut_weight(qtb),
         binning=[500/10,-250,250],
         selectionString = selectionString,
@@ -538,7 +510,7 @@ for qtb in [(0,10), (10,20), (20,30), (30,40), (40, 50), (50,60), (60, 70), (80,
         name = "uperp_qt_%i_%i"%qtb,
         texX = 'u_{\perp} (GeV)', texY = 'Number of Events / 5 GeV',
         stack = stack, 
-        attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.uperp),
+        attribute = lambda event, sample:event.uperp,
         weight   = qt_cut_weight(qtb),
         binning=[300/10,-150,150],
         selectionString = selectionString,
@@ -571,7 +543,7 @@ dl_qt  = Plot(
     name = "qt",
     texX = 'q_{T}(ll) (GeV)', texY = 'Number of Events / 10 GeV',
     stack = stack, 
-    attribute = ScalarTreeVariable.uniqueFloat().addFiller(lambda event:event.qt),
+    attribute = lambda event, sample:event.qt,
     binning=[40,0,400],
     selectionString = selectionString,
     addOverFlowBin = 'upper',

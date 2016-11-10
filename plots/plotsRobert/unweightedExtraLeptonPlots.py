@@ -139,7 +139,7 @@ if not args.noData:
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
-weight = lambda event:event.weight
+weight = lambda event, sample:event.weight
 dataMCScale = None 
 
 cuts=[
@@ -307,7 +307,7 @@ for i_comb in [len(cuts)]:
         extraEle_data  = Plot(
             texX = 'extraEle_pt', texY = 'Number of Events / 1 GeV',
             stack = data_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 11 ) ),
+            attribute = extraLep_pt( pdgId = 11 ) ,
             binning=[50,0,50],
             )
         plots.append( extraEle_data )
@@ -315,7 +315,7 @@ for i_comb in [len(cuts)]:
         extraMu_noTT_matched  = Plot(
             texX = 'extraMu_pt', texY = 'Number of Events / 1 GeV',
             stack = noTT_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 13, lepton_criterion = lambda l:abs(l['mcMatchAny'])==5)  ),
+            attribute = extraLep_pt( pdgId = 13, lepton_criterion = lambda l:abs(l['mcMatchAny'])==5)  ,
             binning=[50,0,50],
             )
         plots.append( extraMu_noTT_matched )
@@ -323,7 +323,7 @@ for i_comb in [len(cuts)]:
         extraEle_noTT_matched  = Plot(
             texX = 'extraEle_pt', texY = 'Number of Events / 1 GeV',
             stack = noTT_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 11, lepton_criterion = lambda l:abs(l['mcMatchAny'])==5)  ),
+            attribute = extraLep_pt( pdgId = 11, lepton_criterion = lambda l:abs(l['mcMatchAny'])==5)  ,
             binning=[50,0,50],
             )
         plots.append( extraEle_noTT_matched )
@@ -331,7 +331,7 @@ for i_comb in [len(cuts)]:
         extraMu_noTT_unmatched  = Plot(
             texX = 'extraMu_pt', texY = 'Number of Events / 1 GeV',
             stack = noTT_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 13, lepton_criterion = lambda l:abs(l['mcMatchAny'])!=5) ),
+            attribute = extraLep_pt( pdgId = 13, lepton_criterion = lambda l:abs(l['mcMatchAny'])!=5) ,
             binning=[50,0,50],
             )
         plots.append( extraMu_noTT_unmatched )
@@ -339,7 +339,7 @@ for i_comb in [len(cuts)]:
         extraEle_noTT_unmatched  = Plot(
             texX = 'extraEle_pt', texY = 'Number of Events / 1 GeV',
             stack = noTT_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 11, lepton_criterion = lambda l:abs(l['mcMatchAny'])!=5) ),
+            attribute = extraLep_pt( pdgId = 11, lepton_criterion = lambda l:abs(l['mcMatchAny'])!=5) ,
             binning=[50,0,50],
             )
         plots.append( extraEle_noTT_unmatched )
@@ -347,7 +347,7 @@ for i_comb in [len(cuts)]:
         extraMu_TT  = Plot(
             texX = 'extraMu_pt', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 13 ) ),
+            attribute = extraLep_pt( pdgId = 13 ) ,
             binning=[50,0,50],
             )
         plots.append( extraMu_TT )
@@ -355,7 +355,7 @@ for i_comb in [len(cuts)]:
         extraEle_TT  = Plot(
             texX = 'extraEle_pt', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 11 ) ),
+            attribute = extraLep_pt( pdgId = 11 ) ,
             binning=[50,0,50],
             )
         plots.append( extraEle_TT )
@@ -363,7 +363,7 @@ for i_comb in [len(cuts)]:
         extraMu_TT_matched  = Plot(
             texX = 'extraMu_TT_matched', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 13 , lepton_criterion = lambda l:abs(l['mcMatchAny'])==5) ),
+            attribute = extraLep_pt( pdgId = 13 , lepton_criterion = lambda l:abs(l['mcMatchAny'])==5) ,
             binning=[50,0,50],
             )
         fill_only.append( extraMu_TT_matched )
@@ -371,7 +371,7 @@ for i_comb in [len(cuts)]:
         extraEle_TT_matched  = Plot(
             texX = 'extraEle_TT_matched', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 11 , lepton_criterion = lambda l:abs(l['mcMatchAny'])==5) ),
+            attribute = extraLep_pt( pdgId = 11 , lepton_criterion = lambda l:abs(l['mcMatchAny'])==5) ,
             binning=[50,0,50],
             )
         fill_only.append( extraEle_TT_matched )
@@ -379,7 +379,7 @@ for i_comb in [len(cuts)]:
         extraMu_TT_nonMatched  = Plot(
             texX = 'extraMu_TT_nonMatched', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 13 , lepton_criterion = lambda l:abs(l['mcMatchAny'])!=5) ),
+            attribute = extraLep_pt( pdgId = 13 , lepton_criterion = lambda l:abs(l['mcMatchAny'])!=5) ,
             binning=[50,0,50],
             )
         fill_only.append( extraMu_TT_nonMatched )
@@ -387,7 +387,7 @@ for i_comb in [len(cuts)]:
         extraEle_TT_nonMatched  = Plot(
             texX = 'extraEle_TT_nonMatched', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 11 , lepton_criterion = lambda l:abs(l['mcMatchAny'])!=5) ),
+            attribute = extraLep_pt( pdgId = 11 , lepton_criterion = lambda l:abs(l['mcMatchAny'])!=5) ,
             binning=[50,0,50],
             )
         fill_only.append( extraEle_TT_nonMatched )
@@ -398,8 +398,8 @@ for i_comb in [len(cuts)]:
             texX = 'p_{T,#mu}', texY = 'p_{T,#nu}',
             stack = TTJets_stack, 
             variables = (
-                ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 13 , lepton_criterion = lambda l:abs(l['mcMatchAny'])==5) ),
-                ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.extraMu_nuPt ),
+                extraLep_pt( pdgId = 13 , lepton_criterion = lambda l:abs(l['mcMatchAny'])==5) ,
+                lambda event, sample: event.extraMu_nuPt ,
             ),
             binning=[200,0,200, 200,0,200],
             weight = weight,
@@ -412,8 +412,8 @@ for i_comb in [len(cuts)]:
             texX = 'p_{T,e}', texY = 'p_{T,#nu}',
             stack = TTJets_stack, 
             variables = (
-                ScalarTreeVariable.uniqueFloat().addFiller ( extraLep_pt( pdgId = 11 , lepton_criterion = lambda l:abs(l['mcMatchAny'])==5) ),
-                ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.extraEle_nuPt ),
+                extraLep_pt( pdgId = 11 , lepton_criterion = lambda l:abs(l['mcMatchAny'])==5) ,
+                lambda event, sample: event.extraEle_nuPt ,
             ),
             binning=[200,0,200, 200,0,200],
             weight = weight,
@@ -425,7 +425,7 @@ for i_comb in [len(cuts)]:
         extraMu_mt2ll_data  = Plot(
             texX = 'extraMu_mt2ll', texY = 'Number of Events / 1 GeV',
             stack = data_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraMu is not None else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraMu is not None else float('nan') ,
             binning=[40,0,200],
             )
         plots.append( extraMu_mt2ll_data )
@@ -433,7 +433,7 @@ for i_comb in [len(cuts)]:
         extraEle_mt2ll_data  = Plot(
             texX = 'extraEle_mt2ll', texY = 'Number of Events / 1 GeV',
             stack = data_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraEle is not None else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraEle is not None else float('nan') ,
             binning=[40,0,200],
             )
         plots.append( extraEle_mt2ll_data )
@@ -441,7 +441,7 @@ for i_comb in [len(cuts)]:
         extraMu_mt2ll_noTT_matched  = Plot(
             texX = 'extraMu_mt2ll', texY = 'Number of Events / 1 GeV',
             stack = noTT_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraMu is not None and event.extraMu['mcMatchAny']==5 else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraMu is not None and event.extraMu['mcMatchAny']==5 else float('nan') ,
             binning=[40,0,200],
             )
         plots.append( extraMu_mt2ll_noTT_matched )
@@ -449,7 +449,7 @@ for i_comb in [len(cuts)]:
         extraEle_mt2ll_noTT_matched  = Plot(
             texX = 'extraEle_mt2ll', texY = 'Number of Events / 1 GeV',
             stack = noTT_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraEle is not None and event.extraEle['mcMatchAny']==5 else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraEle is not None and event.extraEle['mcMatchAny']==5 else float('nan') ,
             binning=[40,0,200],
             )
         plots.append( extraEle_mt2ll_noTT_matched )
@@ -457,7 +457,7 @@ for i_comb in [len(cuts)]:
         extraMu_mt2ll_noTT_unmatched  = Plot(
             texX = 'extraMu_mt2ll', texY = 'Number of Events / 1 GeV',
             stack = noTT_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraMu is not None and event.extraMu['mcMatchAny']!=5 else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraMu is not None and event.extraMu['mcMatchAny']!=5 else float('nan') ,
             binning=[40,0,200],
             )
         plots.append( extraMu_mt2ll_noTT_unmatched )
@@ -465,7 +465,7 @@ for i_comb in [len(cuts)]:
         extraEle_mt2ll_noTT_unmatched  = Plot(
             texX = 'extraEle_mt2ll', texY = 'Number of Events / 1 GeV',
             stack = noTT_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraEle is not None and event.extraEle['mcMatchAny']!=5 else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraEle is not None and event.extraEle['mcMatchAny']!=5 else float('nan') ,
             binning=[40,0,200],
             )
         plots.append( extraEle_mt2ll_noTT_unmatched )
@@ -473,7 +473,7 @@ for i_comb in [len(cuts)]:
         extraMu_mt2ll_TT  = Plot(
             texX = 'extraMu_mt2ll', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraMu is not None else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraMu is not None else float('nan') ,
             binning=[40,0,200],
             )
         plots.append( extraMu_mt2ll_TT )
@@ -481,7 +481,7 @@ for i_comb in [len(cuts)]:
         extraEle_mt2ll_TT  = Plot(
             texX = 'extraEle_mt2ll', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraEle is not None else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraEle is not None else float('nan') ,
             binning=[40,0,200],
             )
         plots.append( extraEle_mt2ll_TT )
@@ -489,7 +489,7 @@ for i_comb in [len(cuts)]:
         extraMu_mt2ll_TT_matched  = Plot(
             texX = 'extraMu_mt2ll', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraMu is not None and event.extraMu['mcMatchAny']==5 else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraMu is not None and event.extraMu['mcMatchAny']==5 else float('nan') ,
             binning=[40,0,200],
             )
         fill_only.append( extraMu_mt2ll_TT_matched )
@@ -497,7 +497,7 @@ for i_comb in [len(cuts)]:
         extraEle_mt2ll_TT_matched  = Plot(
             texX = 'extraEle_mt2ll', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraEle is not None and event.extraEle['mcMatchAny']==5 else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraEle is not None and event.extraEle['mcMatchAny']==5 else float('nan') ,
             binning=[40,0,200],
             )
         fill_only.append( extraEle_mt2ll_TT_matched )
@@ -505,7 +505,7 @@ for i_comb in [len(cuts)]:
         extraMu_mt2ll_TT_nonMatched  = Plot(
             texX = 'extraMu', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraMu is not None and event.extraMu['mcMatchAny']!=5 else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraMu is not None and event.extraMu['mcMatchAny']!=5 else float('nan') ,
             binning=[40,0,200],
             )
         fill_only.append( extraMu_mt2ll_TT_nonMatched )
@@ -513,7 +513,7 @@ for i_comb in [len(cuts)]:
         extraEle_mt2ll_TT_nonMatched  = Plot(
             texX = 'extraEle', texY = 'Number of Events / 1 GeV',
             stack = TTJets_stack, 
-            attribute = ScalarTreeVariable.uniqueFloat().addFiller ( lambda event: event.mt2ll if event.extraEle is not None and event.extraEle['mcMatchAny']==5 else float('nan') ),
+            attribute = lambda event, sample: event.mt2ll if event.extraEle is not None and event.extraEle['mcMatchAny']==5 else float('nan') ,
             binning=[40,0,200],
             )
         fill_only.append( extraEle_mt2ll_TT_nonMatched )

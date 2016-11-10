@@ -335,7 +335,7 @@ met  = {channel: { wgt:Plot(
     attribute = TreeVariable.fromString( "met_pt/F" ),
     binning=[1050/50,0,1050],
     selectionString = selectionString,
-    weight = weigthFunc( wgt, channel ), #, lambda event: 12.9*0.03#*getattr(event,  wgt),
+    weight = weigthFunc( wgt, channel ), #, lambda event, sample: 12.9*0.03#*getattr(event,  wgt),
     ) for wgt in selectionWeights } for channel in channels }
 
 plots.append( met )
@@ -344,10 +344,10 @@ mt2ll  = {channel: { wgt:Plot(
     name = "mt2ll_%s_%s" % (wgt, channel),
     texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 50 GeV',
     stack = stack, 
-    attribute = ScalarTreeVariable.uniqueFloat().addFiller( lambda event:event.mt2ll ),
+    attribute = lambda event, sample:event.mt2ll,
     binning=[320/20,0,320],
     selectionString = selectionString,
-    weight = weigthFunc( wgt, channel ), #, lambda event: 12.9*0.03#*getattr(event,  wgt),
+    weight = weigthFunc( wgt, channel ), #, lambda event, sample: 12.9*0.03#*getattr(event,  wgt),
     ) for wgt in selectionWeights } for channel in channels }
 
 plots.append( mt2ll )
