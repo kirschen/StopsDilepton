@@ -136,7 +136,22 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
-			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140']: continue
+			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140',
+                             'njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
+                             'njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+                             'njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+                             'njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
+                             'njet2-multiIsoWP-looseLeptonVeto-mll20-onZ',
+                             'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100',
+                             'njet2-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-mt2ll100',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']: continue
 
 
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
@@ -193,12 +208,12 @@ DM3                     = TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200
 DM4                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
 DM5                     = TTbarDMJets_scalar_Mchi_10_Mphi_100
 DM6                     = TTbarDMJets_scalar_Mchi_50_Mphi_200
-DM.style                = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
 DM2.style               = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-DM3.style               = styles.lineStyle( ROOT.kBlack, width=3 )
-DM4.style               = styles.lineStyle( 28,          width=3, dotted=True )
+DM3.style               = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+DM4.style               = styles.lineStyle( 28,          width=3)
 DM5.style               = styles.lineStyle( 28,          width=3, dashed=True )
-DM6.style               = styles.lineStyle( 28,          width=3 )
+DM6.style               = styles.lineStyle( 28,          width=3, dotted=True )
 
 
 
@@ -298,11 +313,11 @@ for index, mode in enumerate(allModes):
 
   if not args.noData:
     if not args.signal:         stack = Stack(mc, data_sample)
-    elif args.signal == "DM":   stack = Stack(mc, data_sample, DM, DM2, DM3, DM4, DM5, DM6)
+    elif args.signal == "DM":   stack = Stack(mc, data_sample, DM, DM4)
     elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt, T2tt2)
   else:
     if not args.signal:         stack = Stack(mc)
-    elif args.signal == "DM":   stack = Stack(mc, DM1, DM2, DM3, DM4, DM5, DM6)
+    elif args.signal == "DM":   stack = Stack(mc, DM, DM4)
     elif args.signal == "T2tt": stack = Stack(mc, T2tt, T2tt2)
 
   for sample in [T2tt, T2tt2, T2tt3]:
@@ -606,7 +621,7 @@ for mode in ["SF","all"]:
 
 
 # Write to tex file
-columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
+columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM4.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
 texdir = "tex"
 if args.powheg: texdir += "_powheg"
 try:
