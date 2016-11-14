@@ -77,7 +77,7 @@ for name, fss in [
         name = "%s_dl_mt2ll"%name,
         texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 15 GeV',
         stack = None, 
-        variable = Variable.fromString( "dl_mt2ll/F" ),
+        attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
         binning=[300/15,0,300],
         #selectionString = selectionString,
         #weight = weight,

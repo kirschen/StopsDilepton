@@ -90,7 +90,7 @@ plotting.draw(
 
 #Now get the reco-vertex shapes with the x-sec uncertainty applied
 reader = mc.treeReader( \
-    variables = map( Variable.fromString, ["nTrueInt/F","nVert/I","weight/F"])
+    variables = map( TreeVariable.fromString, ["nTrueInt/F","nVert/I","weight/F"])
     )
 reader.activateAllBranches()
 event_list = mc.getEventList( mc.selectionString )
@@ -109,13 +109,13 @@ h_nVert_rwVUp.style = styles.lineStyle(ROOT.kBlue)
 h_nVert_rwVDown.style = styles.lineStyle(ROOT.kBlue)
 
 while reader.run():
-    if reader.data.nTrueInt>39:reader.data.nTrueInt=39
-    h_nVert.Fill(reader.data.nVert, reader.data.weight) 
-    ib = ratio_UpToCentral.FindBin(reader.data.nTrueInt)
-    h_nVert_rwUp.Fill(reader.data.nVert, reader.data.weight*ratio_UpToCentral.GetBinContent(ib)) 
-    h_nVert_rwDown.Fill(reader.data.nVert, reader.data.weight*ratio_DownToCentral.GetBinContent(ib)) 
-    h_nVert_rwVUp.Fill(reader.data.nVert, reader.data.weight*ratio_VUpToCentral.GetBinContent(ib)) 
-    h_nVert_rwVDown.Fill(reader.data.nVert, reader.data.weight*ratio_VDownToCentral.GetBinContent(ib)) 
+    if reader.event.nTrueInt>39:reader.event.nTrueInt=39
+    h_nVert.Fill(reader.event.nVert, reader.event.weight) 
+    ib = ratio_UpToCentral.FindBin(reader.event.nTrueInt)
+    h_nVert_rwUp.Fill(reader.event.nVert, reader.event.weight*ratio_UpToCentral.GetBinContent(ib)) 
+    h_nVert_rwDown.Fill(reader.event.nVert, reader.event.weight*ratio_DownToCentral.GetBinContent(ib)) 
+    h_nVert_rwVUp.Fill(reader.event.nVert, reader.event.weight*ratio_VUpToCentral.GetBinContent(ib)) 
+    h_nVert_rwVDown.Fill(reader.event.nVert, reader.event.weight*ratio_VDownToCentral.GetBinContent(ib)) 
 
 h_nVert_rwUp.Scale(h_nVert.Integral()/h_nVert_rwUp.Integral())
 h_nVert_rwDown.Scale(h_nVert.Integral()/h_nVert_rwDown.Integral())
@@ -142,9 +142,9 @@ h_EMu = MuonEG_Run2016B.get1DHistoFromDraw( "nVert", binning = [50,0,50], select
 h_MuMu = DoubleMuon_Run2016B.get1DHistoFromDraw( "nVert", binning = [50,0,50], selectionString = "(1)", weightString = "weight" )
 
 h_data = h_EE.Clone()
-h_data.Add(h_EMu)
-h_data.Add(h_MuMu)
-h_nVert.Scale(h_data.Integral()/h_nVert.Integral())
+h_event.Add(h_EMu)
+h_event.Add(h_MuMu)
+h_nVert.Scale(h_event.Integral()/h_nVert.Integral())
 
 plotting.draw(
     Plot.fromHisto(name = prefix+"nVtx", histos = [[h_nVert], [h_data] ], texX = "Number of vertices", texY = "Number of Events"),
@@ -155,26 +155,26 @@ plotting.draw(
     # drawObjects = drawObjects( dataMCScale )
 )
 
-reweightingHisto = h_data.Clone()
+reweightingHisto = h_event.Clone()
 reweightingHisto.Divide(h_nVert)
 
-reweightingHisto_Up = h_data.Clone()
-h_nVert_rwUp.Scale(h_data.Integral()/h_nVert_rwUp.Integral())
+reweightingHisto_Up = h_event.Clone()
+h_nVert_rwUp.Scale(h_event.Integral()/h_nVert_rwUp.Integral())
 reweightingHisto_Up.Divide(h_nVert_rwUp)
 reweightingHisto_Up.style = styles.lineStyle(ROOT.kRed)
 
-reweightingHisto_Down = h_data.Clone()
-h_nVert_rwDown.Scale(h_data.Integral()/h_nVert_rwDown.Integral())
+reweightingHisto_Down = h_event.Clone()
+h_nVert_rwDown.Scale(h_event.Integral()/h_nVert_rwDown.Integral())
 reweightingHisto_Down.Divide(h_nVert_rwDown)
 reweightingHisto_Down.style = styles.lineStyle(ROOT.kRed)
 
-reweightingHisto_VUp = h_data.Clone()
-h_nVert_rwVUp.Scale(h_data.Integral()/h_nVert_rwVUp.Integral())
+reweightingHisto_VUp = h_event.Clone()
+h_nVert_rwVUp.Scale(h_event.Integral()/h_nVert_rwVUp.Integral())
 reweightingHisto_VUp.Divide(h_nVert_rwVUp)
 reweightingHisto_VUp.style = styles.lineStyle(ROOT.kBlue)
 
-reweightingHisto_VDown = h_data.Clone()
-h_nVert_rwVDown.Scale(h_data.Integral()/h_nVert_rwVDown.Integral())
+reweightingHisto_VDown = h_event.Clone()
+h_nVert_rwVDown.Scale(h_event.Integral()/h_nVert_rwVDown.Integral())
 reweightingHisto_VDown.Divide(h_nVert_rwVDown)
 reweightingHisto_VDown.style = styles.lineStyle(ROOT.kBlue)
 

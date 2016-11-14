@@ -112,35 +112,35 @@ for sample in mc:
 from StopsDilepton.tools.user import plot_directory
 
 # official PU reweighting
-weight = lambda data: data.weight
+weight = lambda event, sample: event.weight
 
 for sample in mc:
     sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-    sample.weight = lambda data: getattr( data, args.pu )*data.reweightDilepTriggerBackup*data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF
+    sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
 
 sequence = []    
 
 loose_muon_selector = muonSelector( iso = 0.4, absEtaCut = 2.4)
 loose_ele_selector = eleSelector( iso = 0.4, eleId = 4, absEtaCut = 2.4 )
 
-def makeNonIsoLeptons( data ):
+def makeNonIsoLeptons( event ):
 
-    data.mll                     = float('nan')
-    data.mt2ll                   = float('nan')
-    data.tag_pt                  = float('nan')
-    data.tag_eta                 = float('nan')
-    data.tag_phi                 = float('nan')
-    data.tag_jetPtRelv2          = float('nan')
-    data.tag_jetPtRatiov2        = float('nan')
-    data.tag_miniRelIso          = float('nan')
-    data.probe_pt                = float('nan')
-    data.probe_eta               = float('nan')
-    data.probe_phi               = float('nan')
-    data.probe_jetPtRelv2        = float('nan')
-    data.probe_jetPtRatiov2      = float('nan')
-    data.probe_miniRelIso        = float('nan')
+    event.mll                     = float('nan')
+    event.mt2ll                   = float('nan')
+    event.tag_pt                  = float('nan')
+    event.tag_eta                 = float('nan')
+    event.tag_phi                 = float('nan')
+    event.tag_jetPtRelv2          = float('nan')
+    event.tag_jetPtRatiov2        = float('nan')
+    event.tag_miniRelIso          = float('nan')
+    event.probe_pt                = float('nan')
+    event.probe_eta               = float('nan')
+    event.probe_phi               = float('nan')
+    event.probe_jetPtRelv2        = float('nan')
+    event.probe_jetPtRatiov2      = float('nan')
+    event.probe_miniRelIso        = float('nan')
 
-    goodLeptons = getGoodLeptons( data, collVars = leptonVars )
+    goodLeptons = getGoodLeptons( event, collVars = leptonVars )
     tag = goodLeptons[0] if len(goodLeptons)>0 else None
 
     if not tag: return
@@ -149,7 +149,7 @@ def makeNonIsoLeptons( data ):
 
     extraLeptons = filter( 
             lambda p: (p!=tag) and ( (abs(p['pdgId'])==13 and loose_muon_selector(p)) or (abs(p['pdgId'])==11 and loose_ele_selector(p)) ),
-            sorted( getGoodAndOtherLeptons(data, ptCut = 20, collVars=leptonVars, mu_selector = loose_muon_selector, ele_selector = loose_ele_selector), key=lambda l: -l['pt'] )
+            sorted( getGoodAndOtherLeptons(event, ptCut = 20, collVars=leptonVars, mu_selector = loose_muon_selector, ele_selector = loose_ele_selector), key=lambda l: -l['pt'] )
         )
     #for p in extraLeptons:
     #    print p['miniRelIso'], p['pt']
@@ -172,25 +172,25 @@ def makeNonIsoLeptons( data ):
         if not tag['pdgId']*probe['pdgId'] < 0: return 
 
     mt2Calc.reset()
-    mt2Calc.setMet(data.met_pt, data.met_phi)
+    mt2Calc.setMet(event.met_pt, event.met_phi)
 
     mt2Calc.setLeptons(tag['pt'], tag['eta'], tag['phi'], probe['pt'], probe['eta'], probe['phi'])
 
-    data.mt2ll                   = mt2Calc.mt2ll()
-    data.mll                     = mll
+    event.mt2ll                   = mt2Calc.mt2ll()
+    event.mll                     = mll
 
-    data.tag_pt                  = tag["pt"]
-    data.tag_eta                 = tag["eta"]
-    data.tag_phi                 = tag["phi"]
-    data.tag_jetPtRelv2          = tag["jetPtRelv2"]
-    data.tag_jetPtRatiov2        = tag["jetPtRatiov2"]
-    data.tag_miniRelIso          = tag["miniRelIso"]
-    data.probe_pt                = probe["pt"]
-    data.probe_eta               = probe["eta"]
-    data.probe_phi               = probe["phi"]
-    data.probe_jetPtRelv2        = probe["jetPtRelv2"]
-    data.probe_jetPtRatiov2      = probe["jetPtRatiov2"]
-    data.probe_miniRelIso        = probe["miniRelIso"]
+    event.tag_pt                  = tag["pt"]
+    event.tag_eta                 = tag["eta"]
+    event.tag_phi                 = tag["phi"]
+    event.tag_jetPtRelv2          = tag["jetPtRelv2"]
+    event.tag_jetPtRatiov2        = tag["jetPtRatiov2"]
+    event.tag_miniRelIso          = tag["miniRelIso"]
+    event.probe_pt                = probe["pt"]
+    event.probe_eta               = probe["eta"]
+    event.probe_phi               = probe["phi"]
+    event.probe_jetPtRelv2        = probe["jetPtRelv2"]
+    event.probe_jetPtRatiov2      = probe["jetPtRatiov2"]
+    event.probe_miniRelIso        = probe["miniRelIso"]
 
     return
 
@@ -235,7 +235,7 @@ tag_pt  = Plot(
     name = "tag_pt",
     texX = 'p_{T}(tag) (GeV)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.tag_pt),
+    attribute = lambda event, sample:event.tag_pt,
     binning=[60,0,300],
     selectionString = selectionString,
     weight = weight,
@@ -246,7 +246,7 @@ tag_eta  = Plot(
     name = "tag_eta",
     texX = '#eta(tag)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.tag_eta),
+    attribute = lambda event, sample:event.tag_eta,
     binning=[36,-3.3,3.3],
     selectionString = selectionString,
     weight = weight,
@@ -257,7 +257,7 @@ tag_phi  = Plot(
     name = "tag_phi",
     texX = '#phi(tag)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.tag_phi),
+    attribute = lambda event, sample:event.tag_phi,
     binning=[30,-pi,pi],
     selectionString = selectionString,
     weight = weight,
@@ -268,7 +268,7 @@ tag_miniRelIso  = Plot(
     name = "tag_miniRelIso",
     texX = 'I_{rel.mini}(tag)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.tag_miniRelIso),
+    attribute = lambda event, sample:event.tag_miniRelIso,
     binning=[40,0,2],
     selectionString = selectionString,
     weight = weight,
@@ -279,7 +279,7 @@ tag_jetPtRelv2  = Plot(
     name = "tag_jetPtRelv2",
     texX = 'jetPtRelv2(tag)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.tag_jetPtRelv2),
+    attribute = lambda event, sample:event.tag_jetPtRelv2,
     binning=[50,0,50],
     selectionString = selectionString,
     weight = weight,
@@ -290,7 +290,7 @@ tag_jetPtRatiov2  = Plot(
     name = "tag_jetPtRatiov2",
     texX = 'jetPtRatiov2(tag)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.tag_jetPtRatiov2),
+    attribute = lambda event, sample:event.tag_jetPtRatiov2,
     binning=[28,0,1.4],
     selectionString = selectionString,
     weight = weight,
@@ -301,7 +301,7 @@ probe_pt  = Plot(
     name = "probe_pt",
     texX = 'p_{T}(probe) (GeV)', texY = 'Number of Events / 5 GeV',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_pt),
+    attribute = lambda event, sample:event.probe_pt,
     binning=[60,0,300],
     selectionString = selectionString,
     weight = weight,
@@ -312,7 +312,7 @@ probe_eta  = Plot(
     name = "probe_eta",
     texX = '#eta(probe)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_eta),
+    attribute = lambda event, sample:event.probe_eta,
     binning=[36,-3.3,3.3],
     selectionString = selectionString,
     weight = weight,
@@ -323,7 +323,7 @@ probe_phi  = Plot(
     name = "probe_phi",
     texX = '#phi(probe)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_phi),
+    attribute = lambda event, sample:event.probe_phi,
     binning=[30,-pi,pi],
     selectionString = selectionString,
     weight = weight,
@@ -334,7 +334,7 @@ probe_miniRelIso  = Plot(
     name = "probe_miniRelIso",
     texX = 'I_{rel.mini}(probe)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_miniRelIso),
+    attribute = lambda event, sample:event.probe_miniRelIso,
     binning=[40,0,2],
     selectionString = selectionString,
     weight = weight,
@@ -345,7 +345,7 @@ probe_jetPtRelv2  = Plot(
     name = "probe_jetPtRelv2",
     texX = 'jetPtRelv2(probe)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_jetPtRelv2),
+    attribute = lambda event, sample:event.probe_jetPtRelv2,
     binning=[50,0,50],
     selectionString = selectionString,
     weight = weight,
@@ -356,7 +356,7 @@ probe_jetPtRelv2_miniRelIsoVT  = Plot(
     name = "probe_jetPtRelv2_miniRelIsoVT",
     texX = 'jetPtRelv2(probe)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_jetPtRelv2 if data.probe_miniRelIso<0.09 else float('nan')),
+    attribute = lambda event, sample:event.probe_jetPtRelv2 if event.probe_miniRelIso<0.09 else float('nan'),
     binning=[50,0,50],
     selectionString = selectionString,
     weight = weight,
@@ -367,7 +367,7 @@ probe_jetPtRatiov2  = Plot(
     name = "probe_jetPtRatiov2",
     texX = 'jetPtRatiov2(probe)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_jetPtRatiov2),
+    attribute = lambda event, sample:event.probe_jetPtRatiov2,
     binning=[28,0,1.4],
     selectionString = selectionString,
     weight = weight,
@@ -378,7 +378,7 @@ probe_jetPtRatiov2_miniRelIsoVT  = Plot(
     name = "probe_jetPtRatiov2_miniRelIsoVT",
     texX = 'jetPtRatiov2(probe)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_jetPtRatiov2 if data.probe_miniRelIso<0.09 else float('nan')),
+    attribute = lambda event, sample:event.probe_jetPtRatiov2 if event.probe_miniRelIso<0.09 else float('nan'),
     binning=[28,0,1.4],
     selectionString = selectionString,
     weight = weight,
@@ -389,7 +389,7 @@ probe_jetPtRatiov2_miniRelIsoVT_ptRel07  = Plot(
     name = "probe_jetPtRatiov2_miniRelIsoVT_ptRel07",
     texX = 'jetPtRatiov2(probe)', texY = 'Number of Events',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.probe_jetPtRatiov2 if (data.probe_miniRelIso<0.09 and data.probe_jetPtRelv2<7.2) else float('nan')),
+    attribute = lambda event, sample:event.probe_jetPtRatiov2 if (event.probe_miniRelIso<0.09 and event.probe_jetPtRelv2<7.2) else float('nan'),
     binning=[28,0,1.4],
     selectionString = selectionString,
     weight = weight,
@@ -400,7 +400,7 @@ tp_mass  = Plot(
     name = "tp_mass",
     texX = 'm(ll) (GeV)', texY = 'Number of Events / 3 GeV',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.mll),
+    attribute = lambda event, sample:event.mll,
     binning=[150/3,0,150],
     selectionString = selectionString,
     weight = weight,
@@ -411,7 +411,7 @@ tp_mt2ll  = Plot(
     name = "mt2ll",
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
     stack = stack, 
-    variable = ScalarType.uniqueFloat().addFiller(lambda data:data.mt2ll),
+    attribute = lambda event, sample:event.mt2ll,
     binning=[300/20,0,300],
     selectionString = selectionString,
     weight = weight,

@@ -127,47 +127,47 @@ from StopsDilepton.tools.helpers import deltaPhi
 def deltaR(eta, phi, eta2, phi2):
   return sqrt(deltaPhi(phi, phi2)**2 + (eta - eta2)**2)
 
-def makeDeltaR(data):
-  data.dR_lep0lep1 = deltaR(data.LepGood_eta[0], data.LepGood_phi[0], data.LepGood_eta[1], data.LepGood_phi[1])
-  data.dR_lep1lep2 = deltaR(data.LepGood_eta[1], data.LepGood_phi[1], data.LepGood_eta[2], data.LepGood_phi[2])
-  data.dR_lep0lep2 = deltaR(data.LepGood_eta[2], data.LepGood_phi[2], data.LepGood_eta[0], data.LepGood_phi[0])
+def makeDeltaR(event, sample):
+  event.dR_lep0lep1 = deltaR(event.LepGood_eta[0], event.LepGood_phi[0], event.LepGood_eta[1], event.LepGood_phi[1])
+  event.dR_lep1lep2 = deltaR(event.LepGood_eta[1], event.LepGood_phi[1], event.LepGood_eta[2], event.LepGood_phi[2])
+  event.dR_lep0lep2 = deltaR(event.LepGood_eta[2], event.LepGood_phi[2], event.LepGood_eta[0], event.LepGood_phi[0])
 
-  data.dR_lep0jet  = min([deltaR(data.JetGood_eta[i], data.JetGood_phi[i], data.LepGood_eta[0], data.LepGood_phi[0]) for i in range(data.nJetGood)]) if data.nJetGood else 999
-  data.dR_lep1jet  = min([deltaR(data.JetGood_eta[i], data.JetGood_phi[i], data.LepGood_eta[1], data.LepGood_phi[1]) for i in range(data.nJetGood)]) if data.nJetGood else 999
-  data.dR_lep2jet  = min([deltaR(data.JetGood_eta[i], data.JetGood_phi[i], data.LepGood_eta[2], data.LepGood_phi[2]) for i in range(data.nJetGood)]) if data.nJetGood else 999
+  event.dR_lep0jet  = min([deltaR(event.JetGood_eta[i], event.JetGood_phi[i], event.LepGood_eta[0], event.LepGood_phi[0]) for i in range(event.nJetGood)]) if event.nJetGood else 999
+  event.dR_lep1jet  = min([deltaR(event.JetGood_eta[i], event.JetGood_phi[i], event.LepGood_eta[1], event.LepGood_phi[1]) for i in range(event.nJetGood)]) if event.nJetGood else 999
+  event.dR_lep2jet  = min([deltaR(event.JetGood_eta[i], event.JetGood_phi[i], event.LepGood_eta[2], event.LepGood_phi[2]) for i in range(event.nJetGood)]) if event.nJetGood else 999
 
-  data.passed      = not args.selection.count("dR") or (data.dR_lep0lep1 > 0.1 and data.dR_lep1lep2 > 0.1 and data.dR_lep0lep2 > 0.1 and data.dR_lep0jet > 0.4 and data.dR_lep1jet > 0.4 and data.dR_lep2jet > 0.4)
+  event.passed      = not args.selection.count("dR") or (event.dR_lep0lep1 > 0.1 and event.dR_lep1lep2 > 0.1 and event.dR_lep0lep2 > 0.1 and event.dR_lep0jet > 0.4 and event.dR_lep1jet > 0.4 and event.dR_lep2jet > 0.4)
 
 
-def calcBTag(data):
-  data.nBTag       = len([j for j in range(data.nJetGood) if data.JetGood_btagCSV[j] > 0.800])
-  data.nBTagLoose  = len([j for j in range(data.nJetGood) if data.JetGood_btagCSV[j] > 0.460])
-  csvValues        = [data.JetGood_btagCSV[j] for j in range(data.nJetGood)]
+def calcBTag(event, sample):
+  event.nBTag       = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.800])
+  event.nBTagLoose  = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.460])
+  csvValues        = [event.JetGood_btagCSV[j] for j in range(event.nJetGood)]
   csvValues.sort()
-  data.leadingCSV  = csvValues[-1] if len(csvValues) > 1 else -20
-  data.secondCSV   = csvValues[-2] if len(csvValues) > 2 else -20
+  event.leadingCSV  = csvValues[-1] if len(csvValues) > 1 else -20
+  event.secondCSV   = csvValues[-2] if len(csvValues) > 2 else -20
 
-def calcInvMass(data):
+def calcInvMass(event, sample):
   l1 = ROOT.TLorentzVector()
   l2 = ROOT.TLorentzVector()
   l3 = ROOT.TLorentzVector()
-  l1.SetPtEtaPhiM(data.LepGood_pt[0], data.LepGood_eta[0], data.LepGood_phi[0], 0)
-  l2.SetPtEtaPhiM(data.LepGood_pt[1], data.LepGood_eta[1], data.LepGood_phi[1], 0)
-  l3.SetPtEtaPhiM(data.LepGood_pt[2], data.LepGood_eta[2], data.LepGood_phi[2], 0)
+  l1.SetPtEtaPhiM(event.LepGood_pt[0], event.LepGood_eta[0], event.LepGood_phi[0], 0)
+  l2.SetPtEtaPhiM(event.LepGood_pt[1], event.LepGood_eta[1], event.LepGood_phi[1], 0)
+  l3.SetPtEtaPhiM(event.LepGood_pt[2], event.LepGood_eta[2], event.LepGood_phi[2], 0)
 
-  data.mlll = (l1 + l2 + l3).M()
+  event.mlll = (l1 + l2 + l3).M()
 
   if ((l1 + l2).M() - 91.1876) < 10:
-    data.mt = sqrt(2*l3.Pt()*data.met_pt*(1-cos(l3.Phi()-data.met_phi)))
+    event.mt = sqrt(2*l3.Pt()*event.met_pt*(1-cos(l3.Phi()-event.met_phi)))
   elif ((l1 + l3).M() - 91.1876) < 10:
-    data.mt = sqrt(2*l2.Pt()*data.met_pt*(1-cos(l2.Phi()-data.met_phi)))
+    event.mt = sqrt(2*l2.Pt()*event.met_pt*(1-cos(l2.Phi()-event.met_phi)))
   elif ((l3 + l2).M() - 91.1876) < 10:
-    data.mt = sqrt(2*l1.Pt()*data.met_pt*(1-cos(l1.Phi()-data.met_phi)))
+    event.mt = sqrt(2*l1.Pt()*event.met_pt*(1-cos(l1.Phi()-event.met_phi)))
   else:
-    data.mt = 0
-    data.passed = False
+    event.mt = 0
+    event.passed = False
   
-  data.passed = data.passed and (not args.selection.count("mt50") or data.mt > 50)
+  event.passed = event.passed and (not args.selection.count("mt50") or event.mt > 50)
 
 
 sequence = [makeDeltaR, calcBTag, calcInvMass]
@@ -225,236 +225,242 @@ for index, mode in enumerate(allModes):
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
+    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   stack = Stack(mc, data_sample)
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(stack = stack, weight = (lambda event, sample:event.weight if event.passed else 0), selectionString = selectionStrings[args.selection])
  
   plots = []
 
   plots.append(Plot(
     name = 'yield', texX = 'yield', texY = 'Number of Events',
-    variable = Variable.fromString( "yield/F" ).addFiller(lambda data: 0.5 + index),
+    name = 'yield', attribute = lambda event, sample: 0.5 + index,
     binning=[4, 0, 4],
   ))
 
   plots.append(Plot(
     texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 3 GeV',
-    variable = Variable.fromString( "dl_mass/F" ),
+    attribute = TreeVariable.fromString( "dl_mass/F" ),
     binning=[50/3,0,150],
   ))
 
   plots.append(Plot(
     texX = 'm(lll) (GeV)', texY = 'Number of Events / 3 GeV',
-    variable = Variable.fromString( "lll_mass/F" ).addFiller(lambda data: data.mlll),
+    name = 'lll_mass', attribute = lambda event, sample: event.mlll,
     binning=[50/3,0,150],
   ))
 
   plots.append(Plot(
     texX = 'm(ll) of best Z candidate (GeV)', texY = 'Number of Events / 3 GeV',
-    variable = Variable.fromString( "mlmZ_mass/F" ),
+    attribute = TreeVariable.fromString( "mlmZ_mass/F" ),
     binning=[50/3,0,150],
   ))
 
   plots.append(Plot(
     texX = 'm_{T} of non-Z lepton (GeV)', texY = 'Number of Events / 3 GeV',
-    variable = Variable.fromString( "mt/F" ).addFiller(lambda data: data.mt),
+    name = 'mt', attribute = lambda event, sample: event.mt,
     binning=[50/3,0,150],
   ))
   
   plots.append(Plot(
     texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString( "dl_mt2ll/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
     binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
     texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString( "dl_mt2bb/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
     binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
     texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString( "dl_mt2blbl/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
     binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
     texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV',
-    variable = Variable.fromString( "met_pt/F" ),
+    attribute = TreeVariable.fromString( "met_pt/F" ),
     binning=[15,0,300],
   ))
 
   plots.append(Plot(
     texX = 'E_{T}^{miss}/#sqrt(H_{T}) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
-    variable = Variable.fromString('metSig/F').addFiller(helpers.uses(lambda data: data.met_pt/sqrt(data.ht) if data.ht>0 else float('nan'), ["met_pt/F", "ht/F"])),
+    name = 'metSig',
+    attribute = lambda event, sample: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan'), 
+    read_variables = ["met_pt/F", "ht/F"],
     binning=[15,0,15],
   )), 
 
   plots.append(Plot(
     texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
-    variable = Variable.fromString( "ht/F" ),
+    attribute = TreeVariable.fromString( "ht/F" ),
     binning=[510/30,90,600],
   ))
 
   plots.append(Plot(\
     texX = 'Cos(#phi(#E_{T}^{miss} Jet[0]))', texY = 'Number of Events',
-    variable = Variable.fromString('cosMetJet0phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[0] ) , ["met_phi/F", "JetGood[phi/F]"])),
+    name = 'cosMetJet0phi',
+    attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
+    read_variables = ["met_phi/F", "JetGood[phi/F]"],
     binning = [10,-1,1], 
   ))
 
   plots.append(Plot(\
     texX = 'Cos(#phi(E_{T}^{miss}, Jet[1]))', texY = 'Number of Events',
-    variable = Variable.fromString('cosMetJet1phi/F').addFiller(helpers.uses(lambda data: cos( data.met_phi - data.JetGood_phi[1] ) , ["met_phi/F", "JetGood[phi/F]"])),
+    name = 'cosMetJet1phi',
+    attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ), 
+    read_variables = ["met_phi/F", "JetGood[phi/F]"],
     binning = [10,-1,1], 
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(leading lepton) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('lepton0pt/F').addFiller(helpers.uses(lambda data: data.LepGood_pt[0], "LepGood[pt/F]")),
+    name = 'lepton0pt', attribute = lambda event, sample: event.LepGood_pt[0],
     binning=[300/20,0,300],
   )), 
 
   plots.append(Plot(
     texX = 'p_{T}(2nd lepton) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('lepton1pt/F').addFiller(helpers.uses(lambda data: data.LepGood_pt[1], "LepGood[pt/F]")),
+    name = 'lepton1pt', attribute = lambda event, sample: event.LepGood_pt[1],
     binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(3rd lepton) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('lepton2pt/F').addFiller(helpers.uses(lambda data: data.LepGood_pt[2], "LepGood[pt/F]")),
+    name = 'lepton2pt', attribute = lambda event, sample: event.LepGood_pt[2],
     binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
     texX = '#eta(leading lepton) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('lepton0eta/F').addFiller(helpers.uses(lambda data: abs(data.LepGood_eta[0]), "LepGood[eta/F]")),
+    name = 'lepton0eta', attribute = lambda event, sample: abs(event.LepGood_eta[0]),
     binning=[10, 0, 2.4],
   ))
 
   plots.append(Plot(
     texX = '#eta(2nd lepton) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('lepton1eta/F').addFiller(helpers.uses(lambda data: abs(data.LepGood_eta[1]), "LepGood[eta/F]")),
+    name = 'lepton1eta', attribute = lambda event, sample: abs(event.LepGood_eta[1]),
     binning=[10, 0, 2.4],
   ))
 
   plots.append(Plot(
     texX = '#eta(3rd lepton) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('lepton2eta/F').addFiller(helpers.uses(lambda data: abs(data.LepGood_eta[2]), "LepGood[eta/F]")),
+    name = 'lepton2eta', attribute = lambda event, sample: abs(event.LepGood_eta[2]),
     binning=[10, 0, 2.4],
   ))
 
   plots.append(Plot(
     texX = '#phi(leading lepton) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('lepton0phi/F').addFiller(helpers.uses(lambda data: data.LepGood_phi[0], "LepGood[phi/F]")), 
+    name = 'lepton0phi', attribute = lambda event, sample: event.LepGood_phi[0], 
     binning=[10, -pi, pi],
   ))
 
   plots.append(Plot(
     texX = '#phi(2nd lepton) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('lepton1phi/F').addFiller(helpers.uses(lambda data: data.LepGood_phi[1], "LepGood[phi/F]")), 
+    name = 'lepton1phi', attribute = lambda event, sample: event.LepGood_phi[1], 
     binning=[10, -pi, pi],
   ))
 
   plots.append(Plot(
     texX = '#phi(3rd lepton) (GeV)', texY = 'Number of Events / 20 GeV',
-        variable = Variable.fromString('lepton2phi/F').addFiller(helpers.uses(lambda data: data.LepGood_phi[2], "LepGood[phi/F]")),
+        name = 'lepton2phi', attribute = lambda event, sample: event.LepGood_phi[2],
     binning=[10, -pi, pi],
   ))
 
   plots.append(Plot(
     texX = '#DeltaR(l_{1},l_{2}) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('dR_lep1lep2/I').addFiller(lambda data: data.dR_lep1lep2),
+    name = 'dR_lep1lep2', attribute = lambda event, sample: event.dR_lep1lep2,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
     texX = '#DeltaR(l_{0},l_{2}) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('dR_lep0lep2/I').addFiller(lambda data: data.dR_lep0lep2),
+    name = 'dR_lep0lep2', attribute = lambda event, sample: event.dR_lep0lep2,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
     texX = '#DeltaR(l_{0},l_{1}) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('dR_lep0lep1/I').addFiller(lambda data: data.dR_lep0lep1),
+    name = 'dR_lep0lep1', attribute = lambda event, sample: event.dR_lep0lep1,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
     texX = '#DeltaR(l_{0},j) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('dR_lep0jet/I').addFiller(lambda data: data.dR_lep0jet),
+    name = 'dR_lep0jet', attribute = lambda event, sample: event.dR_lep0jet,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
     texX = '#DeltaR(l_{1},j) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('dR_lep1jet/I').addFiller(lambda data: data.dR_lep1jet),
+    name = 'dR_lep1jet', attribute = lambda event, sample: event.dR_lep1jet,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
     texX = '#DeltaR(l_{2},j) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('dR_lep2jet/I').addFiller(lambda data: data.dR_lep2jet),
+    name = 'dR_lep2jet', attribute = lambda event, sample: event.dR_lep2jet,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet0pt/F').addFiller(helpers.uses(lambda data: data.JetGood_pt[0] if data.nJetGood > 0 else -1, "JetGood[pt/F]")), 
+    name = 'jet0pt', attribute = lambda event, sample: event.JetGood_pt[0] if event.nJetGood > 0 else -1, 
     binning=[900/20,30,930],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet1pt/F').addFiller(helpers.uses(lambda data: data.JetGood_pt[1] if data.nJetGood > 1 else -1, "JetGood[pt/F]")), 
+    name = 'jet1pt', attribute = lambda event, sample: event.JetGood_pt[1] if event.nJetGood > 1 else -1, 
     binning=[600/20,30,630],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(3^{rd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet2pt/F').addFiller(helpers.uses(lambda data: data.JetGood_pt[2] if data.nJetGood > 2 else -1, "JetGood[pt/F]")), 
+    name = 'jet2pt', attribute = lambda event, sample: event.JetGood_pt[2] if event.nJetGood > 2 else -1, 
     binning=[300/20,30,330],
   ))
 
   plots.append(Plot(
     texX = 'number of jets', texY = 'Number of Events',
-    variable = Variable.fromString('nJetGood/I'),
+    attribute = TreeVariable.fromString('nJetGood/I'),
     binning=[14,0,14],
   ))
 
   plots.append(Plot(
     texX = 'number of leptons', texY = 'Number of Events',
-    variable = Variable.fromString('nLepGood/I'),
+    attribute = TreeVariable.fromString('nLepGood/I'),
     binning=[10,0,10],
   ))
 
   if not selection.count("nbtag0"):
     plots.append(Plot(
       texX = 'number of loose b-tags (CSV)', texY = 'Number of Events',
-      variable = Variable.fromString('nBTagLoose/I').addFiller(lambda data: data.nBTagLoose),
+      name = 'nBTagLoose', attribute = lambda event, sample: event.nBTagLoose,
       binning=[8,0,8],
     ))
 
     plots.append(Plot(
       texX = 'number of medium b-tags (CSV)', texY = 'Number of Events',
-      variable = Variable.fromString('nBTag/I').addFiller(lambda data: data.nBTag),
+      name = 'nBTag', attribute = lambda event, sample: event.nBTag,
       binning=[8,0,8],
     ))
 
   plots.append(Plot(
     texX = 'highest CSV', texY = 'Number of Events',
-    variable = Variable.fromString('leadingCSV/I').addFiller(lambda data: data.leadingCSV),
+    name = 'leadingCSV', attribute = lambda event, sample: event.leadingCSV,
     binning=[10,0,1],
   ))
 
   plots.append(Plot(
     texX = 'highest CSV', texY = 'Number of Events',
-    variable = Variable.fromString('secondCSV/I').addFiller(lambda data: data.secondCSV),
+    name = 'secondCSV', attribute = lambda event, sample: event.secondCSV,
     binning=[10,0,1],
   ))
 

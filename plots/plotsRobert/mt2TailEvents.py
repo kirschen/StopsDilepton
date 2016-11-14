@@ -326,8 +326,8 @@ for s in samples:
                 if deltaMet>200:  counterRecofake_fakeMet200[mode][gMode]+=1
 
 #        print "mode %s genLeps %i genNus %i (%i %i %i) gen/recoLeps/matched Ele:%i/%i/%i Mu:%i/%i/%i Tau:%i"%(mode, len(genLeptons), len(genNeutrinos), len(genNuE), len(genNuMu), len(genNuTau), len(genEle), len(ele), len(eleMatched), len(genMu), len(mu),len(muMatched), len(genTau))
-#        if len(eleMatchedToB+muMatchedToB)>0:print "  fromB (tot.: %i) Ele:%i Mu:%i"%(len(eleMatchedToB+muMatchedToB), len(eleMatchedToB), len(muMatchedToB))#, eleMatchedToB, muMatchedToB
-#        if len(eleMatchedToTau+muMatchedToTau)>0:print "  fromTau (tot.: %i) Ele:%i Mu:%i"%(len(eleMatchedToTau+muMatchedToTau), len(eleMatchedToTau), len(muMatchedToTau))#,eleMatchedToTau,muMatchedToTau
+#        if len(eleMatchedToB+muMatchedToB)>0:print "  fromB (tot.%i) Ele:%i Mu:%i"%(len(eleMatchedToB+muMatchedToB), len(eleMatchedToB), len(muMatchedToB))#, eleMatchedToB, muMatchedToB
+#        if len(eleMatchedToTau+muMatchedToTau)>0:print "  fromTau (tot.%i) Ele:%i Mu:%i"%(len(eleMatchedToTau+muMatchedToTau), len(eleMatchedToTau), len(muMatchedToTau))#,eleMatchedToTau,muMatchedToTau
 
     print
     for mode in ["isMuMu", "isEE", "isEMu"]:

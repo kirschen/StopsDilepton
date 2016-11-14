@@ -495,34 +495,34 @@ jetVarNames = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'index/I', 'lepGoodMatchIndex/I', 'matchesPromptGoodLepton/I', 'n_t/I','n_W/I', 'n_B/I', 'n_D/I', 'n_tau/I']
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
 
-read_variables = map(Variable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
-read_variables += [ Variable.fromString('ngamma/I'),
-		    VectorType.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I,pdgId/I]') ]
+read_variables = map(TreeVariable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
+read_variables += [ TreeVariable.fromString('ngamma/I'),
+		    VectorTreeVariable.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I,pdgId/I]') ]
 
 new_variables = [ 'weight/F']
 if isMC:
-    read_variables+= [Variable.fromString('nTrueInt/F')]
+    read_variables+= [TreeVariable.fromString('nTrueInt/F')]
     # reading gen particles for top pt reweighting
-    read_variables.append( Variable.fromString('ngenPartAll/I') )
-    read_variables.append( VectorType.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
-    read_variables.append( Variable.fromString('genWeight/F') )
-    read_variables.append( VectorType.fromString('gamma[mcPt/F]') )
+    read_variables.append( TreeVariable.fromString('ngenPartAll/I') )
+    read_variables.append( VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
+    read_variables.append( TreeVariable.fromString('genWeight/F') )
+    read_variables.append( VectorTreeVariable.fromString('gamma[mcPt/F]') )
 
     new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F'])
     if not options.skipGenLepMatching:
-        Variable.fromString( 'nGenLep/I' ),
+        TreeVariable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
 
 read_variables += [\
-    Variable.fromString('nLepGood/I'),
-    VectorType.fromString('LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
-    Variable.fromString('nJet/I'),
-    VectorType.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
+    TreeVariable.fromString('nLepGood/I'),
+    VectorTreeVariable.fromString('LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
+    TreeVariable.fromString('nJet/I'),
+    VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
 ]
 if isVeryLoose:
     read_variables += [\
-        Variable.fromString('nLepOther/I'),
-        VectorType.fromString('LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
+        TreeVariable.fromString('nLepOther/I'),
+        VectorTreeVariable.fromString('LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
     ]
 new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) )
@@ -563,7 +563,7 @@ if options.checkTTGJetsOverlap:
     new_variables.extend( ['TTGJetsEventType/I'] )
 
 if addSystematicVariations:
-    read_variables += map(Variable.fromString, [\
+    read_variables += map(TreeVariable.fromString, [\
     "met_JetEnUp_Pt/F", "met_JetEnUp_Phi/F", "met_JetEnDown_Pt/F", "met_JetEnDown_Phi/F", "met_JetResUp_Pt/F", "met_JetResUp_Phi/F", "met_JetResDown_Pt/F", "met_JetResDown_Phi/F", 
     "met_UnclusteredEnUp_Pt/F", "met_UnclusteredEnUp_Phi/F", "met_UnclusteredEnDown_Pt/F", "met_UnclusteredEnDown_Phi/F", 
     ] )
@@ -582,9 +582,9 @@ if addSystematicVariations:
             new_variables.append('reweightBTag_'+var+'/F')
 
 if options.T2tt or options.TTDM:
-    read_variables += map(Variable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
+    read_variables += map(TreeVariable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
 if options.T2tt:
-    read_variables += map(Variable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
+    read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
 
 if options.fastSim and (isTriLep or isDiLep):
@@ -636,42 +636,42 @@ mothers = {"D":0, "B":0}
 grannies_D = {}
 grannies_B = {}
 
-def filler(s):
+def filler( event ):
     # shortcut
-    r = reader.data
+    r = reader.event
     if isMC: gPart = getGenPartsAll(r)
 
     # weight
     if options.T2tt:
-        s.weight=signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['weight']
-        s.mStop = r.GenSusyMStop
-        s.mNeu  = r.GenSusyMNeutralino
-        s.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
-        s.reweightXSecDown  = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacDown']
+        event.weight=signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['weight']
+        event.mStop = r.GenSusyMStop
+        event.mNeu  = r.GenSusyMNeutralino
+        event.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
+        event.reweightXSecDown  = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacDown']
     elif isMC:
-        s.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
+        event.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
     elif isData:
-        s.weight = 1
+        event.weight = 1
     else:
         raise NotImplementedError( "isMC %r isData %r T2tt? %r TTDM?" % (isMC, isData, options.T2tt, options.TTDM) )
 
     # lumi lists and vetos
     if isData:
-        #s.vetoPassed  = vetoList.passesVeto(r.run, r.lumi, r.evt)
-        s.jsonPassed  = lumiList.contains(r.run, r.lumi)
+        #event.vetoPassed  = vetoList.passesVeto(r.run, r.lumi, r.evt)
+        event.jsonPassed  = lumiList.contains(r.run, r.lumi)
         # store decision to use after filler has been executed
-        s.jsonPassed_ = s.jsonPassed
+        event.jsonPassed_ = event.jsonPassed
 
     if isMC:
-        s.reweightPU     = nTrueInt_puRW       ( r.nTrueInt ) 
-        s.reweightPUDown = nTrueInt_puRWDown   ( r.nTrueInt ) 
-        s.reweightPUUp   = nTrueInt_puRWUp     ( r.nTrueInt ) 
-        s.reweightPU12fb     = nTrueInt12fb_puRW       ( r.nTrueInt ) 
-        s.reweightPU12fbDown = nTrueInt12fb_puRWDown   ( r.nTrueInt ) 
-        s.reweightPU12fbUp   = nTrueInt12fb_puRWUp     ( r.nTrueInt ) 
+        event.reweightPU     = nTrueInt_puRW       ( r.nTrueInt ) 
+        event.reweightPUDown = nTrueInt_puRWDown   ( r.nTrueInt ) 
+        event.reweightPUUp   = nTrueInt_puRWUp     ( r.nTrueInt ) 
+        event.reweightPU12fb     = nTrueInt12fb_puRW       ( r.nTrueInt ) 
+        event.reweightPU12fbDown = nTrueInt12fb_puRWDown   ( r.nTrueInt ) 
+        event.reweightPU12fbUp   = nTrueInt12fb_puRWUp     ( r.nTrueInt ) 
 
     # top pt reweighting
-    if isMC: s.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
+    if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
 
     # jet/met related quantities, also load the leptons already
     if options.keepForwardJets:
@@ -705,21 +705,21 @@ def filler(s):
 
     leptons.sort(key = lambda p:-p['pt'])
     
-    s.met_pt  = r.met_pt
-    s.met_phi = r.met_phi
+    event.met_pt  = r.met_pt
+    event.met_phi = r.met_phi
 
     # Filling jets
-    s.nJetGood   = len(jets)
+    event.nJetGood   = len(jets)
     for iJet, jet in enumerate(jets):
         for b in jetVarNames:
-            getattr(s, "JetGood_"+b)[iJet] = jet[b]
+            getattr(event, "JetGood_"+b)[iJet] = jet[b]
     if isSingleLep:
         # Compute M3 and the three indiced of the jets entering m3
-        s.m3, s.m3_ind1, s.m3_ind2, s.m3_ind3 = m3( jets )
+        event.m3, event.m3_ind1, event.m3_ind2, event.m3_ind3 = m3( jets )
 
-    s.ht         = sum([j['pt'] for j in jets])
-    s.metSig     = s.met_pt/sqrt(s.ht) if s.ht>0 else float('nan')
-    s.nBTag      = len(bJets)
+    event.ht         = sum([j['pt'] for j in jets])
+    event.metSig     = event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan')
+    event.nBTag      = len(bJets)
 
     jets_sys      = {}
     bjets_sys     = {}
@@ -729,26 +729,26 @@ def filler(s):
 
     # Keep photons and estimate met including (leading pt) photon
     photons = getGoodPhotons(r, ptCut=20, idLevel="loose", isData=isData)
-    s.nPhotonGood = len(photons)
-    if s.nPhotonGood > 0:
+    event.nPhotonGood = len(photons)
+    if event.nPhotonGood > 0:
       metVariants += ['_photonEstimated']  # do all met calculations also for the photonEstimated variant
-      s.photon_pt         = photons[0]['pt']
-      s.photon_eta        = photons[0]['eta']
-      s.photon_phi        = photons[0]['phi']
-      s.photon_idCutBased = photons[0]['idCutBased']
+      event.photon_pt         = photons[0]['pt']
+      event.photon_eta        = photons[0]['eta']
+      event.photon_phi        = photons[0]['phi']
+      event.photon_idCutBased = photons[0]['idCutBased']
       if isMC:
         genPhoton       = getGenPhoton(gPart)
-        s.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
-        s.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
+        event.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
+        event.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
 
-      s.met_pt_photonEstimated, s.met_phi_photonEstimated = getMetPhotonEstimated(r.met_pt, r.met_phi, photons[0])
-      s.metSig_photonEstimated = s.met_pt_photonEstimated/sqrt(s.ht) if s.ht>0 else float('nan')
+      event.met_pt_photonEstimated, event.met_phi_photonEstimated = getMetPhotonEstimated(r.met_pt, r.met_phi, photons[0])
+      event.metSig_photonEstimated = event.met_pt_photonEstimated/sqrt(event.ht) if event.ht>0 else float('nan')
 
-      s.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
-      s.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
+      event.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
+      event.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
 
     if options.checkTTGJetsOverlap and isMC:
-       s.TTGJetsEventType = getTTGJetsEventType(r)
+       event.TTGJetsEventType = getTTGJetsEventType(r)
 
     if addSystematicVariations:
         for j in allJets:
@@ -761,67 +761,67 @@ def filler(s):
             bjets_sys[var]      = filter(isBJet, jets_sys[var])
             nonBjets_sys[var]   = filter(lambda j: not isBJet(j), jets_sys[var])
 
-            setattr(s, "nJetGood_"+var, len(jets_sys[var]))
-            setattr(s, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
-            setattr(s, "nBTag_"+var,    len(bjets_sys[var]))
+            setattr(event, "nJetGood_"+var, len(jets_sys[var]))
+            setattr(event, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
+            setattr(event, "nBTag_"+var,    len(bjets_sys[var]))
 
         for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
             for i in metVariants:
                 # use cmg MET correction values ecept for JER where it is zero. There, propagate jet variations.
                 if 'JER' in var or 'JECV' in var:
-                  (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(s, "met_pt" + i), getattr(s,"met_phi" + i), jets_sys[var], var)
+                  (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(event, "met_pt" + i), getattr(event,"met_phi" + i), jets_sys[var], var)
                 else:
                   (met_corr_pt, met_corr_phi) = getMetCorrected(r, var, photons[0] if i.count("photonEstimated") else None)
 
-                setattr(s, "met_pt" +i+"_"+var, met_corr_pt)
-                setattr(s, "met_phi"+i+"_"+var, met_corr_phi)
-                ht = getattr(s, "ht_"+var) if 'Unclustered' not in var else s.ht 
-                setattr(s, "metSig" +i+"_"+var, getattr(s, "met_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
+                setattr(event, "met_pt" +i+"_"+var, met_corr_pt)
+                setattr(event, "met_phi"+i+"_"+var, met_corr_phi)
+                ht = getattr(event, "ht_"+var) if 'Unclustered' not in var else event.ht 
+                setattr(event, "metSig" +i+"_"+var, getattr(event, "met_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
 
     if isSingleLep or isTriLep or isDiLep:
-        s.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
-        s.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
+        event.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
+        event.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
 
         if len(leptons)>=1:
-            s.l1_pt     = leptons[0]['pt']
-            s.l1_eta    = leptons[0]['eta']
-            s.l1_phi    = leptons[0]['phi']
-            s.l1_pdgId  = leptons[0]['pdgId']
-            s.l1_index  = leptons[0]['index']
-            s.l1_jetPtRatiov2  = leptons[0]['jetPtRatiov2']
-            s.l1_jetPtRelv2    = leptons[0]['jetPtRelv2']
-            s.l1_miniRelIso = leptons[0]['miniRelIso']
-            s.l1_dxy = leptons[0]['dxy']
-            s.l1_dz = leptons[0]['dz']
-            s.l1_mIsoWP = multiIsoWPInt(leptons[0])
+            event.l1_pt     = leptons[0]['pt']
+            event.l1_eta    = leptons[0]['eta']
+            event.l1_phi    = leptons[0]['phi']
+            event.l1_pdgId  = leptons[0]['pdgId']
+            event.l1_index  = leptons[0]['index']
+            event.l1_jetPtRatiov2  = leptons[0]['jetPtRatiov2']
+            event.l1_jetPtRelv2    = leptons[0]['jetPtRelv2']
+            event.l1_miniRelIso = leptons[0]['miniRelIso']
+            event.l1_dxy = leptons[0]['dxy']
+            event.l1_dz = leptons[0]['dz']
+            event.l1_mIsoWP = multiIsoWPInt(leptons[0])
 
         # For TTZ studies: find Z boson candidate, and use third lepton to calculate mt
-        (s.mlmZ_mass, zl1, zl2) = closestOSDLMassToMZ(leptons_pt10)
+        (event.mlmZ_mass, zl1, zl2) = closestOSDLMassToMZ(leptons_pt10)
 #        if len(leptons_pt10) >= 3:
 #            thirdLepton = leptons_pt10[[x for x in range(len(leptons_pt10)) if x != zl1 and x != zl2][0]]
 #            for i in metVariants:
-#              setattr(s, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(s, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(s, "met_phi"+i)))))
+#              setattr(event, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(event, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(event, "met_phi"+i)))))
 
         if options.fastSim:
-            s.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
-            s.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
-            s.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
+            event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
+            event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
+            event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
 
     if isTriLep or isDiLep:
         if isMC:
-            s.reweightDilepTrigger       = 0 
-            s.reweightDilepTriggerUp     = 0 
-            s.reweightDilepTriggerDown   = 0 
-            s.reweightDilepTriggerBackup       = 0 
-            s.reweightDilepTriggerBackupUp     = 0 
-            s.reweightDilepTriggerBackupDown   = 0 
+            event.reweightDilepTrigger       = 0 
+            event.reweightDilepTriggerUp     = 0 
+            event.reweightDilepTriggerDown   = 0 
+            event.reweightDilepTriggerBackup       = 0 
+            event.reweightDilepTriggerBackupUp     = 0 
+            event.reweightDilepTriggerBackupDown   = 0 
 
             leptonsForSF = (leptons[:2] if isDiLep else (leptons[:3] if isTriLep else leptons))
-            s.reweightLeptonSF           = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta']) for l in leptonsForSF], 1)
-            s.reweightLeptonSFUp         = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = +1) for l in leptonsForSF], 1)
-            s.reweightLeptonSFDown       = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = -1) for l in leptonsForSF], 1)
+            event.reweightLeptonSF           = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta']) for l in leptonsForSF], 1)
+            event.reweightLeptonSFUp         = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = +1) for l in leptonsForSF], 1)
+            event.reweightLeptonSFDown       = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = -1) for l in leptonsForSF], 1)
 
-            s.reweightLeptonHIPSF      = reduce(mul, [leptonHIPSF.getSF( \
+            event.reweightLeptonHIPSF      = reduce(mul, [leptonHIPSF.getSF( \
                 pdgId = l['pdgId'],
                 pt  =   l['pt'], 
                 eta =   (l['etaSc'] if abs(l['pdgId'])==11 else l['eta'])
@@ -829,82 +829,82 @@ def filler(s):
 
         if len(leptons)>=2:
             mt2Calc.reset()
-            s.l2_pt     = leptons[1]['pt']
-            s.l2_eta    = leptons[1]['eta']
-            s.l2_phi    = leptons[1]['phi']
-            s.l2_pdgId  = leptons[1]['pdgId']
-            s.l2_index  = leptons[1]['index']
-            s.l2_jetPtRatiov2  = leptons[1]['jetPtRatiov2']
-            s.l2_jetPtRelv2    = leptons[1]['jetPtRelv2']
-            s.l2_miniRelIso = leptons[1]['miniRelIso']
-            s.l2_dxy = leptons[1]['dxy']
-            s.l2_dz = leptons[1]['dz']
-            s.l2_mIsoWP = multiIsoWPInt(leptons[1])
+            event.l2_pt     = leptons[1]['pt']
+            event.l2_eta    = leptons[1]['eta']
+            event.l2_phi    = leptons[1]['phi']
+            event.l2_pdgId  = leptons[1]['pdgId']
+            event.l2_index  = leptons[1]['index']
+            event.l2_jetPtRatiov2  = leptons[1]['jetPtRatiov2']
+            event.l2_jetPtRelv2    = leptons[1]['jetPtRelv2']
+            event.l2_miniRelIso = leptons[1]['miniRelIso']
+            event.l2_dxy = leptons[1]['dxy']
+            event.l2_dz = leptons[1]['dz']
+            event.l2_mIsoWP = multiIsoWPInt(leptons[1])
             
 
             l_pdgs = [abs(leptons[0]['pdgId']), abs(leptons[1]['pdgId'])]
             l_pdgs.sort()
-            s.isMuMu = l_pdgs==[13,13]
-            s.isEE   = l_pdgs==[11,11]
-            s.isEMu  = l_pdgs==[11,13]
-            s.isOS   = s.l1_pdgId*s.l2_pdgId<0
+            event.isMuMu = l_pdgs==[13,13]
+            event.isEE   = l_pdgs==[11,11]
+            event.isEMu  = l_pdgs==[11,13]
+            event.isOS   = event.l1_pdgId*event.l2_pdgId<0
 
             l1 = ROOT.TLorentzVector()
             l1.SetPtEtaPhiM(leptons[0]['pt'], leptons[0]['eta'], leptons[0]['phi'], 0 )
             l2 = ROOT.TLorentzVector()
             l2.SetPtEtaPhiM(leptons[1]['pt'], leptons[1]['eta'], leptons[1]['phi'], 0 )
             dl = l1+l2
-            s.dl_pt   = dl.Pt()
-            s.dl_eta  = dl.Eta()
-            s.dl_phi  = dl.Phi()
-            s.dl_mass = dl.M()
-            mt2Calc.setLeptons(s.l1_pt, s.l1_eta, s.l1_phi, s.l2_pt, s.l2_eta, s.l2_phi)
+            event.dl_pt   = dl.Pt()
+            event.dl_eta  = dl.Eta()
+            event.dl_phi  = dl.Phi()
+            event.dl_mass = dl.M()
+            mt2Calc.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
 
             # To check MC truth when looking at the TTZToLLNuNu sample
             if isMC:
-              trig_eff, trig_eff_err =  triggerEff.getSF(s.l1_pt, s.l1_eta, s.l1_pdgId, s.l2_pt, s.l2_eta, s.l2_pdgId)
-              s.reweightDilepTrigger       = trig_eff 
-              s.reweightDilepTriggerUp     = trig_eff + trig_eff_err
-              s.reweightDilepTriggerDown   = trig_eff - trig_eff_err
-              trig_eff, trig_eff_err =  triggerEff_withBackup.getSF(s.l1_pt, s.l1_eta, s.l1_pdgId, s.l2_pt, s.l2_eta, s.l2_pdgId)
-              s.reweightDilepTriggerBackup       = trig_eff 
-              s.reweightDilepTriggerBackupUp     = trig_eff + trig_eff_err
-              s.reweightDilepTriggerBackupDown   = trig_eff - trig_eff_err
+              trig_eff, trig_eff_err =  triggerEff.getSF(event.l1_pt, event.l1_eta, event.l1_pdgId, event.l2_pt, event.l2_eta, event.l2_pdgId)
+              event.reweightDilepTrigger       = trig_eff 
+              event.reweightDilepTriggerUp     = trig_eff + trig_eff_err
+              event.reweightDilepTriggerDown   = trig_eff - trig_eff_err
+              trig_eff, trig_eff_err =  triggerEff_withBackup.getSF(event.l1_pt, event.l1_eta, event.l1_pdgId, event.l2_pt, event.l2_eta, event.l2_pdgId)
+              event.reweightDilepTriggerBackup       = trig_eff 
+              event.reweightDilepTriggerBackupUp     = trig_eff + trig_eff_err
+              event.reweightDilepTriggerBackupDown   = trig_eff - trig_eff_err
 
               zBoson          = getGenZ(gPart)
-              s.zBoson_genPt  = zBoson['pt']  if zBoson is not None else float('nan')
-              s.zBoson_genEta = zBoson['eta'] if zBoson is not None else float('nan')
+              event.zBoson_genPt  = zBoson['pt']  if zBoson is not None else float('nan')
+              event.zBoson_genEta = zBoson['eta'] if zBoson is not None else float('nan')
 
-            if s.nPhotonGood > 0:
+            if event.nPhotonGood > 0:
               gamma = ROOT.TLorentzVector()
               gamma.SetPtEtaPhiM(photons[0]['pt'], photons[0]['eta'], photons[0]['phi'], photons[0]['mass'] )
               dlg = dl + gamma
-              s.dlg_mass = dlg.M()
+              event.dlg_mass = dlg.M()
 
             if options.T2tt or options.TTDM:
                 mt2Calc.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
-                setattr(s, "dl_mt2ll_gen", mt2Calc.mt2ll())
+                setattr(event, "dl_mt2ll_gen", mt2Calc.mt2ll())
                 if len(jets)>=2:
                     bj0, bj1 = (bJets+nonBJets)[:2]
                     mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                    setattr(s, "dl_mt2bb_gen",   mt2Calc.mt2bb())
-                    setattr(s, "dl_mt2blbl_gen", mt2Calc.mt2blbl())
+                    setattr(event, "dl_mt2bb_gen",   mt2Calc.mt2bb())
+                    setattr(event, "dl_mt2blbl_gen", mt2Calc.mt2blbl())
                 
             for i in metVariants:
-                mt2Calc.setMet(getattr(s, 'met_pt'+i), getattr(s, 'met_phi'+i))
-                setattr(s, "dl_mt2ll"+i, mt2Calc.mt2ll())
+                mt2Calc.setMet(getattr(event, 'met_pt'+i), getattr(event, 'met_phi'+i))
+                setattr(event, "dl_mt2ll"+i, mt2Calc.mt2ll())
 
                 bj0, bj1 = None, None
                 if len(jets)>=2:
                     bj0, bj1 = (bJets+nonBJets)[:2]
                     mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                    setattr(s, "dl_mt2bb"+i,   mt2Calc.mt2bb())
-                    setattr(s, "dl_mt2blbl"+i, mt2Calc.mt2blbl())
+                    setattr(event, "dl_mt2bb"+i,   mt2Calc.mt2bb())
+                    setattr(event, "dl_mt2blbl"+i, mt2Calc.mt2blbl())
 
                 if addSystematicVariations:
                     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
-                        mt2Calc.setMet( getattr(s, "met_pt"+i+"_"+var), getattr(s, "met_phi"+i+"_"+var) )
-                        setattr(s, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
+                        mt2Calc.setMet( getattr(event, "met_pt"+i+"_"+var), getattr(event, "met_phi"+i+"_"+var) )
+                        setattr(event, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
                         if not 'Unclustered' in var:
                             if len(jets_sys[var])>=2:
                                 bj0_, bj1_ = (bjets_sys[var]+nonBjets_sys[var])[:2]
@@ -914,8 +914,8 @@ def filler(s):
                             bj0_, bj1_ = bj0, bj1
                         if bj0_ and bj1_:
                             mt2Calc.setBJets(bj0_['pt'], bj0_['eta'], bj0_['phi'], bj1_['pt'], bj1_['eta'], bj1_['phi'])
-                            setattr(s, 'dl_mt2bb'  +i+'_'+var, mt2Calc.mt2bb())
-                            setattr(s, 'dl_mt2blbl'+i+'_'+var, mt2Calc.mt2blbl())
+                            setattr(event, 'dl_mt2bb'  +i+'_'+var, mt2Calc.mt2bb())
+                            setattr(event, 'dl_mt2blbl'+i+'_'+var, mt2Calc.mt2blbl())
 
     if addSystematicVariations:
         # B tagging weights method 1a
@@ -923,16 +923,7 @@ def filler(s):
             btagEff.addBTagEffToJet(j)
         for var in btagEff.btagWeightNames:
             if var!='MC':
-                setattr(s, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
-
-    #TESTING the unblind cut
-    if isData and isDiLep:
-        unblindWeight = s.weight
-        if s.nBTag>=1 and s.nJetGood>=2 and r.run>275376 and s.dl_mt2ll>140 and ( (abs(s.l1_pdgId)!=abs(s.l2_pdgId)) or ( (abs(s.l1_pdgId)==abs(s.l2_pdgId)) and abs(s.dl_mass - 91.2) > 15) ):
-            if s.dl_mt2ll<=140:
-                print "What is going on? ", s.nBTag, s.nJetGood, r.run, s.dl_mt2ll, s.l1_pdgId, s.l2_pdgId, s.dl_mass
-                print r.run, r.lumi, r.evt
-                sys.exit(0)
+                setattr(event, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
 
     # gen information on extra leptons
     if isMC and not options.skipGenLepMatching:
@@ -950,9 +941,9 @@ def filler(s):
             if matched_lep:
                 l["lepGoodMatchIndex"] = matched_lep['index']
                 if isSingleLep:
-                    l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index]
+                    l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [event.l1_index]
                 elif isTriLep or isDiLep:
-                    l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [s.l1_index, s.l2_index]
+                    l["matchesPromptGoodLepton"] = l["lepGoodMatchIndex"] in [event.l1_index, event.l2_index]
                 else:
                     l["matchesPromptGoodLepton"] = 0
             else:
@@ -975,15 +966,15 @@ def filler(s):
 #            else:
 #                pass
                 # print l['pdgId'], l['pt'], l['phi'], l['eta'], ",".join(pdgToName(gPart[x]['pdgId']) for x in genSearch.ancestry(l))
-        s.nGenLep   = len(gLep)
+        event.nGenLep   = len(gLep)
         for iLep, lep in enumerate(gLep):
             for b in genLepVarNames:
-                getattr(s, "GenLep_"+b)[iLep] = lep[b]
+                getattr(event, "GenLep_"+b)[iLep] = lep[b]
 
 # Create a maker. Maker class will be compiled. This instance will be used as a parent in the loop
 treeMaker_parent = TreeMaker(
-    filler = filler,
-    variables = [ Variable.fromString(x) for x in new_variables ],
+    sequence  = [ filler ],
+    variables = [ TreeVariable.fromString(x) for x in new_variables ],
     treeName = "Events"
     )
 

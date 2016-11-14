@@ -153,7 +153,7 @@ eff_pt2_eta2.GetXaxis().SetTitle("p_{T} of trailing lepton")
 eff_pt2_eta2.GetYaxis().SetTitle("#eta of trailing lepton")
 eff_pt2_eta2.style = styles.errorStyle( ROOT.kBlack )
 
-logger.info( "Sample:      %s" % data.name )
+logger.info( "Sample:      %s" % event.name )
 
 def leptonSelectorString(index, ptCut):
     return '('+muonSelectorString(index=index, ptCut=ptCut)+'||'+eleSelectorString(index=index, ptCut=ptCut)+')'
@@ -181,42 +181,42 @@ plot_string_pt2      = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(inde
 logger.info( "Plot string: %s" % plot_string_pt1 )
 logger.info( "Selection:   %s" % selection_string )
  
-data.chain.Draw(plot_string_pt1, selection_string, 'goff')
-data.chain.Draw(plot_string_pt2, selection_string, 'goff')
+event.chain.Draw(plot_string_pt1, selection_string, 'goff')
+event.chain.Draw(plot_string_pt2, selection_string, 'goff')
 
-data.chain.Draw("Sum$(Jet_pt*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))>>ht", selection_string, 'goff')
+event.chain.Draw("Sum$(Jet_pt*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))>>ht", selection_string, 'goff')
 
 plot_string_eta1     = args.dileptonTrigger+":LepGood_eta>>eff_eta1"
-data.chain.Draw(plot_string_eta1, selection_string+"&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff') 
+event.chain.Draw(plot_string_eta1, selection_string+"&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff') 
 
 plot_string_eta2     = args.dileptonTrigger+":LepGood_eta>>eff_eta2"
-data.chain.Draw(plot_string_eta2, selection_string+"&&LepGood_pt==MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff') 
+event.chain.Draw(plot_string_eta2, selection_string+"&&LepGood_pt==MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff') 
 
 plot_string_pt1_pt2    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2"
-data.chain.Draw(plot_string_pt1_pt2, selection_string, 'goff')
+event.chain.Draw(plot_string_pt1_pt2, selection_string, 'goff')
 plot_string_pt1_pt2_veryCoarse    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2_veryCoarse"
-data.chain.Draw(plot_string_pt1_pt2_veryCoarse, selection_string, 'goff')
+event.chain.Draw(plot_string_pt1_pt2_veryCoarse, selection_string, 'goff')
 
 if args.mode=='muEle':
     # split high/low wrt muon
     plot_string_pt1_pt2_highEta1_veryCoarse    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2_highEta1_veryCoarse"
-    data.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_pdgId)==13&&abs(LepGood_eta)>1.5&&"+selString(index=None,ptCut=0)+')==1', 'goff')
+    event.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_pdgId)==13&&abs(LepGood_eta)>1.5&&"+selString(index=None,ptCut=0)+')==1', 'goff')
 
     plot_string_pt1_pt2_lowEta1_veryCoarse    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2_lowEta1_veryCoarse"
-    data.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_pdgId)==13&&abs(LepGood_eta)<=1.5&&"+selString(index=None,ptCut=0)+')==1', 'goff')
+    event.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_pdgId)==13&&abs(LepGood_eta)<=1.5&&"+selString(index=None,ptCut=0)+')==1', 'goff')
 else:
     # split high/low wrt leading lepton
     plot_string_pt1_pt2_highEta1_veryCoarse    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2_highEta1_veryCoarse"
-    data.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_eta)>1.5&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+'))==1', 'goff')
+    event.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_eta)>1.5&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+'))==1', 'goff')
 
     plot_string_pt1_pt2_lowEta1_veryCoarse    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2_lowEta1_veryCoarse"
-    data.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_eta)<=1.5&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+'))==1', 'goff')
+    event.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_eta)<=1.5&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+'))==1', 'goff')
 
 plot_string_pt1_eta1   = args.dileptonTrigger+":LepGood_eta:MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_eta1"
-data.chain.Draw(plot_string_pt1_eta1, selection_string+"&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff')
+event.chain.Draw(plot_string_pt1_eta1, selection_string+"&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff')
 
 plot_string_pt2_eta2   = args.dileptonTrigger+":LepGood_eta:MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt2_eta2"
-data.chain.Draw(plot_string_pt2_eta2, selection_string+"&&LepGood_pt==MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff')
+event.chain.Draw(plot_string_pt2_eta2, selection_string+"&&LepGood_pt==MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff')
 
 
 prefix = preprefix+"_%s_%s_measuredIn%s_minLeadLepPt%i" % ( triggerName, args.baseTrigger if args.baseTrigger is not '' else 'None', args.sample, args.minLeadingLeptonPt)

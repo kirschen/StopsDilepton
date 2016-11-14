@@ -135,18 +135,18 @@ if args.small:
 from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
 pu_reweight = getNVTXReweightingFunction(filename = "dilepton_allZ_isOS_4000pb.pkl")
 
-weight = lambda data: data.weight
+weight = lambda event, sample: event.weight
 
 for sample in mc_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
 
-#dy.weight = lambda data:pu_reweight( data.nVert )['reweight']
+#dy.weight = lambda event, sample:pu_reweight( event.nVert )['reweight']
 dy.style = styles.lineStyle( ROOT.kBlack )
-dy_Central.weight = lambda data:pu_reweight( data.nVert )['reweight']
+dy_Central.weight = lambda event, sample:pu_reweight( event.nVert )['reweight']
 dy_Central.style = styles.lineStyle( ROOT.kBlue )
-dy_Up.weight = lambda data:pu_reweight( data.nVert )['reweight_Up']
+dy_Up.weight = lambda event, sample:pu_reweight( event.nVert )['reweight_Up']
 dy_Up.style = styles.lineStyle( ROOT.kRed )
-dy_Down.weight = lambda data:pu_reweight( data.nVert )['reweight_Down']
+dy_Down.weight = lambda event, sample:pu_reweight( event.nVert )['reweight_Down']
 dy_Down.style = styles.lineStyle( ROOT.kRed )
 
 from StopsDilepton.tools.user import plot_directory
@@ -276,7 +276,7 @@ for i_comb in [ len(cuts) ]:
         dl_mt2ll  = Plot(
             texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString( "dl_mt2ll/F" ),
+            attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
             binning=[300/15,0,300],
             selectionString = selectionString,
             weight = weight,
@@ -286,7 +286,7 @@ for i_comb in [ len(cuts) ]:
         dl_mt2bb  = Plot(
             texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString( "dl_mt2bb/F" ),
+            attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
             binning=[300/15,0,300],
             selectionString = selectionString,
             weight = weight,
@@ -296,7 +296,7 @@ for i_comb in [ len(cuts) ]:
         dl_mt2blbl  = Plot(
             texX = 'MT_{2}^{blbl} (GeV)', texY = 'Number of Events / 20 GeV',
             stack = stack, 
-            variable = Variable.fromString( "dl_mt2blbl/F" ),
+            attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
             binning=[300/15,0,300],
             selectionString = selectionString,
             weight = weight,
@@ -307,7 +307,7 @@ for i_comb in [ len(cuts) ]:
             name = "met_pt_zoomed",
             texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 10 GeV',
             stack = stack, 
-            variable = Variable.fromString( "met_pt/F" ),
+            attribute = TreeVariable.fromString( "met_pt/F" ),
             binning=[22,0,220],
             selectionString = selectionString,
             weight = weight,
@@ -317,7 +317,7 @@ for i_comb in [ len(cuts) ]:
         met  = Plot(
             texX = '#slash{E}_{T} (GeV)', texY = 'Number of Events / 50 GeV',
             stack = stack, 
-            variable = Variable.fromString( "met_pt/F" ),
+            attribute = TreeVariable.fromString( "met_pt/F" ),
             binning=[1050/50,0,1050],
             selectionString = selectionString,
             weight = weight,
@@ -327,7 +327,7 @@ for i_comb in [ len(cuts) ]:
         nVert  = Plot(
             texX = 'vertex multiplicity', texY = 'Number of Events',
             stack = stack, 
-            variable = Variable.fromString( "nVert/I" ),
+            attribute = TreeVariable.fromString( "nVert/I" ),
             binning=[50,0,50],
             selectionString = selectionString,
             weight = weight,

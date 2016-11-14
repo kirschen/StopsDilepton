@@ -102,38 +102,38 @@ jetVars = ['pt/F', 'rawPt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F'] + jetCorrIn
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'index/I', 'lepGoodMatchIndex/I', 'matchesPromptGoodLepton/I', 'n_t/I','n_W/I', 'n_B/I', 'n_D/I', 'n_tau/I']
 
 common_variables= [\
-    Variable.fromString('met_pt/F'), Variable.fromString( 'met_phi/F' ),
-    Variable.fromString('met_genPt/F'), Variable.fromString( 'met_genPhi/F' ),
-    Variable.fromString('nTrueInt/F'),
+    TreeVariable.fromString('met_pt/F'), TreeVariable.fromString( 'met_phi/F' ),
+    TreeVariable.fromString('met_genPt/F'), TreeVariable.fromString( 'met_genPhi/F' ),
+    TreeVariable.fromString('nTrueInt/F'),
 
-    Variable.fromString('ngenPartAll/I'),
-    VectorType.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/F,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I]', nMax=200 ),
+    TreeVariable.fromString('ngenPartAll/I'),
+    VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/F,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I]', nMax=200 ),
 
-    Variable.fromString( 'nLepGood/I' ),
+    TreeVariable.fromString( 'nLepGood/I' ),
 
 ]
-common_variables.extend( map( Variable.fromString, [ 'run/I', 'lumi/I', 'evt/l' ] ) )
+common_variables.extend( map( TreeVariable.fromString, [ 'run/I', 'lumi/I', 'evt/l' ] ) )
 
 cmg_variables = [\
-    Variable.fromString( 'nJet/I' ),
-    VectorType.fromString('Jet[pt/F,eta/F,phi/F,mcPt/F,btagCSV/F,id/I]'),
-    Variable.fromString( 'nLepOther/I' ),
-    VectorType.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F,eleCutIdSpring15_25ns_v1/I]'),
-    VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F,eleCutIdSpring15_25ns_v1/I]'),
+    TreeVariable.fromString( 'nJet/I' ),
+    VectorTreeVariable.fromString('Jet[pt/F,eta/F,phi/F,mcPt/F,btagCSV/F,id/I]'),
+    TreeVariable.fromString( 'nLepOther/I' ),
+    VectorTreeVariable.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F,eleCutIdSpring15_25ns_v1/I]'),
+    VectorTreeVariable.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F,eleCutIdSpring15_25ns_v1/I]'),
 ]
 
 postProcessed_variables = [\
-    Variable.fromString('weight/F'),
-    Variable.fromString( 'nGenLep/I' ),
+    TreeVariable.fromString('weight/F'),
+    TreeVariable.fromString( 'nGenLep/I' ),
 
-    VectorType.fromString('GenLep[%s]'% ( ','.join(genLepVars) ) ),
+    VectorTreeVariable.fromString('GenLep[%s]'% ( ','.join(genLepVars) ) ),
 
-    Variable.fromString( 'nJetGood/I' ),
-    VectorType.fromString( 'JetGood[%s]' % ( ','.join(jetVars) ) ),
+    TreeVariable.fromString( 'nJetGood/I' ),
+    VectorTreeVariable.fromString( 'JetGood[%s]' % ( ','.join(jetVars) ) ),
 ]
 
 
-postProcessed_variables.extend( map( Variable.fromString, [\
+postProcessed_variables.extend( map( TreeVariable.fromString, [\
     'l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_dxy/F', 'l1_dz/F',
     'l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_dxy/F', 'l2_dz/F',
     'isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I',
@@ -141,7 +141,7 @@ postProcessed_variables.extend( map( Variable.fromString, [\
     'dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F'
     ] ) )
 postProcessed_variables.extend( [
-    VectorType.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F]'),
+    VectorTreeVariable.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F]'),
     ] )
 
 logger.info( "Analyzing sample %s",  sample.name )
@@ -165,7 +165,7 @@ logger.info( "Found %i events in sample %s", event_list.GetN(), sample.name )
 positions = {}
 reader.start()
 while reader.run():
-    positions[( reader.data.run, reader.data.lumi, reader.data.evt )] = reader.position - 1
+    positions[( reader.event.run, reader.event.lumi, reader.event.evt )] = reader.position - 1
 
 selected_events = "||".join([ "run==%i&&lumi==%i&&evt==%i" % e for e in positions.keys() ] )
 logger.info( "Constructing event selection: %s", selected_events )
@@ -192,7 +192,7 @@ cmg_reader.setEventList( cmg_event_list )
 cmg_positions = {}
 cmg_reader.start()
 while cmg_reader.run():
-    cmg_positions[( cmg_reader.data.run, cmg_reader.data.lumi, cmg_reader.data.evt )] = cmg_reader.position - 1
+    cmg_positions[( cmg_reader.event.run, cmg_reader.event.lumi, cmg_reader.event.evt )] = cmg_reader.position - 1
 
 reader.start()
 cmg_reader.start()
@@ -211,10 +211,10 @@ for i_event, event in enumerate( intersec ):
     cmg_reader.goToPosition( cmg_positions[event] )
 
     # Make sure alignement of trees is OK
-    assert reader.data.met_pt == cmg_reader.data.met_pt, "Events inconsistent!"
+    assert reader.event.met_pt == cmg_reader.event.met_pt, "Events inconsistent!"
 
     logger.info( "###################### Event %2i #############################" % i_event )
-    logger.info( "Run %i lumi %i event %i", reader.data.run, reader.data.lumi, reader.data.evt )
+    logger.info( "Run %i lumi %i event %i", reader.event.run, reader.event.lumi, reader.event.evt )
 
     # gen particles
     gPart = getGenPartsAll( reader.data )
@@ -289,9 +289,9 @@ for i_event, event in enumerate( intersec ):
         delta_pt = reco_match['pt'] - l['pt'] if reco_match else float('nan')
         if reco_match is None:
             selected_lepton_match_string = ""
-        elif reco_match['pt']==reader.data.l1_pt:
+        elif reco_match['pt']==reader.event.l1_pt:
             selected_lepton_match_string = bold("leading")
-        elif reco_match['pt']==reader.data.l2_pt:
+        elif reco_match['pt']==reader.event.l2_pt:
             selected_lepton_match_string = bold("trailing")
         else:
             selected_lepton_match_string = "Not matched to l1,l2"
@@ -341,16 +341,16 @@ for i_event, event in enumerate( intersec ):
     extra_e  = filter(lambda l:abs(l['pdgId'])==11 and not default_ele_selector(l), all_reco_leps )
 
     reco_mode = "unknown"
-    if reader.data.isMuMu:
+    if reader.event.isMuMu:
         reco_mode = "MuMu"
-    if reader.data.isEE:
+    if reader.event.isEE:
         reco_mode = "EE"
-    if reader.data.isEMu:
+    if reader.event.isEMu:
         reco_mode = "EMu"
-    logger.info( "reco'd as %s isOS %i, loose_mu %i, loose_e %i", bold(reco_mode), reader.data.isOS, len(loose_mu), len(loose_e) )
+    logger.info( "reco'd as %s isOS %i, loose_mu %i, loose_e %i", bold(reco_mode), reader.event.isOS, len(loose_mu), len(loose_e) )
     logger.info( "extra mu %i, extra e %i", len(extra_mu), len(extra_e) )
-    l1 = {'pt':reader.data.l1_pt, 'eta':reader.data.l1_eta, 'phi':reader.data.l1_phi, 'pdgId':reader.data.l1_pdgId}
-    l2 = {'pt':reader.data.l2_pt, 'eta':reader.data.l2_eta, 'phi':reader.data.l2_phi, 'pdgId':reader.data.l2_pdgId}
+    l1 = {'pt':reader.event.l1_pt, 'eta':reader.event.l1_eta, 'phi':reader.event.l1_phi, 'pdgId':reader.event.l1_pdgId}
+    l2 = {'pt':reader.event.l2_pt, 'eta':reader.event.l2_eta, 'phi':reader.event.l2_phi, 'pdgId':reader.event.l2_pdgId}
 
     genlep_match_l1 =   bestDRMatchInCollection( l1, filter(lambda p:p['pdgId']==l1['pdgId'], gen_leps ), deltaRelPt = -1 )
     genlep_match_l2 =   bestDRMatchInCollection( l2, filter(lambda p:p['pdgId']==l2['pdgId'], gen_leps ), deltaRelPt = -1 )
@@ -379,21 +379,21 @@ for i_event, event in enumerate( intersec ):
 
     if gPart_match_l1 and gPart_match_l1['pdgId']==22:
         logger.info( "leading lepton photon match: pt %3.2f eta %3.2f phi %3.2f lostH %i dEta %5.4f dPhi %5.4f", 
-            reader.data.LepGood_pt[reader.data.l1_index],  
-            reader.data.LepGood_eta[reader.data.l1_index],  
-            reader.data.LepGood_phi[reader.data.l1_index],  
-            reader.data.LepGood_lostHits[reader.data.l1_index],  
-            reader.data.LepGood_dEtaScTrkIn[reader.data.l1_index],  
-            reader.data.LepGood_dPhiScTrkIn[reader.data.l1_index],  
+            reader.event.LepGood_pt[reader.event.l1_index],  
+            reader.event.LepGood_eta[reader.event.l1_index],  
+            reader.event.LepGood_phi[reader.event.l1_index],  
+            reader.event.LepGood_lostHits[reader.event.l1_index],  
+            reader.event.LepGood_dEtaScTrkIn[reader.event.l1_index],  
+            reader.event.LepGood_dPhiScTrkIn[reader.event.l1_index],  
         )
     if gPart_match_l2 and gPart_match_l2['pdgId']==22:
         logger.info( "trailing lepton photon match: pt %3.2f eta %3.2f phi %3.2f lostH %i dEta %5.4f dPhi %5.4f", 
-            reader.data.LepGood_pt[reader.data.l2_index],  
-            reader.data.LepGood_eta[reader.data.l2_index],  
-            reader.data.LepGood_phi[reader.data.l2_index],  
-            reader.data.LepGood_lostHits[reader.data.l2_index],  
-            reader.data.LepGood_dEtaScTrkIn[reader.data.l2_index],  
-            reader.data.LepGood_dPhiScTrkIn[reader.data.l2_index],  
+            reader.event.LepGood_pt[reader.event.l2_index],  
+            reader.event.LepGood_eta[reader.event.l2_index],  
+            reader.event.LepGood_phi[reader.event.l2_index],  
+            reader.event.LepGood_lostHits[reader.event.l2_index],  
+            reader.event.LepGood_dEtaScTrkIn[reader.event.l2_index],  
+            reader.event.LepGood_dPhiScTrkIn[reader.event.l2_index],  
         )
 
     # Neutrinos
@@ -414,26 +414,26 @@ for i_event, event in enumerate( intersec ):
     if vecPtSum( neutrinos_other ) > 30: str_neutrinos_other = bold(str_neutrinos_other) 
 
     logger.info( "MET %3.2f genMET %3.2f pt(neutrinos from W) %s pt(neutrinos from tau from W) %s pt(other neutrinos) %s", \
-        reader.data.met_pt, reader.data.met_genPt, str_neutrinos_fromW, str_neutrinos_fromTau, str_neutrinos_other )
+        reader.event.met_pt, reader.event.met_genPt, str_neutrinos_fromW, str_neutrinos_fromTau, str_neutrinos_other )
 
     # Missing energy related
-    met_pt = reader.data.met_pt
-    met_phi = reader.data.met_phi
-    met_genPt = reader.data.met_genPt
-    met_genPhi = reader.data.met_genPhi
+    met_pt = reader.event.met_pt
+    met_phi = reader.event.met_phi
+    met_genPt = reader.event.met_genPt
+    met_genPhi = reader.event.met_genPhi
     delta_met = sqrt( ( met_pt*cos(met_phi)-met_genPt*cos(met_genPhi) )**2 + ( met_pt*sin(met_phi)-met_genPt*sin(met_genPhi) )**2 )
 
     mt2Calc.reset()
     mt2Calc.setMet( met_pt, met_phi )
-    mt2Calc.setLeptons( reader.data.l1_pt, reader.data.l1_eta, reader.data.l1_phi, reader.data.l2_pt, reader.data.l2_eta, reader.data.l2_phi )
-    if not mt2Calc.mt2ll() != reader.data.dl_mt2ll:
+    mt2Calc.setLeptons( reader.event.l1_pt, reader.event.l1_eta, reader.event.l1_phi, reader.event.l2_pt, reader.event.l2_eta, reader.event.l2_phi )
+    if not mt2Calc.mt2ll() != reader.event.dl_mt2ll:
         logger.warning( "MT2 inconsistency!" )
     mt2Calc.setMet( met_genPt, met_genPhi )
     mt2ll_genMet = mt2Calc.mt2ll()
     if mt2ll_genMet<140:
         logger.info(bold("MET mismeasurement"))
 
-    jets = [ getObjDict(cmg_reader.data, "Jet_", ["pt","eta","phi","mcPt","id"], i) for i in range(cmg_reader.data.nJet) ] 
+    jets = [ getObjDict(cmg_reader.data, "Jet_", ["pt","eta","phi","mcPt","id"], i) for i in range(cmg_reader.event.nJet) ] 
     dx, dy = 0., 0.
     for j in jets:
         if j['mcPt']>0:
@@ -447,6 +447,6 @@ for i_event, event in enumerate( intersec ):
         #    logger.info( bold("Local jet response difference!")+" mcPt %3.2f pt %3.2f corr.Pt %3.2f diff %3.2f eta %3.2f phi %3.2f id %i", j['mcPt'], j['pt'], corr_pt, local_mism, j['eta'], j['phi'], j['id'] )
     jet_mismeas = sqrt(dx**2+dy**2)
 
-    logger.info( "Delta MET(reco-gen) %3.2f jet-mismeas %3.2f mt2ll %3.2f mt2ll(gen_met) %3.2f", delta_met, jet_mismeas, reader.data.dl_mt2ll, mt2ll_genMet )
-    logger.info( "Location of %i:%i:%i %s:", cmg_reader.data.run, cmg_reader.data.lumi, cmg_reader.data.evt, cmg_reader.sample.chain.GetCurrentFile().GetName() )
+    logger.info( "Delta MET(reco-gen) %3.2f jet-mismeas %3.2f mt2ll %3.2f mt2ll(gen_met) %3.2f", delta_met, jet_mismeas, reader.event.dl_mt2ll, mt2ll_genMet )
+    logger.info( "Location of %i:%i:%i %s:", cmg_reader.event.run, cmg_reader.event.lumi, cmg_reader.event.evt, cmg_reader.sample.chain.GetCurrentFile().GetName() )
     logger.info( "--------------------------------------------------------------" )

@@ -15,14 +15,14 @@ eleSelection= "&&".join(eleSelectorString(index = i) for i in [0,1])
 onZ = "abs(sqrt(2.*{l}_pt[0]*{l}_pt[1]*(cosh({l}_eta[0]-{l}_eta[1])-cos({l}_phi[0]-{l}_phi[1]))) - 91.2)<15".format(l = "LepGood")
 
 h_muon_data = doubleMu.get1DHistoFromDraw( "max(LepGood_ptError[0], LepGood_ptError[1])", binning = [10**(i/10.) for i in range(0, 40)], binningIsExplicit = True , selectionString = "&&".join([muonSelection, onZ]), addOverFlowBin = 'upper')
-h_muon_data.style = styles.lineStyle(ROOT.kBlack)
-h_muon_data.legendText = "Muons, data"
+h_muon_event.style = styles.lineStyle(ROOT.kBlack)
+h_muon_event.legendText = "Muons, data"
 h_muon_MC   = DY.get1DHistoFromDraw( "max(LepGood_ptError[0], LepGood_ptError[1])", binning = [10**(i/10.) for i in range(0, 40)], binningIsExplicit = True , selectionString = "&&".join([muonSelection, onZ]), addOverFlowBin = 'upper' )
 h_muon_MC.style = styles.lineStyle(ROOT.kRed)
 h_muon_MC.legendText = "Muons, simulation"
 h_ele_data = doubleEG.get1DHistoFromDraw( "max(LepGood_ptError[0], LepGood_ptError[1])", binning = [10**(i/10.) for i in range(0, 40)], binningIsExplicit = True , selectionString = "&&".join([eleSelection, onZ]), addOverFlowBin = 'upper' )
-h_ele_data.style = styles.lineStyle(ROOT.kBlue)
-h_ele_data.legendText = "Ele, data"
+h_ele_event.style = styles.lineStyle(ROOT.kBlue)
+h_ele_event.legendText = "Ele, data"
 h_ele_MC   = DY.get1DHistoFromDraw( "max(LepGood_ptError[0], LepGood_ptError[1])", binning = [10**(i/10.) for i in range(0, 40)], binningIsExplicit = True , selectionString = "&&".join([eleSelection, onZ]), addOverFlowBin = 'upper' )
 h_ele_MC.style = styles.lineStyle(ROOT.kGreen)
 h_ele_MC.legendText = "Ele, simulation"
@@ -40,14 +40,14 @@ plotting.draw(
 )
 
 h_muon_data = doubleMu.get1DHistoFromDraw( "max(LepGood_innerTrackChi2[0], LepGood_innerTrackChi2[1])", binning = [20,0,20] , selectionString = "&&".join([muonSelection, onZ]), addOverFlowBin = 'upper')
-h_muon_data.style = styles.lineStyle(ROOT.kBlack)
-h_muon_data.legendText = "Muons, data"
+h_muon_event.style = styles.lineStyle(ROOT.kBlack)
+h_muon_event.legendText = "Muons, data"
 h_muon_MC   = DY.get1DHistoFromDraw( "max(LepGood_innerTrackChi2[0], LepGood_innerTrackChi2[1])", binning = [20,0,20], selectionString = "&&".join([muonSelection, onZ]), addOverFlowBin = 'upper' )
 h_muon_MC.style = styles.lineStyle(ROOT.kRed)
 h_muon_MC.legendText = "Muons, simulation"
 h_ele_data = doubleEg.get1DHistoFromDraw( "max(LepGood_innerTrackChi2[0], LepGood_innerTrackChi2[1])", binning = [20,0,20], selectionString = "&&".join([eleSelection, onZ]), addOverFlowBin = 'upper' )
-h_ele_data.style = styles.lineStyle(ROOT.kBlue)
-h_ele_data.legendText = "Ele, data"
+h_ele_event.style = styles.lineStyle(ROOT.kBlue)
+h_ele_event.legendText = "Ele, data"
 h_ele_MC   = DY.get1DHistoFromDraw( "max(LepGood_innerTrackChi2[0], LepGood_innerTrackChi2[1])", binning = [20,0,20], selectionString = "&&".join([eleSelection, onZ]), addOverFlowBin = 'upper' )
 h_ele_MC.style = styles.lineStyle(ROOT.kGreen)
 h_ele_MC.legendText = "Ele, simulation"

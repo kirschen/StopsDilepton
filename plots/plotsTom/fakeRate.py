@@ -130,10 +130,10 @@ allPlots   = {}
 allModes   = ['ee','mumu','mue']
 for index, mode in enumerate(allModes):
  for thirdLeptonFlavour in ['e','mu',"all"]:
-  def getThirdLepton( data ):
-      goodLeptons = getGoodLeptons( data, ptCut=20, collVars = leptonVars)
-      allExtraLeptonsLoose = [l for l in getGoodAndOtherLeptons(data, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_loose, ele_selector=ele_selector_loose) if l not in goodLeptons]
-      allExtraLeptonsTight = [l for l in getGoodAndOtherLeptons(data, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_tight, ele_selector=ele_selector_tight) if l not in goodLeptons]
+  def getThirdLepton( event, sample ):
+      goodLeptons = getGoodLeptons( event, ptCut=20, collVars = leptonVars)
+      allExtraLeptonsLoose = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_loose, ele_selector=ele_selector_loose) if l not in goodLeptons]
+      allExtraLeptonsTight = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_tight, ele_selector=ele_selector_tight) if l not in goodLeptons]
 
       if thirdLeptonFlavour == "e":
         allExtraLeptonsLoose = filter(lambda l: abs(l['pdgId']) == 11, allExtraLeptonsLoose)
@@ -143,17 +143,17 @@ for index, mode in enumerate(allModes):
         allExtraLeptonsTight = filter(lambda l: abs(l['pdgId']) == 13, allExtraLeptonsTight)
 
       if len(allExtraLeptonsLoose) >= 1:
-	data.hasLooseThirdLepton   = True
-	data.thirdLeptonPt         = allExtraLeptonsLoose[0]['pt']
-	data.thirdLeptonMiniRelIso = allExtraLeptonsLoose[0]['miniRelIso']
-#	data.thirdLeptonRelIso     = allExtraLeptonsLoose[0]['relIso04']
-	data.hasTightThirdLepton   = (len(allExtraLeptonsTight) >= 1)
+	event.hasLooseThirdLepton   = True
+	event.thirdLeptonPt         = allExtraLeptonsLoose[0]['pt']
+	event.thirdLeptonMiniRelIso = allExtraLeptonsLoose[0]['miniRelIso']
+#	event.thirdLeptonRelIso     = allExtraLeptonsLoose[0]['relIso04']
+	event.hasTightThirdLepton   = (len(allExtraLeptonsTight) >= 1)
       else:
-	data.hasLooseThirdLepton   = False
-	data.hasTightThirdLepton   = False
-	data.thirdLeptonPt         = -1
-	data.thirdLeptonMiniRelIso = -1
-#	data.thirdLeptonRelIso     = -1
+	event.hasLooseThirdLepton   = False
+	event.hasTightThirdLepton   = False
+	event.thirdLeptonPt         = -1
+	event.thirdLeptonMiniRelIso = -1
+#	event.thirdLeptonRelIso     = -1
 
   sequence = [getThirdLepton]
 
@@ -179,7 +179,7 @@ for index, mode in enumerate(allModes):
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
+    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
   for sample in mc:
@@ -187,50 +187,50 @@ for index, mode in enumerate(allModes):
  
   stack = Stack(mc, data_sample)
 
-  looseWeight = lambda data:data.weight*data.hasLooseThirdLepton
-  tightWeight = lambda data:data.weight*data.hasTightThirdLepton
+  looseWeight = lambda event, sample:event.weight*event.hasLooseThirdLepton
+  tightWeight = lambda event, sample:event.weight*event.hasTightThirdLepton
 
-  Plot.setDefaults(stack = stack, weight = lambda data:data.weight, selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(stack = stack, weight = lambda event, sample:event.weight, selectionString = selectionStrings[args.selection])
 
   plots = []
   plots.append(Plot(  # Fill with tight third leptons, will transform in fake rate below
     texX = 'Fake rate', texY = 'Number of Events / 10 GeV',
-    variable = Variable.fromString( "fakeRate/F" ).addFiller(lambda data: data.thirdLeptonPt),
+    name = 'fakeRate', attribute = lambda event, sample: event.thirdLeptonPt,
     weight = tightWeight,
     binning=[9,10,100],
   ))
 
   plots.append(Plot(  # Fill with tight third leptons, will transform in fake rate below
     texX = 'Fake rate', texY = 'Number of Events / 10 GeV',
-    variable = Variable.fromString( "fakeRateAll/F" ).addFiller(lambda data: data.thirdLeptonPt),
+    name = 'fakeRateAll', attribute = lambda event, sample: event.thirdLeptonPt,
     weight = tightWeight,
     binning=[9,10,100],
   ))
  
   plots.append(Plot(
     texX = 'p_{T}(l_{3}, loose) (GeV)', texY = 'Number of Events / 10 GeV',
-    variable = Variable.fromString( "l3_loose_pt/F" ).addFiller(lambda data: data.thirdLeptonPt),
+    name = 'l3_loose_pt', attribute = lambda event, sample: event.thirdLeptonPt,
     weight = looseWeight,
     binning=[9,10,100],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(l_{3}, tight) (GeV)', texY = 'Number of Events / 10 GeV',
-    variable = Variable.fromString( "l3_tight_pt/F" ).addFiller(lambda data: data.thirdLeptonPt),
+    name = 'l3_tight_pt', attribute = lambda event, sample: event.thirdLeptonPt,
     weight = tightWeight,
     binning=[9,10,100],
   ))
 
   plots.append(Plot(
     texX = 'I_{rel.mini}(l_{3})', texY = 'Number of Events',
-    variable = Variable.fromString( "l3_miniRelIso/F" ).addFiller(lambda data: data.thirdLeptonMiniRelIso),
+    name = 'l3_miniRelIso', attribute = lambda event, sample: event.thirdLeptonMiniRelIso,
     binning=[20,0,1.8],
     weight = looseWeight,
   ))
 
 #  plots.append(Plot(
 #    texX = 'I_{rel.Iso}(l_{3})', texY = 'Number of Events',
-#    variable = Variable.fromString( "l3_relIso04/F" ).addFiller(lambda data: data.thirdLeptonRelIso),
+#    variable = TreeVariable.fromString( "l3_relIso04/F" ).addFiller(lambda event, sample: event.thirdLeptonRelIso),
 #    binning=[20,0,1.8],
 #    weight = looseWeight,
 #  ))

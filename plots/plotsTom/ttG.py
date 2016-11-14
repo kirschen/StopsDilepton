@@ -150,36 +150,36 @@ read_variables = ["weight/F" , "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", 
                   "met_pt_photonEstimated/F", "met_phi_photonEstimated/F",
                   "metSig_photonEstimated/F", "ht/F", "nBTag/I", "nJetGood/I", "mt_photonEstimated/F", "photon_pt/F", "photon_eta/F",  "photon_phi/F", "photonJetdR/F", "photonLepdR/F"]
 
-def photonDeltaR(data, eta, phi):
-  return sqrt(deltaPhi(data.photon_phi, phi)**2 + (data.photon_eta - eta)**2)
+def photonDeltaR(event, eta, phi):
+  return sqrt(deltaPhi(event.photon_phi, phi)**2 + (event.photon_eta - eta)**2)
 
-def makeDeltaR(data):
-  data.photonLep1DeltaR     = photonDeltaR(data, data.l1_eta, data.l1_phi)
-  data.photonLep2DeltaR     = photonDeltaR(data, data.l2_eta, data.l2_phi)
-  data.JetGood_photonDeltaR = [photonDeltaR(data, data.JetGood_eta[i], data.JetGood_phi[i]) for i in range(data.nJetGood)]
+def makeDeltaR(event, sample):
+  event.photonLep1DeltaR     = photonDeltaR(event, event.l1_eta, event.l1_phi)
+  event.photonLep2DeltaR     = photonDeltaR(event, event.l2_eta, event.l2_phi)
+  event.JetGood_photonDeltaR = [photonDeltaR(event, event.JetGood_eta[i], event.JetGood_phi[i]) for i in range(event.nJetGood)]
 
 # Filter on dR jets and recalculate jet var
-def filterJets(data):
-  if args.selection.count("gJetdR"): data.goodJetIndices = [i for i in range(data.nJetGood) if data.JetGood_photonDeltaR[i] > 0.3]
-  else:                              data.goodJetIndices = [i for i in range(data.nJetGood)]
-  data.nJetGood               = len(data.goodJetIndices)
-  data.ht                     = sum([data.JetGood_pt[j] for j in data.goodJetIndices])
-  data.metSig_photonEstimated = data.met_pt_photonEstimated/sqrt(data.ht) if data.ht !=0 else float('nan')
-  data.nBTag                  = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.800])
-  data.nBTagLoose             = len([j for j in data.goodJetIndices if data.JetGood_btagCSV[j] > 0.460])
-  data.dPhiMetJet             = [cos(data.met_phi_photonEstimated - data.JetGood_phi[j]) for j in data.goodJetIndices]
+def filterJets(event, sample):
+  if args.selection.count("gJetdR"): event.goodJetIndices = [i for i in range(event.nJetGood) if event.JetGood_photonDeltaR[i] > 0.3]
+  else:                              event.goodJetIndices = [i for i in range(event.nJetGood)]
+  event.nJetGood               = len(event.goodJetIndices)
+  event.ht                     = sum([event.JetGood_pt[j] for j in event.goodJetIndices])
+  event.metSig_photonEstimated = event.met_pt_photonEstimated/sqrt(event.ht) if event.ht !=0 else float('nan')
+  event.nBTag                  = len([j for j in event.goodJetIndices if event.JetGood_btagCSV[j] > 0.800])
+  event.nBTagLoose             = len([j for j in event.goodJetIndices if event.JetGood_btagCSV[j] > 0.460])
+  event.dPhiMetJet             = [cos(event.met_phi_photonEstimated - event.JetGood_phi[j]) for j in event.goodJetIndices]
 
 # Make photonLepdR selection or re-evaluate jet selection after photonJetdR
-def otherSelections(data, sample):
-  data.passed = True
+def otherSelections(event, sample):
+  event.passed = True
   if args.selection.count("gLepdR"):
-    data.passed = (data.passed and data.photonLep1DeltaR > 0.3 and data.photonLep2DeltaR > 0.3)
+    event.passed = (event.passed and event.photonLep1DeltaR > 0.3 and event.photonLep2DeltaR > 0.3)
   if args.selection.count("gJetdR"):
-    if args.selection.count("njet2"):             data.passed = (data.passed and data.nJetGood > 1)
-    if args.selection.count("btagL"):             data.passed = (data.passed and data.nBTagLoose > 0)
-    if args.selection.count("btagM"):             data.passed = (data.passed and data.nBTag > 0)
-    if args.selection.count("metSig5"):           data.passed = (data.passed and data.metSig_photonEstimated > 5)
-    if args.selection.count("dPhiJet0-dPhiJet1"): data.passed = (data.passed and max(data.dPhiMetJet[0], data.dPhiMetJet[1]) < cos(0.25))
+    if args.selection.count("njet2"):             event.passed = (event.passed and event.nJetGood > 1)
+    if args.selection.count("btagL"):             event.passed = (event.passed and event.nBTagLoose > 0)
+    if args.selection.count("btagM"):             event.passed = (event.passed and event.nBTag > 0)
+    if args.selection.count("metSig5"):           event.passed = (event.passed and event.metSig_photonEstimated > 5)
+    if args.selection.count("dPhiJet0-dPhiJet1"): event.passed = (event.passed and max(event.dPhiMetJet[0], event.dPhiMetJet[1]) < cos(0.25))
 
 sequence = [makeDeltaR, filterJets, otherSelections]
 
@@ -224,7 +224,7 @@ for index, mode in enumerate(allModes):
     sample.style          = styles.fillStyle(sample.color)
     sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightPU/F']
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
+    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
 
 
@@ -233,25 +233,25 @@ for index, mode in enumerate(allModes):
   DY_HT_LO.setSelectionString(  ["TTGJetsEventType<4", getFilterCut(isData=False), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = (lambda data:data.weight if data.passed else 0), selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(stack = stack, weight = (lambda event, sample:event.weight if event.passed else 0), selectionString = selectionStrings[args.selection])
   
   plots = []
 
   plots.append(Plot(
     name = 'yield', texX = 'yield', texY = 'Number of Events',
-    variable = Variable.fromString( "yield/F" ).addFiller(lambda data: 0.5 + index),
+    name = 'yield', attribute = lambda event, sample: 0.5 + index,
     binning=[3, 0, 3],
   ))
 
   plots.append(Plot(
     texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / GeV',
-    variable = Variable.fromString( "dl_mass/F" ),
+    attribute = TreeVariable.fromString( "dl_mass/F" ),
     binning=[200/4,0,200],
   ))
 
   theDlgPlot = Plot(
     texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / GeV',
-    variable = Variable.fromString( "dlg_mass/F" ),
+    attribute = TreeVariable.fromString( "dlg_mass/F" ),
     binning=Binning.fromThresholds([50,70,80,84,88,92,94,100,120,140,160,180,200,230,260,290,320,360]),
   )
   theDlgPlot.binWidth = 1
@@ -259,141 +259,141 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     texX = 'm(ll#gamma) of leading dilepton and photon (GeV)', texY = 'Number of Events / GeV',
-    variable = Variable.fromString( "dlg_mass/F" ),
+    attribute = TreeVariable.fromString( "dlg_mass/F" ),
     name = "dlg_mass_zoomed",
     binning=[80, 50, 130],
   ))
 
   plots.append(Plot(
     texX = 'M_{T2}(ll) (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString( "dl_mt2ll_photonEstimated/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2ll_photonEstimated/F" ),
     binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
     texX = 'M_{T2}(bb) (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString( "dl_mt2bb_photonEstimated/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2bb_photonEstimated/F" ),
     binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
     texX = 'M_{T2}(blbl) (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString( "dl_mt2blbl_photonEstimated/F" ),
+    attribute = TreeVariable.fromString( "dl_mt2blbl_photonEstimated/F" ),
     binning=[300/20,0,300],
   ))
 
   plots.append(Plot(
     texX = 'E_{T}^{miss} (including #gamma) (GeV)', texY = 'Number of Events / 50 GeV',
-    variable = Variable.fromString( "met_pt_photonEstimated/F" ),
+    attribute = TreeVariable.fromString( "met_pt_photonEstimated/F" ),
     binning=[300/50,0,300],
   ))
 
   plots.append(Plot(
     texX = 'E_{T}^{miss}/#sqrt{H_{T}} (including #gamma) (GeV^{1/2})', texY = 'Number of Events',
-    variable = Variable.fromString('metSig_photonEstimated/F').addFiller(lambda data: data.met_pt_photonEstimated/sqrt(data.ht)),
+    name = 'metSig_photonEstimated', attribute = lambda event, sample: event.met_pt_photonEstimated/sqrt(event.ht),
     binning=[15,0,15],
   ))
 
   plots.append(Plot(
     texX = 'H_{T} (GeV)', texY = 'Number of Events / 30 GeV',
-    variable = Variable.fromString( "ht/F" ).addFiller(lambda data: data.ht),
+    name = 'ht', attribute = lambda event, sample: event.ht,
     binning=[510/30,90,600],
   ))
 
   plots.append(Plot(
     texX = 'Cos(#phi(E_{T}^{miss}, Jet[0]))', texY = 'Number of Events',
-    variable = Variable.fromString('cosMetJet0phi/F').addFiller(lambda data: data.dPhiMetJet[0] if data.nJetGood > 0 else -1),
+    name = 'cosMetJet0phi', attribute = lambda event, sample: event.dPhiMetJet[0] if event.nJetGood > 0 else -1,
     binning = [10,-1,1], 
   ))
 
   plots.append(Plot(
     texX = 'Cos(#phi(E_{T}^{miss}, Jet[1]))', texY = 'Number of Events',
-    variable = Variable.fromString('cosMetJet1phi/F').addFiller(lambda data: data.dPhiMetJet[1] if data.nJetGood > 1 else -1),
+    name = 'cosMetJet1phi', attribute = lambda event, sample: event.dPhiMetJet[1] if event.nJetGood > 1 else -1,
     binning = [10,-1,1], 
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet1pt/F').addFiller(lambda data: data.JetGood_pt[data.goodJetIndices[0]] if data.nJetGood > 0 else -1),
+    name = 'jet1pt', attribute = lambda event, sample: event.JetGood_pt[event.goodJetIndices[0]] if event.nJetGood > 0 else -1,
     binning=[500/20,30,530],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(2^{nd.} leading jet) (GeV)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString('jet2pt/F').addFiller(lambda data: data.JetGood_pt[data.goodJetIndices[1]] if data.nJetGood > 1 else -1),
+    name = 'jet2pt', attribute = lambda event, sample: event.JetGood_pt[event.goodJetIndices[1]] if event.nJetGood > 1 else -1,
     binning=[400/20,30,430],
   ))
 
   plots.append(Plot(
     texX = 'number of medium b-tags (CSVM)', texY = 'Number of Events',
-    variable = Variable.fromString('nBTag/I').addFiller(lambda data: data.nBTag),
+    name = 'nBTag', attribute = lambda event, sample: event.nBTag,
     binning=[8,0,8],
   ))
 
   plots.append(Plot(
     texX = 'number of loose b-tags (CSVM)', texY = 'Number of Events',
-    variable = Variable.fromString('nBTagLoose/I').addFiller(lambda data: data.nBTagLoose),
+    name = 'nBTagLoose', attribute = lambda event, sample: event.nBTagLoose,
     binning=[8,0,8],
   ))
 
   plots.append(Plot(
     texX = 'number of jets', texY = 'Number of Events',
-    variable = Variable.fromString('nJetGood/I').addFiller(lambda data : data.nJetGood),
+    name = 'nJetGood', attribute = lambda event, sample: event.nJetGood,
     binning=[14,0,14],
   ))
 
   plots.append(Plot(
     texX = '#eta(#gamma)', texY = 'Number of Events',
-    variable = Variable.fromString( "photon_eta/F" ).addFiller(lambda data: abs(data.photon_eta)),
+    name = 'photon_eta', attribute = lambda event, sample: abs(event.photon_eta),
     binning=[10, 0, 2.4],
   ))
 
   plots.append(Plot(
     texX = 'p_{T}(#gamma)', texY = 'Number of Events / 20 GeV',
-    variable = Variable.fromString( "photon_pt/F" ),
+    attribute = TreeVariable.fromString( "photon_pt/F" ),
     binning=[10, 30,230],
   ))
 
   plots.append(Plot(
     texX = '#phi(#gamma)', texY = 'Number of Events',
-    variable = Variable.fromString( "photon_phi/F" ),
+    attribute = TreeVariable.fromString( "photon_phi/F" ),
     binning=[15,-pi,pi],
   ))
 
   plots.append(Plot(
     texX = '#Delta R(#gamma, l)', texY = 'Number of Events',
-    variable = Variable.fromString( "photonLepdR/F" ),
+    attribute = TreeVariable.fromString( "photonLepdR/F" ),
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
     texX = '#Delta R(#gamma, j)', texY = 'Number of Events',
-    variable = Variable.fromString( "photonJetdR/F" ),
+    attribute = TreeVariable.fromString( "photonJetdR/F" ),
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
     texX     = '#Delta R(#gamma, l_{1})', texY = 'Number of Events',
-    variable = Variable.fromString("photonLep1DeltaR/F").addFiller(lambda data : data.photonLep1DeltaR),
+    name = 'photonLep1DeltaR', attribute = lambda event, sample: event.photonLep1DeltaR,
     binning  = [20, 0, 5]
   ))
 
   plots.append(Plot(
     texX     = '#Delta R(#gamma, l_{2})', texY = 'Number of Events',
-    variable = Variable.fromString("photonLep2DeltaR/F").addFiller(lambda data : data.photonLep2DeltaR),
+    name = 'photonLep2DeltaR', attribute = lambda event, sample: event.photonLep2DeltaR,
     binning  = [20, 0, 5]
   ))
 
   plots.append(Plot(
     texX     = '#Delta R(#gamma, j_{1})', texY = 'Number of Events',
-    variable = Variable.fromString("photonJet1DeltaR/F").addFiller(lambda data : data.JetGood_photonDeltaR[data.goodJetIndices[0]] if data.nJetGood > 0 else -1),
+    name = 'photonJet1DeltaR', attribute = lambda event, sample: event.JetGood_photonDeltaR[event.goodJetIndices[0]] if event.nJetGood > 0 else -1,
     name     = "photonJet1DeltaR",
     binning  = [20, 0, 5]
   ))
 
   plots.append(Plot(
     texX     = '#Delta R(#gamma, j_{2})', texY = 'Number of Events',
-    variable = Variable.fromString("photonJet2DeltaR/F").addFiller(lambda data : data.JetGood_photonDeltaR[data.goodJetIndices[1]] if data.nJetGood > 1 else -1),
+    name = 'photonJet2DeltaR', attribute = lambda event, sample: event.JetGood_photonDeltaR[event.goodJetIndices[1]] if event.nJetGood > 1 else -1,
     name     = "photonJet2DeltaR",
     binning  = [20, 0, 5]
   ))

@@ -132,7 +132,7 @@ read_variables = ["weight/F" , "leptonicDecays/I", "mt2ll/F", "mt2bb/F", "mt2blb
                   "mt1/F", "mt2/F"
                  ]
 
-# Variables only to be read/available for specific samples (i.e. variables only in MC)
+# TreeVariables only to be read/available for specific samples (i.e. variables only in MC)
 TTG.read_variables = ["photon_genPt/F", "photon_genEta/F", "photon_genPhi/F", "met_pt_photon/F", "met_phi_photon/F", "mt2ll_photon/F","mt2bb_photon/F","mt2blbl_photon/F"]
 TTZ.read_variables = ["zBoson_genPt/F", "zBoson_genEta/F", "zBoson_genPhi/F", "zBoson_isNeutrinoDecay/O"]
 
@@ -141,45 +141,45 @@ minMt2ll   = int(args.selection.split('mt2ll')[1].split('-')[0])   if args.selec
 minMet     = int(args.selection.split('met')[1].split('-')[0])     if args.selection.count('met') else 0
 
 
-def otherSelections(data, sample):
-  data.passed = True
-  if args.selection.count("etaGamma") and sample == TTG: data.passed = (data.passed and abs(data.photon_genEta) < 2.5)
-  if args.selection.count("ptGamma")  and sample == TTG: data.passed = (data.passed and data.photon_genPt > minBosonPt)
-  data.forReweight = data.passed
-  if args.selection.count("met"):                        data.passed = (data.passed and data.boson_met > minMet)
-  if args.selection.count("mt2ll"):                      data.passed = (data.passed and data.boson_mt2ll > minMt2ll)
+def otherSelections(event, sample):
+  event.passed = True
+  if args.selection.count("etaGamma") and sample == TTG: event.passed = (event.passed and abs(event.photon_genEta) < 2.5)
+  if args.selection.count("ptGamma")  and sample == TTG: event.passed = (event.passed and event.photon_genPt > minBosonPt)
+  event.forReweight = event.passed
+  if args.selection.count("met"):                        event.passed = (event.passed and event.boson_met > minMet)
+  if args.selection.count("mt2ll"):                      event.passed = (event.passed and event.boson_mt2ll > minMt2ll)
 
 
 # Compare different variable types for TTZ vs TTG
-def makeCompareVariables(data, sample):
+def makeCompareTreeVariables(event, sample):
   if sample == TTZ:
-    data.boson_genPt   = data.zBoson_genPt
-    data.boson_genEta  = data.zBoson_genEta
-    data.boson_genPhi  = data.zBoson_genPhi
-    data.boson_mt2ll   = data.mt2ll
-    data.boson_mt2bb   = data.mt2bb
-    data.boson_mt2blbl = data.mt2blbl
-    data.boson_met     = data.met_pt
+    event.boson_genPt   = event.zBoson_genPt
+    event.boson_genEta  = event.zBoson_genEta
+    event.boson_genPhi  = event.zBoson_genPhi
+    event.boson_mt2ll   = event.mt2ll
+    event.boson_mt2bb   = event.mt2bb
+    event.boson_mt2blbl = event.mt2blbl
+    event.boson_met     = event.met_pt
   elif sample == TTG:
-    data.boson_genPt   = data.photon_genPt
-    data.boson_genEta  = data.photon_genEta
-    data.boson_genPhi  = data.photon_genPhi
-    data.boson_mt2ll   = data.mt2ll_photon
-    data.boson_mt2bb   = data.mt2bb_photon
-    data.boson_mt2blbl = data.mt2blbl_photon
-    data.boson_met     = data.met_pt_photon
+    event.boson_genPt   = event.photon_genPt
+    event.boson_genEta  = event.photon_genEta
+    event.boson_genPhi  = event.photon_genPhi
+    event.boson_mt2ll   = event.mt2ll_photon
+    event.boson_mt2bb   = event.mt2bb_photon
+    event.boson_mt2blbl = event.mt2blbl_photon
+    event.boson_met     = event.met_pt_photon
   else:
     raise Exception("Sample not known")
 
-def doReweighting(data, sample):
+def doReweighting(event, sample):
   if sample == TTG:
     ttzHist = TTZ.ptHists[TTG.mode]
     ttgHist = TTG.ptHists[TTG.mode]
-    ttz = ttzHist.GetBinContent(ttzHist.FindBin(data.photon_genPt)) / ttzHist.Integral()
-    ttg = ttgHist.GetBinContent(ttgHist.FindBin(data.photon_genPt)) / ttgHist.Integral()
-    data.weight = data.weight*ttz/ttg if ttg > 0 else 0
+    ttz = ttzHist.GetBinContent(ttzHist.FindBin(event.photon_genPt)) / ttzHist.Integral()
+    ttg = ttgHist.GetBinContent(ttgHist.FindBin(event.photon_genPt)) / ttgHist.Integral()
+    event.weight = event.weight*ttz/ttg if ttg > 0 else 0
 
-sequence = [makeCompareVariables, otherSelections]
+sequence = [makeCompareTreeVariables, otherSelections]
 reweight = [doReweighting]
 
 
@@ -221,7 +221,7 @@ for doPtReweight in [False, True]:
 
     stack = Stack(TTZ, TTG)
 
-    weight = lambda data: data.weight if data.passed else 0
+    weight = lambda event, sample: event.weight if event.passed else 0
 
     # Use some defaults
     Plot.setDefaults(stack = stack, weight = weight, selectionString = selectionStrings[args.selection])
@@ -230,160 +230,160 @@ for doPtReweight in [False, True]:
 
     plots.append(Plot(
       name = 'yield', texX = 'yield', texY = 'Events',
-      variable = Variable.fromString( "yield/F" ).addFiller(lambda data: 0.5 + index),
+      name = 'yield', attribute = lambda event, sample: 0.5 + index,
       binning=[3, 0, 3],
     ))
 
     plots.append(Plot(
       texX     = 'p_{T}^{gen} (Z or #gamma) (GeV)', texY = "Events / 20 GeV",
-      variable = Variable.fromString( "boson_pt/F" ).addFiller(lambda data: data.boson_genPt),
+      name = 'boson_pt', attribute = lambda event, sample: event.boson_genPt,
       name     = "boson_pt_high",
       binning  = [10, 150,350],
     ))
 
     plots.append(Plot(
       texX     = 'p_{T}^{gen} (Z or #gamma) (GeV)', texY = "Events /10 GeV",
-      variable = Variable.fromString( "boson_pt/F" ).addFiller(lambda data: data.boson_genPt),
+      name = 'boson_pt', attribute = lambda event, sample: event.boson_genPt,
       binning  = [25, minBosonPt, minBosonPt+10*25],
     ))
 
     plots.append(Plot(
       texX     = 'p_{T}^{gen} (Z or #gamma) (GeV)', texY = "Events /10 GeV",
-      variable = Variable.fromString( "reweighting/F" ).addFiller(lambda data: data.boson_genPt),
-      weight   = lambda data: data.weight if data.forReweight else 0,
+      name = 'reweighting', attribute = lambda event, sample: event.boson_genPt,
+      weight   = lambda event, sample: event.weight if event.forReweight else 0,
       binning  = [25, minBosonPt, minBosonPt+10*25],
     ))
 
     plots.append(Plot(
       texX     = 'min(p_{T} (t,#bar{t})) (GeV)', texY = "Events /10 GeV",
-      variable = Variable.fromString( "t_minpt/F" ).addFiller(lambda data: min(data.t1_pt, data.t2_pt)),
+      name = 't_minpt', attribute = lambda event, sample: min(event.t1_pt, event.t2_pt),
       binning  = [50, 0, 10*50],
     ))
 
     plots.append(Plot(
       texX     = 'max(p_{T} (t,#bar{t})) (GeV)', texY = "Events /10 GeV",
-      variable = Variable.fromString( "t_maxpt/F" ).addFiller(lambda data: max(data.t1_pt, data.t2_pt)),
+      name = 't_maxpt', attribute = lambda event, sample: max(event.t1_pt, event.t2_pt),
       binning  = [50, 0, 10*50],
     ))
 
     plots.append(Plot(
       texX     = 'min(#Delta#phi(Z or #gamma, t/#bar{t})) (GeV)', texY = "Events /5 GeV",
-      variable = Variable.fromString( "deltaPhi_topBoson/F" ).addFiller(lambda data: min(deltaPhi(data.t1_phi, data.boson_genPhi), deltaPhi(data.t2_phi, data.boson_genPhi))),
+      name = 'deltaPhi_topBoson', attribute = lambda event, sample: min(deltaPhi(event.t1_phi, event.boson_genPhi), deltaPhi(event.t2_phi, event.boson_genPhi)),
       binning  = [20, 0, 3.1415],
     ))
 
     plots.append(Plot(
       texX     = 'min(#Delta R(Z or #gamma, t/#bar{t})) (GeV)', texY = "Events /5 GeV",
-      variable = Variable.fromString( "deltaR_topBoson/F" ).addFiller(lambda data: min(sqrt(deltaPhi(data.t1_phi, data.boson_genPhi)**2 + (data.t1_eta - data.boson_genEta)**2), 
-                                                                                       sqrt(deltaPhi(data.t2_phi, data.boson_genPhi)**2 + (data.t2_eta - data.boson_genEta)**2))),
+      name = 'deltaR_topBoson', attribute = lambda event, sample: min(sqrt(deltaPhi(event.t1_phi, event.boson_genPhi)**2 + (event.t1_eta - event.boson_genEta)**2, 
+                                                                                       sqrt(deltaPhi(event.t2_phi, event.boson_genPhi)**2 + (event.t2_eta - event.boson_genEta)**2))),
       binning  = [20, 0, 8],
     ))
 
     plots.append(Plot(
       texX     = '#Delta#phi(#nu#nu, Z or #gamma) (#nu from W decays) (GeV)', texY = "Events /5 GeV",
-      variable = Variable.fromString( "deltaPhi_nunuBoson/F" ).addFiller(lambda data: deltaPhi(data.nunu_phi, data.boson_genPhi)),
+      name = 'deltaPhi_nunuBoson', attribute = lambda event, sample: deltaPhi(event.nunu_phi, event.boson_genPhi),
       binning  = [20, 0, 3.1415],
     ))
 
     plots.append(Plot(
       texX     = 'p_{T}^{#nu#nu} (#nu from W decays) (GeV)', texY = "Events /5 GeV",
-      variable = Variable.fromString( "nunu_pt/F" ).addFiller(lambda data: data.nunu_pt),
+      name = 'nunu_pt', attribute = lambda event, sample: event.nunu_pt,
       binning  = [50, 0, 250],
     ))
 
     plots.append(Plot(
       texX     = '#eta^{#nu#nu} (#nu from W decays) (GeV)', texY = "Events /5 GeV",
-      variable = Variable.fromString( "nunu_eta/F" ).addFiller(lambda data: data.nunu_eta),
+      name = 'nunu_eta', attribute = lambda event, sample: event.nunu_eta,
       binning  = [25, 0, 5],
     ))
 
     plots.append(Plot(
       texX     = '#Delta#phi(#nu#nu, Z or #gamma) (#nu from W decays) (GeV)', texY = "Events /5 GeV",
-      variable = Variable.fromString( "deltaPhi_nunuBoson/F" ).addFiller(lambda data: deltaPhi(data.nunu_phi, data.boson_genPhi)),
+      name = 'deltaPhi_nunuBoson', attribute = lambda event, sample: deltaPhi(event.nunu_phi, event.boson_genPhi),
       binning  = [20, 0, 3.1415],
     ))
 
     plots.append(Plot(
       texX     = '#Delta R(#nu#nu, Z or #gamma) (#nu from W decays) (GeV)', texY = "Events /5 GeV",
-      variable = Variable.fromString( "deltaR_nunuBoson/F" ).addFiller(lambda data: sqrt(deltaPhi(data.nunu_phi, data.boson_genPhi)**2 + (data.nunu_eta - data.boson_genEta)**2)),
+      name = 'deltaR_nunuBoson', attribute = lambda event, sample: sqrt(deltaPhi(event.nunu_phi, event.boson_genPhi)**2 + (event.nunu_eta - event.boson_genEta)**2),
       binning  = [20, 0, 10],
     ))
 
     plots.append(Plot(
       texX     = '#eta^{gen} (Z or #gamma) (GeV)', texY = "Events",
-      variable = Variable.fromString( "boson_eta/F" ).addFiller(lambda data: abs(data.boson_genEta)),
+      name = 'boson_eta', attribute = lambda event, sample: abs(event.boson_genEta),
       binning  = [12, 0, 3],
     ))
 
     plots.append(Plot(
       texX     = 'E_{T}^{miss} (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 20 GeV",
-      variable = Variable.fromString( "met_photonIncluded/F" ).addFiller(lambda data: data.boson_met),
+      name = 'met_photonIncluded', attribute = lambda event, sample: event.boson_met,
       binning  = [15, 0, 300],
     ))
 
     plots.append(Plot(
       texX     = 'E_{T}^{miss} (GeV)', texY = "Events / 20 GeV",
-      variable = Variable.fromString( "met/F" ).addFiller(lambda data: data.met_pt),
+      name = 'met', attribute = lambda event, sample: event.met_pt,
       binning  = [15, 0, 300],
     ))
 
     plots.append(Plot(
       texX     = 'min(M_{T}) (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mtmin/F" ).addFiller(lambda data: min(data.mt1, data.mt2)),
+      name = 'mtmin', attribute = lambda event, sample: min(event.mt1, event.mt2),
       binning  = [30, 0, 120],
     ))
 
     plots.append(Plot(
       texX     = 'max(M_{T}) (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mtmax/F" ).addFiller(lambda data: max(data.mt1, data.mt2)),
+      name = 'mtmax', attribute = lambda event, sample: max(event.mt1, event.mt2),
       binning  = [30, 0, 120],
     ))
 
     plots.append(Plot(
       texX     = 'MT_{2}^{ll}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mt2ll_photonIncluded/F" ).addFiller(lambda data: data.boson_mt2ll),
+      name = 'mt2ll_photonIncluded', attribute = lambda event, sample: event.boson_mt2ll,
       binning  = [10, 0, 300],
     ))
 
     plots.append(Plot(
       texX     = 'MT_{2}^{ll} (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mt2ll/F" ).addFiller(lambda data: data.mt2ll),
+      name = 'mt2ll', attribute = lambda event, sample: event.mt2ll,
       binning  = [10, 0, 300],
     ))
 
     plots.append(Plot(
       texX     = 'MT_{2}^{ll}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mt2ll_photonIncluded_high/F" ).addFiller(lambda data: data.boson_mt2ll),
+      name = 'mt2ll_photonIncluded_high', attribute = lambda event, sample: event.boson_mt2ll,
       binning  = [10, 100, 400],
     ))
 
     plots.append(Plot(
       texX     = 'MT_{2}^{ll}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mt2ll_high/F" ).addFiller(lambda data: data.mt2ll),
+      name = 'mt2ll_high', attribute = lambda event, sample: event.mt2ll,
       binning  = [10, 100, 400],
     ))
 
     plots.append(Plot(
       texX     = 'MT_{2}^{bb}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mt2bb_photonIncluded/F" ).addFiller(lambda data: data.boson_mt2bb),
+      name = 'mt2bb_photonIncluded', attribute = lambda event, sample: event.boson_mt2bb,
       binning  = [10, 70, 370],
     ))
 
     plots.append(Plot(
       texX     = 'MT_{2}^{bb} (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mt2bb/F" ).addFiller(lambda data: data.mt2bb),
+      name = 'mt2bb', attribute = lambda event, sample: event.mt2bb,
       binning  = [10, 70, 370],
     ))
 
     plots.append(Plot(
       texX     = 'MT_{2}^{blbl}  (#gamma included for t#bar{t}#gamma) (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mt2blbl_photonIncluded/F" ).addFiller(lambda data: data.boson_mt2blbl),
+      name = 'mt2blbl_photonIncluded', attribute = lambda event, sample: event.boson_mt2blbl,
       binning  = [10, 0, 300],
     ))
 
     plots.append(Plot(
       texX     = 'MT_{2}^{blbl} (GeV)', texY = "Events / 30 GeV",
-      variable = Variable.fromString( "mt2blbl/F" ).addFiller(lambda data: data.mt2blbl),
+      name = 'mt2blbl', attribute = lambda event, sample: event.mt2blbl,
       binning  = [10, 0, 300],
     ))
 
@@ -392,9 +392,9 @@ for doPtReweight in [False, True]:
       name  = "TTZ_met_vs_pt",
       texX  = 'p_{T}^{gen} (Z) (GeV)', texY = "#slash{E}_{T} (GeV)'",
       stack = Stack([TTZ]),
-      variables = (
-          Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
-          Variable.fromString( "met/F" ).addFiller(lambda data: data.met_pt),
+      attributes = (
+          lambda event, sample: event.boson_genPt,
+          lambda event, sample: event.met_pt,
       ),
       binning =[200, 0, 200, 200,0,200],
       weight  = weight,
@@ -405,9 +405,9 @@ for doPtReweight in [False, True]:
       name  = "TTG_met_vs_pt",
       texX  = 'p_{T}^{gen} (#gamma) (GeV)', texY = "#slash{E}_{T} (GeV)'",
       stack = Stack([TTG]),
-      variables = (
-          Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
-          Variable.fromString( "met/F" ).addFiller(lambda data: data.met_pt),
+      attributes = (
+          lambda event, sample: event.boson_genPt,
+          lambda event, sample: event.met_pt,
       ),
       binning=[200, 0, 200, 200,0,200],
       weight = weight,
@@ -418,9 +418,9 @@ for doPtReweight in [False, True]:
       name  = "TTG_met_photonIncluded_vs_pt",
       texX  = 'p_{T}^{gen} (#gamma) (GeV)', texY = "#slash{E}_{T} (#gamma included) (GeV)",
       stack = Stack([TTG]),
-      variables = (
-          Variable.fromString( "boson_genPt/F" ).addFiller(lambda data: data.boson_genPt),
-          Variable.fromString( "met_photonIncluded/F" ).addFiller(lambda data: data.boson_met),
+      attributes = (
+          lambda event, sample: event.boson_genPt,
+          lambda event, sample: event.boson_met,
       ),
       binning=[200, 0, 200, 200,0,200],
       weight = weight,

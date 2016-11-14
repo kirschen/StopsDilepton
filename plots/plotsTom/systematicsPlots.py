@@ -267,10 +267,10 @@ def addSys( selectionString , sys = None ):
     else:                        return selectionString
 
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda data:data.weight*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightPU12fb*data.reweightDilepTriggerBackup*data.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF")
-    elif 'PU' in sys:               return (lambda data:data.weight*data.reweightLeptonSF*data.reweightLeptonHIPSF*getattr(data, "reweight"+sys)*data.reweightDilepTriggerBackup*data.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF")
-    elif 'BTag' in sys:             return (lambda data:data.weight*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightPU12fb*data.reweightDilepTriggerBackup*getattr(data, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweight"+sys)
-    elif sys in weight_systematics: return (lambda data:data.weight*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb*data.reweightBTag_SF*getattr(data, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweight"+sys)
+    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightPU12fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF")
+    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF")
+    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightPU12fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweight"+sys)
+    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
 
@@ -358,19 +358,19 @@ for index, mode in enumerate(allModes):
     for s in signals:
       s.scale          = lumi_scale
       s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-      s.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonFastSimSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
       s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-      s.weight         = lambda data: data.reweightBTag_SF*data.reweightLeptonSF*data.reweightLeptonHIPSF*data.reweightDilepTriggerBackup*data.reweightPU12fb
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
   # Use some defaults
-  Plot.setDefaults(weight = lambda data: data.weight, selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(weight = lambda event, sample: event.weight, selectionString = selectionStrings[args.selection])
   
   stack_mc   = Stack( mc )
 
@@ -386,7 +386,7 @@ for index, mode in enumerate(allModes):
       texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
       binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
       stack = stack_data,
-      variable = Variable.fromString( "dl_mt2ll/F" ),
+      attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
       )
   plots.append( dl_mt2ll_data )
 
@@ -396,7 +396,7 @@ for index, mode in enumerate(allModes):
       texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
       binning         = Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
       stack           = sys_stacks[sys],
-      variable        = Variable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2ll_%s/F" % sys ),
+      attribute        = TreeVariable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2ll_%s/F" % sys ),
       selectionString = addSys(selectionStrings[args.selection], sys),
       weight          = weightMC( sys = sys )[0],
       ) for sys in all_systematics }
@@ -407,7 +407,7 @@ for index, mode in enumerate(allModes):
 	name            = "dl_mt2bb_data",
 	texX            = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack           = stack_data,
-	variable        = Variable.fromString( "dl_mt2bb/F" ),
+	variable        = TreeVariable.fromString( "dl_mt2bb/F" ),
 	binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
 	) 
     plots.append( dl_mt2bb_data )
@@ -416,7 +416,7 @@ for index, mode in enumerate(allModes):
 	name = "dl_mt2bb" if sys is None else "dl_mt2bb_mc_%s" % sys,
 	texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
-	variable = Variable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2bb_%s/F" % sys ),
+	variable = TreeVariable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2bb_%s/F" % sys ),
 	binning=Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
 	selectionString = addSys(selectionStrings[args.selection], sys),
 	weight = weightMC( sys = sys )[0],
@@ -427,7 +427,7 @@ for index, mode in enumerate(allModes):
 	name            = "dl_mt2bb_data_2",
 	texX            = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack           = stack_data,
-	variable        = Variable.fromString( "dl_mt2bb/F" ),
+	variable        = TreeVariable.fromString( "dl_mt2bb/F" ),
 	binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450,500,550,600,700,800,1000]),
 	) 
     plots.append( dl_mt2bb_data_2 )
@@ -436,7 +436,7 @@ for index, mode in enumerate(allModes):
 	name = "dl_mt2bb_2" if sys is None else "dl_mt2bb_mc_2_%s" % sys,
 	texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
-	variable = Variable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2bb_%s/F" % sys ),
+	variable = TreeVariable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2bb_%s/F" % sys ),
 	binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450,500,550,600,700,800,1000]),
 	selectionString = addSys(selectionStrings[args.selection], sys),
 	weight = weightMC( sys = sys )[0],
@@ -449,7 +449,7 @@ for index, mode in enumerate(allModes):
 	name = "dl_mt2blbl_data",
 	texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = stack_data,
-	variable = Variable.fromString( "dl_mt2blbl/F" ),
+	variable = TreeVariable.fromString( "dl_mt2blbl/F" ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
 	) 
     plots.append( dl_mt2blbl_data )
@@ -458,7 +458,7 @@ for index, mode in enumerate(allModes):
 	name = "dl_mt2blbl" if sys is None else "dl_mt2blbl_mc_%s" % sys,
 	texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
-	variable = Variable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2blbl_%s/F" % sys ),
+	variable = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
 	selectionString = addSys(selectionStrings[args.selection], sys),
 	weight = weightMC( sys = sys )[0],
@@ -470,7 +470,7 @@ for index, mode in enumerate(allModes):
 	name = "dl_mt2blbl_data_2",
 	texX = 'M_{T2}{blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = stack_data,
-	variable = Variable.fromString( "dl_mt2blbl/F" ),
+	variable = TreeVariable.fromString( "dl_mt2blbl/F" ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350,400,450,500,600,700]),
 	) 
     plots.append( dl_mt2blbl_data_2 )
@@ -479,7 +479,7 @@ for index, mode in enumerate(allModes):
 	name = "dl_mt2blbl_2" if sys is None else "dl_mt2blbl_mc_2_%s" % sys,
 	texX = 'M_{T2}{blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
-	variable = Variable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else Variable.fromString( "dl_mt2blbl_%s/F" % sys ),
+	variable = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350,400,450,500,600,700]),
 	selectionString = addSys(selectionStrings[args.selection], sys),
 	weight = weightMC( sys = sys )[0],
@@ -495,7 +495,7 @@ for index, mode in enumerate(allModes):
       name = "nbtags_data",
       texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
       stack = stack_data,
-      variable = Variable.fromString('nBTag/I'),
+      attribute = TreeVariable.fromString('nBTag/I'),
       binning=nBtagBinning,
       ) 
   plots.append( nbtags_data )
@@ -504,7 +504,7 @@ for index, mode in enumerate(allModes):
       name = "nbtags" if sys is None else "nbtags_mc_%s" % sys,
       texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
       stack = sys_stacks[sys],
-      variable = Variable.fromString('nBTag/I') if sys is None or sys in weight_systematics or sys in met_systematics else Variable.fromString( "nBTag_%s/I" % sys ),
+      attribute = TreeVariable.fromString('nBTag/I') if sys is None or sys in weight_systematics or sys in met_systematics else TreeVariable.fromString( "nBTag_%s/I" % sys ),
       binning=nBtagBinning,
       selectionString = addSys(selectionStrings[args.selection], sys),
       weight = weightMC( sys = sys )[0],
@@ -517,7 +517,7 @@ for index, mode in enumerate(allModes):
       name = "njets_data",
       texX = 'number of jets', texY = 'Number of Events',
       stack = stack_data,
-      variable = Variable.fromString('nJetGood/I'),
+      attribute = TreeVariable.fromString('nJetGood/I'),
       binning=jetBinning,
       )
   plots.append( njets_data )
@@ -526,7 +526,7 @@ for index, mode in enumerate(allModes):
       name = "njets" if sys is None else "njets_mc_%s" % sys,
       texX = 'number of jets', texY = 'Number of Events',
       stack = sys_stacks[sys],
-      variable = Variable.fromString('nJetGood/I') if sys is None or sys in weight_systematics or sys in met_systematics else Variable.fromString( "nJetGood_%s/I" % sys ),
+      attribute = TreeVariable.fromString('nJetGood/I') if sys is None or sys in weight_systematics or sys in met_systematics else TreeVariable.fromString( "nJetGood_%s/I" % sys ),
       binning= jetBinning,
       selectionString = addSys(selectionStrings[args.selection], sys),
       weight = weightMC( sys = sys )[0],
@@ -539,7 +539,7 @@ for index, mode in enumerate(allModes):
       name = "met_data",
       texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Event",
       stack = stack_data, 
-      variable = Variable.fromString( "met_pt/F" ),
+      attribute = TreeVariable.fromString( "met_pt/F" ),
       binning=Binning.fromThresholds( metBinning ),
       )
   plots.append( met_data )
@@ -548,7 +548,7 @@ for index, mode in enumerate(allModes):
       name = "met_pt" if sys is None else "met_pt_mc_%s" % sys,
       texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Event",
       stack = sys_stacks[sys],
-      variable = Variable.fromString('met_pt/F') if sys not in met_systematics else Variable.fromString( "met_pt_%s/F" % sys ),
+      attribute = TreeVariable.fromString('met_pt/F') if sys not in met_systematics else TreeVariable.fromString( "met_pt_%s/F" % sys ),
       binning=Binning.fromThresholds( metBinning ),
       selectionString = addSys(selectionStrings[args.selection], sys),
       weight = weightMC( sys = sys )[0],
