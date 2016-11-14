@@ -333,7 +333,6 @@ for index, mode in enumerate(allModes):
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
-
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = lambda event, sample: event.weight, selectionString = selectionStrings[args.selection], addOverFlowBin='upper')
   
@@ -341,7 +340,7 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     name = 'yield', texX = 'yield', texY = 'Number of Events',
-    name = 'yield', attribute = lambda event, sample: 0.5 + index,
+    attribute = lambda event, sample: 0.5 + index,
     binning=[3, 0, 3],
   ))
 

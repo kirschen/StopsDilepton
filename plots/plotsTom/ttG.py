@@ -222,8 +222,7 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color)
-    sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightPU/F']
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
+    sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightPU/F','reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
     sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
 
@@ -239,7 +238,7 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     name = 'yield', texX = 'yield', texY = 'Number of Events',
-    name = 'yield', attribute = lambda event, sample: 0.5 + index,
+    attribute = lambda event, sample: 0.5 + index,
     binning=[3, 0, 3],
   ))
 
@@ -386,14 +385,14 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     texX     = '#Delta R(#gamma, j_{1})', texY = 'Number of Events',
-    name = 'photonJet1DeltaR', attribute = lambda event, sample: event.JetGood_photonDeltaR[event.goodJetIndices[0]] if event.nJetGood > 0 else -1,
+    attribute = lambda event, sample: event.JetGood_photonDeltaR[event.goodJetIndices[0]] if event.nJetGood > 0 else -1,
     name     = "photonJet1DeltaR",
     binning  = [20, 0, 5]
   ))
 
   plots.append(Plot(
     texX     = '#Delta R(#gamma, j_{2})', texY = 'Number of Events',
-    name = 'photonJet2DeltaR', attribute = lambda event, sample: event.JetGood_photonDeltaR[event.goodJetIndices[1]] if event.nJetGood > 1 else -1,
+    attribute = lambda event, sample: event.JetGood_photonDeltaR[event.goodJetIndices[1]] if event.nJetGood > 1 else -1,
     name     = "photonJet2DeltaR",
     binning  = [20, 0, 5]
   ))
