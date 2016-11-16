@@ -1031,12 +1031,12 @@ for ievtRange, eventRange in enumerate( eventRanges ):
     while reader.run():
         maker.run()
         if isData:
-            if maker.data.jsonPassed_:
-                if reader.data.run not in outputLumiList.keys():
-                    outputLumiList[reader.data.run] = {reader.data.lumi}
+            if maker.event.jsonPassed_:
+                if reader.event.run not in outputLumiList.keys():
+                    outputLumiList[reader.event.run] = {reader.event.lumi}
                 else:
-                    if reader.data.lumi not in outputLumiList[reader.data.run]:
-                        outputLumiList[reader.data.run].add(reader.data.lumi)
+                    if reader.event.lumi not in outputLumiList[reader.event.run]:
+                        outputLumiList[reader.event.run].add(reader.event.lumi)
 
     convertedEvents += maker.tree.GetEntries()
     maker.tree.Write()
