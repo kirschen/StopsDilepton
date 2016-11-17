@@ -40,11 +40,26 @@ if not os.path.isdir(slurm_output_dir):
 
 def make_slurm_job( slurm_job_file, slurm_job_title, slurm_output_dir , command ):
 
-    proxy = os.environ["X509_USER_PROXY"]
-    if proxy:
+    # If X509_USER_PROXY is set, use existing proxy.
+    if options.dpm:
+        if os.environ.has_key("X509_USER_PROXY") and os.environ["X509_USER_PROXY"]:
+            proxy = os.environ["X509_USER_PROXY"]
+        else:
+            new_proxy = '/afs/hephy.at/user/%s/%s/private/.proxy' % (hephy_user_initial, hephy_user)
+            if os.path.exists( new_proxy ):
+                proxy = new_proxy
+            else:
+                import subprocess
+                p = subprocess.call(['voms-proxy-init', '-voms', 'cms', '-out', new_proxy])
+                if os.path.exists( new_proxy ):
+                    proxy = new_proxy
+                else:
+                    raise RuntimeError( "Failed to make proxy %s" % new_proxy )
+
         proxy_cmd = "export X509_USER_PROXY=%s"%proxy
+        print "Using proxy certificate %s" % proxy
     else:
-        proxy_cmd = "" 
+        proxy_cmd = ""            
 
     template =\
 """\
