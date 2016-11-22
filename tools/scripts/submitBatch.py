@@ -13,20 +13,54 @@ import hashlib, time
 import os
 
 parser = OptionParser()
-(options,args) = parser.parse_args()
 
+slurm_job_file="slurm_job"
+#slurm_job_title="BATCHSUBMIT"
+#slurm_output_dir="/afs/hephy.at/work/%s/%s/slurm_output/"%(hephy_user_initial, hephy_user)
 
 hephy_user = os.getenv("USER")
 hephy_user_initial = os.getenv("USER")[0]
-slurm_job_file="slurm_job"
-slurm_job_title="BATCHSUBMIT"
-slurm_output_dir="/afs/hephy.at/work/%s/%s/slurm_output"%(hephy_user_initial, hephy_user)
+
+parser.add_option("--title", dest="title",
+                  help="Job Title viewied in squeue", default = "BATCHSUBMIT" )
+parser.add_option("--output", dest="output", 
+                  default="/afs/hephy.at/work/%s/%s/slurm_output/"%(hephy_user_initial, hephy_user),
+                  help="path for slurm output ")
+
+parser.add_option('--dpm', dest="dpm", default=False, action='store_true', help="Use dpm?")
+
+(options,args) = parser.parse_args()
+
+slurm_job_title  = options.title
+slurm_output_dir = options.output
 
 if not os.path.isdir(slurm_output_dir):
     os.mkdir(slurm_output_dir)
 
 
 def make_slurm_job( slurm_job_file, slurm_job_title, slurm_output_dir , command ):
+
+    # If X509_USER_PROXY is set, use existing proxy.
+    if options.dpm:
+        if os.environ.has_key("X509_USER_PROXY") and os.environ["X509_USER_PROXY"]:
+            proxy = os.environ["X509_USER_PROXY"]
+        else:
+            new_proxy = '/afs/hephy.at/user/%s/%s/private/.proxy' % (hephy_user_initial, hephy_user)
+            if os.path.exists( new_proxy ):
+                proxy = new_proxy
+            else:
+                import subprocess
+                p = subprocess.call(['voms-proxy-init', '-voms', 'cms', '-out', new_proxy])
+                if os.path.exists( new_proxy ):
+                    proxy = new_proxy
+                else:
+                    raise RuntimeError( "Failed to make proxy %s" % new_proxy )
+
+        proxy_cmd = "export X509_USER_PROXY=%s"%proxy
+        print "Using proxy certificate %s" % proxy
+    else:
+        proxy_cmd = ""            
+
     template =\
 """\
 #!/bin/sh
@@ -34,6 +68,7 @@ def make_slurm_job( slurm_job_file, slurm_job_title, slurm_output_dir , command 
 #SBATCH -D {pwd}
 #SBATCH -o {slurm_output_dir}slurm-test.%j.out
 
+{proxy_cmd}
 eval \`"scram runtime -sh"\` 
 echo CMSSW_BASE: {cmssw_base} 
 echo Executing user command  
@@ -45,7 +80,8 @@ echo "{command}"
                 cmssw_base       = os.getenv("CMSSW_BASE"),
                 slurm_output_dir = slurm_output_dir,
                 slurm_job_title  = slurm_job_title,
-                pwd              = os.getenv("PWD")
+                pwd              = os.getenv("PWD"),
+                proxy_cmd = proxy_cmd
               )
 
     slurm_job = file(slurm_job_file, "w")
