@@ -28,6 +28,7 @@ if os.environ['USER'] in ['dspitzbart']:
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where you store the data
     data_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
+    data_directory_alt  = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/d/dspitzbart/www/"
     # Analysis result files

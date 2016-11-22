@@ -16,10 +16,11 @@ except:
 
 # Take post processing directory if defined in main module
 try:
-    postProcessing_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/postProcessed_80X_v15/dilepTiny"
-    #postProcessing_directory = sys.modules['__main__'].postProcessing_directory
+    #postProcessing_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/postProcessed_80X_v15/dilepTiny"
+    postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-    postProcessing_directory = "postProcessed_80X_v15/dilepTiny"
+    from StopsDilepton.tools.user import data_directory_alt as user_data_directory_alt
+    postProcessing_directory = user_data_sample_directory_alt + 'postProcessed_80X_v15/dilepTiny'
 
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
