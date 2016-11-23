@@ -185,7 +185,7 @@ postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
 #from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sept_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 #sample_DoubleMuon  = DoubleMuon_Run2016G_backup
 sample_DoubleMuon  = DoubleMuon_Run2016BCDEFG_backup
