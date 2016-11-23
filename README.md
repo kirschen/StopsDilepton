@@ -5,6 +5,7 @@ cd CMSSW_8_0_20/src
 cmsenv
 git cms-init
 git clone https://github.com/GhentAnalysis/StopsDilepton
+./StopsDilepton/setupOptiMass.sh
 ./StopsDilepton/setup80X.sh
 ```
 # for OptiMass M2 variables
