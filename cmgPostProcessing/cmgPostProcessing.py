@@ -130,7 +130,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v12_forwardJets',
+        default='postProcessed_80X_v15',
         help="Name of the processing era"
         )
 
@@ -483,7 +483,7 @@ if sample.isData:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
-    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_271036-276811_13TeV_PromptReco_Collisions16_JSON_NoL1T.txt'
+    sample.heppy.json = '$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/json/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_NoL1T.txt'
     lumiList = LumiList(os.path.expandvars(sample.heppy.json))
     logger.info( "Loaded json %s", sample.heppy.json )
 else:
