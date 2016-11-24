@@ -134,6 +134,21 @@ argParser.add_argument('--pu',
     help='PU weight',
 )
 
+argParser.add_argument('--noBtagSF',
+    action='store_true',
+    help='Dont use b-tag SFs',
+)
+
+argParser.add_argument('--noLeptonSF',
+    action='store_true',
+    help='Dont use lepton SFs',
+)
+
+argParser.add_argument('--noHIPSF',
+    action='store_true',
+    help='Dont use HIP SFs',
+)
+
 argParser.add_argument('--ttjets',
     default='pow',
     action='store',
@@ -187,10 +202,15 @@ postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
 #from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
-#sample_DoubleMuon  = DoubleMuon_Run2016G_backup
-sample_DoubleMuon  = DoubleMuon_Run2016BCDEFG_backup
-sample_DoubleEG    = DoubleEG_Run2016BCDEFG_backup
-sample_MuonEG      = MuonEG_Run2016BCDEFG_backup
+##Full dataset
+#sample_DoubleMuon  = DoubleMuon_Run2016BCDEFG_backup
+#sample_DoubleEG    = DoubleEG_Run2016BCDEFG_backup
+#sample_MuonEG      = MuonEG_Run2016BCDEFG_backup
+
+#ICHEP dataset
+sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
+sample_DoubleEG    = DoubleEG_Run2016BCD_backup
+sample_MuonEG      = MuonEG_Run2016BCD_backup
 
 if args.mode=="doubleMu":
     lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
@@ -308,9 +328,19 @@ lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
 
 logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 
-mc_weight_string = "weight*reweightDilepTriggerBackup*reweightBTag_SF*reweightLeptonSF*reweightLeptonHIPSF"
+mc_weight_string = "weight*reweightDilepTriggerBackup"
+
+
+
 if args.pu != "None":
     mc_weight_string+="*"+args.pu
+
+if not args.noBtagSF:
+    mc_weight_string += '*reweightBTag_SF'
+if not args.noLeptonSF:
+    mc_weight_string += '*reweightLeptonSF'
+if not args.noHIPSF:
+    mc_weight_string += '*reweightLeptonHIPSF'
 
 data_weight_string = "weight"
 
