@@ -311,6 +311,9 @@ else:
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
     # nTrueIntReweighting
+    nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
+    nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
+    nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
     nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
     nTrueInt12fb_puRWDown    = getReweightingFunction(data="PU_2016_12000_XSecDown", mc="Spring16")
     nTrueInt12fb_puRWUp      = getReweightingFunction(data="PU_2016_12000_XSecUp", mc="Spring16")
@@ -508,7 +511,7 @@ if isMC:
     read_variables.append( TreeVariable.fromString('genWeight/F') )
     read_variables.append( VectorTreeVariable.fromString('gamma[mcPt/F]') )
 
-    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F','reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F'])
     if not options.skipGenLepMatching:
         TreeVariable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
@@ -669,6 +672,9 @@ def filler( event ):
         event.reweightPU12fb     = nTrueInt12fb_puRW       ( r.nTrueInt ) 
         event.reweightPU12fbDown = nTrueInt12fb_puRWDown   ( r.nTrueInt ) 
         event.reweightPU12fbUp   = nTrueInt12fb_puRWUp     ( r.nTrueInt ) 
+        event.reweightPU27fb     = nTrueInt27fb_puRW       ( r.nTrueInt )
+        event.reweightPU27fbDown = nTrueInt27fb_puRWDown   ( r.nTrueInt )
+        event.reweightPU27fbUp   = nTrueInt27fb_puRWUp     ( r.nTrueInt )
 
     # top pt reweighting
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
