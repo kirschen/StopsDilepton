@@ -124,10 +124,6 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("metSig") > 1:  continue
         if selection.count("dPhiJet0") > 1:  continue
 
-#        if selection not in ['njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
-#                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
-#                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100']: continue
-
         if selection not in ['multiIsoWP-looseLeptonVeto-mll20',
                              'njet2-multiIsoWP-looseLeptonVeto-mll20',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20',
@@ -144,7 +140,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
                              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
                              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
                              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
+                             'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
                              'njet2-multiIsoWP-looseLeptonVeto-mll20-onZ',
                              'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
                              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100',
@@ -181,7 +177,11 @@ if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.powheg:                   args.plot_directory += "_topPowheg"
 if args.splitTop:                 args.plot_directory += "_splitTop"
+if args.signal == "DM":           args.plot_directory += "_DM_pu27fb"
 #if args.selection.count("mt2ll") and args.selection.count('btagM'): args.noData = True
+
+fullData = (args.signal == "DM")
+
 
 if args.selection.count("btag0") and args.selection.count("onZ"): args.signal = None
 if args.selection.count("njet2-multiIsoWP-looseLeptonVeto-mll20-onZ"): args.signal = None
@@ -190,9 +190,9 @@ if args.selection.count("njet2-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 T2tt                    = T2tt_650_1 # Take 450,0 as default to plot
@@ -228,7 +228,7 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
-      (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV) Scale %3.2f'% ( dataMCScale ) ) if plotData else (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
+      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) ) if plotData else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)
     ]
     if args.selection=="njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100" and args.noData:
       lines += [(0.55, 0.5, 'M_{T2}(ll) > 100 GeV')]
@@ -273,6 +273,14 @@ def getLeptonSelection(mode, is74x=False):
   elif mode=="mue":  return getLeptonString(1, 1, args.selection.count("multiIsoWP"), is74x) + "&&isOS&&isEMu"
   elif mode=="ee":   return getLeptonString(0, 2, args.selection.count("multiIsoWP"), is74x) + "&&isOS&&isEE" + offZ
 
+#For PU reweighting
+from StopsDilepton.tools.puReweighting import getReweightingFunction
+nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
+nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
+nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
+nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
+
+
 #
 # Loop over channels
 #
@@ -282,20 +290,26 @@ allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
   if mode=="mumu":
-    data_sample         = DoubleMuon_Run2016BCD_backup
+    data_sample         = DoubleMuon_Run2016BCD_backup if not fullData else DoubleMuon_Run2016BCDEFG_backup
     data_sample.texName = "data (2 #mu)"
   elif mode=="ee":
-    data_sample         = DoubleEG_Run2016BCD_backup 
+    data_sample         = DoubleEG_Run2016BCD_backup if not fullData else DoubleEG_Run2016BCDEFG_backup 
     data_sample.texName = "data (2 e)"
   elif mode=="mue":
-    data_sample         = MuonEG_Run2016BCD_backup 
+    data_sample         = MuonEG_Run2016BCD_backup if not fullData else MuonEG_Run2016BCDEFG_backup 
     data_sample.texName = "data (1 #mu, 1 e)"
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
   data_sample.name  = "data"
-  data_sample.read_variables = ["weight/F"]
+  data_sample.read_variables = ["weight/F","evt/I"]
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
+
+  if args.signal == "DM" and "njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80" in args.selection:
+    weight_ = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
+    lumi_scale = lumi_scale/15
+  else:
+    weight_ = lambda event, sample: event.weight
 
   if args.powheg and args.splitBosons:   mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
   elif args.splitBosons:                 mc = [ Top, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
@@ -306,8 +320,8 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
+    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
@@ -329,12 +343,12 @@ for index, mode in enumerate(allModes):
   for sample in [DM, DM2, DM3, DM4, DM5, DM6]:
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
+    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = lambda event, sample: event.weight, selectionString = selectionStrings[args.selection], addOverFlowBin='upper')
+  Plot.setDefaults(stack = stack, weight = weight_, selectionString = selectionStrings[args.selection], addOverFlowBin='upper')
   
   plots = []
 
