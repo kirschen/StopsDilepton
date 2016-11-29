@@ -72,7 +72,6 @@ cuts = [
     ("met80",             "met_pt>80"),
     ("metInv",            "met_pt<80"),
     ("metSig5",           "metSig>5"),
-#    ("metSig20",          "metSig>20"),
     ("metSigInv",         "metSig<5"),
     ("dPhiJet0",          "cos(met_phi-JetGood_phi[0])<0.8"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
@@ -92,38 +91,6 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel = [] 
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
-        if not selection.count("multiIsoWP"):      continue
-        if not selection.count("looseLeptonVeto"): continue
-        if not selection.count("mll20"):           continue
- #       if not selection.count("njet"):            continue
-        if selection.count("met50")  and selection.count("met80"):      continue
-        if (selection.count("met50")  or selection.count("met80")) and selection.count('metInv'):      continue
-        if selection.count("onZ")    and selection.count("allZ"):       continue
-        if selection.count("met80")  and not selection.count("mll"):    continue
-        if selection.count("met50")  and not selection.count("btag0"):  continue #met50 only for btag0
-        if selection.count("metSig") and not (selection.count("met80") or selection.count("met50")):  continue
-        if selection.count("dPhi")   and not selection.count("mll20"):    continue
-        if selection.count("dPhi")   and not selection.count("njet2"):  continue
-        if selection.count("dPhiInv") and selection.count("PhiJet1"):   continue
-        if selection.count("dPhiInv") and selection.count("mt2ll140"):  continue
-        if selection.count("metSigInv") and selection.count("mt2ll140"):  continue
-        if selection.count("mt2")    and not selection.count("met"):    continue
-        if selection.count("njet0")  and not selection.count('njet01') and selection.count("metSig"):    continue
-        if selection.count("njet0")  and selection.count("dPhi"):    continue
-        if selection.count("njet0")  and selection.count("mt2"):    continue
-        if selection.count("njet1")  and selection.count("dPhi"):    continue
-        if selection.count("njet1")  and selection.count("mt2"):    continue
-        if selection.count("njet0")  and selection.count("btag") and not selection.count("njet01"):    continue
-        if selection.count("njet01")  and selection.count("onZ"):    continue
-        if selection.count("njet01")  and selection.count("allZ"):    continue
-        if selection.count("njet") > 1:    continue
-        if selection.count("btag") > 1:    continue
-        if selection.count("mt2ll") > 1:   continue
-        if selection.count("mt2blbl") > 1: continue
-        if selection.count("mt2bb") > 1:   continue
-        if selection.count("metSig") > 1:  continue
-        if selection.count("dPhiJet0") > 1:  continue
-
         if selection not in ['multiIsoWP-looseLeptonVeto-mll20',
                              'njet2-multiIsoWP-looseLeptonVeto-mll20',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20',
@@ -146,6 +113,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
                              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100',
                              'njet2-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
                              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-mt2ll100',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
                              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
                              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']: continue
 
@@ -177,14 +145,12 @@ if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.powheg:                   args.plot_directory += "_topPowheg"
 if args.splitTop:                 args.plot_directory += "_splitTop"
-if args.signal == "DM":           args.plot_directory += "_DM_pu27fb"
-#if args.selection.count("mt2ll") and args.selection.count('btagM'): args.noData = True
+if args.signal == "DM":           args.plot_directory += "_DM_pu27fb_nobSF"
+DManalysis = (args.signal == "DM")
 
-fullData = (args.signal == "DM")
-
-
-if args.selection.count("btag0") and args.selection.count("onZ"): args.signal = None
-if args.selection.count("njet2-multiIsoWP-looseLeptonVeto-mll20-onZ"): args.signal = None
+# Plot no signal for following selections
+if args.selection.count("btag0") and args.selection.count("onZ"):                                     args.signal = None
+if args.selection.count("njet2-multiIsoWP-looseLeptonVeto-mll20-onZ"):                                args.signal = None
 if args.selection.count("njet2-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100"): args.signal = None
 
 #
@@ -231,7 +197,7 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
       (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) ) if plotData else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)
     ]
     if args.selection=="njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100" and args.noData:
-      lines += [(0.55, 0.5, 'M_{T2}(ll) > 100 GeV')]
+      lines += [(0.55, 0.5, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
     return [tex.DrawLatex(*l) for l in lines] 
 
 
@@ -290,13 +256,13 @@ allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
   if mode=="mumu":
-    data_sample         = DoubleMuon_Run2016BCD_backup if not fullData else DoubleMuon_Run2016BCDEFG_backup
+    data_sample         = DoubleMuon_Run2016BCD_backup if not DManalysis else DoubleMuon_Run2016BCDEFG_backup
     data_sample.texName = "data (2 #mu)"
   elif mode=="ee":
-    data_sample         = DoubleEG_Run2016BCD_backup if not fullData else DoubleEG_Run2016BCDEFG_backup 
+    data_sample         = DoubleEG_Run2016BCD_backup if not DManalysis else DoubleEG_Run2016BCDEFG_backup 
     data_sample.texName = "data (2 e)"
   elif mode=="mue":
-    data_sample         = MuonEG_Run2016BCD_backup if not fullData else MuonEG_Run2016BCDEFG_backup 
+    data_sample         = MuonEG_Run2016BCD_backup if not DManalysis else MuonEG_Run2016BCDEFG_backup 
     data_sample.texName = "data (1 #mu, 1 e)"
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
@@ -305,7 +271,8 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
 
-  if args.signal == "DM" and "njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80" in args.selection:
+  # Blinding policy for DM analysis: only 1 out of 15 events is unblinded
+  if DManalysis and "njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80" in args.selection:
     weight_ = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
     lumi_scale = lumi_scale/15
   else:
@@ -321,7 +288,8 @@ for index, mode in enumerate(allModes):
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+    if DManalysis: sample.weight = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+    else:          sample.weight = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
@@ -337,13 +305,13 @@ for index, mode in enumerate(allModes):
   for sample in [T2tt, T2tt2, T2tt3]:
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   for sample in [DM, DM2, DM3, DM4, DM5, DM6]:
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
