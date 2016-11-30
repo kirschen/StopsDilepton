@@ -14,7 +14,7 @@ scram b -j9
 # Setting up CMG
 #
 git remote add cmg-central https://github.com/CERN-PH-CMG/cmg-cmssw.git -f -t heppy_80X
-cp .sparse-checkout .git/info/sparse-checkout
+cp $CMSSW_BASE/src/StopsDilepton/.sparse-checkout $CMSSW_BASE/src/.git/info/sparse-checkout
 git checkout -b heppy_80X cmg-central/heppy_80X
 
 # add your mirror, and push the 80X branch to it
