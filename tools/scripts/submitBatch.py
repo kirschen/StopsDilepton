@@ -3,9 +3,10 @@
 Usage:
 submitBatch.py path/to/file_with_commands
 or
-submitBatch.py command
+submitBatch.py "command"
 
-Will submit a batch job for each command line in the file_with_commands
+Will submit a batch job for each command line in the file_with_commands.
+--dpm: Will create proxy certificate.
 """
 
 from optparse import OptionParser

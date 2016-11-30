@@ -112,7 +112,7 @@ class walk_dpm:
         result = []
 
         pairs = [n for n in tree_files.keys() if n in log_files.keys()]
-        logger.info( "Now loading %i files from directory %s", len(pairs), self.abs_path( rel_path ) ) 
+        logger.info( "Now loading %i from %i files from directory %s", min( [ maxN, len(pairs)]) if maxN>0 else len(pairs), len(pairs), self.abs_path( rel_path ) ) 
         for jobID in pairs:
             normalization = read_normalization( self.abs_path( log_files[jobID]['path'] ) )
             if normalization is not None:
