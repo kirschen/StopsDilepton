@@ -258,3 +258,27 @@ def getPlotFromChain(c, var, binning, cutString = "(1)", weight = "weight", binn
         res.SetBinError(1 , sqrt(res.GetBinError(0)**2 + res.GetBinError(1)**2))
     return res
 
+def renewCredentials( filename = None):
+    import os, subprocess
+    if os.environ.has_key("X509_USER_PROXY") and len(os.environ["X509_USER_PROXY"])>0:
+        proxy = os.environ["X509_USER_PROXY"]
+    else:
+        if filename is None:
+            hephy_user = os.getenv("USER")
+            hephy_user_initial = os.getenv("USER")[0]
+            new_proxy = '/afs/hephy.at/user/%s/%s/private/.proxy' % (hephy_user_initial, hephy_user)
+        else:
+            new_proxy = filename
+
+        if os.path.exists( new_proxy ):
+            proxy = new_proxy
+        else:
+            import subprocess
+            p = subprocess.call(['voms-proxy-init', '-voms', 'cms', '-out', new_proxy])
+            if os.path.exists( new_proxy ):
+                proxy = new_proxy
+            else:
+                raise RuntimeError( "Failed to make proxy %s" % new_proxy )
+
+    os.environ["X509_USER_PROXY"] = proxy
+    return proxy

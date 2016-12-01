@@ -76,7 +76,6 @@ class walk_dpm:
     def abs_path( self, rel_path ):
         return os.path.join( self.path, rel_path ).replace('/./', '/')
 
-
     def is_treefilename( self, filename ):
         return filename.endswith('.root') and filename.split('/')[-1].startswith( self.tree_filename_prefix )
 
@@ -112,21 +111,23 @@ class walk_dpm:
         result = []
 
         pairs = [n for n in tree_files.keys() if n in log_files.keys()]
-        logger.info( "Now loading %i from %i files from directory %s", min( [ maxN, len(pairs)]) if maxN>0 else len(pairs), len(pairs), self.abs_path( rel_path ) ) 
+        logger.info( "Now loading %i of %i files from directory %s", min( [ maxN, len(pairs)]) if maxN>0 else len(pairs), len(pairs), self.abs_path( rel_path ) ) 
         for jobID in pairs:
-            normalization = read_normalization( self.abs_path( log_files[jobID]['path'] ) )
-            if normalization is not None:
-                result.append( (jobID, self.abs_path(tree_files[jobID]['path']), normalization ) )
+            #normalization = read_normalization( self.abs_path( log_files[jobID]['path'] ) )
+            #if normalization is not None:
+            result.append( (jobID, self.abs_path(tree_files[jobID]['path']), self.abs_path(log_files[jobID]['path']) ) )
 
             if maxN > 0 and len(result)>=maxN:
                 break
          
         return result 
 
-    def walk_dpm_cmgdirectories( self, rel_path = '.', result = {}, maxN = -1, path_substrings = []):
+    def walk_dpm_cmgdirectories( self, rel_path = '.', __result = {}, maxN = -1, path_substrings = []):
         ''' Recursively looks for directories that look like cmg directories
         '''
         res = self.ls( rel_path )
+        result = {}
+        result.update( __result )
         if is_cmgdirectory( res ):
             logger.debug( "Found CMG dir: %s", rel_path )
             abs_path = self.abs_path(rel_path)
@@ -137,13 +138,12 @@ class walk_dpm:
                     return result
             # Otherwise update
             result[ self.abs_path(rel_path) ] = self.cmg_directory_content( rel_path, maxN = maxN)
-            return result
         else:
             dirs = filter( lambda f:f['is_dir'], res )
             if len(dirs)>0:
                 for f in dirs:
                     logger.debug( "Stepping into %s", f['path'] )
-                    result.update( self.walk_dpm_cmgdirectories( f['path'], result = result, maxN = maxN, path_substrings = path_substrings) )
+                    result.update( self.walk_dpm_cmgdirectories( f['path'], maxN = maxN, path_substrings = path_substrings) )
 
             else:
                 logger.debug( "Nothing found in %s", rel_path )
@@ -153,22 +153,29 @@ class walk_dpm:
     @staticmethod
     def combine_cmg_directories( cmg_directories ):
         import operator
-        total = sum(cmg_directories.values(),[])
-        all_jobIDs = set( map(operator.itemgetter(0), total ) )
-        all_jobIDs_withNorm = set( map(operator.itemgetter(0,2), total ) )
+        all_jobs_ = sum(cmg_directories.values(),[])
+        logger.info( "Now reading normalization of %i files" % len( all_jobs_ ) )
+        all_jobs = [ ( jobID,tree_file,read_normalization( log_file )) for jobID, tree_file, log_file in all_jobs_ ]
+        all_jobIDs = set( map(operator.itemgetter(0), all_jobs ) )
+        all_jobIDs_withNorm = set( map(operator.itemgetter(0,2), all_jobs ) ) 
         for jobID in all_jobIDs:
             if len(filter( lambda w:w[0]==jobID, all_jobIDs_withNorm ))>1:
                 raise RuntimeError( "Found multiple instances of job %i with different normalizations!" % jobID )
         files = [] 
         normalization = 0.
         for jobID in all_jobIDs:
-            jobID_, file_, normalization_ = next(tup for tup in total if tup[0]==jobID)
+            jobID_, file_, normalization_ = next(tup for tup in all_jobs if tup[0]==jobID)
             normalization += normalization_
             files.append( file_ )
 
         return normalization, files
 
 if __name__ == "__main__":
+
+    from StopsDilepton.tools.helpers import renewCredentials
+    proxy = renewCredentials()
+    print "Using proxy %s"%proxy
+
     import StopsDilepton.tools.logger as logger
     logger = logger.get_logger('DEBUG')
 
