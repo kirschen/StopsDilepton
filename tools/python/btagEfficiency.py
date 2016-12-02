@@ -81,21 +81,32 @@ class btagEfficiency:
         self.mcEfficiencyFile = effFile
 
         logger.info ( "Loading scale factors from %s", os.path.expandvars(self.scaleFactorFile) )
+        ROOT.gSystem.Load('libCondFormatsBTauObjects') 
+        ROOT.gSystem.Load('libCondToolsBTau')
         self.calib = ROOT.BTagCalibration("csvv2", os.path.expandvars(self.scaleFactorFile) )
 
         # Get readers
-        self.readerMuUp        = ROOT.BTagCalibrationReader(self.calib, WP, "mujets", "up")
-        self.readerMuCentral   = ROOT.BTagCalibrationReader(self.calib, WP, "mujets", "central")
-        self.readerMuDown      = ROOT.BTagCalibrationReader(self.calib, WP, "mujets", "down")
-        self.readerLightUp      = ROOT.BTagCalibrationReader(self.calib, WP, "incl", "up")
-        self.readerLightCentral = ROOT.BTagCalibrationReader(self.calib, WP, "incl", "central")
-        self.readerLightDown    = ROOT.BTagCalibrationReader(self.calib, WP, "incl", "down")
+        #recommended measurements for different jet flavours given here: https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80X#Data_MC_Scale_Factors
+        v_sys = getattr(ROOT, 'vector<string>')()
+        v_sys.push_back('up')
+        v_sys.push_back('down')
+        self.readerB        = ROOT.BTagCalibrationReader(WP, "central", v_sys)
+        self.readerC        = ROOT.BTagCalibrationReader(WP, "central", v_sys)
+        self.readerUDSG     = ROOT.BTagCalibrationReader(WP, "central", v_sys)
+        self.readerB.load(self.calib, 0, "comb")
+        self.readerC.load(self.calib, 1, "comb")
+        self.readerUDSG.load(self.calib, 2, "incl")
+
         if fastSim:
             logger.info( "Loading FullSim/FastSim scale factors from %s", os.path.expandvars( self.scaleFactorFileFS ) )
             self.calibFS = ROOT.BTagCalibration("csv", os.path.expandvars( self.scaleFactorFileFS ) )
-            self.readerFSCentral     = ROOT.BTagCalibrationReader(self.calibFS, WP, "fastsim", "central")
-            self.readerFSUp          = ROOT.BTagCalibrationReader(self.calibFS, WP, "fastsim", "up")
-            self.readerFSDown        = ROOT.BTagCalibrationReader(self.calibFS, WP, "fastsim", "down")
+            #need seperate readers for FS SFs as well now
+            self.readerFSB        = ROOT.BTagCalibrationReader(WP, "central", v_sys)
+            self.readerFSC        = ROOT.BTagCalibrationReader(WP, "central", v_sys)
+            self.readerFSUDSG     = ROOT.BTagCalibrationReader(WP, "central", v_sys)
+            self.readerFSB.load(self.calibFS, 0, "fastsim")
+            self.readerFSC.load(self.calibFS, 1, "fastsim")
+            self.readerFSUDSG.load(self.calibFS, 2, "fastsim")
 
         # Load MC efficiency
         logger.info( "Loading MC efficiency %s", os.path.expandvars(self.mcEfficiencyFile) )
@@ -118,45 +129,46 @@ class btagEfficiency:
 
     def getSF(self, pdgId, pt, eta):
         if pt<20: raise ValueError( "BTag SF Not implemented below 20 GeV. Got %f"%pt )
-        doubleUnc = False
-        pt_=pt
-        if pt<30:
-            pt_=30
-            doubleUnc=True
-        if pt>=670:
-            pt_=669.9
-            doubleUnc = True
-
-        sf_fs   = 1 if not self.fastSim else self.readerFSCentral.eval(toFlavourKey(pdgId), eta, pt_)
-        sf_fs_u = 1 if not self.fastSim else self.readerFSUp.eval(toFlavourKey(pdgId), eta, pt_)
-        sf_fs_d = 1 if not self.fastSim else self.readerFSDown.eval(toFlavourKey(pdgId), eta, pt_)
-        if sf_fs == 0:  # never actually happened...just for sanity
-            sf_fs = 1
-            sf_fs_u = 1
-            sf_fs_d = 1
+        #autobounds are implemented now, no doubling of uncertainties necessary anymore
         if abs(pdgId)==5: #SF for b
-            sf      = sf_fs*self.readerMuCentral.eval(ROOT.BTagEntry.FLAV_B, eta, pt_)
-            sf_b_d  = sf_fs*self.readerMuDown   .eval(ROOT.BTagEntry.FLAV_B, eta, pt_)
-            sf_b_u  = sf_fs*self.readerMuUp     .eval(ROOT.BTagEntry.FLAV_B, eta, pt_)
+            sf_fs   = 1 if not self.fastSim else self.readerFSB.eval_auto_bounds('central', ROOT.BTagEntry.FLAV_B, eta, pt)
+            sf_fs_u = 1 if not self.fastSim else self.readerFSB.eval_auto_bounds('down',    ROOT.BTagEntry.FLAV_B, eta, pt)
+            sf_fs_d = 1 if not self.fastSim else self.readerFSB.eval_auto_bounds('up',      ROOT.BTagEntry.FLAV_B, eta, pt)
+            if sf_fs == 0:  # should not happen, however, if pt=1000 (exactly) the reader will return a sf of 0.
+                sf_fs = 1
+                sf_fs_u = 1
+                sf_fs_d = 1
+            sf      = sf_fs*self.readerB.eval_auto_bounds('central',  ROOT.BTagEntry.FLAV_B, eta, pt)
+            sf_b_d  = sf_fs*self.readerB.eval_auto_bounds('down',     ROOT.BTagEntry.FLAV_B, eta, pt)
+            sf_b_u  = sf_fs*self.readerB.eval_auto_bounds('up',       ROOT.BTagEntry.FLAV_B, eta, pt)
             sf_l_d  = 1.
             sf_l_u  = 1.
         elif abs(pdgId)==4: #SF for c
-            sf     = sf_fs*self.readerMuCentral.eval(ROOT.BTagEntry.FLAV_C, eta, pt_)
-            sf_b_d = sf_fs*self.readerMuDown .eval(ROOT.BTagEntry.FLAV_C, eta, pt_)
-            sf_b_u = sf_fs*self.readerMuUp   .eval(ROOT.BTagEntry.FLAV_C, eta, pt_)
-            sf_l_d = 1.
-            sf_l_u = 1.
+            sf_fs   = 1 if not self.fastSim else self.readerFSC.eval_auto_bounds('central', ROOT.BTagEntry.FLAV_C, eta, pt)
+            sf_fs_u = 1 if not self.fastSim else self.readerFSC.eval_auto_bounds('down',    ROOT.BTagEntry.FLAV_C, eta, pt)
+            sf_fs_d = 1 if not self.fastSim else self.readerFSC.eval_auto_bounds('up',      ROOT.BTagEntry.FLAV_C, eta, pt)
+            if sf_fs == 0:  # should not happen, however, if pt=1000 (exactly) the reader will return a sf of 0.
+                sf_fs = 1
+                sf_fs_u = 1
+                sf_fs_d = 1
+            sf      = sf_fs*self.readerC.eval_auto_bounds('central',  ROOT.BTagEntry.FLAV_C, eta, pt)
+            sf_b_d  = sf_fs*self.readerC.eval_auto_bounds('down',     ROOT.BTagEntry.FLAV_C, eta, pt)
+            sf_b_u  = sf_fs*self.readerC.eval_auto_bounds('up',       ROOT.BTagEntry.FLAV_C, eta, pt)
+            sf_l_d  = 1.
+            sf_l_u  = 1.
         else: #SF for light flavours
-            sf     = sf_fs*self.readerLightCentral.eval(ROOT.BTagEntry.FLAV_UDSG, eta, pt_)
-            sf_b_d = 1.
-            sf_b_u = 1.
-            sf_l_d = sf_fs*self.readerLightDown .eval(ROOT.BTagEntry.FLAV_UDSG, eta, pt_)
-            sf_l_u = sf_fs*self.readerLightUp   .eval(ROOT.BTagEntry.FLAV_UDSG, eta, pt_)
-        if doubleUnc:
-            sf_b_d = sf + 2.*(sf_b_d - sf)
-            sf_b_u = sf + 2.*(sf_b_u - sf)
-            sf_l_d = sf + 2.*(sf_l_d - sf)
-            sf_l_u = sf + 2.*(sf_l_u - sf)
+            sf_fs   = 1 if not self.fastSim else self.readerFSUDSG.eval_auto_bounds('central', ROOT.BTagEntry.FLAV_UDSG, eta, pt)
+            sf_fs_u = 1 if not self.fastSim else self.readerFSUDSG.eval_auto_bounds('down',    ROOT.BTagEntry.FLAV_UDSG, eta, pt)
+            sf_fs_d = 1 if not self.fastSim else self.readerFSUDSG.eval_auto_bounds('up',      ROOT.BTagEntry.FLAV_UDSG, eta, pt)
+            if sf_fs == 0:  # should not happen, however, if pt=1000 (exactly) the reader will return a sf of 0.
+                sf_fs = 1
+                sf_fs_u = 1
+                sf_fs_d = 1
+            sf      = sf_fs*self.readerUDSG.eval_auto_bounds('central',  ROOT.BTagEntry.FLAV_UDSG, eta, pt)
+            sf_b_d  = 1.
+            sf_b_u  = 1.
+            sf_l_d  = sf_fs*self.readerUDSG.eval_auto_bounds('down',     ROOT.BTagEntry.FLAV_UDSG, eta, pt)
+            sf_l_u  = sf_fs*self.readerUDSG.eval_auto_bounds('up',       ROOT.BTagEntry.FLAV_UDSG, eta, pt)
         if self.fastSim:
             return (sf, sf_b_d, sf_b_u, sf_l_d, sf_l_u, sf*sf_fs_u/sf_fs, sf*sf_fs_d/sf_fs)
         else:
