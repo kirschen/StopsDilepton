@@ -68,12 +68,12 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
                 module_ = module
             if "Run2016" in sample:
                 from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
-                return data_heppy_mapper.from_heppy_samplename(heppy_sample.name)
+                return data_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             elif "T2tt" in sample:
                 raise NotImplementedError 
             else: 
                 from StopsDilepton.samples.heppy_dpm_samples import mc_heppy_mapper
-                return mc_heppy_mapper.from_heppy_samplename(heppy_sample.name)
+                return mc_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             raise ValueError
         else:                           
             sample = Sample.fromCMGOutput(

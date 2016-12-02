@@ -101,15 +101,17 @@ class heppy_mapper:
     def heppy_sample_names( self ):
         return [s.name for s in self.sample_map.keys()]
 
-    def from_heppy_sample( self, heppy_sample ):
+    def from_heppy_sample( self, heppy_sample, maxN = -1):
         if self.sample_map.has_key( heppy_sample ):
             res = self.sample_map[heppy_sample]
+            if maxN>0: res.files = res.files[:maxN]
             res.heppy = heppy_sample
             return res
-    def from_heppy_samplename( self, heppy_samplename ):
+    def from_heppy_samplename( self, heppy_samplename, maxN = -1):
         for heppy_sample in self.sample_map.keys():
             if heppy_samplename==heppy_sample.name:
                 res = self.sample_map[heppy_sample]
+                if maxN>0: res.files = res.files[:maxN]
                 res.heppy = heppy_sample
                 return res
         

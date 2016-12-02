@@ -228,7 +228,8 @@ skimConds = []
 if isDiLep:
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=2" )
 if isTriLep:
-    skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)&&LepGood_miniRelIso<0.4) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5&&LepGood_miniRelIso<0.4)>=2 && Sum$(LepOther_pt>10&&abs(LepOther_eta)<2.5)+Sum$(LepGood_pt>10&&abs(LepGood_eta)<2.5)>=3" )
+    raise NotImplementedError
+    # skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)&&LepGood_miniRelIso<0.4) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5&&LepGood_miniRelIso<0.4)>=2 && Sum$(LepOther_pt>10&&abs(LepOther_eta)<2.5)+Sum$(LepGood_pt>10&&abs(LepGood_eta)<2.5)>=3" )
 elif isSingleLep:
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=1" )
 elif isJet250:
@@ -398,7 +399,7 @@ if isTiny:
         #"HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
         #"HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
         "LepGood_eta", "LepGood_etaSc", "LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId",
-        "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits","LepGood_jetPtRelv2", "LepGood_jetPtRatiov2", "LepGood_eleCutIdSpring15_25ns_v1"
+        "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_relIso03", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits","LepGood_jetPtRelv2", "LepGood_jetPtRatiov2", "LepGood_eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz"
         ]
 
     #branches to be kept for MC samples only
@@ -519,14 +520,14 @@ if isMC:
 
 read_variables += [\
     TreeVariable.fromString('nLepGood/I'),
-    VectorTreeVariable.fromString('LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
+    VectorTreeVariable.fromString('LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]'),
     TreeVariable.fromString('nJet/I'),
     VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
 ]
 if isVeryLoose:
     read_variables += [\
         TreeVariable.fromString('nLepOther/I'),
-        VectorTreeVariable.fromString('LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
+        VectorTreeVariable.fromString('LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]'),
     ]
 new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) )
@@ -539,12 +540,12 @@ if isSingleLep:
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
 if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
-    new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I' ] )
+    new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I' ] )
     # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     new_variables.extend( ['mlmZ_mass/F'] )
     new_variables.extend( ['mt_photonEstimated/F'] )
 if isTriLep or isDiLep:
-    new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
+    new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
@@ -690,23 +691,25 @@ def filler( event ):
     bJets        = filter(lambda j:isBJet(j), jets)
     nonBJets     = filter(lambda j:not isBJet(j), jets)
     if isVeryLoose:
-        # all leptons up to relIso 1
-        mu_selector = muonSelector( iso = 999., dxy = 1., dz = 0.1 )
-        ele_selector = eleSelector( iso = 999., dxy = 1., dz = 0.1 )
-        leptons_pt10 = getGoodAndOtherLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
-        ptCut = 20 if not isVeryLoosePt10 else 10 
-        leptons      = filter(lambda l:l['pt']>ptCut, leptons_pt10)
+        raise NotImplementedError
+        ## all leptons up to relIso 0.5
+        #mu_selector = muonSelector( iso = 999., dxy = 1., dz = 0.1 )
+        #ele_selector = eleSelector( iso = 999., dxy = 1., dz = 0.1 )
+        #leptons_pt10 = getGoodAndOtherLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
+        #ptCut = 20 if not isVeryLoosePt10 else 10 
+        #leptons      = filter(lambda l:l['pt']>ptCut, leptons_pt10)
     elif isLoose:
-        # loose relIso lepton selection
-        mu_selector = muonSelector( iso = 0.4 )
-        ele_selector = eleSelector( iso = 0.4 )
+        raise NotImplementedError
+        ## loose relIso lepton selection
+        #mu_selector = muonSelector( iso = 0.4 )
+        #ele_selector = eleSelector( iso = 0.4 )
 
-        leptons_pt10 = getGoodLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
-        leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
+        #leptons_pt10 = getGoodLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
+        #leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     else:
         # using miniRelIso 0.2 as baseline 
-        mu_selector = muonSelector( iso = 0.2 )
-        ele_selector = eleSelector( iso = 0.2 )
+        mu_selector = muonSelector( relIso03 = 0.2 )
+        ele_selector = eleSelector( relIso03 = 0.2 )
         leptons_pt10 = getGoodLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
         leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
 
@@ -798,6 +801,7 @@ def filler( event ):
             event.l1_jetPtRatiov2  = leptons[0]['jetPtRatiov2']
             event.l1_jetPtRelv2    = leptons[0]['jetPtRelv2']
             event.l1_miniRelIso = leptons[0]['miniRelIso']
+            event.l1_relIso03 = leptons[0]['relIso03']
             event.l1_dxy = leptons[0]['dxy']
             event.l1_dz = leptons[0]['dz']
             event.l1_mIsoWP = multiIsoWPInt(leptons[0])
@@ -844,6 +848,7 @@ def filler( event ):
             event.l2_jetPtRatiov2  = leptons[1]['jetPtRatiov2']
             event.l2_jetPtRelv2    = leptons[1]['jetPtRelv2']
             event.l2_miniRelIso = leptons[1]['miniRelIso']
+            event.l2_relIso03 = leptons[1]['relIso03']
             event.l2_dxy = leptons[1]['dxy']
             event.l2_dz = leptons[1]['dz']
             event.l2_mIsoWP = multiIsoWPInt(leptons[1])
