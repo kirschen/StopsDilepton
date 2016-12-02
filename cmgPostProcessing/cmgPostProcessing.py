@@ -66,7 +66,7 @@ def get_parser():
         nargs='*',
         type=str,
 #        default=['MuonEG_Run2015D_16Dec'],
-        default=['WZZ'],
+        default=['TTJets'],
         help="List of samples to be post-processed, given as CMG component name"
         )
 
@@ -157,7 +157,8 @@ def get_parser():
 
     argParser.add_argument('--small',
         action='store_true',
-        help="Run the file on a small sample (for test purpose), bool flag set to True if used"
+        help="Run the file on a small sample (for test purpose), bool flag set to True if used",
+        #default = True
         )
 
     argParser.add_argument('--T2tt',
