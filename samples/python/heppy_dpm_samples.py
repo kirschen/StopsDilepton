@@ -1,29 +1,41 @@
 '''
 Extract cmg samples from dpm'''
 
-maxN_def = -1
+if __name__ == '__main__':
+    # Parse args if main
+    maxN_def = -1
+    def get_parser():
+        ''' Argument parser for post-processing module.
+        '''
+        import argparse
+        argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
+        argParser.add_argument('--logLevel', action='store', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], default='INFO', help="Log level for logging" )
+        argParser.add_argument('--overwrite', action='store_true', default=False, help="Overwrite cache?" )
+        argParser.add_argument('--maxN', action='store', type=int, default=maxN_def, help="Overwrite cache?" )
 
-def get_parser():
-    ''' Argument parser for post-processing module.
-    '''
-    import argparse
-    argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
-    argParser.add_argument('--logLevel', action='store', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], default='INFO', help="Log level for logging" )
-    argParser.add_argument('--overwrite', action='store_true', default=True, help="Overwrite cache?" )
-    argParser.add_argument('--maxN', action='store', type=int, default=maxN_def, help="Overwrite cache?" )
+        return argParser
 
-    return argParser
+    options = get_parser().parse_args()
 
-options = get_parser().parse_args()
+    # Logging
+    import StopsDilepton.tools.logger as logger_
+    logger = logger_.get_logger(options.logLevel, logFile = None )
 
+    overwrite = options.overwrite
+    maxN = options.maxN
 
-# Logging
-import StopsDilepton.tools.logger as logger_
-logger = logger_.get_logger(options.logLevel, logFile = None )
+else:
+    # Logging
+    import logging
+    logger = logging.getLogger(__name__)
 
-# Walk all subdirectories
+    overwrite = False 
+    maxN =      -1
+
+# StopsDilepton
 from StopsDilepton.samples.walk_dpm import walk_dpm
 
+# Standard imports
 import os
 import pickle
 
@@ -31,7 +43,7 @@ class heppy_mapper:
 
     def __init__(self, heppy_samples, dpm_directories, cache_file):
         # Read cache file, if exists
-        if os.path.exists( cache_file ) and not options.overwrite:
+        if os.path.exists( cache_file ) and not overwrite:
             self.sample_map = pickle.load( file(cache_file) )
             logger.info( "Loaded cache file %s" % cache_file )
         else:
@@ -47,7 +59,7 @@ class heppy_mapper:
             for data_path in dpm_directories:
                 logger.info( "Walking dpm directory %s", data_path )
                 walker = walk_dpm( data_path )
-                cmg_directories[ data_path ] = walker.walk_dpm_cmgdirectories('.',  maxN = options.maxN )
+                cmg_directories[ data_path ] = walker.walk_dpm_cmgdirectories('.',  maxN = maxN )
                 #del walker
 
             logger.info( "Now mapping directories to heppy samples" )
@@ -75,7 +87,7 @@ class heppy_mapper:
                         heppy_sample.name, 
                         files = ['root://hephyse.oeaw.ac.at/'+f for f in files],
                         normalization = normalization, 
-                        treeName = 'tree', isData = heppy_sample.isData, maxN = options.maxN)
+                        treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
                     
                     logger.info("Combined %i directories for sample %s to a total of %i files with normalization %3.2f", len(heppy_sample.candidate_directories), heppy_sample.name, len(files), normalization)
 
@@ -89,16 +101,18 @@ class heppy_mapper:
     def heppy_sample_names( self ):
         return [s.name for s in self.sample_map.keys()]
 
-    def from_heppy_sample( self, heppy_sample ):
+    def from_heppy_sample( self, heppy_sample, maxN = -1):
         if self.sample_map.has_key( heppy_sample ):
             res = self.sample_map[heppy_sample]
-            res.heppy_sample = heppy_sample
+            if maxN>0: res.files = res.files[:maxN]
+            res.heppy = heppy_sample
             return res
-    def from_heppy_samplename( self, heppy_samplename ):
+    def from_heppy_samplename( self, heppy_samplename, maxN = -1):
         for heppy_sample in self.sample_map.keys():
             if heppy_samplename==heppy_sample.name:
                 res = self.sample_map[heppy_sample]
-                res.heppy_sample = heppy_sample
+                if maxN>0: res.files = res.files[:maxN]
+                res.heppy = heppy_sample
                 return res
         
 # MC

@@ -29,6 +29,9 @@ genVars = ['eta','pt','phi','charge', 'status', 'pdgId', 'motherId', 'grandmothe
 def getGenPartsAll(c):
     return [getObjDict(c, 'genPartAll_', genVars, i) for i in range(int(getVarValue(c, 'ngenPartAll')))]
 
+def alwaysTrue(*args, **kwargs):
+  return True
+
 #https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF
 #https://www.dropbox.com/s/fsfw0gummwsc61v/lepawareJECv2_bkg_wp_300915.pdf?dl=0
 multiIsoWP = {'VL':{'mRelIso':0.25, 'ptRatiov2':0.67, 'ptRelv2':4.4},
@@ -48,7 +51,6 @@ def multiIsoLepString(wpMu, wpEle, i):
     return "((abs(LepGood_pdgId["+stri+"])==13&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpMu]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpMu]['ptRelv2'])+"))"\
               +"|| (abs(LepGood_pdgId["+stri+"])==11&&LepGood_miniRelIso["+stri+"]<"+str(multiIsoWP[wpEle]['mRelIso'])+"&&(LepGood_jetPtRatiov2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRatiov2'])+"||LepGood_jetPtRelv2["+stri+"]>"+str(multiIsoWP[wpEle]['ptRelv2'])+")))"
 
-
 def get_index_str( index ):
     if isinstance(index, int):
         index_str = "["+str(index)+"]"
@@ -63,14 +65,38 @@ def get_index_str( index ):
         raise ValueError( "Don't know what to do with index %r" % index )
     return index_str
 
-def leptonIsoSelectorString( iso, index = None):
+def multiIsoSelectorString( iso, index = None):
+    ''' Cut string for multi Iso'''
     index_str = get_index_str( index )
-    if isinstance(iso, numbers.Number):
-        return  "LepGood_miniRelIso"+index_str+"<%s"%iso
-    elif type(iso)==type(""):
-        return "LepGood_miniRelIso{idx_str}<{mRelIso}&&(LepGood_jetPtRatiov2{idx_str}>{ptRatiov2}||LepGood_jetPtRelv2{idx_str}>{ptRelv2})".format(idx_str = index_str, **multiIsoWP[iso])
-    else:
-        raise ValueError( "Don't know what to do with iso %r" % iso )
+    if not iso in multiIsoWP.keys():
+        raise ValueError( "Don't know what to do with multi iso %r" % iso )
+    return "LepGood_miniRelIso{idx_str}<{mRelIso}&&(LepGood_jetPtRatiov2{idx_str}>{ptRatiov2}||LepGood_jetPtRelv2{idx_str}>{ptRelv2})".format(idx_str = index_str, **multiIsoWP[iso])
+
+def miniIsoSelectorString( iso, index = None):
+    ''' Cut string for mini Iso'''
+    index_str = get_index_str( index )
+    if not isinstance(iso, numbers.Number):
+        raise ValueError( "Don't know what to do with miniIso %r" % iso )
+    return  "LepGood_miniRelIso"+index_str+"<%s"%iso
+
+def relIso03SelectorString( iso, index = None):
+    ''' Cut string for relIso03'''
+    index_str = get_index_str( index )
+    if not isinstance(iso, numbers.Number):
+        raise ValueError( "Don't know what to do with relIso03 %r" % iso )
+    return  "LepGood_relIso03"+index_str+"<%s"%iso
+
+def isoSelectorString( relIso03, multiIsoWP = None, miniIso = None, index = None):
+    ''' Cut string for all isos'''
+
+    # isoSelector( x ) defaults to relIso03 selector
+    if isinstance(relIso03, numbers.Number): iso_ = relIso03SelectorString( relIso03, index = index )
+    # isoSelector(relIso03 = None, multiIsoWP='VT') goes back to multiiso 
+    elif type(multiIsoWP)==type(""):           iso_ = multiIsoSelectorString( multiIsoWP, index = index)
+    # similar for miniIso
+    elif isinstance(miniIso, numbers.Number):  iso_ = miniIsoSelectorString( miniIso, index = index )
+    else:    raise ValueError( "Don't know what to do with iso args %r %r %r"%(relIso03, multiIsoWP, miniIso) )
+    return iso_
 
 def multiIsoSelector(WP):
     assert WP in multiIsoWPs,  "Unknown MultiIso WP %s. Use one of %s"%(WP, ",".join(multiIsoWPs))
@@ -80,6 +106,31 @@ def multiIsoSelector(WP):
             and (l["jetPtRatiov2"]>multiIsoWP[WP]['ptRatiov2'] or l['jetPtRelv2']>multiIsoWP[WP]['ptRelv2'] )
     return func
 
+def miniIsoSelector( miniRelIso ):
+    assert isinstance(miniRelIso, numbers.Number), "Don't know what to do with miniRelIso %r"%miniRelIso
+    def func(l):
+        return  l["miniRelIso"] < miniRelIso
+    return func
+
+def relIso03Selector(iso):
+    if not isinstance(iso, numbers.Number):
+        raise ValueError( "Don't know what to do with relIso03 %r" % iso )
+    def func(l):
+        return l["relIso03"]<iso 
+    return func
+
+def isoSelector( relIso03, multiIsoWP = None, miniIso = None):
+
+    # always true if no arguments
+    if relIso03 is None and multiIsoWP is None and miniIso is None: iso_ = alwaysTrue
+    # isoSelector( x ) defaults to relIso03 selector
+    elif isinstance(relIso03, numbers.Number): iso_ = relIso03Selector( relIso03 )
+    # isoSelector(relIso03 = None, multiIsoWP='VT') goes back to multiiso 
+    elif type(multiIsoWP)==type(""):           iso_ = multiIsoSelector( multiIsoWP )
+    # similar for miniIso
+    elif isinstance(miniIso, numbers.Number):  iso_ = miniIsoSelector( miniIso )
+    else:    raise ValueError( "Don't know what to do with iso args %r %r %r"%(relIso03, multiIsoWP, miniIso) )
+    return iso_
 
 __VT = multiIsoSelector('VT')
 __T = multiIsoSelector('T')
@@ -96,23 +147,10 @@ def multiIsoWPInt( l ):
     elif __VL( l ): return 1
     return 0
 
-def miniIsoSelector( miniRelIso ):
-    assert isinstance(miniRelIso, numbers.Number), "Don't know what to do with miniRelIso %r"%miniRelIso
-    def func(l):
-        return  l["miniRelIso"] < miniRelIso
-    return func
-
-
-def alwaysTrue(*args, **kwargs):
-  return True
-
 # MUONS
-def muonSelector(iso, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, loose=False):
+def muonSelector(relIso03 = 0.2, multiIsoWP = None, miniIso = None, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, loose=False):
 
-    if isinstance(iso, numbers.Number): iso_ = miniIsoSelector( iso )
-    elif type(iso)==type(""):           iso_ = multiIsoSelector( iso )
-    elif not iso:                       iso_ = alwaysTrue
-    else:                               raise ValueError( "Don't know what to do with iso %r"%iso )
+    iso_ = isoSelector( relIso03 = relIso03, multiIsoWP = multiIsoWP, miniIso = miniIso)
 
     def func(l, ptCut = 20):
         return \
@@ -136,9 +174,9 @@ def muonSelector(iso, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, loose=False):
 
     return func if not loose else funcLoose
 
-default_muon_selector = muonSelector( iso = 'VT', absEtaCut = 2.4)
+default_muon_selector = muonSelector( relIso03 = 0.2, absEtaCut = 2.4 )
 
-def muonSelectorString(iso = 'VT', ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum"):
+def muonSelectorString(relIso03 = 0.2, multiIsoWP = None, miniIso = None, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum"):
     idx = None if (index is None) or (type(index)==type("") and index.lower()=="sum") else index
     index_str = get_index_str( index  = idx)
     string = [\
@@ -149,7 +187,7 @@ def muonSelectorString(iso = 'VT', ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz =
                    "LepGood_sip3d"+index_str+"<4.0" ,
                    "abs(LepGood_dxy"+index_str+")<%s" % dxy ,
                    "abs(LepGood_dz"+index_str+")<%s" % dz ,
-                   leptonIsoSelectorString( iso, index = idx)
+                   isoSelectorString( relIso03 = relIso03, multiIsoWP = multiIsoWP, miniIso = miniIso, index = idx),
              ]
     if type(index)==type("") and index.lower()=='sum':
         return 'Sum$('+'&&'.join(string)+')'
@@ -158,33 +196,30 @@ def muonSelectorString(iso = 'VT', ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz =
 
 # ELECTRONS
 
-ele_MVAID =  {'VL': {(0,0.8):-0.16 , (0.8, 1.479):-0.65, (1.57, 999): -0.74},
-              'T':  {(0,0.8):0.87 , (0.8, 1.479):0.60, (1.57, 999):  0.17}
-}
-
-def eleMVAIDSelector( eleId ):
-    ele_mva_WP = ele_MVAID[eleId]
-    def func(l):
-        abs_ele_eta = abs(l["eta"])
-        for abs_ele_bin, mva_threshold in ele_mva_WP.iteritems():
-            if abs_ele_eta>=abs_ele_bin[0] and abs_ele_eta<abs_ele_bin[1] and l["mvaIdSpring15"] > mva_threshold: return True
-        return False
-    return func
+#ele_MVAID =  {'VL': {(0,0.8):-0.16 , (0.8, 1.479):-0.65, (1.57, 999): -0.74},
+#              'T':  {(0,0.8):0.87 , (0.8, 1.479):0.60, (1.57, 999):  0.17}
+#}
+#
+#def eleMVAIDSelector( eleId ):
+#    ele_mva_WP = ele_MVAID[eleId]
+#    def func(l):
+#        abs_ele_eta = abs(l["eta"])
+#        for abs_ele_bin, mva_threshold in ele_mva_WP.iteritems():
+#            if abs_ele_eta>=abs_ele_bin[0] and abs_ele_eta<abs_ele_bin[1] and l["mvaIdSpring15"] > mva_threshold: return True
+#        return False
+#    return func
 
 def eleCutIDSelector( ele_cut_Id = 4):
     def func(l):
-        return l["eleCutIdSpring15_25ns_v1"]>=ele_cut_Id 
+        return l["eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz"]>=ele_cut_Id 
     return func
 
-def eleSelector(iso, eleId = 4, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, noMissingHits=True, loose=False):
+def eleSelector(relIso03 = 0.2, multiIsoWP = None, miniIso = None, eleId = 4, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, noMissingHits=True, loose=False):
 
-    if isinstance(iso, numbers.Number): iso_ = miniIsoSelector( iso )
-    elif type(iso)==type(""):           iso_ = multiIsoSelector( iso )
-    elif not iso:                       iso_ = alwaysTrue
-    else:                               raise ValueError( "Don't know what to do with iso %r" % iso )
+    iso_ = isoSelector( relIso03 = relIso03, multiIsoWP = multiIsoWP, miniIso = miniIso)
 
     if isinstance(eleId, numbers.Number): id_ = eleCutIDSelector( eleId )
-    elif type(eleId)==type(""):           id_ = eleMVAIDSelector( eleId )
+    # elif type(eleId)==type(""):           id_ = eleMVAIDSelector( eleId )
     else:                                 raise ValueError( "Don't know what to do with eleId %r" % eleId )
 
     def func(l, ptCut = 20):
@@ -212,34 +247,34 @@ def eleSelector(iso, eleId = 4, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, noMissing
 
     return func if not loose else funcLoose
 
-default_ele_selector = eleSelector( iso = 'VT', eleId = 4, absEtaCut = 2.4 )
+default_ele_selector = eleSelector( relIso03 = 0.2, eleId = 4, absEtaCut = 2.4 )
 
 def eleIDSelectorString( eleId, index = None ):
     index_str = get_index_str( index )
 
     if isinstance(eleId, numbers.Number):
-        return "LepGood_eleCutIdSpring15_25ns_v1"+index_str+">=%i" % eleId 
-    elif type(eleId)==type(""):
-        return eleMVAString( eleId, index = index) 
+        return "LepGood_eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz"+index_str+">=%i" % eleId 
+    #elif type(eleId)==type(""):
+    #    return eleMVAString( eleId, index = index) 
     else:
         raise ValueError( "Don't know what to do with eleId %r" % eleId )
 
-def eleMVAString( eleId, index = None):
-    index_str = get_index_str( index )
-    ele_mva_WP = ele_MVAID[eleId]
-    abs_ele_eta = "abs(LepGood_eta"+index_str+")"
-    strings = []
-    for abs_ele_bin, mva_threshold in ele_mva_WP.iteritems():
-        strings.append("({abs_ele_eta}>={low_abs_ele_eta}&&{abs_ele_eta}<{high_abs_ele_eta}&&LepGood_mvaIdSpring15{idx_str}>{mva_threshold})".format(\
-            abs_ele_eta=abs_ele_eta, 
-            low_abs_ele_eta = abs_ele_bin[0],
-            high_abs_ele_eta=abs_ele_bin[1], 
-            idx_str = index_str,
-            mva_threshold = mva_threshold))
+#def eleMVAString( eleId, index = None):
+#    index_str = get_index_str( index )
+#    ele_mva_WP = ele_MVAID[eleId]
+#    abs_ele_eta = "abs(LepGood_eta"+index_str+")"
+#    strings = []
+#    for abs_ele_bin, mva_threshold in ele_mva_WP.iteritems():
+#        strings.append("({abs_ele_eta}>={low_abs_ele_eta}&&{abs_ele_eta}<{high_abs_ele_eta}&&LepGood_mvaIdSpring15{idx_str}>{mva_threshold})".format(\
+#            abs_ele_eta=abs_ele_eta, 
+#            low_abs_ele_eta = abs_ele_bin[0],
+#            high_abs_ele_eta=abs_ele_bin[1], 
+#            idx_str = index_str,
+#            mva_threshold = mva_threshold))
+#
+#    return "("+'||'.join(strings)+')'
 
-    return "("+'||'.join(strings)+')'
-
-def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum", noMissingHits=True):
+def eleSelectorString(relIso03 = 0.2, multiIsoWP = None, miniIso = None, eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum", noMissingHits=True):
     idx = None if (index is None) or (type(index)==type("") and index.lower()=="sum") else index
     index_str = get_index_str( index  = idx)
     string = [\
@@ -251,7 +286,7 @@ def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 
                    "LepGood_sip3d"+index_str+"<4.0" ,
                    "abs(LepGood_dxy"+index_str+")<%s" % dxy ,
                    "abs(LepGood_dz"+index_str+")<%s" % dz ,
-                   leptonIsoSelectorString( iso, index = idx),
+                   isoSelectorString( relIso03 = relIso03, multiIsoWP = multiIsoWP, miniIso = miniIso, index = idx),
                    eleIDSelectorString( eleId, index = idx),
              ]
 
@@ -261,7 +296,7 @@ def eleSelectorString(iso = 'VT', eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 
         return '&&'.join(string)
 
 
-leptonVars=['eta','etaSc', 'pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2', 'eleCutIdSpring15_25ns_v1']
+leptonVars=['eta','etaSc', 'pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'reliso03', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2', 'eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz']
 
 def getLeptons(c, collVars=leptonVars):
     return [getObjDict(c, 'LepGood_', collVars, i) for i in range(int(getVarValue(c, 'nLepGood')))]
