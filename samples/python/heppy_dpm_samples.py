@@ -9,7 +9,7 @@ def get_parser():
     import argparse
     argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
     argParser.add_argument('--logLevel', action='store', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], default='INFO', help="Log level for logging" )
-    argParser.add_argument('--overwrite', action='store_true', default=True, help="Overwrite cache?" )
+    argParser.add_argument('--overwrite', action='store_true', default=False, help="Overwrite cache?" )
     argParser.add_argument('--maxN', action='store', type=int, default=maxN_def, help="Overwrite cache?" )
 
     return argParser

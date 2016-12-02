@@ -50,7 +50,6 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
     except:
         raise ValueError( "Could not load sample '%s' from %s "%( sample, module_ ) )
 
-    # helpers
     subDir = getSubDir(heppy_sample.dataset, data_path)
     if not subDir:
         raise ValueError( "Not a good dataset name: '%s'"%heppy_sample.dataset )
@@ -63,21 +62,31 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
             path, 
             treeFilename = 'tree.root', 
             treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
-    else:   
-        if '/dpm' in data_path:
-            pd, era = heppy_sample.dataset.split('/')[1:3]
-            from walk_dpm import walk_dpm
-            walker = walk_dpm( data_path )
-            cmg_directories = walker.walk_dpm_cmgdirectories('.', path_substrings = ['/%s/'%pd, '/'+era], maxN = maxN)
-            if len( cmg_directories ) > 1:
-                logger.warning( "Sample: %s Combining paths %s", sample, ",".join(cmg_directories.keys()) )
-            normalization, files = walker.combine_cmg_directories( cmg_directories )
-            logger.info( "Sample %s: Found a total of %i files with normalization %3.2f", sample, len(files), normalization)
-            sample = Sample.fromFiles(
-                heppy_sample.name, 
-                files = ['root://hephyse.oeaw.ac.at/'+f for f in files],
-                normalization = normalization, 
-                treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
+    else:  # Vienna -> Load from DPM 
+        if True: #'/dpm' in data_path:
+            if module is not None:
+                module_ = module
+            if "Run2016" in sample:
+                from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
+                return data_heppy_mapper[heppy_sample]
+            elif "T2tt" in sample:
+                raise NotImplementedError 
+            else: 
+                from StopsDilepton.samples.heppy_dpm_samples import mc_heppy_mapper
+                return mc_heppy_mapper[heppy_sample]
+#            pd, era = heppy_sample.dataset.split('/')[1:3]
+#            from walk_dpm import walk_dpm
+#            walker = walk_dpm( data_path )
+#            cmg_directories = walker.walk_dpm_cmgdirectories('.', path_substrings = ['/%s/'%pd, '/'+era], maxN = maxN)
+#            if len( cmg_directories ) > 1:
+#                logger.warning( "Sample: %s Combining paths %s", sample, ",".join(cmg_directories.keys()) )
+#            normalization, files = walker.combine_cmg_directories( cmg_directories )
+#            logger.info( "Sample %s: Found a total of %i files with normalization %3.2f", sample, len(files), normalization)
+#            sample = Sample.fromFiles(
+#                heppy_sample.name, 
+#                files = ['root://hephyse.oeaw.ac.at/'+f for f in files],
+#                normalization = normalization, 
+#                treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
         else:                           
             sample = Sample.fromCMGOutput(
                 heppy_sample.name, 
