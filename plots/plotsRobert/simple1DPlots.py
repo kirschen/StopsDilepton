@@ -47,6 +47,12 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
+argParser.add_argument('--PR',
+    action='store_true',
+    #default = True,
+    help='PR?',
+)
+
 argParser.add_argument('--dPhi',
     action='store',
     default = 'def',
@@ -84,11 +90,11 @@ argParser.add_argument('--splitDiBoson',
 )
 
 
-argParser.add_argument('--diBosonScaleFactor',
-    type = float,
-    default = 1.,
-    action='store',
-)
+#argParser.add_argument('--diBosonScaleFactor',
+#    type = float,
+#    default = 1.,
+#    action='store',
+#)
 
 argParser.add_argument('--noScaling',
     action='store_true',
@@ -158,7 +164,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v12_5',
+    default='80X_v15',
     action='store',
 )
 
@@ -181,10 +187,20 @@ def getZCut(mode):
 # Extra requirements on data
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = mcFilterCut+"&&weight>0"
+
+# MC
+#data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
 postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+
+#Data 
+if args.PR:
+    postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+else:
+    data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+    postProcessing_directory = "postProcessed_80X_v15/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
 sample_DoubleEG    = DoubleEG_Run2016BCD_backup
@@ -454,6 +470,18 @@ if args.loop:
 else:
     l_combs = [ len(cuts) ]
 
+ppfixes = [args.mode]
+if args.mode.lower() != "dilepton": ppfixes.append( args.zMode )
+#ppfixes.append( "DBS%i"%(100*args.diBosonScaleFactor) )
+if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
+if args.noScaling: ppfixes.append( "noScaling" )
+if args.ttjets=='mg': ppfixes.append( "TTMG" )
+if args.noData : ppfixes.append( "noData" )
+ppfixes.append( 'PR' if args.PR else 'RR' )
+if args.small: ppfixes = ['small'] + ppfixes
+
+plot_subdirectory = "-".join( ppfixes )
+
 for l_comb in l_combs:
     for comb in itertools.combinations( cuts, l_comb ):
 
@@ -470,15 +498,7 @@ for l_comb in l_combs:
         presel.extend( basic_cuts )
         presel.extend( comb )
 
-        ppfixes = [args.mode]
-        if args.mode.lower() != "dilepton": ppfixes.append( args.zMode )
-        ppfixes.append( "DBS%i"%(100*args.diBosonScaleFactor) )
-        if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
-        if args.noScaling: ppfixes.append( "noScaling" )
-        if args.ttjets=='mg': ppfixes.append( "TTMG" )
-        if args.noData : ppfixes.append( "noData" )
-        if args.small: ppfixes = ['small'] + ppfixes
-        prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
+        prefix =  '-'.join([p[0] for p in presel ] )
 
         selectionString = "&&".join( [p[1] for p in presel] )
 
@@ -491,8 +511,8 @@ for l_comb in l_combs:
             s.scale = 1
         for s in mc_samples + signal_samples:
             s.scale = lumi_scale
-        for s in diBoson_samples:
-            s.scale*=args.diBosonScaleFactor
+#        for s in diBoson_samples:
+#            s.scale*=args.diBosonScaleFactor
 
         if not args.noData:
             logger.info( "Calculating normalization constants" )
@@ -515,7 +535,7 @@ for l_comb in l_combs:
             prefix+='-mt2ll100'
             selectionString+='&&dl_mt2ll>100'
 
-        plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
+        plot_path = os.path.join(plot_directory, args.plot_directory, plot_subdirectory, prefix)
         if os.path.exists(plot_path) and not args.overwrite:
             logger.info( "Path %s not empty. Skipping."%plot_path )
             continue
@@ -577,7 +597,7 @@ for l_comb in l_combs:
             name = "cosMetJet1phi",
             texX = 'Cos(#phi(#slash{E}_{T}, Jet[1]))', texY = 'Number of Events',
             stack = stack, 
-            attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) 
+            attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ), 
             binning = [10,-1,1], 
             selectionString = selectionString,
             weight = weight,
