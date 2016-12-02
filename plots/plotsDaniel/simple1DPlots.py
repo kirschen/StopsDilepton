@@ -134,19 +134,9 @@ argParser.add_argument('--pu',
     help='PU weight',
 )
 
-argParser.add_argument('--noBtagSF',
+argParser.add_argument('--onlyLeptonSF',
     action='store_true',
-    help='Dont use b-tag SFs',
-)
-
-argParser.add_argument('--noLeptonSF',
-    action='store_true',
-    help='Dont use lepton SFs',
-)
-
-argParser.add_argument('--noHIPSF',
-    action='store_true',
-    help='Dont use HIP SFs',
+    help='Dont use HIP and b-tag SFs',
 )
 
 argParser.add_argument('--ttjets',
@@ -335,23 +325,24 @@ mc_weight_string = "weight*reweightDilepTriggerBackup"
 if args.pu != "None":
     mc_weight_string+="*"+args.pu
 
-if not args.noBtagSF:
-    mc_weight_string += '*reweightBTag_SF'
-if not args.noLeptonSF:
-    mc_weight_string += '*reweightLeptonSF'
-if not args.noHIPSF:
-    mc_weight_string += '*reweightLeptonHIPSF'
+if not args.onlyLeptonSF:
+    mc_weight_string += '*reweightBTag_SF*reweightLeptonHIPSF'
 
-data_weight_string = "weight"
+data_weight_string = "weight*reweightLeptonSF"
 
 for sample in mc_samples :
     sample.style = styles.fillStyle( sample.color)
 
 for sample in mc_samples + signal_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
-    if args.pu != "None":
-        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+    if args.pu != "None": 
+        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightLeptonSF/F']
+        sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup
+        if not args.onlyLeptonSF:
+          sample.read_variables += ['reweightBTag_SF/F', 'reweightLeptonHIPSF/F']
+          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+        else:
+          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF
     else:
         sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
         sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
