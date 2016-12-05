@@ -121,7 +121,7 @@ class heppy_mapper:
                 return res
         
 ## MC
-mc_cache_file = '/afs/hephy.at/work/r/rschoefbeck/StopsDilepton/dpm_sample_caches/80X_1l_MC.pkl'
+mc_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_MC.pkl'
 def_robert = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_21'
 def_daniel = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_21'
 mc_dpm_directories = [ def_robert, def_daniel ]
@@ -129,9 +129,8 @@ from CMGTools.RootTools.samples.samples_13TeV_RunIISpring16MiniAODv2 import mcSa
 mc_heppy_mapper = heppy_mapper( heppy_mc_samples, mc_dpm_directories, mc_cache_file)
 
 # Data
-data_cache_file = '/afs/hephy.at/work/r/rschoefbeck/StopsDilepton/dpm_sample_caches/80X_1l_data.pkl'
+data_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_data.pkl'
 def_robert = "/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_20/"
-#def_robert = "/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_20/SingleMuon/Run2016B-23Sep2016-v3_80X_1l_20/"
 data_dpm_directories = [def_robert]
 from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import dataSamples as heppy_data_samples
 data_heppy_mapper = heppy_mapper( heppy_data_samples, data_dpm_directories, data_cache_file)
