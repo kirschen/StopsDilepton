@@ -280,5 +280,6 @@ def renewCredentials( filename = None):
             else:
                 raise RuntimeError( "Failed to make proxy %s" % new_proxy )
 
-    os.environ["X509_USER_PROXY"] = proxy
+        os.environ["X509_USER_PROXY"] = new_proxy
+
     return proxy
