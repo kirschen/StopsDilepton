@@ -22,7 +22,7 @@ except:
     #  from StopsDilepton.tools.user import data_directory_alt as user_data_directory_alt
     #  postProcessing_directory = user_data_sample_directory_alt + 'postProcessed_80X_v15/dilepTiny'
     #except:
-    postProcessing_directory = 'postProcessed_80X_v15/dilepTiny'
+    postProcessing_directory = 'postProcessed_80X_v21/dilepTiny'
 
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
@@ -35,25 +35,25 @@ dirs["DoubleEG_Run2016B_backup"]    = ["DoubleEG_Run2016B_23Sep2016_Trig_ee", "S
 dirs["DoubleMuon_Run2016B_backup"]  = ["DoubleMuon_Run2016B_23Sep2016_Trig_mumu", "SingleMuon_Run2016B_23Sep2016_Trig_mu_for_mumu"]
 dirs["MuonEG_Run2016B_backup"]      = ["MuonEG_Run2016B_23Sep2016_Trig_mue", "SingleElectron_Run2016B_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016B_23Sep2016_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016C_backup"]    = ["DoubleEG_Run2016C_23Sep2016_v1_Trig_ee", "SingleElectron_Run2016C_23Sep2016_v1_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016C_backup"]  = ["DoubleMuon_Run2016C_23Sep2016_v1_Trig_mumu", "SingleMuon_Run2016C_23Sep2016_v1_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016C_backup"]      = ["MuonEG_Run2016C_23Sep2016_v1_Trig_mue", "SingleElectron_Run2016C_23Sep2016_v1_Trig_e_for_mue", "SingleMuon_Run2016C_23Sep2016_v1_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016C_backup"]    = ["DoubleEG_Run2016C_23Sep2016_Trig_ee", "SingleElectron_Run2016C_23Sep2016_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016C_backup"]  = ["DoubleMuon_Run2016C_23Sep2016_Trig_mumu", "SingleMuon_Run2016C_23Sep2016_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016C_backup"]      = ["MuonEG_Run2016C_23Sep2016_Trig_mue", "SingleElectron_Run2016C_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016C_23Sep2016_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016D_backup"]    = ["DoubleEG_Run2016D_23Sep2016_v1_Trig_ee", "SingleElectron_Run2016D_23Sep2016_v1_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016D_backup"]  = ["DoubleMuon_Run2016D_23Sep2016_v1_Trig_mumu", "SingleMuon_Run2016D_23Sep2016_v1_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016D_backup"]      = ["MuonEG_Run2016D_23Sep2016_v1_Trig_mue", "SingleElectron_Run2016D_23Sep2016_v1_Trig_e_for_mue", "SingleMuon_Run2016D_23Sep2016_v1_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016D_backup"]    = ["DoubleEG_Run2016D_23Sep2016_Trig_ee", "SingleElectron_Run2016D_23Sep2016_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016D_backup"]  = ["DoubleMuon_Run2016D_23Sep2016_Trig_mumu", "SingleMuon_Run2016D_23Sep2016_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016D_backup"]      = ["MuonEG_Run2016D_23Sep2016_Trig_mue", "SingleElectron_Run2016D_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016D_23Sep2016_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016E_backup"]    = ["DoubleEG_Run2016E_23Sep2016_v1_Trig_ee", "SingleElectron_Run2016E_23Sep2016_v1_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016E_backup"]  = ["DoubleMuon_Run2016E_23Sep2016_v1_Trig_mumu", "SingleMuon_Run2016E_23Sep2016_v1_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016E_backup"]      = ["MuonEG_Run2016E_23Sep2016_v1_Trig_mue", "SingleElectron_Run2016E_23Sep2016_v1_Trig_e_for_mue", "SingleMuon_Run2016E_23Sep2016_v1_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016E_backup"]    = ["DoubleEG_Run2016E_23Sep2016_Trig_ee", "SingleElectron_Run2016E_23Sep2016_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016E_backup"]  = ["DoubleMuon_Run2016E_23Sep2016_Trig_mumu", "SingleMuon_Run2016E_23Sep2016_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016E_backup"]      = ["MuonEG_Run2016E_23Sep2016_Trig_mue", "SingleElectron_Run2016E_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016E_23Sep2016_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016F_backup"]    = ["DoubleEG_Run2016F_23Sep2016_v1_Trig_ee", "SingleElectron_Run2016F_23Sep2016_v1_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016F_backup"]  = ["DoubleMuon_Run2016F_23Sep2016_v1_Trig_mumu", "SingleMuon_Run2016F_23Sep2016_v1_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016F_backup"]      = ["MuonEG_Run2016F_23Sep2016_v1_Trig_mue", "SingleElectron_Run2016F_23Sep2016_v1_Trig_e_for_mue", "SingleMuon_Run2016F_23Sep2016_v1_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016F_backup"]    = ["DoubleEG_Run2016F_23Sep2016_Trig_ee", "SingleElectron_Run2016F_23Sep2016_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016F_backup"]  = ["DoubleMuon_Run2016F_23Sep2016_Trig_mumu", "SingleMuon_Run2016F_23Sep2016_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016F_backup"]      = ["MuonEG_Run2016F_23Sep2016_Trig_mue", "SingleElectron_Run2016F_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016F_23Sep2016_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016G_backup"]    = ["DoubleEG_Run2016G_23Sep2016_v1_Trig_ee", "SingleElectron_Run2016G_23Sep2016_v1_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016G_backup"]  = ["DoubleMuon_Run2016G_23Sep2016_v1_Trig_mumu", "SingleMuon_Run2016G_23Sep2016_v1_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016G_backup"]      = ["MuonEG_Run2016G_23Sep2016_v1_Trig_mue", "SingleElectron_Run2016G_23Sep2016_v1_Trig_e_for_mue", "SingleMuon_Run2016G_23Sep2016_v1_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016G_backup"]    = ["DoubleEG_Run2016G_23Sep2016_Trig_ee", "SingleElectron_Run2016G_23Sep2016_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016G_backup"]  = ["DoubleMuon_Run2016G_23Sep2016_Trig_mumu", "SingleMuon_Run2016G_23Sep2016_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016G_backup"]      = ["MuonEG_Run2016G_23Sep2016_Trig_mue", "SingleElectron_Run2016G_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016G_23Sep2016_Trig_mu_for_mue"]
 
 
 
