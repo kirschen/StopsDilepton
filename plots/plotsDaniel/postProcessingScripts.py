@@ -2,9 +2,16 @@ import ROOT,pickle
 import time
 
 from StopsDilepton.samples.heppy_dpm_samples import mc_heppy_mapper
+from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
 
-s = mc_heppy_mapper
-samples = s.heppy_sample_names
+
+mc = mc_heppy_mapper
+mc_samples = mc.heppy_sample_names
+
+data = data_heppy_mapper
+data_samples = data.heppy_sample_names
+
+samples = data_samples + mc_samples
 
 def getPPString(sampleName, processType, jobtitle='2l_PP', vetoString='supercomplicatedstringnevertobefoundinasample', additionalOptions=''):
   sm = sorted([a for a in samples if sampleName in a])

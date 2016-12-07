@@ -148,7 +148,7 @@ argParser.add_argument('--onlyLeptonSF',
 argParser.add_argument('--ttjets',
     default='pow',
     action='store',
-    choices=['mg', 'pow'],
+    choices=['mg', 'pow', 'powIncl', 'amc'],
     help='ttjets sample',
 )
 
@@ -190,25 +190,25 @@ def getZCut(mode):
     return "(1)"
 
 # Extra requirements on data
-mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
+mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
 dataFilterCut = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
 dataFilterCut +="&&weight>0"
 #dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
 #from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
-#Full dataset
-sample_DoubleMuon  = DoubleMuon_Run2016BCDEFG_backup
-sample_DoubleEG    = DoubleEG_Run2016BCDEFG_backup
-sample_MuonEG      = MuonEG_Run2016BCDEFG_backup
+##Full dataset
+#sample_DoubleMuon  = DoubleMuon_Run2016BCDEFG_backup
+#sample_DoubleEG    = DoubleEG_Run2016BCDEFG_backup
+#sample_MuonEG      = MuonEG_Run2016BCDEFG_backup
 
-##ICHEP dataset
-#sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
-#sample_DoubleEG    = DoubleEG_Run2016BCD_backup
-#sample_MuonEG      = MuonEG_Run2016BCD_backup
+#ICHEP dataset
+sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
+sample_DoubleEG    = DoubleEG_Run2016BCD_backup
+sample_MuonEG      = MuonEG_Run2016BCD_backup
 
 if args.mode=="doubleMu":
     lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
@@ -279,6 +279,10 @@ if args.ttjets=='mg':
     TTJets_sample = Top
 elif args.ttjets=='pow':
     TTJets_sample = Top_pow 
+elif args.ttjets=='powIncl':
+    TTJets_sample = Top_pow_incl
+elif args.ttjets=='amc':
+    TTJets_sample = Top_amc
 
 mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson]
 
@@ -510,6 +514,8 @@ for l_comb in l_combs:
         if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
         if args.noScaling: ppfixes.append( "noScaling" )
         if args.ttjets=='mg': ppfixes.append( "TTMG" )
+        elif args.ttjets=='powIncl': ppfixes.append( "TTpowIncl" )
+        elif args.ttjets=='amc': ppfixes.append( "TTamc" )
         if args.noData : ppfixes.append( "noData" )
         if args.small: ppfixes = ['small'] + ppfixes
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
