@@ -121,6 +121,12 @@ argParser.add_argument('--nbtag',
     choices=['0', '0p', '1', '1p',]
 )
 
+argParser.add_argument('--btagWP',
+    default='M',
+    action='store',
+    choices=['L', 'M', 'T']
+)
+
 argParser.add_argument('--met',
     default='def',
     action='store',
@@ -142,7 +148,7 @@ argParser.add_argument('--onlyLeptonSF',
 argParser.add_argument('--ttjets',
     default='pow',
     action='store',
-    choices=['mg', 'pow'],
+    choices=['mg', 'pow', 'powIncl', 'amc'],
     help='ttjets sample',
 )
 
@@ -185,22 +191,24 @@ def getZCut(mode):
 
 # Extra requirements on data
 mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
-dataFilterCut = mcFilterCut+"&&weight>0"
+dataFilterCut = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
+dataFilterCut +="&&weight>0"
+#dataFilterCut = mcFilterCut+"&&weight>0"
 postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
 #from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 ##Full dataset
-#sample_DoubleMuon  = DoubleMuon_Run2016BCDEFG_backup
-#sample_DoubleEG    = DoubleEG_Run2016BCDEFG_backup
-#sample_MuonEG      = MuonEG_Run2016BCDEFG_backup
+sample_DoubleMuon  = DoubleMuon_Run2016_backup
+sample_DoubleEG    = DoubleEG_Run2016_backup
+sample_MuonEG      = MuonEG_Run2016_backup
 
-#ICHEP dataset
-sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
-sample_DoubleEG    = DoubleEG_Run2016BCD_backup
-sample_MuonEG      = MuonEG_Run2016BCD_backup
+##ICHEP dataset
+#sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
+#sample_DoubleEG    = DoubleEG_Run2016BCD_backup
+#sample_MuonEG      = MuonEG_Run2016BCD_backup
 
 if args.mode=="doubleMu":
     lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
@@ -271,6 +279,10 @@ if args.ttjets=='mg':
     TTJets_sample = Top
 elif args.ttjets=='pow':
     TTJets_sample = Top_pow 
+elif args.ttjets=='powIncl':
+    TTJets_sample = Top_pow_incl
+elif args.ttjets=='amc':
+    TTJets_sample = Top_amc
 
 mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson]
 
@@ -318,7 +330,7 @@ lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
 
 logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 
-mc_weight_string = "weight*reweightDilepTriggerBackup"
+mc_weight_string = "weight*reweightDilepTriggerBackup*reweightLeptonSF"
 
 
 
@@ -328,7 +340,7 @@ if args.pu != "None":
 if not args.onlyLeptonSF:
     mc_weight_string += '*reweightBTag_SF*reweightLeptonHIPSF'
 
-data_weight_string = "weight*reweightLeptonSF"
+data_weight_string = "weight"
 
 for sample in mc_samples :
     sample.style = styles.fillStyle( sample.color)
@@ -387,9 +399,12 @@ def mCutStr( arg ):
         return '<=1'
 
 def selection( ):
+    btagStr = "nBTag"
+    if args.btagWP == 'L': btagStr = 'Sum$(JetGood_btagCSV>0.460&&JetGood_pt>30&&abs(JetGood_eta)<2.4)'
+    elif args.btagWP == 'T': btagStr = 'Sum$(JetGood_btagCSV>0.935&&JetGood_pt>30&&abs(JetGood_eta)<2.4)'
     res = [ \
         ("njet%s"%args.njet, "nJetGood%s"%mCutStr( args.njet )),
-        ("nbtag%s"%args.nbtag, "nBTag%s"%mCutStr( args.nbtag ))]
+        ("nbtag"+args.btagWP+"%s"%args.nbtag, btagStr+"%s"%mCutStr( args.nbtag ))]
     if args.met=='def': res.extend([\
         ("met80", "met_pt>80"),
         ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
@@ -437,7 +452,7 @@ def makeMinDeltaRLepJets( event, sample ):
         setattr( event, "minDeltaRLepJets", float('nan') )
 
     event.bjets = filter(lambda j: j['btagCSV']>0.8, event.jets)
-    loose_bjets = filter(lambda j: j['btagCSV']>0.605, event.jets)
+    loose_bjets = filter(lambda j: j['btagCSV']>0.460, event.jets)
     if len(loose_bjets)>0:
         dr =  [deltaR(j, {'eta':event.l1_eta, 'phi':event.l1_phi}) for j in loose_bjets] 
         dr += [deltaR(j, {'eta':event.l2_eta, 'phi':event.l2_phi}) for j in loose_bjets] 
@@ -499,6 +514,8 @@ for l_comb in l_combs:
         if args.splitDiBoson: ppfixes.append( "splitDiBoson" )
         if args.noScaling: ppfixes.append( "noScaling" )
         if args.ttjets=='mg': ppfixes.append( "TTMG" )
+        elif args.ttjets=='powIncl': ppfixes.append( "TTpowIncl" )
+        elif args.ttjets=='amc': ppfixes.append( "TTamc" )
         if args.noData : ppfixes.append( "noData" )
         if args.small: ppfixes = ['small'] + ppfixes
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
