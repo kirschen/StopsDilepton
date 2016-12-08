@@ -59,7 +59,7 @@ multiIsoWPMT = multiIsoLepString('M','T', ('l1_index','l2_index'))
 relIso04sm12Cut =   "&&".join(["LepGood_relIso04["+ist+"]<0.12" for ist in ('l1_index','l2_index')])
 
 weight_string = 'weight*reweightDilepTriggerBackup*reweightLeptonSF'
-lumiFac = 2.4
+lumiFac = 36.5
 
 cuts=[
   #("==2 VT leptons (25/20)", "nGoodMuons+nGoodElectrons==2&&l1_mIsoWP>=5&&l2_mIsoWP>=5&&l1_pt>25"),

@@ -209,8 +209,8 @@ class walk_dpm:
 
 if __name__ == "__main__":
 
-    from StopsDilepton.tools.helpers import renewCredentials
-    proxy = renewCredentials()
+    from StopsDilepton.tools.helpers import renew_proxy
+    proxy = renew_proxy()
     logger.info( "Using proxy %s"%proxy )
 
     import StopsDilepton.tools.logger as logger

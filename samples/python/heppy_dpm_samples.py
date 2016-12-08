@@ -48,11 +48,15 @@ class heppy_mapper:
             self.sample_map = pickle.load( file(cache_file) )
             logger.info( "Loaded cache file %s" % cache_file )
         else:
-            # Proxy certificate
             logger.info( "Cache file %s not found. Recreate map.", cache_file)
             logger.info( "Check proxy.")
-            from StopsDilepton.tools.helpers import renewCredentials
-            proxy = renewCredentials()
+
+            # Proxy certificate
+            from StopsDilepton.tools.helpers import renew_proxy
+            user = os.environ['USER']
+            # Make proxy in afs to allow batch jobs to run
+            proxy_path = '/afs/hephy.at/user/%s/%s/private/.proxy'%(user[0], user)
+            proxy = renew_proxy( proxy_path )
             logger.info( "Using proxy %s"%proxy )
 
             # Read dpm directories

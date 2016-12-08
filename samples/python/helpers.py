@@ -66,6 +66,14 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
             treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
     else:  # Vienna -> Load from DPM 
         if True: #'/dpm' in data_path:
+
+            from StopsDilepton.tools.helpers import renew_proxy
+            user = os.environ['USER']
+            # Make proxy in afs to allow batch jobs to run
+            proxy_path = '/afs/hephy.at/user/%s/%s/private/.proxy'%(user[0], user)
+            proxy = renew_proxy( proxy_path )
+            logger.info( "Using proxy %s"%proxy )
+
             if module is not None:
                 module_ = module
             if "Run2016" in sample:
