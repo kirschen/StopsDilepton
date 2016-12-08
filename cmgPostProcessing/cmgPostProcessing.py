@@ -251,13 +251,17 @@ if options.T2tt:
     logger.debug( "Fetching signal weights..." )
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
     logger.debug("Done fetching signal weights.")
-elif options.TTDM:
-    samples = [ fromHeppySample(s, data_path = "/scratch/rschoefbeck/cmgTuples/80X_0l_TTDM/", \
-                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2",  
-                    maxN = maxN)\
-                for s in options.samples ]
+#elif options.TTDM:
+#    samples = [ fromHeppySample(s, data_path = "/scratch/rschoefbeck/cmgTuples/80X_0l_TTDM/", \
+#                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2",  
+#                    maxN = maxN)\
+#                for s in options.samples ]
 else:
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
+
+if len(samples)==0:
+    logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
+    sys.exit(-1)
 
 isData = False not in [s.isData for s in samples]
 isMC   =  True not in [s.isData for s in samples]

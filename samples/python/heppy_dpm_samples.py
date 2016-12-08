@@ -9,7 +9,7 @@ if __name__ == '__main__':
         '''
         import argparse
         argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
-        argParser.add_argument('--logLevel', action='store', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], default='INFO', help="Log level for logging" )
+        argParser.add_argument('--logLevel', action='store', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'DEBUG', 'DEBUG', 'TRACE', 'NOTSET'], default='INFO', help="Log level for logging" )
         argParser.add_argument('--overwrite', action='store_true', default=False, help="Overwrite cache?" )
         argParser.add_argument('--nomultithreading', action='store_true', default=False, help="No multithreading?" )
         argParser.add_argument('--maxN', action='store', type=int, default=maxN_def, help="Overwrite cache?" )
@@ -70,9 +70,14 @@ class heppy_mapper:
                 pd, era = heppy_sample.dataset.split('/')[1:3]
                 for data_path in self.cmg_directories.keys():
                     for dpm_directory in self.cmg_directories[data_path].keys():
-                        if ('/%s/'%pd in dpm_directory) and ('/'+era in dpm_directory):
-                            heppy_sample.candidate_directories.append([data_path, dpm_directory])
-                            logger.debug( "heppy sample %s in %s", heppy_sample.name, dpm_directory)
+                        if not ('/%s/'%pd in dpm_directory):
+                            logger.debug( "/%s/ not in dpm_directory %s", pd, dpm_directory )
+                            continue
+                        if not ('/'+era in dpm_directory):
+                            logger.debug( "/%s not in dpm_directory %s", era, dpm_directory )
+                            continue
+                        heppy_sample.candidate_directories.append([data_path, dpm_directory])
+                        logger.debug( "heppy sample %s in %s", heppy_sample.name, dpm_directory)
                 logger.info(  "Found heppy sample %s in %i directories.", heppy_sample.name, len(heppy_sample.candidate_directories) ) 
 
             # Merge
@@ -98,9 +103,12 @@ class heppy_mapper:
 
             # Store cache file
             dir_name = os.path.dirname( cache_file ) 
-            if not os.path.exists( dir_name ): os.makedirs( dir_name )
-            pickle.dump( self.sample_map, file( cache_file, 'w') )
-            logger.info( "Created MC sample cache %s", cache_file )
+            if len(self.sample_map.keys())>0:
+                if not os.path.exists( dir_name ): os.makedirs( dir_name )
+                pickle.dump( self.sample_map, file( cache_file, 'w') )
+                logger.info( "Created MC sample cache %s", cache_file )
+            else:
+                logger.info( "Skipping to write %s because map is empty.", cache_file )
 
     @property                
     def heppy_sample_names( self ):
@@ -120,7 +128,7 @@ class heppy_mapper:
                 res.heppy = heppy_sample
                 return res
         
-## MC
+### MC
 mc_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_MC.pkl'
 #mc_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_1l_MC.pkl'
 def_robert = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_21'
@@ -137,3 +145,10 @@ def_daniel = "/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_24/"
 data_dpm_directories = [def_robert, def_daniel]
 from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import dataSamples as heppy_data_samples
 data_heppy_mapper = heppy_mapper( heppy_data_samples, data_dpm_directories, data_cache_file)
+
+# TTbar DM signal
+ttbarDM_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_TTbarDM.pkl'
+def_daniel_1l = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_21/'
+ttbarDM_dpm_directories = [ def_daniel_1l ]
+from CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2 import samples as heppy_TTbarDM_samples
+ttbarDM_heppy_mapper = heppy_mapper( heppy_TTbarDM_samples, ttbarDM_dpm_directories, ttbarDM_cache_file)

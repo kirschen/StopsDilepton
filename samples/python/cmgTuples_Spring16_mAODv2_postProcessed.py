@@ -16,10 +16,14 @@ try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+  postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
 
-DY_M5to50_HT = ["DYJetsToLL_M5to50_LO_lheHT100", "DYJetsToLL_M5to50_HT100to200_comb", "DYJetsToLL_M5to50_HT200to400_comb", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf_comb"] 
-DY_M50_HT = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200_comb", "DYJetsToLL_M50_HT200to400_comb", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf_comb"] 
+DY_M5to50_HT = [\
+    # FIXME"DYJetsToLL_M5to50_LO_lheHT100", 
+    "DYJetsToLL_M5to50_HT100to200_comb", "DYJetsToLL_M5to50_HT200to400_comb", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf_comb"] 
+DY_M50_HT = [
+    # FIXME "DYJetsToLL_M50_LO_lheHT100", 
+    "DYJetsToLL_M50_HT100to200_comb", "DYJetsToLL_M50_HT200to400_comb", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf_comb"] 
 
 
 dirs = {}
@@ -32,9 +36,9 @@ dirs['TTJets']           = ["TTJets"]
 dirs['TTLep_pow']        = ["TT_pow_ext3_comb"] #FIXME change to Lep as soon as it's there
 dirs['TT_pow']           = ["TT_pow_ext3_comb"]
 
-dirs['TTJets_Lep']       = ["TTJets_DiLepton_comb", "TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT"]
+dirs['TTJets_Lep']       = ["TTJets_DiLepton_comb", "TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT_comb"]
 dirs['TTJets_Dilep']       = ["TTJets_DiLepton_comb"]
-dirs['TTJets_Singlelep']       = ["TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT"]
+dirs['TTJets_Singlelep']       = ["TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT_comb"]
 #dirs['TTJets_HT_LO']     = ["TTJets_LO_HT600to800_comb", "TTJets_LO_HT800to1200_comb", "TTJets_LO_HT1200to2500_comb", "TTJets_LO_HT2500toInf"]
 dirs['singleTop']        = ["TBar_tWch", "T_tWch"]
 dirs['Top_amc']          = dirs['singleTop'] + dirs['TTJets']

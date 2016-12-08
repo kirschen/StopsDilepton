@@ -134,9 +134,9 @@ argParser.add_argument('--met',
     help='met cut',
 )
 argParser.add_argument('--pu',
-    default="reweightPU12fb",
+    default="reweightPU27fb",
     action='store',
-    choices=["None", "reweightPU12fb", "reweightPU12fbUp", "reweightPU12fbDown"],
+    choices=["None", "reweightPU27fb", "reweightPU27fbUp", "reweightPU27fbDown"],
     help='PU weight',
 )
 
@@ -164,7 +164,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='80X_v15',
+    default='80X_v21',
     action='store',
 )
 
@@ -190,7 +190,7 @@ dataFilterCut = mcFilterCut+"&&weight>0"
 
 # MC
 #data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 
 #Data 
@@ -198,8 +198,8 @@ if args.PR:
     postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
     from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 else:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-    postProcessing_directory = "postProcessed_80X_v15/dilepTiny"
+    #data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+    postProcessing_directory = "postProcessed_80X_v21/dilepTiny"
     from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
