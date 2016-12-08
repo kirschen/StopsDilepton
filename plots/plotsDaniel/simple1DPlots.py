@@ -190,25 +190,25 @@ def getZCut(mode):
     return "(1)"
 
 # Extra requirements on data
-mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
+mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
 dataFilterCut = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
 dataFilterCut +="&&weight>0"
 #dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
 #from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 ##Full dataset
-#sample_DoubleMuon  = DoubleMuon_Run2016BCDEFG_backup
-#sample_DoubleEG    = DoubleEG_Run2016BCDEFG_backup
-#sample_MuonEG      = MuonEG_Run2016BCDEFG_backup
+sample_DoubleMuon  = DoubleMuon_Run2016_backup
+sample_DoubleEG    = DoubleEG_Run2016_backup
+sample_MuonEG      = MuonEG_Run2016_backup
 
-#ICHEP dataset
-sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
-sample_DoubleEG    = DoubleEG_Run2016BCD_backup
-sample_MuonEG      = MuonEG_Run2016BCD_backup
+##ICHEP dataset
+#sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
+#sample_DoubleEG    = DoubleEG_Run2016BCD_backup
+#sample_MuonEG      = MuonEG_Run2016BCD_backup
 
 if args.mode=="doubleMu":
     lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])

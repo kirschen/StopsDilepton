@@ -59,11 +59,14 @@ def make_slurm_job( slurm_job_file, slurm_job_title, slurm_output_dir , command 
 #SBATCH -o {slurm_output_dir}slurm-test.%j.out
 
 {proxy_cmd}
+voms-proxy-info -all
 eval \`"scram runtime -sh"\` 
 echo CMSSW_BASE: {cmssw_base} 
 echo Executing user command  
 echo "{command}"
 {command} 
+
+voms-proxy-info -all
 
 """.format(\
                 command          = command,

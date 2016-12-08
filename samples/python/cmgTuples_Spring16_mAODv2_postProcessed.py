@@ -21,24 +21,25 @@ except:
 DY_M5to50_HT = ["DYJetsToLL_M5to50_LO_lheHT100", "DYJetsToLL_M5to50_HT100to200_comb", "DYJetsToLL_M5to50_HT200to400_comb", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf_comb"] 
 DY_M50_HT = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200_comb", "DYJetsToLL_M50_HT200to400_comb", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf_comb"] 
 
+
 dirs = {}
 dirs['DY']               = ["DYJetsToLL_M50", "DYJetsToLL_M10to50" ]
 dirs['DY_LO']            = ["DYJetsToLL_M10to50_LO", "DYJetsToLL_M50_LO"]
 #dirs['DY_HT_LO']         = ["DYJetsToLL_M50_LO_lheHT100", "DYJetsToLL_M50_HT100to200_ext", "DYJetsToLL_M50_HT200to400_ext", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf_comb", "DYJetsToLL_M10to50_LO"]
 dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 dirs['TTJets']           = ["TTJets"]
-#dirs['TTJets_LO']        = ["TTJets_LO"]
-dirs['TTLep_pow']        = ["TTLep_pow_ext"]
+#dirs['TTJets_LO']        = ["TTJets_LO"] 
+dirs['TTLep_pow']        = ["TT_pow_ext3_comb"] #FIXME change to Lep as soon as it's there
 dirs['TT_pow']           = ["TT_pow_ext3_comb"]
 
-dirs['TTJets_Lep']       = ["TTJets_DiLepton_comb", "TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT_comb"]
+dirs['TTJets_Lep']       = ["TTJets_DiLepton_comb", "TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT"]
 dirs['TTJets_Dilep']       = ["TTJets_DiLepton_comb"]
-dirs['TTJets_Singlelep']       = ["TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT_comb"]
+dirs['TTJets_Singlelep']       = ["TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT"]
 #dirs['TTJets_HT_LO']     = ["TTJets_LO_HT600to800_comb", "TTJets_LO_HT800to1200_comb", "TTJets_LO_HT1200to2500_comb", "TTJets_LO_HT2500toInf"]
 dirs['singleTop']        = ["TBar_tWch", "T_tWch"]
 dirs['Top_amc']          = dirs['singleTop'] + dirs['TTJets']
 dirs['Top']              = dirs['singleTop'] + dirs['TTJets_Lep']
-dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop']
+dirs['Top_pow']          = dirs['TT_pow'] + dirs['singleTop'] #FIXME should be lep!!
 dirs['Top_pow_incl']     = dirs['TT_pow'] + dirs['singleTop']
 dirs['TZQ']              = ["tZq_ll", "tZq_nunu"]
 dirs['TZQ']              = ["tZq_ll"]
