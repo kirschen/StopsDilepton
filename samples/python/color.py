@@ -19,6 +19,7 @@ color.TTZtoLLNuNu    = 6
 color.TTZtoQQ        = ROOT.kBlue
 color.TTG            = ROOT.kRed
 color.TZQ            = 9
+color.TWZ            = ROOT.kBlue-4
 color.WJetsToLNu     = ROOT.kRed-10
 color.diBoson        = ROOT.kOrange
 color.multiBoson     = ROOT.kOrange

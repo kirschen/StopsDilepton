@@ -284,7 +284,7 @@ elif args.ttjets=='powIncl':
 elif args.ttjets=='amc':
     TTJets_sample = Top_amc
 
-mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson]
+mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson, TWZ]
 
 signal_samples = []
 if len(args.signals)>0:
