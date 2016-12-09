@@ -18,11 +18,9 @@ try:
 except:
   postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
 
-DY_M5to50_HT = [\
-    # FIXME"DYJetsToLL_M5to50_LO_lheHT100", 
+DY_M5to50_HT = ["DYJetsToLL_M5to50_LO_lheHT100", 
     "DYJetsToLL_M5to50_HT100to200_comb", "DYJetsToLL_M5to50_HT200to400_comb", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf_comb"] 
-DY_M50_HT = [
-    # FIXME "DYJetsToLL_M50_LO_lheHT100", 
+DY_M50_HT = ["DYJetsToLL_M50_LO_lheHT100", 
     "DYJetsToLL_M50_HT100to200_comb", "DYJetsToLL_M50_HT200to400_comb", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf_comb"] 
 
 
