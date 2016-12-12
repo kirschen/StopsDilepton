@@ -185,7 +185,7 @@ def getZCut(mode):
     return "(1)"
 
 # Extra requirements on data
-mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
+mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
 dataFilterCut = mcFilterCut+"&&weight>0"
 
 # MC
@@ -198,7 +198,7 @@ if args.PR:
     postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
     from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 else:
-    #data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+    data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
     postProcessing_directory = "postProcessed_80X_v21/dilepTiny"
     from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
@@ -420,6 +420,11 @@ read_variables = ["weight/F"]
 from StopsDilepton.tools.helpers import deltaR
 from StopsDilepton.tools.objectSelection import getJets
 
+def mth_func( event, sample):
+    mth =  sqrt(2.*event.dl_pt*event.met_pt*( 1 - cos(event.dl_phi - event.met_phi)))
+    #print mth
+    return mth
+
 def makeMinDeltaRLepJets( event, sample ):
     event.jets = filter(lambda j: j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(event, jetColl="JetGood"))
     if len(event.jets)>0:
@@ -608,12 +613,23 @@ for l_comb in l_combs:
             name = "minDeltaRLepBJets",
             texX = 'min #Delta R(loose b-jets, leptons) ', texY = 'Number of Events',
             stack = stack, 
-            attribute = lambda event,sample:abs(event.minDeltaRLepBJets),
+            attribute = lambda event, sample:abs(event.minDeltaRLepBJets),
             binning=[30,0,4],
             selectionString = selectionString,
             weight = weight,
             )
         plots.append( minDeltaRLepBJets )
+
+        MTH = Plot(\
+            name = "MTH",
+            texX = 'M_{T}(Z, #slash{E}_{T})', texY = 'Number of Events / 20 GeV',
+            stack = stack, 
+            attribute =  mth_func,   
+            binning = [40,0,800], 
+            selectionString = selectionString,
+            weight = weight,
+        )
+        plots.append( MTH )
 
         dl_mt2ll  = Plot(
             texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 20 GeV',
