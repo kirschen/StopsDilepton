@@ -31,17 +31,18 @@ dirs['DY_LO']            = ["DYJetsToLL_M10to50_LO", "DYJetsToLL_M50_LO"]
 dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 dirs['TTJets']           = ["TTJets"]
 #dirs['TTJets_LO']        = ["TTJets_LO"] 
-dirs['TTLep_pow']        = ["TT_pow_ext3_comb"] #FIXME change to Lep as soon as it's there
+dirs['TTLep_pow']        = ["TTLep_pow_ext"] #FIXME change to Lep as soon as it's there
 dirs['TT_pow']           = ["TT_pow_ext3_comb"]
 
 dirs['TTJets_Lep']       = ["TTJets_DiLepton_comb", "TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT_comb"]
 dirs['TTJets_Dilep']       = ["TTJets_DiLepton_comb"]
 dirs['TTJets_Singlelep']       = ["TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT_comb"]
 #dirs['TTJets_HT_LO']     = ["TTJets_LO_HT600to800_comb", "TTJets_LO_HT800to1200_comb", "TTJets_LO_HT1200to2500_comb", "TTJets_LO_HT2500toInf"]
-dirs['singleTop']        = ["TBar_tWch", "T_tWch"]
+dirs['singleTop']        = ["TBar_tWch", "T_tWch", "TToLeptons_tch_powheg", "TBarToLeptons_tch_powheg"]
+dirs['singleTop_tch']    = ["TToLeptons_tch_powheg", "TBarToLeptons_tch_powheg"]
 dirs['Top_amc']          = dirs['singleTop'] + dirs['TTJets']
 dirs['Top']              = dirs['singleTop'] + dirs['TTJets_Lep']
-dirs['Top_pow']          = dirs['TT_pow'] + dirs['singleTop'] #FIXME should be lep!!
+dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop'] #FIXME should be lep!!
 dirs['Top_pow_incl']     = dirs['TT_pow'] + dirs['singleTop']
 dirs['TZQ']              = ["tZq_ll", "tZq_nunu"]
 dirs['TZQ']              = ["tZq_ll"]
@@ -62,11 +63,14 @@ dirs['WJetsToLNu_HT']    = ["WJetsToLNu_HT100to200_comb", "WJetsToLNu_HT200to400
 dirs['diBosonInclusive'] = ["WW", "WZ", "ZZ"]
 dirs['WW']               = ["WWTo1L1Nu2Q", "WWToLNuQQ_comb"]
 dirs['WW_']              = ["WWTo1L1Nu2Q", "WWToLNuQQ_comb","WWTo2L2Nu"]
+dirs['WWTo2L2Nu']        = ["WWTo2L2Nu"]
 dirs['VVTo2L2Nu']        = ["VVTo2L2Nu"]
 dirs['WZ']               = ["WZTo1L1Nu2Q", "WZTo1L3Nu", "WZTo2L2Q", "WZTo3LNu"]
-dirs['ZZ']              = ["ZZTo2L2Q", "ZZTo2Q2Nu"]
+dirs['ZZ']               = ["ZZTo2L2Q", "ZZTo2Q2Nu"]
+dirs['ZZTo2L2Nu']        = ["ZZTo2L2Q"]
 dirs['ZZ_']              = ["ZZTo2L2Q", "ZZTo2Q2Nu","ZZTo2L2Nu"]
 dirs['diBoson']          = dirs['WW'] + dirs['WZ'] + dirs['ZZ'] + dirs['VVTo2L2Nu']
+dirs['diBoson_']         = dirs['WW_'] + dirs['WZ'] + dirs['ZZ_']
 dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] 
 dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 #dirs['QCD_HT']           = ["QCD_HT100to200", "QCD_HT200to300", "QCD_HT300to500", "QCD_HT500to700", "QCD_HT700to1000", "QCD_HT1000to1500", "QCD_HT1500to2000", "QCD_HT2000toInf"]
@@ -102,6 +106,7 @@ Top_amc         = Sample.fromDirectory(name="Top_amc",          treeName="Events
 
 #TTJets_HT_LO   = Sample.fromDirectory(name="TTJets_HT_LO",     treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t} + Jets (HT,LO)",           directory=directories['TTJets_HT_LO'])
 singleTop      = Sample.fromDirectory(name="singleTop",        treeName="Events", isData=False, color=color.singleTop,       texName="single top",                        directory=directories['singleTop'])
+singleTop_tch  = Sample.fromDirectory(name="singleTop_tch",    treeName="Events", isData=False, color=color.singleTop,       texName="single top tch",                    directory=directories['singleTop_tch'])
 TTX            = Sample.fromDirectory(name="TTX",              treeName="Events", isData=False, color=color.TTX,             texName="t#bar{t}H/W/Z, tZq",                directory=directories['TTX'])
 TTXNoZ         = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W, tZq",                  directory=directories['TTXNoZ'])
 TTH            = Sample.fromDirectory(name="TTH",              treeName="Events", isData=False, color=color.TTH,             texName="t#bar{t}H",                         directory=directories['TTH'])
@@ -116,12 +121,15 @@ WJetsToLNu     = Sample.fromDirectory(name="WJetsToLNu",       treeName="Events"
 #WJetsToLNu_LO  = Sample.fromDirectory(name="WJetsToLNu_LO",    treeName="Events", isData=False, color=color.WJetsToLNu,      texName="W(l,#nu) + Jets (LO)",              directory=directories['WJetsToLNu_LO'])
 #WJetsToLNu_HT  = Sample.fromDirectory(name="WJetsToLNu_HT",    treeName="Events", isData=False, color=color.WJetsToLNu,      texName="W(l,#nu) + Jets (HT)",              directory=directories['WJetsToLNu_HT'])
 diBoson        = Sample.fromDirectory(name="diBoson",          treeName="Events", isData=False, color=color.diBoson,         texName="VV (excl.)",                        directory=directories['diBoson'])
+diBoson_       = Sample.fromDirectory(name="diBoson",          treeName="Events", isData=False, color=color.diBoson,         texName="VV (excl.)",                        directory=directories['diBoson_'])
 diBosonInclusive = Sample.fromDirectory(name="diBosonInclusive",treeName="Events", isData=False, color=color.diBoson,        texName="VV (incl.)",                        directory=directories['diBosonInclusive'])
 ZZ             = Sample.fromDirectory(name="ZZ",               treeName="Events", isData=False, color=color.ZZ,              texName="ZZ",                                directory=directories['ZZ_'])
 ZZNo2L2Nu      = Sample.fromDirectory(name="ZZNo2L2Nu",        treeName="Events", isData=False, color=color.ZZ,              texName="ZZ (no 2L2Nu)",                     directory=directories['ZZ'])
+ZZTo2L2Nu      = Sample.fromDirectory(name="ZZTo2L2Nu",        treeName="Events", isData=False, color=color.ZZ,              texName="ZZTo2l2Nu",                         directory=directories['ZZTo2L2Nu'])
 WZ             = Sample.fromDirectory(name="WZ",               treeName="Events", isData=False, color=color.WZ,              texName="WZ",                                directory=directories['WZ'])
 WW             = Sample.fromDirectory(name="WW",               treeName="Events", isData=False, color=color.WW,              texName="WW",                                directory=directories['WW_'])
 WWNo2L2Nu      = Sample.fromDirectory(name="WWNo2L2Nu",        treeName="Events", isData=False, color=color.WW,              texName="WW (no 2L2Nu)",                     directory=directories['WW'])
+WWTo2L2Nu      = Sample.fromDirectory(name="WWTo2L2Nu",        treeName="Events", isData=False, color=color.WW,              texName="WWTo2L2Nu",                         directory=directories['WWTo2L2Nu'])
 VVTo2L2Nu      = Sample.fromDirectory(name="VVTo2L2Nu",               treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",             directory=directories['VVTo2L2Nu'])
 triBoson       = Sample.fromDirectory(name="triBoson",         treeName="Events", isData=False, color=color.triBoson,        texName="WWZ,WZZ,ZZZ",                       directory=directories['triBoson'])
 multiBoson     = Sample.fromDirectory(name="multiBoson",       treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                       directory=directories['multiBoson'])

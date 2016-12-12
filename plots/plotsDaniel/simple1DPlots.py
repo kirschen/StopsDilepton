@@ -96,6 +96,12 @@ argParser.add_argument('--noScaling',
     help='Small?',
 )
 
+argParser.add_argument('--scaleAll',
+    action='store_true',
+    #default = True,
+    help='Small?',
+)
+
 argParser.add_argument('--reversed',
     action='store_true',
     help='Reversed?',
@@ -105,7 +111,7 @@ argParser.add_argument('--njet',
     default='2p',
     type=str,
     action='store',
-    choices=['0', '0p', '1', '1p', '2', '2p', '01']
+    choices=['0', '0p', '1', '1p', '2', '2p', '01','012']
 )
 
 argParser.add_argument('--mIsoWP',
@@ -130,13 +136,13 @@ argParser.add_argument('--btagWP',
 argParser.add_argument('--met',
     default='def',
     action='store',
-    choices=['def', 'none', 'low'],
+    choices=['def', 'none', 'low', 'high','vhigh','cutoff'],
     help='met cut',
 )
 argParser.add_argument('--pu',
-    default="reweightPU12fb",
+    default="reweightPU27fb",
     action='store',
-    choices=["None", "reweightPU12fb", "reweightPU12fbUp", "reweightPU12fbDown"],
+    choices=["None", "reweightPU27fb", "reweightPU27fbUp", "reweightPU27fbDown"],
     help='PU weight',
 )
 
@@ -172,6 +178,22 @@ argParser.add_argument('--plot_directory',
     default='80X_v12_5',
     action='store',
 )
+
+argParser.add_argument('--scaleDY',
+    action='store_true',
+    help='Scale DY sample',
+)
+
+argParser.add_argument('--scaleVV',
+    action='store_true',
+    help='Scale VV sample',
+)
+
+argParser.add_argument('--MT2llWindow',
+    action='store_true',
+    help='Only problematic mt2ll region',
+)
+
 
 args = argParser.parse_args()
 
@@ -272,8 +294,11 @@ else:
 
 if args.splitDiBoson:
     diBoson_samples = [VVTo2L2Nu, WWNo2L2Nu, WZ, ZZNo2L2Nu]
+    #diBoson_samples = [WW, ZZ, WZ]
+    
 else:
-    diBoson_samples = [diBoson] 
+    diBoson_samples = [diBoson]
+    #diBoson_samples = [diBoson_]
 
 if args.ttjets=='mg':
     TTJets_sample = Top
@@ -372,7 +397,7 @@ else:
 
 wpStr = { 5: "VT", 4: "T", 3: "M" , 2: "L" , 1: "VL", 0:"None"}
 basic_cuts=[
-    ("mll20", "dl_mass>20"),
+    ("mll20", "dl_mass>20"),#&&nVert>10&&nVert<25"),
     ("l1pt25", "l1_pt>25"),
     ("mIso%s"%wpStr[args.mIsoWP], "l1_mIsoWP>=%i&&l2_mIsoWP>=%i"%( args.mIsoWP, args.mIsoWP)),
     ] + dPhi + [
@@ -381,7 +406,7 @@ basic_cuts=[
 ]
 
 def mCutStr( arg ):
-    if not arg in ['0', '0p', '1', '1p', '2', '2p', '01']: raise ValueError( "Don't know what to do with cut %s" % arg )
+    if not arg in ['0', '0p', '1', '1p', '2', '2p', '01','012']: raise ValueError( "Don't know what to do with cut %s" % arg )
 
     if arg=='0':
         return '==0'
@@ -397,6 +422,8 @@ def mCutStr( arg ):
         return '>=2'
     elif arg=='01':
         return '<=1'
+    elif arg=='012':
+        return '<=2'
 
 def selection( ):
     btagStr = "nBTag"
@@ -407,8 +434,17 @@ def selection( ):
         ("nbtag"+args.btagWP+"%s"%args.nbtag, btagStr+"%s"%mCutStr( args.nbtag ))]
     if args.met=='def': res.extend([\
         ("met80", "met_pt>80"),
-        ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
+        ("metSig10", "(met_pt/sqrt(ht)>10||nJetGood==0)"),
         ])
+    elif args.met=='high':
+        res.extend([\
+        ("met140", "met_pt>140"),
+        ("metSig10", "(met_pt/sqrt(ht)>10||nJetGood==0)"),
+        ] )
+    elif args.met=='vhigh':
+        res.extend([  ("met200", "met_pt>200")] )
+    elif args.met=='cutoff':
+        res.extend([  ("metSm300", "met_pt<300")] )
     elif args.met=='low':
         res.extend([  ("metSm80", "met_pt<80")] )
     elif args.met=='none':
@@ -534,14 +570,26 @@ for l_comb in l_combs:
         for s in diBoson_samples:
             s.scale*=args.diBosonScaleFactor
 
+        if args.scaleDY:
+          DY_HT_LO.scale *= 1.7
+          ppfixes.append("DYscale")
+        
+        if args.scaleVV:
+          for s in diBoson_samples:
+            s.scale *= 2.2
+          ppfixes.append("VVscale")
+        
         if not args.noData:
             logger.info( "Calculating normalization constants" )
             yield_mc    = {s.name: s.scale*s.getYieldFromDraw( selectionString = selectionString+"&&dl_mt2ll<100", weightString = mc_weight_string)['val'] for s in mc_samples}
             yield_data  = sum(s.getYieldFromDraw( selectionString = selectionString+"&&dl_mt2ll<100", weightString = data_weight_string)['val'] for s in data_samples)
             
             non_top = sum(yield_mc[s.name] for s in mc_samples if s.name != TTJets_sample.name)
+            total_mc = sum(yield_mc[s.name] for s in mc_samples)
             if (not args.noScaling) and yield_data - non_top>0 and yield_mc[TTJets_sample.name]>0:
                 top_sf  = (yield_data - non_top)/yield_mc[TTJets_sample.name]
+                if args.scaleAll:
+                  top_sf  = yield_data/total_mc #alternative approach, scale all backgrounds
             else:
                 top_sf = 1.
             logger.info( "Data: %i MC TT %3.2f MC other %3.2f SF %3.2f", yield_data, yield_mc[TTJets_sample.name], non_top, top_sf )
@@ -549,11 +597,20 @@ for l_comb in l_combs:
         else:
             top_sf = 1 
 
-        TTJets_sample.scale *= top_sf
+        #TTJets_sample.scale *= top_sf
+        if args.scaleAll:
+          for s in mc_samples:
+            s.scale *= top_sf
+        else:
+          TTJets_sample.scale *= top_sf
 
         if args.highMT2ll:
-            prefix+='-mt2ll100'
-            selectionString+='&&dl_mt2ll>100'
+            prefix+='-mt2ll130'
+            selectionString+='&&dl_mt2ll>130'
+        
+        if args.MT2llWindow:
+            prefix+='-mt2llWindow'
+            selectionString+='&&dl_mt2ll>110&&dl_mt2ll<155'
 
         plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
         if os.path.exists(plot_path) and not args.overwrite:
@@ -571,6 +628,17 @@ for l_comb in l_combs:
             weight = weight,
             )
         plots.append( dl_mass )
+
+        dl_mass_onZ  = Plot(
+            name = 'dl_mass_onZ',
+            texX = 'm(ll) (GeV)', texY = 'Number of Events / 0.5 GeV',
+            stack = stack,
+            attribute = TreeVariable.fromString( "dl_mass/F" ),
+            binning=[40,80,100],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( dl_mass_onZ )
 
         dl_pt  = Plot(
             texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 10 GeV',
@@ -655,6 +723,17 @@ for l_comb in l_combs:
             weight = weight,
             )
         plots.append( dl_mt2ll_coarse )
+        
+        dl_mt2ll_fine  = Plot(
+            name = "dl_mt2ll_fine",
+            texX = 'MT_{2}^{ll} (GeV)', texY = 'Number of Events / 8 GeV',
+            stack = stack,
+            attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+            binning=[320/8,0,300],
+            selectionString = selectionString,
+            weight = weight,
+            )
+        plots.append( dl_mt2ll_fine )
 
         dl_mt2bb  = Plot(
             texX = 'MT_{2}^{bb} (GeV)', texY = 'Number of Events / 15 GeV',
