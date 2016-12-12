@@ -18,11 +18,9 @@ try:
 except:
   postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
 
-DY_M5to50_HT = [\
-    # FIXME"DYJetsToLL_M5to50_LO_lheHT100", 
+DY_M5to50_HT = ["DYJetsToLL_M5to50_LO_lheHT100", 
     "DYJetsToLL_M5to50_HT100to200_comb", "DYJetsToLL_M5to50_HT200to400_comb", "DYJetsToLL_M5to50_HT400to600", "DYJetsToLL_M5to50_HT600toInf_comb"] 
-DY_M50_HT = [
-    # FIXME "DYJetsToLL_M50_LO_lheHT100", 
+DY_M50_HT = ["DYJetsToLL_M50_LO_lheHT100", 
     "DYJetsToLL_M50_HT100to200_comb", "DYJetsToLL_M50_HT200to400_comb", "DYJetsToLL_M50_HT400to600_ext", "DYJetsToLL_M50_HT600toInf_comb"] 
 
 
@@ -47,6 +45,7 @@ dirs['Top_pow']          = dirs['TT_pow'] + dirs['singleTop'] #FIXME should be l
 dirs['Top_pow_incl']     = dirs['TT_pow'] + dirs['singleTop']
 dirs['TZQ']              = ["tZq_ll", "tZq_nunu"]
 dirs['TZQ']              = ["tZq_ll"]
+dirs['TWZ']              = ["tWll", "tWnunu"]
 dirs['TTW']              = ["TTWToLNu", "TTWToQQ"]
 dirs['TTH']              = [ \
 #        "TTHbb_ext3", 
@@ -112,6 +111,7 @@ TTZ_LO        = Sample.fromDirectory(name="TTZ_LO",              treeName="Event
 TTZtoLLNuNu    = Sample.fromDirectory(name="TTZtoNuNu",        treeName="Events", isData=False, color=color.TTZtoLLNuNu,     texName="t#bar{t}Z (l#bar{l}/#nu#bar{#nu})", directory=directories['TTZtoLLNuNu'])
 TTZtoQQ        = Sample.fromDirectory(name="TTZtoQQ",          treeName="Events", isData=False, color=color.TTZtoQQ,         texName="t#bar{t}Z (q#bar{q})",              directory=directories['TTZtoQQ'])
 TZQ            = Sample.fromDirectory(name="TZQ",              treeName="Events", isData=False, color=color.TZQ,             texName="tZq",                               directory=directories['TZQ'])
+TWZ            = Sample.fromDirectory(name="TWZ",              treeName="Events", isData=False, color=color.TWZ,             texName="tWZ",                               directory=directories['TWZ'])
 WJetsToLNu     = Sample.fromDirectory(name="WJetsToLNu",       treeName="Events", isData=False, color=color.WJetsToLNu,      texName="W(l,#nu) + Jets",                   directory=directories['WJetsToLNu'])
 #WJetsToLNu_LO  = Sample.fromDirectory(name="WJetsToLNu_LO",    treeName="Events", isData=False, color=color.WJetsToLNu,      texName="W(l,#nu) + Jets (LO)",              directory=directories['WJetsToLNu_LO'])
 #WJetsToLNu_HT  = Sample.fromDirectory(name="WJetsToLNu_HT",    treeName="Events", isData=False, color=color.WJetsToLNu,      texName="W(l,#nu) + Jets (HT)",              directory=directories['WJetsToLNu_HT'])

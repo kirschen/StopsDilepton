@@ -208,6 +208,8 @@ options = get_parser().parse_args()
 # Logging
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile ='/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) ) )
+logFileLocation = '/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) )
+
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
@@ -1085,4 +1087,10 @@ if options.T2tt:
             logger.info( "Found file %s -> Skipping"%(signalFile) )
 
     output.clear()
+
+logger.info("Copying log file to %s"%outDir)
+copyLog = subprocess.call(['cp',logFileLocation,outDir])
+if copyLog: print "Copying log from %s to %s failed"%(logFileLocation,outDir)
+else: print "Successfully copied log file"
+
 
