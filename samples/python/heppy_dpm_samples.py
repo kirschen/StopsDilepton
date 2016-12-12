@@ -132,25 +132,25 @@ class heppy_mapper:
                 res.heppy = heppy_sample
                 return res
         
-### MC
+## MC
 mc_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_MC.pkl'
 #mc_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_1l_MC.pkl'
-def_robert = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_21'
-def_daniel = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_21'
-mc_dpm_directories = [ def_robert, def_daniel ]
+robert = ['/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_21', '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_22']
+daniel = ['/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_21']
+mc_dpm_directories = robert + daniel
 from CMGTools.RootTools.samples.samples_13TeV_RunIISpring16MiniAODv2 import mcSamples as heppy_mc_samples
 mc_heppy_mapper = heppy_mapper( heppy_mc_samples, mc_dpm_directories, mc_cache_file)
-
+#
 # Data
-#data_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_data.pkl'
-data_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_1l_data.pkl'
+data_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_data.pkl'
+data_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_data.pkl'
 def_robert = "/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_20/"
 def_daniel = "/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_24/"
 data_dpm_directories = [def_robert, def_daniel]
 from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import dataSamples as heppy_data_samples
 data_heppy_mapper = heppy_mapper( heppy_data_samples, data_dpm_directories, data_cache_file)
-
-# TTbar DM signal
+#
+## TTbar DM signal
 ttbarDM_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_TTbarDM.pkl'
 def_daniel_1l = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_21/'
 ttbarDM_dpm_directories = [ def_daniel_1l ]
