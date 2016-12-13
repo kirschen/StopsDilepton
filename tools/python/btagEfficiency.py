@@ -137,7 +137,7 @@ class btagEfficiency:
             sf_fs_d = 1
         
         #FullSim SFs (times FSSF)
-        if abs(pdgId)==5 || abs(pdgId)==4: #SF for b/c
+        if abs(pdgId)==5 or abs(pdgId)==4: #SF for b/c
             sf      = sf_fs*self.reader.eval_auto_bounds('central',  flavKey, eta, pt)
             sf_b_d  = sf_fs*self.reader.eval_auto_bounds('down',     flavKey, eta, pt)
             sf_b_u  = sf_fs*self.reader.eval_auto_bounds('up',       flavKey, eta, pt)

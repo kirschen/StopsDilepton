@@ -310,6 +310,7 @@ elif args.ttjets=='amc':
     TTJets_sample = Top_amc
 
 mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson, TWZ]
+#mc_samples = [ TTJets_sample] + diBoson_samples + [DY, TTZ_LO, TTW, triBoson, TWZ]
 
 signal_samples = []
 if len(args.signals)>0:
@@ -387,8 +388,10 @@ for sample in mc_samples + signal_samples:
 weight = lambda event, sample: event.weight
 
 if args.dPhi == 'inv':
-    dPhi = [ ("dPhiJetMETInv", "(!(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0))") ]
-if args.dPhi == 'lead':
+    #dPhi = [ ("dPhiJetMETInv", "(!(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0))") ]
+    dPhi = [ ("dPhiJetMETInv", "(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==2 || Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==1)") ]
+    #dPhi = [ ("dPhiJetMETInv", "(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==2+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )>=1)") ]
+elif args.dPhi == 'lead':
     dPhi = [ ("dPhiJetMETLead", "Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0") ]
 elif args.dPhi=='def':
     dPhi = [ ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0") ]
@@ -605,8 +608,8 @@ for l_comb in l_combs:
           TTJets_sample.scale *= top_sf
 
         if args.highMT2ll:
-            prefix+='-mt2ll130'
-            selectionString+='&&dl_mt2ll>130'
+            prefix+='-mt2ll100'
+            selectionString+='&&dl_mt2ll>100'
         
         if args.MT2llWindow:
             prefix+='-mt2llWindow'
