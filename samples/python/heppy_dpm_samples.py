@@ -9,8 +9,9 @@ if __name__ == '__main__':
         '''
         import argparse
         argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
-        argParser.add_argument('--logLevel', action='store', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], default='INFO', help="Log level for logging" )
+        argParser.add_argument('--logLevel', action='store', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'DEBUG', 'DEBUG', 'TRACE', 'NOTSET'], default='INFO', help="Log level for logging" )
         argParser.add_argument('--overwrite', action='store_true', default=False, help="Overwrite cache?" )
+        argParser.add_argument('--nomultithreading', action='store_true', default=False, help="No multithreading?" )
         argParser.add_argument('--maxN', action='store', type=int, default=maxN_def, help="Overwrite cache?" )
 
         return argParser
@@ -47,30 +48,40 @@ class heppy_mapper:
             self.sample_map = pickle.load( file(cache_file) )
             logger.info( "Loaded cache file %s" % cache_file )
         else:
-            # Proxy certificate
             logger.info( "Cache file %s not found. Recreate map.", cache_file)
             logger.info( "Check proxy.")
-            from StopsDilepton.tools.helpers import renewCredentials
-            proxy = renewCredentials()
+
+            # Proxy certificate
+            from StopsDilepton.tools.helpers import renew_proxy
+            user = os.environ['USER']
+            # Make proxy in afs to allow batch jobs to run
+            proxy_path = '/afs/hephy.at/user/%s/%s/private/.proxy'%(user[0], user)
+            proxy = renew_proxy( proxy_path )
             logger.info( "Using proxy %s"%proxy )
 
             # Read dpm directories
-            cmg_directories = {}
+            self.cmg_directories = {}
             for data_path in dpm_directories:
                 logger.info( "Walking dpm directory %s", data_path )
                 walker = walk_dpm( data_path )
-                cmg_directories[ data_path ] = walker.walk_dpm_cmgdirectories('.',  maxN = maxN )
+                self.cmg_directories[ data_path ] = walker.walk_dpm_cmgdirectories('.',  maxN = maxN )
+                
                 #del walker
 
             logger.info( "Now mapping directories to heppy samples" )
             for heppy_sample in heppy_samples:
                 heppy_sample.candidate_directories = []
                 pd, era = heppy_sample.dataset.split('/')[1:3]
-                for data_path in cmg_directories.keys():
-                    for dpm_directory in cmg_directories[data_path].keys():
-                        if ('/%s/'%pd in dpm_directory) and ('/'+era in dpm_directory):
-                            heppy_sample.candidate_directories.append([data_path, dpm_directory])
-                            logger.debug( "heppy sample %s in %s", heppy_sample.name, dpm_directory)
+                for data_path in self.cmg_directories.keys():
+                    for dpm_directory in self.cmg_directories[data_path].keys():
+                        if not ('/%s/'%pd in dpm_directory):
+                            logger.debug( "/%s/ not in dpm_directory %s", pd, dpm_directory )
+                            continue
+                        if not ('/'+era in dpm_directory):
+                            logger.debug( "/%s not in dpm_directory %s", era, dpm_directory )
+                            continue
+                        heppy_sample.candidate_directories.append([data_path, dpm_directory])
+                        logger.debug( "heppy sample %s in %s", heppy_sample.name, dpm_directory)
                 logger.info(  "Found heppy sample %s in %i directories.", heppy_sample.name, len(heppy_sample.candidate_directories) ) 
 
             # Merge
@@ -81,7 +92,10 @@ class heppy_mapper:
                 if len(heppy_sample.candidate_directories)==0:
                     logger.info("No directory found for %s", heppy_sample.name)
                 else:
-                    normalization, files = walker.combine_cmg_directories( {dpm_directory:cmg_directories[data_path][dpm_directory] for data_path, dpm_directory in heppy_sample.candidate_directories } )
+                    normalization, files = walker.combine_cmg_directories(\
+                            cmg_directories = {dpm_directory:self.cmg_directories[data_path][dpm_directory] for data_path, dpm_directory in heppy_sample.candidate_directories }, 
+                            multithreading = not options.nomultithreading, 
+                        )
                     logger.info( "Sample %s: Found a total of %i files with normalization %3.2f", heppy_sample.name, len(files), normalization)
                     self.sample_map[heppy_sample] = Sample.fromFiles(
                         heppy_sample.name, 
@@ -93,9 +107,12 @@ class heppy_mapper:
 
             # Store cache file
             dir_name = os.path.dirname( cache_file ) 
-            if not os.path.exists( dir_name ): os.makedirs( dir_name )
-            pickle.dump( self.sample_map, file( cache_file, 'w') )
-            logger.info( "Created MC sample cache %s", cache_file )
+            if len(self.sample_map.keys())>0:
+                if not os.path.exists( dir_name ): os.makedirs( dir_name )
+                pickle.dump( self.sample_map, file( cache_file, 'w') )
+                logger.info( "Created MC sample cache %s", cache_file )
+            else:
+                logger.info( "Skipping to write %s because map is empty.", cache_file )
 
     @property                
     def heppy_sample_names( self ):
@@ -115,17 +132,27 @@ class heppy_mapper:
                 res.heppy = heppy_sample
                 return res
         
-# MC
-mc_cache_file = '/afs/hephy.at/work/r/rschoefbeck/StopsDilepton/dpm_sample_caches/80X_1l_21.pkl'
-def_robert = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_21'
-def_daniel = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_21'
-mc_dpm_directories = [ def_robert, def_daniel ]
+## MC
+mc_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_MC.pkl'
+#mc_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_1l_MC.pkl'
+robert = ['/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_21', '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_22']
+daniel = ['/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_21']
+mc_dpm_directories = robert + daniel
 from CMGTools.RootTools.samples.samples_13TeV_RunIISpring16MiniAODv2 import mcSamples as heppy_mc_samples
 mc_heppy_mapper = heppy_mapper( heppy_mc_samples, mc_dpm_directories, mc_cache_file)
-
+#
 # Data
-data_cache_file = '/afs/hephy.at/work/r/rschoefbeck/StopsDilepton/dpm_sample_caches/test_data.pkl'
-test_daniel = "/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_stopsDilep/MuonEG"
-data_dpm_directories = [test_daniel]
+data_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_data.pkl'
+data_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_data.pkl'
+def_robert = "/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_20/"
+def_daniel = "/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_24/"
+data_dpm_directories = [def_robert, def_daniel]
 from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import dataSamples as heppy_data_samples
 data_heppy_mapper = heppy_mapper( heppy_data_samples, data_dpm_directories, data_cache_file)
+#
+## TTbar DM signal
+ttbarDM_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_TTbarDM.pkl'
+def_daniel_1l = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_21/'
+ttbarDM_dpm_directories = [ def_daniel_1l ]
+from CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2 import samples as heppy_TTbarDM_samples
+ttbarDM_heppy_mapper = heppy_mapper( heppy_TTbarDM_samples, ttbarDM_dpm_directories, ttbarDM_cache_file)

@@ -42,6 +42,8 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
         #module_ = 'CMGTools.StopsDilepton.samples_13TeV_Moriond2017'
     elif "T2tt" in sample:
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_signals'
+    elif "TTbarDM" in sample:
+        module_ = 'CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2'
     else: 
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_RunIISpring16MiniAODv2'
 
@@ -64,6 +66,14 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
             treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
     else:  # Vienna -> Load from DPM 
         if True: #'/dpm' in data_path:
+
+            from StopsDilepton.tools.helpers import renew_proxy
+            user = os.environ['USER']
+            # Make proxy in afs to allow batch jobs to run
+            proxy_path = '/afs/hephy.at/user/%s/%s/private/.proxy'%(user[0], user)
+            proxy = renew_proxy( proxy_path )
+            logger.info( "Using proxy %s"%proxy )
+
             if module is not None:
                 module_ = module
             if "Run2016" in sample:
@@ -71,6 +81,9 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
                 return data_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             elif "T2tt" in sample:
                 raise NotImplementedError 
+            elif "TTbarDM" in sample:
+                from StopsDilepton.samples.heppy_dpm_samples import ttbarDM_heppy_mapper
+                return ttbarDM_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             else: 
                 from StopsDilepton.samples.heppy_dpm_samples import mc_heppy_mapper
                 return mc_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)

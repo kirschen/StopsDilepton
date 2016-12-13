@@ -130,7 +130,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v16',
+        default='postProcessed_80X_v21',
         help="Name of the processing era"
         )
 
@@ -208,6 +208,8 @@ options = get_parser().parse_args()
 # Logging
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile ='/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) ) )
+logFileLocation = '/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) )
+
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
@@ -251,13 +253,17 @@ if options.T2tt:
     logger.debug( "Fetching signal weights..." )
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
     logger.debug("Done fetching signal weights.")
-elif options.TTDM:
-    samples = [ fromHeppySample(s, data_path = "/scratch/rschoefbeck/cmgTuples/80X_0l_TTDM/", \
-                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2",  
-                    maxN = maxN)\
-                for s in options.samples ]
+#elif options.TTDM:
+#    samples = [ fromHeppySample(s, data_path = "/scratch/rschoefbeck/cmgTuples/80X_0l_TTDM/", \
+#                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2",  
+#                    maxN = maxN)\
+#                for s in options.samples ]
 else:
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
+
+if len(samples)==0:
+    logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
+    sys.exit(-1)
 
 isData = False not in [s.isData for s in samples]
 isMC   =  True not in [s.isData for s in samples]
@@ -1081,4 +1087,10 @@ if options.T2tt:
             logger.info( "Found file %s -> Skipping"%(signalFile) )
 
     output.clear()
+
+logger.info("Copying log file to %s"%outDir)
+copyLog = subprocess.call(['cp',logFileLocation,outDir])
+if copyLog: print "Copying log from %s to %s failed"%(logFileLocation,outDir)
+else: print "Successfully copied log file"
+
 

@@ -43,8 +43,8 @@ def make_slurm_job( slurm_job_file, slurm_job_title, slurm_output_dir , command 
 
     # If X509_USER_PROXY is set, use existing proxy.
     if options.dpm:
-        from StopsDilepton.tools.helpers import renewCredentials
-        proxy = renewCredentials()
+        from StopsDilepton.tools.helpers import renew_proxy
+        proxy = renew_proxy()
 
         print "Using proxy certificate %s" % proxy
         proxy_cmd = "export X509_USER_PROXY=%s"%proxy
@@ -59,11 +59,14 @@ def make_slurm_job( slurm_job_file, slurm_job_title, slurm_output_dir , command 
 #SBATCH -o {slurm_output_dir}slurm-test.%j.out
 
 {proxy_cmd}
+voms-proxy-info -all
 eval \`"scram runtime -sh"\` 
 echo CMSSW_BASE: {cmssw_base} 
 echo Executing user command  
 echo "{command}"
 {command} 
+
+voms-proxy-info -all
 
 """.format(\
                 command          = command,

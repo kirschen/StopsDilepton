@@ -4,6 +4,10 @@ from math import pi, sqrt, cos, sin, sinh, log, cosh
 from array import array
 import itertools
 
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+
 #scripts
 ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.setTDRStyle()
@@ -258,27 +262,77 @@ def getPlotFromChain(c, var, binning, cutString = "(1)", weight = "weight", binn
         res.SetBinError(1 , sqrt(res.GetBinError(0)**2 + res.GetBinError(1)**2))
     return res
 
-def renewCredentials( filename = None):
+def read_from_subprocess(arglist):
+    ''' Read line by line from subprocess
+    '''
+    import subprocess
+
+    proc = subprocess.Popen(arglist,stdout=subprocess.PIPE)
+    res = []
+    while True:
+        l = proc.stdout.readline()
+        if l !=  '':
+            res.append( l.rstrip() )
+        else:
+            break
+    return res
+
+def renew_proxy( filename = None, rfc = False, request_time = 192, min_time = 0):
     import os, subprocess
-    if os.environ.has_key("X509_USER_PROXY") and len(os.environ["X509_USER_PROXY"])>0:
-        proxy = os.environ["X509_USER_PROXY"]
-    else:
-        if filename is None:
-            hephy_user = os.getenv("USER")
-            hephy_user_initial = os.getenv("USER")[0]
-            new_proxy = '/afs/hephy.at/user/%s/%s/private/.proxy' % (hephy_user_initial, hephy_user)
-        else:
-            new_proxy = filename
 
-        if os.path.exists( new_proxy ):
-            proxy = new_proxy
-        else:
-            import subprocess
-            p = subprocess.call(['voms-proxy-init', '-voms', 'cms', '-out', new_proxy])
-            if os.path.exists( new_proxy ):
-                proxy = new_proxy
+    proxy = None
+    timeleft = 0
+
+    # Make voms-proxy-info look for a specific proxy
+    if filename is not None:
+        os.environ["X509_USER_PROXY"] = filename
+
+    # Check proxy path
+    try:
+        proxy     = read_from_subprocess( 'voms-proxy-info --path'.split() )[0]
+    except IndexError:
+        pass
+
+    try:
+        timeleft = int( read_from_subprocess( 'voms-proxy-info --timeleft'.split() ) [0] )
+    except IndexError:
+        pass
+
+    # Return existing proxy from $X509_USER_PROXY, the default location or filename
+    if proxy is not None and os.path.exists( proxy ):
+        if filename is None or os.path.abspath( filename ) == proxy:
+            logger.info( "Found proxy %s with lifetime %i hours", proxy, timeleft/3600)
+            if timeleft > 0 and timeleft >= min_time*3600 :
+                os.environ["X509_USER_PROXY"] = proxy
+                return proxy
             else:
-                raise RuntimeError( "Failed to make proxy %s" % new_proxy )
+                logger.info( "Lifetime %i not sufficient (require %i, will request %i hours).", timeleft/3600, min_time, request_time )
 
-    os.environ["X509_USER_PROXY"] = proxy
-    return proxy
+    
+    arg_list = ['voms-proxy-init', '-voms', 'cms']
+
+    if filename is not None:
+        arg_list += [ '-out', filename ]
+
+    arg_list += ['--valid', "%i:0"%request_time ]
+
+    if rfc:
+        arg_list += ['-rfc']
+
+    # make proxy
+    p = subprocess.call( arg_list )
+
+    # read path
+    new_proxy = None
+    try:
+        new_proxy     = read_from_subprocess( 'voms-proxy-info --path'.split() )[0]
+    except IndexError:
+        pass
+
+    if new_proxy is not None and os.path.exists( new_proxy ):
+        os.environ["X509_USER_PROXY"] = new_proxy
+        logger.info( "Successfully created new proxy %s", new_proxy )
+        return new_proxy
+    else:
+        raise RuntimeError( "Failed to make proxy %s" % new_proxy )
+

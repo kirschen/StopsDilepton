@@ -3,6 +3,8 @@ import subprocess
 import os, re
 import shutil
 import commands
+import subprocess
+import uuid
 
 # Logging
 import logging
@@ -51,7 +53,17 @@ def get_job_number(f):
     return ints[0]
 
 def read_normalization( filename, skimReport_file = 'SkimReport.txt'):
-    string = commands.getoutput('/usr/bin/rfcat %s | tar xzOf - Output/%s' % (filename, skimReport_file) )
+    
+    #string = commands.getoutput('/usr/bin/rfcat %s | tar xzOf - Output/%s' % (filename, skimReport_file) )
+    # string = commands.getoutput('sleep .1;/usr/bin/rfcat %s | tar xzOf - Output/%s' % (filename, skimReport_file) )
+    unique_filename = '/tmp/%s' % str(uuid.uuid1())
+    #print 'xrdcp root://hephyse.oeaw.ac.at/%s %s; cat %s | tar xzOf - Output/%s' % (filename, unique_filename, unique_filename, skimReport_file) 
+    string = commands.getoutput('xrdcp root://hephyse.oeaw.ac.at/%s %s; cat %s | tar xzOf - Output/%s' % (filename, unique_filename, unique_filename, skimReport_file) )
+    commands.getoutput('rm %s' % unique_filename )
+#    print '/usr/bin/rfcat %s | tar xzOf - Output/%s' % (filename, skimReport_file)
+#    process = subprocess.Popen(['sleep.1; /usr/bin/rfcat %s | tar xzOf - Output/%s' % (filename, skimReport_file)], stdout=subprocess.PIPE)
+#    string, err = process.communicate()
+#    print(string)
 
     sumW = None
     allEvents = None
@@ -74,7 +86,7 @@ def _wrapper( job ):
 class walk_dpm:
 
     def __init__( self, path ):
-        self.cp_cmd = "/usr/bin/rfcp"
+        # self.cp_cmd = "/usr/bin/rfcp"
         # self.pretend = False
         self.path = path
         self.tree_filename_prefix = "tree_"
@@ -197,8 +209,8 @@ class walk_dpm:
 
 if __name__ == "__main__":
 
-    from StopsDilepton.tools.helpers import renewCredentials
-    proxy = renewCredentials()
+    from StopsDilepton.tools.helpers import renew_proxy
+    proxy = renew_proxy()
     logger.info( "Using proxy %s"%proxy )
 
     import StopsDilepton.tools.logger as logger
