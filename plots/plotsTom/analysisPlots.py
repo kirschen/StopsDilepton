@@ -19,16 +19,16 @@ from StopsDilepton.plots.pieChart        import makePieChart
 # 
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',         action='store',      default='DM',        nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
-argParser.add_argument('--noData',         action='store_true', default=False,       help='also plot data?')
+argParser.add_argument('--logLevel',       action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
+argParser.add_argument('--signal',         action='store',      default='DM',            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
+argParser.add_argument('--noData',         action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
+argParser.add_argument('--runLocal',       action='store_true', default=False)
 argParser.add_argument('--splitBosons',    action='store_true', default=False)
-argParser.add_argument('--splitTop',       action='store_true', default=False)
-argParser.add_argument('--powheg',         action='store_true', default=True)
+argParser.add_argument('--splitBosons2',   action='store_true', default=False)
 argParser.add_argument('--isChild',        action='store_true', default=False)
-argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
+argParser.add_argument('--dryRun',         action='store_true', default=False,           help='do not launch subjobs')
 args = argParser.parse_args()
 
 #
@@ -44,10 +44,9 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 from StopsDilepton.tools.objectSelection import multiIsoLepString
 multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
-def getLeptonString(nMu, nE, multiIso=False, is74x=False):
+def getLeptonString(nMu, nE, multiIso=False):
   leptonString = "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&l1_pt>25"
-  if multiIso and is74x: leptonString += "&&l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP
-  elif multiIso:         leptonString += "&&l1_mIsoWP>4&&l2_mIsoWP>4"
+  if multiIso:         leptonString += "&&l1_mIsoWP>4&&l2_mIsoWP>4"
   return leptonString
 
 
@@ -63,7 +62,7 @@ cuts = [
     ("njet2",             jetSelection+">=2"),
     ("btag0",             bJetSelectionM+"==0"),
     ("btagM",             bJetSelectionM+">=1"),
-    ("multiIsoWP",        "(1)"),                                                   # implemented below
+    ("multiIsoWP",        "(1)"),                                                   # implemented below, should switch to relIso when new tuples are available
     ("looseLeptonVeto",   "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     ("mll20",             "dl_mass>20"),
     ("allZ",              "(1)"),                                                   # allZ and onZ switches off the offZ selection
@@ -92,60 +91,61 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
         if selection not in ['multiIsoWP-looseLeptonVeto-mll20',
+                             'njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
+                             'njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+                             'njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
+                             'njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
                              'njet2-multiIsoWP-looseLeptonVeto-mll20',
+                             'njet2-multiIsoWP-looseLeptonVeto-mll20-onZ',
+                             'njet2-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-mt2ll100',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',				# DY control
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',		# VV control
+                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20',
+                             'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
 			     'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140',
-                             'njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
-                             'njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
-                             'njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
-                             'njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
                              'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
-                             'njet2-multiIsoWP-looseLeptonVeto-mll20-onZ',
-                             'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100',
-                             'njet2-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-mt2ll100',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
-                             'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']: continue
-
+                             'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']: continue
 
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
+def launch(command, logfile):
+  if args.runLocal: os.system(command + " --isChild &> " + logfile)
+  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
+
 #
-# If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
+# If this is the mother process, launch the childs and exit
 #
 if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./analysisPlots.py --selection=" + selection + (" --noData" if args.noData else "")\
-                                                            + (" --splitBosons" if args.splitBosons else "")\
-                                                            + (" --splitTop" if args.splitTop else "")\
-                                                            + (" --powheg" if args.powheg else "")\
-                                                            + (" --signal=" + args.signal if args.signal else "")\
+    command = "./analysisPlots.py --selection=" + selection + (" --noData"                if args.noData      else "")\
+                                                            + (" --splitBosons"           if args.splitBosons else "")\
+                                                            + (" --signal=" + args.signal if args.signal      else "")\
                                                             + (" --plot_directory=" + args.plot_directory)\
                                                             + (" --logLevel=" + args.logLevel)
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    if not args.dryRun:          os.system("qsub -v command=\"" + command + "          --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
-    if selection.count('mt2ll'): os.system("qsub -v command=\"" + command + " --noData --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
+    if not args.dryRun:                                                                                 launch(command, logfile)
+    if selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1'): launch(command + ' --noData', logfile)
   logger.info("All jobs launched")
   exit(0)
 
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
-if args.powheg:                   args.plot_directory += "_topPowheg"
-if args.splitTop:                 args.plot_directory += "_splitTop"
-if args.signal == "DM":           args.plot_directory += "_DM_pu27fb_nobSF"
+if args.splitBosons2:             args.plot_directory += "_splitMultiBoson2"
+if args.signal == "DM":           args.plot_directory += "_DM"
 DManalysis = (args.signal == "DM")
 
 # Plot no signal for following selections
@@ -161,25 +161,15 @@ from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-T2tt                    = T2tt_650_1 # Take 450,0 as default to plot
+T2tt                    = T2tt_650_1
 T2tt2                   = T2tt_500_250
-T2tt3                   = T2tt_450_250
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-T2tt3.style             = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
 T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
 
 DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-DM2                     = TTbarDMJets_pseudoscalar_Mchi_10_Mphi_100
-DM3                     = TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200
-DM4                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
-DM5                     = TTbarDMJets_scalar_Mchi_10_Mphi_100
-DM6                     = TTbarDMJets_scalar_Mchi_50_Mphi_200
+DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
 DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
-DM2.style               = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-DM3.style               = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-DM4.style               = styles.lineStyle( 28,          width=3)
-DM5.style               = styles.lineStyle( 28,          width=3, dashed=True )
-DM6.style               = styles.lineStyle( 28,          width=3, dotted=True )
+DM2.style               = styles.lineStyle( 28,          width=3)
 
 
 
@@ -196,8 +186,7 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
       (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
       (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) ) if plotData else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)
     ]
-    if args.selection=="njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100" and args.noData:
-      lines += [(0.55, 0.5, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
+    if "mt2ll100" in args.selection and args.noData: lines += [(0.55, 0.5, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
     return [tex.DrawLatex(*l) for l in lines] 
 
 
@@ -222,22 +211,17 @@ def drawPlots(plots, mode, dataMCScale):
 
 
 
-
 #
 # Read variables and sequences
 #
 read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F",
-                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
+                  "met_pt/F", "met_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
 
-sequence = []
-
-offZ            = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
-
-def getLeptonSelection(mode, is74x=False):
-  if   mode=="mumu": return getLeptonString(2, 0, args.selection.count("multiIsoWP"), is74x) + "&&isOS&&isMuMu" + offZ
-  elif mode=="mue":  return getLeptonString(1, 1, args.selection.count("multiIsoWP"), is74x) + "&&isOS&&isEMu"
-  elif mode=="ee":   return getLeptonString(0, 2, args.selection.count("multiIsoWP"), is74x) + "&&isOS&&isEE" + offZ
+offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
+def getLeptonSelection(mode):
+  if   mode=="mumu": return getLeptonString(2, 0, args.selection.count("multiIsoWP")) + "&&isOS&&isMuMu" + offZ
+  elif mode=="mue":  return getLeptonString(1, 1, args.selection.count("multiIsoWP")) + "&&isOS&&isEMu"
+  elif mode=="ee":   return getLeptonString(0, 2, args.selection.count("multiIsoWP")) + "&&isOS&&isEE" + offZ
 
 #For PU reweighting
 from StopsDilepton.tools.puReweighting import getReweightingFunction
@@ -255,64 +239,59 @@ allPlots   = {}
 allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
-  if mode=="mumu":
-    data_sample         = DoubleMuon_Run2016BCD_backup if not DManalysis else DoubleMuon_Run2016BCDEFG_backup
-    data_sample.texName = "data (2 #mu)"
-  elif mode=="ee":
-    data_sample         = DoubleEG_Run2016BCD_backup if not DManalysis else DoubleEG_Run2016BCDEFG_backup 
-    data_sample.texName = "data (2 e)"
-  elif mode=="mue":
-    data_sample         = MuonEG_Run2016BCD_backup if not DManalysis else MuonEG_Run2016BCDEFG_backup 
-    data_sample.texName = "data (1 #mu, 1 e)"
+  if   mode=="mumu": data_sample = DoubleMuon_Run2016BCDEFG_backup
+  elif mode=="ee":   data_sample = DoubleEG_Run2016BCDEFG_backup
+  elif mode=="mue":  data_sample = MuonEG_Run2016BCDEFG_backup
+  if   mode=="mumu": data_sample.texName = "data (2 #mu)"
+  elif mode=="ee":   data_sample.texName = "data (2 e)"
+  elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
-  data_sample.name  = "data"
-  data_sample.read_variables = ["weight/F","evt/I"]
-  data_sample.style = styles.errorStyle( ROOT.kBlack )
-  lumi_scale        = data_sample.lumi/1000
+  data_sample.name           = "data"
+  data_sample.read_variables = ["evt/I","run/I"]
+  data_sample.style          = styles.errorStyle(ROOT.kBlack)
+  lumi_scale                 = data_sample.lumi/1000
 
-  # Blinding policy for DM analysis: only 1 out of 15 events is unblinded
-  if DManalysis and "njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80" in args.selection:
-    weight_ = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
-    lumi_scale = lumi_scale/15
+  if args.noData: lumi_scale = 36.4
+  # Blinding policies for DM and T2tt analyses
+  if "njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80" in args.selection and not args.noData:
+    if args.signal == "DM":
+      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
+      lumi_scale = lumi_scale/15
+    else:
+      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
+      lumi_scale = 17.3
   else:
     weight_ = lambda event, sample: event.weight
 
-  if args.powheg and args.splitBosons:   mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
-  elif args.splitBosons:                 mc = [ Top, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
-  elif args.splitTop:                    mc = [ TTLep_pow, singleTop, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
-  elif args.powheg:                      mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
-  else:                                  mc = [ Top, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
+  multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
+  mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO]
 
-  for sample in mc:
+
+  for sample in mc: sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
+
+  for sample in mc + [DM, DM2]:
     sample.scale          = lumi_scale
-    sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
-    if DManalysis: sample.weight = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
-    else:          sample.weight = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
+   #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+
+  for sample in [T2tt, T2tt2]:
+    sample.scale          = lumi_scale
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
   if not args.noData:
     if not args.signal:         stack = Stack(mc, data_sample)
-    elif args.signal == "DM":   stack = Stack(mc, data_sample, DM, DM4)
+    elif args.signal == "DM":   stack = Stack(mc, data_sample, DM, DM2)
     elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt, T2tt2)
   else:
     if not args.signal:         stack = Stack(mc)
-    elif args.signal == "DM":   stack = Stack(mc, DM, DM4)
+    elif args.signal == "DM":   stack = Stack(mc, DM, DM2)
     elif args.signal == "T2tt": stack = Stack(mc, T2tt, T2tt2)
-
-  for sample in [T2tt, T2tt2, T2tt3]:
-    sample.scale          = lumi_scale
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
-
-  for sample in [DM, DM2, DM3, DM4, DM5, DM6]:
-    sample.scale          = lumi_scale
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
   # Use some defaults
@@ -560,7 +539,7 @@ for index, mode in enumerate(allModes):
 
 
 
-  plotting.fill(plots, read_variables = read_variables, sequence = sequence)
+  plotting.fill(plots, read_variables = read_variables, sequence = [])
 
   # Get normalization yields from yield histogram
   for plot in plots:
@@ -577,7 +556,8 @@ for index, mode in enumerate(allModes):
   dataMCScale        = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
 
   drawPlots(plots, mode, dataMCScale)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart", yields, mode, mc)
+  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
+  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
   allPlots[mode] = plots
 
 
@@ -598,11 +578,12 @@ for mode in ["SF","all"]:
 	    j.Add(l)
 
   drawPlots(allPlots['mumu'], mode, dataMCScale)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart", yields, mode, mc)
+  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
+  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
 
 
 # Write to tex file
-columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM4.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
+columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM2.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
 texdir = "tex"
 if args.powheg: texdir += "_powheg"
 try:

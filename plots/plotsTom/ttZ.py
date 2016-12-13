@@ -39,7 +39,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 # Selections (three leptons with pt > 30, 20, 10 GeV)
 #
 isoCut="VT" if args.selection and args.selection.count("VT") else 0.6
-from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
+from StopsDilepton.tools.objectSelectionOld import muonSelectorString,eleSelectorString
 def getLooseLeptonString(nMu, nE):
   return muonSelectorString(ptCut=10, iso=isoCut) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, eleId = 3, absEtaCut=2.5, iso=isoCut) + "==" + str(nE)
 
@@ -175,9 +175,18 @@ sequence = [makeDeltaR, calcBTag, calcInvMass]
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+
+
+#For PU reweighting
+from StopsDilepton.tools.puReweighting import getReweightingFunction
+nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
+nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
+nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
+nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
+
 
 
 #
@@ -200,18 +209,15 @@ allModes   = ['3mu', '3e', '2mu1e','2e1mu']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
 
-  if mode=="3mu":
-    data_sample         = DoubleMuon_Run2016BCD_backup
-    data_sample.texName = "data (3 #mu)"
-  elif mode=="3e":
-    data_sample         = DoubleEG_Run2016BCD_backup
-    data_sample.texName = "data (3 e)"
-  elif mode=="2mu1e":
-    data_sample         = MuonEG_Run2016BCD_backup
-    data_sample.texName = "data (2 #mu, 1 e)"
-  elif mode=="2e1mu":
-    data_sample         = MuonEG_Run2016BCD_backup
-    data_sample.texName = "data (2 e, 1 #mu)"
+  if   mode=="3mu":   data_sample         = DoubleMuon_Run2016BCDEFG_backup
+  elif mode=="3e":    data_sample         = DoubleEG_Run2016BCDEFG_backup
+  elif mode=="2mu1e": data_sample         = MuonEG_Run2016BCDEFG_backup
+  elif mode=="2e1mu": data_sample         = MuonEG_Run2016BCDEFG_backup
+
+  if mode=="3mu":     data_sample.texName = "data (3 #mu)"
+  elif mode=="3e":    data_sample.texName = "data (3 e)"
+  elif mode=="2mu1e": data_sample.texName = "data (2 #mu, 1 e)"
+  elif mode=="2e1mu": data_sample.texName = "data (2 e, 1 #mu)"
 
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
@@ -224,8 +230,9 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
+   # sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   stack = Stack(mc, data_sample)
@@ -236,7 +243,7 @@ for index, mode in enumerate(allModes):
   plots = []
 
   plots.append(Plot(
-    name = 'yield', texX = 'yield', texY = 'Number of Events',
+    texX = 'yield', texY = 'Number of Events',
     name = 'yield', attribute = lambda event, sample: 0.5 + index,
     binning=[4, 0, 4],
   ))
