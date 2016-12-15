@@ -84,21 +84,19 @@ bJetSelectionM  = "nBTag"
 # Cuts to iterate over
 #
 cuts = [
-#    ("njet0",             jetSelection+"==0"),
-#    ("njet1",             jetSelection+"==1"),
     ("njet01",            jetSelection+"<=1"),
     ("njet2",             jetSelection+">=2"),
     ("btag0",             bJetSelectionM+"==0"),
     ("btagM",             bJetSelectionM+">=1"),
     ("multiIsoWP",        "(1)"),                                                   # implemented below
+    ("onZ",               "abs(dl_mass-91.1876)<15"),
     ("looseLeptonVeto",   "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     ("mll20",             "dl_mass>20"),
-#    ("allZ",              "(1)"),                                                   # allZ and onZ switches off the offZ selection
-#    ("onZ",               "abs(dl_mass-91.1876)<15"),
     ("metInv",            "met_pt<80"),
     ("met80",             "met_pt>80"),
     ("metSig5",           "metSig>5"),
     ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+    ("dPhiInv",           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))"),
     ("mt2ll100",          "dl_mt2ll>100"),
   ]
 
@@ -115,46 +113,22 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel = [] 
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
-        if not selection.count("multiIsoWP"):      continue
-        if not selection.count("looseLeptonVeto"): continue
-        if not selection.count("mll20"):           continue
-        if not selection.count("njet") == 1:       continue
-        if selection.count("met50")  and selection.count("met80"):      continue
-        if (selection.count("met50")  or selection.count("met80")) and selection.count('metInv'):      continue
-        if selection.count("onZ")    and selection.count("allZ"):       continue
-        if selection.count("met80")  and not selection.count("mll"):    continue
-        if selection.count("met50")  and not selection.count("btag0"):  continue #met50 only for btag0
-        if selection.count("metSig") and not (selection.count("met80") or selection.count("met50")):  continue
-        if selection.count("dPhi")   and not selection.count("mll20"):    continue
-        if selection.count("dPhi")   and not selection.count("njet2"):  continue
-        if selection.count("dPhiInv") and selection.count("PhiJet1"):   continue
-        if selection.count("dPhiInv") and selection.count("mt2ll140"):  continue
-        if selection.count("metSigInv") and selection.count("mt2ll140"):  continue
-        if selection.count("mt2")    and not selection.count("met"):    continue
-        if selection.count("njet0")  and selection.count("dPhi"):    continue
-        if selection.count("njet0")  and selection.count("mt2"):    continue
-        if selection.count("njet1")  and selection.count("dPhi"):    continue
-        if selection.count("njet1")  and selection.count("mt2"):    continue
-        if selection.count("njet0")  and selection.count("btag") and not selection.count("njet01"):    continue
-        if selection.count("njet") > 1:    continue
-        if selection.count("btag") > 1:    continue
-        if selection.count("mt2ll") > 1:   continue
-        if selection.count("mt2blbl") > 1: continue
-        if selection.count("mt2bb") > 1:   continue
-        if selection.count("metSig") > 1:  continue
-        if selection.count("met80") > 1:   continue
-        if not (selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-             or selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-             or selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv')
-             or selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv')
-             or selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv')
-             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv')
-             or selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5')
-             or selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
-        ): continue
-        if not selection.count('njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv'): continue
-    #    if not selection.count('njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv'): continue
+        if selection not in [
+              'njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
+              'njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+              'njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
+              'njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
+              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5',
+              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
+              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
+              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
+              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+              'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
+              'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
+              'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
+              'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']: continue
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 
@@ -209,16 +183,14 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
 
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
-if args.powheg:                   args.plot_directory += "_topPowheg"
-if args.splitTop:                 args.plot_directory += "_splitTop"
-
+if args.signal == "DM":           args.plot_directory += "_DM"
 
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 T2tt                    = T2tt_650_1
@@ -227,17 +199,9 @@ T2tt2                   = T2tt_700_100
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
 
 DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-DM4                     = TTbarDMJets_pseudoscalar_Mchi_10_Mphi_100
-DM3                     = TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200
 DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
-DM5                     = TTbarDMJets_scalar_Mchi_10_Mphi_100
-DM6                     = TTbarDMJets_scalar_Mchi_50_Mphi_200
 DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
-DM4.style               = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-DM3.style               = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
 DM2.style               = styles.lineStyle( 28,          width=3)
-DM5.style               = styles.lineStyle( 28,          width=3, dashed=True )
-DM6.style               = styles.lineStyle( 28,          width=3, dotted=True )
 
 signals = []
 if   args.signal == "T2tt": signals = [T2tt]
@@ -254,7 +218,7 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
-      (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV) Scale %3.2f'% ( dataMCScale ) ) if False else (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
+      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) ) if False else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)
     ]
     return [tex.DrawLatex(*l) for l in lines] 
 
@@ -266,14 +230,14 @@ def addSys( selectionString , sys = None ):
     elif sys in met_systematics: return selectionString.replace('met_pt', 'met_pt_' + sys).replace('metSig', 'metSig_' + sys)
     else:                        return selectionString
 
+# CHECK AFTER NEXT UPDATE (i.e. PU weights)
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightPU12fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF")
+    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF")
     elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF")
-    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightPU12fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweight"+sys)
-    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweight"+sys)
+    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweight"+sys)
+    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
-
     
 
 
@@ -284,7 +248,7 @@ read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2
                   "met_pt/F", "met_phi/F", "LepGood[pt/F,eta/F,miniRelIso/F]", "Flag_goodVertices/O", "Flag_HBHENoiseIsoFilter/O", "Flag_HBHENoiseFilter/O", "Flag_globalTightHalo2016Filter/O",
                   "Flag_eeBadScFilter/O", "Flag_EcalDeadCellTriggerPrimitiveFilter/O", "Flag_badChargedHadron/O", "Flag_badMuon/O", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
                   "isOS/O", "isEE/O", "isMuMu/O", "isEMu/O",
-                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
+                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","evt/I"]
 
 sequence = []
 
@@ -296,6 +260,15 @@ def getLeptonSelection(mode):
   elif mode=="ee":   return "(" + getLeptonString(0, 2, args.selection.count("multiIsoWP")) + "&&isOS&&isEE" + offZ + ")"
   elif mode=="all":  return "(" + "||".join([getLeptonSelection(m) for m in ["mumu","mue","ee"]]) + ")"
 
+
+#For PU reweighting
+from StopsDilepton.tools.puReweighting import getReweightingFunction
+nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
+nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
+nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
+nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
+
+
 #
 # Loop over channels
 #
@@ -303,19 +276,19 @@ allPlots   = {}
 allModes   =['mue','ee','mumu','all']
 for index, mode in enumerate(allModes):
   if mode=="mumu":
-    data_sample         = DoubleMuon_Run2016BCD_backup
+    data_sample         = DoubleMuon_Run2016BCDEFG_backup
     data_sample.texName = "data (2 #mu)"
   elif mode=="ee":
-    data_sample         = DoubleEG_Run2016BCD_backup 
+    data_sample         = DoubleEG_Run2016BCDEFG_backup
     data_sample.texName = "data (2 e)"
   elif mode=="mue":
-    data_sample         = MuonEG_Run2016BCD_backup 
+    data_sample         = MuonEG_Run2016BCDEFG_backup
     data_sample.texName = "data (1 #mu, 1 e)"
   elif mode=="all":
-    data_sample         = [DoubleMuon_Run2016BCD_backup, DoubleEG_Run2016BCD_backup, MuonEG_Run2016BCD_backup]
-    DoubleMuon_Run2016BCD_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
-    DoubleEG_Run2016BCD_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
-    MuonEG_Run2016BCD_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mue")])
+    data_sample         = [DoubleMuon_Run2016BCDEFG_backup, DoubleEG_Run2016BCDEFG_backup, MuonEG_Run2016BCDEFG_backup]
+    DoubleMuon_Run2016BCDEFG_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
+    DoubleEG_Run2016BCDEFG_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
+    MuonEG_Run2016BCDEFG_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mue")])
     for d in data_sample:
       d.texName = "data"
       d.read_variables = ['weight/F']
@@ -329,16 +302,25 @@ for index, mode in enumerate(allModes):
     data_sample.style = styles.errorStyle( ROOT.kBlack )
     lumi_scale        = data_sample.lumi/1000
 
-  if args.powheg and args.splitBosons:   mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
-  elif args.splitBosons:                 mc = [ Top, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
-  elif args.splitTop:                    mc = [ TTLep_pow, singleTop, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
-  elif args.powheg:                      mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
-  else:                                  mc = [ Top, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
+  # Blinding policies for DM and T2tt analyses
+  if "njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80" in args.selection:
+    if args.signal == "DM"
+      weight_ = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016BCDEFG_backup, DoubleEG_Run2016BCDEFG_backup, MuonEG_Run2016BCDEFG_backup]) else event.weight*(1 if (event.evt % 15 == 0) else 0)
+      lumi_scale = lumi_scale/15
+    else:
+      weight_ = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
+      lumi_scale = 17.3
+  else:
+    weight_ = lambda event, sample: event.weight
+
+
+  if args.splitBosons: mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
+  else:                mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
 
   for sample in mc:
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables  = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
+    sample.read_variables  = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
     sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics]
     sample.read_variables += ["dl_mt2ll_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2bb_%s/F"%s   for s in jme_systematics]
@@ -348,7 +330,7 @@ for index, mode in enumerate(allModes):
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
     # Apply scale factors in the mt2ll > 100 GeV signal region (except Top which will be already scaled anyway)
-    if args.selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100'):
+    if args.selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100') and False: # Turn on when scalefactors are rederived
       if sample == DY_HT_LO:   sample.scale = lumi_scale*1.30
       if sample == multiBoson: sample.scale = lumi_scale*1.45
       if sample == TTZ_LO:     sample.scale = lumi_scale*0.89
@@ -357,20 +339,20 @@ for index, mode in enumerate(allModes):
   if args.signal == "T2tt":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
+      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
+      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
   # Use some defaults
-  Plot.setDefaults(weight = lambda event, sample: event.weight, selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(weight = weight_, selectionString = selectionStrings[args.selection])
   
   stack_mc   = Stack( mc )
 
@@ -407,7 +389,7 @@ for index, mode in enumerate(allModes):
 	name            = "dl_mt2bb_data",
 	texX            = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack           = stack_data,
-	variable        = TreeVariable.fromString( "dl_mt2bb/F" ),
+	attribute       = TreeVariable.fromString( "dl_mt2bb/F" ),
 	binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
 	) 
     plots.append( dl_mt2bb_data )
@@ -416,7 +398,7 @@ for index, mode in enumerate(allModes):
 	name = "dl_mt2bb" if sys is None else "dl_mt2bb_mc_%s" % sys,
 	texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
-	variable = TreeVariable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2bb_%s/F" % sys ),
+	attribute = TreeVariable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2bb_%s/F" % sys ),
 	binning=Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
 	selectionString = addSys(selectionStrings[args.selection], sys),
 	weight = weightMC( sys = sys )[0],
@@ -427,7 +409,7 @@ for index, mode in enumerate(allModes):
 	name            = "dl_mt2bb_data_2",
 	texX            = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack           = stack_data,
-	variable        = TreeVariable.fromString( "dl_mt2bb/F" ),
+	attribute        = TreeVariable.fromString( "dl_mt2bb/F" ),
 	binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450,500,550,600,700,800,1000]),
 	) 
     plots.append( dl_mt2bb_data_2 )
@@ -436,7 +418,7 @@ for index, mode in enumerate(allModes):
 	name = "dl_mt2bb_2" if sys is None else "dl_mt2bb_mc_2_%s" % sys,
 	texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
-	variable = TreeVariable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2bb_%s/F" % sys ),
+	attribute = TreeVariable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2bb_%s/F" % sys ),
 	binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450,500,550,600,700,800,1000]),
 	selectionString = addSys(selectionStrings[args.selection], sys),
 	weight = weightMC( sys = sys )[0],
@@ -449,7 +431,7 @@ for index, mode in enumerate(allModes):
 	name = "dl_mt2blbl_data",
 	texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = stack_data,
-	variable = TreeVariable.fromString( "dl_mt2blbl/F" ),
+	attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
 	) 
     plots.append( dl_mt2blbl_data )
@@ -458,7 +440,7 @@ for index, mode in enumerate(allModes):
 	name = "dl_mt2blbl" if sys is None else "dl_mt2blbl_mc_%s" % sys,
 	texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
-	variable = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
+	attribute = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
 	selectionString = addSys(selectionStrings[args.selection], sys),
 	weight = weightMC( sys = sys )[0],
@@ -468,18 +450,18 @@ for index, mode in enumerate(allModes):
 
     dl_mt2blbl_data_2  = Plot( 
 	name = "dl_mt2blbl_data_2",
-	texX = 'M_{T2}{blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+	texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = stack_data,
-	variable = TreeVariable.fromString( "dl_mt2blbl/F" ),
+	attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350,400,450,500,600,700]),
 	) 
     plots.append( dl_mt2blbl_data_2 )
 
     dl_mt2blbl_mc_2  = {sys: Plot(
 	name = "dl_mt2blbl_2" if sys is None else "dl_mt2blbl_mc_2_%s" % sys,
-	texX = 'M_{T2}{blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+	texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
 	stack = sys_stacks[sys],
-	variable = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
+	attribute = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
 	binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350,400,450,500,600,700]),
 	selectionString = addSys(selectionStrings[args.selection], sys),
 	weight = weightMC( sys = sys )[0],
@@ -555,11 +537,35 @@ for index, mode in enumerate(allModes):
       ) for sys in all_systematics }
   plots.extend( met_mc.values() )
 
+  metBinning2 = [0,20,40,60,80] if args.selection.count('metInv') else [80,100,120,140,160,200,500] if args.selection.count('met80') else [0,80,100,120,140,160,200,500]
+
+  met2_data  = Plot(
+      name = "met2_data",
+      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+      stack = stack_data,
+      attribute = TreeVariable.fromString( "met_pt/F" ),
+      binning=Binning.fromThresholds( metBinning2 ),
+      )
+  plots.append( met2_data )
+
+  met2_mc  = {sys: Plot(
+      name = "met2_pt" if sys is None else "met2_pt_mc_%s" % sys,
+      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+      stack = sys_stacks[sys],
+      attribute = TreeVariable.fromString('met_pt/F') if sys not in met_systematics else TreeVariable.fromString( "met_pt_%s/F" % sys ),
+      binning=Binning.fromThresholds( metBinning2 ),
+      selectionString = addSys(selectionStrings[args.selection], sys),
+      weight = weightMC( sys = sys )[0],
+      ) for sys in all_systematics }
+  plots.extend( met2_mc.values() )
+
+
   plotConfigs = [\
          [ dl_mt2ll_mc, dl_mt2ll_data, 20],
          [ njets_mc, njets_data, -1],
          [ nbtags_mc, nbtags_data, -1],
          [ met_mc, met_data, 50],
+         [ met2_mc, met2_data, 20],
     ]
 
   if args.selection.count('njet2'):
