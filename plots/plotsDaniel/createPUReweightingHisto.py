@@ -33,9 +33,9 @@ mc.setSelectionString( "&&".join([mcFilterCut, preselection]) )
 
 if maxN>0:
     mc.reduceFiles(to=maxN)
-    DoubleEG_Run2016B     .reduceFiles(to=maxN)
-    DoubleMuon_Run2016B   .reduceFiles(to=maxN)
-    MuonEG_Run2016B       .reduceFiles(to=maxN)
+    DoubleEG_Run2016     .reduceFiles(to=maxN)
+    DoubleMuon_Run2016   .reduceFiles(to=maxN)
+    MuonEG_Run2016       .reduceFiles(to=maxN)
 
 #Get true PU from data
 from StopsDilepton.tools.helpers import getObjFromFile
@@ -134,14 +134,14 @@ plotting.draw(
 )
 
 #Loading Data
-DoubleEG_Run2016B     .setSelectionString( "&&".join([dataFilterCut, "isEE==1&&nGoodMuons==0&&nGoodElectrons==2" ]) ) 
-DoubleMuon_Run2016B   .setSelectionString( "&&".join([dataFilterCut, "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0" ]) ) 
-MuonEG_Run2016B       .setSelectionString( "&&".join([dataFilterCut, "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1" ]) )
+DoubleEG_Run2016     .setSelectionString( "&&".join([dataFilterCut, "isEE==1&&nGoodMuons==0&&nGoodElectrons==2" ]) ) 
+DoubleMuon_Run2016   .setSelectionString( "&&".join([dataFilterCut, "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0" ]) ) 
+MuonEG_Run2016       .setSelectionString( "&&".join([dataFilterCut, "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1" ]) )
 
 #h_nVert = mc.get1DHistoFromDraw( "nVert", binning = [50,0,50], selectionString = "(1)", weightString = "weight" )
-h_EE = DoubleEG_Run2016B.get1DHistoFromDraw( "nVert", binning = [50,0,50], selectionString = "(1)", weightString = "weight" )
-h_EMu = MuonEG_Run2016B.get1DHistoFromDraw( "nVert", binning = [50,0,50], selectionString = "(1)", weightString = "weight" )
-h_MuMu = DoubleMuon_Run2016B.get1DHistoFromDraw( "nVert", binning = [50,0,50], selectionString = "(1)", weightString = "weight" )
+h_EE = DoubleEG_Run2016.get1DHistoFromDraw( "nVert", binning = [50,0,50], selectionString = "(1)", weightString = "weight" )
+h_EMu = MuonEG_Run2016.get1DHistoFromDraw( "nVert", binning = [50,0,50], selectionString = "(1)", weightString = "weight" )
+h_MuMu = DoubleMuon_Run2016.get1DHistoFromDraw( "nVert", binning = [50,0,50], selectionString = "(1)", weightString = "weight" )
 
 h_data = h_EE.Clone()
 h_event.Add(h_EMu)

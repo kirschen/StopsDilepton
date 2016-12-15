@@ -31,7 +31,7 @@ dirs['DY_LO']            = ["DYJetsToLL_M10to50_LO", "DYJetsToLL_M50_LO"]
 dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 dirs['TTJets']           = ["TTJets"]
 #dirs['TTJets_LO']        = ["TTJets_LO"] 
-dirs['TTLep_pow']        = ["TTLep_pow_ext"] #FIXME change to Lep as soon as it's there
+dirs['TTLep_pow']        = ["TT_pow_ext3_comb"] #FIXME Lep samples still has a normalization problem, use inclusive for now (was used in v12 as well)
 dirs['TT_pow']           = ["TT_pow_ext3_comb"]
 
 dirs['TTJets_Lep']       = ["TTJets_DiLepton_comb", "TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT_comb"]
@@ -42,19 +42,19 @@ dirs['singleTop']        = ["TBar_tWch", "T_tWch", "TToLeptons_tch_powheg", "TBa
 dirs['singleTop_tch']    = ["TToLeptons_tch_powheg", "TBarToLeptons_tch_powheg"]
 dirs['Top_amc']          = dirs['singleTop'] + dirs['TTJets']
 dirs['Top']              = dirs['singleTop'] + dirs['TTJets_Lep']
-dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop'] #FIXME should be lep!!
+dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop']
 dirs['Top_pow_incl']     = dirs['TT_pow'] + dirs['singleTop']
-dirs['TZQ']              = ["tZq_ll", "tZq_nunu"]
-dirs['TZQ']              = ["tZq_ll"]
+dirs['TZQ']              = ["tZq_ll", "tZq_nunu_reHLT"]
+#dirs['TZQ']              = ["tZq_ll"]
 dirs['TWZ']              = ["tWll", "tWnunu"]
 dirs['TTW']              = ["TTWToLNu", "TTWToQQ"]
 dirs['TTH']              = [ \
-#        "TTHbb_ext3", 
+        "TTHbb_ext3", 
         "TTHnobb_mWCutfix_ch0"]
 dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu"]
 dirs['TTZtoQQ']          = ["TTZToQQ"]
 dirs['TTZ']              = ["TTZToLLNuNu", "TTZToQQ"]
-dirs['TTZ_LO']          = ["TTZ_LO"]
+dirs['TTZ_LO']           = ["TTZ_LO"]
 dirs['TTXNoZ']           = dirs['TTH'] + dirs['TTW'] + dirs['TZQ']
 dirs['TTX']              = dirs['TTXNoZ'] + dirs['TTZ_LO']
 dirs['WJetsToLNu']       = ["WJetsToLNu"]
@@ -83,9 +83,10 @@ dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 #dirs['QCD']             = ["QCD_Pt10to15", "QCD_Pt15to30", "QCD_Pt30to50", "QCD_Pt50to80", "QCD_Pt80to120", "QCD_Pt120to170", "QCD_Pt170to300", "QCD_Pt300to470", "QCD_Pt470to600", "QCD_Pt600to800", "QCD_Pt800to1000", "QCD_Pt1000to1400", "QCD_Pt1400to1800", "QCD_Pt1800to2400", "QCD_Pt2400to3200", "QCD_Pt3200"]
 
 #dirs['WGToLNuG']     = ["WGToLNuG"]
-#dirs['ZGTo2LG']      = ["ZGTo2LG"]
+dirs['ZGTo2LG']      = ["ZGTo2LG"]
 #dirs['WGJets']       = ["WGJets"]
-#dirs['ZGJets']       = ["ZGJets"]
+dirs['ZGJets']       = ["ZGJets"]
+dirs['ZG']           = dirs['ZGTo2LG'] + dirs['ZGJets']
 
 directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
 
@@ -143,3 +144,4 @@ multiBoson     = Sample.fromDirectory(name="multiBoson",       treeName="Events"
 #ZGTo2LG  = Sample.fromDirectory(name="ZGTo2LG",       treeName="Events", isData=False, color=color.diBoson,        texName="ZGTo2LG",                       directory=directories['ZGTo2LG'] )
 #WGJets   = Sample.fromDirectory(name="WGJets",       treeName="Events", isData=False, color=color.diBoson,         texName="WGJets",                       directory=directories['WGJets']  )
 #ZGJets   = Sample.fromDirectory(name="ZGJets",       treeName="Events", isData=False, color=color.diBoson,         texName="ZGJets",                       directory=directories['ZGJets']  )
+ZG        = Sample.fromDirectory(name="ZG",            treeName="Events", isData=False, color=color.QCD,             texName="ZG",                           directory=directories['ZG']  )

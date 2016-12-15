@@ -328,12 +328,18 @@ logger.info( "Calculating normalization constants" )
 #yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc)
 #yield_data  = data_sample.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
 
+from StopsDilepton.tools.puReweighting import getReweightingFunction
+nTrueInt36fb_puRW         = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
+
 for sample in mc:
     dataMCScale = 1. #yield_data/(yield_mc*lumi_scale)
     sample.scale = lumi_scale*dataMCScale
     if args.pu != "None":
-        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F','nTrueInt/F']
+        if args.pu == 'custom'
+          sample.weight = lambda event, sample: nTrueInt36fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*event.reweightLeptonSF
+        else:
+          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF
     else:
         sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightLeptonSF/F']
         sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightLeptonSF

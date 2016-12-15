@@ -437,7 +437,7 @@ def selection( ):
         ("nbtag"+args.btagWP+"%s"%args.nbtag, btagStr+"%s"%mCutStr( args.nbtag ))]
     if args.met=='def': res.extend([\
         ("met80", "met_pt>80"),
-        ("metSig10", "(met_pt/sqrt(ht)>10||nJetGood==0)"),
+        ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
         ])
     elif args.met=='high':
         res.extend([\

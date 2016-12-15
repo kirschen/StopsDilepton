@@ -309,7 +309,7 @@ elif args.ttjets=='powIncl':
 elif args.ttjets=='amc':
     TTJets_sample = Top_amc
 
-mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson, TWZ]
+mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTXNoZ, triBoson, TWZ, ZG]
 #mc_samples = [ TTJets_sample] + diBoson_samples + [DY, TTZ_LO, TTW, triBoson, TWZ]
 
 signal_samples = []
@@ -391,11 +391,12 @@ nTrueInt36fb_puRWDown     = getReweightingFunction(data="PU_2016_36000_XSecDown"
 nTrueInt36fb_puRWUp       = getReweightingFunction(data="PU_2016_36000_XSecUp", mc="Spring16")
 nTrueInt36fb_puRWVDown    = getReweightingFunction(data="PU_2016_36000_XSecVDown", mc="Spring16")
 nTrueInt36fb_puRWVUp      = getReweightingFunction(data="PU_2016_36000_XSecVUp", mc="Spring16")
+nTrueInt36fb_puRWVVUp     = getReweightingFunction(data="PU_2016_36000_XSecVVUp", mc="Spring16")
 
 for sample in mc_samples + signal_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F','nTrueInt/F']
-    sample.weight = lambda event, sample: event.reweightDilepTriggerBackup * event.reweightLeptonSF * nTrueInt36fb_puRWUp(event.nTrueInt)
+    sample.weight = lambda event, sample: event.reweightDilepTriggerBackup * event.reweightLeptonSF * nTrueInt36fb_puRW(event.nTrueInt)
 
 weight = lambda event, sample: event.weight
 
@@ -450,7 +451,7 @@ def selection( ):
         ("nbtag"+args.btagWP+"%s"%args.nbtag, btagStr+"%s"%mCutStr( args.nbtag ))]
     if args.met=='def': res.extend([\
         ("met80", "met_pt>80"),
-        ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
+        ("metSig10", "(met_pt/sqrt(ht)>10||nJetGood==0)"),
         ])
     elif args.met=='high':
         res.extend([\
@@ -587,7 +588,7 @@ for l_comb in l_combs:
             s.scale*=args.diBosonScaleFactor
 
         if args.scaleDY:
-          DY_HT_LO.scale *= 1.7
+          DY_HT_LO.scale *= 1.4
           ppfixes.append("DYscale")
         
         if args.scaleVV:
