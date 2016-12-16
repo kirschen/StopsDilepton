@@ -90,23 +90,18 @@ class btagEfficiency:
         v_sys = getattr(ROOT, 'vector<string>')()
         v_sys.push_back('up')
         v_sys.push_back('down')
-        self.readerB        = ROOT.BTagCalibrationReader(WP, "central", v_sys)
-        self.readerC        = ROOT.BTagCalibrationReader(WP, "central", v_sys)
-        self.readerUDSG     = ROOT.BTagCalibrationReader(WP, "central", v_sys)
-        self.readerB.load(self.calib, 0, "comb")
-        self.readerC.load(self.calib, 1, "comb")
-        self.readerUDSG.load(self.calib, 2, "incl")
+        self.reader = ROOT.BTagCalibrationReader(WP, "central", v_sys)
+        self.reader.load(self.calib, 0, "comb")
+        self.reader.load(self.calib, 1, "comb")
+        self.reader.load(self.calib, 2, "incl")
 
         if fastSim:
             logger.info( "Loading FullSim/FastSim scale factors from %s", os.path.expandvars( self.scaleFactorFileFS ) )
             self.calibFS = ROOT.BTagCalibration("csv", os.path.expandvars( self.scaleFactorFileFS ) )
-            #need seperate readers for FS SFs as well now
-            self.readerFSB        = ROOT.BTagCalibrationReader(WP, "central", v_sys)
-            self.readerFSC        = ROOT.BTagCalibrationReader(WP, "central", v_sys)
-            self.readerFSUDSG     = ROOT.BTagCalibrationReader(WP, "central", v_sys)
-            self.readerFSB.load(self.calibFS, 0, "fastsim")
-            self.readerFSC.load(self.calibFS, 1, "fastsim")
-            self.readerFSUDSG.load(self.calibFS, 2, "fastsim")
+            self.readerFS = ROOT.BTagCalibrationReader(WP, "central", v_sys)
+            self.readerFS.load(self.calibFS, 0, "fastsim")
+            self.readerFS.load(self.calibFS, 1, "fastsim")
+            self.readerFS.load(self.calibFS, 2, "fastsim")
 
         # Load MC efficiency
         logger.info( "Loading MC efficiency %s", os.path.expandvars(self.mcEfficiencyFile) )
@@ -130,45 +125,31 @@ class btagEfficiency:
     def getSF(self, pdgId, pt, eta):
         if pt<20: raise ValueError( "BTag SF Not implemented below 20 GeV. Got %f"%pt )
         #autobounds are implemented now, no doubling of uncertainties necessary anymore
-        if abs(pdgId)==5: #SF for b
-            sf_fs   = 1 if not self.fastSim else self.readerFSB.eval_auto_bounds('central', ROOT.BTagEntry.FLAV_B, eta, pt)
-            sf_fs_u = 1 if not self.fastSim else self.readerFSB.eval_auto_bounds('down',    ROOT.BTagEntry.FLAV_B, eta, pt)
-            sf_fs_d = 1 if not self.fastSim else self.readerFSB.eval_auto_bounds('up',      ROOT.BTagEntry.FLAV_B, eta, pt)
-            if sf_fs == 0:  # should not happen, however, if pt=1000 (exactly) the reader will return a sf of 0.
-                sf_fs = 1
-                sf_fs_u = 1
-                sf_fs_d = 1
-            sf      = sf_fs*self.readerB.eval_auto_bounds('central',  ROOT.BTagEntry.FLAV_B, eta, pt)
-            sf_b_d  = sf_fs*self.readerB.eval_auto_bounds('down',     ROOT.BTagEntry.FLAV_B, eta, pt)
-            sf_b_u  = sf_fs*self.readerB.eval_auto_bounds('up',       ROOT.BTagEntry.FLAV_B, eta, pt)
-            sf_l_d  = 1.
-            sf_l_u  = 1.
-        elif abs(pdgId)==4: #SF for c
-            sf_fs   = 1 if not self.fastSim else self.readerFSC.eval_auto_bounds('central', ROOT.BTagEntry.FLAV_C, eta, pt)
-            sf_fs_u = 1 if not self.fastSim else self.readerFSC.eval_auto_bounds('down',    ROOT.BTagEntry.FLAV_C, eta, pt)
-            sf_fs_d = 1 if not self.fastSim else self.readerFSC.eval_auto_bounds('up',      ROOT.BTagEntry.FLAV_C, eta, pt)
-            if sf_fs == 0:  # should not happen, however, if pt=1000 (exactly) the reader will return a sf of 0.
-                sf_fs = 1
-                sf_fs_u = 1
-                sf_fs_d = 1
-            sf      = sf_fs*self.readerC.eval_auto_bounds('central',  ROOT.BTagEntry.FLAV_C, eta, pt)
-            sf_b_d  = sf_fs*self.readerC.eval_auto_bounds('down',     ROOT.BTagEntry.FLAV_C, eta, pt)
-            sf_b_u  = sf_fs*self.readerC.eval_auto_bounds('up',       ROOT.BTagEntry.FLAV_C, eta, pt)
+        flavKey = toFlavourKey(pdgId)
+        
+        #FastSim SFs
+        sf_fs   = 1 if not self.fastSim else self.readerFS.eval_auto_bounds('central', flavKey, eta, pt)
+        sf_fs_u = 1 if not self.fastSim else self.readerFS.eval_auto_bounds('down',    flavKey, eta, pt)
+        sf_fs_d = 1 if not self.fastSim else self.readerFS.eval_auto_bounds('up',      flavKey, eta, pt)
+        if sf_fs == 0:  # should not happen, however, if pt=1000 (exactly) the reader will return a sf of 0.
+            sf_fs = 1
+            sf_fs_u = 1
+            sf_fs_d = 1
+        
+        #FullSim SFs (times FSSF)
+        if abs(pdgId)==5 or abs(pdgId)==4: #SF for b/c
+            sf      = sf_fs*self.reader.eval_auto_bounds('central',  flavKey, eta, pt)
+            sf_b_d  = sf_fs*self.reader.eval_auto_bounds('down',     flavKey, eta, pt)
+            sf_b_u  = sf_fs*self.reader.eval_auto_bounds('up',       flavKey, eta, pt)
             sf_l_d  = 1.
             sf_l_u  = 1.
         else: #SF for light flavours
-            sf_fs   = 1 if not self.fastSim else self.readerFSUDSG.eval_auto_bounds('central', ROOT.BTagEntry.FLAV_UDSG, eta, pt)
-            sf_fs_u = 1 if not self.fastSim else self.readerFSUDSG.eval_auto_bounds('down',    ROOT.BTagEntry.FLAV_UDSG, eta, pt)
-            sf_fs_d = 1 if not self.fastSim else self.readerFSUDSG.eval_auto_bounds('up',      ROOT.BTagEntry.FLAV_UDSG, eta, pt)
-            if sf_fs == 0:  # should not happen, however, if pt=1000 (exactly) the reader will return a sf of 0.
-                sf_fs = 1
-                sf_fs_u = 1
-                sf_fs_d = 1
-            sf      = sf_fs*self.readerUDSG.eval_auto_bounds('central',  ROOT.BTagEntry.FLAV_UDSG, eta, pt)
+            sf      = sf_fs*self.reader.eval_auto_bounds('central',  flavKey, eta, pt)
             sf_b_d  = 1.
             sf_b_u  = 1.
-            sf_l_d  = sf_fs*self.readerUDSG.eval_auto_bounds('down',     ROOT.BTagEntry.FLAV_UDSG, eta, pt)
-            sf_l_u  = sf_fs*self.readerUDSG.eval_auto_bounds('up',       ROOT.BTagEntry.FLAV_UDSG, eta, pt)
+            sf_l_d  = sf_fs*self.reader.eval_auto_bounds('down',     flavKey, eta, pt)
+            sf_l_u  = sf_fs*self.reader.eval_auto_bounds('up',       flavKey, eta, pt)
+
         if self.fastSim:
             return (sf, sf_b_d, sf_b_u, sf_l_d, sf_l_u, sf*sf_fs_u/sf_fs, sf*sf_fs_d/sf_fs)
         else:

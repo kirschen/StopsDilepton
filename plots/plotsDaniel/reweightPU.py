@@ -309,7 +309,7 @@ elif args.ttjets=='powIncl':
 elif args.ttjets=='amc':
     TTJets_sample = Top_amc
 
-mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson, TWZ]
+mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTXNoZ, triBoson, TWZ, ZG]
 #mc_samples = [ TTJets_sample] + diBoson_samples + [DY, TTZ_LO, TTW, triBoson, TWZ]
 
 signal_samples = []
@@ -371,21 +371,35 @@ data_weight_string = "weight"
 for sample in mc_samples :
     sample.style = styles.fillStyle( sample.color)
 
+#for sample in mc_samples + signal_samples:
+#    sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
+#    if args.pu != "None": 
+#        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightLeptonSF/F']
+#        sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup
+#        if not args.onlyLeptonSF:
+#          sample.read_variables += ['reweightBTag_SF/F', 'reweightLeptonHIPSF/F']
+#          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+#        else:
+#          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF
+#    else:
+#        sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
+#        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+
+from StopsDilepton.tools.puReweighting import getReweightingFunction
+nTrueInt36fb_puRW         = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
+nTrueInt36fb_puRWDown     = getReweightingFunction(data="PU_2016_36000_XSecDown", mc="Spring16")
+nTrueInt36fb_puRWUp       = getReweightingFunction(data="PU_2016_36000_XSecUp", mc="Spring16")
+nTrueInt36fb_puRWVDown    = getReweightingFunction(data="PU_2016_36000_XSecVDown", mc="Spring16")
+nTrueInt36fb_puRWVUp      = getReweightingFunction(data="PU_2016_36000_XSecVUp", mc="Spring16")
+nTrueInt36fb_puRWVVUp     = getReweightingFunction(data="PU_2016_36000_XSecVVUp", mc="Spring16")
+
 for sample in mc_samples + signal_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
-    if args.pu != "None": 
-        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightLeptonSF/F']
-        sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup
-        if not args.onlyLeptonSF:
-          sample.read_variables += ['reweightBTag_SF/F', 'reweightLeptonHIPSF/F']
-          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
-        else:
-          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF
-    else:
-        sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+    sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F','nTrueInt/F']
+    sample.weight = lambda event, sample: event.reweightDilepTriggerBackup * event.reweightLeptonSF * nTrueInt36fb_puRW(event.nTrueInt)
 
 weight = lambda event, sample: event.weight
+
 
 if args.dPhi == 'inv':
     #dPhi = [ ("dPhiJetMETInv", "(!(Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0))") ]
@@ -437,7 +451,7 @@ def selection( ):
         ("nbtag"+args.btagWP+"%s"%args.nbtag, btagStr+"%s"%mCutStr( args.nbtag ))]
     if args.met=='def': res.extend([\
         ("met80", "met_pt>80"),
-        ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
+        ("metSig10", "(met_pt/sqrt(ht)>10||nJetGood==0)"),
         ])
     elif args.met=='high':
         res.extend([\
@@ -574,7 +588,7 @@ for l_comb in l_combs:
             s.scale*=args.diBosonScaleFactor
 
         if args.scaleDY:
-          DY_HT_LO.scale *= 1.7
+          DY_HT_LO.scale *= 1.4
           ppfixes.append("DYscale")
         
         if args.scaleVV:
