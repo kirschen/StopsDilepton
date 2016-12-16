@@ -40,7 +40,7 @@ if os.environ['USER'] in ['dspitzbart']:
 
 if os.environ['USER'] in ['tomc']:
     # Where you store cmg output
-    cmg_directory              = "/pnfs/iihe/cms/store/user/tomc/cmgTuples/80X_v6"
+    cmg_directory              = "/pnfs/iihe/cms/store/user/tomc/cmgTuples/80X_1l_24"
     # Where postprocessed data goes 
     data_output_directory      = "/user/tomc/StopsDilepton/data"
     # Where you store the data for plotting, analysis etc.

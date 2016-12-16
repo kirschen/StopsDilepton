@@ -17,7 +17,7 @@ multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 
 
 #define samples
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 
 #Choices for specific samples
@@ -36,7 +36,7 @@ from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplac
 from StopsDilepton.tools.objectSelection import getFilterCut
 
 #to run on data
-dataLumi = {'EMu': MuonEG_Run2016BCD_backup.lumi, 'MuMu':DoubleMuon_Run2016BCD_backup.lumi, 'EE':DoubleEG_Run2016BCD_backup.lumi}
+dataLumi = {'EMu': MuonEG_Run2016BCDEFG_backup.lumi, 'MuMu':DoubleMuon_Run2016BCDEFG_backup.lumi, 'EE':DoubleEG_Run2016BCDEFG_backup.lumi}
 #10/fb to run on MC
 #lumi = {c:10000 for c in channels}
 lumi = dataLumi
@@ -46,6 +46,7 @@ zMassRange            = 15
 default_mllMin        = 20
 default_metMin        = 80
 default_metSigMin     = 5
+default_zWindow       = "offZ"
 default_dPhi          = True
 default_dPhiInv       = False
 default_nJets         = (2, -1)   # written as (min, max)
@@ -65,6 +66,7 @@ class Setup:
             'mllMin':        default_mllMin,
             'metMin':        default_metMin,
             'metSigMin':     default_metSigMin,
+            'zWindow':       default_zWindow
             'dPhi':          default_dPhi,
             'dPhiInv':       default_dPhiInv,
             'nJets':         default_nJets,
@@ -72,7 +74,7 @@ class Setup:
             'leptonCharges': default_leptonCharges,
         }
 
-
+        # TODO update the PU weight once available in the tuples
         self.sys      = {'weight':'weight', 'reweight':['reweightPU12fb','reweightDilepTriggerBackup','reweightBTag_SF','reweightLeptonSF','reweightLeptonHIPSF'], 'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
@@ -86,9 +88,9 @@ class Setup:
         'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs]),
                        'EE':   Sample.combine('other', [otherEWKBkgs]),
                        'EMu':  Sample.combine('other', [otherEWKBkgs])},
-        'Data'   :    {'MuMu': DoubleMuon_Run2016BCD_backup,
-                       'EE':   DoubleEG_Run2016BCD_backup,
-                       'EMu':  MuonEG_Run2016BCD_backup},
+        'Data'   :    {'MuMu': DoubleMuon_Run2016BCDEFG_backup,
+                       'EE':   DoubleEG_Run2016BCDEFG_backup,
+                       'EMu':  MuonEG_Run2016BCDEFG_backup},
         }
 
     def prefix(self):
@@ -110,7 +112,7 @@ class Setup:
                 if k=='reweight':
                     res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
                     for upOrDown in ['Up','Down']:
-                      if 'reweight12fbPU'+upOrDown             in res.sys[k]: res.sys[k].remove('reweight12fbPU')
+                      if 'reweight12fbPU'+upOrDown             in res.sys[k]: res.sys[k].remove('reweight12fbPU') # TODO: update once the new pu weight is in the tuples
                       if 'reweightDilepTriggerBackup'+upOrDown in res.sys[k]: res.sys[k].remove('reweightDilepTriggerBackup')
                       if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
@@ -136,14 +138,14 @@ class Setup:
     def weightString(self):
         return "*".join([self.sys['weight']] + (self.sys['reweight'] if self.sys['reweight'] else []))
 
-    def preselection(self, dataMC , zWindow, channel='all', isFastSim = False, is76X = False):
+    def preselection(self, dataMC , channel='all', isFastSim = False, is76X = False):
         '''Get preselection  cutstring.'''
-        return self.selection(dataMC, channel = channel, zWindow = zWindow, isFastSim = isFastSim, is76X = is76X, hadronicSelection = False, **self.parameters)
+        return self.selection(dataMC, channel = channel, isFastSim = isFastSim, is76X = is76X, hadronicSelection = False, **self.parameters)
 
     def selection(self, dataMC,
-			mllMin, metMin, metSigMin, dPhi, dPhiInv,
+			mllMin, metMin, metSigMin, zWindow, dPhi, dPhiInv,
 			nJets, nBTags, leptonCharges, 
-			channel = 'all', zWindow = 'offZ', hadronicSelection = False,  isFastSim = False, is76X = False):
+			channel = 'all', hadronicSelection = False,  isFastSim = False, is76X = False):
         '''Define full selection
 	   dataMC: 'Data' or 'MC'
 	   channel: all, EE, MuMu or EMu
