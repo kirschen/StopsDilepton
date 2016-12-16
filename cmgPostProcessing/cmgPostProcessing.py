@@ -474,7 +474,7 @@ if options.T2tt: branchKeepStrings_MC += ['GenSusyMStop', 'GenSusyMNeutralino']
 jetCorrInfo = ['corr/F', 'corr_JECUp/F', 'corr_JECDown/F'] if addSystematicVariations else []
 if isMC:
     if isTiny or isSmall:
-        jetMCInfo = ['mcPt/F', 'hadronFlavour/I']
+        jetMCInfo = ['mcPt/F', 'hadronFlavour/I','mcMatchId/I']
     else:
         jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
         if not options.T2tt:
@@ -547,11 +547,13 @@ if isSingleLep:
 if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I' ] )
+    if isMC: new_variables.extend(['l1_mcMatchId/I'])
     # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     new_variables.extend( ['mlmZ_mass/F'] )
     new_variables.extend( ['mt_photonEstimated/F'] )
 if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
+    if isMC: new_variables.extend(['l2_mcMatchId/I'])
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
@@ -804,6 +806,7 @@ def filler( event ):
             event.l1_phi    = leptons[0]['phi']
             event.l1_pdgId  = leptons[0]['pdgId']
             event.l1_index  = leptons[0]['index']
+            if isMC: event.l1_mcMatchId  = leptons[0]['mcMatchId']
             event.l1_jetPtRatiov2  = leptons[0]['jetPtRatiov2']
             event.l1_jetPtRelv2    = leptons[0]['jetPtRelv2']
             event.l1_miniRelIso = leptons[0]['miniRelIso']
@@ -851,6 +854,7 @@ def filler( event ):
             event.l2_phi    = leptons[1]['phi']
             event.l2_pdgId  = leptons[1]['pdgId']
             event.l2_index  = leptons[1]['index']
+            if isMC: event.l2_mcMatchId  = leptons[1]['mcMatchId']
             event.l2_jetPtRatiov2  = leptons[1]['jetPtRatiov2']
             event.l2_jetPtRelv2    = leptons[1]['jetPtRelv2']
             event.l2_miniRelIso = leptons[1]['miniRelIso']
