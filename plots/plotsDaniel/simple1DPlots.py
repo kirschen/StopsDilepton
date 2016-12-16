@@ -130,7 +130,7 @@ argParser.add_argument('--nbtag',
 argParser.add_argument('--btagWP',
     default='M',
     action='store',
-    choices=['L', 'M', 'T']
+    choices=['L', 'M', 'T', 'VT','VVT', 'VVVT']
 )
 
 argParser.add_argument('--met',
@@ -309,7 +309,7 @@ elif args.ttjets=='powIncl':
 elif args.ttjets=='amc':
     TTJets_sample = Top_amc
 
-mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTW, triBoson, TWZ]
+mc_samples = [ TTJets_sample] + diBoson_samples + [DY_HT_LO, TTZ_LO, TTXNoZ, triBoson, TWZ]
 #mc_samples = [ TTJets_sample] + diBoson_samples + [DY, TTZ_LO, TTW, triBoson, TWZ]
 
 signal_samples = []
@@ -375,15 +375,10 @@ for sample in mc_samples + signal_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     if args.pu != "None": 
         sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightLeptonSF/F']
-        sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup
-        if not args.onlyLeptonSF:
-          sample.read_variables += ['reweightBTag_SF/F', 'reweightLeptonHIPSF/F']
-          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
-        else:
-          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF
+        sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF
     else:
         sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightLeptonSF
 
 weight = lambda event, sample: event.weight
 
@@ -432,6 +427,9 @@ def selection( ):
     btagStr = "nBTag"
     if args.btagWP == 'L': btagStr = 'Sum$(JetGood_btagCSV>0.460&&JetGood_pt>30&&abs(JetGood_eta)<2.4)'
     elif args.btagWP == 'T': btagStr = 'Sum$(JetGood_btagCSV>0.935&&JetGood_pt>30&&abs(JetGood_eta)<2.4)'
+    elif args.btagWP == 'VT': btagStr = 'Sum$(JetGood_btagCSV>0.9535&&JetGood_pt>30&&abs(JetGood_eta)<2.4)'
+    elif args.btagWP == 'VVT': btagStr = 'Sum$(JetGood_btagCSV>0.9800&&JetGood_pt>30&&abs(JetGood_eta)<2.4)'
+    elif args.btagWP == 'VVVT': btagStr = 'Sum$(JetGood_btagCSV>0.9900&&JetGood_pt>30&&abs(JetGood_eta)<2.4)'
     res = [ \
         ("njet%s"%args.njet, "nJetGood%s"%mCutStr( args.njet )),
         ("nbtag"+args.btagWP+"%s"%args.nbtag, btagStr+"%s"%mCutStr( args.nbtag ))]
