@@ -66,7 +66,7 @@ class Setup:
             'mllMin':        default_mllMin,
             'metMin':        default_metMin,
             'metSigMin':     default_metSigMin,
-            'zWindow':       default_zWindow
+            'zWindow':       default_zWindow,
             'dPhi':          default_dPhi,
             'dPhiInv':       default_dPhiInv,
             'nJets':         default_nJets,
