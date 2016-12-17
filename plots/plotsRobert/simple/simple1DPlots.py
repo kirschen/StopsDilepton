@@ -36,7 +36,7 @@ argParser.add_argument('--pu', default="reweightPU27fb", action='store', choices
 argParser.add_argument('--ttjets', default='pow', action='store', choices=['mg', 'pow'], help='ttjets sample', )
 argParser.add_argument('--signals', action='store', nargs='*', type=str, default=[], help="Signals?")
 argParser.add_argument('--overwrite', default = False, action='store_true', help='overwrite?', )
-argParser.add_argument('--plot_directory', default='80X_v21_correlation', action='store', )
+argParser.add_argument('--plot_directory', default='80X_v21', action='store', )
 
 args = argParser.parse_args()
 
