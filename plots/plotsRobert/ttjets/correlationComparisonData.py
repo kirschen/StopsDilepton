@@ -23,7 +23,10 @@ argParser.add_argument('--dPhi', action='store', default = 'def', choices=['def'
 argParser.add_argument('--loop', action='store_true', help='Loop all cuts?', )
 argParser.add_argument('--trigger', action='store_true', help='Apply trigger?', )
 argParser.add_argument('--dPhiLepMET', action='store_true', help='Apply lepton/MET d-phi cut?', )
-argParser.add_argument('--highMT2ll', action='store_true', help='high mt2ll?', )
+argParser.add_argument('--lowMT2ll', action='store', type=int, default = 0, help='low mt2ll?', )
+argParser.add_argument('--highMT2ll', action='store', type=int, default = 1000, help='high mt2ll?', )
+argParser.add_argument('--lowMET', action='store', type=int, default = 0, help='low met?', )
+argParser.add_argument('--highMET', action='store', type=int, default = 1000, help='high met?', )
 argParser.add_argument('--splitDiBoson', action='store_true', help='splitDiBoson?', )
 argParser.add_argument('--noScaling', action='store_true', help='no scaling?', )
 argParser.add_argument('--reversed', action='store_true', help='Reversed?', )
@@ -401,9 +404,10 @@ for l_comb in l_combs:
 
         TTJets_sample.scale *= top_sf
 
-        if args.highMT2ll:
-            prefix+='-mt2ll100'
-            selectionString+='&&dl_mt2ll>100'
+        prefix+='-mt2ll-%i-%i'%(args.lowMT2ll, args.highMT2ll)
+        selectionString+='&&dl_mt2ll>=%i&&dl_mt2ll<%i'%(args.lowMT2ll, args.highMT2ll)
+        prefix+='-met-%i-%i'%(args.lowMET, args.highMET)
+        selectionString+='&&met_pt>=%i&&met_pt<%i'%(args.lowMET, args.highMET)
 
         plot_path = os.path.join(plot_directory, args.plot_directory, plot_subdirectory, prefix)
         if os.path.exists(plot_path) and not args.overwrite:

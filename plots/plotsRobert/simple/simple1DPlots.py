@@ -1,51 +1,67 @@
-''' Analysis script for 1D 2l plots (RootTools)
+#!/usr/bin/env python
+''' Analysis script for standard plots
 '''
+#
+# Standard imports and batch mode
+#
+import ROOT, os
+ROOT.gROOT.SetBatch(True)
 
-#Standard imports
-import ROOT
-from math import sqrt, cos, sin, pi, acos
-import itertools
-
-#RootTools
-from RootTools.core.standard import *
+from math                                import sqrt, cos, sin, pi, acos
+from RootTools.core.standard             import *
+from StopsDilepton.tools.user            import plot_directory
+from StopsDilepton.tools.helpers         import deltaPhi
+from StopsDilepton.tools.objectSelection import getFilterCut
+from StopsDilepton.plots.pieChart import makePieChart
 
 # argParser
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--logLevel', action='store', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], default='INFO', help="Log level for logging")
-argParser.add_argument('--mode', default='dilepton', action='store', choices=['doubleMu', 'doubleEle', 'muEle', 'dilepton', 'sameFlavour'])
-argParser.add_argument('--charges', default='OS', action='store', choices=['OS', 'SS'])
-argParser.add_argument('--zMode', default='offZ', action='store', choices=['onZ', 'offZ', 'allZ'])
-argParser.add_argument('--noData', action='store_true', help='Skip data', )
-argParser.add_argument('--small', action='store_true', help='Small?', )
-argParser.add_argument('--PR', action='store_true',  help='PR?', )
-argParser.add_argument('--dPhi', action='store', default = 'def', choices=['def', 'inv', 'none', 'lead'], help='dPhi?', )
-argParser.add_argument('--loop', action='store_true', help='Loop all cuts?', )
-argParser.add_argument('--trigger', action='store_true', help='Apply trigger?', )
-argParser.add_argument('--dPhiLepMET', action='store_true', help='Apply lepton/MET d-phi cut?', )
-argParser.add_argument('--highMT2ll', action='store_true', help='high mt2ll?', )
-argParser.add_argument('--splitDiBoson', action='store_true', help='splitDiBoson?', )
-argParser.add_argument('--noScaling', action='store_true', help='no scaling?', )
-argParser.add_argument('--reversed', action='store_true', help='Reversed?', )
-argParser.add_argument('--njet', default='2p', type=str, action='store', choices=['0', '0p', '1', '1p', '2', '2p', '01'])
-#argParser.add_argument('--mIsoWP', default=5, type=int, action='store', choices=[0, 1, 2, 3, 4, 5])
-argParser.add_argument('--relIso03', default=0.12, type=float, action='store')
-argParser.add_argument('--nbtag', default='1p', action='store', choices=['0', '0p', '1', '1p', ])
-argParser.add_argument('--met', default='def', action='store', choices=['def', 'none', 'low'], help='met cut', )
-argParser.add_argument('--pu', default="reweightPU27fb", action='store', choices=["None", "reweightPU27fb", "reweightPU27fbUp", "reweightPU27fbDown"], help='PU weight', )
-argParser.add_argument('--ttjets', default='pow', action='store', choices=['mg', 'pow'], help='ttjets sample', )
-argParser.add_argument('--signals', action='store', nargs='*', type=str, default=[], help="Signals?")
-argParser.add_argument('--overwrite', default = False, action='store_true', help='overwrite?', )
-argParser.add_argument('--plot_directory', default='80X_v21', action='store', )
+
+# global plot options
+argParser.add_argument('--logLevel',        default='INFO',     action='store', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
+argParser.add_argument('--small',                               action='store_true', help='Small?', )
+argParser.add_argument('--overwrite',       default = False,    action='store_true', help='overwrite?', )
+argParser.add_argument('--plot_directory',  default='80X_v21',  action='store', )
+
+## event loop -> remove
+#argParser.add_argument('--loop',                                action='store_true', help='Loop all cuts?', )
+#argParser.add_argument('--reversed',                            action='store_true', help='Reversed?', )
+
+# samples
+argParser.add_argument('--splitDiBoson',                        action='store_true', help='splitDiBoson?', )
+argParser.add_argument('--noData',                              action='store_true', help='Skip data', )
+argParser.add_argument('--scaling',         default='ttjets',   action='store', choices = ['ttjets', None], help='Which scaling?' )
+argParser.add_argument('--ttjets',          default='pow',      action='store', choices=['mg', 'pow'], help='ttjets sample', )
+argParser.add_argument('--signals',         default=[],         action='store', nargs='*', type=str, help="Signals?")
+# argParser.add_argument('--PR',                                  action='store_true',  help='Use prompreco?', )
+
+# weights
+argParser.add_argument('--pu',              default="reweightPU27fb", action='store', choices=["None", "reweightPU27fb", "reweightPU27fbUp", "reweightPU27fbDown"], help='PU weight', )
+
+# lepton selection
+argParser.add_argument('--mode',            default='dilepton', action='store', choices=['doubleMu', 'doubleEle', 'muEle', 'dilepton', 'sameFlavour'])
+argParser.add_argument('--charges',         default='OS',       action='store', choices=['OS', 'SS'])
+argParser.add_argument('--zMode',           default='offZ',     action='store', choices=['onZ', 'offZ', 'allZ'])
+
+# selection
+argParser.add_argument('--trigger',                             action='store_true', help='Apply trigger?', )
+argParser.add_argument('--dPhi',            default = 'def',    action='store', choices=['def', 'inv', 'none', 'lead'], help='dPhi?', )
+argParser.add_argument('--dPhiLepMET',                          action='store_true', help='Apply lepton/MET d-phi cut?', )
+argParser.add_argument('--highMT2ll',                           action='store_true', help='high mt2ll?', )
+argParser.add_argument('--njet',            default='2p', type=str, action='store', choices=['0', '0p', '1', '1p', '2', '2p', '01'])
+#argParser.add_argument('--mIsoWP',         default=5,          action='store', type=int, choices=[0, 1, 2, 3, 4, 5])
+argParser.add_argument('--relIso03',        default=0.12,       action='store', type=float)
+argParser.add_argument('--nbtag',           default='1p',       action='store', choices=['0', '0p', '1', '1p', ])
+argParser.add_argument('--met',             default='def',      action='store', choices=['def', 'none', 'low'], help='met cut', )
 
 args = argParser.parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
-from StopsDilepton.tools.user import plot_directory
-logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
+logger    = logger.get_logger(   args.logLevel, logFile = None)
+logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 def getZCut(mode):
     mZ = 91.2

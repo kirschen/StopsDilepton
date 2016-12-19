@@ -12,6 +12,7 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     data_directory      = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/r/rschoefbeck/www/"
+    #plot_directory      = "/afs/cern.ch/work/s/schoef/www/"
     # Analysis result files
     analysis_results    = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/80X_v12' #Path to analysis results
     # directory with veto lists
