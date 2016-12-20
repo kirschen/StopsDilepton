@@ -114,12 +114,14 @@ argParser.add_argument('--njet',
     choices=['0', '0p', '1', '1p', '2', '2p', '01','012']
 )
 
-argParser.add_argument('--mIsoWP',
-    default=5,
-    type=int,
-    action='store',
-    choices=[0,1,2,3,4,5]
-)
+#argParser.add_argument('--mIsoWP',
+#    default=5,
+#    type=int,
+#    action='store',
+#    choices=[0,1,2,3,4,5]
+#)
+
+argParser.add_argument('--relIso03', default=0.12, type=float, action='store')
 
 argParser.add_argument('--nbtag',
     default='1p',
@@ -140,9 +142,9 @@ argParser.add_argument('--met',
     help='met cut',
 )
 argParser.add_argument('--pu',
-    default="reweightPU27fb",
+    default="reweightPU36fb",
     action='store',
-    choices=["None", "reweightPU27fb", "reweightPU27fbUp", "reweightPU27fbDown"],
+    choices=["None", "reweightPU36fb", "reweightPU36fbUp", "reweightPU36fbDown"],
     help='PU weight',
 )
 
@@ -216,9 +218,9 @@ mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilte
 dataFilterCut = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
 dataFilterCut +="&&weight>0"
 #dataFilterCut = mcFilterCut+"&&weight>0"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 #from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
@@ -363,8 +365,8 @@ mc_weight_string = "weight*reweightDilepTriggerBackup*reweightLeptonSF"
 if args.pu != "None":
     mc_weight_string+="*"+args.pu
 
-if not args.onlyLeptonSF:
-    mc_weight_string += '*reweightBTag_SF*reweightLeptonHIPSF'
+#if not args.onlyLeptonSF:
+#    mc_weight_string += '*reweightBTag_SF*reweightLeptonHIPSF'
 
 data_weight_string = "weight"
 
@@ -397,10 +399,11 @@ wpStr = { 5: "VT", 4: "T", 3: "M" , 2: "L" , 1: "VL", 0:"None"}
 basic_cuts=[
     ("mll20", "dl_mass>20"),#&&nVert>10&&nVert<25"),
     ("l1pt25", "l1_pt>25"),
-    ("mIso%s"%wpStr[args.mIsoWP], "l1_mIsoWP>=%i&&l2_mIsoWP>=%i"%( args.mIsoWP, args.mIsoWP)),
+    #("mIso%s"%wpStr[args.mIsoWP], "l1_mIsoWP>=%i&&l2_mIsoWP>=%i"%( args.mIsoWP, args.mIsoWP)),
+    ("relIso03-%3.2f"%args.relIso03, "l1_relIso03<%3.2f&&l2_relIso03<%3.2f"%( args.relIso03, args.relIso03 ) ),
     ] + dPhi + [
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
-    ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
+    ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2"),
 ]
 
 def mCutStr( arg ):
