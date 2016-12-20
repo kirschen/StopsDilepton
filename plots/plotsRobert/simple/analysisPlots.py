@@ -20,14 +20,15 @@ from StopsDilepton.plots.pieChart        import makePieChart
 # 
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--logLevel',       action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',         action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
-argParser.add_argument('--noData',         action='store_true', default=False,           help='also plot data?')
-argParser.add_argument('--small',                               action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
-argParser.add_argument('--selection',      action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
-argParser.add_argument('--splitBosons',    action='store_true', default=False)
-argParser.add_argument('--splitBosons2',   action='store_true', default=False)
+argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
+argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
+argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
+argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
+argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots')
+argParser.add_argument('--selection',          action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
+argParser.add_argument('--splitBosons',        action='store_true', default=False)
+argParser.add_argument('--splitBosons2',       action='store_true', default=False)
+argParser.add_argument('--skipBadMuonFilters', action='store_true',                      help="Don't apply bad muon filters", )
 args = argParser.parse_args()
 
 #
@@ -61,10 +62,14 @@ bJetSelectionM  = "nBTag"
 # Definition of cuts 
 #
 cuts = {
+    "njet0":             jetSelection+"==0",
+    "njet0p":            "(1)",
     "njet01":            jetSelection+"<=1",
     "njet1":             jetSelection+"==1",
+    "njet1p":            jetSelection+">=1",
     "njet2p":            jetSelection+">=2",
     "btag0":             bJetSelectionM+"==0",
+    "btag0p":            "(1)",
     "btag1":             bJetSelectionM+"==1",
     "btag1p":            bJetSelectionM+">=1",
     # ("multiIsoVT":        "(1)", 
@@ -82,6 +87,7 @@ cuts = {
     "dPhiInv":           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))",
     "mt2ll100":          "dl_mt2ll>100",
     "mt2ll140":          "dl_mt2ll>140",
+    "met150":            "met_pt>150",
   }
 
 def getCutString( cut ):
@@ -100,7 +106,7 @@ if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.splitBosons2:             args.plot_directory += "_splitMultiBoson2"
 if args.signal == "DM":           args.plot_directory += "_DM"
-
+if args.skipBadMuonFilters:       args.plot_directory += "_skipBadMuonFilters"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
@@ -141,17 +147,29 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
     if "mt2ll100" in args.selection and args.noData: lines += [(0.55, 0.5, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
     return [tex.DrawLatex(*l) for l in lines] 
 
+def copyIndexPHP( directory ):
+    import shutil
+    index_php = os.path.join( directory, 'index.php' )
+    if not os.path.exists( directory ): os.makedirs( directory )  
+    if not os.path.exists( index_php ):
+      shutil.copyfile( '/afs/hephy.at/user/r/rschoefbeck/public/index.php', index_php )
 
+copyIndexPHP( plot_directory )
+copyIndexPHP( os.path.join( plot_directory, args.plot_directory ) )
 
 def drawPlots(plots, mode, dataMCScale):
   for log in [False, True]:
+    copyIndexPHP( os.path.join( plot_directory, args.plot_directory, mode + ("_log" if log else "") ) )
+    plot_directory_ = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection)
+    copyIndexPHP( plot_directory_ )
     for plot in plots:
       if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
       if not args.noData: 
         if mode == "all": plot.histos[1][0].legendText = "Data"
         if mode == "SF":  plot.histos[1][0].legendText = "Data (SF)"
+
       plotting.draw(plot,
-	    plot_directory = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection),
+	    plot_directory = plot_directory_,
 	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
 	    logX = False, logY = log, sorting = True,
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
@@ -159,6 +177,7 @@ def drawPlots(plots, mode, dataMCScale):
 	    legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88) if not args.noData else (0.50,0.9-0.047*sum(map(len, plot.histos)),0.85,0.9),
 	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
       )
+
 
 #
 # Read variables and sequences
@@ -204,7 +223,7 @@ for index, mode in enumerate(allModes):
   elif mode=="ee":   data_sample.texName = "data (2 e)"
   elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
 
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters = not args.skipBadMuonFilters), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["evt/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
@@ -223,16 +242,16 @@ for index, mode in enumerate(allModes):
   weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
-  mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO]
+  mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO, TWZ]
 
-  for sample in mc: sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
+  for sample in mc: sample.style = styles.fillStyle(sample.color)
 
   for sample in mc + signals:
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
    #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
     sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+    sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = not args.skipBadMuonFilters), getLeptonSelection(mode)])
 
   #for sample in [T2tt, T2tt2]:
   #  sample.scale          = lumi_scale
@@ -306,9 +325,9 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'H_{T} (GeV)', texY = 'Number of Events / 50 GeV',
+    texX = 'H_{T} (GeV)', texY = 'Number of Events / 25 GeV',
     attribute = TreeVariable.fromString( "ht/F" ),
-    binning=[500/50,50,600],
+    binning=[500/25,0,600],
   ))
 
   plots.append(Plot(
@@ -388,7 +407,7 @@ for index, mode in enumerate(allModes):
   ))
 
   # Plots only when at least one jet:
-  if args.selection.count('njet'):
+  if args.selection.count('njet2') or args.selection.count('njet1'):
     plots.append(Plot(
       texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
       name = 'jet1_pt', attribute = lambda event, sample: event.JetGood_pt[0],
@@ -539,7 +558,7 @@ for mode in ["SF","all"]:
 # Write to tex file
 columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM2.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
 texdir = "tex"
-if args.powheg: texdir += "_powheg"
+#if args.powheg: texdir += "_powheg"
 try:
   os.makedirs("./" + texdir)
 except:
@@ -550,4 +569,3 @@ with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
     f.write(mode + " & " + " & ".join([ (" %12.0f" if i == "data" else " %12.2f") % yields[mode][i] for i in columns]) + "\\\\ \n")
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, getSelectionString(args.selection) )
-

@@ -349,10 +349,12 @@ def getGoodPhotons(c, ptCut=50, idLevel="loose", isData=True, collVars=None):
     if collVars is None: collVars = photonVars if isData else photonVarsMC
     return [p for p in getPhotons(c, collVars) if p['idCutBased'] >= idCutBased[idLevel] and p['pt'] > ptCut and p['pdgId']==22]
 
-def getFilterCut(isData=False, isFastSim = False):
+def getFilterCut(isData=False, isFastSim = False, badMuonFilters = True):
     if isFastSim:
         filterCut            = "Flag_goodVertices"
     else:
-        filterCut            = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
+        filterCut            = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter"
+        if badMuonFilters:
+            filterCut += "&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
     if isData: filterCut += "&&weight>0"
     return filterCut
