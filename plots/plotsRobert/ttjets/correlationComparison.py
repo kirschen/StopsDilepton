@@ -21,6 +21,8 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
+plot_directory = "/afs/hephy.at/user/r/rschoefbeck/www/ttjets_correlation"
+
 #from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import dirs, color
 #postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
 #from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import Top as Top_relIso
@@ -66,32 +68,36 @@ multiIso_cuts =  [("==2 VT leptons (25/20)",    "nGoodMuons+nGoodElectrons==2&&l
                 ]
 
 #h_relIso   = Top_relIso.get1DHistoFromDraw( "dl_mt2ll", binning = [300/20,0,300], selectionString = "&&".join([c[1] for c in cuts + relIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string )
-#h_relIso.style = styles.errorStyle( ROOT.kRed )
+#h_relIso.style = styles.lineStyle( errors = True,  color = ROOT.kRed )
 #h_relIso.legendText = "relIso03<0.12"
 
-h_TTJets_Dilep = TTJets_Dilep.get1DHistoFromDraw( "dl_mt2ll", binning = [300/20,0,300], selectionString = "&&".join([c[1] for c in cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string )
-h_TTJets_Dilep.style = styles.errorStyle( ROOT.kRed )
+binning = [0,25,50,75,100,140,240,340]
+
+h_TTJets_Dilep = TTJets_Dilep.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string, binningIsExplicit = True)
+h_TTJets_Dilep.style = styles.lineStyle( errors = True,  color = ROOT.kRed )
 h_TTJets_Dilep.legendText = "madgraph"
 
-h_TTLep_pow = TTLep_pow.get1DHistoFromDraw( "dl_mt2ll", binning = [300/20,0,300], selectionString = "&&".join([c[1] for c in cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string )
-h_TTLep_pow.style = styles.errorStyle( ROOT.kBlue )
+h_TTLep_pow = TTLep_pow.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string,
+binningIsExplicit = True)
+h_TTLep_pow.style = styles.lineStyle( errors = True,  color = ROOT.kBlue )
 h_TTLep_pow.legendText = "powheg"
 
-h_TTJets = TTJets.get1DHistoFromDraw( "dl_mt2ll", binning = [300/20,0,300], selectionString = "&&".join([c[1] for c in cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string )
-h_TTJets.style = styles.errorStyle( ROOT.kGreen )
+h_TTJets = TTJets.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string,
+binningIsExplicit = True)
+h_TTJets.style = styles.lineStyle( errors = True,  color = ROOT.kGreen )
 h_TTJets.legendText = "amc@nlo"
 
 h_TTJets_Dilep.Scale(2.4)
 h_TTLep_pow.Scale(2.4)
 h_TTJets.Scale(2.4)
 
-ratio = {'yRange':(0.1,1.9), 'texY':'pow/MG'}
+ratio = {'yRange':(0.1,1.9), 'num':2, 'den':1, 'texY':'pow/MG'}
 plotting.draw(
     Plot.fromHisto("mt2ll_top_comparison",
-        [[ h_TTJets_Dilep ], [ h_TTLep_pow ], [h_TTJets] ],
+        [ [h_TTJets], [ h_TTJets_Dilep ], [ h_TTLep_pow ] ],
         texX = "MT_{2}^{ll} (GeV)"
     ), 
-    plot_directory = "/afs/hephy.at/user/r/rschoefbeck/www/", ratio = ratio, 
+    plot_directory = plot_directory, ratio = ratio, 
     logX = False, logY = True, sorting = False, 
     yRange = (0.003, "auto"), 
     scaling = {1:0, 2:0},
@@ -99,34 +105,38 @@ plotting.draw(
     #drawObjects = drawObjects( dataMCScale )
 )
 
-cuts += [("mt2ll100", "dl_mt2ll>100")]
+mt2blbl_binning = [0,25,50,75,100,150,250]
 
-h_TTJets_Dilep = TTJets_Dilep.get1DHistoFromDraw( "dl_mt2blbl", binning = [400/100,0,400], selectionString = "&&".join([c[1] for c in cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string )
-h_TTJets_Dilep.style = styles.errorStyle( ROOT.kRed )
-h_TTJets_Dilep.legendText = "madgraph"
 
-h_TTLep_pow = TTLep_pow.get1DHistoFromDraw( "dl_mt2blbl", binning = [400/100,0,400], selectionString = "&&".join([c[1] for c in cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string )
-h_TTLep_pow.style = styles.errorStyle( ROOT.kBlue )
-h_TTLep_pow.legendText = "powheg"
+for mt2ll_low, mt2ll_high in [ [ 0, 25], [25, 50], [50, 75], [75, 100], [100, 140], [140,240]]:
+    cuts_mt2blbl = cuts + [("mt2ll_low", "dl_mt2ll>%f"%mt2ll_low), ("mt2ll_high", "dl_mt2ll<%f"%mt2ll_high)]
 
-h_TTJets = TTJets.get1DHistoFromDraw( "dl_mt2blbl", binning = [400/100,0,400], selectionString = "&&".join([c[1] for c in cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string )
-h_TTJets.style = styles.errorStyle( ROOT.kGreen )
-h_TTJets.legendText = "amc@nlo"
+    h_TTJets_Dilep = TTJets_Dilep.get1DHistoFromDraw( "dl_mt2blbl", binning = mt2blbl_binning, selectionString = "&&".join([c[1] for c in cuts_mt2blbl + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string, binningIsExplicit = True )
+    h_TTJets_Dilep.style = styles.lineStyle( errors = True,  color = ROOT.kRed )
+    h_TTJets_Dilep.legendText = "madgraph"
 
-h_TTJets_Dilep.Scale(2.4)
-h_TTLep_pow.Scale(2.4)
-h_TTJets.Scale(2.4)
+    h_TTLep_pow = TTLep_pow.get1DHistoFromDraw( "dl_mt2blbl", binning = mt2blbl_binning, selectionString = "&&".join([c[1] for c in cuts_mt2blbl + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string, binningIsExplicit = True )
+    h_TTLep_pow.style = styles.lineStyle( errors = True,  color = ROOT.kBlue )
+    h_TTLep_pow.legendText = "powheg"
 
-ratio = {'yRange':(0.1,1.9)}
-plotting.draw(
-    Plot.fromHisto("mt2blbl_top_comparison",
-        [[ h_TTJets_Dilep ], [ h_TTLep_pow ], [h_TTJets] ],
-        texX = "MT_{2}^{blbl} (GeV)"
-    ), 
-    plot_directory = "/afs/hephy.at/user/r/rschoefbeck/www/", ratio = ratio, 
-    logX = False, logY = True, sorting = False, 
-    yRange = (0.003, "auto"), 
-    scaling = {1:0, 2:0},
-    legend = "auto",
-    #drawObjects = drawObjects( dataMCScale )
-)
+    h_TTJets = TTJets.get1DHistoFromDraw( "dl_mt2blbl", binning = mt2blbl_binning, selectionString = "&&".join([c[1] for c in cuts_mt2blbl + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string, binningIsExplicit = True)
+    h_TTJets.style = styles.lineStyle( errors = True,  color = ROOT.kGreen )
+    h_TTJets.legendText = "amc@nlo"
+
+    h_TTJets_Dilep.Scale(2.4)
+    h_TTLep_pow.Scale(2.4)
+    h_TTJets.Scale(2.4)
+
+    ratio = {'yRange':(0.1,1.9), 'num':2, 'den':1, 'texY':'pow/MG'}
+    plotting.draw(
+        Plot.fromHisto("mt2blbl_mt2ll_%i_%i_top_comparison"%(mt2ll_low, mt2ll_high),
+            [ [h_TTJets], [ h_TTJets_Dilep ], [ h_TTLep_pow ] ],
+            texX = "MT_{2}^{blbl} (GeV)"
+        ), 
+        plot_directory = plot_directory, ratio = ratio, 
+        logX = False, logY = True, sorting = False, 
+        yRange = (0.003, "auto"), 
+        scaling = {0:2, 1:2},
+        legend = "auto",
+        #drawObjects = drawObjects( dataMCScale )
+    )
