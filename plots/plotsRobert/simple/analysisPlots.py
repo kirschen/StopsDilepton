@@ -152,7 +152,7 @@ def copyIndexPHP( directory ):
     index_php = os.path.join( directory, 'index.php' )
     if not os.path.exists( directory ): os.makedirs( directory )  
     if not os.path.exists( index_php ):
-      shutil.copyfile( '/afs/hephy.at/user/r/rschoefbeck/public/index.php', index_php )
+      shutil.copyfile( os.path.expandvars( '$CMSSW_BASE/src/StopsDilepton/tools/php/index.php' ), index_php )
 
 copyIndexPHP( plot_directory )
 copyIndexPHP( os.path.join( plot_directory, args.plot_directory ) )
