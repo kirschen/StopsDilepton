@@ -16,8 +16,6 @@ import os
 parser = OptionParser()
 
 slurm_job_file="slurm_job"
-#slurm_job_title="BATCHSUBMIT"
-#slurm_output_dir="/afs/hephy.at/work/%s/%s/slurm_output/"%(hephy_user_initial, hephy_user)
 
 hephy_user = os.getenv("USER")
 hephy_user_initial = os.getenv("USER")[0]
@@ -82,7 +80,6 @@ voms-proxy-info -all
     slurm_job.close()
     return
 
-
 if __name__ == '__main__':
     if not len(args) == 1:
         raise Exception("Only one argument accepted! Instead this was given: %s"%args)
@@ -92,10 +89,8 @@ if __name__ == '__main__':
         with open(args[0]) as f:
             for line in f.xreadlines():
                 line = line.rstrip("\n")
+                line = line.split('#')[0]
                 if line:
-                    if line.startswith("#"):    
-                        print "Skipping line, seems to be a comment %s"%line
-                        continue
                     commands.append(line)
     elif type(args[0]) == type(""):
         commands = [args[0]]
