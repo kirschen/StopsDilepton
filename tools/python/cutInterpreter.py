@@ -45,7 +45,7 @@ class cutInterpreter:
         # continous Variables
         for var, tree_var in continous_variables:
             if string.startswith( var ):
-                num_str = string[len( var ):].split("to")
+                num_str = string[len( var ):].replace("to","To").split("To")
                 upper = None
                 lower = None
                 if len(num_str)==2:
@@ -62,8 +62,9 @@ class cutInterpreter:
         # discrete Variables
         for var, tree_var in discrete_variables:
             if string.startswith( var ):
-                if string[len( var ):].count("to"):
-                    raise ValueError( "Can't interpret string %s" % string )
+                # So far no njet2To5
+                if string[len( var ):].replace("to","To")count("To"):
+                    raise NotImplementedError( "Can't interpret string with 'to' for discrete variable: %s. You just volunteered." % string )
 
                 num_str = string[len( var ):]
                 # var1p -> tree_var >= 1
