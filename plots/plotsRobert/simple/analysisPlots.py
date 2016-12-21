@@ -13,6 +13,7 @@ from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
 from StopsDilepton.tools.objectSelection import getFilterCut
+from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.plots.pieChart        import makePieChart
 
 #
@@ -24,7 +25,7 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots')
+argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_test')
 argParser.add_argument('--selection',          action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
@@ -38,92 +39,6 @@ import StopsDilepton.tools.logger as logger
 import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
-
-#
-# Selections (two leptons with pt > 25/20 GeV)
-#
-
-def getLeptonString(nMu, nE, lepton_iso_string):
-  leptonString = "nGoodMuons==%i&&nGoodElectrons==%i&&l1_pt>25" % (nMu, nE)
-  if lepton_iso_string.startswith("multiIso"):
-      mIsoWP = { "VT":5, "T":4, "M":3 , "L":2 , "VL":1, 0:"None" }
-      str_ = mIsoWP[ lepton_iso_string.replace('multiIso','') ]
-      leptonString += "&&l1_mIsoWP>%i&&l2_mIsoWP>%i" % (str_, str_)
-  elif lepton_iso_string.startswith("relIso"):
-     iso = float( lepton_iso_string.replace('relIso','') ) 
-     leptonString += "&&l1_relIso03<%3.2f&&l2_relIso03<%3.2f"%( iso, iso )
-  else:  logger.warning( "No isolation on l1, l2 defined!" )
-  return leptonString
-
-jetSelection    = "nJetGood"
-bJetSelectionM  = "nBTag"
-
-#
-# Definition of cuts 
-#
-cuts = {
-    "njet0":             jetSelection+"==0",
-    "njet0p":            "(1)",
-    "njet01":            jetSelection+"<=1",
-    "njet1":             jetSelection+"==1",
-    "njet1p":            jetSelection+">=1",
-    "njet2p":            jetSelection+">=2",
-    "btag0":             bJetSelectionM+"==0",
-    "btag0p":            "(1)",
-    "btag1":             bJetSelectionM+"==1",
-    "btag1p":            bJetSelectionM+">=1",
-    # ("multiIsoVT":        "(1)", 
-    "looseLeptonVeto":   "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2",
-    "mll20":             "dl_mass>20",
-    "allZ":              "(1)",
-    "onZ":               "abs(dl_mass-91.1876)<15",
-    "met50":             "met_pt>50",
-    "met80":             "met_pt>80",
-
-    "dPhiJet0":          "cos(met_phi-JetGood_phi[0])<0.8",
-    "dPhiJet1":          "cos(met_phi-JetGood_phi[1])<cos(0.25)",
-    "dPhiInv":           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))",
-
-    "metInv":            "met_pt<80",
-    "metSigInv":         "metSig<5",
-
-    "metSig5":           "metSig>5",
-    "mt2ll100":          "dl_mt2ll>100",
-    "mt2ll140":          "dl_mt2ll>140",
-    "met150":            "met_pt>150",
-  }
-
-continous_cut_variables = [ ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl") ]
-def translate_to_cutstring( string ):
-    for var, tree_var in continous_cut_variables:
-        if string.startswith( var ):
-            num_str = string[len( var ):].split("to")
-            upper = None
-            lower = None
-            if len(num_str)==2:
-                lower, upper = num_str 
-            elif len(num_str)==1:
-                lower = num_str[0]
-            else:
-                raise ValueError( "Can't interpret string %s" % string )
-            res_string = []
-            if lower: res_string.append( tree_var+">="+lower )
-            if upper: res_string.append( tree_var+"<"+upper )
-            return "&&".join( res_string )
-
-def getCutString( cut ):
-    try:
-        return cuts[ cut ]
-    except KeyError:
-        # Try to translate
-        string = translate_to_cutstring( cut )
-        if string: return string
-        logger.error( "No cut found for %s. All known cuts are %s", cut, ", ".join(cuts.keys()) )
-        raise KeyError
-
-# Remove isolation criterio from cutstring
-def getSelectionString( selection ):
-    return  "&&".join( map( getCutString, filter( lambda c: 'Iso' not in c, selection.split('-') ) ) )
 
 if args.small:                        args.plot_directory += "_small"
 if args.noData:                       args.plot_directory += "_noData"
@@ -209,20 +124,13 @@ read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "
                   "met_pt/F", "met_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
 
 #
-# Lepton selection and isolation
 #
-offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
+# default offZ for SF
+offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
 def getLeptonSelection( mode ):
-  if args.selection.count('Iso')>1: 
-        raise ValueError( "Multiple isolation ('Iso') found in selection %s" % args.selection )
-  try:
-        iso = next( obj for obj in args.selection.split('-') if obj.count('Iso') )
-  except StopIteration:
-        logger.warning( "No isolation ('Iso') criterion found in selection %s", args.selection ) 
-        iso = ""
-  if   mode=="mumu": return getLeptonString(2, 0, lepton_iso_string = iso) + "&&isOS&&isMuMu" + offZ
-  elif mode=="mue":  return getLeptonString(1, 1, lepton_iso_string = iso) + "&&isOS&&isEMu"
-  elif mode=="ee":   return getLeptonString(0, 2, lepton_iso_string = iso) + "&&isOS&&isEE" + offZ
+  if   mode=="mumu": return "nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ
+  elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
+  elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
 
 #For PU reweighting
 from StopsDilepton.tools.puReweighting import getReweightingFunction
@@ -295,7 +203,7 @@ for index, mode in enumerate(allModes):
             sample.reduceFiles( to = 1 )
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = weight_, selectionString = getSelectionString(args.selection), addOverFlowBin='upper')
+  Plot.setDefaults(stack = stack, weight = weight_, selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
   
   plots = []
 
