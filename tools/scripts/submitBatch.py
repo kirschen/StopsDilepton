@@ -22,7 +22,7 @@ hephy_user = os.getenv("USER")
 hephy_user_initial = os.getenv("USER")[0]
 
 parser.add_option("--title", dest="title",
-                  help="Job Title viewied in squeue", default = "BATCHSUBMIT" )
+                  help="Job Title on batch", default = "BATCHSUBMIT" )
 parser.add_option("--output", dest="output", 
                   default="/afs/hephy.at/work/%s/%s/slurm_output/"%(hephy_user_initial, hephy_user),
                   help="path for slurm output ")
@@ -81,6 +81,24 @@ voms-proxy-info -all
     slurm_job.close()
     return
 
+def getCommands( line ):
+    commands = []
+    split = None
+    try:
+        m=re.search(r"SPLIT[0-9][0-9]*", line)
+        split=int(m.group(0).replace('SPLIT',''))
+    except:
+        pass 
+    line = line.split('#')[0]
+    if line:
+        if split:
+            print "Splitting in %i jobs" % split
+            for i in range(split):
+                commands.append(line+" --nJobs %i --job %i"%( split, i ))
+        else:
+            commands.append(line)
+    return commands
+
 if __name__ == '__main__':
     if not len(args) == 1:
         raise Exception("Only one argument accepted! Instead this was given: %s"%args)
@@ -89,23 +107,10 @@ if __name__ == '__main__':
         commands = []
         with open(args[0]) as f:
             for line in f.xreadlines():
-                line = line.rstrip("\n")
-                split = None
-                try:
-                    m=re.search(r"SPLIT[0-9][0-9]*", line)
-                    split=int(m.group(0).replace('SPLIT',''))
-                except:
-                    pass 
-                line = line.split('#')[0]
-                if line:
-                    if split:
-                        print "Splitting in %i jobs" % split
-                        for i in range(split):
-                            commands.append(line+" --nJobs %i --job %i"%( split, i ))
-                    else:
-                        commands.append(line)
+                commands.extend( getCommands( line.rstrip("\n") ) )
+                
     elif type(args[0]) == type(""):
-        commands = [args[0]]
+        commands = getCommands( args[0] ) 
     if commands:
         #hash_string = hashlib.md5("%s"%time.time()).hexdigest()
         #tmp_job_dir = "tmp_%s"%hash_string
