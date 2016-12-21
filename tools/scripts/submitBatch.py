@@ -12,6 +12,7 @@ Will submit a batch job for each command line in the file_with_commands.
 from optparse import OptionParser
 import hashlib, time
 import os
+import re
 
 parser = OptionParser()
 
@@ -89,9 +90,20 @@ if __name__ == '__main__':
         with open(args[0]) as f:
             for line in f.xreadlines():
                 line = line.rstrip("\n")
+                split = None
+                try:
+                    m=re.search(r"SPLIT[0-9][0-9]*", line)
+                    split=int(m.group(0).replace('SPLIT',''))
+                except:
+                    pass 
                 line = line.split('#')[0]
                 if line:
-                    commands.append(line)
+                    if split:
+                        print "Splitting in %i jobs" % split
+                        for i in range(split):
+                            commands.append(line+" --nJobs %i --job %i"%( split, i ))
+                    else:
+                        commands.append(line)
     elif type(args[0]) == type(""):
         commands = [args[0]]
     if commands:
