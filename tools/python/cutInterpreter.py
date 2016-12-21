@@ -63,7 +63,7 @@ class cutInterpreter:
         for var, tree_var in discrete_variables:
             if string.startswith( var ):
                 # So far no njet2To5
-                if string[len( var ):].replace("to","To")count("To"):
+                if string[len( var ):].replace("to","To").count("To"):
                     raise NotImplementedError( "Can't interpret string with 'to' for discrete variable: %s. You just volunteered." % string )
 
                 num_str = string[len( var ):]
