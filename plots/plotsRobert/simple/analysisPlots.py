@@ -178,7 +178,6 @@ def drawPlots(plots, mode, dataMCScale):
 	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
       )
 
-
 #
 # Read variables and sequences
 #
@@ -569,3 +568,4 @@ with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
     f.write(mode + " & " + " & ".join([ (" %12.0f" if i == "data" else " %12.2f") % yields[mode][i] for i in columns]) + "\\\\ \n")
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, getSelectionString(args.selection) )
+

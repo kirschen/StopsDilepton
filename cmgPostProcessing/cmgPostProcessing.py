@@ -402,7 +402,7 @@ if isTiny:
     #branches to be kept for data and MC
     branchKeepStrings_DATAMC = \
        ["run", "lumi", "evt", "isData", "nVert",
-        "met_pt", "met_phi",
+        "met_pt", "met_phi", "met_caloPt", "met_caloPhi",
 #        "puppiMet_pt","puppiMet_phi",
         "Flag_*", "HLT_*",
         #"HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
@@ -422,7 +422,7 @@ elif isSmall:
     #branches to be kept for data and MC
     branchKeepStrings_DATAMC = [\
         "run", "lumi", "evt", "isData", "rho", "nVert",
-        "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
+        "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt", "met_caloPt", "met_caloPhi",
 #        "metNoHF_pt", "metNoHF_phi",
 #        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
@@ -444,7 +444,7 @@ else:
     #branches to be kept for data and MC
     branchKeepStrings_DATAMC = [\
         "run", "lumi", "evt", "isData", "rho", "nVert",
-        "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
+        "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt", "met_caloPt", "met_caloPhi",
 #        "metNoHF_pt", "metNoHF_phi",
 #        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
@@ -1102,5 +1102,3 @@ logger.info("Copying log file to %s"%outDir)
 copyLog = subprocess.call(['cp',logFileLocation,outDir])
 if copyLog: print "Copying log from %s to %s failed"%(logFileLocation,outDir)
 else: print "Successfully copied log file"
-
-
