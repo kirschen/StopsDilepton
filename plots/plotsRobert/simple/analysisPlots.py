@@ -79,21 +79,45 @@ cuts = {
     "onZ":               "abs(dl_mass-91.1876)<15",
     "met50":             "met_pt>50",
     "met80":             "met_pt>80",
-    "metInv":            "met_pt<80",
-    "metSig5":           "metSig>5",
-    "metSigInv":         "metSig<5",
+
     "dPhiJet0":          "cos(met_phi-JetGood_phi[0])<0.8",
     "dPhiJet1":          "cos(met_phi-JetGood_phi[1])<cos(0.25)",
     "dPhiInv":           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))",
+
+    "metInv":            "met_pt<80",
+    "metSigInv":         "metSig<5",
+
+    "metSig5":           "metSig>5",
     "mt2ll100":          "dl_mt2ll>100",
     "mt2ll140":          "dl_mt2ll>140",
     "met150":            "met_pt>150",
   }
 
+continous_cut_variables = [ ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl") ]
+def translate_to_cutstring( string ):
+    for var, tree_var in continous_cut_variables:
+        if string.startswith( var ):
+            num_str = string[len( var ):].split("to")
+            upper = None
+            lower = None
+            if len(num_str)==2:
+                lower, upper = num_str 
+            elif len(num_str)==1:
+                lower = num_str[0]
+            else:
+                raise ValueError( "Can't interpret string %s" % string )
+            res_string = []
+            if lower: res_string.append( tree_var+">="+lower )
+            if upper: res_string.append( tree_var+"<"+upper )
+            return "&&".join( res_string )
+
 def getCutString( cut ):
     try:
         return cuts[ cut ]
     except KeyError:
+        # Try to translate
+        string = translate_to_cutstring( cut )
+        if string: return string
         logger.error( "No cut found for %s. All known cuts are %s", cut, ", ".join(cuts.keys()) )
         raise KeyError
 
@@ -188,7 +212,7 @@ read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "
 # Lepton selection and isolation
 #
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
-def getLeptonSelection(mode):
+def getLeptonSelection( mode ):
   if args.selection.count('Iso')>1: 
         raise ValueError( "Multiple isolation ('Iso') found in selection %s" % args.selection )
   try:
