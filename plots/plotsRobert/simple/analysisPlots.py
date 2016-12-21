@@ -28,7 +28,7 @@ argParser.add_argument('--plot_directory',     action='store',      default='ana
 argParser.add_argument('--selection',          action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
-argParser.add_argument('--skipBadMuonFilters', action='store_true',                      help="Don't apply bad muon filters", )
+argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 args = argParser.parse_args()
 
 #
@@ -101,12 +101,12 @@ def getCutString( cut ):
 def getSelectionString( selection ):
     return  "&&".join( map( getCutString, filter( lambda c: 'Iso' not in c, selection.split('-') ) ) )
 
-if args.small:                    args.plot_directory += "_small"
-if args.noData:                   args.plot_directory += "_noData"
-if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
-if args.splitBosons2:             args.plot_directory += "_splitMultiBoson2"
-if args.signal == "DM":           args.plot_directory += "_DM"
-if args.skipBadMuonFilters:       args.plot_directory += "_skipBadMuonFilters"
+if args.small:                        args.plot_directory += "_small"
+if args.noData:                       args.plot_directory += "_noData"
+if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
+if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
+if args.signal == "DM":               args.plot_directory += "_DM"
+if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
 #
 # Make samples, will be searched for in the postProcessing directory
 #
@@ -178,7 +178,6 @@ def drawPlots(plots, mode, dataMCScale):
 	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
       )
 
-
 #
 # Read variables and sequences
 #
@@ -223,7 +222,7 @@ for index, mode in enumerate(allModes):
   elif mode=="ee":   data_sample.texName = "data (2 e)"
   elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
 
-  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters = not args.skipBadMuonFilters), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["evt/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
@@ -250,8 +249,8 @@ for index, mode in enumerate(allModes):
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
    #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
-    sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = not args.skipBadMuonFilters), getLeptonSelection(mode)])
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+    sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
 
   #for sample in [T2tt, T2tt2]:
   #  sample.scale          = lumi_scale
@@ -569,3 +568,4 @@ with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
     f.write(mode + " & " + " & ".join([ (" %12.0f" if i == "data" else " %12.2f") % yields[mode][i] for i in columns]) + "\\\\ \n")
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, getSelectionString(args.selection) )
+
