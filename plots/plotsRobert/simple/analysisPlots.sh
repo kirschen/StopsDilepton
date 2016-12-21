@@ -1,35 +1,25 @@
-#python analysisPlots.py --skipBadMuonFilters --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
-#python analysisPlots.py --skipBadMuonFilters --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
-#python analysisPlots.py --skipBadMuonFilters --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
-#python analysisPlots.py --skipBadMuonFilters --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
-#python analysisPlots.py --skipBadMuonFilters --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
-#python analysisPlots.py --skipBadMuonFilters --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
-#python analysisPlots.py --skipBadMuonFilters --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
-#python analysisPlots.py --skipBadMuonFilters --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
-#python analysisPlots.py --skipBadMuonFilters --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
-#python analysisPlots.py --skipBadMuonFilters --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
 
-python analysisPlots.py  --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20
-python analysisPlots.py  --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20
-python analysisPlots.py  --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20
-python analysisPlots.py  --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20
-python analysisPlots.py  --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20
-python analysisPlots.py  --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
-python analysisPlots.py  --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
-python analysisPlots.py  --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
-python analysisPlots.py  --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
-python analysisPlots.py  --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
+python analysisPlots.py  --badMuonFilters=Summer2016_pt20 --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
 
-python analysisPlots.py --skipBadMuonFilters --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20
-python analysisPlots.py --skipBadMuonFilters --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20
-python analysisPlots.py --skipBadMuonFilters --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20
-python analysisPlots.py --skipBadMuonFilters --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20
-python analysisPlots.py --skipBadMuonFilters --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20
-python analysisPlots.py --skipBadMuonFilters --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
-python analysisPlots.py --skipBadMuonFilters --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
-python analysisPlots.py --skipBadMuonFilters --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
-python analysisPlots.py --skipBadMuonFilters --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
-python analysisPlots.py --skipBadMuonFilters --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ
 
 #python analysisPlots.py --skipBadMuonFilters --selection relIso0.12-looseLeptonVeto-mll20
 #python analysisPlots.py --skipBadMuonFilters --selection njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv
