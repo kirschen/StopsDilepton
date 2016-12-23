@@ -1,6 +1,9 @@
 ''' Class to interpret string based cuts
 '''
 
+import logging
+logger = logging.getLogger(__name__)
+
 jetSelection    = "nJetGood"
 bJetSelectionM  = "nBTag"
 
@@ -14,16 +17,15 @@ special_cuts = {
     "onZ":               "abs(dl_mass-91.1876)<15",
     "offZ":              "abs(dl_mass-91.1876)>15",
 
-    "dPhiJet0":          "cos(met_phi-JetGood_phi[0])<0.8",
-    "dPhiJet1":          "cos(met_phi-JetGood_phi[1])<cos(0.25)",
-    "dPhiInv":           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))",
-
+    "dPhiJet0":          "Alt$(cos(met_phi-JetGood_phi[0])<0.8,1)",
+    "dPhiJet1":          "Alt$(cos(met_phi-JetGood_phi[1])<cos(0.25),1)",
+    "dPhiInv":           '( nJetGood==0 || (nJetGood==1)*Alt$(!(cos(met_phi-JetGood_phi[0])<0.8),0) || (nJetGood>1)*Alt$(!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)),0))',
     "metInv":            "met_pt<80",
     "metSigInv":         "metSig<5",
 
   }
 
-continous_variables = [ ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl") ]
+continous_variables = [ ("metSig", "(nJetGood==0||metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl") ]
 discrete_variables  = [ ("njet", "nJetGood"), ("btag", "nBTag") ]
 
 class cutInterpreter:
@@ -54,6 +56,9 @@ class cutInterpreter:
                     lower = num_str[0]
                 else:
                     raise ValueError( "Can't interpret string %s" % string )
+                if var == 'metSig':
+                  if lower: lower += ')'
+                  if upper: upper += ')'
                 res_string = []
                 if lower: res_string.append( tree_var+">="+lower )
                 if upper: res_string.append( tree_var+"<"+upper )
@@ -61,20 +66,27 @@ class cutInterpreter:
 
         # discrete Variables
         for var, tree_var in discrete_variables:
+            logger.debug("Reading discrete cut %s as %s"%(var, tree_var))
             if string.startswith( var ):
                 # So far no njet2To5
                 if string[len( var ):].replace("to","To").count("To"):
                     raise NotImplementedError( "Can't interpret string with 'to' for discrete variable: %s. You just volunteered." % string )
 
                 num_str = string[len( var ):]
+                logger.debug("Num string is %s"%(num_str))
                 # var1p -> tree_var >= 1
                 if num_str[-1] == 'p' and len(num_str)==2:
+                    logger.debug("Using cut string %s"%(tree_var+">="+num_str[0]))
                     return tree_var+">="+num_str[0]
                 # var123->tree_var==1||tree_var==2||tree_var==3
                 else:
                     vls = [ tree_var+"=="+c for c in num_str ]
-                    if len(vls)==1: return vls[0]
-                    else: return '('+'||'.join(vls)+')'
+                    if len(vls)==1:
+                      logger.debug("Using cut string %s"%vls[0])
+                      return vls[0]
+                    else:
+                      logger.debug("Using cut string %s"%'('+'||'.join(vls)+')')
+                      return '('+'||'.join(vls)+')'
         raise ValueError( "Can't interpret string %s. All cuts %s" % (string,  ", ".join( [ c[0] for c in continous_variables + discrete_variables] +  special_cuts.keys() ) ) )
 
     @staticmethod
