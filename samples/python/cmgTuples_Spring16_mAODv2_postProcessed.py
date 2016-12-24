@@ -31,7 +31,7 @@ dirs['DY_LO']            = ["DYJetsToLL_M10to50_LO", "DYJetsToLL_M50_LO"]
 dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 dirs['TTJets']           = ["TTJets"]
 #dirs['TTJets_LO']        = ["TTJets_LO"] 
-dirs['TTLep_pow']        = ["TTLep_pow_ext"] #can be updated to TTLep_pow_ext
+dirs['TTLep_pow']        = ["TTLep_pow_ext"]
 dirs['TT_pow']           = ["TT_pow_ext3_comb"]
 
 dirs['TTJets_Lep']       = ["TTJets_DiLepton_comb", "TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT_comb"]
