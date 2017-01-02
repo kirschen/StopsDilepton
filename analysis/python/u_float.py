@@ -13,6 +13,9 @@ class u_float():
                 raise ValueError("Not a number among %r, %r"%val)
             self.val    = float(val[0])
             self.sigma  = float(val[1])
+        elif type(val)==type({}):
+            self.val = val['val']
+            self.sigma = val['sigma']
         else:
             if not (isinstance(val, numbers.Number) and isinstance(sigma, numbers.Number)):
                 raise ValueError( "Not a number among %r, %r"%(val, sigma) )
