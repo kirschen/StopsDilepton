@@ -56,7 +56,7 @@ postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import DoubleMuon_Run2016BCD_backup as flat_prompt
 
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v15/dilepTiny"
+postProcessing_directory = "postProcessed_80X_v21/dilepTiny"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import DoubleMuon_Run2016BCD_backup as flat_rereco
 
 read_variables = ["evt/l", "run/I", "lumi/I"]
@@ -129,12 +129,12 @@ evt_common = [pos for pos in p_rereco.keys() if pos in p_prompt.keys()]
 evt_common.sort()
 
 
-evt_break = -1
+#evt_break = -1
 #evt_break = 85068029   #0 appears. leading mu passes medium mu ID, artificial non-PF mu duplicate (sub-leading) is not the issue
 #evt_break = 3134346174 #1 in both.  
 #evt_break = 330683466  #2 disappears. nBTag 1->0 in rereco
 #evt_break = 265511308  #3 disappears. fails dPhi(MET, jet), leading jet cos(dPhi) 0.79 -> 0.84 (we cut at 0.8)
-#evt_break = 2244735321 #4 spurious mu
+evt_break = 2244735321 #4 spurious mu
 #evt_break = 61059415   #5 in both.
 # evt_break = 24881293 #6 +20 GeV in MET, just passes MT2ll. non-PF mu duplicate seems not to be the issue
 #evt_break = 265511308 fails dPhi in rereco
@@ -161,11 +161,11 @@ for i_evt, evt in enumerate(evt_common):
                 if  r.products[collection][i].pt()>20:
                     print "  slimmed %s %s pt %3.2f eta %3.2f phi %3.2f isPF? %i" % ( name, collection, r.products[collection][i].pt(), r.products[collection][i].eta(), r.products[collection][i].phi(),  r.products[collection][i].isPFMuon() if abs(r.products[collection][i].pdgId())==13 else -1)
                     prompt_pfCands = filter( 
-                        lambda p_: deltaR({'eta':p_.eta(), 'phi':p_.phi()}, {'eta':r.products[collection][i].eta(), 'phi':r.products[collection][i].phi()})<0.1, r_prompt.products['pfCand'])
+                        lambda p_: deltaR({'eta':p_.eta(), 'phi':p_.phi()}, {'eta':r.products[collection][i].eta(), 'phi':r.products[collection][i].phi()})<0.3, r_prompt.products['pfCand'])
                     for p in prompt_pfCands:
                         print "    prompt pfCand %i, pt/eta/phi %3.2f/%3.2f/%3.2f"%( p.pdgId(), p.pt(), p.eta(), p.phi())
                     rereco_pfCands = filter( 
-                        lambda p_: deltaR({'eta':p_.eta(), 'phi':p_.phi()}, {'eta':r.products[collection][i].eta(), 'phi':r.products[collection][i].phi()})<0.1, r_rereco.products['pfCand'])
+                        lambda p_: deltaR({'eta':p_.eta(), 'phi':p_.phi()}, {'eta':r.products[collection][i].eta(), 'phi':r.products[collection][i].phi()})<0.3, r_rereco.products['pfCand'])
                     for p in rereco_pfCands:
                         print "    rereco pfCand %i, pt/eta/phi %3.2f/%3.2f/%3.2f"%( p.pdgId(), p.pt(), p.eta(), p.phi())
                     if abs( sum(p.pt() for p in rereco_pfCands) - sum(p.pt() for p in prompt_pfCands) ) > 10.:

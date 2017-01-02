@@ -2,14 +2,15 @@ import ROOT,pickle
 import time
 
 from StopsDilepton.samples.heppy_dpm_samples import mc_heppy_mapper
-from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
+#from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
 
 
 mc = mc_heppy_mapper
 mc_samples = mc.heppy_sample_names
 
-data = data_heppy_mapper
-data_samples = data.heppy_sample_names
+#data = data_heppy_mapper
+#data_samples = data.heppy_sample_names
+data_samples = []
 
 samples = data_samples + mc_samples
 

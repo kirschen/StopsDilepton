@@ -50,10 +50,10 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 # Make samples, will be searched for in the postProcessing directory
 #
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny"
+postProcessing_directory = "postProcessed_80X_v22/dilepTiny"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 if args.signal == "T2tt":
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
@@ -134,6 +134,7 @@ def getLeptonSelection( mode ):
 
 #For PU reweighting
 from StopsDilepton.tools.puReweighting import getReweightingFunction
+nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
 nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
 nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
 nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
@@ -147,9 +148,9 @@ allPlots   = {}
 allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
-  if   mode=="mumu": data_sample = DoubleMuon_Run2016BCDEFG_backup
-  elif mode=="ee":   data_sample = DoubleEG_Run2016BCDEFG_backup
-  elif mode=="mue":  data_sample = MuonEG_Run2016BCDEFG_backup
+  if   mode=="mumu": data_sample = DoubleMuon_Run2016_backup
+  elif mode=="ee":   data_sample = DoubleEG_Run2016_backup
+  elif mode=="mue":  data_sample = MuonEG_Run2016_backup
   if   mode=="mumu": data_sample.texName = "data (2 #mu)"
   elif mode=="ee":   data_sample.texName = "data (2 e)"
   elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
@@ -181,7 +182,7 @@ for index, mode in enumerate(allModes):
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
    #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
     sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
 
   #for sample in [T2tt, T2tt2]:
@@ -190,7 +191,10 @@ for index, mode in enumerate(allModes):
   #  sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
   #  sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
-
+  if args.small:
+        for sample in mc + [data_sample]:
+            sample.reduceFiles( to = 1 )
+  
   if not args.noData:
     stack = Stack(mc, data_sample)
   else:
@@ -198,9 +202,10 @@ for index, mode in enumerate(allModes):
 
   stack.extend( [ [s] for s in signals ] )
 
-  if args.small:
-        for sample in stack.samples:
-            sample.reduceFiles( to = 1 )
+  #if args.small:
+  #      print stack.samples
+  #      for sample in stack.samples:
+  #          sample.reduceFiles( to = 1 )
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = weight_, selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
