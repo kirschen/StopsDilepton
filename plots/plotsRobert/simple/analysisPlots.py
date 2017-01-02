@@ -445,6 +445,12 @@ for index, mode in enumerate(allModes):
       binning=[420/30,0,400],
     ))
 
+    plots.append(Plot( name = "dl_mt2blbl_coarse",       # SR binning of MT2ll
+      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
+      attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+      binning=[400/100, 0, 400],
+    ))
+
 
   plotting.fill(plots, read_variables = read_variables, sequence = [])
 
