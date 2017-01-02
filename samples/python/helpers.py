@@ -80,7 +80,8 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
                 from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
                 return data_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             elif "T2tt" in sample:
-                raise NotImplementedError 
+                from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper
+                return T2tt_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             elif "TTbarDM" in sample:
                 from StopsDilepton.samples.heppy_dpm_samples import ttbarDM_heppy_mapper
                 return ttbarDM_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
