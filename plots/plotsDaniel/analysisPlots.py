@@ -13,6 +13,7 @@ from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
 from StopsDilepton.tools.objectSelection import getFilterCut
+from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.plots.pieChart        import makePieChart
 
 #
@@ -24,11 +25,11 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots')
+argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_test')
 argParser.add_argument('--selection',          action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
-argParser.add_argument('--skipBadMuonFilters', action='store_true',                      help="Don't apply bad muon filters", )
+argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 args = argParser.parse_args()
 
 #
@@ -39,74 +40,12 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-#
-# Selections (two leptons with pt > 25/20 GeV)
-#
-
-def getLeptonString(nMu, nE, lepton_iso_string):
-  leptonString = "nGoodMuons==%i&&nGoodElectrons==%i&&l1_pt>25" % (nMu, nE)
-  if lepton_iso_string.startswith("multiIso"):
-      mIsoWP = { "VT":5, "T":4, "M":3 , "L":2 , "VL":1, 0:"None" }
-      str_ = mIsoWP[ lepton_iso_string.replace('multiIso','') ]
-      leptonString += "&&l1_mIsoWP>%i&&l2_mIsoWP>%i" % (str_, str_)
-  elif lepton_iso_string.startswith("relIso"):
-     iso = float( lepton_iso_string.replace('relIso','') ) 
-     leptonString += "&&l1_relIso03<%3.2f&&l2_relIso03<%3.2f"%( iso, iso )
-  else:  logger.warning( "No isolation on l1, l2 defined!" )
-  return leptonString
-
-jetSelection    = "nJetGood"
-bJetSelectionM  = "nBTag"
-
-#
-# Definition of cuts 
-#
-cuts = {
-    "njet0":             jetSelection+"==0",
-    "njet0p":            "(1)",
-    "njet01":            jetSelection+"<=1",
-    "njet1":             jetSelection+"==1",
-    "njet1p":            jetSelection+">=1",
-    "njet2p":            jetSelection+">=2",
-    "btag0":             bJetSelectionM+"==0",
-    "btag0p":            "(1)",
-    "btag1":             bJetSelectionM+"==1",
-    "btag1p":            bJetSelectionM+">=1",
-    # ("multiIsoVT":        "(1)", 
-    "looseLeptonVeto":   "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2",
-    "mll20":             "dl_mass>20",
-    "allZ":              "(1)",
-    "onZ":               "abs(dl_mass-91.1876)<15",
-    "met50":             "met_pt>50",
-    "met80":             "met_pt>80",
-    "metInv":            "met_pt<80",
-    "metSig5":           "metSig>5",
-    "metSigInv":         "metSig<5",
-    "dPhiJet0":          "cos(met_phi-JetGood_phi[0])<0.8",
-    "dPhiJet1":          "cos(met_phi-JetGood_phi[1])<cos(0.25)",
-    "dPhiInv":           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))",
-    "mt2ll100":          "dl_mt2ll>100",
-    "mt2ll140":          "dl_mt2ll>140",
-    "met150":            "met_pt>150",
-  }
-
-def getCutString( cut ):
-    try:
-        return cuts[ cut ]
-    except KeyError:
-        logger.error( "No cut found for %s. All known cuts are %s", cut, ", ".join(cuts.keys()) )
-        raise KeyError
-
-# Remove isolation criterio from cutstring
-def getSelectionString( selection ):
-    return  "&&".join( map( getCutString, filter( lambda c: 'Iso' not in c, selection.split('-') ) ) )
-
-if args.small:                    args.plot_directory += "_small"
-if args.noData:                   args.plot_directory += "_noData"
-if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
-if args.splitBosons2:             args.plot_directory += "_splitMultiBoson2"
-if args.signal == "DM":           args.plot_directory += "_DM"
-if args.skipBadMuonFilters:       args.plot_directory += "_skipBadMuonFilters"
+if args.small:                        args.plot_directory += "_small"
+if args.noData:                       args.plot_directory += "_noData"
+if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
+if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
+if args.signal == "DM":               args.plot_directory += "_DM"
+if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
 #
 # Make samples, will be searched for in the postProcessing directory
 #
@@ -178,7 +117,6 @@ def drawPlots(plots, mode, dataMCScale):
 	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
       )
 
-
 #
 # Read variables and sequences
 #
@@ -186,23 +124,17 @@ read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "
                   "met_pt/F", "met_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
 
 #
-# Lepton selection and isolation
 #
-offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
-def getLeptonSelection(mode):
-  if args.selection.count('Iso')>1: 
-        raise ValueError( "Multiple isolation ('Iso') found in selection %s" % args.selection )
-  try:
-        iso = next( obj for obj in args.selection.split('-') if obj.count('Iso') )
-  except StopIteration:
-        logger.warning( "No isolation ('Iso') criterion found in selection %s", args.selection ) 
-        iso = ""
-  if   mode=="mumu": return getLeptonString(2, 0, lepton_iso_string = iso) + "&&isOS&&isMuMu" + offZ
-  elif mode=="mue":  return getLeptonString(1, 1, lepton_iso_string = iso) + "&&isOS&&isEMu"
-  elif mode=="ee":   return getLeptonString(0, 2, lepton_iso_string = iso) + "&&isOS&&isEE" + offZ
+# default offZ for SF
+offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
+def getLeptonSelection( mode ):
+  if   mode=="mumu": return "nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ
+  elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
+  elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
 
 #For PU reweighting
 from StopsDilepton.tools.puReweighting import getReweightingFunction
+nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
 nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
 nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
 nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
@@ -223,7 +155,7 @@ for index, mode in enumerate(allModes):
   elif mode=="ee":   data_sample.texName = "data (2 e)"
   elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
 
-  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters = not args.skipBadMuonFilters), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["evt/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
@@ -248,10 +180,10 @@ for index, mode in enumerate(allModes):
 
   for sample in mc + signals:
     sample.scale          = lumi_scale
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F', 'reweightPU36fb/F']
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
    #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
-    sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = not args.skipBadMuonFilters), getLeptonSelection(mode)])
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
+    sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
 
   #for sample in [T2tt, T2tt2]:
   #  sample.scale          = lumi_scale
@@ -259,7 +191,10 @@ for index, mode in enumerate(allModes):
   #  sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
   #  sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
-
+  if args.small:
+        for sample in mc + [data_sample]:
+            sample.reduceFiles( to = 1 )
+  
   if not args.noData:
     stack = Stack(mc, data_sample)
   else:
@@ -267,12 +202,13 @@ for index, mode in enumerate(allModes):
 
   stack.extend( [ [s] for s in signals ] )
 
-  if args.small:
-        for sample in stack.samples:
-            sample.reduceFiles( to = 1 )
+  #if args.small:
+  #      print stack.samples
+  #      for sample in stack.samples:
+  #          sample.reduceFiles( to = 1 )
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = weight_, selectionString = getSelectionString(args.selection), addOverFlowBin='upper')
+  Plot.setDefaults(stack = stack, weight = weight_, selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
   
   plots = []
 
@@ -569,3 +505,4 @@ with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
     f.write(mode + " & " + " & ".join([ (" %12.0f" if i == "data" else " %12.2f") % yields[mode][i] for i in columns]) + "\\\\ \n")
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, getSelectionString(args.selection) )
+

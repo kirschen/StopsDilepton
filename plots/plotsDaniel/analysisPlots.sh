@@ -1,13 +1,12 @@
-python analysisPlots.py --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
-python analysisPlots.py --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
-python analysisPlots.py --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
-python analysisPlots.py --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
-python analysisPlots.py --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20-met150
-python analysisPlots.py --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
-python analysisPlots.py --selection njet0-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
-python analysisPlots.py --selection njet01-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
-python analysisPlots.py --selection njet1-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
-python analysisPlots.py --selection njet1p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met150
+python analysisPlots.py --selection njet2p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100       # Fig 17
+python analysisPlots.py --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100       # Fig 17
+python analysisPlots.py --selection njet2p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-dPhiInv       # Fig 17
+python analysisPlots.py --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-dPhiInv       # Fig 17
+python analysisPlots.py --selection njet2p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-dPhiJet0-dPhiJet1       # Fig 17
+python analysisPlots.py --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ-dPhiJet0-dPhiJet1       # Fig 17
+python analysisPlots.py --selection njet2p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ       # Fig 17
+python analysisPlots.py --selection njet0p-btag0p-relIso0.12-looseLeptonVeto-mll20-onZ       # Fig 17
+
 
 python analysisPlots.py --selection relIso0.12-looseLeptonVeto-mll20
 python analysisPlots.py --selection njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv

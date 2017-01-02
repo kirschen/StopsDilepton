@@ -21,7 +21,7 @@ import errno
 # 
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--logLevel',          action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
+argParser.add_argument('--logLevel',          action='store',      default='DEBUG',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default='DM',        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots')
@@ -74,6 +74,7 @@ multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
 def getLeptonString(nMu, nE, multiIso=False):
   leptonString = "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&l1_pt>25"
   if multiIso: leptonString += "&&l1_mIsoWP>4&&l2_mIsoWP>4"
+  else:        leptonString += "&&l1_relIso03<0.12&&l2_relIso03<0.12"
   return leptonString
 
 
@@ -89,9 +90,9 @@ cuts = [
     ("btag0",             bJetSelectionM+"==0"),
     ("btagM",             bJetSelectionM+">=1"),
     ("multiIsoWP",        "(1)"),                                                   # implemented below
-    ("onZ",               "abs(dl_mass-91.1876)<15"),
     ("looseLeptonVeto",   "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     ("mll20",             "dl_mass>20"),
+    ("onZ",               "abs(dl_mass-91.1876)<15"),
     ("metInv",            "met_pt<80"),
     ("met80",             "met_pt>80"),
     ("metSig5",           "metSig>5"),
@@ -114,21 +115,22 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         presel.extend( comb )
         selection = '-'.join([p[0] for p in presel])
         if selection not in [
-              'njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
-              'njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
-              'njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
-              'njet01-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
-              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv',
-              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
-              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5',
-              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
-              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
-              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
-              'njet2-btag0-multiIsoWP-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
-              'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-metInv',
-              'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5',
-              'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
-              'njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']: continue
+              'njet01-btag0-looseLeptonVeto-mll20-metInv',
+              'njet01-btag0-looseLeptonVeto-mll20-met80-metSig5',
+              'njet01-btagM-looseLeptonVeto-mll20-metInv',
+              'njet01-btagM-looseLeptonVeto-mll20-met80-metSig5',
+              'njet2-btag0-looseLeptonVeto-mll20-metInv',
+              'njet2-btag0-looseLeptonVeto-mll20-met80-metSig5',
+              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5',
+              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
+              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
+              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
+              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+              'njet2-btagM-looseLeptonVeto-mll20-metInv',
+              'njet2-btagM-looseLeptonVeto-mll20-met80-metSig5',
+              'njet2-btagM-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
+              'njet2-btagM-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']: continue
+        if not 'njet2-btagM-looseLeptonVeto-mll20-met80' in selection: continue
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 
@@ -138,7 +140,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
 jet_systematics    = ['JECUp','JECDown']# 'JERDown','JECVUp','JECVDown']
 met_systematics    = ['UnclusteredEnUp', 'UnclusteredEnDown']
 jme_systematics    = jet_systematics + met_systematics
-weight_systematics = ['PU12fbUp', 'PU12fbDown', 'TopPt', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerBackupDown', 'DilepTriggerBackupUp', 'LeptonSFDown', 'LeptonSFUp']
+weight_systematics = ['PU36fbUp', 'PU36fbDown', 'TopPt', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerBackupDown', 'DilepTriggerBackupUp', 'LeptonSFDown', 'LeptonSFUp']
 
 
 if args.selectSys != "all" and args.selectSys != "combine": all_systematics = [args.selectSys if args.selectSys != 'None' else None]
@@ -148,7 +150,7 @@ else:                                                       all_systematics = [N
 sys_pairs = [\
     ('JEC',         'JECUp', 'JECDown'),
     ('Unclustered', 'UnclusteredEnUp', 'UnclusteredEnDown'),
-    ('PU12fb',      'PU12fbUp', 'PU12fbDown'),
+    ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
     ('TopPt',       'TopPt', None),
 #   ('JER',         'JERUp', 'JERDown'),
     ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
@@ -174,6 +176,7 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
 								 + (" --normalizeBinWidth" if args.normalizeBinWidth else "")\
 								 + (" --plot_directory=" + args.plot_directory)\
 								 + (" --logLevel=" + args.logLevel)\
+								 + (" --signal=" + args.signal)\
 								 + (" --selectSys=" + sys)
       logfile = "log/systematicPlots_" + selection + "_" + sys + ".log"
       logger.info("Launching " + selection + " on cream02 with child command: " + command)
@@ -188,9 +191,11 @@ if args.signal == "DM":           args.plot_directory += "_DM"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 T2tt                    = T2tt_650_1
@@ -230,15 +235,24 @@ def addSys( selectionString , sys = None ):
     elif sys in met_systematics: return selectionString.replace('met_pt', 'met_pt_' + sys).replace('metSig', 'metSig_' + sys)
     else:                        return selectionString
 
-# CHECK AFTER NEXT UPDATE (i.e. PU weights)
+
+from StopsDilepton.tools.puReweighting import getReweightingFunction
+# nTrueIntReweighting
+nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
+nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown", mc="Spring16")
+nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp", mc="Spring16")
+
+
+
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF")
+    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF")
     elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF")
-    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweight"+sys)
-    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU12fb*reweightBTag_SF*reweight"+sys)
+    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
+    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF*reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
     
+
 
 
 #
@@ -246,7 +260,7 @@ def weightMC( sys = None ):
 #
 read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
                   "met_pt/F", "met_phi/F", "LepGood[pt/F,eta/F,miniRelIso/F]", "Flag_goodVertices/O", "Flag_HBHENoiseIsoFilter/O", "Flag_HBHENoiseFilter/O", "Flag_globalTightHalo2016Filter/O",
-                  "Flag_eeBadScFilter/O", "Flag_EcalDeadCellTriggerPrimitiveFilter/O", "Flag_badChargedHadron/O", "Flag_badMuon/O", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
+                  "Flag_eeBadScFilter/O", "Flag_EcalDeadCellTriggerPrimitiveFilter/O", "Flag_badChargedHadronSummer2016/O", "Flag_badMuonSummer2016/O", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
                   "isOS/O", "isEE/O", "isMuMu/O", "isEMu/O",
                   "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","evt/I"]
 
@@ -261,13 +275,6 @@ def getLeptonSelection(mode):
   elif mode=="all":  return "(" + "||".join([getLeptonSelection(m) for m in ["mumu","mue","ee"]]) + ")"
 
 
-#For PU reweighting
-from StopsDilepton.tools.puReweighting import getReweightingFunction
-nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
-nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
-nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
-nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
-
 
 #
 # Loop over channels
@@ -276,19 +283,19 @@ allPlots   = {}
 allModes   =['mue','ee','mumu','all']
 for index, mode in enumerate(allModes):
   if mode=="mumu":
-    data_sample         = DoubleMuon_Run2016BCDEFG_backup
+    data_sample         = DoubleMuon_Run2016_backup
     data_sample.texName = "data (2 #mu)"
   elif mode=="ee":
-    data_sample         = DoubleEG_Run2016BCDEFG_backup
+    data_sample         = DoubleEG_Run2016_backup
     data_sample.texName = "data (2 e)"
   elif mode=="mue":
-    data_sample         = MuonEG_Run2016BCDEFG_backup
+    data_sample         = MuonEG_Run2016_backup
     data_sample.texName = "data (1 #mu, 1 e)"
   elif mode=="all":
-    data_sample         = [DoubleMuon_Run2016BCDEFG_backup, DoubleEG_Run2016BCDEFG_backup, MuonEG_Run2016BCDEFG_backup]
-    DoubleMuon_Run2016BCDEFG_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
-    DoubleEG_Run2016BCDEFG_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
-    MuonEG_Run2016BCDEFG_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mue")])
+    data_sample         = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]
+    DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
+    DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
+    MuonEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mue")])
     for d in data_sample:
       d.texName = "data"
       d.read_variables = ['weight/F']
@@ -303,16 +310,19 @@ for index, mode in enumerate(allModes):
     lumi_scale        = data_sample.lumi/1000
 
   # Blinding policies for DM and T2tt analyses
-  if "njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80" in args.selection:
-    if args.signal == "DM"
-      weight_ = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016BCDEFG_backup, DoubleEG_Run2016BCDEFG_backup, MuonEG_Run2016BCDEFG_backup]) else event.weight*(1 if (event.evt % 15 == 0) else 0)
-      lumi_scale = lumi_scale/15
+  if "njet2-btagM-looseLeptonVeto-mll20-met80" in args.selection:
+    if args.signal == "DM":
+      weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.evt % 15 == 0) else 0)
+      weightString_ = "weight*(evt%15==0)"
+      lumi_scale    = lumi_scale/15.
     else:
-      weight_ = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-      lumi_scale = 17.3
+      weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
+      weightString_ = "weight*(run<=276811||(run>=277820&&279931))"
+      lumi_scale    = 17.3
   else:
     weight_ = lambda event, sample: event.weight
 
+  logger.info('Lumi scale is ' + str(lumi_scale))
 
   if args.splitBosons: mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
   else:                mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
@@ -320,7 +330,7 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables  = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
+    sample.read_variables  = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
     sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics]
     sample.read_variables += ["dl_mt2ll_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2bb_%s/F"%s   for s in jme_systematics]
@@ -330,7 +340,7 @@ for index, mode in enumerate(allModes):
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
     # Apply scale factors in the mt2ll > 100 GeV signal region (except Top which will be already scaled anyway)
-    if args.selection.count('njet2-btagM-multiIsoWP-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100') and False: # Turn on when scalefactors are rederived
+    if args.selection.count('njet2-btagM-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100') and False: # Turn on when scalefactors are rederived
       if sample == DY_HT_LO:   sample.scale = lumi_scale*1.30
       if sample == multiBoson: sample.scale = lumi_scale*1.45
       if sample == TTZ_LO:     sample.scale = lumi_scale*0.89
@@ -340,14 +350,14 @@ for index, mode in enumerate(allModes):
     for s in signals:
       s.scale          = lumi_scale
       s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
       s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
@@ -585,8 +595,8 @@ for index, mode in enumerate(allModes):
     mc_weight_func, mc_weight_string = weightMC( sys = (args.selectSys if args.selectSys != 'None' else None) )
 
     yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(mc_selection_string + "&&dl_mt2ll<100" ), weightString = mc_weight_string)['val'] for s in mc}
-    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = 'weight')['val'] for s in data_sample )
-    else:             yield_data = data_sample.getYieldFromDraw( selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = 'weight')['val']
+    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val'] for s in data_sample )
+    else:             yield_data = data_sample.getYieldFromDraw( selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val']
 
     plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
@@ -627,7 +637,7 @@ for index, mode in enumerate(allModes):
       top_sf[None]  = (yield_data - yield_non_top)/yields[topName+'None']
       total         = yield_data
       logger.info( "Data: %i MC TT %3.2f MC other %3.2f SF %3.2f", yield_data, yields[topName+'None'], yield_non_top, top_sf[None] )
-      if args.selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv') and mode != "mue":
+      if args.selection.count('njet01-btag0-looseLeptonVeto-mll20-metInv') and mode != "mue":
 	top_sf[None] = 1
     else:
       top_sf[None] = 1
@@ -643,7 +653,7 @@ for index, mode in enumerate(allModes):
 	    top_sf[sys]                              = (total - non_top)/yields[topName+sys]
 	    logger.info( "Total: %i sys %s MC TT %3.2f MC other %3.2f SF %3.2f", total, sys, yields[topName+sys], non_top, top_sf[sys] )
 
-            if args.selection.count('njet01-btag0-multiIsoWP-looseLeptonVeto-mll20-metInv') and mode != "mue":
+            if args.selection.count('njet01-btag0-looseLeptonVeto-mll20-metInv') and mode != "mue":
               top_sf[sys] = 1
 	      logger.info( "NOT scaling top for " + args.selection + " (mode " + mode + ")" )
 
