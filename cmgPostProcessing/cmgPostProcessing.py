@@ -466,12 +466,14 @@ else:
 if options.T2tt or options.TTDM:
     branchKeepStrings_MC += ["nIsr"]
 if options.keepLHEWeights or options.T2tt or options.TTDM:
-        branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
+    branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
 
 if isSingleLep:
     branchKeepStrings_DATAMC += ['HLT_*']
 
-if options.T2tt: branchKeepStrings_MC += ['GenSusyMStop', 'GenSusyMNeutralino']
+if options.T2tt: 
+    #branchKeepStrings_MC += ['GenSusyMStop', 'GenSusyMNeutralino'] #FIXME
+    branchKeepStrings_MC += ['ngenPartAll', 'genPartAll_*'] #FIXME
 
 # Jet variables to be read from chain
 jetCorrInfo = ['corr/F', 'corr_JECUp/F', 'corr_JECDown/F'] if addSystematicVariations else []
@@ -518,7 +520,7 @@ if isMC:
     read_variables+= [TreeVariable.fromString('nTrueInt/F')]
     # reading gen particles for top pt reweighting
     read_variables.append( TreeVariable.fromString('ngenPartAll/I') )
-    read_variables.append( VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
+    read_variables.append( VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,mass/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( TreeVariable.fromString('genWeight/F') )
     read_variables.append( VectorTreeVariable.fromString('gamma[mcPt/F]') )
 
@@ -659,6 +661,8 @@ def filler( event ):
 
     # weight
     if options.T2tt:
+        r.GenSusyMStop = max([p['mass']*(abs(p['pdgId']==1000006)) for p in gPart])
+        r.GenSusyMNeutralino = max([p['mass']*(abs(p['pdgId']==1000022)) for p in gPart])
         event.weight=signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['weight']
         event.mStop = r.GenSusyMStop
         event.mNeu  = r.GenSusyMNeutralino
@@ -1087,7 +1091,8 @@ if isData:
 if options.T2tt:
     output = Sample.fromDirectory("T2tt_output", outDir)
     for s in signalWeight.keys():
-        cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1])
+        #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
+        cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
         signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
         if not os.path.exists(signalFile) or options.overwrite:
             t = output.chain.CopyTree(cut)
