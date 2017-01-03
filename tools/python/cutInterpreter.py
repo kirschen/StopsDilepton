@@ -16,16 +16,16 @@ special_cuts = {
     "allZ":              "(1)",
     "onZ":               "abs(dl_mass-91.1876)<15",
     "offZ":              "abs(dl_mass-91.1876)>15",
-
-    "dPhiJet0":          "Alt$(cos(met_phi-JetGood_phi[0])<0.8,1)",
-    "dPhiJet1":          "Alt$(cos(met_phi-JetGood_phi[1])<cos(0.25),1)",
-    "dPhiInv":           '( nJetGood==0 || (nJetGood==1)*Alt$(!(cos(met_phi-JetGood_phi[0])<0.8),0) || (nJetGood>1)*Alt$(!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)),0))',
+   
+    "dPhiJet0":          "(cos(met_phi-JetGood_phi[0])<0.8||nJetGood==0)",
+    "dPhiJet1":          "(cos(met_phi-JetGood_phi[1])<cos(0.25)||nJetGood<2)",
+    "dPhiInv":           '(!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)))', # here we want an njet requirement
     "metInv":            "met_pt<80",
     "metSigInv":         "metSig<5",
 
   }
 
-continous_variables = [ ("metSig", "(nJetGood==0||metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl") ]
+continous_variables = [ ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl") ]
 discrete_variables  = [ ("njet", "nJetGood"), ("btag", "nBTag") ]
 
 class cutInterpreter:
@@ -56,9 +56,6 @@ class cutInterpreter:
                     lower = num_str[0]
                 else:
                     raise ValueError( "Can't interpret string %s" % string )
-                if var == 'metSig':
-                  if lower: lower += ')'
-                  if upper: upper += ')'
                 res_string = []
                 if lower: res_string.append( tree_var+">="+lower )
                 if upper: res_string.append( tree_var+"<"+upper )
