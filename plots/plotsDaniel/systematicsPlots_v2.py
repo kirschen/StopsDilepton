@@ -197,10 +197,10 @@ if not args.isChild and (args.selectSys == "all" or args.selectSys == "combine")
     jobs.append(command)
 
 #  if args.noMultiThreading: 
-    logger.info("Running all systematics, one by one.")
-    map(wrapper, jobs)
-    logger.info("Done with running/submitting systematic jobs")
-    exit(0)
+  logger.info("Running/submitting all systematics.")
+  results = map(wrapper, jobs)
+  logger.info("Done with running/submitting systematics.")
+  exit(0)
 #  else:
 #    from multiprocessing import Pool
 #    #pool = Pool(processes=len(jobs))
