@@ -90,7 +90,7 @@ class cutInterpreter:
         raise ValueError( "Can't interpret string %s. All cuts %s" % (string,  ", ".join( [ c[0] for c in continous_variables + discrete_variables] +  special_cuts.keys() ) ) )
 
     @staticmethod
-    def cutString( cut, select = [], ignore = []):
+    def cutString( cut, select = [""], ignore = []):
         ''' Cutstring syntax: cut1-cut2-cut3
         '''
         cuts = cut.split('-')
