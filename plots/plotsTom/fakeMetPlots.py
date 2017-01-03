@@ -191,8 +191,8 @@ def getLeptonSelection(mode):
 
 def splitSampleInFakeMet(sample, color):
   fakeMetSplittings = [
-                       ('#slash{E}_{T, fake} < 50, ll match'    , 'abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&abs(l1_mcMatchId)==6&&abs(l2_mcMatchId)==6'),
-                       ('#slash{E}_{T, fake} < 50, ll no match' , 'abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&!(abs(l1_mcMatchId)==6&&abs(l2_mcMatchId)==6)'),
+                       ('#slash{E}_{T, fake} < 50, ll match'    , 'abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&l1_mcMatchId!=0&&l2_mcMatchId!=0'),
+                       ('#slash{E}_{T, fake} < 50, ll no match' , 'abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&!(l1_mcMatchId!=0&&l2_mcMatchId!=0)'),
                        ('50 < #slash{E}_{T, fake} < 100'        , 'abs(met_pt-met_genPt)>50&&abs(met_pt-met_genPt)<100'),
                        ('#slash{E}_{T, fake} > 100'             , 'abs(met_pt-met_genPt)>100'),
                     #  ('20 < #slash{E}_{T, fake} < 50'         , 'abs(met_pt-met_genPt)>20&&abs(met_pt-met_genPt)<=50'),
