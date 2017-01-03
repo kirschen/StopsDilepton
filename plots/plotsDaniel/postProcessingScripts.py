@@ -2,11 +2,16 @@ import ROOT,pickle
 import time
 
 from StopsDilepton.samples.heppy_dpm_samples import mc_heppy_mapper
+from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper
+
 #from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
 
 
 mc = mc_heppy_mapper
 mc_samples = mc.heppy_sample_names
+
+signal = T2tt_heppy_mapper
+signal_samples = signal.heppy_sample_names
 
 #data = data_heppy_mapper
 #data_samples = data.heppy_sample_names
