@@ -650,9 +650,9 @@ for index, mode in enumerate(allModes):
     mc_selection_string = mc_selection_string.replace('&&dl_mt2ll>100','')
     mc_weight_func, mc_weight_string = weightMC( sys = (args.selectSys if args.selectSys != 'None' else None) )
 
-    yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(mc_selection_string + "&&dl_mt2ll<100" ), weightString = mc_weight_string)['val'] for s in mc}
-    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val'] for s in data_sample )
-    else:             yield_data = data_sample.getYieldFromDraw( selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val']
+    yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(mc_selection_string + "dl_mt2ll<100" ), weightString = mc_weight_string)['val'] for s in mc}
+    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = mc_selection_string + "dl_mt2ll<100", weightString = weightString_)['val'] for s in data_sample )
+    else:             yield_data = data_sample.getYieldFromDraw( selectionString = mc_selection_string + "dl_mt2ll<100", weightString = weightString_)['val']
 
     plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
