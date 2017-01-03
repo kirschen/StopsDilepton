@@ -9,6 +9,7 @@ ROOT.gROOT.SetBatch(True)
 
 from math                                import sqrt, cos, sin, pi
 from RootTools.core.standard             import *
+from RootTools.plot.helpers              import copyIndexPHP
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
 from StopsDilepton.tools.objectSelection import getFilterCut
@@ -29,9 +30,10 @@ argParser.add_argument('--plot_directory',    action='store',      default='syst
 #argParser.add_argument('--selection',         action='store',      default=None)
 argParser.add_argument('--selection',         action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--selectSys',         action='store',      default='all')
-argParser.add_argument('--noMultiThreading',  action='store_true', default='False', help="noMultiThreading?")
+#argParser.add_argument('--noMultiThreading',  action='store_true', default='False', help="noMultiThreading?") # Need no multithreading when doing batch-to-natch
 argParser.add_argument('--showOnly',          action='store',      default=None)
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?', )
+argParser.add_argument('--copyIndexPHP',      action='store_true',     help='copy index.php to directories?', )
 argParser.add_argument('--splitBosons',       action='store_true', default=False)
 argParser.add_argument('--splitTop',          action='store_true', default=False)
 argParser.add_argument('--powheg',            action='store_true', default=True)
@@ -50,7 +52,7 @@ logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 
-plot_directory = '/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/'
+#plot_directory = '/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/'
 
 
 def waitForLock(filename):
@@ -72,14 +74,6 @@ def waitForLock(filename):
 def removeLock(filename):
     os.system("rm " + filename + "_lock")
 
-
-def copyIndexPHP( directory ):
-    import shutil
-    index_php = os.path.join( directory, 'index.php' )
-    if not os.path.exists( directory ): os.makedirs( directory )
-    if not os.path.exists( index_php ):
-      shutil.copyfile( os.path.expandvars( '$CMSSW_BASE/src/StopsDilepton/tools/php/index.php' ), index_php )
-
 #
 # Selections (two leptons with pt > 20 GeV)
 #
@@ -95,25 +89,25 @@ def getLeptonString(nMu, nE, multiIso=False):
 jetSelection    = "nJetGood"
 bJetSelectionM  = "nBTag"
 
-#
-# Cuts to iterate over
-#
-cuts = [
-    ("njet01",            jetSelection+"<=1"),
-    ("njet2",             jetSelection+">=2"),
-    ("btag0",             bJetSelectionM+"==0"),
-    ("btagM",             bJetSelectionM+">=1"),
-    ("multiIsoWP",        "(1)"),                                                   # implemented below
-    ("looseLeptonVeto",   "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
-    ("mll20",             "dl_mass>20"),
-    ("onZ",               "abs(dl_mass-91.1876)<15"),
-    ("metInv",            "met_pt<80"),
-    ("met80",             "met_pt>80"),
-    ("metSig5",           "metSig>5"),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
-    ("dPhiInv",           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))"),
-    ("mt2ll100",          "dl_mt2ll>100"),
-  ]
+##
+## Cuts to iterate over
+##
+#cuts = [
+#    ("njet01",            jetSelection+"<=1"),
+#    ("njet2",             jetSelection+">=2"),
+#    ("btag0",             bJetSelectionM+"==0"),
+#    ("btagM",             bJetSelectionM+">=1"),
+#    ("multiIsoWP",        "(1)"),                                                   # implemented below
+#    ("looseLeptonVeto",   "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
+#    ("mll20",             "dl_mass>20"),
+#    ("onZ",               "abs(dl_mass-91.1876)<15"),
+#    ("metInv",            "met_pt<80"),
+#    ("met80",             "met_pt>80"),
+#    ("metSig5",           "metSig>5"),
+#    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
+#    ("dPhiInv",           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))"),
+#    ("mt2ll100",          "dl_mt2ll>100"),
+#  ]
 
 
 
@@ -202,16 +196,21 @@ if not args.isChild and (args.selectSys == "all" or args.selectSys == "combine")
 
     jobs.append(command)
 
-  if args.noMultiThreading: 
-    results = map(wrapper, jobs)
-  else:
-    from multiprocessing import Pool
-    #pool = Pool(processes=len(jobs))
-    pool = Pool(processes=8)
-    results = pool.map(wrapper, jobs)
-    pool.close()
-    pool.join()
+#  if args.noMultiThreading: 
+  logger.info("Running/submitting all systematics.")
+  results = map(wrapper, jobs)
+  logger.info("Done with running/submitting systematics.")
+  exit(0)
+#  else:
+#    from multiprocessing import Pool
+#    #pool = Pool(processes=len(jobs))
+#    pool = Pool(processes=8)
+#    pool.map(wrapper, jobs)
+#    pool.close()
+#    pool.join()
+#    logger.info("All jobs launched")
   
+#  exit(0)
 
 
 
@@ -241,8 +240,9 @@ if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
 if args.small:                    args.plot_directory += "_small"
 
-copyIndexPHP( plot_directory )
-copyIndexPHP( os.path.join( plot_directory, args.plot_directory ) )
+if args.copyIndexPHP:
+    copyIndexPHP( plot_directory )
+    copyIndexPHP( os.path.join( plot_directory, args.plot_directory ) )
 
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -652,16 +652,17 @@ for index, mode in enumerate(allModes):
   result_file = os.path.join(plot_directory, args.plot_directory, mode, args.selection, 'results.pkl')
   try: os.makedirs(os.path.join(plot_directory, args.plot_directory, mode, args.selection))
   except: pass
-  copyIndexPHP ( os.path.join(plot_directory, args.plot_directory, mode, args.selection) )
+  if args.copyIndexPHP:
+    copyIndexPHP ( os.path.join(plot_directory, args.plot_directory, mode, args.selection) )
 
   if args.selectSys != "combine": 
     mc_selection_string = cutInterpreter.cutString(args.selection)
     mc_selection_string = mc_selection_string.replace('&&dl_mt2ll>100','')
     mc_weight_func, mc_weight_string = weightMC( sys = (args.selectSys if args.selectSys != 'None' else None) )
 
-    yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(mc_selection_string + "dl_mt2ll<100" ), weightString = mc_weight_string)['val'] for s in mc}
-    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = mc_selection_string + "dl_mt2ll<100", weightString = weightString_)['val'] for s in data_sample )
-    else:             yield_data = data_sample.getYieldFromDraw( selectionString = mc_selection_string + "dl_mt2ll<100", weightString = weightString_)['val']
+    yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(mc_selection_string + "&&dl_mt2ll<100" ), weightString = mc_weight_string)['val'] for s in mc}
+    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val'] for s in data_sample )
+    else:             yield_data = data_sample.getYieldFromDraw( selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val']
 
     plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
@@ -845,9 +846,10 @@ for index, mode in enumerate(allModes):
              
 
       for log in [False, True]:
-        copyIndexPHP( os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else "") + "_scaled") )
         plotDir = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else "") + "_scaled", args.selection)
-        copyIndexPHP(plotDir)
+        if args.copyIndexPHP:
+            copyIndexPHP( os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else "") + "_scaled") )
+            copyIndexPHP(plotDir)
         if args.showOnly: plotDir = os.path.join(plotDir, "only_" + args.showOnly)
         plotting.draw(plot,
             plot_directory = plotDir,
@@ -855,5 +857,6 @@ for index, mode in enumerate(allModes):
             legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.95,0.88),
             logX = False, logY = log, #sorting = True,
             yRange = (0.03, "auto"),
-            drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes
+            drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes,
+            copyIndexPHP = args.copyIndexPHP
         )

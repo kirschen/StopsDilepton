@@ -228,13 +228,16 @@ for met_bin in met_bins:
             y_mc   = results[(met_bin, mt2ll_bin, mt2blbl_bin)]['mc'] 
             y_data   = results[(met_bin, mt2ll_bin, mt2blbl_bin)]['data'] 
             tot_rel_sys = sqrt(sum([s.val**2 for s in results[(met_bin, mt2ll_bin, mt2blbl_bin)]['rel_sys'].values()]))
-            try:
-                r = y_data/(y_mc*scale)
-                chi2 += ( (r.val-1)/sqrt( r.sigma**2 + tot_rel_sys**2) )**2
-            except ZeroDivisionError:
-                r=0 
-            print r, chi2
+            if y_data>0:
+                try:
+                    r = y_data/(y_mc*scale)
+                    d_chi2 = ( (r.val-1)/sqrt( r.sigma**2 + tot_rel_sys**2) )**2
+                except ZeroDivisionError:
+                    r = 0
+                    d_chi2 = 0 
+            chi2 += d_chi2
             ndof += 1
+            print "r",r.val,"+/-",r.sigma, "tot_rel_sys",tot_rel_sys, "d_chi2",d_chi2, "chi2 now",chi2
 
     print met_bin, chi2/ndof
 
