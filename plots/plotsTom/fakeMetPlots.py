@@ -10,6 +10,7 @@ ROOT.gROOT.SetBatch(True)
 from math                                import sqrt, cos, sin, pi
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
+from StopsDilepton.tools.helpers         import deltaPhi
 from StopsDilepton.tools.objectSelection import getFilterCut
 from StopsDilepton.plots.pieChart        import makePieChart
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
@@ -22,8 +23,9 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',         action='store',      default='DM',            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
 argParser.add_argument('--noData',         action='store_true', default=False,           help='also plot data?')
-argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
+argParser.add_argument('--plot_directory', action='store',      default='fakeMetPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
+argParser.add_argument('--split',          action='store',      default='Top')
 argParser.add_argument('--runLocal',       action='store_true', default=False)
 argParser.add_argument('--splitBosons',    action='store_true', default=False)
 argParser.add_argument('--splitBosons2',   action='store_true', default=False)
@@ -39,14 +41,11 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-
 #
 # Selection strings for which plots need to be produced, as interpreted by the cutInterpreter
 #
-selectionStrings = ['relIso0.12-looseLeptonVeto-mll20',
-                    'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
+selectionStrings = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
                     'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
-                    'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-mt2ll100',
                     'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5',
                     'njet01-btag1p-relIso0.12-looseLeptonVeto-mll20-metInv',
                     'njet01-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
@@ -64,13 +63,10 @@ selectionStrings = ['relIso0.12-looseLeptonVeto-mll20',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-metInv',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80',
-	            'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
+                    'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
-                    'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll0to25',
-                    'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll25to50',
-                    'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll50to75',
-                    'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll75to100',
+                    'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll0to100',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
@@ -87,15 +83,16 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./analysisPlots.py --selection=" + selection + (" --noData"                if args.noData       else "")\
-                                                            + (" --splitBosons"           if args.splitBosons  else "")\
-                                                            + (" --splitBosons2"          if args.splitBosons2 else "")\
-                                                            + (" --signal=" + args.signal if args.signal       else "")\
-                                                            + (" --plot_directory=" + args.plot_directory)\
-                                                            + (" --logLevel=" + args.logLevel)
-    logfile = "log/" + selection + ".log"
+    command = "./fakeMetPlots.py --selection=" + selection + (" --noData"                if args.noData       else "")\
+                                                           + (" --splitBosons"           if args.splitBosons  else "")\
+                                                           + (" --splitBosons2"          if args.splitBosons2 else "")\
+                                                           + (" --signal=" + args.signal if args.signal       else "")\
+                                                           + (" --plot_directory=" + args.plot_directory)\
+                                                           + (" --split=" + args.split)\
+                                                           + (" --logLevel=" + args.logLevel)
+    logfile = "log/fakeMet_" + args.split + "_" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    if not args.dryRun:                                                                      launch(command, logfile)
+    if not args.dryRun:                                                                                   launch(command, logfile)
     if selection.count('njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1'): launch(command + ' --noData', logfile)
   logger.info("All jobs launched")
   exit(0)
@@ -104,6 +101,7 @@ if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.splitBosons2:             args.plot_directory += "_splitMultiBoson2"
 if args.signal == "DM":           args.plot_directory += "_DM"
+args.plot_directory += '/' + args.split
 DManalysis = (args.signal == "DM")
 
 # Plot no signal for following selections
@@ -114,6 +112,7 @@ if args.selection.count("njet2p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSi
 #
 # Make samples, will be searched for in the postProcessing directory
 #
+#postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
 postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
@@ -133,6 +132,12 @@ DM2.style               = styles.lineStyle( 28,          width=3)
 
 
 
+
+from StopsDilepton.tools.puReweighting import getReweightingFunction
+# nTrueIntReweighting
+nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
+nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown", mc="Spring16")
+nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp", mc="Spring16")
 
 #
 # Text on the plots
@@ -161,7 +166,7 @@ def drawPlots(plots, mode, dataMCScale):
       plotting.draw(plot,
 	    plot_directory = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection),
 	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-	    logX = False, logY = log, sorting = True,
+	    logX = False, logY = log, sorting = False,
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
 	    scaling = {},
 	    legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88) if not args.noData else (0.50,0.9-0.047*sum(map(len, plot.histos)),0.85,0.9),
@@ -169,11 +174,6 @@ def drawPlots(plots, mode, dataMCScale):
       )
 
 
-from StopsDilepton.tools.puReweighting import getReweightingFunction
-# nTrueIntReweighting
-nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
-nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown", mc="Spring16")
-nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp", mc="Spring16")
 
 
 #
@@ -184,10 +184,33 @@ read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "
 
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
 def getLeptonSelection(mode):
-  if   mode=="mumu": return "(nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ + ")"
-  elif mode=="mue":  return "(nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu)"
-  elif mode=="ee":   return "(nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ + ")"
- 
+  if   mode=="mumu": return getLeptonString(2, 0, args.selection.count("multiIsoWP")) + "&&isOS&&isMuMu" + offZ
+  elif mode=="mue":  return getLeptonString(1, 1, args.selection.count("multiIsoWP")) + "&&isOS&&isEMu"
+  elif mode=="ee":   return getLeptonString(0, 2, args.selection.count("multiIsoWP")) + "&&isOS&&isEE" + offZ
+
+
+def splitSampleInFakeMet(sample, color):
+  fakeMetSplittings = [
+                       ('#slash{E}_{T, fake} < 50, ll match'    , 'abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&abs(l1_mcMatchId)==6&&abs(l2_mcMatchId)==6'),
+                       ('#slash{E}_{T, fake} < 50, ll no match' , 'abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&!(abs(l1_mcMatchId)==6&&abs(l2_mcMatchId)==6)'),
+                       ('50 < #slash{E}_{T, fake} < 100'        , 'abs(met_pt-met_genPt)>50&&abs(met_pt-met_genPt)<100'),
+                       ('#slash{E}_{T, fake} > 100'             , 'abs(met_pt-met_genPt)>100'),
+                    #  ('20 < #slash{E}_{T, fake} < 50'         , 'abs(met_pt-met_genPt)>20&&abs(met_pt-met_genPt)<=50'),
+                    #  ('#slash{E}_{T, fake} < 20'              , 'abs(met_pt-met_genPt)<=20')
+  ]
+
+  splittedList = []
+  i = 0
+  for texName, selection in fakeMetSplittings:
+    splittedSample         = copy.deepcopy(sample)
+    splittedSample.name    = sample.name + '_splitInFakeMet' + str(i)
+    splittedSample.texName = sample.texName + " " + texName
+    splittedSample.color   = color + i 
+    splittedSample.addSelectionString(selection)
+    splittedList.append(splittedSample)
+    i += 1
+
+  return splittedList
 
 #
 # Loop over channels
@@ -223,11 +246,8 @@ for index, mode in enumerate(allModes):
     weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
-  mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO]
 
-
-  for sample in mc: sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
-
+  mc = [Top_pow, DY_HT_LO, TTZ_LO, TTXNoZ] + multiBosonList
   for sample in mc + [DM, DM2]:
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
@@ -238,8 +258,17 @@ for index, mode in enumerate(allModes):
   for sample in [T2tt, T2tt2]:
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
     sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+
+  topList        = splitSampleInFakeMet(Top_pow,    ROOT.kCyan)   if args.split == 'Top' else [Top_pow]
+  dyList         = splitSampleInFakeMet(DY_HT_LO,   ROOT.kGreen)  if args.split == 'DY' else [DY_HT_LO]
+  ttzList        = splitSampleInFakeMet(TTZ_LO,     ROOT.kPink)   if args.split == 'TTZ' else [TTZ_LO]
+  ttxList        = splitSampleInFakeMet(TTXNoZ,     ROOT.kRed)    if args.split == 'TTXNoZ' else [TTXNoZ]
+  multiBosonList = splitSampleInFakeMet(multiBoson, ROOT.kYellow) if args.split == 'multiBoson' else multiBosonList
+  
+  mc = topList + ttzList + ttxList + multiBosonList + dyList
+  for sample in mc: sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
 
 
   if not args.noData:
@@ -543,8 +572,6 @@ for mode in ["SF","all"]:
 # Write to tex file
 columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM2.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
 texdir = "tex"
-if args.splitBosons:  texdir += "_splitBosons"
-if args.splitBosons2: texdir += "_splitBosons2"
 try:
   os.makedirs("./" + texdir)
 except:
