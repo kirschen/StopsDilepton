@@ -94,7 +94,7 @@ class Setup:
         }
 
     def prefix(self):
-        return '_'.join(self.prefixes+[self.preselection('MC', zWindow='allZ')['prefix']])
+        return '_'.join(self.prefixes+[self.preselection('MC')['prefix']])
 
     def defaultCacheDir(self):
         return os.path.join(self.analysis_results, self.prefix(), 'cacheFiles')
@@ -112,7 +112,7 @@ class Setup:
                 if k=='reweight':
                     res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
                     for upOrDown in ['Up','Down']:
-                      if 'reweight12fbPU'+upOrDown             in res.sys[k]: res.sys[k].remove('reweight12fbPU') # TODO: update once the new pu weight is in the tuples
+                      if 'reweight36fbPU'+upOrDown             in res.sys[k]: res.sys[k].remove('reweight36fbPU') # TODO: update once the new pu weight is in the tuples
                       if 'reweightDilepTriggerBackup'+upOrDown in res.sys[k]: res.sys[k].remove('reweightDilepTriggerBackup')
                       if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
@@ -221,8 +221,8 @@ class Setup:
 
             #Z window
             assert zWindow in ['offZ', 'onZ', 'allZ'], "zWindow must be one of onZ, offZ, allZ. Got %r"%zWindow
-            if zWindow in ['onZ', 'offZ']:
-                  res['cuts'].append(getZCut(zWindow, self.zMassRange))
+            if zWindow == 'onZ':                     res['cuts'].append(getZCut(zWindow, self.zMassRange))
+            if zWindow == 'offZ' and channel!="EMu": res['cuts'].append(getZCut(zWindow, self.zMassRange))  # Never use offZ when in emu channel, use allZ instead
 
             #lepton channel
             assert channel in allChannels, "channel must be one of "+",".join(allChannels)+". Got %r."%channel

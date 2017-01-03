@@ -80,7 +80,6 @@ def copyIndexPHP( directory ):
     if not os.path.exists( index_php ):
       shutil.copyfile( os.path.expandvars( '$CMSSW_BASE/src/StopsDilepton/tools/php/index.php' ), index_php )
 
-
 #
 # Selections (two leptons with pt > 20 GeV)
 #

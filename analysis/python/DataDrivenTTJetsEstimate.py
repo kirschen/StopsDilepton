@@ -25,9 +25,9 @@ class DataDrivenTTJetsEstimate(SystematicEstimator):
 
         else:
             weight       = setup.weightString()
-            cut_MC_SR    = "&&".join([            region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters())['cut']])
-            cut_MC_CR    = "&&".join([self.controlRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, zWindow = 'offZ', **setup.defaultParameters())['cut']])
-            cut_data_CR  = "&&".join([self.controlRegion.cutString(),                               setup.selection('Data', channel=channel, zWindow = 'offZ', **setup.defaultParameters())['cut']])
+            cut_MC_SR    = "&&".join([            region.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, **setup.defaultParameters())['cut']])
+            cut_MC_CR    = "&&".join([self.controlRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=channel, **setup.defaultParameters())['cut']])
+            cut_data_CR  = "&&".join([self.controlRegion.cutString(),                               setup.selection('Data', channel=channel, **setup.defaultParameters())['cut']])
 
             # Calculate yields for CR (normalized to data lumi)
             yield_data    = self.yieldFromCache(setup, 'Data',   channel, cut_data_CR, "(1)")

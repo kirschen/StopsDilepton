@@ -30,7 +30,7 @@ class DataDrivenDYEstimate(SystematicEstimator):
         #MC based for 'EMu'
         elif channel=='EMu':
             weight       = setup.weightString()
-            preSelection = setup.preselection('MC', zWindow='allZ', channel=channel)
+            preSelection = setup.preselection('MC', channel=channel)
             cut          = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut'] ])
             estimate     = setup.lumi[channel]/1000.*u_float(**setup.sample['DY'][channel].getYieldFromDraw(selectionString = cut, weightString=weight))
 
@@ -46,8 +46,8 @@ class DataDrivenDYEstimate(SystematicEstimator):
 	    cut_onZ_0b      = {}
 	    cut_data_onZ_0b = {}
             for c in channels:
-	      cut_onZ_0b[c]      = "&&".join([normRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=c, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
-	      cut_data_onZ_0b[c] = "&&".join([normRegion.cutString(),                               setup.selection('Data', channel=c, zWindow = 'onZ',  **setup.defaultParameters(update={'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
+	      cut_onZ_0b[c]      = "&&".join([normRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=c, **setup.defaultParameters(update={'zWindow': 'onZ', 'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
+	      cut_data_onZ_0b[c] = "&&".join([normRegion.cutString(),                               setup.selection('Data', channel=c, **setup.defaultParameters(update={'zWindow': 'onZ', 'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
 
             yield_data    = sum(self.yieldFromCache(setup, 'Data',   c, cut_data_onZ_0b[c], "(1)")                         for c in channels)
             yield_onZ_0b  = sum(self.yieldFromCache(setup, 'DY',     c, cut_onZ_0b[c],      weight)*setup.dataLumi[c]/1000 for c in channels)
@@ -63,7 +63,7 @@ class DataDrivenDYEstimate(SystematicEstimator):
             if yield_onZ_0b <=0 :        logger.warn("Zero or negative yield for onZ 0b DY MC in control region " + str(normRegion))
 
             # Calculate DY estimate in 1 b-jet region (and scale back to MC lumi)
-            cut_offZ_1b = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC', channel=channel, zWindow = 'offZ', **setup.defaultParameters(update={'nBTags':(1,-1)}))['cut']])
+            cut_offZ_1b = "&&".join([region.cutString(setup.sys['selectionModifier']), setup.selection('MC', channel=channel, **setup.defaultParameters(update={'nBTags':(1,-1)}))['cut']])
 
             yield_offZ_1b = self.yieldFromCache(setup, 'DY', c, cut_offZ_1b, weight)*setup.lumi[channel]/1000
             estimate      = yield_offZ_1b*scaleFactor
