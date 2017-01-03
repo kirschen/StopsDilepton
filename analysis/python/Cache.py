@@ -1,22 +1,6 @@
 import pickle, os, time
 import errno
-
-def waitForLock(filename):
-    lockAcquired = False
-    while not lockAcquired:
-      try:
-           f = os.open(filename + "_lock", os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-           os.close(f)
-           lockAcquired = True
-      except OSError as e:
-           if e.errno == errno.EEXIST:  # Failed as the file already exists.
-             time.sleep(1)
-           else:  # Something unexpected went wrong
-             print "Problem acquiring the lock"
-             exit(1)
-
-def removeLock(filename):
-    os.system("rm " + filename + "_lock")
+from StopsDilepton.tools.lock import waitForLock, removeLock
 
 class Cache:
     def __init__(self, filename=None, verbosity=0, overwrite=False):
