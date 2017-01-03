@@ -10,7 +10,7 @@ import itertools
 from RootTools.core.standard import *
 
 from StopsDilepton.analysis.estimators import setup, constructEstimatorList, MCBasedEstimate
-from StopsDilepton.analysis.regions import regions80X as regions
+from StopsDilepton.analysis.regions import regionsO as regions
 import StopsDilepton.tools.user as user
 from StopsDilepton.samples.color import color
 
@@ -20,15 +20,29 @@ from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
-argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM"],                                                                                 help="which signal to plot?")
+argParser.add_argument("--signal",         action='store', default='TTbarDM',           nargs='?', choices=["T2tt","TTbarDM"],                                                                            help="which signal to plot?")
 argParser.add_argument("--estimateDY",     action='store', default='DY-DD',             nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ-DD-Top16009',   nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
 argParser.add_argument("--estimateTTJets", action='store', default='TTJets-DD',         nargs='?', choices=["TTJets","TTJets-DD"],                                                                        help="which TTJets estimate?")
 argParser.add_argument("--estimateMB",     action='store', default='multiBoson-DD',     nargs='?', choices=["multiBoson","multiBoson-DD"],                                                                help="which multiBoson estimate?")
+argParser.add_argument("--control",        action='store', default=None,                nargs='?', choices=[None, "DY", "VV", "DYVV"],                                                                    help="For CR region?")
 argParser.add_argument("--labels",         action='store_true', default=False,          help="plot labels?")
+argParser.add_argument("--noData",         action='store_true', default=False,          help="do not plot data?")
 args = argParser.parse_args()
 
+if args.control:
+  args.estimateDY     = 'DY'
+  args.estimateTTZ    = 'TTZ'
+  args.estimateTTJets = 'TTJets'
+  args.estimateMB     = 'multiBoson'
+  if   args.control == "DY":   setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': True,  'zWindow' = 'onZ'}) 
+  elif args.control == "VV":   setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': True,  'dPhiInv': False, 'zWindow' = 'onZ'})
+  elif args.control == "DYVV": setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False, 'zWindow' = 'onZ'})
+
+
 detailedEstimators = constructEstimatorList([args.estimateTTJets, args.estimateTTZ, args.estimateMB, 'TTXNoZ', args.estimateDY])
+if args.control == "DY": detailedEstimators = constructEstimatorList([args.estimateDY, args.estimateMB, args.estimateTTJets, args.estimateTTZ, 'TTXNoZ'])
+if args.control == "VV": detailedEstimators = constructEstimatorList([args.estimateMB, args.estimateDY, args.estimateTTJets, args.estimateTTZ, 'TTXNoZ'])
 if args.signal=='T2tt':
     signalSetup = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
 else:
@@ -44,17 +58,22 @@ from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed im
 
 if args.signal == "T2tt":
     signals = [T2tt_650_1, T2tt_450_1]
-    postfix = "regions_80X"
+    postfix = "regionsO"
 elif args.signal == "TTbarDM":
     #postfix = "regions_80X_scalar"
     #signals = [TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_scalar_Mchi_1_Mphi_20, TTbarDMJets_scalar_Mchi_1_Mphi_50]
-    postfix = "regions_80X_pseudoscalar"
-    signals = [TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_20, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50]
+    postfix = "regionsO"
+    signals = [TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10]
+
+if hasattr(setup, 'dyControl') and setup.dyControl: signals = []
+if hasattr(setup, 'vvControl') and setup.vvControl: signals = []
+
+if args.control: postfix += '_' + args.control
 
 signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals]
 
 for i, estimator in enumerate(signalEstimators):
-    estimator.style = styles.lineStyle( ROOT.kBlack, width=2, dotted=(i==1), dashed=(i==2), errors = True)
+    estimator.style = styles.lineStyle( ROOT.kBlack, width=2, dotted=(i==1), dashed=(i==2))
     estimator.isSignal=True
  
 estimators = detailedEstimators + signalEstimators
@@ -63,7 +82,7 @@ for e in estimators:
 
 from StopsDilepton.analysis.DataObservation import DataObservation
 from RootTools.core.standard import *
-observation = DataObservation(name='Data', sample=setup.sample['Data'])
+observation = DataObservation(name='Data', sample=setup.sample['Data'], cacheDir=setup.defaultCacheDir())
 observation.style = styles.errorStyle( ROOT.kBlack, markerSize = 1.5 )
 
 # Logging
@@ -139,7 +158,9 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
     h[None].GetXaxis().SetTitleSize(2)
     h[None].GetYaxis().SetTitleSize(2)
     h[None].GetYaxis().SetLabelSize(0.7)
- 
+
+    if not args.control and not estimate.name == "Data": 
+      for hh in h.values(): hh.Scale(36.4/26.9) # Temporary scale to the 36/fb
     return h
 
 def drawLabels( regions ):
@@ -194,7 +215,7 @@ def drawObjects( lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'),
-      (0.71, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
+      (0.71, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % (lumi_scale/1000. if args.control else 36.4))
     ]
     return [tex.DrawLatex(*l) for l in lines]
 
@@ -238,10 +259,11 @@ for channel in ['all','SF','EE','EMu','MuMu']:
 
     # For signal histos we don't need the systematics, so only access the "None"
     sig_histos = [ [getRegionHisto(e, regions=regions_, channel=channel, setup = signalSetup)[None]] for e in signalEstimators ]
-    data_histo = [ [getRegionHisto(observation, regions=regions_, channel=channel, setup=setup)[None]]]
+    data_histo = [ [getRegionHisto(observation, regions=regions_, channel=channel, setup=setup)[None]]] if not args.noData else []
 
-    data_histo[0][0].Sumw2(ROOT.kFALSE)
-    data_histo[0][0].SetBinErrorOption(ROOT.TH1.kPoisson) # Set poissonian errors
+    if not args.noData:
+      data_histo[0][0].Sumw2(ROOT.kFALSE)
+      data_histo[0][0].SetBinErrorOption(ROOT.TH1.kPoisson) # Set poissonian errors
 
     region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos[None] ] + sig_histos + data_histo, texX = "signal region number", texY = "Events" )
 

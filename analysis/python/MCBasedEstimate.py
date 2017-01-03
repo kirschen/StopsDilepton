@@ -32,11 +32,7 @@ class MCBasedEstimate(SystematicEstimator):
             return sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE']])
 
         else:
-
-            # Important! We use 'allZ' (mll>20) in case of EMu 
-            zWindow= 'allZ' if channel=='EMu' else 'offZ'
-        
-            preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel, isFastSim = self.isFastSim, is76X = self.is76X)
+            preSelection = setup.preselection('MC', channel=channel, isFastSim = self.isFastSim, is76X = self.is76X)
             cut = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
             weight = preSelection['weightStr']
 

@@ -52,11 +52,10 @@ class DataObservation():
             return sum([self.cachedObservation(region, c, setup) for c in ['MuMu', 'EE']])
 
         else:
-            zWindow= 'allZ' if channel=='EMu' else 'offZ'
-
-            preSelection = setup.preselection('Data', zWindow=zWindow, channel=channel)
+            preSelection = setup.preselection('Data', channel=channel)
             cut = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
 
             logger.debug( "Using cut %s"% cut )
 
+            if setup.blinding: cut += setup.blinding
             return u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = 'weight') )

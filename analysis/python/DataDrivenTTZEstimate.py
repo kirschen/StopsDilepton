@@ -47,8 +47,7 @@ class DataDrivenTTZEstimate(SystematicEstimator):
             estimate = sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE']])
 
         else:
-            zWindow= 'allZ' if channel=='EMu' else 'offZ'
-            preSelection = setup.preselection('MC', zWindow=zWindow, channel=channel)
+            preSelection = setup.preselection('MC', channel=channel)
 
             MC_2l = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
             weight = setup.weightString()
