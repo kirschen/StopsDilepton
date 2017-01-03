@@ -50,6 +50,9 @@ logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 
+plot_directory = '/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/'
+
+
 def waitForLock(filename):
     lockAcquired = False
     while not lockAcquired:
@@ -61,6 +64,8 @@ def waitForLock(filename):
            if e.errno == errno.EEXIST:  # Failed as the file already exists.
              time.sleep(1)
            else:  # Something unexpected went wrong
+             print e.errno
+             print e
              print "Problem acquiring the lock"
              exit(1)
 
@@ -182,7 +187,7 @@ def wrapper(com):
 if not args.isChild and (args.selectSys == "all" or args.selectSys == "combine"):
   jobs = []
   for sys in (all_systematics if args.selectSys == "all" else ["combine"]):
-    command = "python systematicsPlots_v2.py --selection=" + args.selection + (" --noData" if args.noData else "")\
+    command = "submitBatch.py --title='sys' 'python systematicsPlots_v2.py --selection=" + args.selection + (" --noData" if args.noData else "")\
                + (" --isChild")\
                + (" --small" if args.small else "")\
                + (" --plot_directory=" + args.plot_directory)\
@@ -193,7 +198,8 @@ if not args.isChild and (args.selectSys == "all" or args.selectSys == "combine")
                + (" --splitTop" if args.splitTop else "")\
                + (" --powheg" if args.powheg else "")\
                + (" --normalizeBinWidth" if args.normalizeBinWidth else "")\
-               + (" &")
+               + ("'")
+               #+ (" &")
 
     jobs.append(command)
 
@@ -282,8 +288,8 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
 
 
 def addSys( selectionString , sys = None ):
-    if   sys in jet_systematics: return selectionString.replace('nJetGood', 'nJetGood_' + sys).replace('nBTag', 'nBTag_' + sys)
-    elif sys in met_systematics: return selectionString.replace('met_pt', 'met_pt_' + sys).replace('metSig', 'metSig_' + sys)
+    if   sys in jet_systematics: return selectionString.replace('nJetGood', 'nJetGood_' + sys).replace('nBTag', 'nBTag_' + sys).replace('dl_mt2ll', 'dl_mt2ll_' + sys).replace('dl_mt2bb', 'dl_mt2bb_' + sys).replace('dl_mt2blbl', 'dl_mt2blbl_' + sys)
+    elif sys in met_systematics: return selectionString.replace('met_pt', 'met_pt_' + sys).replace('metSig', 'metSig_' + sys).replace('dl_mt2ll', 'dl_mt2ll_' + sys).replace('dl_mt2bb', 'dl_mt2bb_' + sys).replace('dl_mt2blbl', 'dl_mt2blbl_' + sys)
     else:                        return selectionString
 
 
@@ -333,6 +339,9 @@ def getLeptonSelection(mode):
 allPlots   = {}
 allModes   =['mue','ee','mumu','all']
 for index, mode in enumerate(allModes):
+
+  logger.info('Working on mode ' + str(mode))
+
   if mode=="mumu":
     data_sample         = DoubleMuon_Run2016_backup
     data_sample.texName = "data (2 #mu)"
