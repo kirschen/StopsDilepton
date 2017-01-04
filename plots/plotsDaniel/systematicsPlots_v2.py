@@ -29,6 +29,7 @@ argParser.add_argument('--noData',            action='store_true', default=False
 argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots')
 #argParser.add_argument('--selection',         action='store',      default=None)
 argParser.add_argument('--selection',         action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
+argParser.add_argument('--normalizationSelection',  action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2llTo100')
 argParser.add_argument('--selectSys',         action='store',      default='all')
 #argParser.add_argument('--noMultiThreading',  action='store_true', default='False', help="noMultiThreading?") # Need no multithreading when doing batch-to-natch
 argParser.add_argument('--showOnly',          action='store',      default=None)
@@ -49,9 +50,6 @@ import StopsDilepton.tools.logger as logger
 import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
-
-
-#plot_directory = '/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/'
 
 
 def waitForLock(filename):
@@ -239,6 +237,9 @@ if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
 if args.small:                    args.plot_directory += "_small"
 
+try: os.makedirs(os.path.join(plot_directory, args.plot_directory, mode, args.selection))
+except: pass
+
 if args.copyIndexPHP:
     copyIndexPHP( plot_directory )
     copyIndexPHP( os.path.join( plot_directory, args.plot_directory ) )
@@ -297,19 +298,11 @@ def addSys( selectionString , sys = None ):
     else:                        return selectionString
 
 
-from StopsDilepton.tools.puReweighting import getReweightingFunction
-# nTrueIntReweighting
-nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
-nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown", mc="Spring16")
-nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp", mc="Spring16")
-
-
-
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF")
+    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF")
     elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF")
-    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
-    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF*reweight"+sys)
+    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
+    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF*reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
     
@@ -320,21 +313,17 @@ def weightMC( sys = None ):
 # Read variables and sequences
 #
 read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", "LepGood[pt/F,eta/F,miniRelIso/F]", "Flag_goodVertices/O", "Flag_HBHENoiseIsoFilter/O", "Flag_HBHENoiseFilter/O", "Flag_globalTightHalo2016Filter/O",
-                  "Flag_eeBadScFilter/O", "Flag_EcalDeadCellTriggerPrimitiveFilter/O", "Flag_badChargedHadronSummer2016/O", "Flag_badMuonSummer2016/O", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
-                  "isOS/O", "isEE/O", "isMuMu/O", "isEMu/O",
-                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","evt/I"]
+                  "met_pt/F", "met_phi/F", "LepGood[pt/F,eta/F,miniRelIso/F]", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
+                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","evt/l"]
 
 sequence = []
 
-offZ            = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
-
-def getLeptonSelection(mode):
-  if   mode=="mumu": return "(" + getLeptonString(2, 0, args.selection.count("multiIsoWP")) + "&&isOS&&isMuMu" + offZ + ")"
-  elif mode=="mue":  return "(" + getLeptonString(1, 1, args.selection.count("multiIsoWP")) + "&&isOS&&isEMu" + ")"
-  elif mode=="ee":   return "(" + getLeptonString(0, 2, args.selection.count("multiIsoWP")) + "&&isOS&&isEE" + offZ + ")"
+offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
+def getLeptonSelection( mode ):
+  if   mode=="mumu": return "nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ
+  elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
+  elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
   elif mode=="all":  return "(" + "||".join([getLeptonSelection(m) for m in ["mumu","mue","ee"]]) + ")"
-
 
 
 #
@@ -375,17 +364,18 @@ for index, mode in enumerate(allModes):
 
   # Blinding policies for DM and T2tt analyses
   if "njet2-btagM-looseLeptonVeto-mll20-met80" in args.selection:
-    if args.signal == "DM":
-      weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.evt % 15 == 0) else 0)
-      weightString_ = "weight*(evt%15==0)"
-      lumi_scale    = lumi_scale/15.
-    else:
-      weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-      weightString_ = "weight*(run<=276811||(run>=277820&&279931))"
-      lumi_scale    = 17.3
+    pass # doesn't work
+    #if args.signal == "DM":
+    #  weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.evt % 15 == 0) else 0)
+    #  data_weight_string = "weight*(evt%15==0)"
+    #  lumi_scale    = lumi_scale/15.
+    #else:
+    #  weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
+    #  data_weight_string = "weight*(run<=276811||(run>=277820&&279931))"
+    #  lumi_scale    = 17.3
   else:
     weight_ = lambda event, sample: event.weight
-    weightString_ = "weight"
+    data_weight_string = "weight"
 
   logger.info('Lumi scale is ' + str(lumi_scale))
 
@@ -418,15 +408,15 @@ for index, mode in enumerate(allModes):
   if args.signal == "T2tt":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
+      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
+      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
@@ -661,13 +651,13 @@ for index, mode in enumerate(allModes):
     copyIndexPHP ( os.path.join(plot_directory, args.plot_directory, mode, args.selection) )
 
   if args.selectSys != "combine": 
-    mc_selection_string = cutInterpreter.cutString(args.selection)
-    mc_selection_string = mc_selection_string.replace('&&dl_mt2ll>100','')
+    normalization_selection_string = cutInterpreter.cutString(args.normalizationSelection)
+    #normalization_selection_string = normalization_selection_string.replace('&&dl_mt2ll>100','')
     mc_weight_func, mc_weight_string = weightMC( sys = (args.selectSys if args.selectSys != 'None' else None) )
 
-    yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(mc_selection_string + "&&dl_mt2ll<100" ), weightString = mc_weight_string)['val'] for s in mc}
-    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val'] for s in data_sample )
-    else:             yield_data = data_sample.getYieldFromDraw( selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val']
+    yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(normalization_selection_string ), weightString = mc_weight_string)['val'] for s in mc}
+    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = normalization_selection_string, weightString = data_weight_string)['val'] for s in data_sample )
+    else:             yield_data = data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
 
     plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
@@ -684,22 +674,33 @@ for index, mode in enumerate(allModes):
     removeLock( result_file ) 
     logger.info( "Done for sys " + args.selectSys )
 
+#    # Write one sys per file
+#    result_file = os.path.join(plot_directory, args.plot_directory, mode, args.selection, 'results_%s.pkl' % args.selectSys )
+#    allPlots = {p.name : p.histos for p in plots}
+#    yields = yield_mc
+#    yields['data'] = yield_data
+#    pickle.dump( (allPlots, yields), file( result_file, 'w' ) )
+
   else:
     (allPlots, yields) = pickle.load(file( result_file ))
+#    allPlots, yields = {}, {}
+#    dirname = os.path.join(plot_directory, args.plot_directory, mode, args.selection)
+#    for filename in os.listdir( dirname ):
+#        if filename.startswith('results_') and filename.endswith('.pkl'):
+#            (allPlots_, yields_) = pickle.load(file( os.path.join(dirname, filename) ))
+#            allPlots.update( allPlots_ )
+#            yields.update( yields_ )
+
     from RootTools.plot.Plot import addOverFlowBin1D
     for p in plots:
       p.histos = allPlots[p.name]
       for s in p.histos:
         for h in s:
           addOverFlowBin1D(h, "upper")
-          if h.Integral()==0: logger.warning( "Found empty histogram %s in file %s", h.GetName(), result_file )
+          if h.Integral()==0: logger.warning( "Found empty histogram %s in results file %s", h.GetName(), result_file )
 
     topName = Top_pow.name if args.powheg else Top.name
     top_sf = {}
-
-
-
-
 
     dataMCScaling = True
     if dataMCScaling:
