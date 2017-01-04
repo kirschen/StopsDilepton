@@ -114,12 +114,12 @@ argParser.add_argument('--njet',
     choices=['0', '0p', '1', '1p', '2', '2p', '01','012']
 )
 
-#argParser.add_argument('--mIsoWP',
-#    default=5,
-#    type=int,
-#    action='store',
-#    choices=[0,1,2,3,4,5]
-#)
+argParser.add_argument('--mIsoWP',
+    default=5,
+    type=int,
+    action='store',
+    choices=[0,1,2,3,4,5]
+)
 
 argParser.add_argument('--relIso03', default=0.12, type=float, action='store')
 
@@ -144,7 +144,7 @@ argParser.add_argument('--met',
 argParser.add_argument('--pu',
     default="reweightPU36fb",
     action='store',
-    choices=["None", "reweightPU36fb", "reweightPU36fbUp", "reweightPU36fbDown"],
+    choices=["None", "reweightPU36fb", "reweightPU36fbUp", "reweightPU36fbDown", "reweightPU27fb", "reweightPU12fb"],
     help='PU weight',
 )
 
@@ -223,6 +223,12 @@ from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 #from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+
+postProcessing_directory = "postProcessed_80X_v26/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v27/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
+
 
 ##Full dataset
 sample_DoubleMuon  = DoubleMuon_Run2016_backup
@@ -318,9 +324,9 @@ signal_samples = []
 if len(args.signals)>0:
 #    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_2l_postProcessed import *
     signal_colors = [ROOT.kBlue, ROOT.kRed, ROOT.kGreen]
-    postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
+    #postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+    #from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+    #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 
     for i_s, s in enumerate( args.signals ):
         if "*" in s:
@@ -403,6 +409,7 @@ basic_cuts=[
     ("relIso03-%3.2f"%args.relIso03, "l1_relIso03<%3.2f&&l2_relIso03<%3.2f"%( args.relIso03, args.relIso03 ) ),
     ] + dPhi + [
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
+    #("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2"),
 ]
 
@@ -438,12 +445,12 @@ def selection( ):
         ("nbtag"+args.btagWP+"%s"%args.nbtag, btagStr+"%s"%mCutStr( args.nbtag ))]
     if args.met=='def': res.extend([\
         ("met80", "met_pt>80"),
-        ("metSig5", "(met_pt/sqrt(ht)>5||nJetGood==0)"),
+        ("metSig5", "(met_pt/sqrt(ht)>5)"),
         ])
     elif args.met=='high':
         res.extend([\
         ("met140", "met_pt>140"),
-        ("metSig10", "(met_pt/sqrt(ht)>10||nJetGood==0)"),
+        ("metSig10", "(met_pt/sqrt(ht)>10)"),
         ] )
     elif args.met=='vhigh':
         res.extend([  ("met200", "met_pt>200")] )

@@ -3,21 +3,25 @@ import time
 
 from StopsDilepton.samples.heppy_dpm_samples import mc_heppy_mapper
 from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper
-
-#from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
+from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
+from StopsDilepton.samples.heppy_dpm_samples import ttbarDM_heppy_mapper
 
 
 mc = mc_heppy_mapper
 mc_samples = mc.heppy_sample_names
 
-signal = T2tt_heppy_mapper
-signal_samples = signal.heppy_sample_names
+SUSY_signal = T2tt_heppy_mapper
+SUSY_signal_samples = SUSY_signal.heppy_sample_names
 
-#data = data_heppy_mapper
-#data_samples = data.heppy_sample_names
-data_samples = []
+DM_signal = ttbarDM_heppy_mapper
+DM_signal_samples = DM_signal.heppy_sample_names
 
-samples = data_samples + mc_samples
+data = data_heppy_mapper
+data_samples = data.heppy_sample_names
+
+#data_samples = []
+
+samples = data_samples + mc_samples + DM_signal_samples + SUSY_signal_samples
 
 def getPPString(sampleName, processType, jobtitle='2l_PP', vetoString='supercomplicatedstringnevertobefoundinasample', additionalOptions=''):
   sm = sorted([a for a in samples if sampleName in a])

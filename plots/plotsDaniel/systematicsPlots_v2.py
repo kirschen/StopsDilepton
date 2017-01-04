@@ -247,22 +247,28 @@ if args.copyIndexPHP:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
+#Background MC
 postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+#Data
 postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-#postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
-#from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-#from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-#T2tt                    = T2tt_650_1
-#T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
-#T2tt2                   = T2tt_700_100
-#T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-#
-#DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-#DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
-#DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
-#DM2.style               = styles.lineStyle( 28,          width=3)
+#SUSY signal MC
+postProcessing_directory = "postProcessed_80X_v26/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+#DM signal MC
+postProcessing_directory = "postProcessed_80X_v27/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
+
+T2tt                    = T2tt_650_1
+T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
+T2tt2                   = T2tt_700_100
+T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+
+DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
+DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
+DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
+DM2.style               = styles.lineStyle( 28,          width=3)
 
 signals = []
 if   args.signal == "T2tt": signals = [T2tt]
