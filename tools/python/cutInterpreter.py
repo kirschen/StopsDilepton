@@ -70,19 +70,19 @@ class cutInterpreter:
                     raise NotImplementedError( "Can't interpret string with 'to' for discrete variable: %s. You just volunteered." % string )
 
                 num_str = string[len( var ):]
-                logger.debug("Num string is %s"%(num_str))
+                # logger.debug("Num string is %s"%(num_str))
                 # var1p -> tree_var >= 1
                 if num_str[-1] == 'p' and len(num_str)==2:
-                    logger.debug("Using cut string %s"%(tree_var+">="+num_str[0]))
+                    # logger.debug("Using cut string %s"%(tree_var+">="+num_str[0]))
                     return tree_var+">="+num_str[0]
                 # var123->tree_var==1||tree_var==2||tree_var==3
                 else:
                     vls = [ tree_var+"=="+c for c in num_str ]
                     if len(vls)==1:
-                      logger.debug("Using cut string %s"%vls[0])
+                      # logger.debug("Using cut string %s"%vls[0])
                       return vls[0]
                     else:
-                      logger.debug("Using cut string %s"%'('+'||'.join(vls)+')')
+                      # logger.debug("Using cut string %s"%'('+'||'.join(vls)+')')
                       return '('+'||'.join(vls)+')'
         raise ValueError( "Can't interpret string %s. All cuts %s" % (string,  ", ".join( [ c[0] for c in continous_variables + discrete_variables] +  special_cuts.keys() ) ) )
 

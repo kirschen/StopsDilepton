@@ -37,7 +37,6 @@ argParser.add_argument('--copyIndexPHP',      action='store_true',     help='cop
 argParser.add_argument('--splitBosons',       action='store_true', default=False)
 argParser.add_argument('--splitTop',          action='store_true', default=False)
 argParser.add_argument('--powheg',            action='store_true', default=True)
-argParser.add_argument('--overWrite',         action='store_true', default=False)
 argParser.add_argument('--isChild',           action='store_true', default=False)
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
 argParser.add_argument('--dryRun',            action='store_true', default=False,       help='do not launch subjobs')
@@ -681,13 +680,13 @@ for index, mode in enumerate(allModes):
 
   else:
     (allPlots, yields) = pickle.load(file( result_file ))
-
     from RootTools.plot.Plot import addOverFlowBin1D
     for p in plots:
       p.histos = allPlots[p.name]
       for s in p.histos:
         for h in s:
           addOverFlowBin1D(h, "upper")
+          if h.Integral()==0: logger.warning( "Found empty histogram %s in file %s", h.GetName(), result_file )
 
     topName = Top_pow.name if args.powheg else Top.name
     top_sf = {}

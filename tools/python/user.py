@@ -30,7 +30,8 @@ if os.environ['USER'] in ['dspitzbart']:
     # Where you store the data
     data_directory      = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
     # Where the plots go
-    plot_directory      = "/afs/cern.ch/work/d/dspitzba/www/stopsDilepton/"
+    plot_directory      = "/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/"
+    #plot_directory      = "/afs/cern.ch/work/d/dspitzba/www/stopsDilepton/"
     # Analysis result files
     analysis_results    = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/results/80X_v12' #Path to analysis results
     # directory with veto lists
