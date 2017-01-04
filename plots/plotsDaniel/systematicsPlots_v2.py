@@ -292,19 +292,11 @@ def addSys( selectionString , sys = None ):
     else:                        return selectionString
 
 
-from StopsDilepton.tools.puReweighting import getReweightingFunction
-# nTrueIntReweighting
-nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
-nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown", mc="Spring16")
-nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp", mc="Spring16")
-
-
-
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF")
+    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF")
     elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF")
-    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
-    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF*reweight"+sys)
+    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
+    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF*reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
     
@@ -412,15 +404,15 @@ for index, mode in enumerate(allModes):
   if args.signal == "T2tt":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
+      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
+      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
