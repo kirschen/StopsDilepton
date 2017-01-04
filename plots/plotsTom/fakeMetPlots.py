@@ -74,7 +74,7 @@ selectionStrings = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
 
 def launch(command, logfile):
   if args.runLocal: os.system(command + " --isChild &> " + logfile)
-  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
+  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=20:00:00 runPlotsOnCream02.sh")
 
 #
 # If this is the mother process, launch the childs and exit
@@ -117,8 +117,9 @@ postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v26/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v27/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 T2tt                    = T2tt_650_1
 T2tt2                   = T2tt_500_250
@@ -131,13 +132,6 @@ DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
 DM2.style               = styles.lineStyle( 28,          width=3)
 
 
-
-
-from StopsDilepton.tools.puReweighting import getReweightingFunction
-# nTrueIntReweighting
-nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
-nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown", mc="Spring16")
-nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp", mc="Spring16")
 
 #
 # Text on the plots
@@ -170,7 +164,8 @@ def drawPlots(plots, mode, dataMCScale):
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
 	    scaling = {},
 	    legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88) if not args.noData else (0.50,0.9-0.047*sum(map(len, plot.histos)),0.85,0.9),
-	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
+	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
+            copyIndexPHP = True
       )
 
 
@@ -184,9 +179,9 @@ read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "
 
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
 def getLeptonSelection(mode):
-  if   mode=="mumu": return getLeptonString(2, 0, args.selection.count("multiIsoWP")) + "&&isOS&&isMuMu" + offZ
-  elif mode=="mue":  return getLeptonString(1, 1, args.selection.count("multiIsoWP")) + "&&isOS&&isEMu"
-  elif mode=="ee":   return getLeptonString(0, 2, args.selection.count("multiIsoWP")) + "&&isOS&&isEE" + offZ
+  if   mode=="mumu": return "(nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ + ")"
+  elif mode=="mue":  return "(nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu)"
+  elif mode=="ee":   return "(nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ + ")"
 
 
 def splitSampleInFakeMet(sample, color):
@@ -251,15 +246,14 @@ for index, mode in enumerate(allModes):
   for sample in mc + [DM, DM2]:
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-   #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
+   #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   for sample in [T2tt, T2tt2]:
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
     sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
 
   topList        = splitSampleInFakeMet(Top_pow,    ROOT.kCyan)   if args.split == 'Top' else [Top_pow]
   dyList         = splitSampleInFakeMet(DY_HT_LO,   ROOT.kGreen)  if args.split == 'DY' else [DY_HT_LO]
@@ -550,6 +544,7 @@ for index, mode in enumerate(allModes):
 
 
 # Add the different channels into SF and all
+import itertools
 for mode in ["SF","all"]:
   yields[mode] = {}
   for y in yields[allModes[0]]:

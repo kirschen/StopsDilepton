@@ -21,7 +21,7 @@ import errno
 #
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--logLevel',          action='store',      default='DEBUG',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
+argParser.add_argument('--logLevel',          action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default='DM',        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots')
@@ -129,15 +129,16 @@ postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
 
 signals = []
 if   args.signal == "T2tt":
+  postProcessing_directory = "postProcessed_80X_v26/dilepTiny/"
   from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
   T2tt       = T2tt_650_1
   T2tt.style = styles.lineStyle( ROOT.kBlack, width=3 )
   signals    = [T2tt]
 elif args.signal == "DM":
+  postProcessing_directory = "postProcessed_80X_v27/dilepTiny/"
   from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
   DM        = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
   DM2       = TTbarDMJets_scalar_Mchi_1_Mphi_10
@@ -169,19 +170,11 @@ def addSys( selectionString , sys = None ):
     else:                        return selectionString
 
 
-from StopsDilepton.tools.puReweighting import getReweightingFunction
-# nTrueIntReweighting
-nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Spring16")
-nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown", mc="Spring16")
-nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp", mc="Spring16")
-
-
-
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF")
+    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF")
     elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF")
-    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
-    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF*reweight"+sys)
+    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
+    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightLeptonHIPSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF*reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
 
@@ -193,7 +186,7 @@ def weightMC( sys = None ):
 read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
                   "met_pt/F", "met_phi/F", "LepGood[pt/F,eta/F,miniRelIso/F]", "Flag_goodVertices/O", "Flag_HBHENoiseIsoFilter/O", "Flag_HBHENoiseFilter/O", "Flag_globalTightHalo2016Filter/O",
                   "Flag_eeBadScFilter/O", "Flag_EcalDeadCellTriggerPrimitiveFilter/O", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
-                  "isOS/O", "isEE/O", "isMuMu/O", "isEMu/O",
+                  "isOS/O", "isEE/O", "isMuMu/O", "isEMu/O","Flag_badChargedHadronSummer2016/O", "Flag_badMuonSummer2016/O",
                   "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","evt/I"]
 
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
@@ -260,7 +253,7 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables  = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F',"Flag_badChargedHadronSummer2016/O", "Flag_badMuonSummer2016/O"]
+    sample.read_variables  = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
     sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics]
     sample.read_variables += ["dl_mt2ll_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2bb_%s/F"%s   for s in jme_systematics]
@@ -280,23 +273,22 @@ for index, mode in enumerate(allModes):
   if args.signal == "T2tt":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
-     #s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
-      s.setSelectionString([getLeptonSelection(mode)])
+      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+      s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt36fb_puRW(event.nTrueInt)
-     #s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
-      s.setSelectionString([getLeptonSelection(mode)])
+      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
+      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+      s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
   # Use some defaults
   selectionString = cutInterpreter.cutString(args.selection)
-  Plot.setDefaults(weight = weight_, selectionString = selectionString)
+  print selectionString
+  Plot.setDefaults(weight = weight_, selectionString = cutInterpreter.cutString(args.selection))
 
   stack_mc = Stack( mc )
 
@@ -309,28 +301,27 @@ for index, mode in enumerate(allModes):
   plotConfigs = []
 
   def appendPlots(name, texX, texY, binning, attribute, binWidth):
-    plotsForVar = []
-
-    for sys in all_systematics:
-      if not sys:
-	plotsForVar.append(Plot(
-	  name      = name + "_data", texX = texX, texY = texY,
-	  binning   = binning,
-	  stack     = stack_data,
-	  attribute = attribute[None]
-	))
-
-      plotsForVar.append(Plot(
+    plots_mc = {sys: Plot(
 	name            = name if sys is None else name + sys, texX = texX, texY = texY,
 	binning         = binning,
 	stack           = sys_stacks[sys],
 	attribute       = attribute[sys],
         selectionString = addSys(selectionString, sys),
         weight          = weightMC(sys=sys)[0],
-      ))
+      ) for sys in all_systematics}
 
-    plots.extend(plotsForVar)
-    plotConfigs.append((plotsForVar, binWidth))
+    plots.extend(plots_mc.values())
+
+    if None in all_systematics: # Only run these when we are in None child job or in combine
+      plot_data = Plot(
+	name      = name + "_data", texX = texX, texY = texY,
+	binning   = binning,
+	stack     = stack_data,
+	attribute = attribute[None],
+      )
+      plots.append(plot_data)
+      plotConfigs.append([plots_mc, plot_data, binWidth])
+
 
   appendPlots(
     name      = "dl_mt2ll",
@@ -492,9 +483,9 @@ for index, mode in enumerate(allModes):
 	      logger.info( "NOT scaling top for " + args.selection + " (mode " + mode + ")" )
 
 
-    for plots, bin_width in plotConfigs:
+    for plots_mc, plot_data, bin_width in plotConfigs:
 	if args.normalizeBinWidth and bin_width>0:
-		for p in plots.values():
+		for p in plots_mc.values() + [plot_data]:
 		    for histo in sum(p.histos, []):
 			for ib in range(histo.GetXaxis().GetNbins()+1):
 			    val = histo.GetBinContent( ib )
@@ -512,17 +503,18 @@ for index, mode in enumerate(allModes):
 	for k in plot_mc.keys():
 	    for s in plot_mc[k].histos:
 		pos_top = [i for i,x in enumerate(mc) if x == (Top_pow if args.powheg else Top)][0]
+		plot_mc[k].histos[0][pos_top].Scale(top_sf[k])
 		pos_ttz = [i for i,x in enumerate(mc) if x == TTZ_LO][0]
 		pos_ttx = [i for i,x in enumerate(mc) if x == TTXNoZ][0]
 		pos_dy  = [i for i,x in enumerate(mc) if x == DY_HT_LO][0]
 		pos_mb  = [i for i,x in enumerate(mc) if x == multiBoson][0]
-		plot_mc[k].histos[0][pos_top].Scale(top_sf[k])
+
 		topHist = plot_mc[k].histos[0][pos_top]
 		ttzHist = plot_mc[k].histos[0][pos_ttz]
 		ttxHist = plot_mc[k].histos[0][pos_ttx]
 		mbHist  = plot_mc[k].histos[0][pos_mb]
 		dyHist  = plot_mc[k].histos[0][pos_dy]
-			
+		      
 	#Calculating systematics
 	h_summed = {k: plot_mc[k].histos_added[0][0].Clone() for k in plot_mc.keys()}
 
@@ -554,7 +546,7 @@ for index, mode in enumerate(allModes):
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
         # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
-        if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
+        if args.selection.count('mt2ll100') or plots == dl_mt2ll_mc and False:
 	    for ib in range(1 + h_rel_err.GetNbinsX() ):
                 if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
                 topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
@@ -619,5 +611,6 @@ for index, mode in enumerate(allModes):
 	      legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.95,0.88),
 	      logX = False, logY = log, #sorting = True,
 	      yRange = (0.03, "auto"),
-	      drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes
+	      drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes,
+              copyIndexPHP = True
 	  )
