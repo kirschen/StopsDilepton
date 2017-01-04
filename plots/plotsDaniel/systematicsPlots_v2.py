@@ -307,10 +307,8 @@ def weightMC( sys = None ):
 # Read variables and sequences
 #
 read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", "LepGood[pt/F,eta/F,miniRelIso/F]", "Flag_goodVertices/O", "Flag_HBHENoiseIsoFilter/O", "Flag_HBHENoiseFilter/O", "Flag_globalTightHalo2016Filter/O",
-                  "Flag_eeBadScFilter/O", "Flag_EcalDeadCellTriggerPrimitiveFilter/O", "Flag_badChargedHadronSummer2016/O", "Flag_badMuonSummer2016/O", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
-                  "isOS/O", "isEE/O", "isMuMu/O", "isEMu/O",
-                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","evt/I"]
+                  "met_pt/F", "met_phi/F", "LepGood[pt/F,eta/F,miniRelIso/F]", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
+                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","evt/l"]
 
 sequence = []
 
