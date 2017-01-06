@@ -36,7 +36,7 @@ from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplac
 from StopsDilepton.tools.objectSelection import getFilterCut
 
 #to run on data
-dataLumi = {'EMu': MuonEG_Run2016BCDEFG_backup.lumi, 'MuMu':DoubleMuon_Run2016BCDEFG_backup.lumi, 'EE':DoubleEG_Run2016BCDEFG_backup.lumi}
+dataLumi = {'EMu': MuonEG_Run2016_backup.lumi, 'MuMu':DoubleMuon_Run2016_backup.lumi, 'EE':DoubleEG_Run2016_backup.lumi}
 #10/fb to run on MC
 #lumi = {c:10000 for c in channels}
 lumi = dataLumi
@@ -74,8 +74,7 @@ class Setup:
             'leptonCharges': default_leptonCharges,
         }
 
-        # TODO update the PU weight once available in the tuples
-        self.sys      = {'weight':'weight', 'reweight':['reweightPU12fb','reweightDilepTriggerBackup','reweightBTag_SF','reweightLeptonSF','reweightLeptonHIPSF'], 'selectionModifier':None}
+        self.sys      = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightBTag_SF','reweightLeptonSF','reweightLeptonHIPSF'], 'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
 
@@ -88,9 +87,9 @@ class Setup:
         'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs]),
                        'EE':   Sample.combine('other', [otherEWKBkgs]),
                        'EMu':  Sample.combine('other', [otherEWKBkgs])},
-        'Data'   :    {'MuMu': DoubleMuon_Run2016BCDEFG_backup,
-                       'EE':   DoubleEG_Run2016BCDEFG_backup,
-                       'EMu':  MuonEG_Run2016BCDEFG_backup},
+        'Data'   :    {'MuMu': DoubleMuon_Run2016_backup,
+                       'EE':   DoubleEG_Run2016_backup,
+                       'EMu':  MuonEG_Run2016_backup},
         }
 
     def prefix(self):
@@ -112,7 +111,7 @@ class Setup:
                 if k=='reweight':
                     res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
                     for upOrDown in ['Up','Down']:
-                      if 'reweight36fbPU'+upOrDown             in res.sys[k]: res.sys[k].remove('reweight36fbPU') # TODO: update once the new pu weight is in the tuples
+                      if 'reweight36fbPU'+upOrDown             in res.sys[k]: res.sys[k].remove('reweight36fbPU')
                       if 'reweightDilepTriggerBackup'+upOrDown in res.sys[k]: res.sys[k].remove('reweightDilepTriggerBackup')
                       if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
@@ -138,34 +137,32 @@ class Setup:
     def weightString(self):
         return "*".join([self.sys['weight']] + (self.sys['reweight'] if self.sys['reweight'] else []))
 
-    def preselection(self, dataMC , channel='all', isFastSim = False, is76X = False):
+    def preselection(self, dataMC , channel='all', isFastSim = False):
         '''Get preselection  cutstring.'''
-        return self.selection(dataMC, channel = channel, isFastSim = isFastSim, is76X = is76X, hadronicSelection = False, **self.parameters)
+        return self.selection(dataMC, channel = channel, isFastSim = isFastSim, hadronicSelection = False, **self.parameters)
 
     def selection(self, dataMC,
 			mllMin, metMin, metSigMin, zWindow, dPhi, dPhiInv,
 			nJets, nBTags, leptonCharges, 
-			channel = 'all', hadronicSelection = False,  isFastSim = False, is76X = False):
+			channel = 'all', hadronicSelection = False,  isFastSim = False):
         '''Define full selection
 	   dataMC: 'Data' or 'MC'
 	   channel: all, EE, MuMu or EMu
 	   zWindow: offZ, onZ, or allZ
 	   hadronicSelection: whether to return only the hadronic selection
        isFastSim: adjust filter cut etc. for fastsim
-       is76X: only 76X preselection
 	'''
         #Consistency checks
-        assert dataMC in ['Data','MC'],                                                          "dataMC = Data or MC, got %r."%dataMC
-        if self.sys['selectionModifier']: assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
-        assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                           "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
+        if self.sys['selectionModifier']:
+          assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
+        assert dataMC in ['Data','MC'],                                                   "dataMC = Data or MC, got %r."%dataMC
+        assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                    "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
 
         #Postfix for variables (only for MC and if we have a jme variation)
         sysStr = ""
         metStr = ""
-        if dataMC == "MC" and self.sys['selectionModifier'] in jmeVariations:
-            sysStr = "_" + self.sys['selectionModifier']
-        if dataMC == "MC" and self.sys['selectionModifier'] in metVariations:
-            metStr = "_" + self.sys['selectionModifier']
+        if dataMC == "MC" and self.sys['selectionModifier'] in jmeVariations: sysStr = "_" + self.sys['selectionModifier']
+        if dataMC == "MC" and self.sys['selectionModifier'] in metVariations: metStr = "_" + self.sys['selectionModifier']
 
         res={'cuts':[], 'prefixes':[]}
 
@@ -237,9 +234,8 @@ class Setup:
             res['prefixes'].append('looseLeptonVeto')
             res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
 
-            if not is76X: 
-                res['prefixes'].append('multiIsoVT')
-                res['cuts'].append("l1_mIsoWP>4&&l2_mIsoWP>4")
+            res['prefixes'].append('relIso0.12')
+            res['cuts'].append("l1_relIso03<0.12&&l2_relIso03<0.12")
 
             res['cuts'].append("l1_pt>25")
 
