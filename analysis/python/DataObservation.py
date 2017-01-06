@@ -57,5 +57,6 @@ class DataObservation():
 
             logger.debug( "Using cut %s"% cut )
 
-            if setup.blinding: cut += setup.blinding
-            return u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = 'weight') )
+            if hasattr(setup, 'blinding') and setup.blinding: weight = 'weight*' + setup.blinding
+            else:                                             weight = 'weight'
+            return u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = weight) )
