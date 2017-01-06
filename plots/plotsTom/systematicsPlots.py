@@ -94,6 +94,9 @@ sys_pairs = [\
     ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
 ]
 
+def launch(command, logfile, local=False):
+  if local: os.system(command + " --isChild &> " + logfile)
+  else:     os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=50:00:00 runPlotsOnCream02.sh")
 
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
@@ -114,7 +117,7 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
 								 + (" --selectSys="      + sys)
       logfile = "log/systematicPlots_" + selection + "_" + sys + ".log"
       logger.info("Launching " + selection + " on cream02 with child command: " + command)
-      if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=50:00:00 runPlotsOnCream02.sh")
+      if not args.dryRun: launch(command, logfile, sys=="combine")
   logger.info("All jobs launched")
   exit(0)
 
@@ -184,10 +187,7 @@ def weightMC( sys = None ):
 # Read variables
 #
 read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", "LepGood[pt/F,eta/F,miniRelIso/F]", "Flag_goodVertices/O", "Flag_HBHENoiseIsoFilter/O", "Flag_HBHENoiseFilter/O", "Flag_globalTightHalo2016Filter/O",
-                  "Flag_eeBadScFilter/O", "Flag_EcalDeadCellTriggerPrimitiveFilter/O", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
-                  "isOS/O", "isEE/O", "isMuMu/O", "isEMu/O","Flag_badChargedHadronSummer2016/O", "Flag_badMuonSummer2016/O",
-                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","evt/I"]
+                  "met_pt/F", "met_phi/F", "LepGood[pt/F,eta/F,miniRelIso/F]", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","evt/I"]
 
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
 def getLeptonSelection(mode):
@@ -220,14 +220,12 @@ for index, mode in enumerate(allModes):
     MuonEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mue")])
     for d in data_sample:
       d.texName = "data"
- #     d.read_variables = ['weight/F']
       d.style   = styles.errorStyle( ROOT.kBlack )
     lumi_scale = sum(d.lumi for d in data_sample)/float(len(data_sample))/1000
 
   if mode != "all":
     data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
     data_sample.name  = "data"
-#    data_sample.read_variables = ['weight/F']
     data_sample.style = styles.errorStyle( ROOT.kBlack )
     lumi_scale        = data_sample.lumi/1000
 
@@ -239,7 +237,7 @@ for index, mode in enumerate(allModes):
       lumi_scale    = lumi_scale/15.
     else:
       weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-      weightString_ = "weight*(run<=276811||(run>=277820&&279931))"
+      weightString_ = "weight*(run<=276811||(run>=277820&&run<=279931))"
       lumi_scale    = 17.3
   else:
     weight_       = lambda event, sample: event.weight
@@ -447,6 +445,7 @@ for index, mode in enumerate(allModes):
       for s in p.histos:
         for h in s:
           addOverFlowBin1D(h, "upper")
+          if h.Integral()==0: logger.warning( "Found empty histogram %s in results file %s", h.GetName(), result_file )
 
     topName = Top_pow.name if args.powheg else Top.name
     top_sf = {}
@@ -500,23 +499,23 @@ for index, mode in enumerate(allModes):
         dyHist  = None
 
 	# Scaling Top
-	for k in plot_mc.keys():
-	    for s in plot_mc[k].histos:
+	for k in plots_mc.keys():
+	    for s in plots_mc[k].histos:
 		pos_top = [i for i,x in enumerate(mc) if x == (Top_pow if args.powheg else Top)][0]
-		plot_mc[k].histos[0][pos_top].Scale(top_sf[k])
+		plots_mc[k].histos[0][pos_top].Scale(top_sf[k])
 		pos_ttz = [i for i,x in enumerate(mc) if x == TTZ_LO][0]
 		pos_ttx = [i for i,x in enumerate(mc) if x == TTXNoZ][0]
 		pos_dy  = [i for i,x in enumerate(mc) if x == DY_HT_LO][0]
 		pos_mb  = [i for i,x in enumerate(mc) if x == multiBoson][0]
 
-		topHist = plot_mc[k].histos[0][pos_top]
-		ttzHist = plot_mc[k].histos[0][pos_ttz]
-		ttxHist = plot_mc[k].histos[0][pos_ttx]
-		mbHist  = plot_mc[k].histos[0][pos_mb]
-		dyHist  = plot_mc[k].histos[0][pos_dy]
+		topHist = plots_mc[k].histos[0][pos_top]
+		ttzHist = plots_mc[k].histos[0][pos_ttz]
+		ttxHist = plots_mc[k].histos[0][pos_ttx]
+		mbHist  = plots_mc[k].histos[0][pos_mb]
+		dyHist  = plots_mc[k].histos[0][pos_dy]
 		      
 	#Calculating systematics
-	h_summed = {k: plot_mc[k].histos_added[0][0].Clone() for k in plot_mc.keys()}
+	h_summed = {k: plots_mc[k].histos_added[0][0].Clone() for k in plots_mc.keys()}
 
 	##Normalize systematic shapes
 	#if args.sysScaling:
@@ -546,10 +545,10 @@ for index, mode in enumerate(allModes):
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
         # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
-        if args.selection.count('mt2ll100') or plots == dl_mt2ll_mc and False:
+        if args.selection.count('mt2ll100') or plots_mc[None].name == "dl_mt2ll" and False:
 	    for ib in range(1 + h_rel_err.GetNbinsX() ):
-                if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
-                topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
+                if plots_mc[None].name == "dl_mt2ll" and h_rel_err.GetBinCenter(ib) < 100: continue
+                topUnc = 1 if (plots_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
@@ -563,7 +562,7 @@ for index, mode in enumerate(allModes):
 	# Divide
 	h_rel_err.Divide(h_summed[None])
 
-	plot = plot_mc[None]
+	plot = plots_mc[None]
 	if args.normalizeBinWidth: plot.name += "_normalizeBinWidth"
         signal_histos = plot_data.histos[1:]
 	data_histo    = plot_data.histos[0][0]
@@ -579,8 +578,6 @@ for index, mode in enumerate(allModes):
 	  plot_data.stack[i+1][0].texName = signal.texName
 	  plot_data.stack[i+1][0].style   = signal.style
           plot.stack += [[ plot_data.stack[i+1][0] ]]
-        print plot.histos
-        print plot.stack
 
 	boxes = []
 	ratio_boxes = []
