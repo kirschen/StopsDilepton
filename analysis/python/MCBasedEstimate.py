@@ -14,7 +14,6 @@ class MCBasedEstimate(SystematicEstimator):
 
         # FastSim and 76X only for the MCBasedEstimate. Dirty. Looks whether one of the samples is fastsim.
         self.isFastSim = getattr(sample.values()[0], "isFastSim", False) 
-        self.is76X     = getattr(sample.values()[0], "is76X", False) 
         
     def _estimate(self, region, channel, setup):
 
@@ -32,7 +31,7 @@ class MCBasedEstimate(SystematicEstimator):
             return sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE']])
 
         else:
-            preSelection = setup.preselection('MC', channel=channel, isFastSim = self.isFastSim, is76X = self.is76X)
+            preSelection = setup.preselection('MC', channel=channel, isFastSim = self.isFastSim)
             cut = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
             weight = preSelection['weightStr']
 
