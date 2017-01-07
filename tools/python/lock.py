@@ -1,4 +1,4 @@
-import os
+import os, errno, time
 
 # Wait until multithread process could acquire lock
 def waitForLock(filename):

@@ -5,6 +5,7 @@ ROOT.gROOT.SetBatch(True)
 
 from math import sqrt, cos, sin, pi, acos
 import itertools
+import os
 
 #RootTools
 from RootTools.core.standard import *
@@ -21,10 +22,10 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
 argParser.add_argument("--signal",         action='store', default='TTbarDM',           nargs='?', choices=["T2tt","TTbarDM"],                                                                            help="which signal to plot?")
-argParser.add_argument("--estimateDY",     action='store', default='DY-DD',             nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
-argParser.add_argument("--estimateTTZ",    action='store', default='TTZ-DD-Top16009',   nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
-argParser.add_argument("--estimateTTJets", action='store', default='TTJets-DD',         nargs='?', choices=["TTJets","TTJets-DD"],                                                                        help="which TTJets estimate?")
-argParser.add_argument("--estimateMB",     action='store', default='multiBoson-DD',     nargs='?', choices=["multiBoson","multiBoson-DD"],                                                                help="which multiBoson estimate?")
+argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
+argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
+argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTJets","TTJets-DD"],                                                                        help="which TTJets estimate?")
+argParser.add_argument("--estimateMB",     action='store', default='multiBoson',        nargs='?', choices=["multiBoson","multiBoson-DD"],                                                                help="which multiBoson estimate?")
 argParser.add_argument("--control",        action='store', default=None,                nargs='?', choices=[None, "DY", "VV", "DYVV"],                                                                    help="For CR region?")
 argParser.add_argument("--labels",         action='store_true', default=False,          help="plot labels?")
 argParser.add_argument("--noData",         action='store_true', default=False,          help="do not plot data?")
@@ -38,11 +39,21 @@ if args.control:
   if   args.control == "DY":   setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': True,  'zWindow': 'onZ'}) 
   elif args.control == "VV":   setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': True,  'dPhiInv': False, 'zWindow': 'onZ'})
   elif args.control == "DYVV": setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False, 'zWindow': 'onZ'})
+  scale = 1
+else:
+  if args.signal == "TTbarDM":
+    setup.blinding = "(evt%15==0)"
+    scale = 1./15.
+  elif args.signal == "T2tt":
+    setup.blinding = "(run<=276811||(run>=277820&&run<=279931))"
+    scale = 17.3/lumi_scale
+
 
 
 detailedEstimators = constructEstimatorList([args.estimateTTJets, args.estimateTTZ, args.estimateMB, 'TTXNoZ', args.estimateDY])
-if args.control == "DY": detailedEstimators = constructEstimatorList([args.estimateDY, args.estimateMB, args.estimateTTJets, args.estimateTTZ, 'TTXNoZ'])
-if args.control == "VV": detailedEstimators = constructEstimatorList([args.estimateMB, args.estimateDY, args.estimateTTJets, args.estimateTTZ, 'TTXNoZ'])
+if args.control == "DY":   detailedEstimators = constructEstimatorList([args.estimateDY, args.estimateMB, args.estimateTTJets, args.estimateTTZ, 'TTXNoZ'])
+if args.control == "VV":   detailedEstimators = constructEstimatorList([args.estimateMB, args.estimateDY, args.estimateTTJets, args.estimateTTZ, 'TTXNoZ'])
+if args.control == "DYVV": detailedEstimators = constructEstimatorList([args.estimateDY, args.estimateMB, args.estimateTTJets, args.estimateTTZ, 'TTXNoZ'])
 if args.signal=='T2tt':
     signalSetup = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
 else:
@@ -52,23 +63,19 @@ for estimator in detailedEstimators:
     estimatorColor = getattr( color, estimator.name.split('-')[0] ) 
     estimator.style = styles.fillStyle(estimatorColor, lineColor = estimatorColor )
 
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
-from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import T2tt_650_1, T2tt_450_1
+from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
 
 if args.signal == "T2tt":
     signals = [T2tt_650_1, T2tt_450_1]
     postfix = "regionsO"
 elif args.signal == "TTbarDM":
-    #postfix = "regions_80X_scalar"
-    #signals = [TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_scalar_Mchi_1_Mphi_20, TTbarDMJets_scalar_Mchi_1_Mphi_50]
-    postfix = "regionsO"
     signals = [TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10]
+    postfix = "regionsO"
 
-if hasattr(setup, 'dyControl') and setup.dyControl: signals = []
-if hasattr(setup, 'vvControl') and setup.vvControl: signals = []
-
-if args.control: postfix += '_' + args.control
+if args.control:
+  signals = []
+  postfix += '_' + args.control
 
 signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals]
 
@@ -159,8 +166,8 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
     h[None].GetYaxis().SetTitleSize(2)
     h[None].GetYaxis().SetLabelSize(0.7)
 
-    if not args.control and not estimate.name == "Data": 
-      for hh in h.values(): hh.Scale(36.4/26.9) # Temporary scale to the 36/fb
+    if not estimate.name == "Data":
+      for hh in h.values(): hh.Scale(scale)
     return h
 
 def drawLabels( regions ):
@@ -215,7 +222,7 @@ def drawObjects( lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'),
-      (0.71, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % (lumi_scale/1000. if args.control else 36.4))
+      (0.71, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % (lumi_scale/1000.*scale))
     ]
     return [tex.DrawLatex(*l) for l in lines]
 

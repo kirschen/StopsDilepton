@@ -6,12 +6,11 @@ parser.add_option("--selectEstimator",       dest="selectEstimator",       defau
 parser.add_option("--selectRegion",          dest="selectRegion",          default=None, type="int",    action="store",      help="select region?")
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option("--control",               dest="control",               default=None,                action='store',      choices=[None, "DY", "VV", "DYVV"], help="For CR region?")
-parser.add_option("--modify",                dest="modify",                default=None,                action='store',      choices=[None, "noPhi", "noMetSig"], help="Remove setup cuts?")
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 from StopsDilepton.analysis.estimators   import setup, allEstimators
-from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140, regions80X_2D, regionsA, regionsB, regionsC, regionsD, regionsE, regionsF, regionsG, regionsH, regionsI, regionsJ, regionsK, regionsL, regionsM, regionsN, regionsO, regionsP, regionsQ, regionsR
+from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140, regions80X_2D, regionsO
 
 
 # Logging
@@ -20,13 +19,11 @@ logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-allRegions = regions80X + superRegion + superRegion140 + regions80X_2D #This cannot be a set!!! No ordering in a set, enumerate changes!!
-allRegions += regionsA + regionsB + regionsC + regionsD + regionsE + regionsF + regionsG + regionsH + regionsI + regionsJ + regionsK + regionsL + regionsM + regionsN
-allRegions = set(regionsP + regionsR + regionsQ)
+allRegions = regionsO
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
-from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import signals_T2tt
+from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
 allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}) for s in signals_TTbarDM + signals_T2tt ]
 
 
@@ -48,11 +45,6 @@ if options.control:
   if   options.control == "DY":   setup = setup.sysClone(parameters={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': True})
   elif options.control == "VV":   setup = setup.sysClone(parameters={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': True,  'dPhiInv': False})
   elif options.control == "DYVV": setup = setup.sysClone(parameters={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False})
-
-if options.modify and options.modify == "noPhi":    setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False})
-if options.modify and options.modify == "noMetSig": setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False, 'metSigMin': 0})
-
-
 
 
 
