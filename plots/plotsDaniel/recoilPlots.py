@@ -37,9 +37,9 @@ argParser.add_argument('--dy',
     choices=['LO', 'NLO'])
 
 argParser.add_argument('--pu',
-    default="reweightPU27fb",
+    default="reweightPU36fb",
     action='store',
-    choices=["None", "reweightPU27fb", "reweightPU27fbUp", "reweightPU27fbDown", 'reweightPU', 'custom'],
+    choices=["None", "reweightPU27fb", "reweightPU27fbUp", "reweightPU27fbDown", 'reweightPU', 'custom', "reweightPU36fb"],
     help='PU weight',
 )
 
@@ -77,7 +77,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='recoil_80X_Run2016BCD',
+    default='recoil_80X_Run2016',
     action='store',
 )
 
@@ -105,9 +105,9 @@ def getZCut(mode):
     if mode.lower()=="offz": return zstr+">15"
     return "(1)"
 
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 sample_DoubleMuon  = DoubleMuon_Run2016_backup
@@ -183,7 +183,8 @@ dy_lowFakeMet.texName = "DY  #slash{E}_{T,fake}<50"
 dy_lowFakeMet.addSelectionString( "abs(met_pt-met_genPt)<=50" )
 dy_lowFakeMet.color = ROOT.kGreen 
 
-mc = [ dy_lowFakeMet, dy_mediumFakeMet, dy_highFakeMet, Top, diBoson, TTZ_LO, TTW, triBoson, TWZ]#TTXNoZ,
+#mc = [ dy_lowFakeMet, dy_mediumFakeMet, dy_highFakeMet, Top, diBoson, TTZ_LO, TTW, triBoson, TWZ]#TTXNoZ,
+mc = [ dy_lowFakeMet, dy_mediumFakeMet, dy_highFakeMet, Top_pow, TTZ_LO, TTXNoZ, multiBoson]
 #mc = [ TTX]
 if args.small:
     for sample in mc + data_samples:
@@ -224,7 +225,7 @@ cuts=[
 #    ("metSig5", "met_pt/sqrt(ht)>5"),
 #    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
-    ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
+    ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2"),
     
 ] + dPhi
 
@@ -384,7 +385,7 @@ dl_uPlusQPara  = Plot(
     texX = '(u+q)_{\parallel} (GeV)', texY = 'Number of Events / 30 GeV',
    stack = stack, 
     attribute = lambda event, sample:event.uPlusQPara,
-    binning=[600/30,-300,300],
+    binning=[600/5,-300,300],
     selectionString = selectionString,
     addOverFlowBin = 'both',
     weight = weight,
