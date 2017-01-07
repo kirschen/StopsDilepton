@@ -1111,9 +1111,6 @@ if options.T2tt:
             outF.Close()
             logger.info( "Number of events %i", nEvents)
             logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
-            #t = output.chain.CopyTree(cut)
-            #writeObjToFile(signalFile, t)
-            #logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
         else:
             logger.info( "Found file %s -> Skipping"%(signalFile) )
 
