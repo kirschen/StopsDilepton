@@ -1110,6 +1110,13 @@ if options.T2tt:
             nEvents = t.GetEntries()
             outF.Close()
             logger.info( "Number of events %i", nEvents)
+            outF = ROOT.TFile.Open(signalFile, "READ")
+            u = outF.Get("Events")
+            nnEvents = u.GetEntries()
+            logger.Debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
+            if nEvents == nnEvents: logger.Debug("All events written")
+            else: logger.Debug("Something went wrong, discrepancy between file and tree")
+            outF.Close()
             logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
         else:
             logger.info( "Found file %s -> Skipping"%(signalFile) )
