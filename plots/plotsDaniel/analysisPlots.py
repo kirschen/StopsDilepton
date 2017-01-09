@@ -93,14 +93,14 @@ def copyIndexPHP( directory ):
     if not os.path.exists( index_php ):
       shutil.copyfile( os.path.expandvars( '$CMSSW_BASE/src/StopsDilepton/tools/php/index.php' ), index_php )
 
-copyIndexPHP( plot_directory )
-copyIndexPHP( os.path.join( plot_directory, args.plot_directory ) )
+#copyIndexPHP( plot_directory )
+#copyIndexPHP( os.path.join( plot_directory, args.plot_directory ) )
 
 def drawPlots(plots, mode, dataMCScale):
   for log in [False, True]:
-    copyIndexPHP( os.path.join( plot_directory, args.plot_directory, mode + ("_log" if log else "") ) )
+    #copyIndexPHP( os.path.join( plot_directory, args.plot_directory, mode + ("_log" if log else "") ) )
     plot_directory_ = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection)
-    copyIndexPHP( plot_directory_ )
+    #copyIndexPHP( plot_directory_ )
     for plot in plots:
       if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
       if not args.noData: 
@@ -174,7 +174,7 @@ for index, mode in enumerate(allModes):
   weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
-  mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO, TWZ]
+  mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO]
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 

@@ -602,7 +602,7 @@ if addSystematicVariations:
 if options.T2tt or options.TTDM:
     read_variables += map(TreeVariable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
 if options.T2tt:
-    read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
+    #read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
 
 if options.fastSim and (isTriLep or isDiLep):
@@ -1094,13 +1094,22 @@ if isData:
 # Write one file per mass point for T2tt
 if options.T2tt:
     output = Sample.fromDirectory("T2tt_output", outDir)
+    print "Initialising chain, otherwise first mass point is empty"
+    print output.chain
+    if options.small: output.reduceFiles( to = 1 )
     for s in signalWeight.keys():
         #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
+        logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
         cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
+        logger.debug("Using cut %s", cut)
         signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
+        logger.debug("Ouput file will be %s", signalFile)
         if not os.path.exists(signalFile) or options.overwrite:
+            outF = ROOT.TFile.Open(signalFile, "RECREATE")
             t = output.chain.CopyTree(cut)
-            writeObjToFile(signalFile, t)
+            nEvents = t.GetEntries()
+            outF.Close()
+            logger.info( "Number of events %i", nEvents)
             logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
         else:
             logger.info( "Found file %s -> Skipping"%(signalFile) )
