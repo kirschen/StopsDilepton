@@ -32,11 +32,6 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-# Extra requirements on data
-mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
-dataFilterCut = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
-dataFilterCut +="&&weight>0"
-
 postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
@@ -65,7 +60,7 @@ if   mode=="mumu": data_sample = DoubleMuon_Run2016_backup
 elif mode=="ee":   data_sample = DoubleEG_Run2016_backup
 elif mode=="mue":  data_sample = MuonEG_Run2016_backup
 
-data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode), dataFilterCut])
+data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
 data_sample.name           = "data"
 data_sample.read_variables = ["evt/I","run/I"]
 data_sample.style          = styles.errorStyle(ROOT.kBlack)
@@ -93,7 +88,7 @@ for sample in mc_samples:
   sample.scale          = lumi_scale
   sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
   sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
-  sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode), mcFilterCut])
+  sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
   sample.style = styles.fillStyle( sample.color)
 
 stack = Stack(mc_samples) 
