@@ -260,6 +260,12 @@ for index, mode in enumerate(allModes):
   ttzList        = splitSampleInFakeMet(TTZ_LO,     ROOT.kPink)   if args.split == 'TTZ' else [TTZ_LO]
   ttxList        = splitSampleInFakeMet(TTXNoZ,     ROOT.kRed)    if args.split == 'TTXNoZ' else [TTXNoZ]
   multiBosonList = splitSampleInFakeMet(multiBoson, ROOT.kYellow) if args.split == 'multiBoson' else multiBosonList
+
+  fakeMetList = topList
+  if args.split == "DY":         fakeMetList = dyList
+  if args.split == "TTZ":        fakeMetList = ttzList
+  if args.split == "TTXNoZ":     fakeMetList = ttxList
+  if args.split == "multiBoson": fakeMetList = multiBosonList
   
   mc = topList + ttzList + ttxList + multiBosonList + dyList
   for sample in mc: sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
@@ -537,8 +543,9 @@ for index, mode in enumerate(allModes):
   dataMCScale        = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
 
   drawPlots(plots, mode, dataMCScale)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
+  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",         yields, mode, mc)
+  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV",      yields, mode, multiBosonList)
+  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_fakeMet", yields, mode, fakeMetList)
   allPlots[mode] = plots
 
 
@@ -560,8 +567,9 @@ for mode in ["SF","all"]:
 	    j.Add(l)
 
   drawPlots(allPlots['mumu'], mode, dataMCScale)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
+  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",         yields, mode, mc)
+  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV",      yields, mode, multiBosonList)
+  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_fakeMet", yields, mode, fakeMetList)
 
 
 # Write to tex file
