@@ -37,9 +37,9 @@ argParser.add_argument('--dy',
     choices=['LO', 'NLO'])
 
 argParser.add_argument('--pu',
-    default="reweightPU12fb",
+    default="reweightPU36fb",
     action='store',
-    choices=["None", "reweightPU12fb", "reweightPU12fbUp", "reweightPU12fbDown", 'reweightPU'],
+    choices=["None", "reweightPU36fb", "reweightPU36fbUp", "reweightPU36fbDown", 'reweightPU'],
     help='PU weight',
 )
 
@@ -77,7 +77,7 @@ argParser.add_argument('--overwrite',
 )
 
 argParser.add_argument('--plot_directory',
-    default='recoil_80X_Run2016BCD',
+    default='recoil_80X_Run2016',
     action='store',
 )
 
@@ -95,8 +95,8 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
-dataFilterCut = mcFilterCut+"&&weight>0"
+from StopsDilepton.tools.objectSelection import getFilterCut
+
 
 def getZCut(mode):
     mZ = 91.2
@@ -105,20 +105,21 @@ def getZCut(mode):
     if mode.lower()=="offz": return zstr+">15"
     return "(1)"
 
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v22/dilepTiny"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
-sample_DoubleMuon  = DoubleMuon_Run2016BCD_backup
-sample_DoubleEG    = DoubleEG_Run2016BCD_backup
-sample_MuonEG      = MuonEG_Run2016BCD_backup
+sample_DoubleMuon  = DoubleMuon_Run2016_backup
+sample_DoubleEG    = DoubleEG_Run2016_backup
+sample_MuonEG      = MuonEG_Run2016_backup
 
 if args.mode=="doubleMu":
     lepton_selection_string_data = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
     lepton_selection_string_mc   = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
     data_samples = [sample_DoubleMuon]
-    sample_DoubleMuon.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    sample_DoubleMuon.setSelectionString([getFilterCut(isData=True), lepton_selection_string_data])
     if args.trigger: sample_DoubleMuon.addSelectionString( "(HLT_mumuIso||HLT_mumuNoiso)" )
     data_sample_texName = "Data (2 #mu)"
     #qcd_sample = QCD_Mu5 #FIXME
@@ -126,7 +127,7 @@ elif args.mode=="doubleEle":
     lepton_selection_string_data = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
     data_samples = [sample_DoubleEG]
-    sample_DoubleEG.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    sample_DoubleEG.setSelectionString([getFilterCut(isData=True), lepton_selection_string_data])
     if args.trigger: sample_DoubleEG.addSelectionString( "HLT_ee_DZ" )
     data_sample_texName = "Data (2 e)"
     #qcd_sample = QCD_EMbcToE
@@ -134,7 +135,7 @@ elif args.mode=="muEle":
     lepton_selection_string_data = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
     lepton_selection_string_mc = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
     data_samples = [sample_MuonEG]
-    sample_MuonEG.setSelectionString([dataFilterCut, lepton_selection_string_data])
+    sample_MuonEG.setSelectionString([getFilterCut(isData=True), lepton_selection_string_data])
     if args.trigger: sample_MuonEG.addSelectionString( "HLT_mue" )
     data_sample_texName = "Data (1 #mu, 1 e)"
 elif args.mode=="sameFlavour":
@@ -143,8 +144,8 @@ elif args.mode=="sameFlavour":
     lepton_selection_string_mc = "&&".join([ "(isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2)", getZCut(args.zMode)])
 
     data_samples = [sample_DoubleMuon, sample_DoubleEG]
-    sample_DoubleMuon.setSelectionString([dataFilterCut, doubleMu_selectionString])
-    sample_DoubleEG.setSelectionString([dataFilterCut, doubleEle_selectionString])
+    sample_DoubleMuon.setSelectionString([getFilterCut(isData=True), doubleMu_selectionString])
+    sample_DoubleEG.setSelectionString([getFilterCut(isData=True), doubleEle_selectionString])
     if args.trigger:
         sample_DoubleMuon.addSelectionString( "(HLT_mumuIso||HLT_mumuNoiso)" )
         sample_DoubleEG.addSelectionString( "HLT_ee_DZ" )
@@ -183,7 +184,7 @@ dy_lowFakeMet.texName = "DY  #slash{E}_{T,fake}<50"
 dy_lowFakeMet.addSelectionString( "abs(met_pt-met_genPt)<=50" )
 dy_lowFakeMet.color = ROOT.kGreen 
 
-mc = [ dy_lowFakeMet, dy_mediumFakeMet, dy_highFakeMet, TTJets_Lep, singleTop, TTZ, TTXNoZ, multiBoson]
+mc = [ dy_lowFakeMet, dy_mediumFakeMet, dy_highFakeMet, Top_pow, TTX, multiBoson ] 
 #mc = [ TTX]
 if args.small:
     for sample in mc + data_samples:
@@ -197,7 +198,7 @@ lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
 
 for sample in mc:
     sample.style = styles.fillStyle( sample.color)
-    sample.addSelectionString([ mcFilterCut, lepton_selection_string_mc])
+    sample.addSelectionString([ getFilterCut(isData=False), lepton_selection_string_mc])
 
 from StopsDilepton.tools.user import plot_directory
 
@@ -246,14 +247,14 @@ stack = Stack(mc, data_samples)
 
 sequence = []
 
-def makeQTZ( data ):
+def makeQTZ( event, sample ):
      
     event.qx = event.dl_pt*cos(event.dl_phi)  
     event.qy = event.dl_pt*sin(event.dl_phi)
 
     event.qt = sqrt( event.qx**2 + event.qy**2 )
 
-def makeUParaUPerp( data ):
+def makeUParaUPerp( event, sample ):
     mex = event.met_pt*cos(event.met_phi) 
     mey = event.met_pt*sin(event.met_phi)
     ux = -mex - event.qx 
@@ -325,18 +326,19 @@ selectionString = "&&".join( [p[1] for p in presel])
 logger.info( "Now plotting with prefix %s and selectionString %s", prefix, selectionString )
 
 logger.info( "Calculating normalization constants" )        
-#yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in mc)
-#yield_data  = data_sample.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val']
+
+yield_data  = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight')['val'] for s in data_samples)
+yield_mc    = sum(s.getYieldFromDraw( selectionString = selectionString, weightString = 'weight*reweightDilepTriggerBackup*reweightBTag_SF*reweightLeptonSF')['val'] for s in mc)
 
 for sample in mc:
-    dataMCScale = 1. #yield_data/(yield_mc*lumi_scale)
+    dataMCScale = yield_data/(yield_mc*lumi_scale)
     sample.scale = lumi_scale*dataMCScale
     if args.pu != "None":
         sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda event, sample: getattr( data, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+        sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF
     else:
         sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF
+        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightBTag_SF*event.reweightLeptonSF
 
         sample.read_variables = [args.pu+'/F']
 
@@ -475,7 +477,7 @@ cosMetJet1phi = Plot(\
 plots.append( cosMetJet1phi )
 
 def qt_cut_weight( qtb ):
-    def w( data ):
+    def w( event, sample ):
         if event.qt>qtb[0] and event.qt<qtb[1]:
             return event.weight
         else:

@@ -294,7 +294,7 @@ def renew_proxy( filename = None, rfc = False, request_time = 192, min_time = 0)
         pass
 
     try:
-        timeleft = int( read_from_subprocess( 'voms-proxy-info --timeleft'.split() ) [0] )
+        timeleft = int(float( read_from_subprocess( 'voms-proxy-info --timeleft'.split() ) [0] ))
     except IndexError:
         pass
 

@@ -159,7 +159,7 @@ data_heppy_mapper = heppy_mapper( heppy_data_samples, data_dpm_directories, data
 #
 # TTbar DM signal
 ttbarDM_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_0l_TTbarDM.pkl'
-def_robert_0l = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_0l_22/'
+def_robert_0l = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_0l_23'
 ttbarDM_dpm_directories = [ def_robert_0l ]
 from CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2 import samples as heppy_TTbarDM_samples
 ttbarDM_heppy_mapper = heppy_mapper( heppy_TTbarDM_samples, ttbarDM_dpm_directories, ttbarDM_cache_file)
@@ -170,4 +170,3 @@ def_robert_0l = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_0l_22/
 T2tt_dpm_directories = [ def_robert_0l ]
 from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
 T2tt_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T2tt_dpm_directories, T2tt_cache_file)
-

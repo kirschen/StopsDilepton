@@ -9,7 +9,8 @@ from RootTools.core.standard import *
 
 #StopsDilepton
 from StopsDilepton.tools.helpers import getCollection, deltaR
-from StopsDilepton.tools.objectSelection import getGoodAndOtherLeptons, leptonVars, default_ele_selector, default_muon_selector, getLeptons, getOtherLeptons, getGoodLeptons, eleSelector, muonSelector
+from StopsDilepton.tools.objectSelection import getFilterCut
+from StopsDilepton.tools.objectSelection import getGoodAndOtherLeptons, leptonVars_data, default_ele_selector, default_muon_selector, getLeptons, getOtherLeptons, getGoodLeptons, eleSelector, muonSelector
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator() 
 
@@ -93,14 +94,18 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 #make samples
 
 if args.isolation=='standard':
-    postProcessing_directory = "postProcessed_80X_v12/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+    postProcessing_directory = "postProcessed_80X_v26/dilep/"
+    from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+    data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+    postProcessing_directory = "postProcessed_80X_v26/dilep/"
+    from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+
 elif args.isolation=="VeryLoose" or args.isolation=="VeryLooseInverted":
-    postProcessing_directory = "postProcessed_80X_v12/dilepVeryLoose/" 
+    #postProcessing_directory = "postProcessed_80X_v12/dilepVeryLoose/" 
+    raise NotImplementedError
 else: raise ValueError
     
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
-
 def getZCut(mode):
     mZ = 91.2
     zstr = "abs(dl_mass - "+str(mZ)+")"
@@ -110,22 +115,22 @@ def getZCut(mode):
 
 if args.mode=="doubleMu":
     leptonSelectionString = "&&".join(["isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0", getZCut(args.zMode)])
-    data_sample = DoubleMuon_Run2016BCD_backup if not args.noData else None
+    data_sample = DoubleMuon_Run2016_backup if not args.noData else None
     #qcd_sample = QCD_Mu5 #FIXME
 elif args.mode=="doubleEle":
     leptonSelectionString = "&&".join(["isEE==1&&nGoodMuons==0&&nGoodElectrons==2", getZCut(args.zMode)])
-    data_sample = DoubleEG_Run2016BCD_backup if not args.noData else None
+    data_sample = DoubleEG_Run2016_backup if not args.noData else None
     #qcd_sample = QCD_EMbcToE
 elif args.mode=="muEle":
     leptonSelectionString = "&&".join(["isEMu==1&&nGoodMuons==1&&nGoodElectrons==1", getZCut(args.zMode)])
-    data_sample = MuonEG_Run2016BCD_backup if not args.noData else None
+    data_sample = MuonEG_Run2016_backup if not args.noData else None
     #qcd_sample = QCD_Mu5EMbcToE
 else:
     raise ValueError( "Mode %s not known"%args.mode )
 
 # Extra requirements on data
-mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon"
-dataFilterCut = mcFilterCut+"&&weight>0"
+mcFilterCut   = getFilterCut(isData=False) 
+dataFilterCut = getFilterCut(isData=True) +"&&weight>0"
 
 #mc = [ DY, TTJets, qcd_sample, singleTop, TTX, diBoson, triBoson, WJetsToLNu]
 #mc = [ DY, TTJets, qcd_sample, TTZ]
@@ -149,7 +154,7 @@ mc = [ DY_HT_LO, TTJets_l2_prompt, TTJets_1l, singleTop, TTZ, TTXNoZ, diBoson, t
 mc_for_normalization = [ DY_HT_LO, TTJets, singleTop, TTZ, TTXNoZ, diBoson, triBoson]
 
 if args.small:
-    for s in mc:
+    for s in mc + mc_for_normalization:
         s.reduceFiles(to = 1)
 
 if not args.noData:
@@ -172,8 +177,7 @@ if args.isolation=="VeryLooseInverted":
 
 cuts+=[
     ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
-    ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
-#    ("nbtag0", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)==0"),
+    ("nbtag1", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800)>=1"),
 #    ("mll20", "dl_mass>20"),
     ("met80", "met_pt>80"),
     ("metSig5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
@@ -232,12 +236,14 @@ def matchLeptons( event, sample ):
 gen_ttbar_sequence.append( matchLeptons )
 
 read_variables = [\
-    "weight/F" , "JetGood[pt/F,eta/F,phi/F]",
+    "weight/F" , "JetGood[pt/F,eta/F,phi/F]", 
+    "l1_pt/F", "l1_eta/F", "l1_phi/F", "l1_pdgId/I",
+    "l2_pt/F", "l2_eta/F", "l2_phi/F", "l2_pdgId/I",
 ]
 
 read_variables.extend([\
-    "nLepGood/I",  "LepGood[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I,etaSc/F]",
-    "nLepOther/I", "LepOther[eta/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I,etaSc/F]",
+    "nLepGood/I",  "LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]",
+    "nLepOther/I", "LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]",
 ])
 
 def fs(pdgId):
@@ -247,8 +253,8 @@ def fs(pdgId):
         return "m"
     else: raise ValueError
 
-mu_selector = muonSelector( iso = 0.2 )
-ele_selector = eleSelector( iso = 0.2 )
+mu_selector = muonSelector( relIso03 = 0.2 )
+ele_selector = eleSelector( relIso03 = 0.2 )
 
 sequence = []
 
@@ -288,9 +294,9 @@ if args.isolation == "standard":
     verbose = False
     def makeNonIsoLeptons( event, sample ):
 
-        goodLeptons = getGoodLeptons( event, collVars = leptonVars , mu_selector = mu_selector, ele_selector = ele_selector)
+        goodLeptons = getGoodLeptons( event, collVars = leptonVars_data , mu_selector = mu_selector, ele_selector = ele_selector)
         allExtraLeptons = sorted( \
-            [l for l in getLeptons( event, collVars = leptonVars ) if l not in goodLeptons] + getOtherLeptons( event , collVars = leptonVars ), 
+            [l for l in getLeptons( event, collVars = leptonVars_data ) if l not in goodLeptons] + getOtherLeptons( event , collVars = leptonVars_data ), 
                         key=lambda l: -l['pt'] )
 
         #for l in goodLeptons:
@@ -612,7 +618,7 @@ for i_comb in [len(cuts)]:
             texX = '|d_{z}|', texY = 'Number of Events',
             stack = stack, 
             attribute = lambda event, sample:abs(event.l1_dz), 
-            read_variables = "l1_dz/F",
+            read_variables = ["l1_dz/F"],
             binning=[40,0,0.15],
             selectionString = selectionString,
             weight = weight,
@@ -674,7 +680,7 @@ for i_comb in [len(cuts)]:
             texX = '|d_{xy}|', texY = 'Number of Events',
             stack = stack, 
             attribute = lambda event, sample:abs(event.l2_dxy), 
-            read_variables = "l2_dxy/F",
+            read_variables = ["l2_dxy/F"],
             binning=[40,0,1],
             selectionString = selectionString,
             weight = weight,
@@ -686,7 +692,7 @@ for i_comb in [len(cuts)]:
             texX = '|d_{z}|', texY = 'Number of Events',
             stack = stack, 
             attribute = lambda event, sample:abs(event.l2_dz), 
-            read_variables = "l2_dz/F",
+            read_variables = ["l2_dz/F"],
             binning=[40,0,0.15],
             selectionString = selectionString,
             weight = weight,
