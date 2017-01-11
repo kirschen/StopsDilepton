@@ -202,6 +202,7 @@ if not args.isChild and (args.selectSys == "all" or args.selectSys == "combine")
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
+if args.signal == "T2tt":         args.plot_directory += "_T2tt"
 if args.small:                    args.plot_directory += "_small"
 
 try: os.makedirs(os.path.join(plot_directory, args.plot_directory, mode, args.selection))

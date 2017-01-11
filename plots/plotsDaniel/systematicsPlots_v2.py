@@ -107,38 +107,6 @@ bJetSelectionM  = "nBTag"
 #  ]
 
 
-
-
-##
-## Construct prefixes and selectionstring and filter on possible cut combinations
-##
-#import itertools
-#selectionStrings = {}
-#for i_comb in reversed( range( len(cuts)+1 ) ):
-#    for comb in itertools.combinations( cuts, i_comb ):
-#        presel = [] 
-#        presel.extend( comb )
-#        selection = '-'.join([p[0] for p in presel])
-#        if selection not in [
-#              'njet01-btag0-looseLeptonVeto-mll20-metInv',
-#              'njet01-btag0-looseLeptonVeto-mll20-met80-metSig5',
-#              'njet01-btagM-looseLeptonVeto-mll20-metInv',
-#              'njet01-btagM-looseLeptonVeto-mll20-met80-metSig5',
-#              'njet2-btag0-looseLeptonVeto-mll20-metInv',
-#              'njet2-btag0-looseLeptonVeto-mll20-met80-metSig5',
-#              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5',
-#              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
-#              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
-#              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
-#              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
-#              'njet2-btagM-looseLeptonVeto-mll20-metInv',
-#              'njet2-btagM-looseLeptonVeto-mll20-met80-metSig5',
-#              'njet2-btagM-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
-#              'njet2-btagM-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']: continue
-#        if not 'njet2-btagM-looseLeptonVeto-mll20-met80' in selection: continue
-#        selectionStrings[selection] = "&&".join( [p[1] for p in presel])
-
-
 #
 # Systematics to run over
 #
@@ -163,7 +131,6 @@ sys_pairs = [\
     ('trigger',     'DilepTriggerBackupDown', 'DilepTriggerBackupUp'),
     ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
 ]
-
 
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
@@ -235,6 +202,7 @@ if not args.isChild and (args.selectSys == "all" or args.selectSys == "combine")
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
+if args.signal == "T2tt":         args.plot_directory += "_T2tt"
 if args.small:                    args.plot_directory += "_small"
 
 try: os.makedirs(os.path.join(plot_directory, args.plot_directory, mode, args.selection))
@@ -412,7 +380,7 @@ for index, mode in enumerate(allModes):
   stack_mc   = Stack( mc )
 
   if   args.signal == "T2tt": stack_data = Stack( data_sample, T2tt, T2tt2 ) 
-  if   args.signal == "DM":   stack_data = Stack( data_sample, DM, DM2) 
+  elif args.signal == "DM":   stack_data = Stack( data_sample, DM, DM2) 
   else:                       stack_data = Stack( data_sample )
   sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
   plots = []
@@ -623,7 +591,6 @@ for index, mode in enumerate(allModes):
       ) for sys in all_systematics }
   plots.extend( met2_mc.values() )
 
-
   plotConfigs = [\
          [ dl_mt2ll_mc, dl_mt2ll_data, 20],
          [ njets_mc, njets_data, -1],
@@ -822,8 +789,6 @@ for index, mode in enumerate(allModes):
         plot_data.stack[i+1][0].texName = signal.texName
         plot_data.stack[i+1][0].style   = signal.style
         plot.stack += [[ plot_data.stack[i+1][0] ]]
-      print plot.histos
-      print plot.stack
 
       boxes = []
       ratio_boxes = []
