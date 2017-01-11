@@ -107,38 +107,6 @@ bJetSelectionM  = "nBTag"
 #  ]
 
 
-
-
-##
-## Construct prefixes and selectionstring and filter on possible cut combinations
-##
-#import itertools
-#selectionStrings = {}
-#for i_comb in reversed( range( len(cuts)+1 ) ):
-#    for comb in itertools.combinations( cuts, i_comb ):
-#        presel = [] 
-#        presel.extend( comb )
-#        selection = '-'.join([p[0] for p in presel])
-#        if selection not in [
-#              'njet01-btag0-looseLeptonVeto-mll20-metInv',
-#              'njet01-btag0-looseLeptonVeto-mll20-met80-metSig5',
-#              'njet01-btagM-looseLeptonVeto-mll20-metInv',
-#              'njet01-btagM-looseLeptonVeto-mll20-met80-metSig5',
-#              'njet2-btag0-looseLeptonVeto-mll20-metInv',
-#              'njet2-btag0-looseLeptonVeto-mll20-met80-metSig5',
-#              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5',
-#              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
-#              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
-#              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
-#              'njet2-btag0-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
-#              'njet2-btagM-looseLeptonVeto-mll20-metInv',
-#              'njet2-btagM-looseLeptonVeto-mll20-met80-metSig5',
-#              'njet2-btagM-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
-#              'njet2-btagM-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']: continue
-#        if not 'njet2-btagM-looseLeptonVeto-mll20-met80' in selection: continue
-#        selectionStrings[selection] = "&&".join( [p[1] for p in presel])
-
-
 #
 # Systematics to run over
 #
@@ -163,7 +131,6 @@ sys_pairs = [\
     ('trigger',     'DilepTriggerBackupDown', 'DilepTriggerBackupUp'),
     ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
 ]
-
 
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
