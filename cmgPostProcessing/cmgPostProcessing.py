@@ -207,13 +207,13 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger(options.logLevel, logFile ='/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) ) )
-logFileLocation = '/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) )
+logFile = '/tmp/%s_%s_%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'])
+logger  = logger.get_logger(options.logLevel, logFile = logFile)
 
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-# flags (I think string searching is slow, so let's not do it in the filler function)
+# Flags 
 isDiLep     =   options.skim.lower().startswith('dilep')
 isTriLep     =   options.skim.lower().startswith('trilep')
 isSingleLep =   options.skim.lower().startswith('singlelep')
@@ -538,7 +538,7 @@ read_variables += [\
 if isVeryLoose:
     read_variables += [\
         TreeVariable.fromString('nLepOther/I'),
-        VectorTreeVariable.fromString('LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]'),
+        VectorTreeVariable.fromString('LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I,mcMatchId/I, mcMatchAny/I]'),
     ]
 new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) )
@@ -709,13 +709,12 @@ def filler( event ):
     bJets        = filter(lambda j:isBJet(j), jets)
     nonBJets     = filter(lambda j:not isBJet(j), jets)
     if isVeryLoose:
-        raise NotImplementedError
-        ## all leptons up to relIso 0.5
-        #mu_selector = muonSelector( iso = 999., dxy = 1., dz = 0.1 )
-        #ele_selector = eleSelector( iso = 999., dxy = 1., dz = 0.1 )
-        #leptons_pt10 = getGoodAndOtherLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
-        #ptCut = 20 if not isVeryLoosePt10 else 10 
-        #leptons      = filter(lambda l:l['pt']>ptCut, leptons_pt10)
+        ## all leptons up to relIso 0.4
+        mu_selector = muonSelector( relIso03 = 999., dxy = 1., dz = 0.1 )
+        ele_selector = eleSelector( relIso03 = 999., dxy = 1., dz = 0.1 )
+        leptons_pt10 = getGoodAndOtherLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
+        ptCut = 20 if not isVeryLoosePt10 else 10 
+        leptons      = filter(lambda l:l['pt']>ptCut, leptons_pt10)
     elif isLoose:
         raise NotImplementedError
         ## loose relIso lepton selection
@@ -1117,6 +1116,6 @@ if options.T2tt:
     output.clear()
 
 logger.info("Copying log file to %s"%outDir)
-copyLog = subprocess.call(['cp',logFileLocation,outDir])
-if copyLog: print "Copying log from %s to %s failed"%(logFileLocation,outDir)
+copyLog = subprocess.call(['cp',logFile,outDir])
+if copyLog: print "Copying log from %s to %s failed"%(logFile,outDir)
 else: print "Successfully copied log file"
