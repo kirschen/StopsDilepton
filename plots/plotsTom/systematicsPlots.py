@@ -22,7 +22,7 @@ import errno
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',            action='store',      default='DM',        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
+argParser.add_argument('--signal',            action='store',      default='T2tt',      nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots')
 argParser.add_argument('--selection',         action='store',      default=None)
@@ -291,7 +291,7 @@ for index, mode in enumerate(allModes):
   stack_mc = Stack( mc )
 
   if   args.signal == "T2tt": stack_data = Stack(data_sample, T2tt)
-  if   args.signal == "DM":   stack_data = Stack(data_sample, DM, DM2)
+  elif args.signal == "DM":   stack_data = Stack(data_sample, DM, DM2)
   else:                       stack_data = Stack(data_sample)
   sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
 
