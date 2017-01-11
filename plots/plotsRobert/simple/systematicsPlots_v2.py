@@ -379,7 +379,7 @@ for index, mode in enumerate(allModes):
   stack_mc   = Stack( mc )
 
   if   args.signal == "T2tt": stack_data = Stack( data_sample, T2tt, T2tt2 ) 
-  if   args.signal == "DM":   stack_data = Stack( data_sample, DM, DM2) 
+  elif args.signal == "DM":   stack_data = Stack( data_sample, DM, DM2) 
   else:                       stack_data = Stack( data_sample )
   sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
   plots = []
@@ -590,7 +590,6 @@ for index, mode in enumerate(allModes):
       ) for sys in all_systematics }
   plots.extend( met2_mc.values() )
 
-
   plotConfigs = [\
          [ dl_mt2ll_mc, dl_mt2ll_data, 20],
          [ njets_mc, njets_data, -1],
@@ -789,8 +788,6 @@ for index, mode in enumerate(allModes):
         plot_data.stack[i+1][0].texName = signal.texName
         plot_data.stack[i+1][0].style   = signal.style
         plot.stack += [[ plot_data.stack[i+1][0] ]]
-      print plot.histos
-      print plot.stack
 
       boxes = []
       ratio_boxes = []
