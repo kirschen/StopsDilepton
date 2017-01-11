@@ -216,30 +216,56 @@ else:
     print "Written %s" % filename 
 #var = 0
 #dof = 0
-for met_bin in met_bins:
-    chi2 = 0
-    ndof = 0
-    for mt2ll_bin in mt2ll_bins:
-        y_mc_tot    = sum( results[(met_bin, mt2ll_bin, mt2blbl_bin)]['mc'] for mt2blbl_bin in mt2blbl_bins) 
-        y_data_tot    = sum( results[(met_bin, mt2ll_bin, mt2blbl_bin)]['data'] for mt2blbl_bin in mt2blbl_bins) 
-        scale = (y_data_tot / y_mc_tot).val
-        ndof -= 1 # scale reduces NDOF
-        for mt2blbl_bin in mt2blbl_bins:
-            y_mc   = results[(met_bin, mt2ll_bin, mt2blbl_bin)]['mc'] 
-            y_data   = results[(met_bin, mt2ll_bin, mt2blbl_bin)]['data'] 
-            tot_rel_sys = sqrt(sum([s.val**2 for s in results[(met_bin, mt2ll_bin, mt2blbl_bin)]['rel_sys'].values()]))
-            if y_data>0:
-                try:
-                    r = y_data/(y_mc*scale)
-                    d_chi2 = ( (r.val-1)/sqrt( r.sigma**2 + tot_rel_sys**2) )**2
-                except ZeroDivisionError:
-                    r = 0
-                    d_chi2 = 0 
-            chi2 += d_chi2
-            ndof += 1
-            print "r",r.val,"+/-",r.sigma, "tot_rel_sys",tot_rel_sys, "d_chi2",d_chi2, "chi2 now",chi2
 
-    print met_bin, chi2/ndof
+def t_str( b, v ):
+    if b[0]>0: 
+        res = "%i \\leq %s"%( b[0], v ) 
+    else:
+        res = v
+    if b[1]>0:
+        res+="< %i"%b[1]
+    return res
+
+corrTexFile = "corrTab.tex" 
+with open(corrTexFile, "w") as corrTable:
+    corrTable.write("\\begin{tabular}{r|r|"+"|lclcl"*len(mt2blbl_bins)+"} \n")
+    corrTable.write("  \\ETmiss & $M_{T2}(ll)$ & "+ "&".join( "\\multicolumn{5}{c}{$%s$}" % t_str(mt2blbl_bin, "M_{T2}(blbl)") for mt2blbl_bin in mt2blbl_bins )+" \\\\ \n")
+    corrTable.write("  &  & "+ "&".join( " ratio && stat. && sys." for mt2blbl_bin in mt2blbl_bins )+" \\\\ \n")
+    corrTable.write("  \\hline \n")
+
+    for met_bin in met_bins:
+        chi2 = 0
+        ndof = 0
+        for mt2ll_bin in mt2ll_bins:
+            y_mc_tot    = sum( results[(met_bin, mt2ll_bin, mt2blbl_bin)]['mc'] for mt2blbl_bin in mt2blbl_bins) 
+            y_data_tot    = sum( results[(met_bin, mt2ll_bin, mt2blbl_bin)]['data'] for mt2blbl_bin in mt2blbl_bins) 
+            scale = (y_data_tot / y_mc_tot).val
+            ndof -= 1 # scale reduces NDOF
+            s_string =  "$%s$ & $%s$" % ( t_str(met_bin, "\\ETmiss"), t_str(mt2ll_bin, "M_{T2}(ll)") )
+
+            for mt2blbl_bin in mt2blbl_bins:
+                y_mc   = results[(met_bin, mt2ll_bin, mt2blbl_bin)]['mc'] 
+                y_data   = results[(met_bin, mt2ll_bin, mt2blbl_bin)]['data'] 
+                tot_rel_sys = sqrt(sum([s.val**2 for s in results[(met_bin, mt2ll_bin, mt2blbl_bin)]['rel_sys'].values()]))
+                if y_data>0:
+                    try:
+                        r = y_data/(y_mc*scale)
+                        d_chi2 = ( (r.val-1)/sqrt( r.sigma**2 + tot_rel_sys**2) )**2
+                    except ZeroDivisionError:
+                        r = 0
+                        d_chi2 = 0 
+                chi2 += d_chi2
+                ndof += 1
+                s_string += " & %3.2f & $\\pm$ & %3.2f &$\\pm$& %3.2f" % ( r.val, r.sigma, r.val*tot_rel_sys)
+
+            corrTable.write(s_string+"\\\\\n")
+
+        corrTable.write("  \\hline \n")
+        print met_bin, chi2/ndof
+
+    corrTable.write("\\end{tabular} \n")
+    corrTable.write("\\caption{ Data/MC ratios} \n")
+
 
 #            r= (sum(y_data.values())/sum(y_mc.values()))
 #            var+=r*r

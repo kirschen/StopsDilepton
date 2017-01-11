@@ -45,22 +45,13 @@ lumiScale = 10.
 lepPdgs = [11,13,15]
 nuPdgs = [12,14,16]
 
-dilep = True
-
 maxN  = -1
 evtNr = -1
 #evtNr = 19956300 # event 9, e matched to gamma
 #evtNr = 55481323 # event 24, tautoE 205 GeV extra neutrino
 
-if dilep:
-    sample = Sample.fromDirectory(name="TTJets_Lep", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (lep)", \
-                directory=['/afs/hephy.at/data/rschoefbeck02/cmgTuples/postProcessed_80X_v7/dilep/TTJets_DiLepton_comb/'], maxN = maxN)
-else:
-    pass
-    #samples = [ Sample.fromDirectory(name=name, treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets", \
-    #            directory=['/afs/hephy.at/data/rschoefbeck01/cmgTuples/postProcessed_Fall15_mAODv2/dilep/%s/'%name ], maxN = maxN) for name in \
-    #                ["TTJets_SingleLeptonFromTbar_comb", "TTJets_SingleLeptonFromT_comb"] ]
-    #sample = Sample.combine( "TTJets_singleLep", samples, maxN = maxN )
+sample = Sample.fromDirectory(name="TTLep_pow", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (poq)", \
+            directory=['/afs/hephy.at/data/dspitzbart01/cmgTuples/postProcessed_80X_v26/dilep/TTLep_pow_ext'], maxN = maxN)
 
 def bold(s):
     return '\033[1m'+s+'\033[0m'
@@ -75,18 +66,20 @@ def vecPtSum(objs, subtract=[]):
 def uniqueListOfDicts( L ):
     return list({v['pt']:v for v in L}.values())
 
-cuts=[\
-  ("filterCut", "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadron&&Flag_badMuon" ),
-  ("leptons", "(isEMu==1&&nGoodMuons==1&&nGoodElectrons==1 || ( isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0 || isEE==1&&nGoodMuons==0&&nGoodElectrons==2 ) && abs(dl_mass-91.2)>15)"),
-  ("mll20", "dl_mass>20"),
-  ("l1pt25", "l1_pt>25"),
+cuts=[
+  #("==2 VT leptons (25/20)", "nGoodMuons+nGoodElectrons==2&&l1_mIsoWP>=5&&l2_mIsoWP>=5&&l1_pt>25"),
+  ("filterCut", "Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter" ),
+  ("==2 relIso03<0.12 leptons 25/20", "nGoodMuons+nGoodElectrons==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>25"),
+  ("opposite sign","isOS==1"),
+  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2"),
+  ("m(ll)>20", "dl_mass>20"),
+  ("|m(ll) - mZ|>15 for SF","( (isMuMu==1||isEE==1)&&abs(dl_mass-91.2)>=15 || isEMu==1 )"),
+  (">=2 jets", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
+  (">=1 b-tags (CSVv2)", "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
+  ("MET>80", "met_pt>80"),
+  ("MET/sqrt(HT)>5", "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
   ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
-  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
-  ("isOS","isOS==1"),
-  ("njet2", "nJetGood>=2" ),
-  ("nbtag1", "nBTag>=1" ),
-  ("met80", "met_pt>80" ),
-  ("metSig5", "metSig>5" ),
+  # ("MT2(ll) > 140", "dl_mt2ll>140"),
     ]
 
 if evtNr>0:
@@ -107,7 +100,7 @@ common_variables= [\
     TreeVariable.fromString('nTrueInt/F'),
 
     TreeVariable.fromString('ngenPartAll/I'),
-    VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/F,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I]', nMax=200 ),
+    VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,mass/F,pdgId/I,status/I,charge/F,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 ),
 
     TreeVariable.fromString( 'nLepGood/I' ),
 
@@ -118,8 +111,8 @@ cmg_variables = [\
     TreeVariable.fromString( 'nJet/I' ),
     VectorTreeVariable.fromString('Jet[pt/F,eta/F,phi/F,mcPt/F,btagCSV/F,id/I]'),
     TreeVariable.fromString( 'nLepOther/I' ),
-    VectorTreeVariable.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F,eleCutIdSpring15_25ns_v1/I]'),
-    VectorTreeVariable.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F,eleCutIdSpring15_25ns_v1/I]'),
+    VectorTreeVariable.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I,etaSc/F,relIso03/F,mcMatchId/I,mcMatchAny/I]'),
+    VectorTreeVariable.fromString('LepGood[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I,etaSc/F,relIso03/F,mcMatchId/I,mcMatchAny/I]'),
 ]
 
 postProcessed_variables = [\
@@ -167,17 +160,17 @@ reader.start()
 while reader.run():
     positions[( reader.event.run, reader.event.lumi, reader.event.evt )] = reader.position - 1
 
-selected_events = "||".join([ "run==%i&&lumi==%i&&evt==%i" % e for e in positions.keys() ] )
+selected_events = "||".join([ "lumi==%i&&evt==%i" % e[1:] for e in positions.keys() ] )
 logger.info( "Constructing event selection: %s", selected_events )
 
 # original cmg sample
 from StopsDilepton.samples.helpers import fromHeppySample
-if dilep:
-    cmg_samples = [ fromHeppySample(s, data_path = user.cmg_directory, maxN = -1) for s in ["TTJets_DiLepton", "TTJets_DiLepton_ext"] ]
-    cmg_sample = Sample.combine("cmg_sample", cmg_samples, maxN = -1)
-else:
-    cmg_samples = [ fromHeppySample(s, data_path = user.cmg_directory, maxN = -1) for s in ["TTJets_SingleLeptonFromTbar", "TTJets_SingleLeptonFromT", "TTJets_SingleLeptonFromTbar_ext", "TTJets_SingleLeptonFromT_ext"] ]
-    cmg_sample = Sample.combine("cmg_sample", cmg_samples, maxN = -1)
+
+from StopsDilepton.samples.heppy_dpm_samples import mc_heppy_mapper
+#cmg_samples = [ fromHeppySample(s, data_path = user.cmg_directory, maxN = -1) for s in ["TTJets_DiLepton", "TTJets_DiLepton_ext"] ]
+cmg_sample = mc_heppy_mapper.from_heppy_samplename("TTLep_pow_ext") 
+if maxN == 1:
+    cmg_sample.files = ['root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_21/TTTo2L2Nu_13TeV-powheg/RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1_80X_1l_21/161130_194450/0000/tree_3.root']
 
 cmg_reader = cmg_sample.treeReader( \
     variables = common_variables + cmg_variables,
@@ -217,14 +210,14 @@ for i_event, event in enumerate( intersec ):
     logger.info( "Run %i lumi %i event %i", reader.event.run, reader.event.lumi, reader.event.evt )
 
     # gen particles
-    gPart = getGenPartsAll( reader.data )
+    gPart = getGenPartsAll( reader.event )
     genSearch.init( gPart )
 
     # reco leptons
-    mu_selector = muonSelector( iso = 999., dxy = 1., dz = 0.1 )
-    ele_selector = eleSelector( iso = 999., dxy = 1., dz = 0.1 )
-    all_reco_leps = getGoodAndOtherLeptons(cmg_reader.data, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
-    #all_reco_leps = getGoodAndOtherLeptons(cmg_reader.data, ptCut=10, miniRelIso = 999. , dz = 0.1, dxy = 1.)
+    mu_selector = muonSelector( relIso03 = 0.12 ) 
+    ele_selector = eleSelector( relIso03 = 0.12 )
+    all_reco_leps = getGoodAndOtherLeptons(cmg_reader.event, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
+    #all_reco_leps = getGoodAndOtherLeptons(cmg_reader.event, ptCut=10, miniRelIso = 999. , dz = 0.1, dxy = 1.)
 
     # Start with generated leptons and match to reco ones
     # W decay modes
@@ -433,7 +426,7 @@ for i_event, event in enumerate( intersec ):
     if mt2ll_genMet<140:
         logger.info(bold("MET mismeasurement"))
 
-    jets = [ getObjDict(cmg_reader.data, "Jet_", ["pt","eta","phi","mcPt","id"], i) for i in range(cmg_reader.event.nJet) ] 
+    jets = [ getObjDict(cmg_reader.event, "Jet_", ["pt","eta","phi","mcPt","id"], i) for i in range(cmg_reader.event.nJet) ] 
     dx, dy = 0., 0.
     for j in jets:
         if j['mcPt']>0:

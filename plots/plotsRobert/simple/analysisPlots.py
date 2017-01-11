@@ -50,12 +50,13 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 # Make samples, will be searched for in the postProcessing directory
 #
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny"
+postProcessing_directory = "postProcessed_80X_v22/dilepTiny"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 if args.signal == "T2tt":
+    postProcessing_directory = "postProcessed_80X_v26/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
     T2tt                    = T2tt_650_1
     T2tt2                   = T2tt_500_250
@@ -86,21 +87,9 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
     if "mt2ll100" in args.selection and args.noData: lines += [(0.55, 0.5, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
     return [tex.DrawLatex(*l) for l in lines] 
 
-def copyIndexPHP( directory ):
-    import shutil
-    index_php = os.path.join( directory, 'index.php' )
-    if not os.path.exists( directory ): os.makedirs( directory )  
-    if not os.path.exists( index_php ):
-      shutil.copyfile( os.path.expandvars( '$CMSSW_BASE/src/StopsDilepton/tools/php/index.php' ), index_php )
-
-copyIndexPHP( plot_directory )
-copyIndexPHP( os.path.join( plot_directory, args.plot_directory ) )
-
 def drawPlots(plots, mode, dataMCScale):
   for log in [False, True]:
-    copyIndexPHP( os.path.join( plot_directory, args.plot_directory, mode + ("_log" if log else "") ) )
     plot_directory_ = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection)
-    copyIndexPHP( plot_directory_ )
     for plot in plots:
       if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
       if not args.noData: 
@@ -132,12 +121,12 @@ def getLeptonSelection( mode ):
   elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
 
-#For PU reweighting
-from StopsDilepton.tools.puReweighting import getReweightingFunction
-nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
-nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
-nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
-nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
+##For PU reweighting
+#from StopsDilepton.tools.puReweighting import getReweightingFunction
+#nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
+#nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
+#nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
+#nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
 
 #
 # Loop over channels
@@ -147,9 +136,9 @@ allPlots   = {}
 allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
-  if   mode=="mumu": data_sample = DoubleMuon_Run2016BCDEFG_backup
-  elif mode=="ee":   data_sample = DoubleEG_Run2016BCDEFG_backup
-  elif mode=="mue":  data_sample = MuonEG_Run2016BCDEFG_backup
+  if   mode=="mumu": data_sample = DoubleMuon_Run2016_backup
+  elif mode=="ee":   data_sample = DoubleEG_Run2016_backup
+  elif mode=="mue":  data_sample = MuonEG_Run2016_backup
   if   mode=="mumu": data_sample.texName = "data (2 #mu)"
   elif mode=="ee":   data_sample.texName = "data (2 e)"
   elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
@@ -179,16 +168,19 @@ for index, mode in enumerate(allModes):
 
   for sample in mc + signals:
     sample.scale          = lumi_scale
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
    #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
     sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
 
-  #for sample in [T2tt, T2tt2]:
-  #  sample.scale          = lumi_scale
-  #  sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
-  #  sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
-  #  sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+  for sample in signals:
+      if args.signal == "T2tt":
+        sample.scale          = lumi_scale
+        sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
+        sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+        sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+      else:
+        raise NotImplementedError
 
 
   if not args.noData:
@@ -505,5 +497,5 @@ with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
   for mode in allModes + ["SF","all"]:
     f.write(mode + " & " + " & ".join([ (" %12.0f" if i == "data" else " %12.2f") % yields[mode][i] for i in columns]) + "\\\\ \n")
 
-logger.info( "Done with prefix %s and selectionString %s", args.selection, getSelectionString(args.selection) )
+logger.info( "Done with prefix %s and selectionString %s", args.selection, cutInterpreter.cutString(args.selection) )
 

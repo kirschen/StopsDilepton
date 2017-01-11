@@ -229,6 +229,46 @@ class cardFileWriter:
         shutil.rmtree(uniqueDirname)
         return res
 
+    def calcNuisances(self, fname=None, options=""):
+        import uuid, os
+        ustr          = str(uuid.uuid4())
+        uniqueDirname = os.path.join(self.releaseLocation, ustr)
+        print "Creating %s"%uniqueDirname
+        os.makedirs(uniqueDirname)
+        shutil.copyfile(os.path.join(os.environ['CMSSW_BASE'], 'src', 'StopsDilepton', 'tools', 'python', 'cardFileWriter', 'diffNuisances.py'), os.path.join(uniqueDirname, 'diffNuisances.py'))
+
+        if fname is not None:  # Assume card is already written when fname is not none
+          filename = os.path.abspath(fname)
+        else:
+          filename = fname if fname else os.path.join(uniqueDirname, ustr+".txt")
+          self.writeToFile(filename)
+        resultFilename      = filename.replace('.txt','')+'_nuisances.txt'
+        resultFilenameFull  = filename.replace('.txt','')+'_nuisances_full.txt'
+        resultFilename2     = filename.replace('.txt','')+'_nuisances.tex'
+        resultFilename2Full = filename.replace('.txt','')+'_nuisances_full.tex'
+
+        assert os.path.exists(filename), "File not found: %s"%filename
+
+        combineCommand  = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --forceRecreateNLL -M MaxLikelihoodFit "+filename
+        combineCommand +=";python diffNuisances.py  mlfit.root &> nuisances.txt"
+        combineCommand +=";python diffNuisances.py -a mlfit.root &> nuisances_full.txt"
+        combineCommand +=";python diffNuisances.py -f latex mlfit.root &> nuisances.tex"
+        combineCommand +=";python diffNuisances.py -af latex mlfit.root &> nuisances_full.tex"
+        print combineCommand
+        os.system(combineCommand)
+
+        tempResFile      = uniqueDirname+"/nuisances.txt"
+        tempResFileFull  = uniqueDirname+"/nuisances_full.txt"
+        tempResFile2     = uniqueDirname+"/nuisances.tex"
+        tempResFile2Full = uniqueDirname+"/nuisances_full.tex"
+        shutil.copyfile(tempResFile, resultFilename)
+        shutil.copyfile(tempResFileFull, resultFilenameFull)
+        shutil.copyfile(tempResFile2, resultFilename2)
+        shutil.copyfile(tempResFile2Full, resultFilename2Full)
+
+        shutil.rmtree(uniqueDirname)
+        return
+
 
     def calcSignif(self, fname="", options=""):
         import uuid, os

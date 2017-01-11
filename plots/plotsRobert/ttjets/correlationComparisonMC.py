@@ -14,6 +14,12 @@ argParser.add_argument('--logLevel',
 )
 args = argParser.parse_args()
 
+# RootTools
+from RootTools.core.standard import *
+
+# StopsDilepton
+from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain
+
 # Logging
 import StopsDilepton.tools.logger as logger
 from StopsDilepton.tools.user import plot_directory
@@ -21,18 +27,14 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-plot_directory = "/afs/cern.ch/work/s/schoef/www/ttjets_correlation"
+plot_directory += "/ttjets_correlation"
 
-#from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import dirs, color
-#postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
-#from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import Top as Top_relIso
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
-data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed_ICHEP import *
-
-from RootTools.core.standard import *
-
-from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain
+data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v21/dilepTiny"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 samples = [TTJets_Dilep, TTLep_pow, TTJets]
 
@@ -62,60 +64,28 @@ cuts=[
   ("dPhiJetMET", "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
     ]
 
-#relIso_cuts   =  [("==2 relIso03<0.12 leptons", "nGoodMuons+nGoodElectrons==2&&l1_relIso03<0.12&&l2_relIso03<0.12"),
-#                  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2"),
-#                ]
-multiIso_cuts =  [("==2 VT leptons (25/20)",    "nGoodMuons+nGoodElectrons==2&&l1_mIsoWP>=5&&l2_mIsoWP>=5&&l1_pt>25"),
-                  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
+iso_cuts   =  [("==2 relIso03<0.12 leptons", "nGoodMuons+nGoodElectrons==2&&l1_relIso03<0.12&&l2_relIso03<0.12"),
+                  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2"),
                 ]
+#iso_cuts =  [("==2 VT leptons (25/20)",    "nGoodMuons+nGoodElectrons==2&&l1_mIsoWP>=5&&l2_mIsoWP>=5&&l1_pt>25"),
+#                  ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
+#                ]
 
 #h_relIso   = Top_relIso.get1DHistoFromDraw( "dl_mt2ll", binning = [300/20,0,300], selectionString = "&&".join([c[1] for c in cuts + relIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string )
 #h_relIso.style = styles.lineStyle( errors = True,  color = ROOT.kRed )
 #h_relIso.legendText = "relIso03<0.12"
+
+binning = [0,25,50,75,100,140,240,340]
+mt2blbl_binning = [0,25,50,75,100,150,250]
 
 for met_bin in [ (80, -1), (80,200), (200,-1)]:
     met_low, met_high = met_bin
     met_cuts = [("", "met_pt>"+str(met_low))]
     if met_high>0: met_cuts += [("", "met_pt<"+str(met_high))]
 
-    binning = [0,25,50,75,100,140,240,340]
-
-    h_TTJets_Dilep = TTJets_Dilep.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + met_cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string, binningIsExplicit = True)
-    h_TTJets_Dilep.style = styles.lineStyle( errors = True,  color = ROOT.kRed )
-    h_TTJets_Dilep.legendText = "madgraph"
-
-    h_TTLep_pow = TTLep_pow.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + met_cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string,
-    binningIsExplicit = True)
-    h_TTLep_pow.style = styles.lineStyle( errors = True,  color = ROOT.kBlue )
-    h_TTLep_pow.legendText = "powheg"
-
-    h_TTJets = TTJets.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + met_cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string,
-    binningIsExplicit = True)
-    h_TTJets.style = styles.lineStyle( errors = True,  color = ROOT.kGreen )
-    h_TTJets.legendText = "amc@nlo"
-
-    h_TTJets_Dilep.Scale(2.4)
-    h_TTLep_pow.Scale(2.4)
-    h_TTJets.Scale(2.4)
-
-    ratio = {'yRange':(0.1,1.9), 'num':2, 'den':1, 'texY':'pow/MG'}
-    plotting.draw(
-        Plot.fromHisto("mt2ll_top_comparison_met_%i_%i"%(met_low, met_high),
-            [ [h_TTJets], [ h_TTJets_Dilep ], [ h_TTLep_pow ] ],
-            texX = "MT_{2}^{ll} (GeV)"
-        ), 
-        plot_directory = plot_directory, ratio = ratio, 
-        logX = False, logY = True, sorting = False, 
-        yRange = (0.003, "auto"), 
-        scaling = {1:0, 2:0},
-        legend = "auto",
-        #drawObjects = drawObjects( dataMCScale )
-    )
-
-    mt2blbl_binning = [0,25,50,75,100,150,250]
-
-    h_TTJets_Dilep_njets = TTJets_Dilep.get1DHistoFromDraw( "nJetGood", binning = [10,0,10], selectionString = "&&".join([c[1] for c in cuts + met_cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string )
-    h_TTLep_pow_njets = TTLep_pow.get1DHistoFromDraw( "nJetGood", binning = [10,0,10], selectionString = "&&".join([c[1] for c in cuts + met_cuts + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string)
+    # njet reweighting
+    h_TTJets_Dilep_njets = TTJets_Dilep.get1DHistoFromDraw( "nJetGood", binning = [10,0,10], selectionString = "&&".join([c[1] for c in cuts + met_cuts + iso_cuts]), addOverFlowBin = 'upper', weightString = weight_string )
+    h_TTLep_pow_njets = TTLep_pow.get1DHistoFromDraw( "nJetGood", binning = [10,0,10], selectionString = "&&".join([c[1] for c in cuts + met_cuts + iso_cuts]), addOverFlowBin = 'upper', weightString = weight_string)
 
     h_TTJets_Dilep_njets.Scale(1./h_TTJets_Dilep_njets.Integral())
     h_TTLep_pow_njets.Scale(1./h_TTLep_pow_njets.Integral())
@@ -125,19 +95,69 @@ for met_bin in [ (80, -1), (80,200), (200,-1)]:
 
     njet_mg_to_pow_reweight = "("+"+".join( [ "%3.3f*(nJetGood==%i)"%(njet_rw.GetBinContent(i+1), i) for i in range(2,10) ] + ["(nJetGood>=10)"] )+")"
 
+    print "Using njet reweighting %s" % njet_mg_to_pow_reweight
+
+    njet_rw.legendText = "n-jet reweight"
+    plotting.draw(
+        Plot.fromHisto("njet_reweighting_met_%i_%i"%(met_low, met_high),
+            [ [ njet_rw ] ],
+            texX = "jet multiplicity"
+        ), 
+        plot_directory = plot_directory, ratio = None, 
+        logX = False, logY = False, sorting = False, 
+        yRange = (0.003, "auto"), # xRange = (2,10), 
+        # scaling = {1:0, 2:0},
+        legend = "auto",
+        #drawObjects = drawObjects( dataMCScale )
+    )
+
     for prefix, reweight in [ ( "nominal", "(1)"), ("mg_to_pow", njet_mg_to_pow_reweight) ]:
+
+        h_TTJets_Dilep = TTJets_Dilep.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + met_cuts + iso_cuts]), addOverFlowBin = 'upper', weightString = weight_string+"*"+reweight, binningIsExplicit = True)
+        h_TTJets_Dilep.style = styles.lineStyle( errors = True,  color = ROOT.kRed )
+        h_TTJets_Dilep.legendText = "madgraph"
+
+        h_TTLep_pow = TTLep_pow.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + met_cuts + iso_cuts]), addOverFlowBin = 'upper', weightString = weight_string,
+        binningIsExplicit = True)
+        h_TTLep_pow.style = styles.lineStyle( errors = True,  color = ROOT.kBlue )
+        h_TTLep_pow.legendText = "powheg"
+
+        h_TTJets = TTJets.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + met_cuts + iso_cuts]), addOverFlowBin = 'upper', weightString = weight_string,
+        binningIsExplicit = True)
+        h_TTJets.style = styles.lineStyle( errors = True,  color = ROOT.kGreen )
+        h_TTJets.legendText = "amc@nlo"
+
+        h_TTJets_Dilep.Scale(2.4)
+        h_TTLep_pow.Scale(2.4)
+        h_TTJets.Scale(2.4)
+
+        ratio = {'yRange':(0.1,1.9), 'num':2, 'den':1, 'texY':'pow/MG'}
+        plotting.draw(
+            Plot.fromHisto("mt2ll_top_comparison_met_%i_%i_rw_%s"%(met_low, met_high, prefix),
+                [ [h_TTJets], [ h_TTJets_Dilep ], [ h_TTLep_pow ] ],
+                texX = "MT_{2}^{ll} (GeV)"
+            ), 
+            plot_directory = plot_directory, ratio = ratio, 
+            logX = False, logY = True, sorting = False, 
+            yRange = (0.003, "auto"), 
+            scaling = {1:0, 2:0},
+            legend = "auto",
+            #drawObjects = drawObjects( dataMCScale )
+        )
+
+
         for mt2ll_low, mt2ll_high in [ [ 0, 25], [25, 50], [50, 75], [75, 100], [100, 140], [140,240]]:
             cuts_mt2blbl = cuts + met_cuts + [("mt2ll_low", "dl_mt2ll>%f"%mt2ll_low), ("mt2ll_high", "dl_mt2ll<%f"%mt2ll_high)]
 
-            h_TTJets_Dilep = TTJets_Dilep.get1DHistoFromDraw( "dl_mt2blbl", binning = mt2blbl_binning, selectionString = "&&".join([c[1] for c in cuts_mt2blbl + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string+"*"+reweight, binningIsExplicit = True )
+            h_TTJets_Dilep = TTJets_Dilep.get1DHistoFromDraw( "dl_mt2blbl", binning = mt2blbl_binning, selectionString = "&&".join([c[1] for c in cuts_mt2blbl + iso_cuts]), addOverFlowBin = 'upper', weightString = weight_string+"*"+reweight, binningIsExplicit = True )
             h_TTJets_Dilep.style = styles.lineStyle( errors = True,  color = ROOT.kRed )
             h_TTJets_Dilep.legendText = "madgraph"
 
-            h_TTLep_pow = TTLep_pow.get1DHistoFromDraw( "dl_mt2blbl", binning = mt2blbl_binning, selectionString = "&&".join([c[1] for c in cuts_mt2blbl + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string, binningIsExplicit = True )
+            h_TTLep_pow = TTLep_pow.get1DHistoFromDraw( "dl_mt2blbl", binning = mt2blbl_binning, selectionString = "&&".join([c[1] for c in cuts_mt2blbl + iso_cuts]), addOverFlowBin = 'upper', weightString = weight_string, binningIsExplicit = True )
             h_TTLep_pow.style = styles.lineStyle( errors = True,  color = ROOT.kBlue )
             h_TTLep_pow.legendText = "powheg"
 
-            h_TTJets = TTJets.get1DHistoFromDraw( "dl_mt2blbl", binning = mt2blbl_binning, selectionString = "&&".join([c[1] for c in cuts_mt2blbl + multiIso_cuts]), addOverFlowBin = 'upper', weightString = weight_string, binningIsExplicit = True)
+            h_TTJets = TTJets.get1DHistoFromDraw( "dl_mt2blbl", binning = mt2blbl_binning, selectionString = "&&".join([c[1] for c in cuts_mt2blbl + iso_cuts]), addOverFlowBin = 'upper', weightString = weight_string, binningIsExplicit = True)
             h_TTJets.style = styles.lineStyle( errors = True,  color = ROOT.kGreen )
             h_TTJets.legendText = "amc@nlo"
 

@@ -5,6 +5,7 @@ import os
 import logging
 import ROOT
 from math import cos, sin, atan2, sqrt
+import itertools
 
 #RootTools
 from RootTools.core.standard import *
@@ -36,7 +37,8 @@ def bold(s):
 
 ## 8X mAOD, assumes eos mount in home directory 
 ## from Directory
-dirname = "/data/rschoefbeck/pickEvents/StopsDilepton/tail_ttjetsDilep_80X" 
+#dirname = "/data/rschoefbeck/pickEvents/StopsDilepton/tail_ttjetsDilep_80X" 
+dirname = "/data/rschoefbeck/pickEvents/StopsDilepton/TTPow/AOD" 
 s0 = FWLiteSample.fromDirectory("mt2Tail", directory = os.path.expanduser(dirname) )
 
 products = {
@@ -64,81 +66,54 @@ def vecSumPt(particles):
 while r.run():
 #    if any(e in r.evt for e in [3991364, 4854452, 10356846, 21762195, 4532888, 15495640, 17276057, 20991689, 33607796, 40308549, 41117351, 42552044, 48024871, 51884514]):continue
 #    if any(e in r.evt for e in [53964677, 56369604, 56740873, 58872109, 60203349, 61608051, 68707320, 71158655, 78110867, 87973932, 94275792]):continue
-    print "At %i:%i:%i" % r.evt    
-
-    # 80X
-    # 0. 1:4953:3991364 # 300 GeV gamma lost in dead cell (jet mism.)
-    # 1. 1:5468:4532888 # 80 GeV jet mismeasurement , -0.934/2.9678 (jet mism.)
-    # 2. 1:6024:4854452 # 2x40 GeV lost 1.6/-2.4, 1.9/2.7 (gaussian jet mism.), 40 GeV neutrino from jet
-    # 3. 1:6171:4972344 # drastic mismeasurement ecal 160 GeV 
-    # 4. 1:12852:10356846 # lost K_plus 117.1/1.391/-2.527
-    # 5. 1:13923:11219847 (most probably jet mismeasurement, no AOD available)
-    # 6. 1:17046:13736425 jet mism. + 30 GeV neutrino in jet 
-    # 7. 1:18692:15495640 # overmeasured muon at 148->184 2.287/-0.282? 30 GeV jet mismeasurement
-    # 8. 1:20840:17276057 # lost high pt gammas at -1.5/0.6 (jet mism.), 40 GeV neutrino in jet
-    # 9. 1:25322:20991689 # neutrino in a jet of 100GeV, just passing the threshold (142GeV)
-    # 11. 1:27005:21762195 # lost gammas and neutrals in dead cell 1.152/-3.077 (jet mism.)
-    # 12. 1:40541:33607796 # lost mu- from W, picked up 60 GeV e- fake, EMu->EE, some trk inefficieny at -2.175/0.183 (end of trk coverage, seems gaussian)
-    # 13. 1:48624:40308549 # lost high pt gammas (jet mism.)
-    # 14. 1:49599:41117351 # lost 50 GeV mu- in a jet 52.2/-0.999/0.558 
-    # 15. 1:51330:42552044 # lost energy in ECAL (jet mism., 100 GeV) -0.837/2.890
-    # 16. 1:57932:48024871 # overmeasured muon 125->330  0.289/-2.763, 50 GeV probably gaussian jet mismeasurement) 
-    # 17. 1:62587:51884514 # likely gaussian jet mismeasurement (60 GeV in a 200GeV genjet plus 40 GeV neutrino in another jet)
-    # 18. 1:65097:53964677 # mumu->emu, lost mu to pt cut, picked up fake e from conversion gamma, plus jet mism 40 GeV (gaussian) 
-    # 19. 1:67998:56369604 # 60 GeV from neutrino from jet
-    # 20. 1:68445:56740873 # tau decaying hadronically + non-prompt mu
-    # 21. 1:71016:58872109  fake muon with 60 GeV inconsistency btw inner track and global track
-    # 22. 1:72622:60203349 200 GeV neutrino in jet, plus 70 GeV photons lost 
-    # 23. 1:74317:61608051 overmeasured muon 114.0/-2.275/-1.514 -> 154.1/-2.275/-1.51, 20 GeV neutrino in jet4
-    # 24. 1:82880:68707320 likely non-prompt mu, no AOD available
-    # 25. 1:85837:71158655 160 GeV neutrino from jet
-    # 26. 1:94223:78110867 360 GeV gamma lost in crack
-    # 27. 1:106121:87973932 150 GeV fake MET from various hadronic mism.
-    # 28. 1:113723:94275792 jet mismeasurement at eta~3 + 20 GeV neutrino
-
-    # 76X
-    #if not 3460888 in r.evt: continue  #Evt 1, EMu, 150 GeV, lost p0(103) ->e+/e- pair at 1.013/0.665
-    #if not 3991364 in r.evt: continue  #Evt 2, EMu, 315 GeV lost 330 GeV ISR gamma at -2.1/ -2.5 (leading gen particle)
-    #if not 4854452 in r.evt: continue  #Evt 3, MuMu, 50 GeV, lost few neutrals and gammas at 1.6/-2.3, 40 GeV neutrino 
-    #if not 10312243 in r.evt: continue #Evt 4, EMu, 400 GeV mismeasurement, eta -> gamma, gamma -> lost at 1.8/0.8
-    #if not 13250511 in r.evt: continue #Evt 5, 42 GeV: 50 GeV jet mismeasurement (several small mism) 
-    #if not 16492719 in r.evt: continue #Evt 6, EE, 45 GeV: K_plus and mu_plus at 50 GeV generated, only one ch.had. at 50 GeV reco'd
-    #if not 17276057 in r.evt: continue #Evt 7, MuMu, 316 GeV: several 50,90 GeV gammas (from pi0 and omegas from a jet) missing at -1.539/0.630 
-    #if not 21144763 in r.evt: continue #Evt 10, EE, 100 GeV: charged hadron mismeas. at -0.933/2.989, few gammas undermeasured (jet mism)
-    #if not 25233964 in r.evt: continue #Evt 11, MuMu 540 GeV, 1.15TeV b-jet. Lost a 800 GeV mu :-)
-    #if not 29094314 in r.evt: continue #Evt 13 100 GeV, lost gammas at -2.069/-2.430
-    #if not 40308549 in r.evt: continue #Evt 18, MuMu 140 GeV, lost gammas at 0.985/1.688
-    #if not 52311562 in r.evt: continue #Evt 20, EMu, 140 GeV lost gammas at 3.024/2.659 (energy is lost in crack between HE and HF)
-    #if not 52834013 in r.evt: continue #Evt 21, EMu, 120 GeV, two jet mism 
-    #if not 54909633 in r.evt: continue #Evt 23, 50 GeV -> looks OK? several small mism.
-    #if not 59284952 in r.evt: continue #Evt 25, 115 GeV, several gammas lost at -0.093/-1.037
-    #if not 61847446 in r.evt: continue #Evt 26, 50 GeV, small mism adding up.
-    #if not 65772127 in r.evt: continue #Evt 28, EE, 116 GeV, several high pt gamma lost at 1.455/2.789 (plus some smaller mism in other directions, 1.141/-3.027)
-    #if not 71404140 in r.evt: continue #Evt 31, 100 GeV isolated 100 GeV photon lost at -0.105/-2.545
-    #if not 71630610 in r.evt: continue #Evt 32, 120 GeV, few charged and neutral hadrons missed, reco'd 200 GeV jet instead of 300 
-    #if not 73435936 in r.evt: continue #Evt 33, 55 GeV, don't have the guy (2/38)
-    #if not 78110867 in r.evt: continue #Evt 34, 350 GeV, lost 300 GeV gamma at 1.775/-2.024
-    #if not 87143733 in r.evt: continue #Evt 35, 78 GeV, don't have the guy
-    #if not 96010586 in r.evt: continue #Evt 36, 252 GeV, lost 50 GeV electron at 2.396/-1.872, MET comes from spurious (isolated??) e- of 311 GeV at 0.11/-1.57 (almost back to back)
-    #if not 99537081 in r.evt: continue #Evt 37, MuMu, 114 GeV, lost 40 GeV gamma at -0.101/2.089, lost a few more neutrals
-
-
     gp = filter(lambda p:p.status()==1, r.products['gen'])
     gp.sort(key = lambda p: - p.pt() )
 
     pf = list(r.products['pf'])
     pf.sort(key = lambda p: - p.pt() )
 
+    muons = filter(lambda p:abs(p.pdgId()) == 13, pf)
+    minDR = 999
+    if len(muons)>=2:
+        for m1, m2 in itertools.combinations(muons, 2):
+            dR = deltaR(toDict(m1), toDict(m2))
+            if minDR>dR:
+                m1_min, m2_min = m1, m2
+                minDR = dR
+
+    if minDR>0.05: continue
+    print "At %i:%i:%i" % r.evt    
+
+    print
+    print "minDR", minDR
+    for p in [m1_min, m2_min]:
+        print "close by reco-muon %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+            pdgToName(p.pdgId()), p.pt(), p.eta(), p.phi(),
+            )
+
+    print
+    for p in gp:
+        if deltaR(toDict(p), toDict(m1_min))<0.2 or deltaR(toDict(p), toDict(m2_min))<0.2:
+            print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+                pdgToName(p.pdgId()), p.pt(), p.eta(), p.phi(),
+                )
+        #print
+        #printHisto(p)
+        #print
+    print
+
+#    print
 #    for i in range(min([20, len(gp)])):
 #        p = gp[i]
 #        print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
 #            pdgToName(gp[i].pdgId()), gp[i].pt(), gp[i].eta(), gp[i].phi(),
 #            )
-##        print
-##        printHisto(p)
-##        print
-##    print
-#
+#        #print
+#        #printHisto(p)
+#        #print
+#    print
+
+
 #    print "Matching leading gen particles"
 #    for i in range(min([20, len(gp)])):
 #        p = gp[i]
@@ -167,21 +142,78 @@ while r.run():
 #                pdgToName(gen.pdgId()), dr, gen.pt(), gen.eta(), gen.phi(),
 #                )
 #        print 
+
 #    break
 
-    reco_muons = filter( lambda p:abs(p.pdgId())==13, pf )
-    for i, m in enumerate(reco_muons):
-        if m.pt()<15: continue
-        gen_matches = [(deltaR(toDict(gen),toDict(m)), gen ) for gen in gp if gen.status()==1 and abs(gen.pdgId()) in [13] and deltaR(toDict(gen), toDict(m))<0.2 ]
-        gen_matches.sort( key = lambda m:m[0] )
-        if len(gen_matches) == 0:
-            print "No gen match found! Reco %3.2f/%3.2f/%3.2f"%(m.pt(), m.eta(), m.phi())
-            continue
-        if abs(m.pt()-gen_matches[0][1].pt())/m.pt()>0.1:
-            gm = gen_matches[0][1]
-            print "Muon mismeasurement. Reco %3.2f/%3.2f/%3.2f Gen %3.2f/%3.2f/%3.2f"%(m.pt(), m.eta(), m.phi(), gm.pt(), gm.eta(), gm.phi())
-
+#    reco_muons = filter( lambda p:abs(p.pdgId())==13, pf )
+#    for i, m in enumerate(reco_muons):
+#        if m.pt()<15: continue
+#        gen_matches = [(deltaR(toDict(gen),toDict(m)), gen ) for gen in gp if gen.status()==1 and abs(gen.pdgId()) in [13] and deltaR(toDict(gen), toDict(m))<0.2 ]
+#        gen_matches.sort( key = lambda m:m[0] )
+#        if len(gen_matches) == 0:
+#            print "No gen match found! Reco %3.2f/%3.2f/%3.2f"%(m.pt(), m.eta(), m.phi())
+#            continue
+#        if abs(m.pt()-gen_matches[0][1].pt())/m.pt()>0.1:
+#            gm = gen_matches[0][1]
+#            print "Muon mismeasurement. Reco %3.2f/%3.2f/%3.2f Gen %3.2f/%3.2f/%3.2f"%(m.pt(), m.eta(), m.phi(), gm.pt(), gm.eta(), gm.phi())
+#
          
+
+# 80X
+# 0. 1:4953:3991364 # 300 GeV gamma lost in dead cell (jet mism.)
+# 1. 1:5468:4532888 # 80 GeV jet mismeasurement , -0.934/2.9678 (jet mism.)
+# 2. 1:6024:4854452 # 2x40 GeV lost 1.6/-2.4, 1.9/2.7 (gaussian jet mism.), 40 GeV neutrino from jet
+# 3. 1:6171:4972344 # drastic mismeasurement ecal 160 GeV 
+# 4. 1:12852:10356846 # lost K_plus 117.1/1.391/-2.527
+# 5. 1:13923:11219847 (most probably jet mismeasurement, no AOD available)
+# 6. 1:17046:13736425 jet mism. + 30 GeV neutrino in jet 
+# 7. 1:18692:15495640 # overmeasured muon at 148->184 2.287/-0.282? 30 GeV jet mismeasurement
+# 8. 1:20840:17276057 # lost high pt gammas at -1.5/0.6 (jet mism.), 40 GeV neutrino in jet
+# 9. 1:25322:20991689 # neutrino in a jet of 100GeV, just passing the threshold (142GeV)
+# 11. 1:27005:21762195 # lost gammas and neutrals in dead cell 1.152/-3.077 (jet mism.)
+# 12. 1:40541:33607796 # lost mu- from W, picked up 60 GeV e- fake, EMu->EE, some trk inefficieny at -2.175/0.183 (end of trk coverage, seems gaussian)
+# 13. 1:48624:40308549 # lost high pt gammas (jet mism.)
+# 14. 1:49599:41117351 # lost 50 GeV mu- in a jet 52.2/-0.999/0.558 
+# 15. 1:51330:42552044 # lost energy in ECAL (jet mism., 100 GeV) -0.837/2.890
+# 16. 1:57932:48024871 # overmeasured muon 125->330  0.289/-2.763, 50 GeV probably gaussian jet mismeasurement) 
+# 17. 1:62587:51884514 # likely gaussian jet mismeasurement (60 GeV in a 200GeV genjet plus 40 GeV neutrino in another jet)
+# 18. 1:65097:53964677 # mumu->emu, lost mu to pt cut, picked up fake e from conversion gamma, plus jet mism 40 GeV (gaussian) 
+# 19. 1:67998:56369604 # 60 GeV from neutrino from jet
+# 20. 1:68445:56740873 # tau decaying hadronically + non-prompt mu
+# 21. 1:71016:58872109  fake muon with 60 GeV inconsistency btw inner track and global track
+# 22. 1:72622:60203349 200 GeV neutrino in jet, plus 70 GeV photons lost 
+# 23. 1:74317:61608051 overmeasured muon 114.0/-2.275/-1.514 -> 154.1/-2.275/-1.51, 20 GeV neutrino in jet4
+# 24. 1:82880:68707320 likely non-prompt mu, no AOD available
+# 25. 1:85837:71158655 160 GeV neutrino from jet
+# 26. 1:94223:78110867 360 GeV gamma lost in crack
+# 27. 1:106121:87973932 150 GeV fake MET from various hadronic mism.
+# 28. 1:113723:94275792 jet mismeasurement at eta~3 + 20 GeV neutrino
+
+# 76X
+#if not 3460888 in r.evt: continue  #Evt 1, EMu, 150 GeV, lost p0(103) ->e+/e- pair at 1.013/0.665
+#if not 3991364 in r.evt: continue  #Evt 2, EMu, 315 GeV lost 330 GeV ISR gamma at -2.1/ -2.5 (leading gen particle)
+#if not 4854452 in r.evt: continue  #Evt 3, MuMu, 50 GeV, lost few neutrals and gammas at 1.6/-2.3, 40 GeV neutrino 
+#if not 10312243 in r.evt: continue #Evt 4, EMu, 400 GeV mismeasurement, eta -> gamma, gamma -> lost at 1.8/0.8
+#if not 13250511 in r.evt: continue #Evt 5, 42 GeV: 50 GeV jet mismeasurement (several small mism) 
+#if not 16492719 in r.evt: continue #Evt 6, EE, 45 GeV: K_plus and mu_plus at 50 GeV generated, only one ch.had. at 50 GeV reco'd
+#if not 17276057 in r.evt: continue #Evt 7, MuMu, 316 GeV: several 50,90 GeV gammas (from pi0 and omegas from a jet) missing at -1.539/0.630 
+#if not 21144763 in r.evt: continue #Evt 10, EE, 100 GeV: charged hadron mismeas. at -0.933/2.989, few gammas undermeasured (jet mism)
+#if not 25233964 in r.evt: continue #Evt 11, MuMu 540 GeV, 1.15TeV b-jet. Lost a 800 GeV mu :-)
+#if not 29094314 in r.evt: continue #Evt 13 100 GeV, lost gammas at -2.069/-2.430
+#if not 40308549 in r.evt: continue #Evt 18, MuMu 140 GeV, lost gammas at 0.985/1.688
+#if not 52311562 in r.evt: continue #Evt 20, EMu, 140 GeV lost gammas at 3.024/2.659 (energy is lost in crack between HE and HF)
+#if not 52834013 in r.evt: continue #Evt 21, EMu, 120 GeV, two jet mism 
+#if not 54909633 in r.evt: continue #Evt 23, 50 GeV -> looks OK? several small mism.
+#if not 59284952 in r.evt: continue #Evt 25, 115 GeV, several gammas lost at -0.093/-1.037
+#if not 61847446 in r.evt: continue #Evt 26, 50 GeV, small mism adding up.
+#if not 65772127 in r.evt: continue #Evt 28, EE, 116 GeV, several high pt gamma lost at 1.455/2.789 (plus some smaller mism in other directions, 1.141/-3.027)
+#if not 71404140 in r.evt: continue #Evt 31, 100 GeV isolated 100 GeV photon lost at -0.105/-2.545
+#if not 71630610 in r.evt: continue #Evt 32, 120 GeV, few charged and neutral hadrons missed, reco'd 200 GeV jet instead of 300 
+#if not 73435936 in r.evt: continue #Evt 33, 55 GeV, don't have the guy (2/38)
+#if not 78110867 in r.evt: continue #Evt 34, 350 GeV, lost 300 GeV gamma at 1.775/-2.024
+#if not 87143733 in r.evt: continue #Evt 35, 78 GeV, don't have the guy
+#if not 96010586 in r.evt: continue #Evt 36, 252 GeV, lost 50 GeV electron at 2.396/-1.872, MET comes from spurious (isolated??) e- of 311 GeV at 0.11/-1.57 (almost back to back)
+#if not 99537081 in r.evt: continue #Evt 37, MuMu, 114 GeV, lost 40 GeV gamma at -0.101/2.089, lost a few more neutrals
 
 #Type                                  Module                      Label             Process   
 #----------------------------------------------------------------------------------------------
