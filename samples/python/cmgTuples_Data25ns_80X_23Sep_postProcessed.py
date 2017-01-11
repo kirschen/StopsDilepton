@@ -22,7 +22,7 @@ except:
     #  from StopsDilepton.tools.user import data_directory_alt as user_data_directory_alt
     #  postProcessing_directory = user_data_sample_directory_alt + 'postProcessed_80X_v15/dilepTiny'
     #except:
-    postProcessing_directory = 'postProcessed_80X_v21/dilepTiny'
+    postProcessing_directory = 'postProcessed_80X_v22/dilepTiny'
 
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
