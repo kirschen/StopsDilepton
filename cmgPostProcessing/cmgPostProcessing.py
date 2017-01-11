@@ -1114,9 +1114,9 @@ if options.T2tt:
             inF = ROOT.TFile.Open(signalFile, "READ")
             u = inF.Get("Events")
             nnEvents = u.GetEntries()
-            logger.Debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
-            if nEvents == nnEvents: logger.Debug("All events written")
-            else: logger.Debug("Something went wrong, discrepancy between file and tree")
+            logger.debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
+            if nEvents == nnEvents: logger.debug("All events written")
+            else: logger.debug("Something went wrong, discrepancy between file and tree")
             inF.Close()
             logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
         else:
