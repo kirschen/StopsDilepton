@@ -148,7 +148,7 @@ def wrapper(s):
 		      c.addUncertainty(uname, 'lnN')
 		      c.specifyUncertainty(uname, binname, name, 1+expected.sigma/expected.val )
 
-	      c.specifyObservation(binname, int(args.scale*15*observation.cachedObservation(r, channel, setup).val))
+	      c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
 	      #signal
 	      e = eSignal
@@ -199,6 +199,7 @@ def wrapper(s):
       res = limitCache.get(sConfig)
     else:
       res = c.calcLimit(cardFileName)
+      c.calcNuisances(cardFileName)
       limitCache.add(sConfig, res, save=True)
 
     if res: 
