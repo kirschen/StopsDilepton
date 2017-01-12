@@ -24,6 +24,7 @@ argParser.add_argument('--plot_directory', action='store',      default='TTZ')
 argParser.add_argument('--pdType',         action='store',      default='doubleLep', choices=['singleLep','doubleLep'])
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
+argParser.add_argument('--runLocal',       action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
 
@@ -38,17 +39,16 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selections (three leptons with pt > 30, 20, 10 GeV)
 #
-isoCut="VT" if args.selection and args.selection.count("VT") else 0.6
-from StopsDilepton.tools.objectSelectionOld import muonSelectorString,eleSelectorString
+from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
 def getLooseLeptonString(nMu, nE):
-  return muonSelectorString(ptCut=10, iso=isoCut) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, eleId = 3, absEtaCut=2.5, iso=isoCut) + "==" + str(nE)
+  return muonSelectorString(ptCut=10, relIso03 = 0.12) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, eleId = 3, absEtaCut=2.5, relIso03=0.12) + "==" + str(nE)
 
 def getLeptonString(nMu, nE):
   return getLooseLeptonString(nMu, nE)
 
 def getPtThresholdString(firstPt, secondPt):
-    return "&&".join([muonSelectorString(ptCut=firstPt,  iso=isoCut) + "+" + eleSelectorString(ptCut=firstPt,  iso=isoCut) + ">=1",
-                      muonSelectorString(ptCut=secondPt, iso=isoCut) + "+" + eleSelectorString(ptCut=secondPt, iso=isoCut) + ">=2"])
+    return "&&".join([muonSelectorString(ptCut=firstPt,  relIso03=0.12) + "+" + eleSelectorString(ptCut=firstPt,  relIso03=0.12) + ">=1",
+                      muonSelectorString(ptCut=secondPt, relIso03=0.12) + "+" + eleSelectorString(ptCut=secondPt, relIso03=0.12) + ">=2"])
 
 def getLeptonSelection(mode):
   if   mode=="3mu":   return "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)])
@@ -79,7 +79,6 @@ cuts=[
     ("met30",             "met_pt>30"),
     ("mt50",              "mt>50"),
     ("dR",                "(1)"),
-    ("VT",                "(1)"),
 ]
 
 
@@ -101,6 +100,10 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("mt")     and not selection.count("njet01"): continue # only look at met cut for diboson CR
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
+def launch(command, logfile):
+  if args.runLocal: os.system(command + " --isChild &> " + logfile)
+  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
+
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
 #
@@ -112,7 +115,7 @@ if not args.isChild and args.selection is None:
                                                   + (" --logLevel=" + args.logLevel)
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
+    if not args.dryRun: launch(command, logfile)
   logger.info("All jobs launched")
   exit(0)
 
@@ -157,12 +160,9 @@ def calcInvMass(event, sample):
 
   event.mlll = (l1 + l2 + l3).M()
 
-  if ((l1 + l2).M() - 91.1876) < 10:
-    event.mt = sqrt(2*l3.Pt()*event.met_pt*(1-cos(l3.Phi()-event.met_phi)))
-  elif ((l1 + l3).M() - 91.1876) < 10:
-    event.mt = sqrt(2*l2.Pt()*event.met_pt*(1-cos(l2.Phi()-event.met_phi)))
-  elif ((l3 + l2).M() - 91.1876) < 10:
-    event.mt = sqrt(2*l1.Pt()*event.met_pt*(1-cos(l1.Phi()-event.met_phi)))
+  if ((l1 + l2).M() - 91.1876) < 10:   event.mt = sqrt(2*l3.Pt()*event.met_pt*(1-cos(l3.Phi()-event.met_phi)))
+  elif ((l1 + l3).M() - 91.1876) < 10: event.mt = sqrt(2*l2.Pt()*event.met_pt*(1-cos(l2.Phi()-event.met_phi)))
+  elif ((l3 + l2).M() - 91.1876) < 10: event.mt = sqrt(2*l1.Pt()*event.met_pt*(1-cos(l1.Phi()-event.met_phi)))
   else:
     event.mt = 0
     event.passed = False
@@ -175,17 +175,10 @@ sequence = [makeDeltaR, calcBTag, calcInvMass]
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-
-
-#For PU reweighting
-from StopsDilepton.tools.puReweighting import getReweightingFunction
-nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
-nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
-nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
-nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
 
 
 
@@ -209,10 +202,10 @@ allModes   = ['3mu', '3e', '2mu1e','2e1mu']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
 
-  if   mode=="3mu":   data_sample         = DoubleMuon_Run2016BCDEFG_backup
-  elif mode=="3e":    data_sample         = DoubleEG_Run2016BCDEFG_backup
-  elif mode=="2mu1e": data_sample         = MuonEG_Run2016BCDEFG_backup
-  elif mode=="2e1mu": data_sample         = MuonEG_Run2016BCDEFG_backup
+  if   mode=="3mu":   data_sample         = DoubleMuon_Run2016_backup
+  elif mode=="3e":    data_sample         = DoubleEG_Run2016_backup
+  elif mode=="2mu1e": data_sample         = MuonEG_Run2016_backup
+  elif mode=="2e1mu": data_sample         = MuonEG_Run2016_backup
 
   if mode=="3mu":     data_sample.texName = "data (3 #mu)"
   elif mode=="3e":    data_sample.texName = "data (3 e)"
@@ -230,9 +223,9 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F', 'nTrueInt/F']
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
    # sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   stack = Stack(mc, data_sample)
