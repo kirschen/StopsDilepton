@@ -16,6 +16,10 @@ special_cuts = {
     "allZ":              "(1)",
     "onZ":               "abs(dl_mass-91.1876)<15",
     "offZ":              "abs(dl_mass-91.1876)>15",
+    "llgNoZ":            "(abs(dlg_mass-91.1876)>15||isEMu)",
+
+    "gLepdR":            "(1)",
+    "gJetdR":            "(1)",
    
     "dPhiJet0":          "Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0",
     "dPhiJet1":          "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0",
@@ -25,7 +29,7 @@ special_cuts = {
 
   }
 
-continous_variables = [ ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"), ("htCMG", "htJet40j") ]
+continous_variables = [ ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"), ("htCMG", "htJet40j"), ("photon","photon_pt") ]
 discrete_variables  = [ ("njet", "nJetGood"), ("btag", "nBTag") , ("nCMGjet", "nJet30")]
 
 class cutInterpreter:
@@ -87,7 +91,7 @@ class cutInterpreter:
         raise ValueError( "Can't interpret string %s. All cuts %s" % (string,  ", ".join( [ c[0] for c in continous_variables + discrete_variables] +  special_cuts.keys() ) ) )
 
     @staticmethod
-    def cutString( cut, select = [""], ignore = []):
+    def cutString( cut, select = [""], ignore = [], photonEstimated=False):
         ''' Cutstring syntax: cut1-cut2-cut3
         '''
         cuts = cut.split('-')
@@ -95,8 +99,14 @@ class cutInterpreter:
         cuts = filter( lambda c: any( sel in c for sel in select ), cuts )
         # ignore
         cuts = filter( lambda c: not any( ign in c for ign in ignore ), cuts )
-        
-        return  "&&".join( map( cutInterpreter.translate_cut_to_string, cuts ) )
+
+        cutString = "&&".join( map( cutInterpreter.translate_cut_to_string, cuts ) )
+
+        if photonEstimated:
+          for var in ['met_pt','met_phi','metSig','dl_mt2ll','dl_mt2bb']:
+            cutsString = cutString.replace(var, var + '_photonEstimated')
+
+        return cutString
     
     @staticmethod
     def cutList ( cut, select = [""], ignore = []):
