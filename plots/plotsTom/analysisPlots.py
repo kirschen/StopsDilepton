@@ -179,9 +179,9 @@ read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "
 
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
 def getLeptonSelection(mode):
-  if   mode=="mumu": return "(nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ + ")"
-  elif mode=="mue":  return "(nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu)"
-  elif mode=="ee":   return "(nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ + ")"
+  if   mode=="mumu": return "(nGoodMuons==2&&nGoodElectrons==0&&isOS&&l1_pt>25&&isMuMu" + offZ + ")"
+  elif mode=="mue":  return "(nGoodMuons==1&&nGoodElectrons==1&&isOS&&l1_pt>25&&isEMu)"
+  elif mode=="ee":   return "(nGoodMuons==0&&nGoodElectrons==2&&isOS&&l1_pt>25&&isEE" + offZ + ")"
  
 
 #
