@@ -34,6 +34,7 @@ argParser.add_argument('--selectSys',         action='store',      default='all'
 #argParser.add_argument('--noMultiThreading',  action='store_true', default='False', help="noMultiThreading?") # Need no multithreading when doing batch-to-natch
 argParser.add_argument('--showOnly',          action='store',      default=None)
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?', )
+argParser.add_argument('--runLocal',             action='store_true',     help='Run local or submit?', )
 argParser.add_argument('--copyIndexPHP',      action='store_true',     help='copy index.php to directories?', )
 argParser.add_argument('--splitBosons',       action='store_true', default=False)
 argParser.add_argument('--splitTop',          action='store_true', default=False)
@@ -86,26 +87,6 @@ def getLeptonString(nMu, nE, multiIso=False):
 jetSelection    = "nJetGood"
 bJetSelectionM  = "nBTag"
 
-##
-## Cuts to iterate over
-##
-#cuts = [
-#    ("njet01",            jetSelection+"<=1"),
-#    ("njet2",             jetSelection+">=2"),
-#    ("btag0",             bJetSelectionM+"==0"),
-#    ("btagM",             bJetSelectionM+">=1"),
-#    ("multiIsoWP",        "(1)"),                                                   # implemented below
-#    ("looseLeptonVeto",   "Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2"),
-#    ("mll20",             "dl_mass>20"),
-#    ("onZ",               "abs(dl_mass-91.1876)<15"),
-#    ("metInv",            "met_pt<80"),
-#    ("met80",             "met_pt>80"),
-#    ("metSig5",           "metSig>5"),
-#    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
-#    ("dPhiInv",           "!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25))"),
-#    ("mt2ll100",          "dl_mt2ll>100"),
-#  ]
-
 
 #
 # Systematics to run over
@@ -118,11 +99,12 @@ weight_systematics = ['PU36fbUp', 'PU36fbDown', 'TopPt', 'BTag_SF_b_Down', 'BTag
 
 if args.selectSys != "all" and args.selectSys != "combine": all_systematics = [args.selectSys if args.selectSys != 'None' else None]
 else:                                                       all_systematics = [None] + weight_systematics + jme_systematics
+#else:                                                       all_systematics = [None] + jet_systematics
 
 
 sys_pairs = [\
     ('JEC',         'JECUp', 'JECDown'),
-    ('Unclustered', 'UnclusteredEnUp', 'UnclusteredEnDown'),
+    ('Unclustered', 'UnclusteredEnUp', 'UnclusteredEnDown'), 
     ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
     ('TopPt',       'TopPt', None),
 #   ('JER',         'JERUp', 'JERDown'),
@@ -144,7 +126,7 @@ def wrapper(com):
 if not args.isChild and (args.selectSys == "all" or args.selectSys == "combine"):
   jobs = []
   for sys in (all_systematics if args.selectSys == "all" else ["combine"]):
-    command = "submitBatch.py --title='sys' 'python systematicsPlots_v2.py --selection=" + args.selection + (" --noData" if args.noData else "")\
+    command = "python systematicsPlots_v2.py --selection=" + args.selection + (" --noData" if args.noData else "")\
                + (" --isChild")\
                + (" --small" if args.small else "")\
                + (" --plot_directory=" + args.plot_directory)\
@@ -154,50 +136,20 @@ if not args.isChild and (args.selectSys == "all" or args.selectSys == "combine")
                + (" --splitBosons" if args.splitBosons else "")\
                + (" --splitTop" if args.splitTop else "")\
                + (" --powheg" if args.powheg else "")\
-               + (" --normalizeBinWidth" if args.normalizeBinWidth else "")\
-               + ("'")
-               #+ (" &")
-
-    jobs.append(command)
+               + (" --normalizeBinWidth" if args.normalizeBinWidth else "")
+    if args.selectSys == 'combine':
+        jobs.append(command)
+    elif args.selectSys == 'all':
+        if args.runLocal:
+            jobs.append(command)
+        else:
+            jobs.append( "submitBatch.py --title='sys' '%s'"%command )
 
 #  if args.noMultiThreading: 
   logger.info("Running/submitting all systematics.")
   results = map(wrapper, jobs)
   logger.info("Done with running/submitting systematics.")
   exit(0)
-#  else:
-#    from multiprocessing import Pool
-#    #pool = Pool(processes=len(jobs))
-#    pool = Pool(processes=8)
-#    pool.map(wrapper, jobs)
-#    pool.close()
-#    pool.join()
-#    logger.info("All jobs launched")
-  
-#  exit(0)
-
-
-
-#if not args.isChild and args.selection is None and (args.selectSys == "all" or args.selectSys == "combine"):
-#  for sys in (all_systematics if args.selectSys == "all" else ["combine"]):
-#    if not sys: sys = 'None'
-#    import os
-#    os.system("mkdir -p log")
-#    for selection in selectionStrings:
-#      command = "./systematicsPlots.py --selection=" + selection + (" --noData" if args.noData else "")\
-#                + (" --splitBosons" if args.splitBosons else "")\
-#                + (" --splitTop" if args.splitTop else "")\
-#                + (" --powheg" if args.powheg else "")\
-#                + (" --normalizeBinWidth" if args.normalizeBinWidth else "")\
-#                + (" --plot_directory=" + args.plot_directory)\
-#                + (" --logLevel=" + args.logLevel)\
-#                + (" --signal=" + args.signal)\
-#                + (" --selectSys=" + sys)
-#      logfile = "log/systematicPlots_" + selection + "_" + sys + ".log"
-#      logger.info("Launching " + selection + " on cream02 with child command: " + command)
-#      if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=50:00:00 runPlotsOnCream02.sh")
-#    logger.info("All jobs launched")
-#  exit(0)
 
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
@@ -219,22 +171,23 @@ postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-#from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-T2tt                    = T2tt_650_1
-T2tt2                   = T2tt_500_250
-T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
-
-#DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-#DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
-#DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
-#DM2.style               = styles.lineStyle( 28,          width=3)
 
 signals = []
-if   args.signal == "T2tt": signals = [T2tt, T2tt2]
-elif args.signal == "DM":   signals = [DM, DM2]
+if   args.signal == "T2tt": 
+    postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
+    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+    T2tt                    = T2tt_650_1
+    T2tt2                   = T2tt_500_250
+    T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+    T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
+    signals = [T2tt, T2tt2]
+elif args.signal == "DM":   
+    #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
+    #DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
+    #DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
+    #DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
+    #DM2.style               = styles.lineStyle( 28,          width=3)
+    signals = [DM, DM2]
 
 #
 # Text on the plots
@@ -337,9 +290,8 @@ for index, mode in enumerate(allModes):
 
   if args.splitBosons: mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
   else:                mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
-  
   if args.small:
-    for sample in mc + ([data_sample] if type(data_sample)!=type([]) else data_sample):
+    for sample in mc:# + ([data_sample] if type(data_sample)!=type([]) else data_sample):
       sample.reduceFiles( to = 1 )
 
   for sample in mc:
@@ -395,7 +347,6 @@ for index, mode in enumerate(allModes):
       weight = data_weight,
       )
   plots.append( dl_mt2ll_data )
-
 
   dl_mt2ll_mc  = { sys:Plot(\
       name            = "dl_mt2ll" if sys is None else "dl_mt2ll_mc_%s" % sys,
@@ -496,9 +447,6 @@ for index, mode in enumerate(allModes):
   ) for sys in all_systematics }
     plots.extend( dl_mt2blbl_mc_2.values() )
 
-
-
-
   nBtagBinning = [5, 1, 6] if args.selection.count('btagM') else [1,0,1]
 
   nbtags_data  = Plot( 
@@ -593,12 +541,11 @@ for index, mode in enumerate(allModes):
 
   plotConfigs = [\
          [ dl_mt2ll_mc, dl_mt2ll_data, 20],
-         [ njets_mc, njets_data, -1],
          [ nbtags_mc, nbtags_data, -1],
+         [ njets_mc, njets_data, -1],
          [ met_mc, met_data, 50],
          [ met2_mc, met2_data, 20],
     ]
-
   if args.selection.count('njet2'):
     plotConfigs.append([ dl_mt2bb_mc, dl_mt2bb_data, 20])
     plotConfigs.append([ dl_mt2blbl_mc, dl_mt2blbl_data, 20])
@@ -636,7 +583,7 @@ for index, mode in enumerate(allModes):
     removeLock( result_file ) 
     logger.info( "Done for sys " + args.selectSys )
 
-#    # Write one sys per file
+#    # Write one  pkl file sys
 #    result_file = os.path.join(plot_directory, args.plot_directory, mode, args.selection, 'results_%s.pkl' % args.selectSys )
 #    allPlots = {p.name : p.histos for p in plots}
 #    yields = yield_mc

@@ -64,84 +64,124 @@ def vecSumPt(particles):
     return sqrt(px**2+py**2)
 
 while r.run():
-#    if any(e in r.evt for e in [3991364, 4854452, 10356846, 21762195, 4532888, 15495640, 17276057, 20991689, 33607796, 40308549, 41117351, 42552044, 48024871, 51884514]):continue
-#    if any(e in r.evt for e in [53964677, 56369604, 56740873, 58872109, 60203349, 61608051, 68707320, 71158655, 78110867, 87973932, 94275792]):continue
+
+    #if 11323570!=r.evt[2]: continue # 9. high pt spurious mu 520 large genMET lower reco MET (PF?)
+    #if 21604843 !=r.evt[2]: continue # 17. 23TeV jet ... high pt mu
+    #if 53615046 !=r.evt[2]: continue # 47. 260 GeV fake jet - spurious mu
+    #if 54042617 !=r.evt[2]: continue # 48. 170 overmeas jet - gen. e reco'd as a higher pt gamma in jet
+    if 100348183 !=r.evt[2]: continue # 72. 90 GeV ETmiss  
+
     gp = filter(lambda p:p.status()==1, r.products['gen'])
     gp.sort(key = lambda p: - p.pt() )
 
     pf = list(r.products['pf'])
     pf.sort(key = lambda p: - p.pt() )
 
-    muons = filter(lambda p:abs(p.pdgId()) == 13, pf)
-    minDR = 999
-    if len(muons)>=2:
-        for m1, m2 in itertools.combinations(muons, 2):
-            dR = deltaR(toDict(m1), toDict(m2))
-            if minDR>dR:
-                m1_min, m2_min = m1, m2
-                minDR = dR
+#    muons = filter(lambda p:abs(p.pdgId()) == 13, pf)
+#    minDR = 999
+#    if len(muons)>=2:
+#        for m1, m2 in itertools.combinations(muons, 2):
+#            dR = deltaR(toDict(m1), toDict(m2))
+#            if minDR>dR:
+#                m1_min, m2_min = m1, m2
+#                minDR = dR
+#    if minDR>0.05: continue
+#
+#    print
+#    print "minDR", minDR
+#    for p in [m1_min, m2_min]:
+#        print "close by reco-muon %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+#            pdgToName(p.pdgId()), p.pt(), p.eta(), p.phi(),
+#            )
+#
+#    print
+#    for p in gp:
+#        if deltaR(toDict(p), toDict(m1_min))<0.2 or deltaR(toDict(p), toDict(m2_min))<0.2:
+#            print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+#                pdgToName(p.pdgId()), p.pt(), p.eta(), p.phi(),
+#                )
+#    print
 
-    if minDR>0.05: continue
     print "At %i:%i:%i" % r.evt    
 
     print
-    print "minDR", minDR
-    for p in [m1_min, m2_min]:
-        print "close by reco-muon %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
-            pdgToName(p.pdgId()), p.pt(), p.eta(), p.phi(),
+    for i in range(min([20, len(gp)])):
+        p = gp[i]
+        print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+            pdgToName(gp[i].pdgId()), gp[i].pt(), gp[i].eta(), gp[i].phi(),
             )
-
+        #print
+        #printHisto(p)
+        #print
     print
-    for p in gp:
-        if deltaR(toDict(p), toDict(m1_min))<0.2 or deltaR(toDict(p), toDict(m2_min))<0.2:
-            print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
-                pdgToName(p.pdgId()), p.pt(), p.eta(), p.phi(),
-                )
+    for i in range(min([20, len(pf)])):
+        p = gp[i]
+        print "reco %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+            pdgToName(pf[i].pdgId()), pf[i].pt(), pf[i].eta(), pf[i].phi(),
+            )
         #print
         #printHisto(p)
         #print
     print
 
-#    print
-#    for i in range(min([20, len(gp)])):
-#        p = gp[i]
-#        print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
-#            pdgToName(gp[i].pdgId()), gp[i].pt(), gp[i].eta(), gp[i].phi(),
-#            )
-#        #print
-#        #printHisto(p)
-#        #print
-#    print
 
+    print "Starting with gen particles %i:%i:%i" % r.evt
+    for i in range(min([5, len(gp)])):
+        p = gp[i]
+        print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+            pdgToName(gp[i].pdgId()), gp[i].pt(), gp[i].eta(), gp[i].phi(),
+            )
 
-#    print "Matching leading gen particles"
-#    for i in range(min([20, len(gp)])):
-#        p = gp[i]
-#        print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
-#            pdgToName(gp[i].pdgId()), gp[i].pt(), gp[i].eta(), gp[i].phi(),
-#            )
-#
-#        print 
-#        reco_matches = filter( lambda m:m[0]<0.2, [ ( deltaR(toDict(reco),toDict(p)), reco ) for reco in pf ] )
-#        reco_matches.sort( key = lambda m:m[0] )
-#        gen_matches = [gen for gen in gp if gen.status()==1 and abs(gen.pdgId()) not in [12,14,16] and deltaR(toDict(gen), toDict(p))<0.2 ]
-#        gen_matches = [(deltaR(toDict(gen),toDict(p)), gen ) for gen in gen_matches]
-#        gen_matches.sort( key = lambda m:m[0] )
-#        gen_sumPt, reco_sumPt = vecSumPt([g[1] for g in gen_matches]), vecSumPt([g[1] for g in reco_matches])
-#        mismatched =  abs(gen_sumPt-reco_sumPt)>30
-#        if mismatched: diff_str = bold("%5.1f"%(gen_sumPt-reco_sumPt))
-#        else         : diff_str = "%5.1f"%(gen_sumPt-reco_sumPt)
-#        print "   balancing 0.2 cone: gen %5.1f reco %5.1f diff %s" % (vecSumPt([g[1] for g in gen_matches]), vecSumPt([g[1] for g in reco_matches]) , diff_str)
-#        for dr, reco in reco_matches: 
-#            print "      reco %10s dr %3.2f pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
-#                pdgToName(reco.pdgId()), dr, reco.pt(), reco.eta(), reco.phi(),
-#                )
-#        print
-#        for dr, gen in gen_matches: 
-#            print "      gen  %10s dr %3.2f pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
-#                pdgToName(gen.pdgId()), dr, gen.pt(), gen.eta(), gen.phi(),
-#                )
-#        print 
+        print 
+        reco_matches = filter( lambda m:m[0]<0.2, [ ( deltaR(toDict(reco),toDict(p)), reco ) for reco in pf ] )
+        reco_matches.sort( key = lambda m:m[0] )
+        gen_matches = [gen for gen in gp if gen.status()==1 and abs(gen.pdgId()) not in [12,14,16] and deltaR(toDict(gen), toDict(p))<0.2 ]
+        gen_matches = [(deltaR(toDict(gen),toDict(p)), gen ) for gen in gen_matches]
+        gen_matches.sort( key = lambda m:m[0] )
+        gen_sumPt, reco_sumPt = vecSumPt([g[1] for g in gen_matches]), vecSumPt([g[1] for g in reco_matches])
+        mismatched =  abs(gen_sumPt-reco_sumPt)>30
+        if mismatched: diff_str = bold("%5.1f"%(gen_sumPt-reco_sumPt))
+        else         : diff_str = "%5.1f"%(gen_sumPt-reco_sumPt)
+        print "   balancing 0.2 cone: gen %5.1f reco %5.1f diff %s" % (vecSumPt([g[1] for g in gen_matches]), vecSumPt([g[1] for g in reco_matches]) , diff_str)
+        for dr, reco in reco_matches: 
+            print "      reco %10s dr %3.2f pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+                pdgToName(reco.pdgId()), dr, reco.pt(), reco.eta(), reco.phi(),
+                )
+        print
+        for dr, gen in gen_matches: 
+            print "      gen  %10s dr %3.2f pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+                pdgToName(gen.pdgId()), dr, gen.pt(), gen.eta(), gen.phi(),
+                )
+        print 
+
+    print "Starting with reco particles %i:%i:%i"% r.evt
+    for i in range(min([5, len(pf)])):
+        p = pf[i]
+        print "reco %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+            pdgToName(pf[i].pdgId()), pf[i].pt(), pf[i].eta(), pf[i].phi(),
+            )
+
+        print 
+        reco_matches = filter( lambda m:m[0]<0.2, [ ( deltaR(toDict(reco),toDict(p)), reco ) for reco in pf ] )
+        reco_matches.sort( key = lambda m:m[0] )
+        gen_matches = [gen for gen in gp if gen.status()==1 and abs(gen.pdgId()) not in [12,14,16] and deltaR(toDict(gen), toDict(p))<0.2 ]
+        gen_matches = [(deltaR(toDict(gen),toDict(p)), gen ) for gen in gen_matches]
+        gen_matches.sort( key = lambda m:m[0] )
+        gen_sumPt, reco_sumPt = vecSumPt([g[1] for g in gen_matches]), vecSumPt([g[1] for g in reco_matches])
+        mismatched =  abs(gen_sumPt-reco_sumPt)>30
+        if mismatched: diff_str = bold("%5.1f"%(gen_sumPt-reco_sumPt))
+        else         : diff_str = "%5.1f"%(gen_sumPt-reco_sumPt)
+        print "   balancing 0.2 cone: gen %5.1f reco %5.1f diff %s" % (vecSumPt([g[1] for g in gen_matches]), vecSumPt([g[1] for g in reco_matches]) , diff_str)
+        for dr, reco in reco_matches: 
+            print "      reco %10s dr %3.2f pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+                pdgToName(reco.pdgId()), dr, reco.pt(), reco.eta(), reco.phi(),
+                )
+        print
+        for dr, gen in gen_matches: 
+            print "      gen  %10s dr %3.2f pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+                pdgToName(gen.pdgId()), dr, gen.pt(), gen.eta(), gen.phi(),
+                )
+        print 
 
 #    break
 

@@ -173,7 +173,7 @@ cuts=[
 ]
 
 if args.isolation=="VeryLooseInverted":
-    cuts+=[ ("trailingLepNonIso", "l2_miniRelIso>0.4") ]
+    cuts+=[ ("trailingLepNonIso", "l2_relIso03>0.12") ]
 
 cuts+=[
     ("njet2", "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
@@ -309,8 +309,8 @@ if args.isolation == "standard":
         #print l1['pt'] - event.l1_pt, l2['pt'] - event.l2_pt
         event.allExtraLeptons = allExtraLeptons
 
-        nonIsoMus  = filter(lambda l: abs(l['pdgId'])==13 and l['miniRelIso']>0.2 and l['pt']>5, allExtraLeptons )
-        nonIsoEles = filter(lambda l: abs(l['pdgId'])==11 and l['miniRelIso']>0.2 and l['pt']>7, allExtraLeptons )
+        nonIsoMus  = filter(lambda l: abs(l['pdgId'])==13 and l['relIso03']>0.12 and l['pt']>5, allExtraLeptons )
+        nonIsoEles = filter(lambda l: abs(l['pdgId'])==11 and l['relIso03']>0.12 and l['pt']>7, allExtraLeptons )
         #print nonIsoMus, nonIsoEles
 
         event.nonIsoMu  = nonIsoMus[-1] if len(nonIsoMus)>0 else None 
@@ -319,6 +319,7 @@ if args.isolation == "standard":
         # extra ele
         if event.nonIsoEle is not None:
             makeSwappedMT2ll( event, l1, l2, event.nonIsoEle, verbose = verbose)
+        # extra mu
         if event.nonIsoMu is not None:
             makeSwappedMT2ll( event, l1, l2, event.nonIsoMu, verbose = verbose)
         if verbose: print
