@@ -17,7 +17,7 @@ estimators = [
 #              "TTZ-DD",
              ]
 
-#submitCMD = "submitBatch.py"
+#submitCMD = "submitBatch.py --title='Estimate' "
 submitCMD = "echo"
 
 from StopsDilepton.analysis.regions import regionsO, regions80X, reducedRegionsNew, superRegion, superRegion140, regions80X_2D
