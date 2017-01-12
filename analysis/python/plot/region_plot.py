@@ -21,12 +21,13 @@ from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
-argParser.add_argument("--signal",         action='store', default='TTbarDM',           nargs='?', choices=["T2tt","TTbarDM"],                                                                            help="which signal to plot?")
+argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM"],                                                                            help="which signal to plot?")
 argParser.add_argument("--estimateDY",     action='store', default='DY',                nargs='?', choices=["DY","DY-DD"],                                                                                help="which DY estimate?")
 argParser.add_argument("--estimateTTZ",    action='store', default='TTZ',               nargs='?', choices=["TTZ","TTZ-DD","TTZ-DD-Top16009"],                                                            help="which TTZ estimate?")
 argParser.add_argument("--estimateTTJets", action='store', default='TTJets',            nargs='?', choices=["TTJets","TTJets-DD"],                                                                        help="which TTJets estimate?")
 argParser.add_argument("--estimateMB",     action='store', default='multiBoson',        nargs='?', choices=["multiBoson","multiBoson-DD"],                                                                help="which multiBoson estimate?")
 argParser.add_argument("--control",        action='store', default=None,                nargs='?', choices=[None, "DY", "VV", "DYVV"],                                                                    help="For CR region?")
+argParser.add_argument("--scale",          action='store_true', default=False,          help="scale DY/VV using nuisance table?")
 argParser.add_argument("--labels",         action='store_true', default=False,          help="plot labels?")
 argParser.add_argument("--noData",         action='store_true', default=False,          help="do not plot data?")
 args = argParser.parse_args()
@@ -46,7 +47,7 @@ else:
     scale = 1./15.
   elif args.signal == "T2tt":
     setup.blinding = "(run<=276811||(run>=277820&&run<=279931))"
-    scale = 17.3/lumi_scale
+    scale = 17.3/36.4
 
 
 
@@ -75,7 +76,7 @@ elif args.signal == "TTbarDM":
 
 if args.control:
   signals = []
-  postfix += '_' + args.control
+  postfix += '_' + args.control + ('_scaled' if args.scale else '')
 
 signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals]
 
@@ -119,6 +120,42 @@ for var in systematics.values():
   sysVariations += var
 
 
+cardsDirectory = os.path.join(setup.analysis_results, setup.prefix(), "DY", "TTZ", "TTJets", "multiBoson", 'cardFiles', args.signal, 'regionsO')
+
+def getPull(name):
+    nuisanceFile = os.path.join(cardsDirectory, 'TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200_nuisances_full.txt')
+    with open(nuisanceFile) as f:
+      for line in f:
+        if name != line.split()[0]: continue
+        return float(line.split(',')[0].split()[-1])
+    return 0 # Sometimes a bin is not found in the nuisance file because its yield is 0
+
+def getUncFromCard(estimateName, uncName, bin):
+    cardFile = os.path.join(cardsDirectory, 'TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt')
+    with open(cardFile) as f:
+      binList = False
+      estimateList = False
+      for line in f:
+        if len(line.split())==0: continue
+        if line.split()[0] == "bin":
+          if not binList: binList = True
+          else:           binList = line.split()[1:]
+        if line.split()[0] == "process":
+          if not estimateList: estimateList = line.split()[1:]
+        if line.split()[0] != uncName: continue
+        for i in range(len(binList)):
+          if binList[i] == ('Bin' + str(bin)) and estimateList[i]==estimateName:
+	    try:    return float(line.split()[2:][i])-1.
+	    except: return 0 # muted bin has -, cannot be converted to float
+
+def applyNuisance(estimate, res, bin):
+    if not estimate.name in ['DY','multiBoson']: return res
+    if bin==12: print (getPull(estimate.name), getPull('Stat_Bin' + str(bin) + '_' + estimate.name))
+    scaledRes = res*(1+getUncFromCard(estimate.name, estimate.name, bin)*getPull(estimate.name))
+    scaledRes2 = scaledRes*(1+res.sigma/res.val*getPull('Stat_Bin' + str(bin) + '_' + estimate.name)) if scaledRes.val > 0 else scaledRes
+    if bin==12: print 'Scaling ' + estimate.name + ' for region ' + str(bin) + ': ' + str(res) + " --> " + str(scaledRes) + ' --> ' + str(scaledRes2)
+    return scaledRes2
+
 def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
     h = {}
@@ -142,16 +179,17 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
         setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
-        if var and var.count('TTJetsUp') and estimate.name.count('TTJets'):   res *= 1.5
-        if var and var.count('TTJetsDown') and estimate.name.count('TTJets'): res *= 0.5
-        if var and var.count('TTZUp') and estimate.name.count('TTZ'):         res *= 1.2
-        if var and var.count('TTZDown') and estimate.name.count('TTZ'):       res *= 0.8
-        if var and var.count('TTXUp') and estimate.name.count('TTX'):         res *= 1.25
-        if var and var.count('TTXDown') and estimate.name.count('TTX'):       res *= 0.75
-        if var and var.count('MBUp') and estimate.name.count('multiBoson'):   res *= 1.25
-        if var and var.count('MBDown') and estimate.name.count('multiBoson'): res *= 0.75
-        if var and var.count('DYUp') and estimate.name.count('DYBoson'):      res *= 1.25
-        if var and var.count('DYDown') and estimate.name.count('DYBoson'):    res *= 0.75
+        if args.control == 'DYVV' and args.scale: res = applyNuisance(estimate, res, i)
+        if var and var.count('TTJetsUp') and estimate.name.count('TTJets'):   res *= (1.+getUncFromCard('TTJets','top',i))
+        if var and var.count('TTJetsDown') and estimate.name.count('TTJets'): res *= (1.-getUncFromCard('TTJets','top',i))
+        if var and var.count('TTZUp') and estimate.name.count('TTZ'):         res *= (1.+getUncFromCard('TTZ','ttZ',i))
+        if var and var.count('TTZDown') and estimate.name.count('TTZ'):       res *= (1.-getUncFromCard('TTZ','ttZ',i))
+        if var and var.count('TTXUp') and estimate.name.count('TTX'):         res *= (1.+getUncFromCard('TTXNoZ','other',i))
+        if var and var.count('TTXDown') and estimate.name.count('TTX'):       res *= (1.+getUncFromCard('TTXNoZ','other',i))
+        if var and var.count('MBUp') and estimate.name.count('multiBoson'):   res *= (1.+getUncFromCard('multiBoson','multiBoson',i))
+        if var and var.count('MBDown') and estimate.name.count('multiBoson'): res *= (1.+getUncFromCard('multiBoson','multiBoson',i))
+        if var and var.count('DYUp') and estimate.name.count('DYBoson'):      res *= (1.+getUncFromCard('DY','DY',i))
+        if var and var.count('DYDown') and estimate.name.count('DYBoson'):    res *= (1.+getUncFromCard('DY','DY',i))
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
@@ -290,7 +328,7 @@ for channel in ['all','SF','EE','EMu','MuMu']:
         r_box.SetFillColor(ROOT.kBlack)
 
         boxes.append( box )
-   #     ratio_boxes.append( r_box )
+        ratio_boxes.append( r_box )
 
 
     if args.signal == "T2tt":
@@ -301,9 +339,11 @@ for channel in ['all','SF','EE','EMu','MuMu']:
         plot_directory = os.path.join(user.plot_directory, postfix, args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB),
         logX = False, logY = True,
         sorting = False,
-        yRange = (0.006, "auto"),
+        ratio = {'yRange':(0.1,1.9)},
+        extensions = ["pdf", "png", "root","C"],
+        yRange = (0.006, 2000000) if args.control=='DYVV' else (0.006, 'auto'),
         widths = {'x_width':1000, 'y_width':700},
-        drawObjects = (drawLabels(regions_) if args.labels else drawSR(regions_)) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
+        drawObjects = (drawLabels(regions_) if args.labels else drawSR(regions_)) + boxes + ratio_boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
         legend = legend,
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
