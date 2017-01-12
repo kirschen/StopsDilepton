@@ -449,4 +449,4 @@ for plot in allPlots[allModes[0]]:
         drawObjects = drawObjects( dataMCScale, lumi_scale ),
   )
 
-logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
+logger.info( "Done with prefix %s", args.selection )
