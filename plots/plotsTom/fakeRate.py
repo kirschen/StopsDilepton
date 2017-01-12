@@ -35,47 +35,14 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-#
-# Selections
-#
-def getLeptonString(nMu, nE, multiIso=False):
-  return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&l1_pt>25"
-
 def getLeptonSelection(mode):
   offZ = "&&abs(dl_mass-91.1876)>15"
-  if   mode=="mumu": return getLeptonString(2, 0) + "&&isOS&&isMuMu" + offZ
-  elif mode=="mue":  return getLeptonString(1, 1) + "&&isOS&&isEMu"
-  elif mode=="ee":   return getLeptonString(0, 2) + "&&isOS&&isEE" + offZ
+  if   mode=="mumu": return "(nGoodMuons==2&&nGoodElectrons==0&&isOS&&l1_pt>25&&isMuMu" + offZ + ")"
+  elif mode=="mue":  return "(nGoodMuons==1&&nGoodElectrons==1&&isOS&&l1_pt>25&&isEMu)"
+  elif mode=="ee":   return "(nGoodMuons==0&&nGoodElectrons==2&&isOS&&l1_pt>25&&isEE" + offZ + ")"
 
+selectionStrings = ['njet2p-relIso0.12','njet2p-relIso0.12-btag1p']
 
-jetSelection    = "nJetGood"
-bJetSelectionM  = "nBTag"
-
-
-from StopsDilepton.tools.objectSelection import multiIsoLepString
-multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
-#
-# Cuts to iterate over: at least 3/4 jets with 1/2 btags
-#
-cuts=[
-    ("njet2",             jetSelection+">=2"),
-    ("btagM",             bJetSelectionM+">=1"),
-    ("multiIsoWP",        "l1_mIsoWP>4&&l2_mIsoWP>4"),
-]
-
-#
-# Construct prefixes and selectionstring and filter on possible cut combinations
-#
-import itertools
-selectionStrings = {}
-for i_comb in reversed( range( len(cuts)+1 ) ):
-    for comb in itertools.combinations( cuts, i_comb ):
-        presel = [] 
-        presel.extend( comb )
-        selection = '-'.join([p[0] for p in presel])
-        if not selection.count("multiIsoWP"):      continue
-        if not selection.count("njet2"):           continue
-        selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
@@ -95,9 +62,8 @@ if args.subtract: args.plot_directory += "_subtracted"
 #
 # Text on the plots
 #
-postProcessing_directory = "postProcessed_80X_tom/trilep"
+postProcessing_directory = "postProcessed_80X_v26/trilep"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed_trilep import *
-#from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
 def drawObjects( dataMCScale, lumi_scale ):
     tex = ROOT.TLatex()
@@ -114,16 +80,16 @@ def drawObjects( dataMCScale, lumi_scale ):
 
 read_variables = [
     "weight/F" , "JetGood[pt/F,eta/F,phi/F]",
-    "nLepGood/I",  "LepGood[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]",
-    "nLepOther/I", "LepOther[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,mvaIdSpring15/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]",
+    "nLepGood/I",  "LepGood[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I]",
+    "nLepOther/I", "LepOther[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I]",
 ]
 
 # For third loose lepton: no isolation, but still apply id
 # Keep loosened id because otherwise we have almost no stats
-mu_selector_loose  = muonSelector(iso=999, dxy=99, dz=99, loose=True)
-ele_selector_loose = eleSelector(iso=999, eleId = 0, dxy=99, dz=99, loose=True)
-mu_selector_tight  = muonSelector(iso='VT', dxy=99, dz=99)
-ele_selector_tight = eleSelector(iso='VT', eleId = 4, dxy=99, dz=99)
+mu_selector_loose  = muonSelector(relIso03=999, dxy=99, dz=99, loose=True)
+ele_selector_loose = eleSelector(relIso03=999, eleId = 0, dxy=99, dz=99, loose=True)
+mu_selector_tight  = muonSelector(relIso03=0.12, dxy=99, dz=99)
+ele_selector_tight = eleSelector(relIso03=0.12, eleId = 4, dxy=99, dz=99)
 
 yields     = {}
 allPlots   = {}
@@ -145,15 +111,13 @@ for index, mode in enumerate(allModes):
       if len(allExtraLeptonsLoose) >= 1:
 	event.hasLooseThirdLepton   = True
 	event.thirdLeptonPt         = allExtraLeptonsLoose[0]['pt']
-	event.thirdLeptonMiniRelIso = allExtraLeptonsLoose[0]['miniRelIso']
-#	event.thirdLeptonRelIso     = allExtraLeptonsLoose[0]['relIso04']
+        event.thirdLeptonRelIso     = allExtraLeptonsLoose[0]['relIso03']
 	event.hasTightThirdLepton   = (len(allExtraLeptonsTight) >= 1)
       else:
 	event.hasLooseThirdLepton   = False
 	event.hasTightThirdLepton   = False
 	event.thirdLeptonPt         = -1
-	event.thirdLeptonMiniRelIso = -1
-#	event.thirdLeptonRelIso     = -1
+	event.thirdLeptonRelIso     = -1
 
   sequence = [getThirdLepton]
 
@@ -162,13 +126,13 @@ for index, mode in enumerate(allModes):
   elif thirdLeptonFlavour == "mu":  looseFlavour = "loose #mu"
   elif thirdLeptonFlavour == "all": looseFlavour = "loose e/#mu"
   if mode=="mumu":   
-    data_sample         = DoubleMuon_Run2016BCD_backup
+    data_sample         = DoubleMuon_Run2016_backup
     data_sample.texName = "Data (2#mu + " + looseFlavour + ")"
   elif mode=="ee":   
-    data_sample         = DoubleEG_Run2016BCD_backup 
+    data_sample         = DoubleEG_Run2016_backup
     data_sample.texName = "Data (2e + " + looseFlavour + ")"
   elif mode=="mue":  
-    data_sample         = MuonEG_Run2016BCD_backup 
+    data_sample         = MuonEG_Run2016_backup
     data_sample.texName = "Data (1e, 1#mu + " + looseFlavour + ")"
 
   data_sample.style = styles.errorStyle( ROOT.kBlack )
@@ -178,8 +142,8 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
+    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F']
+    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
   for sample in mc:
