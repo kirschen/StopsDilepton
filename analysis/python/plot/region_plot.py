@@ -64,11 +64,11 @@ for estimator in detailedEstimators:
     estimatorColor = getattr( color, estimator.name.split('-')[0] ) 
     estimator.style = styles.fillStyle(estimatorColor, lineColor = estimatorColor )
 
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import T2tt_650_1, T2tt_450_1
+from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import T2tt_650_1, T2tt_500_250
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
 
 if args.signal == "T2tt":
-    signals = [T2tt_650_1, T2tt_450_1]
+    signals = [T2tt_650_1, T2tt_500_250]
     postfix = "regionsO"
 elif args.signal == "TTbarDM":
     signals = [TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10]
@@ -119,42 +119,9 @@ sysVariations = [None]
 for var in systematics.values():
   sysVariations += var
 
-
-cardsDirectory = os.path.join(setup.analysis_results, setup.prefix(), "DY", "TTZ", "TTJets", "multiBoson", 'cardFiles', args.signal, 'regionsO')
-
-def getPull(name):
-    nuisanceFile = os.path.join(cardsDirectory, 'TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200_nuisances_full.txt')
-    with open(nuisanceFile) as f:
-      for line in f:
-        if name != line.split()[0]: continue
-        return float(line.split(',')[0].split()[-1])
-    return 0 # Sometimes a bin is not found in the nuisance file because its yield is 0
-
-def getUncFromCard(estimateName, uncName, bin):
-    cardFile = os.path.join(cardsDirectory, 'TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt')
-    with open(cardFile) as f:
-      binList = False
-      estimateList = False
-      for line in f:
-        if len(line.split())==0: continue
-        if line.split()[0] == "bin":
-          if not binList: binList = True
-          else:           binList = line.split()[1:]
-        if line.split()[0] == "process":
-          if not estimateList: estimateList = line.split()[1:]
-        if line.split()[0] != uncName: continue
-        for i in range(len(binList)):
-          if binList[i] == ('Bin' + str(bin)) and estimateList[i]==estimateName:
-	    try:    return float(line.split()[2:][i])-1.
-	    except: return 0 # muted bin has -, cannot be converted to float
-
-def applyNuisance(estimate, res, bin):
-    if not estimate.name in ['DY','multiBoson']: return res
-    if bin==12: print (getPull(estimate.name), getPull('Stat_Bin' + str(bin) + '_' + estimate.name))
-    scaledRes = res*(1+getUncFromCard(estimate.name, estimate.name, bin)*getPull(estimate.name))
-    scaledRes2 = scaledRes*(1+res.sigma/res.val*getPull('Stat_Bin' + str(bin) + '_' + estimate.name)) if scaledRes.val > 0 else scaledRes
-    if bin==12: print 'Scaling ' + estimate.name + ' for region ' + str(bin) + ': ' + str(res) + " --> " + str(scaledRes) + ' --> ' + str(scaledRes2)
-    return scaledRes2
+from StopsDilepton.analysis.infoFromCards import getUncFromCard, applyNuisance
+cardsDirectory = os.path.join(setup.analysis_results, "isOS-nJets2p-nbtag0-met80-metSig5-mll20-looseLeptonVeto-relIso0.12", "DY", "TTZ", "TTJets", "multiBoson", 'cardFiles', args.signal, 'regionsO')
+cardFile       = os.path.join(cardsDirectory, 'TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt') # To make sure we apply the same uncertainties as applied in the cards
 
 def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
@@ -179,17 +146,17 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
         setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
-        if args.control == 'DYVV' and args.scale: res = applyNuisance(estimate, res, i)
-        if var and var.count('TTJetsUp') and estimate.name.count('TTJets'):   res *= (1.+getUncFromCard('TTJets','top',i))
-        if var and var.count('TTJetsDown') and estimate.name.count('TTJets'): res *= (1.-getUncFromCard('TTJets','top',i))
-        if var and var.count('TTZUp') and estimate.name.count('TTZ'):         res *= (1.+getUncFromCard('TTZ','ttZ',i))
-        if var and var.count('TTZDown') and estimate.name.count('TTZ'):       res *= (1.-getUncFromCard('TTZ','ttZ',i))
-        if var and var.count('TTXUp') and estimate.name.count('TTX'):         res *= (1.+getUncFromCard('TTXNoZ','other',i))
-        if var and var.count('TTXDown') and estimate.name.count('TTX'):       res *= (1.+getUncFromCard('TTXNoZ','other',i))
-        if var and var.count('MBUp') and estimate.name.count('multiBoson'):   res *= (1.+getUncFromCard('multiBoson','multiBoson',i))
-        if var and var.count('MBDown') and estimate.name.count('multiBoson'): res *= (1.+getUncFromCard('multiBoson','multiBoson',i))
-        if var and var.count('DYUp') and estimate.name.count('DYBoson'):      res *= (1.+getUncFromCard('DY','DY',i))
-        if var and var.count('DYDown') and estimate.name.count('DYBoson'):    res *= (1.+getUncFromCard('DY','DY',i))
+        if args.control == 'DYVV' and args.scale: res = applyNuisance(cardsFile, estimate, res, i)
+        if var and var.count('TTJetsUp') and estimate.name.count('TTJets'):   res *= (1.+getUncFromCard(cardFile, 'TTJets','top',i))
+        if var and var.count('TTJetsDown') and estimate.name.count('TTJets'): res *= (1.-getUncFromCard(cardFile, 'TTJets','top',i))
+        if var and var.count('TTZUp') and estimate.name.count('TTZ'):         res *= (1.+getUncFromCard(cardFile, 'TTZ','ttZ',i))
+        if var and var.count('TTZDown') and estimate.name.count('TTZ'):       res *= (1.-getUncFromCard(cardFile, 'TTZ','ttZ',i))
+        if var and var.count('TTXUp') and estimate.name.count('TTX'):         res *= (1.+getUncFromCard(cardFile, 'TTXNoZ','other',i))
+        if var and var.count('TTXDown') and estimate.name.count('TTX'):       res *= (1.+getUncFromCard(cardFile, 'TTXNoZ','other',i))
+        if var and var.count('MBUp') and estimate.name.count('multiBoson'):   res *= (1.+getUncFromCard(cardFile, 'multiBoson','multiBoson',i))
+        if var and var.count('MBDown') and estimate.name.count('multiBoson'): res *= (1.+getUncFromCard(cardFile, 'multiBoson','multiBoson',i))
+        if var and var.count('DYUp') and estimate.name.count('DYBoson'):      res *= (1.+getUncFromCard(cardFile, 'DY','DY',i))
+        if var and var.count('DYDown') and estimate.name.count('DYBoson'):    res *= (1.+getUncFromCard(cardFile, 'DY','DY',i))
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
@@ -339,11 +306,11 @@ for channel in ['all','SF','EE','EMu','MuMu']:
         plot_directory = os.path.join(user.plot_directory, postfix, args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB),
         logX = False, logY = True,
         sorting = False,
-        ratio = {'yRange':(0.1,1.9)},
+        ratio = {'yRange':(0.1,1.9)} if args.control=='DYVV' else None,
         extensions = ["pdf", "png", "root","C"],
         yRange = (0.006, 2000000) if args.control=='DYVV' else (0.006, 'auto'),
         widths = {'x_width':1000, 'y_width':700},
-        drawObjects = (drawLabels(regions_) if args.labels else drawSR(regions_)) + boxes + ratio_boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
+        drawObjects = (drawLabels(regions_) if args.labels else drawSR(regions_)) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
         legend = legend,
         canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
     )
