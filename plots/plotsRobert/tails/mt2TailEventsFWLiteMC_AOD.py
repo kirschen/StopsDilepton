@@ -46,6 +46,8 @@ products = {
     'pf':{'type':'vector<reco::PFCandidate>', 'label':( "particleFlow" ) },
     'gen':{'type':'vector<reco::GenParticle>', 'label':( "genParticles" ) },
     'pfMet':{'type':'vector<reco::PFMET>', 'label':( "pfMet" )},
+    'genMet':{'type':"vector<reco::GenMET>",'label': ("genMetTrue")}, 
+
 }
 
 r = s0.fwliteReader( products = products )
@@ -65,11 +67,16 @@ def vecSumPt(particles):
 
 while r.run():
 
+    #if 9811207 !=r.evt[2]: continue # 8. 90 GeV ETmiss  Don't have AOD
     #if 11323570!=r.evt[2]: continue # 9. high pt spurious mu 520 large genMET lower reco MET (PF?)
+    #if 11400768!=r.evt[2]: continue # 10. Met mism 
     #if 21604843 !=r.evt[2]: continue # 17. 23TeV jet ... high pt mu
+    # if 22670536 !=r.evt[2]: continue # 19. jet mism 
+    # if 24231256 !=r.evt[2]: continue # 19. jet mism 
+    # if 27186200 !=r.evt[2]: continue # 20 
     #if 53615046 !=r.evt[2]: continue # 47. 260 GeV fake jet - spurious mu
     #if 54042617 !=r.evt[2]: continue # 48. 170 overmeas jet - gen. e reco'd as a higher pt gamma in jet
-    if 100348183 !=r.evt[2]: continue # 72. 90 GeV ETmiss  
+    #if 100348183 !=r.evt[2]: continue # 72. 90 GeV ETmiss  
 
     gp = filter(lambda p:p.status()==1, r.products['gen'])
     gp.sort(key = lambda p: - p.pt() )
@@ -77,18 +84,23 @@ while r.run():
     pf = list(r.products['pf'])
     pf.sort(key = lambda p: - p.pt() )
 
-#    muons = filter(lambda p:abs(p.pdgId()) == 13, pf)
-#    minDR = 999
-#    if len(muons)>=2:
-#        for m1, m2 in itertools.combinations(muons, 2):
-#            dR = deltaR(toDict(m1), toDict(m2))
-#            if minDR>dR:
-#                m1_min, m2_min = m1, m2
-#                minDR = dR
+    muons = filter(lambda p:abs(p.pdgId()) == 13, pf)
+    for p in muons:
+        print "PF muon %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
+            pdgToName(p.pdgId()), p.pt(), p.eta(), p.phi(),
+            )
+    minDR = 999
+    if len(muons)>=2:
+        for m1, m2 in itertools.combinations(muons, 2):
+            dR = deltaR(toDict(m1), toDict(m2))
+            if minDR>dR:
+                m1_min, m2_min = m1, m2
+                minDR = dR
+    print "minDR", minDR
+
 #    if minDR>0.05: continue
 #
 #    print
-#    print "minDR", minDR
 #    for p in [m1_min, m2_min]:
 #        print "close by reco-muon %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
 #            pdgToName(p.pdgId()), p.pt(), p.eta(), p.phi(),
@@ -126,7 +138,7 @@ while r.run():
 
 
     print "Starting with gen particles %i:%i:%i" % r.evt
-    for i in range(min([5, len(gp)])):
+    for i in range(min([20, len(gp)])):
         p = gp[i]
         print "gen %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
             pdgToName(gp[i].pdgId()), gp[i].pt(), gp[i].eta(), gp[i].phi(),
@@ -155,7 +167,7 @@ while r.run():
         print 
 
     print "Starting with reco particles %i:%i:%i"% r.evt
-    for i in range(min([5, len(pf)])):
+    for i in range(min([20, len(pf)])):
         p = pf[i]
         print "reco %10s pt/eta/phi %5.1f/%5.3f/%5.3f" % (\
             pdgToName(pf[i].pdgId()), pf[i].pt(), pf[i].eta(), pf[i].phi(),
