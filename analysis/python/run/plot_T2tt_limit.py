@@ -91,7 +91,7 @@ outputname = os.path.join(plotDir, 'limit')
 fileIN = inputFile('T2tt_limit.cfg')
 
 # classic temperature histogra
-xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
+xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.EXPECTED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
 xsecPlot.Draw()
 xsecPlot.Save("%sXSEC" %outputname)
 
@@ -100,12 +100,12 @@ xsecPlot.c.Write("cCONT_XSEC")
 temp.Close()
 
 # only lines
-contPlot = smsPlotCONT(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
+contPlot = smsPlotCONT(modelname, fileIN.HISTOGRAM, fileIN.EXPECTED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
 contPlot.Draw()
 contPlot.Save("%sCONT" %outputname)
 
 # brazilian flag (show only 1 sigma)
-brazilPlot = smsPlotBrazil(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
+brazilPlot = smsPlotBrazil(modelname, fileIN.HISTOGRAM, fileIN.EXPECTED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
 brazilPlot.Draw()
 brazilPlot.Save("%sBAND" %outputname)
 
