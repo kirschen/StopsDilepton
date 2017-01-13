@@ -135,7 +135,7 @@ from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 signals = []
 if   args.signal == "T2tt":
-  postProcessing_directory = "postProcessed_80X_v26/dilepTiny/"
+  postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
   from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
   T2tt        = T2tt_650_1
   T2tt2       = T2tt_650_1
@@ -143,7 +143,7 @@ if   args.signal == "T2tt":
   T2tt2.style = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
   signals     = [T2tt, T2tt2]
 elif args.signal == "DM":
-  postProcessing_directory = "postProcessed_80X_v27/dilepTiny/"
+  postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
   from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
   DM        = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
   DM2       = TTbarDMJets_scalar_Mchi_1_Mphi_10
@@ -283,14 +283,14 @@ for index, mode in enumerate(allModes):
     for s in signals:
       s.scale          = lumi_scale
       s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+      s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
       s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+      s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
