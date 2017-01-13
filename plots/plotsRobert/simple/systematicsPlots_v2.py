@@ -211,10 +211,10 @@ def addSys( selectionString , sys = None ):
 
 
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF")
-    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF")
+    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup, "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb")
+    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup, "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweight"+sys)
     elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
-    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF*reweight"+sys)
+    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
     
@@ -317,13 +317,14 @@ for index, mode in enumerate(allModes):
     for s in signals:
       s.scale          = lumi_scale
       s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightLeptonFastSimSF
+      s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
       s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
+      s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   # Use some defaults
