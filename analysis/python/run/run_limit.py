@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import ROOT
 import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
@@ -122,45 +123,32 @@ def wrapper(s):
               c.addBin(binname, [e.name.split('-')[0] for e in estimators], niceName)
               for e in estimators:
                 name = e.name.split('-')[0]
-                print 'a'
                 expected = e.cachedEstimate(r, channel, setup)
-                print 'b'
                 total_exp_bkg += expected.val
-                print 'c'
                 c.specifyExpectation(binname, name, expected.val*args.scale)
-                print 'd'
                 if expected.val>0:
-                    print 'val'
                     c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val )
-                    print 'vval'
                     c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val )
-                    print 'vval'
                     c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val )
                     c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val )
-                    print 'vval'
                     c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val )
                     c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
                     c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
                     c.specifyUncertainty('trigger',  binname, name, 1 + e.triggerSystematic(    r, channel, setup).val )
                     c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val )
 
-                    print 'val0'
                     if e.name.count('TTJets'):     c.specifyUncertainty('top',        binname, name, 2 if r == regions[-1] else 1.5)
                     if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.25)
                     if e.name.count('DY'):         c.specifyUncertainty('DY',         binname, name, 1.25)
                     if e.name.count('TTZ'):        c.specifyUncertainty('ttZ',        binname, name, 1.2)
                     if e.name.count('other'):      c.specifyUncertainty('other',      binname, name, 1.25)
 
-                    print 'val1'
                     #MC bkg stat (some condition to neglect the smaller ones?)
                     uname = 'Stat_'+binname+'_'+name
                     c.addUncertainty(uname, 'lnN')
-                    print 'val2'
                     c.specifyUncertainty(uname, binname, name, 1+expected.sigma/expected.val )
 
-                print 'd01'
                 c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
-                print 'd02'
 
                 #signal
                 e = eSignal
@@ -169,7 +157,6 @@ def wrapper(s):
                 else:       signalSetup = setup.sysClone()
                 signal = e.cachedEstimate(r, channel, signalSetup)
 
-                print 'd03'
                 c.specifyExpectation(binname, 'signal', args.scale*signal.val )
 
                 if signal.val>0:
@@ -199,22 +186,18 @@ def wrapper(s):
                 else:
                   if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
-        print 'd0'
         c.addUncertainty('Lumi', 'lnN')
         c.specifyFlatUncertainty('Lumi', 1.062)
         cardFileName = c.writeToFile(cardFileName)
     else:
         print "File %s found. Reusing."%cardFileName
     
-    print 'd1'
     if   args.signal == "TTbarDM": sConfig = s.mChi, s.mPhi, s.type
     elif args.signal == "T2tt":    sConfig = s.mStop, s.mNeu
 
     if useCache and not overWrite and limitCache.contains(sConfig):
-      print 'e'
       res = limitCache.get(sConfig)
     else:
-      print 'f'
       res = c.calcLimit(cardFileName)
       c.calcNuisances(cardFileName)
       limitCache.add(sConfig, res, save=True)

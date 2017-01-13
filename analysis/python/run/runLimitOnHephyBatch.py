@@ -13,5 +13,5 @@ for i, estimator in enumerate(signalEstimators):
   #logfileErr = "log/limit_" + estimator + "_err.log"
   os.system("submitBatch.py --title='Limit' 'python run_limit.py --signal T2tt --regions=O               --only=%s'"%(str(i)))
   #os.system("submitBatch.py --title='Limit' 'python run_limit.py --signal T2tt --regions=O --controlDYVV --only=%s'"%(str(i))
-  #time.sleep(10)
+  time.sleep(1)
 

@@ -180,7 +180,10 @@ def writeObjToFile(fname, obj):
     return
 
 def getVarValue(c, var, n=-1):
-    att = getattr(c, var)
+    try:
+        att = getattr(c, var)
+    except AttributeError:
+        return float('nan')
     if n>=0:
 #    print "getVarValue %s %i"%(var,n)
         if n<att.__len__():
@@ -294,8 +297,12 @@ def renew_proxy( filename = None, rfc = False, request_time = 192, min_time = 0)
         pass
 
     try:
-        timeleft = int(float( read_from_subprocess( 'voms-proxy-info --timeleft'.split() ) [0] ))
+        tl = read_from_subprocess( 'voms-proxy-info --timeleft'.split() )
+        timeleft = int(float( tl[0] ))
     except IndexError:
+        pass
+    except ValueError:
+        print tl
         pass
 
     # Return existing proxy from $X509_USER_PROXY, the default location or filename
