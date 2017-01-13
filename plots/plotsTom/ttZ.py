@@ -21,10 +21,10 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
 argParser.add_argument('--plot_directory', action='store',      default='TTZ')
-argParser.add_argument('--pdType',         action='store',      default='doubleLep', choices=['singleLep','doubleLep'])
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
+argParser.add_argument('--NLO',            action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
 
@@ -46,17 +46,19 @@ def getLooseLeptonString(nMu, nE):
 def getLeptonString(nMu, nE):
   return getLooseLeptonString(nMu, nE)
 
-def getPtThresholdString(firstPt, secondPt):
+def getPtThresholdString(firstPt, secondPt, thirdPt):
     return "&&".join([muonSelectorString(ptCut=firstPt,  relIso03=0.12) + "+" + eleSelectorString(ptCut=firstPt,  relIso03=0.12) + ">=1",
-                      muonSelectorString(ptCut=secondPt, relIso03=0.12) + "+" + eleSelectorString(ptCut=secondPt, relIso03=0.12) + ">=2"])
+                      muonSelectorString(ptCut=secondPt, relIso03=0.12) + "+" + eleSelectorString(ptCut=secondPt, relIso03=0.12) + ">=2",
+                      muonSelectorString(ptCut=thirdPt,  relIso03=0.12) + "+" + eleSelectorString(ptCut=thirdPt,  relIso03=0.12) + ">=2"])
 
-def getLeptonSelection(mode):
-  if   mode=="3mu":   return "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)])
-  elif mode=="2mu1e": return "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)])
-  elif mode=="2e1mu": return "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)])
-  elif mode=="3e":    return "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)])
+def getLeptonSelection(mode, higherPtCuts):
+  if   mode=="3mu":   return "&&".join([getLeptonString(3, 0), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(30, 20, 10)])
+  elif mode=="2mu1e": return "&&".join([getLeptonString(2, 1), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(30, 20, 10)])
+  elif mode=="2e1mu": return "&&".join([getLeptonString(1, 2), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(30, 20, 10)])
+  elif mode=="3e":    return "&&".join([getLeptonString(0, 3), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(30, 20, 10)])
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
+jetSelection40  = "(Sum$(JetGood_pt>40&&abs(JetGood_eta)<2.4&&JetGood_id))"
 bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
 bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))"
 zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
@@ -66,9 +68,13 @@ zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 # Cuts to iterate over: at least 3/4 jets with 1/2 btags
 #
 cuts=[
+    ("lpt_40_20_20",      '(1)'),
     ("njet01",            jetSelection+"<2"),
     ("njet2",             jetSelection+">=2"),
     ("njet3",             jetSelection+">=3"),
+    ("njet40_3",          jetSelection40+">=3"),
+    ("njet3p",            jetSelection+">=3"),
+    ("njet40_4",          jetSelection40+">=4"),
     ("njet4",             jetSelection+">=4"),
     ("nbtag0",            bJetSelectionL+"==0"),
     ("nbtagL",            bJetSelectionL+">=1"),
@@ -96,7 +102,7 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("njet") != 1: continue
         if selection.count("njet01") and (selection.count("nbtagL") or selection.count("nbtagM")): continue # only look at 0b for diboson CR
         if selection.count("nbtag0") and not selection.count("njet01"): continue # only look at 0b for diboson CR
-        if selection.count("met")    and not selection.count("njet01"): continue # only look at met cut for diboson CR
+        if selection.count("met"):                                      continue # only look at met cut for diboson CR
         if selection.count("mt")     and not selection.count("njet01"): continue # only look at met cut for diboson CR
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
@@ -112,13 +118,16 @@ if not args.isChild and args.selection is None:
   os.system("mkdir -p log")
   for selection in selectionStrings:
     command = "./ttZ.py --selection=" + selection + (" --plot_directory=" + args.plot_directory)\
-                                                  + (" --logLevel=" + args.logLevel)
+                                                  + (" --logLevel=" + args.logLevel)\
+                                                  + (" --NLO" if args.NLO else "")
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     if not args.dryRun: launch(command, logfile)
   logger.info("All jobs launched")
   exit(0)
 
+
+if args.NLO: args.plot_directory += "NLO"
 
 #
 # Read variables and sequences
@@ -213,20 +222,19 @@ for index, mode in enumerate(allModes):
   elif mode=="2e1mu": data_sample.texName = "data (2 e, 1 #mu)"
 
 
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode, args.selection.count('lpt_40_20_20'))])
   data_sample.name = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-#  mc = [ DY_HT_LO, Top, EWK, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
-  mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZ_LO]
+  mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZ if args.NLO else TTZ_LO, TWZ]
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-   # sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+    sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
+   # sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
+    sample.weight         = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightPU36fb
+    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode, args.selection.count('lpt_40_20_20'))])
 
   stack = Stack(mc, data_sample)
 
