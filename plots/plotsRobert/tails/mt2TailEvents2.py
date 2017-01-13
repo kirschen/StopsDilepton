@@ -50,6 +50,9 @@ evtNr = -1
 #evtNr = 19956300 # event 9, e matched to gamma
 #evtNr = 55481323 # event 24, tautoE 205 GeV extra neutrino
 
+#evtNr = 9811207
+evtNr = 27186200
+
 sample = Sample.fromDirectory(name="TTLep_pow", treeName="Events", isData=False, color=7, texName="t#bar{t} + Jets (poq)", \
             directory=['/afs/hephy.at/data/dspitzbart01/cmgTuples/postProcessed_80X_v26/dilep/TTLep_pow_ext'], maxN = maxN)
 
@@ -109,6 +112,7 @@ common_variables.extend( map( TreeVariable.fromString, [ 'run/I', 'lumi/I', 'evt
 
 cmg_variables = [\
     TreeVariable.fromString( 'nJet/I' ),
+    TreeVariable.fromString('met_rawPt/F'), 
     VectorTreeVariable.fromString('Jet[pt/F,eta/F,phi/F,mcPt/F,btagCSV/F,id/I]'),
     TreeVariable.fromString( 'nLepOther/I' ),
     VectorTreeVariable.fromString('LepOther[pt/F,eta/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,lostHits/I,dEtaScTrkIn/F,dPhiScTrkIn/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I,etaSc/F,relIso03/F,mcMatchId/I,mcMatchAny/I]'),

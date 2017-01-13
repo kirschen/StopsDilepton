@@ -74,7 +74,7 @@ for s in samples:
 #multiIsoWPMT = multiIsoLepString('M','T', ('l1_index','l2_index'))
 relIso04sm12Cut =   "&&".join(["LepGood_relIso04["+ist+"]<0.12" for ist in ('l1_index','l2_index')])
 
-weight_string = 'weight * reweightDilepTriggerBackup * reweightLeptonSF * reweight36fbPU'
+weight_string = 'weight * reweightDilepTriggerBackup * reweightLeptonSF * reweightPU36fb'
 lumiFac = 36.5
 
 cuts=[
