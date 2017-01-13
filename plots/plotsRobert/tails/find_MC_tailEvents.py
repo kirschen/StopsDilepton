@@ -72,8 +72,8 @@ selection = "&&".join(c[1] for c in cuts)
 for s in samples:
     print "Sample: s.name"
     s.setSelectionString( selection )
-    r=s.treeReader(variables = map( TreeVariable.fromString, ["evt/l", "run/I", "lumi/I"]), selectionString = "(1)")
+    r=s.treeReader(variables = map( TreeVariable.fromString, ["evt/l", "run/I", "lumi/I", "Flag_badChargedHadronSummer2016/I", "Flag_badMuonSummer2016/I", "Flag_badMuonSummer2016_pt20/I"]), selectionString = "(1)")
     s.chain.SetBranchStatus("*",1)
     r.start()
     while r.run():
-        print "%i:%i:%i"%( r.event.run, r.event.lumi, r.event.evt )
+        print "%i:%i:%i # badChH %i badPFMuo %i badPFMuPt20 %i"%( r.event.run, r.event.lumi, r.event.evt, r.event.Flag_badChargedHadronSummer2016, r.event.Flag_badMuonSummer2016, r.event.Flag_badMuonSummer2016_pt20 )
