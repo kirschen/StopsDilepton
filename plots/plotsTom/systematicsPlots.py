@@ -66,8 +66,8 @@ selections = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll50To75',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll75To100',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100To140',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140']
-
+              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140'
+           ]
 
 #
 # Systematics to run over
@@ -137,9 +137,11 @@ signals = []
 if   args.signal == "T2tt":
   postProcessing_directory = "postProcessed_80X_v26/dilepTiny/"
   from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-  T2tt       = T2tt_650_1
-  T2tt.style = styles.lineStyle( ROOT.kBlack, width=3 )
-  signals    = [T2tt]
+  T2tt        = T2tt_650_1
+  T2tt2       = T2tt_650_1
+  T2tt.style  = styles.lineStyle( ROOT.kBlack, width=3 )
+  T2tt2.style = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+  signals     = [T2tt, T2tt2]
 elif args.signal == "DM":
   postProcessing_directory = "postProcessed_80X_v27/dilepTiny/"
   from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
@@ -202,7 +204,8 @@ def getLeptonSelection(mode):
 # Loop over channels
 #
 allPlots   = {}
-allModes   =['mue','ee','mumu','all']
+allModes   =['mue','ee','mumu','SF','all']
+allModes   =['SF']
 for index, mode in enumerate(allModes):
   if mode=="mumu":
     data_sample         = DoubleMuon_Run2016_backup
@@ -213,8 +216,16 @@ for index, mode in enumerate(allModes):
   elif mode=="mue":
     data_sample         = MuonEG_Run2016_backup
     data_sample.texName = "data (1 #mu, 1 e)"
+  elif mode=="SF":
+    data_sample = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup]
+    DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
+    DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
+    for d in data_sample:
+      d.texName = "data (SF)"
+      d.style   = styles.errorStyle( ROOT.kBlack )
+    lumi_scale = sum(d.lumi for d in data_sample)/float(len(data_sample))/1000
   elif mode=="all":
-    data_sample         = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]
+    data_sample = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]
     DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
     DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
     MuonEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mue")])
@@ -223,7 +234,7 @@ for index, mode in enumerate(allModes):
       d.style   = styles.errorStyle( ROOT.kBlack )
     lumi_scale = sum(d.lumi for d in data_sample)/float(len(data_sample))/1000
 
-  if mode != "all":
+  if mode != "all" and mode != "SF":
     data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
     data_sample.name  = "data"
     data_sample.style = styles.errorStyle( ROOT.kBlack )
@@ -290,7 +301,7 @@ for index, mode in enumerate(allModes):
 
   stack_mc = Stack( mc )
 
-  if   args.signal == "T2tt": stack_data = Stack(data_sample, T2tt)
+  if   args.signal == "T2tt": stack_data = Stack(data_sample, T2tt, T2tt2)
   elif args.signal == "DM":   stack_data = Stack(data_sample, DM, DM2)
   else:                       stack_data = Stack(data_sample)
   sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
@@ -417,8 +428,8 @@ for index, mode in enumerate(allModes):
     mc_weight_func, mc_weight_string = weightMC( sys = (args.selectSys if args.selectSys != 'None' else None) )
 
     yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(mc_selection_string + "&&dl_mt2ll<100" ), weightString = mc_weight_string)['val'] for s in mc}
-    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val'] for s in data_sample )
-    else:             yield_data = data_sample.getYieldFromDraw( selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val']
+    if mode == "all" or mode == 'SF': yield_data = sum(s.getYieldFromDraw(       selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val'] for s in data_sample )
+    else:                             yield_data = data_sample.getYieldFromDraw( selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val']
 
     plotting.fill(plots, read_variables = read_variables, sequence = [])
 
