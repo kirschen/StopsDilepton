@@ -74,7 +74,7 @@ for s in samples:
 #multiIsoWPMT = multiIsoLepString('M','T', ('l1_index','l2_index'))
 relIso04sm12Cut =   "&&".join(["LepGood_relIso04["+ist+"]<0.12" for ist in ('l1_index','l2_index')])
 
-weight_string = 'weight*reweightDilepTriggerBackup*reweightLeptonSF'
+weight_string = 'weight * reweightDilepTriggerBackup * reweightLeptonSF * reweight36fbPU'
 lumiFac = 36.5
 
 cuts=[
@@ -82,7 +82,7 @@ cuts=[
   ("opposite sign",              "opposite charge",       "isOS==1"),
   ("looseLeptonVeto",            "loose lepton veto",       "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2"),
   ("m(ll)>20",                   "$M(ll)>20$ GeV",       "dl_mass>20"),
-  ("|m(ll) - mZ|>15 for SF",     "$|M(ll)-M_{Z}| > 15$ GeV (SF)",       "( (isMuMu==1||isEE==1)&&abs(dl_mass-91.2)>=15 || isEMu==1 )"),
+  ("|m(ll) - mZ|>15 for SF",     "$|M(ll)-M_{Z}| > 15$ GeV (SF)",       "( (isMuMu==1||isEE==1)&&abs(dl_mass-91.1876)>=15 || isEMu==1 )"),
   (">=2 jets",                   "$n_{jet}>=2$",       "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
   (">=1 b-tags (CSVv2)",         "$n_{b-tag}>=1$",       "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
   ("MET>80",                     "$\\ETmiss>80$ GeV",       "met_pt>80"),
