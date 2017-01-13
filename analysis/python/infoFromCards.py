@@ -22,7 +22,8 @@ def getUncFromCard(cardFile, estimateName, uncName, bin):
 	    try:    return float(line.split()[2:][i])-1.
 	    except: return 0 # muted bin has -, cannot be converted to float
 
-def applyNuisance(cardsFile, nuisanceFile, estimate, res, bin):
+def applyNuisance(cardsFile, estimate, res, bin):
+    nuisanceFile = cardsFile.replace('.txt','_nuisances_full.txt')
     if not estimate.name in ['DY','multiBoson']: return res
     scaledRes  = res*(1+getUncFromCard(cardsFile, estimate.name, estimate.name, bin)*getPull(nuisanceFile, estimate.name))
     scaledRes2 = scaledRes*(1+res.sigma/res.val*getPull(nuisanceFile, 'Stat_Bin' + str(bin) + '_' + estimate.name)) if scaledRes.val > 0 else scaledRes

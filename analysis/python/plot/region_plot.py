@@ -121,7 +121,6 @@ for var in systematics.values():
 
 from StopsDilepton.analysis.infoFromCards import getUncFromCard, applyNuisance
 cardsDirectory = os.path.join(setup.analysis_results, "isOS-nJets2p-nbtag0-met80-metSig5-mll20-looseLeptonVeto-relIso0.12", "DY", "TTZ", "TTJets", "multiBoson", 'cardFiles', args.signal, 'regionsO')
-nuisanceFile   = os.path.join(cardsDirectory, 'TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200_nuisances_full.txt')
 cardFile       = os.path.join(cardsDirectory, 'TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt') # To make sure we apply the same uncertainties as applied in the cards
 
 def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
@@ -147,7 +146,7 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
         setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
-        if args.control == 'DYVV' and args.scale: res = applyNuisance(cardsFile, nuisanceFile, estimate, res, i)
+        if args.control == 'DYVV' and args.scale: res = applyNuisance(cardsFile, estimate, res, i)
         if var and var.count('TTJetsUp') and estimate.name.count('TTJets'):   res *= (1.+getUncFromCard(cardFile, 'TTJets','top',i))
         if var and var.count('TTJetsDown') and estimate.name.count('TTJets'): res *= (1.-getUncFromCard(cardFile, 'TTJets','top',i))
         if var and var.count('TTZUp') and estimate.name.count('TTZ'):         res *= (1.+getUncFromCard(cardFile, 'TTZ','ttZ',i))
