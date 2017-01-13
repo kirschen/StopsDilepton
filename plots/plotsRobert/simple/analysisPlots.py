@@ -177,7 +177,7 @@ for index, mode in enumerate(allModes):
       if args.signal == "T2tt":
         sample.scale          = lumi_scale
         sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-        sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+        sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
         sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
       else:
         raise NotImplementedError
