@@ -165,6 +165,11 @@ def get_parser():
         action='store_true',
         help="Is T2tt signal?"
         )
+    
+    argParser.add_argument('--T8bbllnunu',
+        action='store_true',
+        help="Is T8bbllnunu signal?"
+        )
 
     argParser.add_argument('--TTDM',
         action='store_true',
@@ -242,15 +247,15 @@ if isInclusive:
 #Samples: Load samples
 maxN = 2 if options.small else None
 from StopsDilepton.samples.helpers import fromHeppySample
-if options.T2tt:
+if options.T2tt or options.T8bbllnunu:
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
-    logger.info( "T2tt signal samples to be processed: %s", ",".join(s.name for s in samples) )
+    logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
     # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
-    assert len(samples)==1, "Can only process one T2tt sample at a time."
+    assert len(samples)==1, "Can only process one SUSY sample at a time."
     samples[0].files = samples[0].files[:maxN]
     logger.debug( "Fetching signal weights..." )
-    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
+    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi ) #Can use same x-sec/weight for T8bbllnunu as for T2tt
     logger.debug("Done fetching signal weights.")
 #elif options.TTDM:
 #    samples = [ fromHeppySample(s, data_path = "/scratch/rschoefbeck/cmgTuples/80X_0l_TTDM/", \
@@ -267,7 +272,7 @@ if len(samples)==0:
 isData = False not in [s.isData for s in samples]
 isMC   =  True not in [s.isData for s in samples]
 
-if options.T2tt:
+if options.T2tt or options.T8bbllnunu:
     xSection = None
     # special filet for bad jets in FastSim: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16#Cleaning_up_of_fastsim_jets_from
     skimConds.append( "Sum$(JetFailId_pt>30&&abs(JetFailId_eta)<2.5&&JetFailId_mcPt==0&&JetFailId_chHEF<0.1)+Sum$(Jet_pt>30&&abs(Jet_eta)<2.5&&Jet_mcPt==0&&Jet_chHEF<0.1)==0" )
@@ -384,6 +389,17 @@ if options.T2tt:
     signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T2tt")
     if not os.path.exists(signalDir): os.makedirs(signalDir)
 
+# Directory for individual signal files
+if options.T8bbllnunu:
+    T8bbllnunu_strings = options.samples.split('_')
+    for st in T8bbllnunu_strings:
+        if 'XSlep' in st: x_slep = st.replace('XSlep','')
+        elif 'XCha' in st: x_cha = st.replace('XCha','')
+    signalSubDir = options.samples.replace('SMS_','')
+    
+    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, signalSubDir)
+    if not os.path.exists(signalDir): os.makedirs(signalDir)
+
 if os.path.exists(outDir) and options.overwrite:
     if options.nJobs > 1:
         logger.warning( "NOT removing directory %s because nJobs = %i", outDir, options.nJobs )
@@ -462,15 +478,15 @@ else:
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
 
-if options.T2tt or options.TTDM:
+if options.T2tt or options.TTDM or options.T8bbllnunu:
     branchKeepStrings_MC += ["nIsr"]
-if options.keepLHEWeights or options.T2tt or options.TTDM:
+if options.keepLHEWeights or options.T2tt or options.TTDM or options.T8bbllnunu:
     branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
 
 if isSingleLep:
     branchKeepStrings_DATAMC += ['HLT_*']
 
-if options.T2tt: 
+if options.T2tt or options.T8bbllnunu: 
     #branchKeepStrings_MC += ['GenSusyMStop', 'GenSusyMNeutralino'] #FIXME
     branchKeepStrings_MC += ['ngenPartAll', 'genPartAll_*'] #FIXME
 
@@ -481,7 +497,7 @@ if isMC:
         jetMCInfo = ['mcPt/F', 'hadronFlavour/I','mcMatchId/I']
     else:
         jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
-        if not options.T2tt:
+        if not (options.T2tt or options.T8bbllnunu):
             jetMCInfo.append('partonFlavour/I')
 else:
     jetMCInfo = []
@@ -568,7 +584,7 @@ if isTriLep or isDiLep:
             'reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F',
             'reweightLeptonHIPSF/F',
          ] )
-    if options.T2tt or options.TTDM:
+    if options.T2tt or options.TTDM or options.T8bbllnunu:
         new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
@@ -599,9 +615,9 @@ if addSystematicVariations:
         if var!='MC':
             new_variables.append('reweightBTag_'+var+'/F')
 
-if options.T2tt or options.TTDM:
+if options.T2tt or options.TTDM or options.T8bbllnunu:
     read_variables += map(TreeVariable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
-if options.T2tt:
+if options.T2tt or options.T8bbllnunu:
     #read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
 
@@ -660,9 +676,14 @@ def filler( event ):
     if isMC: gPart = getGenPartsAll(r)
 
     # weight
-    if options.T2tt:
+    if options.T2tt or options.T8bbllnunu:
         r.GenSusyMStop = max([p['mass']*(abs(p['pdgId']==1000006)) for p in gPart])
         r.GenSusyMNeutralino = max([p['mass']*(abs(p['pdgId']==1000022)) for p in gPart])
+        if options.T8bbllnunu:
+            r.GenSusyMChargino = max([p['mass']*(abs(p['pdgId']==1000024)) for p in gPart])
+            r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000011)||abs(p['pdgId']==1000013)||abs(p['pdgId']==1000015)) for p in gPart]) #FIXME check PDG ID of slepton in sample
+             event.mCha  = r.GenSusyMChargino
+             event.mSlep = r.GenSusyMSlepton
         event.weight=signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['weight']
         event.mStop = r.GenSusyMStop
         event.mNeu  = r.GenSusyMNeutralino
@@ -673,7 +694,7 @@ def filler( event ):
     elif isData:
         event.weight = 1
     else:
-        raise NotImplementedError( "isMC %r isData %r T2tt? %r TTDM?" % (isMC, isData, options.T2tt, options.TTDM) )
+        raise NotImplementedError( "isMC %r isData %r T2tt? %r TTDM? %r T8bbllnunu? %r" % (isMC, isData, options.T2tt, options.TTDM, options.T8bbllnunu) )
 
     # lumi lists and vetos
     if isData:
@@ -916,7 +937,7 @@ def filler( event ):
               dlg = dl + gamma
               event.dlg_mass = dlg.M()
 
-            if options.T2tt or options.TTDM:
+            if options.T2tt or options.TTDM or options.T8bbllnunu:
                 mt2Calc.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
                 setattr(event, "dl_mt2ll_gen", mt2Calc.mt2ll())
                 if len(jets)>=2:
@@ -1091,8 +1112,9 @@ if isData:
     logger.info( "Written JSON file %s",  jsonFile )
 
 # Write one file per mass point for T2tt
-if options.T2tt:
-    output = Sample.fromDirectory("T2tt_output", outDir)
+if options.T2tt or options.T8bbllnunu:
+    if options.T2tt: output = Sample.fromDirectory("T2tt_output", outDir)
+    else: output = Sample.fromDirectory("T2tt_output", outDir) #FIXME
     print "Initialising chain, otherwise first mass point is empty"
     print output.chain
     if options.small: output.reduceFiles( to = 1 )
@@ -1101,7 +1123,9 @@ if options.T2tt:
         logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
         cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
         logger.debug("Using cut %s", cut)
-        signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
+        if options.T2tt: signal_prefix = 'T2tt_'
+        else: signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
+        signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
         logger.debug("Ouput file will be %s", signalFile)
         if not os.path.exists(signalFile) or options.overwrite:
             outF = ROOT.TFile.Open(signalFile, "RECREATE")
