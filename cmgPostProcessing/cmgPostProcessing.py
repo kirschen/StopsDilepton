@@ -391,11 +391,15 @@ if options.T2tt:
 
 # Directory for individual signal files
 if options.T8bbllnunu:
-    T8bbllnunu_strings = options.samples.split('_')
+    T8bbllnunu_strings = options.samples[0].split('_')
     for st in T8bbllnunu_strings:
-        if 'XSlep' in st: x_slep = st.replace('XSlep','')
-        elif 'XCha' in st: x_cha = st.replace('XCha','')
-    signalSubDir = options.samples.replace('SMS_','')
+        if 'XSlep' in st:
+            x_slep = st.replace('XSlep','')
+            logger.info("Factor x_slep in this sample is %s",x_slep)
+        if 'XCha' in st:
+            x_cha = st.replace('XCha','')
+            logger.info("Factor x_cha in this sample is %s",x_cha)
+    signalSubDir = options.samples[0].replace('SMS_','')
     
     signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, signalSubDir)
     if not os.path.exists(signalDir): os.makedirs(signalDir)
@@ -620,6 +624,8 @@ if options.T2tt or options.TTDM or options.T8bbllnunu:
 if options.T2tt or options.T8bbllnunu:
     #read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
+    if  options.T8bbllnunu:
+        new_variables  += ['mCha/I', 'mSlep/I']
 
 if options.fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
@@ -681,10 +687,17 @@ def filler( event ):
         r.GenSusyMNeutralino = max([p['mass']*(abs(p['pdgId']==1000022)) for p in gPart])
         if options.T8bbllnunu:
             r.GenSusyMChargino = max([p['mass']*(abs(p['pdgId']==1000024)) for p in gPart])
-            r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000011)||abs(p['pdgId']==1000013)||abs(p['pdgId']==1000015)) for p in gPart]) #FIXME check PDG ID of slepton in sample
-             event.mCha  = r.GenSusyMChargino
-             event.mSlep = r.GenSusyMSlepton
-        event.weight=signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['weight']
+            r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000011)) for p in gPart]) #FIXME check PDG ID of slepton in sample
+            logger.debug("Slepton is selectron with mass %i", r.GenSusyMSlepton)
+            if not r.GenSusyMSlepton > 0:
+                r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000013)) for p in gPart])
+                logger.debug("Slepton is smuon with mass %i", r.GenSusyMSlepton)
+            if not r.GenSusyMSlepton > 0:
+                r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000015)) for p in gPart])
+                logger.debug("Slepton is stau with mass %i", r.GenSusyMSlepton)
+            event.mCha  = r.GenSusyMChargino
+            event.mSlep = r.GenSusyMSlepton
+        event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
         event.mStop = r.GenSusyMStop
         event.mNeu  = r.GenSusyMNeutralino
         event.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
