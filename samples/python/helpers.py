@@ -42,6 +42,8 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
         #module_ = 'CMGTools.StopsDilepton.samples_13TeV_Moriond2017'
     elif "T2tt" in sample:
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_signals'
+    elif "T8bbllnunu" in sample:
+        module_ = 'CMGTools.RootTools.samples.samples_13TeV_signals'
     elif "TTbarDM" in sample:
         module_ = 'CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2'
     else: 
@@ -82,6 +84,10 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
             elif "T2tt" in sample:
                 from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper
                 return T2tt_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
+            elif "T8bbllnunu" in sample:
+                logger.debug("getting T8bbllnunu_heppy_mapper")
+                from StopsDilepton.samples.heppy_dpm_samples import T8bbllnunu_heppy_mapper
+                return T8bbllnunu_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             elif "TTbarDM" in sample:
                 from StopsDilepton.samples.heppy_dpm_samples import ttbarDM_heppy_mapper
                 return ttbarDM_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
@@ -106,7 +112,7 @@ def getT2ttSignalWeight(sample, lumi):
     xSecSusy_ = xSecSusy()
     channel='stop13TeV'
     signalWeight={}
-    mMax = 1500
+    mMax = 1550
     bStr = str(mMax)+','+str(mMax)
     #sample.chain.Draw("GenSusyMNeutralino:GenSusyMStop>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
     sample.chain.Draw("Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022)):Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))>>hNEvents("+','.join([bStr, bStr])+")", "","goff")

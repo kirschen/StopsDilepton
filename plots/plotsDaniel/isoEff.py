@@ -44,12 +44,15 @@ for b in allBins:
   cut = presel + '&&'
   cut += cutInterpreter.cutString(b)
   
-  print cut
+  print "Working on", cut
   
   tt.chain.Draw(">>eList", cut)
   
   elist = ROOT.gDirectory.Get("eList")
   number_events = elist.GetN()
+  
+  if number_events > 1e6: number_events = int(1e6)
+  print "Reduced number of events to 1M for cut", cut
   
   #number_events = int(1e3)
   num_mu    = 0
@@ -120,8 +123,8 @@ for b in allBins:
   isoEffs[b]['ele'] = num_ele/denom_ele
   print "Isolation efficiency for muons is", num_mu/denom_mu
   print "Isolation efficiency for electrons is", num_ele/denom_ele
-  pickle.dump(isoEffs, file('/afs/hephy.at/data/dspitzbart01/StopsDilepton/isoEfficiency/isoEff_ttlep_pow.pkl','w'))
+  pickle.dump(isoEffs, file('/afs/hephy.at/data/dspitzbart01/StopsDilepton/isoEfficiency/isoEff_ttlep_pow_1M.pkl','w'))
 
 print "Overwriting pkl file"
-pickle.dump(isoEffs, file('/afs/hephy.at/data/dspitzbart01/StopsDilepton/isoEfficiency/isoEff_ttlep_pow.pkl','w'))
+pickle.dump(isoEffs, file('/afs/hephy.at/data/dspitzbart01/StopsDilepton/isoEfficiency/isoEff_ttlep_pow_1M.pkl','w'))
 
