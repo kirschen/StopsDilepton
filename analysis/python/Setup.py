@@ -112,17 +112,16 @@ class Setup:
                 if k=='remove':
                     for i in sys[k]:
                       res.sys['reweight'].remove(i)
-                      res.sys['remove'].remove(i)
                 elif k=='reweight':
                     res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
                     for upOrDown in ['Up','Down']:
-                      if 'reweight36fbPU'+upOrDown             in res.sys[k]: res.sys[k].remove('reweight36fbPU')
+                      if 'reweightPU36fb'+upOrDown             in res.sys[k]: res.sys[k].remove('reweightPU36fb')
                       if 'reweightDilepTriggerBackup'+upOrDown in res.sys[k]: res.sys[k].remove('reweightDilepTriggerBackup')
-                 #     if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
-                 #     if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
+  #                    if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
+ #                     if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightLeptonSF'+upOrDown           in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
                       if 'reweightLeptonFastSimSF'+upOrDown    in res.sys[k]: res.sys[k].remove('reweightLeptonFastSimSF')
-                 #     if 'reweightLeptonHIPSF'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightLeptonHIPSF')
+#                      if 'reweightLeptonHIPSF'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightLeptonHIPSF')
                 else:
                     res.sys[k] = sys[k] # if sys[k] else res.sys[k]
 
