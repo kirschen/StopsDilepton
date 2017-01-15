@@ -66,8 +66,8 @@ if args.signal == "T2tt":
 elif args.signal == "T8bbllnunu":
     postProcessing_directory = "postProcessed_80X_v28/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_350_1
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p05_400_100
+    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_650_1
+    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p05_450_150
     T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T8bbllnunu, T8bbllnunu2 ]
@@ -182,10 +182,15 @@ for index, mode in enumerate(allModes):
     sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
 
   for sample in signals:
-      if args.signal == "T2tt" or args.signal == "T8bbllnunu":
+      if args.signal == "T2tt":
         sample.scale          = lumi_scale
         sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
         sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+        sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+      elif args.signal == "T8bbllnunu":
+        sample.scale          = lumi_scale
+        sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
+        sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
         sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
       else:
         raise NotImplementedError

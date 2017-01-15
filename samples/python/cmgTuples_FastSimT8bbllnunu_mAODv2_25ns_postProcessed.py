@@ -30,7 +30,7 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T8bb
         xCha, xSlep, mStop, mNeu = name.replace('T8bbllnunu_','').replace('XCha','').replace('XSlep','').replace('p','.').split('_')
         
         bcha    = "b#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{#pm}}"
-        nuslep  = "nu#tilde{l}"
+        nuslep  = "#nu#tilde{l}"
         lneu    = "l#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{#pm}}"
         ra      = " #rightarrow "
         
