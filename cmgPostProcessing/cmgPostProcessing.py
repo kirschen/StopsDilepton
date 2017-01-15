@@ -401,7 +401,7 @@ if options.T8bbllnunu:
             logger.info("Factor x_cha in this sample is %s",x_cha)
     signalSubDir = options.samples[0].replace('SMS_','')
     
-    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, signalSubDir)
+    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T8bbllnunu")
     if not os.path.exists(signalDir): os.makedirs(signalDir)
 
 if os.path.exists(outDir) and options.overwrite:
@@ -625,7 +625,7 @@ if options.T2tt or options.T8bbllnunu:
     #read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
     if  options.T8bbllnunu:
-        new_variables  += ['mCha/I', 'mSlep/I']
+        new_variables  += ['mCha/I', 'mSlep/I', 'sleptonPdg/I']
 
 if options.fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
@@ -688,13 +688,16 @@ def filler( event ):
         if options.T8bbllnunu:
             r.GenSusyMChargino = max([p['mass']*(abs(p['pdgId']==1000024)) for p in gPart])
             r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000011)) for p in gPart]) #FIXME check PDG ID of slepton in sample
-            logger.debug("Slepton is selectron with mass %i", r.GenSusyMSlepton)
+            #logger.debug("Slepton is selectron with mass %i", r.GenSusyMSlepton)
+            event.sleptonPdg = 1000011
             if not r.GenSusyMSlepton > 0:
                 r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000013)) for p in gPart])
-                logger.debug("Slepton is smuon with mass %i", r.GenSusyMSlepton)
+                #logger.debug("Slepton is smuon with mass %i", r.GenSusyMSlepton)
+                event.sleptonPdg = 1000013
             if not r.GenSusyMSlepton > 0:
                 r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000015)) for p in gPart])
-                logger.debug("Slepton is stau with mass %i", r.GenSusyMSlepton)
+                #logger.debug("Slepton is stau with mass %i", r.GenSusyMSlepton)
+                event.sleptonPdg = 1000015
             event.mCha  = r.GenSusyMChargino
             event.mSlep = r.GenSusyMSlepton
         event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
@@ -1127,7 +1130,7 @@ if isData:
 # Write one file per mass point for T2tt
 if options.T2tt or options.T8bbllnunu:
     if options.T2tt: output = Sample.fromDirectory("T2tt_output", outDir)
-    else: output = Sample.fromDirectory("T2tt_output", outDir) #FIXME
+    else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
     print "Initialising chain, otherwise first mass point is empty"
     print output.chain
     if options.small: output.reduceFiles( to = 1 )
