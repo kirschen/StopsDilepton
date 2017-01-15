@@ -120,8 +120,7 @@ for var in systematics.values():
   sysVariations += var
 
 from StopsDilepton.analysis.infoFromCards import getUncFromCard, applyNuisance
-cardsDirectory = os.path.join(setup.analysis_results, "isOS-nJets2p-nbtag0-met80-metSig5-mll20-looseLeptonVeto-relIso0.12", "DY", "TTZ", "TTJets", "multiBoson", 'cardFiles', args.signal, 'regionsO')
-cardFile       = os.path.join(cardsDirectory, 'TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt') # To make sure we apply the same uncertainties as applied in the cards
+cardFile = '/user/tomc/StopsDilepton/results_80X_v24/isOS-nJets2p-nbtag0-met80-metSig5-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/cardFiles/TTbarDM/regionsO/TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt'
 
 def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
@@ -146,13 +145,13 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
         setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
-        if args.control == 'DYVV' and args.scale: res = applyNuisance(cardsFile, estimate, res, i)
+        if args.control == 'DYVV' and args.scale: res = applyNuisance(cardFile, estimate, res, i)
         if var and var.count('TTJetsUp') and estimate.name.count('TTJets'):   res *= (1.+getUncFromCard(cardFile, 'TTJets','top',i))
         if var and var.count('TTJetsDown') and estimate.name.count('TTJets'): res *= (1.-getUncFromCard(cardFile, 'TTJets','top',i))
         if var and var.count('TTZUp') and estimate.name.count('TTZ'):         res *= (1.+getUncFromCard(cardFile, 'TTZ','ttZ',i))
         if var and var.count('TTZDown') and estimate.name.count('TTZ'):       res *= (1.-getUncFromCard(cardFile, 'TTZ','ttZ',i))
-        if var and var.count('TTXUp') and estimate.name.count('TTX'):         res *= (1.+getUncFromCard(cardFile, 'TTXNoZ','other',i))
-        if var and var.count('TTXDown') and estimate.name.count('TTX'):       res *= (1.+getUncFromCard(cardFile, 'TTXNoZ','other',i))
+        if var and var.count('TTXUp') and estimate.name.count('TTX'):         res *= (1.+getUncFromCard(cardFile, 'other','other',i))
+        if var and var.count('TTXDown') and estimate.name.count('TTX'):       res *= (1.+getUncFromCard(cardFile, 'other','other',i))
         if var and var.count('MBUp') and estimate.name.count('multiBoson'):   res *= (1.+getUncFromCard(cardFile, 'multiBoson','multiBoson',i))
         if var and var.count('MBDown') and estimate.name.count('multiBoson'): res *= (1.+getUncFromCard(cardFile, 'multiBoson','multiBoson',i))
         if var and var.count('DYUp') and estimate.name.count('DYBoson'):      res *= (1.+getUncFromCard(cardFile, 'DY','DY',i))
