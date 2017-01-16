@@ -143,11 +143,10 @@ class SystematicEstimator:
 
     def getBkgSysJobs(self, region, channel, setup):
         l = [
-            (region, channel, setup.sysClone({'reweight':['reweightPU12fbUp']})),
-            (region, channel, setup.sysClone({'reweight':['reweightPU12fbDown']})),
+            (region, channel, setup.sysClone({'reweight':['reweightPU36fbUp']})),
+            (region, channel, setup.sysClone({'reweight':['reweightPU36fbDown']})),
 
-            (region, channel, setup.sysClone({'reweight':['reweightTopPt']})),
-
+            (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
 
             (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
             (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),

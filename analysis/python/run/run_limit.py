@@ -5,7 +5,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
 argParser.add_argument("--estimates",      action='store', default='mc',                nargs='?', choices=["mc","dd"],                                                                                   help="mc estimators or data-driven estimators?")
-argParser.add_argument("--signal",         action='store', default='TTbarDM',           nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5"],              help="which signal?")
+argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5"],              help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,                nargs='?',                                                                                                        help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float,     nargs='?',                                                                                                        help="scaling all yields")
 argParser.add_argument("--regions",        action='store', default=None,                nargs='?',                                                                                                        help="select region setup")
@@ -39,8 +39,8 @@ else:                limitPrefix = "regions" + args.regions
 
 regions = globals()[limitPrefix]
 
-if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ'])
-elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'multiBoson-DD', 'TTXNoZ'])
+if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
+elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'multiBoson-DD', 'other'])
 observation = DataObservation(name='Data', sample=setup.sample['Data'], cacheDir=setup.defaultCacheDir())
 
 for e in estimators + [observation]:
@@ -141,8 +141,8 @@ def wrapper(s):
                     c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val )
 
                     if e.name.count('TTJets'):     c.specifyUncertainty('top',        binname, name, 2 if r == regions[-1] else 1.5)
-                    if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.25)
-                    if e.name.count('DY'):         c.specifyUncertainty('DY',         binname, name, 1.25)
+                    if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.5)
+                    if e.name.count('DY'):         c.specifyUncertainty('DY',         binname, name, 1.5)
                     if e.name.count('TTZ'):        c.specifyUncertainty('ttZ',        binname, name, 1.2)
                     if e.name.count('other'):      c.specifyUncertainty('other',      binname, name, 1.25)
 
@@ -183,7 +183,7 @@ def wrapper(s):
                   c.addUncertainty(uname, 'lnN')
                   c.specifyUncertainty(uname, binname, 'signal', 1 + sqrt(0.1**2 + signal.sigma/signal.val) )
 
-                if signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg<=0:# or (total_exp_bkg>300 and signal.val<0.05):
+                if not args.controlDYVV and (signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg<=0):# or (total_exp_bkg>300 and signal.val<0.05):
                   if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
                   c.muted[binname] = True
                 else:

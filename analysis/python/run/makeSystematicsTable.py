@@ -17,9 +17,9 @@ from StopsDilepton.analysis.Cache           import Cache
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger("INFO", logFile = None )
+logger = logger.get_logger("DEBUG", logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger("INFO", logFile = None )
+logger_rt = logger_rt.get_logger("DEBUG", logFile = None )
 
 setup.verbose = False
 
@@ -60,8 +60,7 @@ def displayAbsSysValue(val):
      return "%.2f" % roundedVal
 
 from StopsDilepton.analysis.infoFromCards import getUncFromCard, applyNuisance
-cardsDirectory = os.path.join(setup.analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-relIso0.12", "DY", "TTZ", "TTJets", "multiBoson", 'cardFiles', 'TTbarDM', 'regionsO')
-cardFile       = os.path.join(cardsDirectory, 'TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt') # To make sure we apply the same uncertainties as applied in the cards
+cardFile = '/user/tomc/StopsDilepton/results_80X_v24/isOS-nJets2p-nbtag0-met80-metSig5-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/cardFiles/TTbarDM/regionsO/TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt'
 
 # Evaluate absolute and relative errors
 def evaluateEstimate(e, SR, estimators=None):
@@ -86,7 +85,7 @@ def evaluateEstimate(e, SR, estimators=None):
      e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else getUncFromCard(cardFile, 'TTJets','top',SR) 
      e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else getUncFromCard(cardFile, 'TTZ','ttZ',SR)
      e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else getUncFromCard(cardFile, 'multiBoson','multiBoson',SR)
-     e.rel["TTXNoZ"]     = 0 if not e.name.count("TTXNoZ")     else getUncFromCard(cardFile, 'TTXNoZ','other',SR)
+     e.rel["TTXNoZ"]     = 0 if not e.name.count("TTXNoZ")     else getUncFromCard(cardFile, 'other','other',SR)
      e.rel["DY"]         = 0 if not e.name.count("DY")         else getUncFromCard(cardFile, 'DY','DY',SR)
 
      # For sum assume the individual estimators are already evaluated such that we can pick their corresponding absolute error
@@ -102,7 +101,7 @@ def evaluateEstimate(e, SR, estimators=None):
 
      e.expected = int(100*expected+0.5)/100.
      for i in e.displayAbs:
-       if not e.name.count("sum") and e.rel[i] > 0:
+       if not e.name.count("sum"):
          e.displayYieldAbs[i] = str(e.expected) + " $\pm$ " + e.displayAbs[i]
 
 def rotate(tex):
