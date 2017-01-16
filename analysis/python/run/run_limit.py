@@ -5,7 +5,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
 argParser.add_argument("--estimates",      action='store', default='mc',                nargs='?', choices=["mc","dd"],                                                                                   help="mc estimators or data-driven estimators?")
-argParser.add_argument("--signal",         action='store', default='TTbarDM',           nargs='?', choices=["T2tt","TTbarDM"],                                                                            help="which signal?")
+argParser.add_argument("--signal",         action='store', default='TTbarDM',           nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5"],              help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,                nargs='?',                                                                                                        help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float,     nargs='?',                                                                                                        help="scaling all yields")
 argParser.add_argument("--regions",        action='store', default=None,                nargs='?',                                                                                                        help="select region setup")
@@ -47,6 +47,7 @@ for e in estimators + [observation]:
     e.initCache(setup.defaultCacheDir())
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import signals_T2tt
+from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
 from StopsDilepton.analysis.u_float                                           import u_float
 from math                                                                     import sqrt
@@ -69,6 +70,8 @@ limitCache    = Cache(cacheFileName, verbosity=2)
 
 
 if   args.signal == "T2tt":    fastSim = True
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":     fastSim = False #FIXME
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":      fastSim = True
 elif args.signal == "TTbarDM": fastSim = False
 
 scaleUncCache = Cache('scale_%s.pkl' % args.signal, verbosity=2)
@@ -194,6 +197,9 @@ def wrapper(s):
     
     if   args.signal == "TTbarDM": sConfig = s.mChi, s.mPhi, s.type
     elif args.signal == "T2tt":    sConfig = s.mStop, s.mNeu
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":    sConfig = s.mStop, s.mNeu
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":     sConfig = s.mStop, s.mNeu
+
 
     if useCache and not overWrite and limitCache.contains(sConfig):
       res = limitCache.get(sConfig)
@@ -205,6 +211,8 @@ def wrapper(s):
     if res: 
       if   args.signal == "TTbarDM":   sString = "mChi %i mPhi %i type %s" % sConfig
       elif args.signal == "T2tt": sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5": sString = "mStop %i mNeu %i" % sConfig
       try:
         print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
         return sConfig, res
@@ -213,6 +221,8 @@ def wrapper(s):
         return None
 
 if   args.signal == "T2tt":    jobs = signals_T2tt 
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": jobs = signals_T8bbllnunu_XCha0p5_XSlep0p05
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5": jobs = signals_T8bbllnunu_XCha0p5_XSlep0p5
 elif args.signal == "TTbarDM": jobs = signals_TTbarDM
 
 if args.only is not None:
@@ -224,7 +234,7 @@ results = map(wrapper, jobs)
 results = [r for r in results if r]
 
 # Make histograms for T2tt
-if args.signal == "T2tt":
+if args.signal == "T2tt" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p05" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
   exp      = ROOT.TH2F("exp", "exp", 1000/25, 0, 1000, 1000/25, 0, 1000)
   exp_down = exp.Clone("exp_down")
   exp_up   = exp.Clone("exp_up")
