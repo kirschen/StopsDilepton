@@ -77,8 +77,9 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
             if module is not None:
                 module_ = module
             if "Run2016" in sample:
-                from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
-                return data_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
+                #if "Run2016G" not in sample: raise NotImplementedError
+                from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper_openMu
+                return data_heppy_mapper_openMu.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             elif "T2tt" in sample:
                 from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper
                 return T2tt_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
