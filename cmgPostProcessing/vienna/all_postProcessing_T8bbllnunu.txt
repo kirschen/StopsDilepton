@@ -1,3 +1,3 @@
-python cmgPostProcessing.py  --fastSim --T8bbllnunu --processingEra=postProcessed_80X_v28 --skim=dilepTiny --logLevel=DEBUG --samples SMS_T8bbllnunu_XCha0p5_XSlep0p05
-python cmgPostProcessing.py  --fastSim --T8bbllnunu --processingEra=postProcessed_80X_v28 --skim=dilepTiny --logLevel=DEBUG --samples SMS_T8bbllnunu_XCha0p5_XSlep0p5
+#python cmgPostProcessing.py  --fastSim --T8bbllnunu --processingEra=postProcessed_80X_v28 --skim=dilepTiny --logLevel=DEBUG --samples SMS_T8bbllnunu_XCha0p5_XSlep0p05
+python cmgPostProcessing.py  --fastSim --T8bbllnunu --processingEra=postProcessed_80X_v30 --skim=dilepTiny --logLevel=DEBUG --samples SMS_T8bbllnunu_XCha0p5_XSlep0p5
 #python cmgPostProcessing.py  --fastSim --T8bbllnunu --processingEra=postProcessed_80X_v28 --skim=dilepTiny --logLevel=DEBUG --samples SMS_T8bbllnunu_XCha0p5_XSlep0p09

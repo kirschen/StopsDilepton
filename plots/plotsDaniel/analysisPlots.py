@@ -30,6 +30,7 @@ argParser.add_argument('--selection',          action='store',      default='nje
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
+argParser.add_argument('--unblinded',          action='store_true', default=False)
 args = argParser.parse_args()
 
 #
@@ -158,16 +159,16 @@ for index, mode in enumerate(allModes):
   lumi_scale                 = data_sample.lumi/1000
 
   if args.noData: lumi_scale = 36.4
-  # Blinding policies for DM and T2tt analyses #FIXME
-  #if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.noData:
-  #  if args.signal == "DM":
-  #    weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
-  #    lumi_scale = lumi_scale/15
-  #  else:
-  #    weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-  #    lumi_scale = 17.3
-  #else:
-  weight_ = lambda event, sample: event.weight
+  #Blinding policies for DM and T2tt analyses #FIXME
+  if not args.unblinded:
+    if args.signal == "DM":
+      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
+      lumi_scale = lumi_scale/15
+    else:
+      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
+      lumi_scale = 17.3
+  else:
+    weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
   mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO]
