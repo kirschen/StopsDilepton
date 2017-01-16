@@ -138,7 +138,7 @@ if   args.signal == "T2tt":
   postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
   from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
   T2tt        = T2tt_650_1
-  T2tt2       = T2tt_650_1
+  T2tt2       = T2tt_500_250
   T2tt.style  = styles.lineStyle( ROOT.kBlack, width=3 )
   T2tt2.style = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
   signals     = [T2tt, T2tt2]
@@ -205,7 +205,6 @@ def getLeptonSelection(mode):
 #
 allPlots   = {}
 allModes   =['mue','ee','mumu','SF','all']
-allModes   =['SF']
 for index, mode in enumerate(allModes):
   if mode=="mumu":
     data_sample         = DoubleMuon_Run2016_backup
@@ -248,7 +247,7 @@ for index, mode in enumerate(allModes):
       lumi_scale    = lumi_scale/15.
     else:
       weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-      weightString_ = "weight*(run<=276811||(run>=277820&&run<=279931))"
+      weightString_ = "weight*(run<=276811||(run>=278820&&run<=279931))"
       lumi_scale    = 17.3
   else:
     weight_       = lambda event, sample: event.weight
@@ -583,7 +582,7 @@ for index, mode in enumerate(allModes):
 	data_histo.style = styles.errorStyle( ROOT.kBlack )
 	plot.histos += [[ data_histo ]]
         for h in signal_histos: plot.histos += [h]
-	plot_data.stack[0][0].texName = data_sample.texName if mode != "all" else data_sample[0].texName
+	plot_data.stack[0][0].texName = data_sample.texName if mode != "all" and mode != 'SF' else data_sample[0].texName
 	plot.stack += [[ plot_data.stack[0][0] ]]
         for i, signal in enumerate(signals):
 	  plot_data.stack[i+1][0].texName = signal.texName
