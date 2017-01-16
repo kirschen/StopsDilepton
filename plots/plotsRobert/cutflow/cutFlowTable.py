@@ -37,7 +37,7 @@ from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain
 
 #Define chains for signals and backgrounds
 samples = [
-    TTZ, TTXNoZ, multiBoson, #QCD_Mu5EMbcToE, 
+    TTZ_LO, TTXNoZ, multiBoson, #QCD_Mu5EMbcToE, 
     DY_HT_LO, 
     #TTbarDMJets_scalar_Mchi_1_Mphi_100,
     #TTbarDMJets_pseudoscalar_Mchi_1_Mphi_100,
@@ -78,7 +78,7 @@ weight_string = 'weight * reweightDilepTriggerBackup * reweightLeptonSF * reweig
 lumiFac = 36.5
 
 cuts=[
-  ("==2 relIso03<0.12 leptons",  "$n_{\\textrm{lep.}==2}$",       "nGoodMuons+nGoodElectrons==2&&l1_relIso03<0.12&&l2_relIso03<0.12"),
+  ("==2 relIso03<0.12 leptons",  "$n_{\\textrm{lep.}==2}$",       "nGoodMuons+nGoodElectrons==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>25"),
   ("opposite sign",              "opposite charge",       "isOS==1"),
   ("looseLeptonVeto",            "loose lepton veto",       "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2"),
   ("m(ll)>20",                   "$M(ll)>20$ GeV",       "dl_mass>20"),
@@ -101,7 +101,8 @@ with open(cutFlowFile, "w") as cf:
     for i in range(len(cuts)):
         r=[]
         for s in samples:
-            selection = "&&".join(c[2] for c in cuts[:i+1])
+            #selection = "&&".join(c[2] for c in cuts[:i+1])
+            selection = "&&".join(c[2] for c in cuts)
             if selection=="":selection="(1)"
             y = lumiFac*getYieldFromChain(s.chain, selection, weight_string)
             n = getYieldFromChain(s.chain, selection, '(1)')

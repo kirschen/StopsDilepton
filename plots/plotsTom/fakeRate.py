@@ -11,8 +11,9 @@ from math import sqrt, cos, sin, pi
 from RootTools.core.standard import *
 from StopsDilepton.tools.user import plot_directory
 from StopsDilepton.tools.objectSelection import getFilterCut, getGoodAndOtherLeptons, getGoodLeptons, muonSelector, eleSelector, leptonVars
+from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 
-
+import itertools
 #
 # Arguments
 # 
@@ -23,6 +24,7 @@ argParser.add_argument('--overwrite',      action='store_true', default=True,   
 argParser.add_argument('--subtract',       action='store_true', default=False,       help='subtract residual backgrounds?')
 argParser.add_argument('--plot_directory', action='store',      default='fakeRate')
 argParser.add_argument('--selection',      action='store',      default=None)
+argParser.add_argument('--runLocal',       action='store_true', default=False)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
@@ -44,6 +46,9 @@ def getLeptonSelection(mode):
 selectionStrings = ['njet2p-relIso0.12','njet2p-relIso0.12-btag1p']
 
 
+def launch(command, logfile):
+  if args.runLocal: os.system(command + " --isChild &> " + logfile)
+  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
 #
@@ -54,7 +59,7 @@ if not args.isChild and args.selection is None:
     command = "./fakeRate.py --selection=" + selection + (" --plot_directory=" + args.plot_directory) + (" --subtract" if args.subtract else "") + (" --logLevel=" + args.logLevel)
     logfile = "log/fakeRate_" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
+    if not args.dryRun: launch(command, logfile)
   logger.info("All jobs launched")
   exit(0)
 
@@ -63,8 +68,8 @@ if args.subtract: args.plot_directory += "_subtracted"
 # Text on the plots
 #
 postProcessing_directory = "postProcessed_80X_v26/trilep"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed_trilep import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 def drawObjects( dataMCScale, lumi_scale ):
     tex = ROOT.TLatex()
     tex.SetNDC()
@@ -80,8 +85,8 @@ def drawObjects( dataMCScale, lumi_scale ):
 
 read_variables = [
     "weight/F" , "JetGood[pt/F,eta/F,phi/F]",
-    "nLepGood/I",  "LepGood[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I]",
-    "nLepOther/I", "LepOther[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso04/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I]",
+    "nLepGood/I",  "LepGood[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso03/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I]",
+    "nLepOther/I", "LepOther[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso03/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I]",
 ]
 
 # For third loose lepton: no isolation, but still apply id
@@ -143,7 +148,7 @@ for index, mode in enumerate(allModes):
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
     sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F']
-    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
   for sample in mc:
@@ -154,7 +159,7 @@ for index, mode in enumerate(allModes):
   looseWeight = lambda event, sample:event.weight*event.hasLooseThirdLepton
   tightWeight = lambda event, sample:event.weight*event.hasTightThirdLepton
 
-  Plot.setDefaults(stack = stack, weight = lambda event, sample:event.weight, selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(stack = stack, weight = lambda event, sample:event.weight, selectionString = cutInterpreter.cutString(args.selection))
 
   plots = []
   plots.append(Plot(  # Fill with tight third leptons, will transform in fake rate below
@@ -186,18 +191,11 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'I_{rel.mini}(l_{3})', texY = 'Number of Events',
-    name = 'l3_miniRelIso', attribute = lambda event, sample: event.thirdLeptonMiniRelIso,
+    texX = 'I_{rel.}(l_{3})', texY = 'Number of Events',
+    name = 'l3_RelIso', attribute = lambda event, sample: event.thirdLeptonRelIso,
     binning=[20,0,1.8],
     weight = looseWeight,
   ))
-
-#  plots.append(Plot(
-#    texX = 'I_{rel.Iso}(l_{3})', texY = 'Number of Events',
-#    variable = TreeVariable.fromString( "l3_relIso04/F" ).addFiller(lambda event, sample: event.thirdLeptonRelIso),
-#    binning=[20,0,1.8],
-#    weight = looseWeight,
-#  ))
 
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)

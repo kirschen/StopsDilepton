@@ -27,6 +27,8 @@ special_cuts = {
     "metInv":            "met_pt<80",
     "metSigInv":         "metSig<5",
 
+    "extraLepVeto":      "Sum$(abs(LepGood_pdgId)==13&&LepGood_pt>20&&( abs(LepGood_dz)>0.2 || abs(LepGood_dxy)>0.2 ) ) + Sum$(abs(LepOther_pdgId)==13&&LepOther_pt>20&&( abs(LepOther_dz)>0.2 || abs(LepOther_dxy)>0.2 ) )==0",
+
   }
 
 continous_variables = [ ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"), ("htCMG", "htJet40j"), ("photon","photon_pt") ]
