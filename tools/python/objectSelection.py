@@ -31,6 +31,8 @@ def getGenPartsAll(c):
 
 def alwaysTrue(*args, **kwargs):
   return True
+def alwaysFalse(*args, **kwargs):
+  return False
 
 #https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF
 #https://www.dropbox.com/s/fsfw0gummwsc61v/lepawareJECv2_bkg_wp_300915.pdf?dl=0
@@ -359,5 +361,7 @@ def getFilterCut(isData=False, isFastSim = False, badMuonFilters = "Summer2016")
             filterCut += "&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
         elif badMuonFilters == "Summer2016_pt20":
             filterCut += "&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016_pt20"
+        elif badMuonFilters is None or badMuonFilters == "None":
+            pass
     if isData: filterCut += "&&weight>0"
     return filterCut

@@ -49,11 +49,17 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 #
 # Make samples, will be searched for in the postProcessing directory
 #
+#data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+#postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
+#from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+#data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+#postProcessing_directory = "postProcessed_80X_v22/dilepTiny"
+#from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v26/dilep/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v22/dilepTiny"
+postProcessing_directory = "postProcessed_80X_v26/dilep"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 if args.signal == "T2tt":
     postProcessing_directory = "postProcessed_80X_v26/dilepTiny"
@@ -111,9 +117,32 @@ def drawPlots(plots, mode, dataMCScale):
 #
 read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
                   "met_pt/F", "met_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
+sequence = []
 
-#
-#
+# extra lepton stuff
+read_variables += [
+     "nLepGood/I", "LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]",
+     "nLepOther/I", "LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]",
+    ]
+# Compute leptons
+from StopsDilepton.tools.objectSelection    import alwaysTrue, alwaysFalse, getGoodAndOtherLeptons, leptonVars
+from StopsDilepton.tools.helpers            import deltaR
+import itertools
+
+def makeLeptons( event, sample ):
+    all_muons = sorted( getGoodAndOtherLeptons(event, collVars = leptonVars, ptCut=10, mu_selector = alwaysTrue, ele_selector = alwaysFalse), key = lambda p:-p['pt'] )
+    if len(all_muons)>2:
+        minDR = min([ deltaR(l1, l2) for l1, l2 in itertools.combinations( all_muons, 2 ) ] )
+    else: 
+        minDR = None
+
+    print minDR 
+
+    return
+
+sequence.append( makeLeptons )
+
+
 # default offZ for SF
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
 def getLeptonSelection( mode ):
@@ -162,7 +191,7 @@ for index, mode in enumerate(allModes):
   weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
-  mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO, TWZ]
+  mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO]
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 
@@ -444,7 +473,7 @@ for index, mode in enumerate(allModes):
     ))
 
 
-  plotting.fill(plots, read_variables = read_variables, sequence = [])
+  plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
   # Get normalization yields from yield histogram
   for plot in plots:

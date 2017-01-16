@@ -26,7 +26,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default='T2tt',        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
-argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots_v2')
+argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots_v3')
 #argParser.add_argument('--selection',         action='store',      default=None)
 argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--normalizationSelection',  action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2llTo100')
@@ -240,6 +240,7 @@ def getLeptonSelection( mode ):
 #
 allPlots   = {}
 allModes   =['mue','ee','mumu','all']
+#allModes   =['mumu'] #FIXME
 for index, mode in enumerate(allModes):
 
   logger.info('Working on mode ' + str(mode))
@@ -290,6 +291,7 @@ for index, mode in enumerate(allModes):
 
   if args.splitBosons: mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
   else:                mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
+  #mc = [ Top_pow ]#FIXME
   if args.small:
     for sample in mc:# + ([data_sample] if type(data_sample)!=type([]) else data_sample):
       sample.reduceFiles( to = 1 )
@@ -568,8 +570,11 @@ for index, mode in enumerate(allModes):
     yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(normalization_selection_string ), weightString = mc_weight_string)['val'] for s in mc}
     if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = normalization_selection_string, weightString = data_weight_string)['val'] for s in data_sample )
     else:             yield_data = data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
-
+    
     plotting.fill(plots, read_variables = read_variables, sequence = sequence)
+    #print "yield_data", yield_data
+    #print "yield_mc", yield_mc
+    #print "dl_mt2ll_mc[None].histos[0][0].Integral()",dl_mt2ll_mc[None].histos[0][0],  dl_mt2ll_mc[None].histos[0][0].Integral()
 
     waitForLock( result_file ) 
     if os.path.exists(result_file):
@@ -616,15 +621,15 @@ for index, mode in enumerate(allModes):
     if dataMCScaling:
       yield_data    = yields['data']
       yield_non_top = sum(yields[s.name + 'None'] for s in mc if s.name != topName)
+      #print [(s.name, yields[s.name + 'None']) for s in mc if s.name ]
       top_sf[None]  = (yield_data - yield_non_top)/yields[topName+'None']
       total         = yield_data
-      logger.info( "Data: %i MC TT %3.2f MC other %3.2f SF %3.2f", yield_data, yields[topName+'None'], yield_non_top, top_sf[None] )
-      if args.selection.count('njet01-btag0-looseLeptonVeto-mll20-metInv') and mode != "mue":
-        top_sf[None] = 1
+      logger.info( "Data: %i MC TT %3.4f MC other %3.4f SF %3.4f", yield_data, yields[topName+'None'], yield_non_top, top_sf[None] )
+      #if args.selection.count('njet01-btag0-looseLeptonVeto-mll20-metInv') and mode != "mue":
+      #  top_sf[None] = 1
     else:
       top_sf[None] = 1
       total        = sum(yield_mc.values())
-
 
     #Scaling systematic shapes to MT2ll<100 region
     for sys_pair in sys_pairs:
@@ -633,11 +638,11 @@ for index, mode in enumerate(allModes):
             mc_sys_weight_func, mc_sys_weight_string = weightMC( sys = sys )
             non_top                                  = sum(yields[s.name+sys] for s in mc if s.name != topName)
             top_sf[sys]                              = (total - non_top)/yields[topName+sys]
-            logger.info( "Total: %i sys %s MC TT %3.2f MC other %3.2f SF %3.2f", total, sys, yields[topName+sys], non_top, top_sf[sys] )
+            logger.info( "Total: %i sys %s MC TT %3.4f MC other %3.4f SF %3.4f", total, sys, yields[topName+sys], non_top, top_sf[sys] )
 
-            if args.selection.count('njet01-btag0-looseLeptonVeto-mll20-metInv') and mode != "mue":
-              top_sf[sys] = 1
-              logger.info( "NOT scaling top for " + args.selection + " (mode " + mode + ")" )
+            #if args.selection.count('njet01-btag0-looseLeptonVeto-mll20-metInv') and mode != "mue":
+            #  top_sf[sys] = 1
+            #  logger.info( "NOT scaling top for " + args.selection + " (mode " + mode + ")" )
 
 
     for plot_mc, plot_data, bin_width in plotConfigs:
@@ -666,13 +671,15 @@ for index, mode in enumerate(allModes):
           pos_ttx = [i for i,x in enumerate(mc) if x == TTXNoZ][0]
           pos_dy  = [i for i,x in enumerate(mc) if x == DY_HT_LO][0]
           pos_mb  = [i for i,x in enumerate(mc) if x == multiBoson][0]
+          #print "Scaling top before", k, top_sf[k], plot_mc[k].histos[0][pos_top]
+          #print plot_mc[k].histos[0][pos_top].Integral()
           plot_mc[k].histos[0][pos_top].Scale(top_sf[k])
+          #print plot_mc[k].histos[0][pos_top].Integral()
           topHist = plot_mc[k].histos[0][pos_top]
           ttzHist = plot_mc[k].histos[0][pos_ttz]
           ttxHist = plot_mc[k].histos[0][pos_ttx]
           mbHist  = plot_mc[k].histos[0][pos_mb]
           dyHist  = plot_mc[k].histos[0][pos_dy]
-          
       #Calculating systematics
       h_summed = {k: plot_mc[k].histos_added[0][0].Clone() for k in plot_mc.keys()}
 
@@ -703,16 +710,16 @@ for index, mode in enumerate(allModes):
           for ib in range( 1 + h_rel_err.GetNbinsX() ):
             h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
-      # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
-      if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
-        for ib in range(1 + h_rel_err.GetNbinsX() ):
-          if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
-          topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
-          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
-          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
-          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
-          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
-          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
+#      # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
+#      if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
+#        for ib in range(1 + h_rel_err.GetNbinsX() ):
+#          if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
+#          topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
+#          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
+#          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
+#          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
+#          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
+#          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
 
       # take sqrt
       for ib in range( 1 + h_rel_err.GetNbinsX() ):
@@ -758,7 +765,8 @@ for index, mode in enumerate(allModes):
 
           ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes}
              
-
+      #print "plot.histos[0][pos_top].Integral()", pos_top,plot.histos 
+      #print "plot.histos[0][pos_top].Integral()", plot.histos[0][pos_top].Integral()    
       for log in [False, True]:
         plotDir = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else "") + "_scaled", args.selection)
         if args.copyIndexPHP:

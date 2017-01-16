@@ -156,7 +156,15 @@ def_daniel = "/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_24/"
 data_dpm_directories = [def_robert, def_daniel]
 from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import dataSamples as heppy_data_samples
 data_heppy_mapper = heppy_mapper( heppy_data_samples, data_dpm_directories, data_cache_file)
-#
+
+## open mu selection
+#data_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_data_openMu.pkl'
+#def_robert1 = "/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_24/"
+#def_robert2 = "/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_25/"
+#data_dpm_directories_openMu = [def_robert1, def_robert2]
+#from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import dataSamples as heppy_data_samples
+#data_heppy_mapper_openMu = heppy_mapper( heppy_data_samples, data_dpm_directories_openMu, data_cache_file)
+
 # TTbar DM signal
 ttbarDM_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_0l_TTbarDM.pkl'
 def_robert_0l = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_0l_23'
@@ -169,4 +177,12 @@ T2tt_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_cac
 def_robert_0l = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_0l_22/'
 T2tt_dpm_directories = [ def_robert_0l ]
 from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
-T2tt_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T2tt_dpm_directories, T2tt_cache_file)
+#T2tt_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T2tt_dpm_directories, T2tt_cache_file)
+
+# SUSY Signal T8bbllnunu
+T8bbllnunu_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_0l_T8bbllnunu_v2.pkl'
+def_daniel_0l = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_0l_24/'
+T8bbllnunu_dpm_directories = [ def_daniel_0l ]
+from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
+T8bbllnunu_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T8bbllnunu_dpm_directories, T8bbllnunu_cache_file)
+
