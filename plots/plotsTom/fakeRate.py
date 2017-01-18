@@ -10,7 +10,7 @@ ROOT.gROOT.SetBatch(True)
 from math import sqrt, cos, sin, pi
 from RootTools.core.standard import *
 from StopsDilepton.tools.user import plot_directory
-from StopsDilepton.tools.objectSelection import getFilterCut, getGoodAndOtherLeptons, getGoodLeptons, muonSelector, eleSelector, leptonVars
+from StopsDilepton.tools.objectSelection import getFilterCut, getGoodAndOtherLeptons, getLeptons, getGoodLeptons, default_muon_selector, default_ele_selector, muonSelector, eleSelector, leptonVars
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 
 import itertools
@@ -70,24 +70,28 @@ if args.subtract: args.plot_directory += "_subtracted"
 postProcessing_directory = "postProcessed_80X_v26/trilep"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-def drawObjects( dataMCScale, lumi_scale ):
+def drawObjects(lumi_scale ):
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'), 
-      (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV)')
-#      (0.45, 0.95, 'L=%3.2f fb{}^{-1} (13 TeV) Scale %3.2f'% ( int(lumi_scale*100)/100., dataMCScale ))
+      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% (lumi_scale) )
     ]
     return [tex.DrawLatex(*l) for l in lines] 
 
 
 read_variables = [
     "weight/F" , "JetGood[pt/F,eta/F,phi/F]",
-    "nLepGood/I",  "LepGood[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso03/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I]",
-    "nLepOther/I", "LepOther[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso03/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I]",
+    "nLepGood/I",  "LepGood[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso03/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I,mvaIdSpring15/I,jetPtRelv2/F,jetPtRatiov2/F]",
+    "nLepOther/I", "LepOther[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso03/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I,mvaIdSpring15/I,jetPtRelv2/F,jetPtRatiov2/F]",
 ]
+
+for i in leptonVars:
+  for j in read_variables:
+    if (j.count('LepGood[') or j.count('LepOther[')) and not j.count(i):
+      logger.warning('Missing ' + i + ' in read_variables!')
 
 # For third loose lepton: no isolation, but still apply id
 # Keep loosened id because otherwise we have almost no stats
@@ -101,11 +105,16 @@ allPlots   = {}
 allModes   = ['ee','mumu','mue']
 for index, mode in enumerate(allModes):
  for thirdLeptonFlavour in ['e','mu',"all"]:
-  def getThirdLepton( event, sample ):
-      goodLeptons = getGoodLeptons( event, ptCut=20, collVars = leptonVars)
-      allExtraLeptonsLoose = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_loose, ele_selector=ele_selector_loose) if l not in goodLeptons]
-      allExtraLeptonsTight = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_tight, ele_selector=ele_selector_tight) if l not in goodLeptons]
+  def isGoodLepton(l):
+      return (abs(l["pdgId"])==11 and default_ele_selector(l, ptCut = 20)) or (abs(l["pdgId"])==13 and default_muon_selector(l, ptCut = 20))
 
+  def isTightLepton(l):
+      return (abs(l["pdgId"])==11 and ele_selector_tight(l, ptCut=10)) or (abs(l["pdgId"])==13 and mu_selector_tight(l, ptCut=10))
+
+  def getThirdLepton( event, sample ):
+      allExtraLeptonsLoose = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_loose, ele_selector=ele_selector_loose) if not isGoodLepton(l)]
+      allExtraLeptonsTight = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_tight, ele_selector=ele_selector_tight) if not isGoodLepton(l)]
+ 
       if thirdLeptonFlavour == "e":
         allExtraLeptonsLoose = filter(lambda l: abs(l['pdgId']) == 11, allExtraLeptonsLoose)
         allExtraLeptonsTight = filter(lambda l: abs(l['pdgId']) == 11, allExtraLeptonsTight)
@@ -117,7 +126,7 @@ for index, mode in enumerate(allModes):
 	event.hasLooseThirdLepton   = True
 	event.thirdLeptonPt         = allExtraLeptonsLoose[0]['pt']
         event.thirdLeptonRelIso     = allExtraLeptonsLoose[0]['relIso03']
-	event.hasTightThirdLepton   = (len(allExtraLeptonsTight) >= 1)
+	event.hasTightThirdLepton   = isTightLepton(allExtraLeptonsLoose[0])
       else:
 	event.hasLooseThirdLepton   = False
 	event.hasTightThirdLepton   = False
@@ -143,7 +152,7 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
 
-  mc = [ Top_pow, DY_HT_LO, TTXNoZ, TTZ_LO, multiBoson]
+  mc = [ Top_pow, DY_HT_LO, TTXNoZ, TTZ, multiBoson]
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
@@ -169,13 +178,6 @@ for index, mode in enumerate(allModes):
     binning=[9,10,100],
   ))
 
-  plots.append(Plot(  # Fill with tight third leptons, will transform in fake rate below
-    texX = 'Fake rate', texY = 'Number of Events / 10 GeV',
-    name = 'fakeRateAll', attribute = lambda event, sample: event.thirdLeptonPt,
-    weight = tightWeight,
-    binning=[9,10,100],
-  ))
- 
   plots.append(Plot(
     texX = 'p_{T}(l_{3}, loose) (GeV)', texY = 'Number of Events / 10 GeV',
     name = 'l3_loose_pt', attribute = lambda event, sample: event.thirdLeptonPt,
@@ -193,7 +195,7 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX = 'I_{rel.}(l_{3})', texY = 'Number of Events',
     name = 'l3_RelIso', attribute = lambda event, sample: event.thirdLeptonRelIso,
-    binning=[20,0,1.8],
+    binning=[20,0,2.4],
     weight = looseWeight,
   ))
 
@@ -245,7 +247,6 @@ for index, mode in enumerate(allModes):
 #  yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc)
 #  dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
 #  logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yields[mode]["MC"], yields[mode]["data"], lumi_scale )
-  dataMCScale = 0
 
   for log in [False, True]:
     for plot in plots:
@@ -255,7 +256,7 @@ for index, mode in enumerate(allModes):
 	ratio = {'yRange':(0.1,1.9)},
 	logX = False, logY = log, sorting = False, 
 	yRange = (0.03, "auto"), 
-	drawObjects = drawObjects( dataMCScale, lumi_scale)
+	drawObjects = drawObjects(lumi_scale)
       )
   allPlots[mode+thirdLeptonFlavour] = plots
 
@@ -300,5 +301,5 @@ for log in [False, True]:
       ratio = {'yRange':(0.1,1.9)},
       logX = False, logY = log, sorting = False, 
       yRange = (0.03, "auto"), 
-      drawObjects = drawObjects( dataMCScale, lumi_scale)
+      drawObjects = drawObjects(lumi_scale)
     )
