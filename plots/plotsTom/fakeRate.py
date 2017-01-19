@@ -84,6 +84,7 @@ def drawObjects(lumi_scale ):
 
 read_variables = [
     "weight/F" , "JetGood[pt/F,eta/F,phi/F]",
+    "l1_eta/F", "l2_eta/F", "l1_phi/F", "l2_phi/F",
     "nLepGood/I",  "LepGood[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso03/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I,mvaIdSpring15/I,jetPtRelv2/F,jetPtRatiov2/F]",
     "nLepOther/I", "LepOther[eta/F,etaSc/F,pt/F,phi/F,dxy/F,dz/F,tightId/I,pdgId/I,mediumMuonId/I,relIso03/F,miniRelIso/F,sip3d/F,convVeto/I,lostHits/I,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I,mvaIdSpring15/I,jetPtRelv2/F,jetPtRatiov2/F]",
 ]
@@ -102,14 +103,18 @@ ele_selector_tight = eleSelector(relIso03=0.12, eleId = 4, dxy=99, dz=99)
 
 yields     = {}
 allPlots   = {}
-allModes   = ['ee','mumu','mue']
+allModes   = ['mumu','ee','mue']
 for index, mode in enumerate(allModes):
- for thirdLeptonFlavour in ['e','mu',"all"]:
+ for thirdLeptonFlavour in ['mu','e',"all"]:
   def isGoodLepton(l):
       return (abs(l["pdgId"])==11 and default_ele_selector(l, ptCut = 20)) or (abs(l["pdgId"])==13 and default_muon_selector(l, ptCut = 20))
 
   def isTightLepton(l):
       return (abs(l["pdgId"])==11 and ele_selector_tight(l, ptCut=10)) or (abs(l["pdgId"])==13 and mu_selector_tight(l, ptCut=10))
+
+  from StopsDilepton.tools.helpers import deltaPhi
+  def deltaR(eta, phi, eta2, phi2):
+    return sqrt(deltaPhi(phi, phi2)**2 + (eta - eta2)**2)
 
   def getThirdLepton( event, sample ):
       allExtraLeptonsLoose = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_loose, ele_selector=ele_selector_loose) if not isGoodLepton(l)]
@@ -127,11 +132,16 @@ for index, mode in enumerate(allModes):
 	event.thirdLeptonPt         = allExtraLeptonsLoose[0]['pt']
         event.thirdLeptonRelIso     = allExtraLeptonsLoose[0]['relIso03']
 	event.hasTightThirdLepton   = isTightLepton(allExtraLeptonsLoose[0])
+        event.l1deltaR              = deltaR(event.l1_eta, event.l1_phi, allExtraLeptonsLoose[0]['eta'], allExtraLeptonsLoose[0]['phi'])
+        event.l2deltaR              = deltaR(event.l2_eta, event.l2_phi, allExtraLeptonsLoose[0]['eta'], allExtraLeptonsLoose[0]['phi'])
       else:
 	event.hasLooseThirdLepton   = False
 	event.hasTightThirdLepton   = False
 	event.thirdLeptonPt         = -1
 	event.thirdLeptonRelIso     = -1
+        event.l1deltaR              = -1
+        event.l2deltaR              = -1
+
 
   sequence = [getThirdLepton]
 
@@ -165,8 +175,10 @@ for index, mode in enumerate(allModes):
  
   stack = Stack(mc, data_sample)
 
-  looseWeight = lambda event, sample:event.weight*event.hasLooseThirdLepton
-  tightWeight = lambda event, sample:event.weight*event.hasTightThirdLepton
+  looseWeight      = lambda event, sample:event.weight*event.hasLooseThirdLepton
+  tightWeight      = lambda event, sample:event.weight*event.hasTightThirdLepton
+  lowRelIsoWeight  = lambda event, sample:event.weight*event.hasLooseThirdLepton*(event.thirdLeptonRelIso < 0.12)
+  highRelIsoWeight = lambda event, sample:event.weight*event.hasLooseThirdLepton*(event.thirdLeptonRelIso > 0.6)
 
   Plot.setDefaults(stack = stack, weight = lambda event, sample:event.weight, selectionString = cutInterpreter.cutString(args.selection))
 
@@ -184,6 +196,28 @@ for index, mode in enumerate(allModes):
     weight = looseWeight,
     binning=[9,10,100],
   ))
+
+  for (weight, postfix) in [(looseWeight, ''), (lowRelIsoWeight, '_relIso_lt_0.12'), (highRelIsoWeight, '_relIso_gt_0.6')]:
+    plots.append(Plot(
+      texX = '#DeltaR(l_{1}, l_{3})', texY = 'number of events / 10 gev',
+      name = 'deltaR_l1l3' + postfix, attribute = lambda event, sample: event.l1deltaR,
+      weight = weight,
+      binning=[20, 0, 5],
+    ))
+
+    plots.append(Plot(
+      texX = '#DeltaR(l_{2}, l_{3})', texY = 'number of events / 10 gev',
+      name = 'deltaR_l1l2' + postfix, attribute = lambda event, sample: event.l2deltaR,
+      weight = weight,
+      binning=[20, 0, 5],
+    ))
+
+    plots.append(Plot(
+      texX = 'min(#DeltaR(l_{1}, l_{3}),#DeltaR(l_{2}, l_{3}))', texY = 'number of events / 10 gev',
+      name = 'minDeltaR' + postfix, attribute = lambda event, sample: min(event.l1deltaR, event.l2deltaR),
+      weight = weight,
+      binning=[20, 0, 5],
+    ))
 
   plots.append(Plot(
     texX = 'p_{T}(l_{3}, tight) (GeV)', texY = 'Number of Events / 10 GeV',
