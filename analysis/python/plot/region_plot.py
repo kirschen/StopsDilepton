@@ -79,7 +79,6 @@ if args.control:
   signals = []
   postfix += '_' + args.control + ('_scaled' if args.scale else '')
 
-postfix += '_test'
 
 signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals]
 
@@ -206,6 +205,9 @@ def drawSR( regions ):
     return [tex.DrawLatex(*l) for l in lines]
 
 def drawDivisions(regions):
+    min = 0.15
+    max = 0.95
+    diff = (max-min) / len(regions)
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
@@ -330,7 +332,7 @@ for channel in ['all','SF','EE','EMu','MuMu']:
         extensions = ["pdf", "png", "root","C"],
         yRange = (0.006, 2000000) if args.control=='DYVV' else (0.006, 'auto'),
         widths = {'x_width':1000, 'y_width':700},
-        drawObjects = [] if args.ratio else (drawLabels(regions_) if args.labels else drawSR(regions_)) + drawDivisions(regions_) + + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
+        drawObjects = ([] if args.ratio else (drawLabels(regions_) if args.labels else drawSR(regions_))) + drawDivisions(regions_) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
         legend = legend,
         canvasModifications = canvasModifications
     )
