@@ -20,11 +20,12 @@ from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',         action='store',      default='DM',            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
+argParser.add_argument('--signal',         action='store',      default='T8',            nargs='?', choices=[None, "T2tt", "DM", "T8"], help="Add signal to plot")
 argParser.add_argument('--noData',         action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
+argParser.add_argument('--LO',             action='store_true', default=False)
 argParser.add_argument('--splitBosons',    action='store_true', default=False)
 argParser.add_argument('--splitBosons2',   action='store_true', default=False)
 argParser.add_argument('--isChild',        action='store_true', default=False)
@@ -43,7 +44,9 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selection strings for which plots need to be produced, as interpreted by the cutInterpreter
 #
-selectionStrings = ['relIso0.12-looseLeptonVeto-mll20',
+selectionStrings = ['relIso0.12',
+                    'relIso0.12-looseLeptonVeto',
+                    'relIso0.12-looseLeptonVeto-mll20',
                     'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
                     'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
                     'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-mt2ll100',
@@ -76,6 +79,7 @@ selectionStrings = ['relIso0.12-looseLeptonVeto-mll20',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']
 
+
 def launch(command, logfile):
   if args.runLocal: os.system(command + " --isChild &> " + logfile)
   else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
@@ -104,6 +108,8 @@ if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.splitBosons2:             args.plot_directory += "_splitMultiBoson2"
 if args.signal == "DM":           args.plot_directory += "_DM"
+if args.signal == "T8":           args.plot_directory += "_T8bbllnunu"
+if args.LO:                       args.plot_directory += "_ttZLO"
 DManalysis = (args.signal == "DM")
 
 # Plot no signal for following selections
@@ -118,21 +124,37 @@ postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v26/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v27/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-T2tt                    = T2tt_650_1
-T2tt2                   = T2tt_500_250
-T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
 
-DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
-DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
-DM2.style               = styles.lineStyle( 28,          width=3)
-
-
+signals = []
+if args.signal == "T2tt":
+  postProcessing_directory = "postProcessed_80X_v26/dilepTiny/"
+  from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+  T2tt                    = T2tt_650_1
+  T2tt2                   = T2tt_500_250
+  T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+  T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
+  signals                 = [T2tt, T2tt2]
+elif args.signal == "TTbarDM":
+  postProcessing_directory = "postProcessed_80X_v27/dilepTiny/"
+  from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
+  DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
+  DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
+  DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
+  DM2.style               = styles.lineStyle( 28,          width=3)
+  signals                 = [DM, DM2]
+elif args.signal == "T8":
+  postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
+  from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
+  T8                      = T8bbllnunu_XCha0p5_XSlep0p05_1100_1
+  T82                     = T8bbllnunu_XCha0p5_XSlep0p05_1100_150
+  T83                     = T8bbllnunu_XCha0p5_XSlep0p05_1000_150
+  T8.style                = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+  T82.style               = styles.lineStyle( ROOT.kBlack, width=3 )
+  T83.style               = styles.lineStyle( 28, width=3 )
+  signals                 = [T8, T82, T83]
+  T8.isFastSim = False   # No FastSim SF in those trees?
+  T82.isFastSim = False
+  T83.isFastSim = False
 
 
 #
@@ -182,7 +204,12 @@ def getLeptonSelection(mode):
   if   mode=="mumu": return "(nGoodMuons==2&&nGoodElectrons==0&&isOS&&l1_pt>25&&isMuMu" + offZ + ")"
   elif mode=="mue":  return "(nGoodMuons==1&&nGoodElectrons==1&&isOS&&l1_pt>25&&isEMu)"
   elif mode=="ee":   return "(nGoodMuons==0&&nGoodElectrons==2&&isOS&&l1_pt>25&&isEE" + offZ + ")"
- 
+
+
+def calcBJetPt(event, sample):
+  bJetIndices = [j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.800]
+  if len(bJetIndices) > 0: event.bJetGoodPt = event.JetGood_pt[bJetIndices[0]]
+  else:                    event.bJetGoodPt = -1
 
 #
 # Loop over channels
@@ -218,33 +245,21 @@ for index, mode in enumerate(allModes):
     weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
-  mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO]
+  mc             = [ Top_pow, TTZ_LO if args.LO else TTZ, TTXNoZ] + multiBosonList + [DY_HT_LO]
 
 
   for sample in mc: sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
 
-  for sample in mc + [DM, DM2]:
+  for sample in mc + signals:
+    if not hasattr(sample, 'isFastSim'): sample.isFastSim = False
     sample.scale          = lumi_scale
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
-
-  for sample in [T2tt, T2tt2]:
-    sample.scale          = lumi_scale
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+    sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F'] + (['reweightLeptonFastSimSF/F'] if sample.isFastSim else [])
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*(event.reweightLeptonFastSimSF if sample.isFastSim else 1.)
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
-  if not args.noData:
-    if not args.signal:         stack = Stack(mc, data_sample)
-    elif args.signal == "DM":   stack = Stack(mc, data_sample, DM, DM2)
-    elif args.signal == "T2tt": stack = Stack(mc, data_sample, T2tt, T2tt2)
-  else:
-    if not args.signal:         stack = Stack(mc)
-    elif args.signal == "DM":   stack = Stack(mc, DM, DM2)
-    elif args.signal == "T2tt": stack = Stack(mc, T2tt, T2tt2)
-
+  if args.noData: stack = Stack(mc, *signals)
+  else:           stack = Stack(mc, data_sample, *signals)
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = weight_, selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
@@ -381,6 +396,14 @@ for index, mode in enumerate(allModes):
     binning=[25,-200,600],
   ))
 
+  # Plots only when at least one b-jet:
+  if args.selection.count('btag1p'):
+    plots.append(Plot(
+      texX = 'p_{T}(leading b-jet) (GeV)', texY = 'Number of Events / 30 GeV',
+      name = 'bjet1_pt', attribute = lambda event, sample: event.bJetGoodPt,
+      binning=[600/30,0,600],
+    ))
+
   # Plots only when at least one jet:
   if args.selection.count('njet'):
     plots.append(Plot(
@@ -489,9 +512,7 @@ for index, mode in enumerate(allModes):
       binning=[420/30,0,400],
     ))
 
-
-
-  plotting.fill(plots, read_variables = read_variables, sequence = [])
+  plotting.fill(plots, read_variables = read_variables, sequence = [calcBJetPt])
 
   # Get normalization yields from yield histogram
   for plot in plots:
@@ -536,7 +557,7 @@ for mode in ["SF","all"]:
 
 
 # Write to tex file
-columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM2.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
+columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM2.name] if args.signal=="DM" else []) + [s.name for s in signals]
 texdir = "tex"
 if args.splitBosons:  texdir += "_splitBosons"
 if args.splitBosons2: texdir += "_splitBosons2"
