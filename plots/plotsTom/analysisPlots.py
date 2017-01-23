@@ -143,15 +143,19 @@ elif args.signal == "TTbarDM":
   DM2.style               = styles.lineStyle( 28,          width=3)
   signals                 = [DM, DM2]
 elif args.signal == "T8":
+  postProcessing_directory = "postProcessed_80X_v26/dilepTiny/"
+  from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
   postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
   from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
+  T2tt                    = T2tt_800_1
   T8                      = T8bbllnunu_XCha0p5_XSlep0p05_1100_1
   T82                     = T8bbllnunu_XCha0p5_XSlep0p05_1100_150
-  T83                     = T8bbllnunu_XCha0p5_XSlep0p05_1000_150
-  T8.style                = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+  T83                     = T8bbllnunu_XCha0p5_XSlep0p05_800_200
+  T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+  T8.style                = styles.lineStyle( ROOT.kRed, width=3)
   T82.style               = styles.lineStyle( ROOT.kBlack, width=3 )
   T83.style               = styles.lineStyle( 28, width=3 )
-  signals                 = [T8, T82, T83]
+  signals                 = [T2tt, T8, T82, T83]
   T8.isFastSim = False   # No FastSim SF in those trees?
   T82.isFastSim = False
   T83.isFastSim = False
