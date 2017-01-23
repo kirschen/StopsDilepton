@@ -102,7 +102,6 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("njet") != 1: continue
         if selection.count("njet01") and (selection.count("nbtagL") or selection.count("nbtagM")): continue # only look at 0b for diboson CR
         if selection.count("nbtag0") and not selection.count("njet01"): continue # only look at 0b for diboson CR
-        if selection.count("met"):                                      continue # only look at met cut for diboson CR
         if selection.count("mt")     and not selection.count("njet01"): continue # only look at met cut for diboson CR
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
 
@@ -152,6 +151,7 @@ def makeDeltaR(event, sample):
 
 
 def calcBTag(event, sample):
+  event.nJetGood    = len([j for j in range(event.nJetGood) if event.JetGood_pt[j] > 40])
   event.nBTag       = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.800])
   event.nBTagLoose  = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.460])
   csvValues        = [event.JetGood_btagCSV[j] for j in range(event.nJetGood)]
@@ -227,7 +227,7 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-  mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZ if args.NLO else TTZ_LO, TWZ]
+  mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZ if args.NLO else TTZ_LO]
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
@@ -382,37 +382,37 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{1},l_{2}) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{1},l_{2})', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep1lep2', attribute = lambda event, sample: event.dR_lep1lep2,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{0},l_{2}) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{0},l_{2})', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep0lep2', attribute = lambda event, sample: event.dR_lep0lep2,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{0},l_{1}) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{0},l_{1})', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep0lep1', attribute = lambda event, sample: event.dR_lep0lep1,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{0},j) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{0},j)', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep0jet', attribute = lambda event, sample: event.dR_lep0jet,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{1},j) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{1},j)', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep1jet', attribute = lambda event, sample: event.dR_lep1jet,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{2},j) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{2},j)', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep2jet', attribute = lambda event, sample: event.dR_lep2jet,
     binning=[20, 0, 5],
   ))
@@ -437,7 +437,8 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     texX = 'number of jets', texY = 'Number of Events',
-    attribute = TreeVariable.fromString('nJetGood/I'),
+    name = 'nJetGood',
+    attribute = lambda event, sample: event.nJetGood,
     binning=[14,0,14],
   ))
 
@@ -517,7 +518,7 @@ try:
   os.makedirs("./" + texdir)
 except:
   pass
-with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
+with open("./" + texdir + "/" + args.selection + ("_NLO" if args.NLO else "") + ".tex", "w") as f:
   f.write("&" + " & ".join(columns) + "\\\\ \n")
   for mode in allModes + ["all"]:
     f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")
