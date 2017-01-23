@@ -20,7 +20,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
-argParser.add_argument('--plot_directory', action='store',      default='TTZ')
+argParser.add_argument('--plot_directory', action='store',      default='TTZ_new')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
@@ -52,10 +52,10 @@ def getPtThresholdString(firstPt, secondPt, thirdPt):
                       muonSelectorString(ptCut=thirdPt,  relIso03=0.12) + "+" + eleSelectorString(ptCut=thirdPt,  relIso03=0.12) + ">=2"])
 
 def getLeptonSelection(mode, higherPtCuts):
-  if   mode=="3mu":   return "&&".join([getLeptonString(3, 0), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(30, 20, 10)])
-  elif mode=="2mu1e": return "&&".join([getLeptonString(2, 1), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(30, 20, 10)])
-  elif mode=="2e1mu": return "&&".join([getLeptonString(1, 2), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(30, 20, 10)])
-  elif mode=="3e":    return "&&".join([getLeptonString(0, 3), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(30, 20, 10)])
+  if   mode=="3mu":   return "&&".join([getLeptonString(3, 0), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(40, 20, 10)])
+  elif mode=="2mu1e": return "&&".join([getLeptonString(2, 1), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(40, 20, 10)])
+  elif mode=="2e1mu": return "&&".join([getLeptonString(1, 2), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(40, 20, 10)])
+  elif mode=="3e":    return "&&".join([getLeptonString(0, 3), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(40, 20, 10)])
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
 jetSelection40  = "(Sum$(JetGood_pt>40&&abs(JetGood_eta)<2.4&&JetGood_id))"
@@ -68,22 +68,21 @@ zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 # Cuts to iterate over: at least 3/4 jets with 1/2 btags
 #
 cuts=[
-    ("lpt_40_20_20",      '(1)'),
-    ("njet01",            jetSelection+"<2"),
-    ("njet2",             jetSelection+">=2"),
-    ("njet3",             jetSelection+">=3"),
-    ("njet40_3",          jetSelection40+">=3"),
-    ("njet3p",            jetSelection+">=3"),
-    ("njet40_4",          jetSelection40+">=4"),
-    ("njet4",             jetSelection+">=4"),
-    ("nbtag0",            bJetSelectionL+"==0"),
-    ("nbtagL",            bJetSelectionL+">=1"),
-    ("nbtagM",            bJetSelectionM+">=1"),
-    ("nbtagLL",           bJetSelectionL+">=2"),
-    ("nbtagMM",           bJetSelectionM+">=2"),
+#   ("lpt_40_20_20",      '(1)'),
+#   ("njet01",            jetSelection+"<2"),
+    ("njet2",             jetSelection+"==2"),
+    ("njet3",             jetSelection+"==3"),
+    ("njet4",             jetSelection+"==4"),
+#   ("njet40_3",          jetSelection40+"==3"),
+#   ("njet40_4",          jetSelection40+"==4"),
+#   ("nbtag0",            bJetSelectionM+"==0"),
+#   ("nbtagL",            bJetSelectionL+"==1"),
+    ("nbtagM",            bJetSelectionM+"==1"),
+#   ("nbtagLL",           bJetSelectionL+"==2"),
+    ("nbtagMM",           bJetSelectionM+"==2"),
     ("onZ",               zMassSelection),
     ("met30",             "met_pt>30"),
-    ("mt50",              "mt>50"),
+#   ("mt50",              "mt>50"),
     ("dR",                "(1)"),
 ]
 
