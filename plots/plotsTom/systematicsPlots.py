@@ -22,13 +22,14 @@ import errno
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',            action='store',      default='T2tt',      nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
+argParser.add_argument('--signal',            action='store',      default='T2tt',      nargs='?', choices=["None", "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots')
 argParser.add_argument('--selection',         action='store',      default=None)
 argParser.add_argument('--selectSys',         action='store',      default='all')
 argParser.add_argument('--showOnly',          action='store',      default=None)
 argParser.add_argument('--splitBosons',       action='store_true', default=False)
+argParser.add_argument('--LO',                action='store_true', default=False)
 argParser.add_argument('--splitTop',          action='store_true', default=False)
 argParser.add_argument('--powheg',            action='store_true', default=True)
 argParser.add_argument('--isChild',           action='store_true', default=False)
@@ -66,6 +67,7 @@ selections = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll50To75',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll75To100',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100To140',
+              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140'
            ]
 
@@ -109,6 +111,7 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
       command = "./systematicsPlots.py --selection=" + selection + (" --noData"            if args.noData            else "")\
 								 + (" --splitBosons"       if args.splitBosons       else "")\
 								 + (" --splitTop"          if args.splitTop          else "")\
+								 + (" --LO"                if args.LO                else "")\
 								 + (" --powheg"            if args.powheg            else "")\
 								 + (" --normalizeBinWidth" if args.normalizeBinWidth else "")\
 								 + (" --plot_directory=" + args.plot_directory)\
@@ -124,6 +127,7 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
+#if not args.LO:                   args.plot_directory += "_ttZNLO"
 
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -255,8 +259,8 @@ for index, mode in enumerate(allModes):
 
   logger.info('Lumi scale is ' + str(lumi_scale))
 
-  if args.splitBosons: mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
-  else:                mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
+  if args.splitBosons: mc = [ Top_pow, TTZ_LO if args.LO else TTZ, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
+  else:                mc = [ Top_pow, TTZ_LO if args.LO else TTZ, TTXNoZ, multiBoson, DY_HT_LO]
 
   for sample in mc:
     sample.scale           = lumi_scale
@@ -272,9 +276,9 @@ for index, mode in enumerate(allModes):
 
     # Apply scale factors in the mt2ll > 100 GeV signal region (except Top which will be already scaled anyway)
     if args.selection.count('njet2p-btag1p-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100') and False: # Turn on when scalefactors are rederived
-      if sample == DY_HT_LO:   sample.scale = lumi_scale*1.30
-      if sample == multiBoson: sample.scale = lumi_scale*1.45
-      if sample == TTZ_LO:     sample.scale = lumi_scale*0.89
+      if sample == DY_HT_LO:                sample.scale = lumi_scale*1.30
+      if sample == multiBoson:              sample.scale = lumi_scale*1.45
+      if sample == TTZ or sample == TTZ_LO: sample.scale = lumi_scale*0.89
 
 
   # Using older tuples for signals, currently do not use filtercut and read in 36 PU weights
@@ -422,8 +426,7 @@ for index, mode in enumerate(allModes):
   if args.selectSys != "combine":
 
     # mc_selection_string is used for scaling the top on the mt2ll < 100 regions
-    mc_selection_string = selectionString
-    mc_selection_string = mc_selection_string.replace('&&dl_mt2ll>100', '')
+    mc_selection_string = cutInterpreter.cutString(args.selection.split('-mt2ll')[0]) # assumes that mt2ll is always the last variable in args.selection
     mc_weight_func, mc_weight_string = weightMC( sys = (args.selectSys if args.selectSys != 'None' else None) )
 
     yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(mc_selection_string + "&&dl_mt2ll<100" ), weightString = mc_weight_string)['val'] for s in mc}
@@ -513,7 +516,7 @@ for index, mode in enumerate(allModes):
 	    for s in plots_mc[k].histos:
 		pos_top = [i for i,x in enumerate(mc) if x == (Top_pow if args.powheg else Top)][0]
 		plots_mc[k].histos[0][pos_top].Scale(top_sf[k])
-		pos_ttz = [i for i,x in enumerate(mc) if x == TTZ_LO][0]
+		pos_ttz = [i for i,x in enumerate(mc) if x == (TTZ_LO if args.LO else TTZ)][0]
 		pos_ttx = [i for i,x in enumerate(mc) if x == TTXNoZ][0]
 		pos_dy  = [i for i,x in enumerate(mc) if x == DY_HT_LO][0]
 		pos_mb  = [i for i,x in enumerate(mc) if x == multiBoson][0]
@@ -555,7 +558,7 @@ for index, mode in enumerate(allModes):
 		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
         # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
-        if args.selection.count('mt2ll100') or plots_mc[None].name == "dl_mt2ll" and False:
+        if (args.selection.count('mt2ll100') or plots_mc[None].name == "dl_mt2ll") and False:
 	    for ib in range(1 + h_rel_err.GetNbinsX() ):
                 if plots_mc[None].name == "dl_mt2ll" and h_rel_err.GetBinCenter(ib) < 100: continue
                 topUnc = 1 if (plots_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
@@ -574,7 +577,7 @@ for index, mode in enumerate(allModes):
 
 	plot = plots_mc[None]
 	if args.normalizeBinWidth: plot.name += "_normalizeBinWidth"
-        signal_histos = plot_data.histos[1:]
+        signal_histos = plot_data.histos[1:] if args.signal != 'None' else []
 	data_histo    = plot_data.histos[0][0]
         for h in plot_data.histos[0][1:]:
           data_histo.Add(h)
