@@ -39,23 +39,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selections (three leptons with pt > 30, 20, 10 GeV)
 #
-from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
-def getLooseLeptonString(nMu, nE):
-  return muonSelectorString(ptCut=10, relIso03 = 0.12) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, eleId = 3, absEtaCut=2.5, relIso03=0.12) + "==" + str(nE)
-
-def getLeptonString(nMu, nE):
-  return getLooseLeptonString(nMu, nE)
-
-def getPtThresholdString(firstPt, secondPt, thirdPt):
-    return "&&".join([muonSelectorString(ptCut=firstPt,  relIso03=0.12) + "+" + eleSelectorString(ptCut=firstPt,  relIso03=0.12) + ">=1",
-                      muonSelectorString(ptCut=secondPt, relIso03=0.12) + "+" + eleSelectorString(ptCut=secondPt, relIso03=0.12) + ">=2",
-                      muonSelectorString(ptCut=thirdPt,  relIso03=0.12) + "+" + eleSelectorString(ptCut=thirdPt,  relIso03=0.12) + ">=2"])
-
-def getLeptonSelection(mode, higherPtCuts):
-  if   mode=="3mu":   return "&&".join([getLeptonString(3, 0), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(40, 20, 10)])
-  elif mode=="2mu1e": return "&&".join([getLeptonString(2, 1), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(40, 20, 10)])
-  elif mode=="2e1mu": return "&&".join([getLeptonString(1, 2), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(40, 20, 10)])
-  elif mode=="3e":    return "&&".join([getLeptonString(0, 3), getPtThresholdString(40, 20, 20) if higherPtCuts else getPtThresholdString(40, 20, 10)])
+from StopsDilepton.tools.trilepSelection import getTrilepSelection
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
 jetSelection40  = "(Sum$(JetGood_pt>40&&abs(JetGood_eta)<2.4&&JetGood_id))"
@@ -221,7 +205,7 @@ for index, mode in enumerate(allModes):
   elif mode=="2e1mu": data_sample.texName = "data (2 e, 1 #mu)"
 
 
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode, args.selection.count('lpt_40_20_20'))])
+  data_sample.setSelectionString([getFilterCut(isData=True), getTrilepSelection(mode, args.selection.count('lpt_40_20_20'))])
   data_sample.name = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
@@ -233,7 +217,7 @@ for index, mode in enumerate(allModes):
     sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
    # sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
     sample.weight         = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightPU36fb
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode, args.selection.count('lpt_40_20_20'))])
+    sample.setSelectionString([getFilterCut(isData=False), getTrilepSelection(mode, args.selection.count('lpt_40_20_20'))])
 
   stack = Stack(mc, data_sample)
 
