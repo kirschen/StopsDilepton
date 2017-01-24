@@ -67,19 +67,21 @@ if args.signal == "T2tt":
 elif args.signal == "T8bbllnunu":
     postProcessing_directory = "postProcessed_80X_v28/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_650_1
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p05_450_150
+    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p5_700_600
+    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p5_600_500
+    T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p5_500_400
+    T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
     T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
-    signals = [ T8bbllnunu, T8bbllnunu2 ]
+    signals = [ T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
 elif args.signal == "compilation":
     postProcessing_directory = "postProcessed_80X_v26/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
     postProcessing_directory = "postProcessed_80X_v28/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
     T2tt                    = T2tt_650_1
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_650_1
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p5_650_1
+    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_1100_1
+    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p5_1100_1
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
     T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
