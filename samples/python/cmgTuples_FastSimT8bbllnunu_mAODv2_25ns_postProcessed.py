@@ -25,7 +25,6 @@ except:
     data_directory = user.data_directory
 
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T8bbllnunu')):
-#for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T8bbllnunu_XCha0p5_XSlep0p05')):
     if f.endswith('.root') and f.startswith('T8bbllnunu_'):
         name = f.replace('.root','')
         xChaStr, xSlepStr, mStop, mNeu = name.replace('T8bbllnunu_','').split('_')
@@ -40,7 +39,7 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T8bb
         
         tmp = Sample.fromFiles(\
             name = name,
-            files = [os.path.join(os.path.join(data_directory, postProcessing_directory,'T8bbllnunu',f))], #'T8bbllnunu_'+xChaStr+'_'+xSlepStr
+            files = [os.path.join(os.path.join(data_directory, postProcessing_directory,'T8bbllnunu',f))],
             treeName = "Events",
             isData = False,
             color = 8 ,

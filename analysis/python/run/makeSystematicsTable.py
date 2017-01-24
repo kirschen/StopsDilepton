@@ -59,7 +59,7 @@ def displayAbsSysValue(val):
      if roundedVal <= 0.: return "0.00"
      return "%.2f" % roundedVal
 
-from StopsDilepton.analysis.infoFromCards import getUncFromCard, applyNuisance
+from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, applyNuisance
 cardFile = '/user/tomc/StopsDilepton/results_80X_v24/isOS-nJets2p-nbtag0-met80-metSig5-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/cardFiles/TTbarDM/regionsO/TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt'
 
 # Evaluate absolute and relative errors
@@ -82,11 +82,11 @@ def evaluateEstimate(e, SR, estimators=None):
      e.rel["b-tag SF-l"] = e.btaggingSFlSystematic(r, channel, setup).val
      e.rel["trigger"]    = e.triggerSystematic(    r, channel, setup).val
      e.rel["lepton SF"]  = e.leptonSFSystematic(   r, channel, setup).val
-     e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else getUncFromCard(cardFile, 'TTJets','top',SR) 
-     e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else getUncFromCard(cardFile, 'TTZ','ttZ',SR)
-     e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else getUncFromCard(cardFile, 'multiBoson','multiBoson',SR)
-     e.rel["TTXNoZ"]     = 0 if not e.name.count("TTXNoZ")     else getUncFromCard(cardFile, 'other','other',SR)
-     e.rel["DY"]         = 0 if not e.name.count("DY")         else getUncFromCard(cardFile, 'DY','DY',SR)
+     e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else getPreFitUncFromCard(cardFile, 'TTJets','top',SR) 
+     e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else getPreFitUncFromCard(cardFile, 'TTZ','ttZ',SR)
+     e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else getPreFitUncFromCard(cardFile, 'multiBoson','multiBoson',SR)
+     e.rel["TTXNoZ"]     = 0 if not e.name.count("TTXNoZ")     else getPreFitUncFromCard(cardFile, 'other','other',SR)
+     e.rel["DY"]         = 0 if not e.name.count("DY")         else getPreFitUncFromCard(cardFile, 'DY','DY',SR)
 
      # For sum assume the individual estimators are already evaluated such that we can pick their corresponding absolute error
      if e.name.count("sum"):

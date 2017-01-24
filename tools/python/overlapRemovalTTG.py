@@ -16,10 +16,10 @@ def getParentIds(genParticles, g):
   parents = []
   if g['motherIndex1'] > 0:
     mother1 = genParticles[g['motherIndex1']]
-    parents += [mother1['pdgId']] + getParentIds(genParticles, mother1)
+    if mother1['status'] == 23: parents += [mother1['pdgId']] + getParentIds(genParticles, mother1)
   if g['motherIndex2'] > 0:
     mother2 = genParticles[g['motherIndex2']]
-    parents += [mother2['pdgId']] + getParentIds(genParticles, mother2)
+    if mother2['status'] == 23: parents += [mother2['pdgId']] + getParentIds(genParticles, mother2)
   return parents
 
 # Check if event qualifies as TTGJets events

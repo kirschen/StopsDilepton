@@ -29,6 +29,7 @@ argParser.add_argument("--estimateMB",     action='store', default='multiBoson',
 argParser.add_argument("--control",        action='store', default=None,                nargs='?', choices=[None, "DY", "VV", "DYVV"],                                                                    help="For CR region?")
 argParser.add_argument("--scale",          action='store_true', default=False,          help="scale DY/VV using nuisance table?")
 argParser.add_argument("--labels",         action='store_true', default=False,          help="plot labels?")
+argParser.add_argument("--ratio",          action='store_true', default=True,           help="plot ratio?")
 argParser.add_argument("--noData",         action='store_true', default=False,          help="do not plot data?")
 args = argParser.parse_args()
 
@@ -51,10 +52,10 @@ else:
 
 
 
-detailedEstimators = constructEstimatorList([args.estimateTTJets, args.estimateTTZ, args.estimateMB, 'TTXNoZ', args.estimateDY])
-if args.control == "DY":   detailedEstimators = constructEstimatorList([args.estimateDY, args.estimateMB, args.estimateTTJets, args.estimateTTZ, 'TTXNoZ'])
-if args.control == "VV":   detailedEstimators = constructEstimatorList([args.estimateMB, args.estimateDY, args.estimateTTJets, args.estimateTTZ, 'TTXNoZ'])
-if args.control == "DYVV": detailedEstimators = constructEstimatorList([args.estimateDY, args.estimateMB, args.estimateTTJets, args.estimateTTZ, 'TTXNoZ'])
+detailedEstimators = constructEstimatorList([args.estimateTTJets, args.estimateTTZ, args.estimateMB, 'other', args.estimateDY])
+if args.control == "DY":   detailedEstimators = constructEstimatorList([args.estimateDY, args.estimateMB, args.estimateTTJets, args.estimateTTZ, 'other'])
+if args.control == "VV":   detailedEstimators = constructEstimatorList([args.estimateMB, args.estimateDY, args.estimateTTJets, args.estimateTTZ, 'other'])
+if args.control == "DYVV": detailedEstimators = constructEstimatorList([args.estimateDY, args.estimateMB, args.estimateTTJets, args.estimateTTZ, 'other'])
 if args.signal=='T2tt':
     signalSetup = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
 else:
@@ -78,6 +79,7 @@ if args.control:
   signals = []
   postfix += '_' + args.control + ('_scaled' if args.scale else '')
 
+
 signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals]
 
 for i, estimator in enumerate(signalEstimators):
@@ -99,28 +101,40 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-systematics = { 'JEC' :      ['JECUp', 'JECDown'],
-       #         'JER' :      ['JERUp', 'JERDown'],
-                'PU' :       ['reweightPU12fbUp', 'reweightPU12fbDown'],
-                'stat' :     ['statLow', 'statHigh'],
-                'topPt' :    ['reweightTopPt', None],
-                'b-tag-b' :  ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
-                'b-tag-l' :  ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'],
-                'trigger' :  ['reweightDilepTriggerBackupUp', 'reweightDilepTriggerBackupDown'],
-                'leptonSF' : ['reweightLeptonSFUp','reweightLeptonSFDown'],
-                'TTJets' :   ['shape-TTJetsUp', 'shape-TTJetsDown'],
-                'TTZ' :      ['shape-TTZUp', 'shape-TTZDown'],
-                'TTX' :      ['shape-TTXUp', 'shape-TTXDown'],
-                'MB' :       ['shape-MBUp', 'shape-MBDown'],
-                'DY' :       ['shape-DYUp', 'shape-DYDown'],
+systematics = { 'JEC' :        ['JECUp', 'JECDown'],
+       #         'JER' :        ['JERUp', 'JERDown'],
+                'PU' :         ['reweightPU36fbUp', 'reweightPU36fbDown'],
+                'stat' :       ['statLow', 'statHigh'],
+                'topPt' :      ['reweightTopPt', None],
+                'b-tag-b' :    ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
+                'b-tag-l' :    ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'],
+                'trigger' :    ['reweightDilepTriggerBackupUp', 'reweightDilepTriggerBackupDown'],
+                'leptonSF' :   ['reweightLeptonSFUp','reweightLeptonSFDown'],
+                'TTJets' :     ['shape-TTJetsUp', 'shape-TTJetsDown'],
+                'TTZ' :        ['shape-TTZUp', 'shape-TTZDown'],
+                'other' :      ['shape-other', 'shape-other'],
+                'multiBoson' : ['shape-multiBosonUp', 'shape-multiBosonDown'],
+                'DY' :         ['shape-DYUp', 'shape-DYDown'],
 }
 
 sysVariations = [None]
 for var in systematics.values():
   sysVariations += var
 
-from StopsDilepton.analysis.infoFromCards import getUncFromCard, applyNuisance
+from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, getPostFitUncFromCard, applyNuisance
 cardFile = '/user/tomc/StopsDilepton/results_80X_v24/isOS-nJets2p-nbtag0-met80-metSig5-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/cardFiles/TTbarDM/regionsO/TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt'
+
+
+def getSampleUncertainty(cardFile, res, var, estimate, bin):
+    if   estimate.name.count('TTZ'):    uncName = 'ttZ'
+    elif estimate.name.count('TTJets'): uncName = 'top'
+    else:				uncName = estimate.name
+    if var and var.count(estimate.name):
+      if args.scale and (estimate.name == "DY" or estimate.name == "multiBoson"): unc = getPostFitUncFromCard(cardFile, estimate.name, uncName, bin);
+      else:                                                                       unc = getPreFitUncFromCard(cardFile,  estimate.name, uncName, bin);
+      if   var.count('Up'):   return res*(1.+unc)
+      elif var.count('Down'): return res*(1.-unc)
+    return res
 
 def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
@@ -146,16 +160,7 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
         setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         if args.control == 'DYVV' and args.scale: res = applyNuisance(cardFile, estimate, res, i)
-        if var and var.count('TTJetsUp') and estimate.name.count('TTJets'):   res *= (1.+getUncFromCard(cardFile, 'TTJets','top',i))
-        if var and var.count('TTJetsDown') and estimate.name.count('TTJets'): res *= (1.-getUncFromCard(cardFile, 'TTJets','top',i))
-        if var and var.count('TTZUp') and estimate.name.count('TTZ'):         res *= (1.+getUncFromCard(cardFile, 'TTZ','ttZ',i))
-        if var and var.count('TTZDown') and estimate.name.count('TTZ'):       res *= (1.-getUncFromCard(cardFile, 'TTZ','ttZ',i))
-        if var and var.count('TTXUp') and estimate.name.count('TTX'):         res *= (1.+getUncFromCard(cardFile, 'other','other',i))
-        if var and var.count('TTXDown') and estimate.name.count('TTX'):       res *= (1.+getUncFromCard(cardFile, 'other','other',i))
-        if var and var.count('MBUp') and estimate.name.count('multiBoson'):   res *= (1.+getUncFromCard(cardFile, 'multiBoson','multiBoson',i))
-        if var and var.count('MBDown') and estimate.name.count('multiBoson'): res *= (1.+getUncFromCard(cardFile, 'multiBoson','multiBoson',i))
-        if var and var.count('DYUp') and estimate.name.count('DYBoson'):      res *= (1.+getUncFromCard(cardFile, 'DY','DY',i))
-        if var and var.count('DYDown') and estimate.name.count('DYBoson'):    res *= (1.+getUncFromCard(cardFile, 'DY','DY',i))
+        res = getSampleUncertainty(cardFile, res, var, estimate, i)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
@@ -191,24 +196,32 @@ def drawLabels( regions ):
 def drawSR( regions ):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.04)
+    tex.SetTextSize(0.1 if args.ratio else 0.04)
     tex.SetTextAlign(23) # align right
     min = 0.15
     max = 0.95
     diff = (max-min) / len(regions)
-    lines = [(min+(i+0.5)*diff, .12,  str(i)) for i, r in enumerate(regions)]
+    lines = [(min+(i+0.5)*diff, 0.25 if args.ratio else .12,  str(i)) for i, r in enumerate(regions)]
+    return [tex.DrawLatex(*l) for l in lines]
 
-    tex2 = tex.Clone()
-    tex2.SetTextSize(0.03)
-    tex2.SetTextColor(38)
+def drawDivisions(regions):
+    min = 0.15
+    max = 0.95
+    diff = (max-min) / len(regions)
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.04)
+    tex.SetTextAlign(23) # align right
+    tex.SetTextSize(0.03)
+    tex.SetTextColor(38)
 
-    lines2  = [(min+3*diff,  .9, '100 GeV < M_{T2}(ll) < 140 GeV')]
-    lines2 += [(min+9*diff, .9, '140 GeV < M_{T2}(ll) < 240 GeV')]
+    lines  = [(min+3*diff,  .9, '100 GeV < M_{T2}(ll) < 140 GeV')]
+    lines += [(min+9*diff, .9, '140 GeV < M_{T2}(ll) < 240 GeV')]
 
-    tex3= tex2.Clone()
-    tex3.SetTextAngle(90)
-    tex3.SetTextAlign(31)
-    lines3  = [(min+12.5*diff, .9, 'M_{T2}(ll) > 240 GeV')]
+    tex2= tex.Clone()
+    tex2.SetTextAngle(90)
+    tex2.SetTextAlign(31)
+    lines2 = [(min+12.5*diff, .9, 'M_{T2}(ll) > 240 GeV')]
 
     line = ROOT.TLine()
     line.SetLineColor(38)
@@ -216,7 +229,7 @@ def drawSR( regions ):
     line.SetLineStyle(3)
     line1 = (min+6*diff,  0.13, min+6*diff, 0.93);
     line2 = (min+12*diff, 0.13, min+12*diff, 0.93);
-    return [tex.DrawLatex(*l) for l in lines] + [line.DrawLineNDC(*l) for l in [line1, line2]] + [tex2.DrawLatex(*l) for l in lines2] + [tex3.DrawLatex(*l) for l in lines3]
+    return [line.DrawLineNDC(*l) for l in [line1, line2]] + [tex.DrawLatex(*l) for l in lines] + [tex2.DrawLatex(*l) for l in lines2]
 
 
 def drawObjects( lumi_scale ):
@@ -276,7 +289,7 @@ for channel in ['all','SF','EE','EMu','MuMu']:
       data_histo[0][0].Sumw2(ROOT.kFALSE)
       data_histo[0][0].SetBinErrorOption(ROOT.TH1.kPoisson) # Set poissonian errors
 
-    region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos[None] ] + sig_histos + data_histo, texX = "signal region number", texY = "Events" )
+    region_plot = Plot.fromHisto(name = channel+"_bkgs", histos = [ bkg_histos[None] ] + data_histo + sig_histos, texX = "signal region number", texY = "Events" )
 
     boxes = []
     ratio_boxes = []
@@ -297,19 +310,29 @@ for channel in ['all','SF','EE','EMu','MuMu']:
         ratio_boxes.append( r_box )
 
 
-    if args.signal == "T2tt":
-        legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
-    elif args.signal == "TTbarDM":
-        legend = (0.55,0.85-0.010*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
+    if args.signal == "T2tt":      legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
+    elif args.signal == "TTbarDM": legend = (0.55,0.85-0.010*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
+
+    def setRatioBorder(c, y_border):
+      topPad = c.GetPad(1)
+      topPad.SetPad(topPad.GetX1(), y_border, topPad.GetX2(), topPad.GetY2())
+      bottomPad = c.GetPad(2)
+      bottomPad.SetPad(bottomPad.GetX1(), bottomPad.GetY1(), bottomPad.GetX2(), y_border)
+
+    canvasModifications = []
+    if args.labels: canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)]
+    if args.ratio:  canvasModifications = [lambda c: setRatioBorder(c, 0.2), lambda c : c.GetPad(2).SetBottomMargin(0.27)]
+
+
     plotting.draw( region_plot, \
         plot_directory = os.path.join(user.plot_directory, postfix, args.estimateDY, args.estimateTTZ, args.estimateTTJets, args.estimateMB),
         logX = False, logY = True,
         sorting = False,
-        ratio = {'yRange':(0.1,1.9)} if args.control=='DYVV' else None,
+        ratio = {'yRange':(0.1,1.9), 'drawObjects': ratio_boxes + drawSR(regions_)} if args.ratio else None,
         extensions = ["pdf", "png", "root","C"],
         yRange = (0.006, 2000000) if args.control=='DYVV' else (0.006, 'auto'),
         widths = {'x_width':1000, 'y_width':700},
-        drawObjects = (drawLabels(regions_) if args.labels else drawSR(regions_)) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
+        drawObjects = ([] if args.ratio else (drawLabels(regions_) if args.labels else drawSR(regions_))) + drawDivisions(regions_) + boxes + drawObjects( setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'] ),
         legend = legend,
-        canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)] if args.labels else []# Keep some space for the labels
+        canvasModifications = canvasModifications
     )
