@@ -25,7 +25,7 @@ otherEWKComponents = [TTXNoZ, WJetsToLNu]
 otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations, metVariations
-from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels, trilepChannels
+from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels, trilepChannels, allTrilepChannels
 from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplacements
 from StopsDilepton.tools.objectSelection import getFilterCut
 
@@ -164,7 +164,7 @@ class Setup:
 
         res={'cuts':[], 'prefixes':[]}
 
-        if leptonCharges and not hadronicSelection:
+        if leptonCharges and not hadronicSelection and not triLep:
 	    res['cuts'].append(leptonCharges)
 	    res['prefixes'].append(leptonCharges)
 
@@ -211,7 +211,7 @@ class Setup:
               res['prefixes'].append('mll'+str(mllMin))
 
             if triLep:
-	      assert channel in trilepChannels, "channel must be one of "+",".join(trilepChannels)+". Got %r."%channel
+	      assert channel in allTrilepChannels, "channel must be one of "+",".join(allTrilepChannels)+". Got %r."%channel
               from StopsDilepton.tools.trilepSelection import getTrilepSelection
               if channel =="all": chStr = '(' + '||'.join([getTrilepSelection(c) for c in ['3mu','2mu1e','2e1mu','3e']) + ')'
               else:               chStr = getTrilepSelection(channel)

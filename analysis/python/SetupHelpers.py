@@ -1,8 +1,9 @@
 from StopsDilepton.tools.helpers import getChain
 
-channels       = ['EE', 'MuMu', 'EMu']
-allChannels    = ['all', 'SF', 'EE', 'MuMu', 'EMu']
-trilepChannels = ['all', '3mu', '2mu1e', '2e1mu', '3e']
+channels          = ['EE', 'MuMu', 'EMu']
+allChannels       = ['all', 'SF', 'EE', 'MuMu', 'EMu']
+trilepChannels    = ['3mu', '2mu1e', '2e1mu', '3e']
+allTrilepChannels = ['all', '3mu', '2mu1e', '2e1mu', '3e']
 
 #def loadChain(s, verbose=False):
 #    '''Use this function to add the chain to the sample dictionary.
