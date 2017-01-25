@@ -6,7 +6,8 @@ import ROOT
 #RootTools
 from RootTools.core.standard import *
 
-signals_T8bbllnunu=[]
+signals_T8bbllnunu_XCha0p5_XSlep0p05    = []
+signals_T8bbllnunu_XCha0p5_XSlep0p5     = []
 
 # Take post processing directory if defined in main module
 try:
@@ -26,12 +27,15 @@ except:
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T8bbllnunu')):
     if f.endswith('.root') and f.startswith('T8bbllnunu_'):
         name = f.replace('.root','')
-        xCha, xSlep, mStop, mNeu = name.replace('T8bbllnunu_','').replace('XCha','').replace('XSlep','').replace('p','.').split('_')
+        xChaStr, xSlepStr, mStop, mNeu = name.replace('T8bbllnunu_','').split('_')
         
         bcha    = "b#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{#pm}}"
         nuslep  = "#nu#tilde{l}"
-        lneu    = "l#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{#pm}}"
+        lneu    = "l#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{0}}"
         ra      = " #rightarrow "
+        
+        xCha = xChaStr.replace('XCha','').replace('p','.')
+        xSlep = xSlepStr.replace('XSlep','').replace('p','.')
         
         tmp = Sample.fromFiles(\
             name = name,
@@ -39,7 +43,8 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T8bb
             treeName = "Events",
             isData = False,
             color = 8 ,
-            texName = "#tilde{t}" + ra + bcha + ra + nuslep + ra + lneu + "("+mStop+","+mNeu+","+xCha+","+xSlep+")"
+            texName = "#tilde{t} #rightarrow b#nu l#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{0}} ("+mStop+","+mNeu+","+xCha+","+xSlep+")"
+            #texName = "#tilde{t}" + ra + bcha + ra + nuslep + ra + lneu + "("+mStop+","+mNeu+","+xCha+","+xSlep+")"
         )
 
         tmp.mStop   = int(mStop)
@@ -51,6 +56,9 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T8bb
         tmp.isFastSim = True
 
         exec("%s=tmp"%name)
-        exec("signals_T8bbllnunu.append(%s)"%name)
+        if f.startswith('T8bbllnunu_XCha0p5_XSlep0p05'):
+            exec("signals_T8bbllnunu_XCha0p5_XSlep0p05.append(%s)"%name)
+        elif f.startswith('T8bbllnunu_XCha0p5_XSlep0p5'):
+            exec("signals_T8bbllnunu_XCha0p5_XSlep0p5.append(%s)"%name)
 
-print "Loaded %i T8bbllnunu signals: %s"%(len(signals_T8bbllnunu), ",".join([s.name for s in signals_T8bbllnunu]))
+print "Loaded %i T8bbllnunu signals: %s"%(len(signals_T8bbllnunu_XCha0p5_XSlep0p05)+len(signals_T8bbllnunu_XCha0p5_XSlep0p5), ",".join([s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p05+signals_T8bbllnunu_XCha0p5_XSlep0p5]))

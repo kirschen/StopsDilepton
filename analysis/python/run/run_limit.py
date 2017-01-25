@@ -5,7 +5,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
 argParser.add_argument("--estimates",      action='store', default='mc',                nargs='?', choices=["mc","dd"],                                                                                   help="mc estimators or data-driven estimators?")
-argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM"],                                                                            help="which signal?")
+argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5"],              help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,                nargs='?',                                                                                                        help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float,     nargs='?',                                                                                                        help="scaling all yields")
 argParser.add_argument("--regions",        action='store', default=None,                nargs='?',                                                                                                        help="select region setup")
@@ -47,9 +47,12 @@ for e in estimators + [observation]:
     e.initCache(setup.defaultCacheDir())
 
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import signals_T2tt
+from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
 from StopsDilepton.analysis.u_float                                           import u_float
 from math                                                                     import sqrt
+
+#signals_T8bbllnunu_XCha0p5_XSlep0p5 = [s for s in signals_T8bbllnunu_XCha0p5_XSlep0p5 if not s.mStop==851]
 
 ##https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSYSignalSystematicsRun2
 from StopsDilepton.tools.user           import combineReleaseLocation
@@ -69,6 +72,8 @@ limitCache    = Cache(cacheFileName, verbosity=2)
 
 
 if   args.signal == "T2tt":    fastSim = True
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":     fastSim = False #FIXME
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":      fastSim = True
 elif args.signal == "TTbarDM": fastSim = False
 
 scaleUncCache = Cache('scale_%s.pkl' % args.signal, verbosity=2)
@@ -83,7 +88,9 @@ def getIsrUnc(name, r, channel):
   unc = isrUncCache.get((name, r, channel))
   return abs(unc)
 
+
 def wrapper(s):
+    xSecScale = 1
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = combineReleaseLocation
 
@@ -125,7 +132,11 @@ def wrapper(s):
                 name = e.name.split('-')[0]
                 expected = e.cachedEstimate(r, channel, setup)
                 total_exp_bkg += expected.val
-                c.specifyExpectation(binname, name, expected.val*args.scale)
+                xSecScale = 1
+                #if s.mStop<810:
+                #    xSecScale = 0.1
+                #    print "SCALING XSEC DOWN BY %f"%xSecScale
+                c.specifyExpectation(binname, name, expected.val*args.scale*xSecScale)
                 if expected.val>0:
                     c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val )
                     c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val )
@@ -148,43 +159,44 @@ def wrapper(s):
                     c.addUncertainty(uname, 'lnN')
                     c.specifyUncertainty(uname, binname, name, 1+expected.sigma/expected.val )
 
-                c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
+              c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
-                #signal
-                e = eSignal
-                eSignal.isSignal = True
-                if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
-                else:       signalSetup = setup.sysClone()
-                signal = e.cachedEstimate(r, channel, signalSetup)
+              #signal
+              e = eSignal
+              eSignal.isSignal = True
+              if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
+              else:       signalSetup = setup.sysClone()
+              signal = e.cachedEstimate(r, channel, signalSetup)
+              xSecScale = 1
+              #if s.mStop<810: xSecScale = 0.1
+              c.specifyExpectation(binname, 'signal', args.scale*signal.val*xSecScale )
 
-                c.specifyExpectation(binname, 'signal', args.scale*signal.val )
+              if signal.val>0:
+                c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
+                c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
+                c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
+                c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
+                c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
+                c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
+                c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
+                c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
+                c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, channel))
+                c.specifyUncertainty('isr',      binname, 'signal', 1 + getIsrUnc(  eSignal.name, r, channel))
+                if fastSim: 
+                  c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
+                  c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
+                  c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
 
-                if signal.val>0:
-                  c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
-                  c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
-                  c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
-                  c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
-                  c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
-                  c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, channel))
-                  c.specifyUncertainty('isr',      binname, 'signal', 1 + getIsrUnc(  eSignal.name, r, channel))
-                  if fastSim: 
-                    c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
-                    c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
-                    c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
+                #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated
+                uname = 'Stat_'+binname+'_signal'
+                c.addUncertainty(uname, 'lnN')
+                c.specifyUncertainty(uname, binname, 'signal', 1 + sqrt(0.1**2 + signal.sigma/signal.val) )
 
-                  #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated
-                  uname = 'Stat_'+binname+'_signal'
-                  c.addUncertainty(uname, 'lnN')
-                  c.specifyUncertainty(uname, binname, 'signal', 1 + sqrt(0.1**2 + signal.sigma/signal.val) )
-
-                if not args.controlDYVV and (signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg<=0):# or (total_exp_bkg>300 and signal.val<0.05):
-                  if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
-                  c.muted[binname] = True
-                else:
-                  if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
+              if not args.controlDYVV and (signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg<=0):# or (total_exp_bkg>300 and signal.val<0.05):
+                if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
+                c.muted[binname] = True
+              else:
+                if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
         c.addUncertainty('Lumi', 'lnN')
         c.specifyFlatUncertainty('Lumi', 1.062)
@@ -194,17 +206,29 @@ def wrapper(s):
     
     if   args.signal == "TTbarDM": sConfig = s.mChi, s.mPhi, s.type
     elif args.signal == "T2tt":    sConfig = s.mStop, s.mNeu
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":    sConfig = s.mStop, s.mNeu
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":     sConfig = s.mStop, s.mNeu
+
 
     if useCache and not overWrite and limitCache.contains(sConfig):
       res = limitCache.get(sConfig)
     else:
-      res = c.calcLimit(cardFileName)
+      res = c.calcLimit(cardFileName)#, options="--run blind")
       c.calcNuisances(cardFileName)
       limitCache.add(sConfig, res, save=True)
-
+    
+    xSecScale = 1
+    #if s.mStop<810:
+    #    xSecScale = 0.1
+    if xSecScale != 1:
+        for k in res:
+            res[k] *= xSecScale
+    
     if res: 
       if   args.signal == "TTbarDM":   sString = "mChi %i mPhi %i type %s" % sConfig
       elif args.signal == "T2tt": sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5": sString = "mStop %i mNeu %i" % sConfig
       try:
         print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
         return sConfig, res
@@ -213,6 +237,8 @@ def wrapper(s):
         return None
 
 if   args.signal == "T2tt":    jobs = signals_T2tt 
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": jobs = signals_T8bbllnunu_XCha0p5_XSlep0p05
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5": jobs = signals_T8bbllnunu_XCha0p5_XSlep0p5
 elif args.signal == "TTbarDM": jobs = signals_TTbarDM
 
 if args.only is not None:
@@ -224,17 +250,22 @@ results = map(wrapper, jobs)
 results = [r for r in results if r]
 
 # Make histograms for T2tt
-if args.signal == "T2tt":
-  exp      = ROOT.TH2F("exp", "exp", 1000/25, 0, 1000, 1000/25, 0, 1000)
+if args.signal == "T2tt" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p05" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
+  exp      = ROOT.TH2F("exp", "exp", 1600/25, 0, 1600, 1500/25, 0, 1500)
   exp_down = exp.Clone("exp_down")
   exp_up   = exp.Clone("exp_up")
   obs      = exp.Clone("obs")
-
+  
   for r in results:
     s, res = r
     mStop, mNeu = s
     for hist, qE in [(exp, '0.500'), (exp_up, '0.160'), (exp_down, '0.840'), (obs, '-1.000')]:
-      hist.Fill(mStop, mNeu, res[qE])
+      print hist, qE, res[qE]
+      if qE=='0.500':
+        print "Masspoint m_gl %5.3f m_neu %5.3f, expected limit %5.3f"%(mStop,mNeu,res[qE])
+        hist.GetXaxis().FindBin(mStop)
+        hist.GetYaxis().FindBin(mNeu)
+        hist.Fill(mStop, mNeu, res[qE])
 
   limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
   if not os.path.exists(os.path.dirname(limitResultsFilename)):

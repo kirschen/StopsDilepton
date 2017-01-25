@@ -23,8 +23,9 @@ allRegions = regionsO if not args.control.count('TTZ') else noRegions
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import signals_T2tt
+from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
-allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}) for s in signals_TTbarDM + signals_T2tt ]
+allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}) for s in signals_TTbarDM + signals_T2tt + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p05]
 
 
 # Select estimate
@@ -34,9 +35,10 @@ if not estimate:
   exit(0)
 
 
-if estimate.name.count('T2tt') or estimate.name.count('TTbarDM'): estimate.isSignal = True
+if estimate.name.count('T2tt') or estimate.name.count('TTbarDM') or estimate.name.count('T8bbllnunu'): estimate.isSignal = True
 
 isFastSim = estimate.name.count('T2tt')
+#isFastSim = estimate.name.count('T8bbllnunu') #FIXME
 if isFastSim:
   setup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
 
