@@ -213,7 +213,7 @@ class Setup:
             if triLep:
 	      assert channel in allTrilepChannels, "channel must be one of "+",".join(allTrilepChannels)+". Got %r."%channel
               from StopsDilepton.tools.trilepSelection import getTrilepSelection
-              if channel =="all": chStr = '(' + '||'.join([getTrilepSelection(c) for c in ['3mu','2mu1e','2e1mu','3e']) + ')'
+              if channel =="all": chStr = '(' + '||'.join([getTrilepSelection(c) for c in ['3mu','2mu1e','2e1mu','3e']]) + ')'
               else:               chStr = getTrilepSelection(channel)
 	      res['cuts'].append(chStr)
 
