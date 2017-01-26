@@ -3,7 +3,6 @@ import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument("--regions",        action='store', default='O',                 nargs='?', choices=["O"],                                      help="which regions setup?")
-argParser.add_argument("--estimates",      action='store', default='mc',                nargs='?', choices=["mc","dd"],                                help="mc estimators or data-driven estimators?")
 argParser.add_argument("--relativeError",  action='store_true', default=False,          help="show relative errors?")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM"],                         help="which signal to plot?")
 args = argParser.parse_args()
@@ -17,9 +16,9 @@ from StopsDilepton.analysis.Cache           import Cache
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger("DEBUG", logFile = None )
+logger = logger.get_logger("INGO", logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger("DEBUG", logFile = None )
+logger_rt = logger_rt.get_logger("INGO", logFile = None )
 
 setup.verbose = False
 
@@ -35,14 +34,11 @@ elif args.signal == "T2tt":
 limitPrefix = "regions" + args.regions
 regions = globals()[limitPrefix]
 
-if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ'])
-elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'multiBoson-DD', 'TTXNoZ'])
-summedEstimate = SumEstimate(name="sum_dd" if args.estimates == "dd" else "sum")
+estimators     = constructEstimatorList(["TTJets-DD","TTZ","DY", 'multiBoson', 'TTXNoZ'])
+summedEstimate = SumEstimate(name="sum")
+observation    = DataObservation(name='Data', sample=setup.sample['Data'])
 
-DYestimators = constructEstimatorList(["DY", "DY-DD"])
-observation = DataObservation(name='Data', sample=setup.sample['Data'])
-
-for e in estimators + [summedEstimate, observation] + DYestimators:
+for e in estimators + [summedEstimate, observation]:
     e.initCache(setup.defaultCacheDir())
 
 texdir = os.path.join(setup.analysis_results, setup.prefix(), 'tables' + ("_dd" if args.estimates == "dd" else "") + ("_rel" if args.relativeError else ""), args.regions)
