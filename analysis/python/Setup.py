@@ -42,7 +42,7 @@ default_metMin        = 80
 default_metSigMin     = 5
 default_zWindow       = "offZ"
 default_dPhi          = True
-default_triLepton     = False
+default_triLep        = False
 default_dPhiInv       = False
 default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
@@ -67,7 +67,7 @@ class Setup:
             'nJets':         default_nJets,
             'nBTags':        default_nBTags,
             'leptonCharges': default_leptonCharges,
-            'triLepton':     default_triLepton,
+            'triLep':        default_triLep,
         }
 
         self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt'], 'selectionModifier':None}
@@ -76,15 +76,19 @@ class Setup:
         self.dataLumi = dataLumi
 
         self.sample = {
-        'DY':         {c:DYSample     for c in channels},
-        'TTJets' :    {c:TTJetsSample for c in channels},
-        'TTZ' :       {c:TTZ_LO       for c in channels},
-        'multiBoson' :{c:multiBoson   for c in channels},
-        'TTXNoZ' :    {c:TTXNoZ       for c in channels},
-        'other'  :    {c:Sample.combine('other', [otherEWKBkgs]) for c in channels},
-        'Data'   :    {'MuMu': DoubleMuon_Run2016_backup,
-                       'EE':   DoubleEG_Run2016_backup,
-                       'EMu':  MuonEG_Run2016_backup},
+        'DY':         {c:DYSample     for c in channels+trilepChannels},
+        'TTJets' :    {c:TTJetsSample for c in channels+trilepChannels},
+        'TTZ' :       {c:TTZ_LO       for c in channels+trilepChannels},
+        'multiBoson' :{c:multiBoson   for c in channels+trilepChannels},
+        'TTXNoZ' :    {c:TTXNoZ       for c in channels+trilepChannels},
+        'other'  :    {c:Sample.combine('other', [otherEWKBkgs]) for c in channels+trilepChannels},
+        'Data'   :    {'MuMu':  DoubleMuon_Run2016_backup,
+                       'EE':    DoubleEG_Run2016_backup,
+                       'EMu':   MuonEG_Run2016_backup,
+                       '3mu':   DoubleMuon_Run2016_backup,
+                       '3e':    DoubleEG_Run2016_backup,
+                       '2mu1e': MuonEG_Run2016_backup,
+                       '2e1mu': MuonEG_Run2016_backup},
         }
 
     def prefix(self):
@@ -141,7 +145,7 @@ class Setup:
 
     def selection(self, dataMC,
 			mllMin, metMin, metSigMin, zWindow, dPhi, dPhiInv,
-			nJets, nBTags, leptonCharges, triLepton, 
+			nJets, nBTags, leptonCharges, triLep,
 			channel = 'all', hadronicSelection = False,  isFastSim = False):
         '''Define full selection
 	   dataMC: 'Data' or 'MC'
