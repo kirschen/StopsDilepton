@@ -3,18 +3,15 @@ import ROOT
 import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--logLevel',       action='store', default='INFO',              nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],                          help="Log level for logging")
-argParser.add_argument("--estimates",      action='store', default='mc',                nargs='?', choices=["mc","dd"],                                                                                   help="mc estimators or data-driven estimators?")
-argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5"],              help="which signal?")
-argParser.add_argument("--only",           action='store', default=None,                nargs='?',                                                                                                        help="pick only one masspoint?")
-argParser.add_argument("--scale",          action='store', default=1.0, type=float,     nargs='?',                                                                                                        help="scaling all yields")
+argParser.add_argument('--logLevel',       action='store', default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
+argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5"], help="which signal?")
+argParser.add_argument("--only",           action='store', default=None,            nargs='?',                                                                                           help="pick only one masspoint?")
+argParser.add_argument("--scale",          action='store', default=1.0, type=float, nargs='?',                                                                                           help="scaling all yields")
 argParser.add_argument("--overwrite",      default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--controlDYVV",    default = False, action = "store_true", help="Fits for DY/VV CR")
 argParser.add_argument("--controlTTZ",     default = False, action = "store_true", help="Fits for TTZ CR")
 argParser.add_argument("--fitAll",         default = False, action = "store_true", help="Fits SR and CR together")
-
 args = argParser.parse_args()
-
 
 
 # Logging
@@ -56,13 +53,19 @@ setupTTZ3.regions = noRegions
 setupTTZ4.regions = noRegions
 setupTTZ5.regions = noRegions
 
+# Define estimators for CR
+setup.estimators     = constructEstimatorList(["TTJets-DD","TTZ","DY", 'multiBoson', 'other'])
+setupDYVV.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
+setupTTZ1.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
+setupTTZ2.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
+setupTTZ3.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
+setupTTZ4.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
+setupTTZ5.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
 
 if args.fitAll:        setups = [setup, setupDYVV, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 elif args.controlDYVV: setups = [setupDYVV]
 elif args.controlTTZ:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 else:                  setups = [setup]
-
-estimators  = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
 
 from StopsDilepton.analysis.u_float                                              import u_float
 from math                                                                        import sqrt
@@ -138,9 +141,9 @@ def wrapper(s):
             c.addUncertainty('FSmet',    'lnN')
 
         for setup in setups:
-	  eSignal     = MCBasedEstimate(name=s.name, sample={channel:s for channel in channels+trilepChannels}, cacheDir=setup.defaultCacheDir() )
+	  eSignal     = MCBasedEstimate(name=s.name, sample={channel:s for channel in channels+trilepChannels}, cacheDir=setup.defaultCacheDir())
           observation = DataObservation(name='Data', sample=setup.sample['Data'], cacheDir=setup.defaultCacheDir())
-          for e in estimators: e.initCache(setup.defaultCacheDir())
+          for e in setup.estimators: e.initCache(setup.defaultCacheDir())
 
 	  for r in setup.regions:
 	    for channel in setup.channels:
@@ -154,8 +157,8 @@ def wrapper(s):
 		binname = 'Bin'+str(counter)
 		counter += 1
 		total_exp_bkg = 0
-		c.addBin(binname, [e.name.split('-')[0] for e in estimators], niceName)
-		for e in estimators:
+		c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators], niceName)
+		for e in setup.estimators:
 		  name = e.name.split('-')[0]
 		  expected = e.cachedEstimate(r, channel, setup)
 		  total_exp_bkg += expected.val
