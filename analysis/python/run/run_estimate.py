@@ -19,13 +19,13 @@ logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-allRegions = regionsO if not args.control.count('TTZ') else noRegions
+allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsO
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import signals_T2tt
 from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
-allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}) for s in signals_TTbarDM + signals_T2tt + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p05]
+allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in channels + trilepChannels}) for s in signals_TTbarDM + signals_T2tt + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p05]
 
 
 # Select estimate
@@ -64,7 +64,7 @@ def wrapper(args):
 estimate.initCache(setup.defaultCacheDir())
 
 jobs=[]
-for channel in (trilepChannels if options.control.count('TTZ') else channels):
+for channel in (trilepChannels if (options.control and options.control.count('TTZ')) else channels):
     for (i, r) in enumerate(allRegions):
 	if options.selectRegion is not None and options.selectRegion != i: continue
 	jobs.append((r, channel, setup))
@@ -80,7 +80,7 @@ else:
     pool.close()
     pool.join()
 
-for channel in (['all'] if args.control.count('TTZ') else ['SF','all']):
+for channel in (['all'] if (options.control and options.control.count('TTZ')) else ['SF','all']):
     for (i, r) in enumerate(allRegions):
 	if options.selectRegion is not None and options.selectRegion != i: continue
 	estimate.cachedEstimate(r, channel, setup, save=True)

@@ -30,7 +30,7 @@ from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplac
 from StopsDilepton.tools.objectSelection import getFilterCut
 
 #to run on data
-dataLumi = {'EMu': MuonEG_Run2016_backup.lumi, 'MuMu':DoubleMuon_Run2016_backup.lumi, 'EE':DoubleEG_Run2016_backup.lumi}
+dataLumi = {'EMu': MuonEG_Run2016_backup.lumi, 'MuMu':DoubleMuon_Run2016_backup.lumi, 'EE':DoubleEG_Run2016_backup.lumi, '3mu':DoubleMuon_Run2016_backup.lumi, '3e':DoubleEG_Run2016_backup.lumi, '2mu1e':MuonEG_Run2016_backup.lumi, '2e1mu':MuonEG_Run2016_backup.lumi}
 #10/fb to run on MC
 #lumi = {c:10000 for c in channels}
 lumi = dataLumi
