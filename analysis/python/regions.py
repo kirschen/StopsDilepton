@@ -107,3 +107,6 @@ regionsN += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Reg
 regionsO += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
 regionsP += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
 regionsR += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
+
+
+noRegions = [Region("dl_mt2ll", (0, -1)) + Region("dl_mt2bb", (0, -1)) + Region("met_pt", (0, -1))] # For TTZ CR 

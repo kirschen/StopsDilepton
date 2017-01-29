@@ -3,7 +3,6 @@ import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument("--regions",        action='store', default='O',                 nargs='?', choices=["O"],                                      help="which regions setup?")
-argParser.add_argument("--estimates",      action='store', default='mc',                nargs='?', choices=["mc","dd"],                                help="mc estimators or data-driven estimators?")
 argParser.add_argument("--relativeError",  action='store_true', default=False,          help="show relative errors?")
 argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM"],                         help="which signal to plot?")
 args = argParser.parse_args()
@@ -17,9 +16,9 @@ from StopsDilepton.analysis.Cache           import Cache
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger("INFO", logFile = None )
+logger = logger.get_logger("INGO", logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger("INFO", logFile = None )
+logger_rt = logger_rt.get_logger("INGO", logFile = None )
 
 setup.verbose = False
 
@@ -35,14 +34,11 @@ elif args.signal == "T2tt":
 limitPrefix = "regions" + args.regions
 regions = globals()[limitPrefix]
 
-if   args.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ'])
-elif args.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", 'multiBoson-DD', 'TTXNoZ'])
-summedEstimate = SumEstimate(name="sum_dd" if args.estimates == "dd" else "sum")
+estimators     = constructEstimatorList(["TTJets-DD","TTZ","DY", 'multiBoson', 'TTXNoZ'])
+summedEstimate = SumEstimate(name="sum")
+observation    = DataObservation(name='Data', sample=setup.sample['Data'])
 
-DYestimators = constructEstimatorList(["DY", "DY-DD"])
-observation = DataObservation(name='Data', sample=setup.sample['Data'])
-
-for e in estimators + [summedEstimate, observation] + DYestimators:
+for e in estimators + [summedEstimate, observation]:
     e.initCache(setup.defaultCacheDir())
 
 texdir = os.path.join(setup.analysis_results, setup.prefix(), 'tables' + ("_dd" if args.estimates == "dd" else "") + ("_rel" if args.relativeError else ""), args.regions)
@@ -59,9 +55,8 @@ def displayAbsSysValue(val):
      if roundedVal <= 0.: return "0.00"
      return "%.2f" % roundedVal
 
-from StopsDilepton.analysis.infoFromCards import getUncFromCard, applyNuisance
-cardsDirectory = os.path.join(setup.analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-relIso0.12", "DY", "TTZ", "TTJets", "multiBoson", 'cardFiles', 'TTbarDM', 'regionsO')
-cardFile       = os.path.join(cardsDirectory, 'TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt') # To make sure we apply the same uncertainties as applied in the cards
+from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, applyNuisance
+cardFile = '/user/tomc/StopsDilepton/results_80X_v24/isOS-nJets2p-nbtag0-met80-metSig5-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/cardFiles/TTbarDM/regionsO/TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt'
 
 # Evaluate absolute and relative errors
 def evaluateEstimate(e, SR, estimators=None):
@@ -83,11 +78,11 @@ def evaluateEstimate(e, SR, estimators=None):
      e.rel["b-tag SF-l"] = e.btaggingSFlSystematic(r, channel, setup).val
      e.rel["trigger"]    = e.triggerSystematic(    r, channel, setup).val
      e.rel["lepton SF"]  = e.leptonSFSystematic(   r, channel, setup).val
-     e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else getUncFromCard(cardFile, 'TTJets','top',SR) 
-     e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else getUncFromCard(cardFile, 'TTZ','ttZ',SR)
-     e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else getUncFromCard(cardFile, 'multiBoson','multiBoson',SR)
-     e.rel["TTXNoZ"]     = 0 if not e.name.count("TTXNoZ")     else getUncFromCard(cardFile, 'TTXNoZ','other',SR)
-     e.rel["DY"]         = 0 if not e.name.count("DY")         else getUncFromCard(cardFile, 'DY','DY',SR)
+     e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else getPreFitUncFromCard(cardFile, 'TTJets','top',SR) 
+     e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else getPreFitUncFromCard(cardFile, 'TTZ','ttZ',SR)
+     e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else getPreFitUncFromCard(cardFile, 'multiBoson','multiBoson',SR)
+     e.rel["TTXNoZ"]     = 0 if not e.name.count("TTXNoZ")     else getPreFitUncFromCard(cardFile, 'other','other',SR)
+     e.rel["DY"]         = 0 if not e.name.count("DY")         else getPreFitUncFromCard(cardFile, 'DY','DY',SR)
 
      # For sum assume the individual estimators are already evaluated such that we can pick their corresponding absolute error
      if e.name.count("sum"):
@@ -102,7 +97,7 @@ def evaluateEstimate(e, SR, estimators=None):
 
      e.expected = int(100*expected+0.5)/100.
      for i in e.displayAbs:
-       if not e.name.count("sum") and e.rel[i] > 0:
+       if not e.name.count("sum"):
          e.displayYieldAbs[i] = str(e.expected) + " $\pm$ " + e.displayAbs[i]
 
 def rotate(tex):

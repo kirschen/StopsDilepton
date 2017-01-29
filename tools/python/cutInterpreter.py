@@ -106,7 +106,7 @@ class cutInterpreter:
 
         if photonEstimated:
           for var in ['met_pt','met_phi','metSig','dl_mt2ll','dl_mt2bb']:
-            cutsString = cutString.replace(var, var + '_photonEstimated')
+            cutString = cutString.replace(var, var + '_photonEstimated')
 
         return cutString
     

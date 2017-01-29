@@ -11,7 +11,7 @@ file_eleIso   = "scaleFactors.root"
 key_muId      = "pt_abseta_PLOT_pair_probeMultiplicity_bin0"
 key_muIso     = "pt_abseta_PLOT_pair_probeMultiplicity_bin0_&_Medium2016_pass"
 key_eleId     = "GsfElectronToCutBasedStopsDilepton"
-key_eleIso    = "CutBasedTightElectronToMultiIsoVT"
+key_eleIso    = "CutBasedStopsDileptonToRelIso012"
 
 class leptonSF:
     def __init__(self):
