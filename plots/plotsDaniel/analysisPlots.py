@@ -22,7 +22,7 @@ from StopsDilepton.plots.pieChart        import makePieChart
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM", "T8bbllnunu"], help="Add signal to plot")
+argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM", "T8bbllnunu", "compilation"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_test')
@@ -30,6 +30,7 @@ argParser.add_argument('--selection',          action='store',      default='nje
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
+argParser.add_argument('--unblinded',          action='store_true', default=False)
 args = argParser.parse_args()
 
 #
@@ -66,11 +67,26 @@ if args.signal == "T2tt":
 elif args.signal == "T8bbllnunu":
     postProcessing_directory = "postProcessed_80X_v28/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_650_1
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p05_450_150
+    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p5_700_600
+    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p5_600_500
+    T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p5_500_400
+    T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
     T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
-    signals = [ T8bbllnunu, T8bbllnunu2 ]
+    signals = [ T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
+elif args.signal == "compilation":
+    postProcessing_directory = "postProcessed_80X_v26/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+    postProcessing_directory = "postProcessed_80X_v28/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
+    T2tt                    = T2tt_650_1
+    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_1100_1
+    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p5_1100_1
+    T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
+    T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+    T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
+    signals = [ T2tt, T8bbllnunu, T8bbllnunu2 ]
+    
 elif args.signal == "DM":
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
     DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
@@ -158,16 +174,16 @@ for index, mode in enumerate(allModes):
   lumi_scale                 = data_sample.lumi/1000
 
   if args.noData: lumi_scale = 36.4
-  # Blinding policies for DM and T2tt analyses #FIXME
-  #if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.noData:
-  #  if args.signal == "DM":
-  #    weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
-  #    lumi_scale = lumi_scale/15
-  #  else:
-  #    weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-  #    lumi_scale = 17.3
-  #else:
-  weight_ = lambda event, sample: event.weight
+  #Blinding policies for DM and T2tt analyses #FIXME
+  if not args.unblinded:
+    if args.signal == "DM":
+      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
+      lumi_scale = lumi_scale/15
+    else:
+      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
+      lumi_scale = 17.3
+  else:
+    weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
   mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO]
@@ -187,7 +203,7 @@ for index, mode in enumerate(allModes):
         sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
         sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
         sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
-      elif args.signal == "T8bbllnunu":
+      elif args.signal == "T8bbllnunu" or args.signal == "compilation":
         sample.scale          = lumi_scale
         sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
         sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb

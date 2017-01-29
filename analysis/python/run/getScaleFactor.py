@@ -23,7 +23,8 @@ modifiers = [ {},
 #             {'reweight':['reweightBTag_SF_b_Down']},
             ]
 
-selections = [ ("met50",                 "$\\met > 50$ GeV"),
+selections = [ 
+               ("met50",                 "$\\met > 50$ GeV"),
                ("met80",                 "$\\met > 80$ GeV"),
                ("met50_metSig5",         "$\\met > 50$ GeV, $\\metSig > 5$"),
                ("met80_metSig5",         "$\\met > 80$ GeV, $\\metSig > 5$"),
@@ -41,7 +42,7 @@ try:
 except:
   pass 
 
-columns = ["DY","TTJets","multiBoson","TTX","observed","scale factor", "DY purity"]
+columns = ["DY","TTJets","multiBoson","TTZ","TTXNoZ","observed","scale factor", "DY purity"]
 texfile = os.path.join(texdir, "scalefactorsDY.tex")
 with open(texfile, "w") as table:
   table.write("\\begin{tabular}{l|c" + "c"*len(columns) + "} \n")
@@ -60,16 +61,16 @@ with open(texfile, "w") as table:
       for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a control
         for modifier in modifiers:
   	  (yields, data, scaleFactor) = estimateDY._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True)
-          table.write("  " + tex + " & "+ " & ".join([("%.2f" % yields[s].val) for s in ['DY','TTJets','multiBoson','TTX']]) + " & " + "%d" % data.val)
+          table.write("  " + tex + " & "+ " & ".join([("%.2f" % yields[s].val) for s in ['DY','TTJets','multiBoson','TTZ','TTXNoZ']]) + " & " + "%d" % data.val)
           table.write("& $%.2f\pm%.2f$" % (scaleFactor.val, scaleFactor.sigma))
-          table.write(" & $%.0f\\%%$" % (100*yields['DY'].val/sum(yields[s].val for s in ['DY','TTJets','multiBoson','TTZ','TTX'])))
+          table.write(" & $%.0f\\%%$" % (100*yields['DY'].val/sum(yields[s].val for s in ['DY','TTJets','multiBoson','TTZ','TTXNoZ'])))
           table.write("\\\\ \n")
   table.write("\\end{tabular} \n")
 
 
 
 
-columns = ["multiBoson","TTJets","DY (DD)","TTX","observed","scale factor", "multiBoson purity"]
+columns = ["multiBoson","TTJets","DY (DD)","TTZ","TTXNoZ","observed","scale factor", "multiBoson purity"]
 texfile = os.path.join(texdir, "scalefactorsMultiBoson.tex")
 with open(texfile, "w") as table:
   table.write("\\begin{tabular}{l|c" + "c"*len(columns) + "} \n")
@@ -82,15 +83,15 @@ with open(texfile, "w") as table:
     dPhi       = selection.count("dPhi") and not selection.count("dPhiInv")
     dPhiInv    = selection.count("dPhiInv")
     estimateDY = DataDrivenDYEstimate(name='DY-DD', cacheDir=None, controlRegion=Region('dl_mt2ll', (100,-1)))
-    estimateMB = DataDrivenMultiBosonEstimate(name='MultiBoson-DD', cacheDir=None, controlRegion=Region('dl_mt2ll', (100,-1)), dPhi=dPhi, dPhiInv=dPhiInv, metMin=metMin, metSigMin=metSigMin)
+    estimateMB = DataDrivenMultiBosonEstimate(name='multiBoson-DD', cacheDir=None, controlRegion=Region('dl_mt2ll', (100,-1)), dPhi=dPhi, dPhiInv=dPhiInv, metMin=metMin, metSigMin=metSigMin)
     estimateMB.initCache(setup.defaultCacheDir())
 
     for channel in ['MuMu']:  # is the same for EE
       for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a controlRegion
         for modifier in modifiers:
   	  (yields, data, scaleFactor) = estimateMB._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True, estimateDY=estimateDY)
-          table.write("  " + tex + " & "+ " & ".join([("%.2f" % yields[s].val) for s in ['multiBoson','TTJets','DY-DD','TTX']]) + " & " + "%d" % data.val)
+          table.write("  " + tex + " & "+ " & ".join([("%.2f" % yields[s].val) for s in ['multiBoson','TTJets','DY-DD','TTZ','TTXNoZ']]) + " & " + "%d" % data.val)
           table.write("& $%.2f\pm%.2f$" % (scaleFactor.val, scaleFactor.sigma))
-          table.write(" & $%.0f\\%%$" % (100*yields['multiBoson'].val/sum(yields[s].val for s in ['multiBoson','TTJets','DY-DD','TTZ','TTX'])))
+          table.write(" & $%.0f\\%%$" % (100*yields['multiBoson'].val/sum(yields[s].val for s in ['multiBoson','TTJets','DY-DD','TTZ','TTXNoZ'])))
           table.write("\\\\ \n")
   table.write("\\end{tabular} \n")

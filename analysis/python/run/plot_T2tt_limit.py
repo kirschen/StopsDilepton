@@ -17,7 +17,7 @@ parser.add_option("--file", dest="filename", default=defFile, type="string", act
 (options, args) = parser.parse_args()
 
 ifs = options.filename.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2])
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_v2')
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 
@@ -34,11 +34,12 @@ for i in ["obs_up","obs_down"]:
 
 from StopsDilepton.tools.xSecSusy import xSecSusy
 xSecSusy_ = xSecSusy()
-for ix in range(hists["obs"].GetNbinsX()):
-    for iy in range(hists["obs"].GetNbinsY()):
-        mStop = hists["obs"].GetXaxis().GetBinLowEdge(ix)
-        mNeu  = hists["obs"].GetYaxis().GetBinLowEdge(iy)
-        v = hists["obs"].GetBinContent(hists["obs"].FindBin(mStop, mNeu))
+xSecKey = "exp" # exp or obs
+for ix in range(hists[xSecKey].GetNbinsX()):
+    for iy in range(hists[xSecKey].GetNbinsY()):
+        mStop = hists[xSecKey].GetXaxis().GetBinLowEdge(ix)
+        mNeu  = hists[xSecKey].GetYaxis().GetBinLowEdge(iy)
+        v = hists[xSecKey].GetBinContent(hists[xSecKey].FindBin(mStop, mNeu))
         if v>0:
             scaleup   = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=1) /xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)
             scaledown = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=-1)/xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)

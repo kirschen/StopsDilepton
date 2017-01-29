@@ -96,10 +96,10 @@ def get_parser():
         )
     argParser.add_argument('--job',
         action='store',
-        nargs='*',
+        nargs='?',
         type=int,
-        default=[],
-        help="Run only jobs i"
+        default=0,
+        help="Run only job i"
         )
 
     argParser.add_argument('--minNJobs',
@@ -331,6 +331,21 @@ try:    #Avoid trouble with race conditions in multithreading
 except:
     pass
 
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
+nJobs = options.nJobs
+chunkSize = len(signalWeight.keys())/nJobs
+if not len(signalWeight.keys())%nJobs == 0: chunkSize += 1
+
+masspoints = list(chunks(signalWeight.keys(), chunkSize))
+
+job = options.job
+
+print job
 
 # Write one file per mass point for T2tt
 if options.T2tt or options.T8bbllnunu:
@@ -339,7 +354,7 @@ if options.T2tt or options.T8bbllnunu:
     print "Initialising chain, otherwise first mass point is empty"
     print output.chain
     if options.small: output.reduceFiles( to = 1 )
-    for s in signalWeight.keys():
+    for s in masspoints[job]:
         #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
         logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
         cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])

@@ -402,7 +402,7 @@ if options.T8bbllnunu:
     signalSubDir = options.samples[0].replace('SMS_','')
     
     signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T8bbllnunu")
-    if not os.path.exists(signalDir): os.makedirs(signalDir)
+    #if not os.path.exists(signalDir): os.makedirs(signalDir) #FIXME
 
 if os.path.exists(outDir) and options.overwrite:
     if options.nJobs > 1:

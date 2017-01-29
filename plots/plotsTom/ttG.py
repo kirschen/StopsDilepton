@@ -38,20 +38,20 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-selectionStrings = ["njet2p-relIso0.12-looseLeptonVeto-photon30",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon30-gJetdR-gLepdR-btag1p",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll30",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll30-met80",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll30-met80-metSig5-dPhiJet0-dPhiJet1",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon50",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon50-gJetdR-gLepdR-btag1p",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll30",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll30-met80",
-                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll30-met80-metSig5-dPhiJet0-dPhiJet1"]
+selectionStrings = ["njet2p-relIso0.12-photon30",
+                    "njet2p-relIso0.12-photon30-llgNoZ",
+                    "njet2p-relIso0.12-photon30-llgNoZ-mll40",
+                    "njet2p-relIso0.12-photon30-llgNoZ-gJetdR-gLepdR-btag1p",
+                    "njet2p-relIso0.12-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40",
+                    "njet2p-relIso0.12-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80",
+                    "njet2p-relIso0.12-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80-metSig5-dPhiJet0-dPhiJet1",
+                    "njet2p-relIso0.12-photon50",
+                    "njet2p-relIso0.12-photon50-llgNoZ",
+                    "njet2p-relIso0.12-photon50-llgNoZ-mll40",
+                    "njet2p-relIso0.12-photon50-llgNoZ-gJetdR-gLepdR-btag1p",
+                    "njet2p-relIso0.12-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40",
+                    "njet2p-relIso0.12-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80",
+                    "njet2p-relIso0.12-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80-metSig5-dPhiJet0-dPhiJet1"]
 
 
 def launch(command, logfile):
@@ -179,7 +179,7 @@ for index, mode in enumerate(allModes):
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color)
     sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightPU/F','reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 

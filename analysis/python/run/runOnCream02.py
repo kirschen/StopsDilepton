@@ -3,14 +3,8 @@ import os
 estimators = ["TTJets",
               "TTJets-DD",
               "DY",
-              "DY-DD",
-              "singleTop",
-              "TTXNoZ",
               "TTZ",
-              "TTZ-DD",
-              "TTZ-DD-Top16009",
               "multiBoson",
-              "multiBoson-DD",
               "other",
              ]
 
@@ -25,19 +19,16 @@ from StopsDilepton.analysis.regions import regions80X, reducedRegionsNew, superR
 
 allRegions = regionsO
 
-for i, estimator in enumerate(estimators):
-  for j, region in enumerate(allRegions):
-    logfile = "log/" + estimator + "_" + str(j) + ".log"
-    os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + "                --selectRegion=" + str(j) +"\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
-    if 'DD' in estimator: continue
-    os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + " --control=DYVV --selectRegion=" + str(j) +"\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
-    os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + " --control=DY   --selectRegion=" + str(j) +"\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
-    os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + " --control=VV   --selectRegion=" + str(j) +"\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
+#for control in [None, 'DYVV', 'TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
+for control in ['TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
+  controlString = '' if not control else (' --control=' + control)
+  for i, estimator in enumerate(estimators):
+    if 'DD' in estimator and control: continue
+    for j, region in enumerate(allRegions):
+      logfile = "log/" + estimator + "_" + str(j) + ('_' + control if control else '') + ".log"
+      os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + controlString + " --selectRegion=" + str(j) +"\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
 
-# For signals, do not split up in regions, because otherwise you easily reach the maximum of allowed jobs, they are fast anyway
-for i, estimator in enumerate(signalEstimators):
-  logfile = "log/" + estimator + ".log"
-  os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + "               \" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
-  os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + " --control=DYVV\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
-  os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + " --control=DY  \" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
-  os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + " --control=VV  \" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
+  # For signals, do not split up in regions, because otherwise you easily reach the maximum of allowed jobs, they are fast anyway
+  for i, estimator in enumerate(signalEstimators):
+    logfile = "log/" + estimator + ('_' + control if control else '') + ".log"
+    os.system("qsub -v command=\"./run_estimate.py --selectEstimator=" + estimator + controlString + "\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=8:00:00 runEstimatesOnCream02.sh")
