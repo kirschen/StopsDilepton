@@ -83,10 +83,10 @@ cuts=[
   ("looseLeptonVeto",            "loose lepton veto",       "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2"),
   ("m(ll)>20",                   "$M(ll)>20$ GeV",       "dl_mass>20"),
   ("|m(ll) - mZ|>15 for SF",     "$|M(ll)-M_{Z}| > 15$ GeV (SF)",       "( (isMuMu==1||isEE==1)&&abs(dl_mass-91.1876)>=15 || isEMu==1 )"),
-  (">=2 jets",                   "$n_{jet}>=2$",       "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>=2"),
-  (">=1 b-tags (CSVv2)",         "$n_{b-tag}>=1$",       "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890)>=1"),
+  (">=2 jets",                   "$n_{jet}>=2$",       "nJetGood>=2"),
+  (">=1 b-tags (CSVv2)",         "$n_{b-tag}>=1$",       "nBTag>=1"),
   ("MET>80",                     "$\\ETmiss>80$ GeV",       "met_pt>80"),
-  ("MET/sqrt(HT)>5",             "$\\ETmiss/\\sqrt{H_{T}}>5$",       "met_pt/sqrt(Sum$(JetGood_pt*(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id)))>5"),
+  ("MET/sqrt(HT)>5",             "$\\ETmiss/\\sqrt{H_{T}}>5$",       "met_pt/sqrt(ht)>5."),
   ("dPhiJetMET",                 "$\\phi(\\ETmiss, jets)$ veto",       "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
   ("MT2(ll) > 140",              "$M_{T2}(ll)>140$ GeV",       "dl_mt2ll>140"),
     ]
