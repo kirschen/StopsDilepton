@@ -26,8 +26,8 @@ def toFlavourKey(pdgId):
 # get the combinatorical weights for jet efficiency list eff
 #Method 1ab
 effFile          = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTJets_DiLepton_comb_2j_2l.pkl'
-sfFile           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2_ichep.csv'
-sfFile_FastSim   = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSV_13TEV_TTJets_11_7_2016.csv'
+sfFile           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2Moriond17_2017_1_26_BtoH.csv'
+sfFile_FastSim   = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/fastsim_csvv2_ttbar_26_1_2017.csv'
 
 class btagEfficiency:
 
