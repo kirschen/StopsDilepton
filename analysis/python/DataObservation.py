@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 from StopsDilepton.analysis.Region import Region
 from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.analysis.Cache import Cache
+from StopsDilepton.analysis.SetupHelpers import channels, trilepChannels
 
 class DataObservation():
     def __init__(self, name, sample, cacheDir=None):
@@ -47,7 +48,7 @@ class DataObservation():
     def observation(self, region, channel, setup):
 
         if channel=='all':
-            return sum([self.cachedObservation(region, c, setup) for c in ['MuMu', 'EE', 'EMu']])
+            return sum([self.cachedEstimate(region, c, setup) for c in (trilepChannels if setup.parameters['triLep'] else channels)])
 
         if channel=='SF':
             return sum([self.cachedObservation(region, c, setup) for c in ['MuMu', 'EE']])
