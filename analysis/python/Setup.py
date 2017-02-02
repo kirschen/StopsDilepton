@@ -78,7 +78,7 @@ class Setup:
         self.sample = {
         'DY':         {c:DYSample     for c in channels+trilepChannels},
         'TTJets' :    {c:TTJetsSample for c in channels+trilepChannels},
-        'TTZ' :       {c:TTZ_LO       for c in channels+trilepChannels},
+        'TTZ' :       {c:TTZ          for c in channels+trilepChannels},
         'multiBoson' :{c:multiBoson   for c in channels+trilepChannels},
         'TTXNoZ' :    {c:TTXNoZ       for c in channels+trilepChannels},
         'other'  :    {c:Sample.combine('other', [otherEWKBkgs]) for c in channels+trilepChannels},
