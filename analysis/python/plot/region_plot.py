@@ -261,7 +261,7 @@ def drawDivisions(regions):
     return [line.DrawLineNDC(*l) for l in [line1, line2]] + [tex.DrawLatex(*l) for l in lines] + [tex2.DrawLatex(*l) for l in lines2]
 
 
-def drawObjects( lumi_scale ):
+def drawLumi( lumi_scale ):
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
@@ -358,7 +358,7 @@ for channel in channels:
     if args.control and args.control=="TTZ": numberOfBins = len(setups)
     else:                                    numberOfBins = len(regions_)
 
-    drawObjects = boxes + drawObjects(setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'])
+    drawObjects = boxes + drawLumi(setup.dataLumi[channel] if channel in ['EE','MuMu','EMu'] else setup.dataLumi['EE'])
     if not (args.control and args.control=="TTZ"): drawObjects += drawDivisions(regions_)
 
     if args.ratio:
