@@ -45,8 +45,11 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 # Selection strings for which plots need to be produced, as interpreted by the cutInterpreter
 #
 selectionStrings = ['relIso0.12',
+                    'relIso0.12-allZ',
                     'relIso0.12-looseLeptonVeto',
+                    'relIso0.12-looseLeptonVeto-allZ',
                     'relIso0.12-looseLeptonVeto-mll20',
+                    'relIso0.12-looseLeptonVeto-mll20-allZ',
                     'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
                     'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
                     'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-mt2ll100',
@@ -236,7 +239,7 @@ for index, mode in enumerate(allModes):
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   lumi_scale                 = data_sample.lumi/1000
 
-  if args.noData: lumi_scale = 36.4
+  if args.noData: lumi_scale = 36.5
   # Blinding policies for DM and T2tt analyses
   if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.noData:
     if args.signal == "DM":

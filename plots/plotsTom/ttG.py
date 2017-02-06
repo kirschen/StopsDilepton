@@ -38,20 +38,21 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-selectionStrings = ["njet2p-relIso0.12-photon30",
-                    "njet2p-relIso0.12-photon30-llgNoZ",
-                    "njet2p-relIso0.12-photon30-llgNoZ-mll40",
-                    "njet2p-relIso0.12-photon30-llgNoZ-gJetdR-gLepdR-btag1p",
-                    "njet2p-relIso0.12-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40",
-                    "njet2p-relIso0.12-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80",
-                    "njet2p-relIso0.12-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80-metSig5-dPhiJet0-dPhiJet1",
-                    "njet2p-relIso0.12-photon50",
-                    "njet2p-relIso0.12-photon50-llgNoZ",
-                    "njet2p-relIso0.12-photon50-llgNoZ-mll40",
-                    "njet2p-relIso0.12-photon50-llgNoZ-gJetdR-gLepdR-btag1p",
-                    "njet2p-relIso0.12-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40",
-                    "njet2p-relIso0.12-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80",
-                    "njet2p-relIso0.12-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80-metSig5-dPhiJet0-dPhiJet1"]
+selectionStrings = ["njet2p-relIso0.12-looseLeptonVeto-photon30",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-mll40",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-gJetdR-gLepdR-btag1p",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80-metSig5-dPhiJet0-dPhiJet1",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-mll40",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80-metSig5-dPhiJet0-dPhiJet1"]
 
 
 def launch(command, logfile):
