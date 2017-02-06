@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
-parser.add_option("--estimates",             dest="estimates",             default='mc',                action='store',      choices=["mc","dd"],     help="mc estimators or data-driven estimators?")
+parser.add_option('--logLevel', dest="logLevel", default='INFO', action='store', help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels, channels
 from StopsDilepton.analysis.estimators import setup, constructEstimatorList
-from StopsDilepton.analysis.regions import regionsO
+from StopsDilepton.analysis.regions import regionsO as regions
 from StopsDilepton.analysis.Cache import Cache
 import os
 
@@ -17,17 +16,13 @@ logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-
 # These are the ones we are going to sum
-if   options.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", "multiBoson", 'other'])
-elif options.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", "multiBoson-DD", 'other'])
-
-regions = regionsO
+estimators = constructEstimatorList(["TTJets-DD","TTZ","DY", "multiBoson", 'other'])
 
 for e in estimators:
     e.initCache(setup.defaultCacheDir())
 
-sumCache = Cache(os.path.join(setup.defaultCacheDir(), 'sum_dd.pkl' if options.estimates == "dd" else 'sum.pkl'), verbosity=2)
+sumCache = Cache(os.path.join(setup.defaultCacheDir(), 'sum.pkl'), verbosity=2)
 
 def wrapper(config):
       (r, c, s) = config
