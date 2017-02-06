@@ -14,7 +14,7 @@ def getGoodJets(c, ptCut=30, absEtaCut=2.4, jetVars=jetVars, jetColl="Jet"):
     return filter(lambda j:jetId(j, ptCut=ptCut, absEtaCut=absEtaCut), getJets(c, jetVars, jetColl=jetColl))
 
 def isBJet(j):
-    return j['btagCSV']>0.800
+    return j['btagCSV']>0.8484
 
 def getGoodBJets(c):
     return filter(lambda j:isBJet(j), getGoodJets(c))
