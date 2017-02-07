@@ -116,16 +116,20 @@ for var in systematics.values():
   sysVariations += var
 
 # Function to get the sample uncertainty from the card and nuisance files
-from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, getPostFitUncFromCard, applyNuisance
-cardFile = '/user/tomc/StopsDilepton/results_80X_v24/isOS-nJets2p-nbtag0-met80-metSig5-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/cardFiles/TTbarDM/regionsO/TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt'
+from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, getPostFitUncFromCard, applyNuisance, getBinNumber
 
-def getSampleUncertainty(cardFile, res, var, estimate, bin):
+cardFile = '/user/tomc/StopsDilepton/results_80X_v24/fitAll/cardFiles/T2tt/T2tt_550_350.txt' 
+#if args.control:
+#  if args.control == "TTZ":  cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlTTZ/cardFiles/T2tt/T2tt_550_350.txt' # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
+#  if args.control == "DYVV": cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlDYVV/cardFiles/T2tt/T2tt_550_350.txt'
+
+def getSampleUncertainty(cardFile, res, var, estimate, binName):
     if   estimate.name.count('TTZ'):    uncName = 'ttZ'
     elif estimate.name.count('TTJets'): uncName = 'top'
-    else:				uncName = estimate.name
+    else:                               uncName = estimate.name
     if var and var.count(estimate.name):
-      if args.scale and (estimate.name == "DY" or estimate.name == "multiBoson"): unc = getPostFitUncFromCard(cardFile, estimate.name, uncName, bin);
-      else:                                                                       unc = getPreFitUncFromCard(cardFile,  estimate.name, uncName, bin);
+      if args.scale and (estimate.name == "DY" or estimate.name == "multiBoson"): unc = getPostFitUncFromCard(cardFile, estimate.name, uncName, binName);
+      else:                                                                       unc = getPreFitUncFromCard(cardFile,  estimate.name, uncName, binName);
       if   var.count('Up'):   return res*(1.+unc)
       elif var.count('Down'): return res*(1.-unc)
     return res
@@ -156,13 +160,16 @@ def getRegionHistoTTZ(estimate, channel, setups, variations = [None]):
       h[var] = ROOT.TH1F(estimate.name + channel + (var if var else ""), estimate.name, len(setups), 0, len(setups))
 
     for i, s in enumerate(setups):
+      binName = ' '.join([channel, noRegions[0].__str__()]) + "_controlTTZ" + str(i+1)
+
       estimate.initCache(s.defaultCacheDir())
       for var in variations:
         if var in ['statLow', 'statHigh']: continue
 
         setup_ = s if not var or var.count('shape') else s.sysClone({'selectionModifier': var}) if var.count('JE') else s.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(noRegions[0], channel, setup_, save=True)
-        res = getSampleUncertainty(cardFile, res, var, estimate, i)
+        if args.control == 'TTZ' and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
+        res = getSampleUncertainty(cardFile, res, var, estimate, binName)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
@@ -185,13 +192,14 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
       h[var] = ROOT.TH1F(estimate.name + channel + (var if var else ""), estimate.name, len(regions), 0, len(regions))
 
     for i, r in enumerate(regions):
+      binName = ' '.join(['SF', r.__str__()]) + ("_controlDYVV" if args.control and args.control=="DYVV" else "") #always take SF here (that's allways available for DYVV)
       for var in variations:
         if var in ['statLow', 'statHigh']: continue
 
         setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
-        if args.control == 'DYVV' and args.scale: res = applyNuisance(cardFile, estimate, res, i)
-        res = getSampleUncertainty(cardFile, res, var, estimate, i)
+        if args.control == 'DYVV' and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
+        res = getSampleUncertainty(cardFile, res, var, estimate, binName)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
