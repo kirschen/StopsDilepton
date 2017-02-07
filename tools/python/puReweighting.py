@@ -41,7 +41,7 @@ def getReweightingFunction(data="PU_2100_XSecCentral", mc="Spring15"):
     elif mc=='Spring16':
         mcProfile = extendHistoTo(getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/MCProfile_Spring16.root", 'MC'), histoData)
     elif mc=='Summer16':
-        mcProfile = extendHistoTo(getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/MCProfile_Summer16.root", 'MC'), histoData)
+        mcProfile = extendHistoTo(getObjFromFile("$CMSSW_BASE/src/StopsDilepton/tools/data/puReweightingData/MCProfile_Summer16.root", 'pileup'), histoData)
     else:
         raise ValueError( "Don't know about MC PU profile %s" %mc )
 
