@@ -41,12 +41,13 @@ def getPreFitUncFromCard(cardFile, estimateName, uncName, binName):
             try:    return float(line.split()[2:][i])-1
             except: 
               return 0. # muted bin has -, cannot be converted to float
-      raise Warning('No uncertainty for ' + estimateName + ' ' + binName)
+      raise Warning('No uncertainty ' + uncName + ' for ' + estimateName + ' ' + binName)
 
 def applyNuisance(cardFile, estimate, res, binName):
     if not estimate.name in ['DY','multiBoson','TTZ']: return res
+    uncName      = estimate.name if estimate.name != "TTZ" else 'ttZ'
     nuisanceFile = cardFile.replace('.txt','_nuisances_full.txt')
     binNumber    = getBinNumber(cardFile, binName)
-    scaledRes    = res*(1+getPreFitUncFromCard(cardFile, estimate.name, estimate.name, binName)*getPull(nuisanceFile, estimate.name))
+    scaledRes    = res*(1+getPreFitUncFromCard(cardFile, estimate.name, uncName, binName)*getPull(nuisanceFile, estimate.name))
     scaledRes2   = scaledRes*(1+res.sigma/res.val*getPull(nuisanceFile, 'Stat_' + binNumber + '_' + estimate.name)) if scaledRes.val > 0 else scaledRes
     return scaledRes2
