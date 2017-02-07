@@ -6,7 +6,8 @@ from math import sqrt
 
 keys_mu  = [("TnP_NUM_MediumID_DENOM_generalTracks_VAR_map_pt_eta.root", "SF"),
             ("TnP_NUM_TightIP2D_DENOM_MediumID_VAR_map_pt_eta.root",     "SF"),
-            ("TnP_NUM_TightIP3D_DENOM_MediumID_VAR_map_pt_eta.root",     "SF")]
+            ("TnP_NUM_TightIP3D_DENOM_MediumID_VAR_map_pt_eta.root",     "SF"),
+            ("ratio_NUM_RelIsoVTight_DENOM_MediumID_VAR_map_pt_eta.root","SF")]
 
 keys_ele = [("scaleFactors.root", "GsfElectronToCutBasedStopsDilepton"),
             ("scaleFactors.root", "CutBasedStopsDileptonToRelIso012")]
