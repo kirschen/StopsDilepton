@@ -11,10 +11,10 @@ if [ ! -f "$PILEUP_LATEST" ]; then
 fi
 
 
-pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 62280 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecVDown.root
-pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 65740 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecDown.root
-pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 69200 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecCentral.root
-pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 72660 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecUp.root
-pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 76120 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecVUp.root
-pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 79580 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecVVUp.root
+#pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 62280 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecVDown.root
+#pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 65740 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecDown.root
+pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 69200 --maxPileupBin 100 --numPileupBins 100 PU_2016_${LUMI}_XSecCentral_test.root
+#pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 72660 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecUp.root
+#pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 76120 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecVUp.root
+#pileupCalc.py -i $JSON --inputLumiJSON $PILEUP_LATEST --calcMode true --minBiasXsec 79580 --maxPileupBin 50 --numPileupBins 50 PU_2016_${LUMI}_XSecVVUp.root
 

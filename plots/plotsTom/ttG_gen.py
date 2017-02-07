@@ -392,7 +392,7 @@ for doPtReweight in [False, True]:
       name  = "TTZ_met_vs_pt",
       texX  = 'p_{T}^{gen} (Z) (GeV)', texY = "#slash{E}_{T} (GeV)'",
       stack = Stack([TTZ]),
-      attributes = (
+      attribute = (
           lambda event, sample: event.boson_genPt,
           lambda event, sample: event.met_pt,
       ),
@@ -405,7 +405,7 @@ for doPtReweight in [False, True]:
       name  = "TTG_met_vs_pt",
       texX  = 'p_{T}^{gen} (#gamma) (GeV)', texY = "#slash{E}_{T} (GeV)'",
       stack = Stack([TTG]),
-      attributes = (
+      attribute = (
           lambda event, sample: event.boson_genPt,
           lambda event, sample: event.met_pt,
       ),
@@ -418,7 +418,7 @@ for doPtReweight in [False, True]:
       name  = "TTG_met_photonIncluded_vs_pt",
       texX  = 'p_{T}^{gen} (#gamma) (GeV)', texY = "#slash{E}_{T} (#gamma included) (GeV)",
       stack = Stack([TTG]),
-      attributes = (
+      attribute = (
           lambda event, sample: event.boson_genPt,
           lambda event, sample: event.boson_met,
       ),

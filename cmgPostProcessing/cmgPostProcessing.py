@@ -75,7 +75,7 @@ def get_parser():
         nargs='?',
         type=str,
         default=None,
-        choices=['mumu', 'ee', 'mue', 'mu_for_mumu', 'e_for_ee', 'mu_for_mue', 'e_for_mue'],
+        choices=['mumu', 'ee', 'mue', 'mu_for_mumu', 'e_for_ee', 'mu_for_mue', 'e_for_mue','singleMu','singleEle'],
         help="Trigger selection?"
         )
 
@@ -299,6 +299,10 @@ if isData and options.triggerSelection is not None:
         skimConds.append( "HLT_SingleEle_noniso && (!(HLT_mue||HLT_mu30e30))" )
     elif options.triggerSelection == 'mu_for_mue':
         skimConds.append( "HLT_SingleMu_noniso && (!(HLT_mue||HLT_mu30e30)) && (!HLT_SingleEle_noniso)" )
+    elif options.triggerSelection == 'singleMu':
+        skimConds.append( "HLT_SingleMu_noniso" )
+    elif options.triggerSelection == 'singleEle':
+        skimConds.append( "HLT_SingleEle_noniso" )
     else:
         raise ValueError( "Don't know about triggerSelection %s"%options.triggerSelection )
     sample_name_postFix = "_Trig_"+options.triggerSelection
