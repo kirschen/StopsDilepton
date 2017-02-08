@@ -51,10 +51,10 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 # Make samples, will be searched for in the postProcessing directory
 #
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v22/dilepTiny"
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 if args.signal == "T2tt":
     postProcessing_directory = "postProcessed_80X_v26/dilepTiny"
@@ -192,9 +192,9 @@ for index, mode in enumerate(allModes):
 
   for sample in mc + signals:
     sample.scale          = lumi_scale
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
+    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
    #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+    sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
     sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
 
   for sample in signals:

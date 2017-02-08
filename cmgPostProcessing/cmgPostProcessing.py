@@ -264,7 +264,8 @@ if options.T2tt or options.T8bbllnunu:
 #                for s in options.samples ]
 else:
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
-
+    logger.debug("Reading from CMG tuples: %s", ",".join(",".join(s.files) for s in samples) )
+    
 if len(samples)==0:
     logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
     sys.exit(-1)

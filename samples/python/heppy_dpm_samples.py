@@ -152,7 +152,7 @@ logger.info( "Using proxy %s"%proxy )
 # Moriond MC
 mc_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_1l_MC_Moriond.pkl'
 #robert = ['/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_21', '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_22']
-daniel = ['/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_30']
+daniel = ['/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_30', '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_31']
 mc_Moriond_dpm_directories = daniel
 from CMGTools.RootTools.samples.samples_13TeV_RunIISummer16MiniAODv2 import mcSamples as heppy_mc_Moriond_samples
 mc_heppy_mapper = heppy_mapper( heppy_mc_Moriond_samples, mc_Moriond_dpm_directories, mc_cache_file)
@@ -187,7 +187,7 @@ T2tt_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_cac
 def_robert_0l = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_0l_22/'
 T2tt_dpm_directories = [ def_robert_0l ]
 from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
-#T2tt_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T2tt_dpm_directories, T2tt_cache_file)
+T2tt_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T2tt_dpm_directories, T2tt_cache_file)
 
 # SUSY Signal T8bbllnunu
 T8bbllnunu_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_0l_T8bbllnunu_v2.pkl'

@@ -47,7 +47,7 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
     elif "TTbarDM" in sample:
         module_ = 'CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2'
     else: 
-        module_ = 'CMGTools.RootTools.samples.samples_13TeV_RunIISpring16MiniAODv2'
+        module_ = 'CMGTools.RootTools.samples.samples_13TeV_RunIISummer16MiniAODv2'
 
     try:
         heppy_sample = getattr(importlib.import_module( module_ ), sample)
