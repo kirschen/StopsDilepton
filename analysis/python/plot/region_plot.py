@@ -61,6 +61,7 @@ for estimator in detailedEstimators:
 # signals and blindings
 scale = 1
 if not args.control:
+  postfix = 'signalRegions'
   if args.signal == "T2tt":
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import T2tt_650_1, T2tt_500_250
     signals        = [T2tt_650_1, T2tt_500_250]
