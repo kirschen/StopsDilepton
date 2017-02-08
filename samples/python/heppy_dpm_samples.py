@@ -187,7 +187,7 @@ T2tt_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_cac
 def_robert_0l = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_0l_22/'
 T2tt_dpm_directories = [ def_robert_0l ]
 from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
-#T2tt_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T2tt_dpm_directories, T2tt_cache_file)
+T2tt_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T2tt_dpm_directories, T2tt_cache_file)
 
 # SUSY Signal T8bbllnunu
 T8bbllnunu_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_0l_T8bbllnunu_v2.pkl'
