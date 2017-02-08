@@ -48,6 +48,6 @@ def applyNuisance(cardFile, estimate, res, binName):
     uncName      = estimate.name if estimate.name != "TTZ" else 'ttZ'
     nuisanceFile = cardFile.replace('.txt','_nuisances_full.txt')
     binNumber    = getBinNumber(cardFile, binName)
-    scaledRes    = res*(1+getPreFitUncFromCard(cardFile, estimate.name, uncName, binName)*getPull(nuisanceFile, estimate.name))
+    scaledRes    = res*(1+getPreFitUncFromCard(cardFile, estimate.name, uncName, binName)*getPull(nuisanceFile, uncName))
     scaledRes2   = scaledRes*(1+res.sigma/res.val*getPull(nuisanceFile, 'Stat_' + binNumber + '_' + estimate.name)) if scaledRes.val > 0 else scaledRes
     return scaledRes2

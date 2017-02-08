@@ -128,8 +128,9 @@ def getSampleUncertainty(cardFile, res, var, estimate, binName):
     elif estimate.name.count('TTJets'): uncName = 'top'
     else:                               uncName = estimate.name
     if var and var.count(estimate.name):
-      if args.scale and (estimate.name == "DY" or estimate.name == "multiBoson"): unc = getPostFitUncFromCard(cardFile, estimate.name, uncName, binName);
-      else:                                                                       unc = getPreFitUncFromCard(cardFile,  estimate.name, uncName, binName);
+      if   args.scale and args.control == "DYVV" and estimate.name in ["DY","multiBoson"]: unc = getPostFitUncFromCard(cardFile, estimate.name, uncName, binName);
+      elif args.scale and args.control == "TTZ"  and estimate.name in ["TTZ"]:             unc = getPostFitUncFromCard(cardFile, estimate.name, uncName, binName);
+      else:                                                                                unc = getPreFitUncFromCard(cardFile,  estimate.name, uncName, binName);
       if   var.count('Up'):   return res*(1.+unc)
       elif var.count('Down'): return res*(1.-unc)
     return res
@@ -168,7 +169,7 @@ def getRegionHistoTTZ(estimate, channel, setups, variations = [None]):
 
         setup_ = s if not var or var.count('shape') else s.sysClone({'selectionModifier': var}) if var.count('JE') else s.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(noRegions[0], channel, setup_, save=True)
-        if args.control == 'TTZ' and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
+        if args.control == 'TTZ' and estimate.name == "TTZ" and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
         res = getSampleUncertainty(cardFile, res, var, estimate, binName)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
@@ -198,7 +199,7 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
 
         setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
-        if args.control == 'DYVV' and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
+        if args.control == 'DYVV' and estimate.name in ['DY', 'multiBoson'] and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
         res = getSampleUncertainty(cardFile, res, var, estimate, binName)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
