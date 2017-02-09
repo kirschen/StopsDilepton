@@ -79,12 +79,9 @@ if args.add2015:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed_photonSamples import *
+from StopsDilepton.samples.cmgTuples_Summer2016_mAODv2_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Summer2016_mAODv2_postProcessed_photonSamples import *
 
 
 #
@@ -387,11 +384,11 @@ for index, mode in enumerate(allModes):
     if hasattr(plot, 'binWidth'):
       for histo in sum(plot.histos, []):
         for ib in range(histo.GetXaxis().GetNbins()+1):
-	  val = histo.GetBinContent( ib )
-	  err = histo.GetBinError( ib )
-	  width = histo.GetBinWidth( ib )
-	  histo.SetBinContent(ib, val / (width / plot.binWidth))
-	  histo.SetBinError(ib, err / (width / plot.binWidth))
+          val = histo.GetBinContent( ib )
+          err = histo.GetBinError( ib )
+          width = histo.GetBinWidth( ib )
+          histo.SetBinContent(ib, val / (width / plot.binWidth))
+          histo.SetBinError(ib, err / (width / plot.binWidth))
 
     if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
     plotting.draw(plot, 
