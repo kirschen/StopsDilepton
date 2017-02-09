@@ -28,6 +28,7 @@ argParser.add_argument('--plot_directory',    action='store',      default='syst
 argParser.add_argument('--selection',         action='store',      default=None)
 argParser.add_argument('--selectSys',         action='store',      default='all')
 argParser.add_argument('--showOnly',          action='store',      default=None)
+argParser.add_argument('--unblind',           action='store_true', default=False)
 argParser.add_argument('--splitBosons',       action='store_true', default=False)
 argParser.add_argument('--LO',                action='store_true', default=False)
 argParser.add_argument('--splitTop',          action='store_true', default=False)
@@ -108,9 +109,11 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
     if not sys: sys = 'None'
     os.system("mkdir -p log")
     for selection in selections:
+      if args.unblind and "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" not in selection: continue
       command = "./systematicsPlots.py --selection=" + selection + (" --noData"            if args.noData            else "")\
                                                                  + (" --splitBosons"       if args.splitBosons       else "")\
                                                                  + (" --splitTop"          if args.splitTop          else "")\
+                                                                 + (" --unblind"           if args.unblind           else "")\
                                                                  + (" --LO"                if args.LO                else "")\
                                                                  + (" --powheg"            if args.powheg            else "")\
                                                                  + (" --normalizeBinWidth" if args.normalizeBinWidth else "")\
@@ -125,6 +128,7 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
   exit(0)
 
 if args.noData:                   args.plot_directory += "_noData"
+if args.unblind:                  args.plot_directory += "_unblinded"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
 #if not args.LO:                   args.plot_directory += "_ttZNLO"
@@ -243,7 +247,7 @@ for index, mode in enumerate(allModes):
     lumi_scale        = data_sample.lumi/1000
 
   # Blinding policies for DM and T2tt analyses
-  if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection:
+  if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.unblind:
     if args.signal == "DM":
       weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.evt % 15 == 0) else 0)
       weightString_ = "weight*(evt%15==0)"
