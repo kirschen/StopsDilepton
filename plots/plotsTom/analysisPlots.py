@@ -255,8 +255,8 @@ for index, mode in enumerate(allModes):
   for sample in mc + signals:
     if not hasattr(sample, 'isFastSim'): sample.isFastSim = False
     sample.scale          = lumi_scale
-    sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F'] + (['reweightLeptonFastSimSF/F'] if sample.isFastSim else [])
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*(event.reweightLeptonFastSimSF if sample.isFastSim else 1.)
+    sample.read_variables = ['reweightTopPt','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F'] + (['reweightLeptonFastSimSF/F'] if sample.isFastSim else [])
+    sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*(event.reweightLeptonFastSimSF if sample.isFastSim else 1.)
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
