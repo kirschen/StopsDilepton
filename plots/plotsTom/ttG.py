@@ -80,8 +80,8 @@ if args.add2015:
 # Make samples, will be searched for in the postProcessing directory
 #
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Summer2016_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Summer2016_mAODv2_postProcessed_photonSamples import *
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed_photonSamples import *
 
 
 #
