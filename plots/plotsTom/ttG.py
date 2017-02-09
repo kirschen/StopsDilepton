@@ -176,8 +176,8 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color)
-    sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightPU/F','reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+    sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightDilepTriggerBackup/F','reweightTopPt/F','reweightLeptonSF/F','reweightPU36fb/F', 'nTrueInt/F']
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightTopPt*event.reweightBTag_SF
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
