@@ -70,8 +70,7 @@ class Setup:
             'triLep':        default_triLep,
         }
 
-        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt'], 'selectionModifier':None}
-#        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightBTag_SF','reweightLeptonSF','reweightLeptonHIPSF'], 'selectionModifier':None}
+        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF'], 'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
 
@@ -115,11 +114,10 @@ class Setup:
                     for upOrDown in ['Up','Down']:
                       if 'reweightPU36fb'+upOrDown             in res.sys[k]: res.sys[k].remove('reweightPU36fb')
                       if 'reweightDilepTriggerBackup'+upOrDown in res.sys[k]: res.sys[k].remove('reweightDilepTriggerBackup')
-  #                    if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
- #                     if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
+                      if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
+                      if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightLeptonSF'+upOrDown           in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
                       if 'reweightLeptonFastSimSF'+upOrDown    in res.sys[k]: res.sys[k].remove('reweightLeptonFastSimSF')
-#                      if 'reweightLeptonHIPSF'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightLeptonHIPSF')
                 else:
                     res.sys[k] = sys[k] # if sys[k] else res.sys[k]
 
