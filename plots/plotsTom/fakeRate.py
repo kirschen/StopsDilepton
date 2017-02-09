@@ -16,7 +16,7 @@ from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 import itertools
 #
 # Arguments
-# 
+#
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
@@ -67,8 +67,8 @@ if args.subtract: args.plot_directory += "_subtracted"
 #
 # Text on the plots
 #
-postProcessing_directory = "postProcessed_80X_v26/trilep"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v30/trilep" #not available yet
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 def drawObjects(lumi_scale ):
     tex = ROOT.TLatex()
@@ -76,11 +76,10 @@ def drawObjects(lumi_scale ):
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
-      (0.15, 0.95, 'CMS Preliminary'), 
+      (0.15, 0.95, 'CMS Preliminary'),
       (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% (lumi_scale) )
     ]
-    return [tex.DrawLatex(*l) for l in lines] 
-
+    return [tex.DrawLatex(*l) for l in lines]
 
 read_variables = [
     "weight/F" , "JetGood[pt/F,eta/F,phi/F]",
@@ -119,7 +118,6 @@ for index, mode in enumerate(allModes):
   def getThirdLepton( event, sample ):
       allExtraLeptonsLoose = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_loose, ele_selector=ele_selector_loose) if not isGoodLepton(l)]
       allExtraLeptonsTight = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_tight, ele_selector=ele_selector_tight) if not isGoodLepton(l)]
- 
       if thirdLeptonFlavour == "e":
         allExtraLeptonsLoose = filter(lambda l: abs(l['pdgId']) == 11, allExtraLeptonsLoose)
         allExtraLeptonsTight = filter(lambda l: abs(l['pdgId']) == 11, allExtraLeptonsTight)
@@ -128,17 +126,17 @@ for index, mode in enumerate(allModes):
         allExtraLeptonsTight = filter(lambda l: abs(l['pdgId']) == 13, allExtraLeptonsTight)
 
       if len(allExtraLeptonsLoose) >= 1:
-	event.hasLooseThirdLepton   = True
-	event.thirdLeptonPt         = allExtraLeptonsLoose[0]['pt']
+        event.hasLooseThirdLepton   = True
+        event.thirdLeptonPt         = allExtraLeptonsLoose[0]['pt']
         event.thirdLeptonRelIso     = allExtraLeptonsLoose[0]['relIso03']
-	event.hasTightThirdLepton   = isTightLepton(allExtraLeptonsLoose[0])
+        event.hasTightThirdLepton   = isTightLepton(allExtraLeptonsLoose[0])
         event.l1deltaR              = deltaR(event.l1_eta, event.l1_phi, allExtraLeptonsLoose[0]['eta'], allExtraLeptonsLoose[0]['phi'])
         event.l2deltaR              = deltaR(event.l2_eta, event.l2_phi, allExtraLeptonsLoose[0]['eta'], allExtraLeptonsLoose[0]['phi'])
       else:
-	event.hasLooseThirdLepton   = False
-	event.hasTightThirdLepton   = False
-	event.thirdLeptonPt         = -1
-	event.thirdLeptonRelIso     = -1
+        event.hasLooseThirdLepton   = False
+        event.hasTightThirdLepton   = False
+        event.thirdLeptonPt         = -1
+        event.thirdLeptonRelIso     = -1
         event.l1deltaR              = -1
         event.l2deltaR              = -1
 
@@ -149,13 +147,13 @@ for index, mode in enumerate(allModes):
   if   thirdLeptonFlavour == "e":   looseFlavour = "loose e"
   elif thirdLeptonFlavour == "mu":  looseFlavour = "loose #mu"
   elif thirdLeptonFlavour == "all": looseFlavour = "loose e/#mu"
-  if mode=="mumu":   
+  if mode=="mumu":
     data_sample         = DoubleMuon_Run2016_backup
     data_sample.texName = "Data (2#mu + " + looseFlavour + ")"
-  elif mode=="ee":   
+  elif mode=="ee":
     data_sample         = DoubleEG_Run2016_backup
     data_sample.texName = "Data (2e + " + looseFlavour + ")"
-  elif mode=="mue":  
+  elif mode=="mue":
     data_sample         = MuonEG_Run2016_backup
     data_sample.texName = "Data (1e, 1#mu + " + looseFlavour + ")"
 
@@ -166,13 +164,12 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F']
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F']
+    sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF
 
   data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
   for sample in mc:
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
- 
   stack = Stack(mc, data_sample)
 
   looseWeight      = lambda event, sample:event.weight*event.hasLooseThirdLepton
@@ -251,20 +248,20 @@ for index, mode in enumerate(allModes):
   for plot in plots:
     if plot.name == "fakeRate":
       for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
-	for plot2 in plots:
-	  if plot2.name == "l3_loose_pt":
-	    for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
-	      if i == k:
-		temp = l.Clone()
-		temp.Add(j, -1)
-		j.Divide(l)
+        for plot2 in plots:
+          if plot2.name == "l3_loose_pt":
+            for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
+              if i == k:
+                temp = l.Clone()
+                temp.Add(j, -1)
+                j.Divide(l)
 
   # Make sure that for the fakeRate we only plot top, even when no subtraction is done
   for plot in plots:
     if plot.name == "fakeRate":
       for j, h in enumerate(plot.histos[0]):
-	if plot.stack[0][j].name.count('Top'):
-	  plot.histos[0] = [h]
+        if plot.stack[0][j].name.count('Top'):
+          plot.histos[0] = [h]
       plot.stack = Stack([Top_pow], [data_sample])
 
 
@@ -285,12 +282,12 @@ for index, mode in enumerate(allModes):
   for log in [False, True]:
     for plot in plots:
       if plot.name == "fakeRateAll": continue
-      plotting.draw(plot, 
-	plot_directory = os.path.join(plot_directory, args.plot_directory, mode + "_loose_" + thirdLeptonFlavour + ("_log" if log else ""), args.selection),
-	ratio = {'yRange':(0.1,1.9)},
-	logX = False, logY = log, sorting = False, 
-	yRange = (0.03, "auto"), 
-	drawObjects = drawObjects(lumi_scale)
+      plotting.draw(plot,
+        plot_directory = os.path.join(plot_directory, args.plot_directory, mode + "_loose_" + thirdLeptonFlavour + ("_log" if log else ""), args.selection),
+        ratio = {'yRange':(0.1,1.9)},
+        logX = False, logY = log, sorting = False,
+        yRange = (0.03, "auto"),
+        drawObjects = drawObjects(lumi_scale)
       )
   allPlots[mode+thirdLeptonFlavour] = plots
 
@@ -299,27 +296,27 @@ for plot in allPlots['mumuall']:
   for plot2 in (p for p in (allPlots['eeall']) if p.name == plot.name):
     for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
       for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
-	if i==k:
-	  j.Add(l)
+        if i==k:
+          j.Add(l)
 
 # Now divide tight third lepton by loose third lepton
 for plot in plots:
   if plot.name == "fakeRateAll":
     for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
       for plot2 in plots:
-	if plot2.name == "l3_loose_pt":
-	  for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
-	    if i == k:
-	      temp = l.Clone()
-	      temp.Add(j, -1)
-	      j.Divide(l)
+        if plot2.name == "l3_loose_pt":
+          for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
+            if i == k:
+              temp = l.Clone()
+              temp.Add(j, -1)
+              j.Divide(l)
 
 # Make sure that for the fakeRate we only plot top, even when no subtraction is done
 for plot in plots:
   if plot.name == "fakeRateAll":
     for j, h in enumerate(plot.histos[0]):
       if plot.stack[0][j].name.count('Top'):
-	plot.histos[0] = [h]
+        plot.histos[0] = [h]
     plot.stack = Stack([Top_pow], [data_sample])
 
 
@@ -330,10 +327,10 @@ for log in [False, True]:
   for plot in plots:
     if plot.name == "fakeRate": continue
     plot.histos[1][0].legendText = "Data 2016 (ee/mumu + loose e/mu)"
-    plotting.draw(plot, 
+    plotting.draw(plot,
       plot_directory = os.path.join(plot_directory, args.plot_directory, "all" + ("_log" if log else ""), args.selection),
       ratio = {'yRange':(0.1,1.9)},
-      logX = False, logY = log, sorting = False, 
-      yRange = (0.03, "auto"), 
+      logX = False, logY = log, sorting = False,
+      yRange = (0.03, "auto"),
       drawObjects = drawObjects(lumi_scale)
     )
