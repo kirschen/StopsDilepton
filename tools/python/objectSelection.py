@@ -358,7 +358,7 @@ def getFilterCut(isData=False, isFastSim = False, badMuonFilters = "Moriond2017"
     else:
         filterCut            = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter"
         if badMuonFilters == "Moriond2017":
-            filterCut += "&&Flag_badChargedHadronSummer2016&&Flag_badMuonMorion2017&&Flag_badCloneMuonMoriond2017"
+            filterCut += "&&Flag_badChargedHadronSummer2016&&Flag_badMuonMoriond2017&&Flag_badCloneMuonMoriond2017"
         elif badMuonFilters == "Summer2016":
             filterCut += "&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
         elif badMuonFilters == "Summer2016_pt20":
