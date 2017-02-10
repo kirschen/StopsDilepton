@@ -24,15 +24,15 @@ modifiers = [ {},
             ]
 
 selections = [ 
-               ("met50",                 "$\\met > 50$ GeV"),
-               ("met80",                 "$\\met > 80$ GeV"),
-               ("met50_metSig5",         "$\\met > 50$ GeV, $\\metSig > 5$"),
-               ("met80_metSig5",         "$\\met > 80$ GeV, $\\metSig > 5$"),
-               ("met50_dPhiInv",         "$\\met > 50$ GeV, inv. $\\Delta\\phi$"),
-               ("met80_dPhiInv",         "$\\met > 80$ GeV, inv. $\\Delta\\phi$"),
-               ("met50_metSig5_dPhi",    "$\\met > 50$ GeV, $\\metSig > 5, \\Delta\\phi$"),
+#               ("met50",                 "$\\met > 50$ GeV"),
+#               ("met80",                 "$\\met > 80$ GeV"),
+#               ("met50_metSig5",         "$\\met > 50$ GeV, $\\metSig > 5$"),
+#               ("met80_metSig5",         "$\\met > 80$ GeV, $\\metSig > 5$"),
+#               ("met50_dPhiInv",         "$\\met > 50$ GeV, inv. $\\Delta\\phi$"),
+#               ("met80_dPhiInv",         "$\\met > 80$ GeV, inv. $\\Delta\\phi$"),
+#               ("met50_metSig5_dPhi",    "$\\met > 50$ GeV, $\\metSig > 5, \\Delta\\phi$"),
                ("met80_metSig5_dPhi",    "$\\met > 80$ GeV, $\\metSig > 5, \\Delta\\phi$"),
-               ("met50_metSig5_dPhiInv", "$\\met > 50$ GeV, $\\metSig > 5$, inv. $\\Delta\\phi$"),
+#               ("met50_metSig5_dPhiInv", "$\\met > 50$ GeV, $\\metSig > 5$, inv. $\\Delta\\phi$"),
                ("met80_metSig5_dPhiInv", "$\\met > 80$ GeV, $\\metSig > 5$, inv. $\\Delta\\phi$")
              ]
 

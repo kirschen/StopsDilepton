@@ -2,46 +2,39 @@
 import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument("--regions",        action='store', default='O',                 nargs='?', choices=["O"],                                      help="which regions setup?")
-argParser.add_argument("--relativeError",  action='store_true', default=False,          help="show relative errors?")
-argParser.add_argument("--signal",         action='store', default='T2tt',              nargs='?', choices=["T2tt","TTbarDM"],                         help="which signal to plot?")
+argParser.add_argument("--signal",        action='store',      default='T2tt', nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5"], help="which signal to plot?")
+argParser.add_argument("--relativeError", action='store_true', default=False,  help="show relative errors?")
 args = argParser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers    import allChannels, channels
 from StopsDilepton.analysis.estimators      import setup, constructEstimatorList
 from StopsDilepton.analysis.DataObservation import DataObservation
 from StopsDilepton.analysis.SumEstimate     import SumEstimate
-from StopsDilepton.analysis.regions         import regionsO
+from StopsDilepton.analysis.regions         import regionsO as regions
 from StopsDilepton.analysis.Cache           import Cache
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger("INGO", logFile = None )
+logger = logger.get_logger("INFO", logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger("INGO", logFile = None )
-
-setup.verbose = False
-
+logger_rt = logger_rt.get_logger("INFO", logFile = None )
 
 if args.signal == "TTbarDM":
   setup.blinding = "(evt%15==0)"
   scale = 1./15.
-elif args.signal == "T2tt":
-  setup.blinding = "(run<=276811||(run>=277820&&run<=279931))"
-  scale = 17.3/36.4
+#elif args.signal == "T2tt" or args.signal.count('T8'):
+#  setup.blinding = "(run<=276811||(run>=277820&&run<=279931))"
+#  scale = 17.3/36.4
 
 
-limitPrefix = "regions" + args.regions
-regions = globals()[limitPrefix]
-
-estimators     = constructEstimatorList(["TTJets-DD","TTZ","DY", 'multiBoson', 'TTXNoZ'])
+estimators     = constructEstimatorList(["TTJets-DD","TTZ","DY", 'multiBoson', 'other'])
 summedEstimate = SumEstimate(name="sum")
 observation    = DataObservation(name='Data', sample=setup.sample['Data'])
 
 for e in estimators + [summedEstimate, observation]:
     e.initCache(setup.defaultCacheDir())
 
-texdir = os.path.join(setup.analysis_results, setup.prefix(), 'tables' + ("_dd" if args.estimates == "dd" else "") + ("_rel" if args.relativeError else ""), args.regions)
+texdir = os.path.join(setup.analysis_results, setup.prefix(), 'tables' + ("_rel" if args.relativeError else ""))
 
 try:    os.makedirs(texdir)
 except: pass
@@ -55,12 +48,23 @@ def displayAbsSysValue(val):
      if roundedVal <= 0.: return "0.00"
      return "%.2f" % roundedVal
 
-from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, applyNuisance
-cardFile = '/user/tomc/StopsDilepton/results_80X_v24/isOS-nJets2p-nbtag0-met80-metSig5-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/cardFiles/TTbarDM/regionsO/TTbarDMJets_pseudoscalar_Mchi_50_Mphi_200.txt'
+from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard
+cardFile = '/user/tomc/StopsDilepton/results_80X_v24/fitAll/cardFiles/T2tt/T2tt_550_350.txt' 
+
+def getSampleUncertainty(cardFile, estimateName, binName):
+    if   estimateName.count('TTZ'):    uncName = 'ttZ'
+    elif estimateName.count('TTJets'): uncName = 'top'
+    else:                              uncName = estimateName
+    if False: return getPostFitUncFromCard(cardFile, estimateName, uncName, binName); # add option to use postfit unc
+    else:     return getPreFitUncFromCard(cardFile,  estimateName, uncName, binName);
+    return unc
+
 
 # Evaluate absolute and relative errors
-def evaluateEstimate(e, SR, estimators=None):
+def evaluateEstimate(e, SR, binName, estimators=None):
      expected            = e.cachedEstimate(r, channel, setup).val*scale
+     if e.name.count('DY'):         expected = expected*1.5
+     if e.name.count('multiBoson'): expected = expected*1.17
 
      e.rel               = {}
      e.abs               = {}
@@ -78,15 +82,15 @@ def evaluateEstimate(e, SR, estimators=None):
      e.rel["b-tag SF-l"] = e.btaggingSFlSystematic(r, channel, setup).val
      e.rel["trigger"]    = e.triggerSystematic(    r, channel, setup).val
      e.rel["lepton SF"]  = e.leptonSFSystematic(   r, channel, setup).val
-     e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else getPreFitUncFromCard(cardFile, 'TTJets','top',SR) 
-     e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else getPreFitUncFromCard(cardFile, 'TTZ','ttZ',SR)
-     e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else getPreFitUncFromCard(cardFile, 'multiBoson','multiBoson',SR)
-     e.rel["TTXNoZ"]     = 0 if not e.name.count("TTXNoZ")     else getPreFitUncFromCard(cardFile, 'other','other',SR)
-     e.rel["DY"]         = 0 if not e.name.count("DY")         else getPreFitUncFromCard(cardFile, 'DY','DY',SR)
+     e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else getSampleUncertainty(cardFile, 'TTJets',     binName) 
+     e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else getSampleUncertainty(cardFile, 'TTZ',        binName)
+     e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else getSampleUncertainty(cardFile, 'multiBoson', binName)
+     e.rel["other"]      = 0 if not e.name.count("other")      else getSampleUncertainty(cardFile, 'other',      binName)
+     e.rel["DY"]         = 0 if not e.name.count("DY")         else getSampleUncertainty(cardFile, 'DY',         binName)
 
      # For sum assume the individual estimators are already evaluated such that we can pick their corresponding absolute error
      if e.name.count("sum"):
-       for i in ['TTJets','DY','TTXNoZ','TTZ','multiBoson']:
+       for i in ['TTJets','DY','other','TTZ','multiBoson']:
          summedEstimate.abs[i]             = next(e for e in estimators if e.name.count(i)).abs[i]
          summedEstimate.displayYieldAbs[i] = next(e for e in estimators if e.name.count(i)).displayYieldAbs[i]
 
@@ -111,7 +115,7 @@ for channel in allChannels:
 
 # sysColumnsA = ["MC stat","PU","JEC","unclEn","top-\\pt","trigger","lepton SF","b-tag SF-b", "b-tag SF-l"]
   sysColumnsA = ["MC stat","PU","JEC","unclEn","top-\\pt","trigger","lepton SF"]
-  sysColumnsB = ["TTJets", "TTZ", "multiBoson", "TTXNoZ", "DY"]
+  sysColumnsB = ["TTJets", "TTZ", "multiBoson", "other", "DY"]
   columns     = ["expected"] + sysColumnsA + sysColumnsB
 
   minima = {}
@@ -132,33 +136,34 @@ for channel in allChannels:
       texfile = os.path.join(texdir, channel, "signalRegion" + str(SR) + ".tex")
       print "Writing to " + texfile
       with open(texfile, "w") as f:
-	f.write("\\begin{tabular}{l|" + "c"*len(columns) + "} \n")
-	f.write("  estimator & " + "&".join(columns) + " \\\\ \n")
-	f.write("  \\hline \n")
+        f.write("\\begin{tabular}{l|" + "c"*len(columns) + "} \n")
+        f.write("  estimator & " + "&".join(columns) + " \\\\ \n")
+        f.write("  \\hline \n")
 
-	# One row for each estimator
-	for e in estimators:
-          evaluateEstimate(e, SR)
+        # One row for each estimator
+        for e in estimators:
+          binName = ' '.join(['SF' if channel not in ["SF","Emu"] else channel, r.__str__()])
+          evaluateEstimate(e, SR, binName)
  
-	  f.write(" " + e.getTexName(channel, rootTex=False) + " ")
-	  f.write(" & %.2f" % e.expected)
+          f.write(" " + e.getTexName(channel, rootTex=False) + " ")
+          f.write(" & %.2f" % e.expected)
           for i in columns[1:]:
             f.write(" & " + e.displayAbs[i])
-	  f.write(" \\\\ \n")
+          f.write(" \\\\ \n")
 
-	f.write("\\end{tabular} \n")
-	f.write("\\caption{Yields and uncertainties for each background in the signal region $" + r.texString(useRootLatex = False) + "$ in channel " + channel + "} \n")
+        f.write("\\end{tabular} \n")
+        f.write("\\caption{Yields and uncertainties for each background in the signal region $" + r.texString(useRootLatex = False) + "$ in channel " + channel + "} \n")
 
-        evaluateEstimate(summedEstimate, SR, estimators)
+        evaluateEstimate(summedEstimate, SR, binName, estimators)
 
-	overviewTable.write(" $" + str(SR) + "$ ")
-	overviewTable.write(" & %d" % observation.cachedObservation(r, channel, setup).val)
-	overviewTable.write(" & %.2f" % summedEstimate.expected)
+        overviewTable.write(" $" + str(SR) + "$ ")
+        overviewTable.write(" & %d" % observation.cachedObservation(r, channel, setup).val)
+        overviewTable.write(" & %.2f" % summedEstimate.expected)
 
-	for i in sysColumnsA:
-	  overviewTable.write(" & " + summedEstimate.displayAbs[i])
-	for i in sysColumnsB:
-	  overviewTable.write(" & " + summedEstimate.displayYieldAbs[i])  # For those we display yield +- error
+        for i in sysColumnsA:
+          overviewTable.write(" & " + summedEstimate.displayAbs[i])
+        for i in sysColumnsB:
+          overviewTable.write(" & " + summedEstimate.displayYieldAbs[i])  # For those we display yield +- error
         overviewTable.write(" \\\\ \n")
 
         for i in columns[1:]:
@@ -178,7 +183,7 @@ for channel in allChannels:
                    "unclEn":      "unclustered energy",
                    "TTJets" :     "top background",
                    "TTZ":         "$t\\bar{t}Z$ background",
-                   "TTXNoZ" :     "$t\\bar{t}X$ (excl. $t\\bar{t}Z$) background",
+                   "other" :      "$t\\bar{t}X$ (excl. $t\\bar{t}Z$) background",
                    "DY" :         "DY background",
                    "multiBoson" : "multiboson background"}
 
