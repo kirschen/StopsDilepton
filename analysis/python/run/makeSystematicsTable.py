@@ -19,6 +19,7 @@ logger = logger.get_logger("INFO", logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger("INFO", logFile = None )
 
+scale = 1.
 if args.signal == "TTbarDM":
   setup.blinding = "(evt%15==0)"
   scale = 1./15.
@@ -63,8 +64,8 @@ def getSampleUncertainty(cardFile, estimateName, binName):
 # Evaluate absolute and relative errors
 def evaluateEstimate(e, SR, binName, estimators=None):
      expected            = e.cachedEstimate(r, channel, setup).val*scale
-     if e.name.count('DY'):         expected = expected*1.5
-     if e.name.count('multiBoson'): expected = expected*1.17
+     if e.name.count('DY'):         expected = expected*1.055
+     if e.name.count('multiBoson'): expected = expected*1.30
 
      e.rel               = {}
      e.abs               = {}
