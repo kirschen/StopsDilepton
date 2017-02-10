@@ -63,17 +63,17 @@ scale = 1
 if not args.control:
   postfix = 'signalRegions'
   if args.signal == "T2tt":
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import T2tt_650_1, T2tt_500_250
-    signals        = [T2tt_650_1, T2tt_500_250]
-    setup.blinding = "(evt%15==0)"
-    scale          = 1./15.
-    signalSetup    = setup
+    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import T2tt_750_1, T2tt_600_300
+    signals        = [T2tt_750_1, T2tt_600_300]
+#    setup.blinding = "(run<=276811||(run>=277820&&run<=279931))"
+#    scale          = 17.3/36.4
+    signalSetup    = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
   elif args.signal == "TTbarDM":
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
     signals        = [TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10]
-    setup.blinding = "(run<=276811||(run>=277820&&run<=279931))"
-    scale          = 17.3/36.4
-    signalSetup    = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
+    setup.blinding = "(evt%15==0)"
+    scale          = 1./15.
+    signalSetup    = setup
 
  
 # no signals if we are looking at CR
@@ -119,7 +119,7 @@ for var in systematics.values():
 # Function to get the sample uncertainty from the card and nuisance files
 from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, getPostFitUncFromCard, applyNuisance, getBinNumber
 
-cardFile = '/user/tomc/StopsDilepton/results_80X_v24/fitAll/cardFiles/T2tt/T2tt_550_350.txt' 
+cardFile = '/user/tomc/StopsDilepton/results_80X_v30/controlDYVV/cardFiles/T2tt/T2tt_900_600.txt'
 #if args.control:
 #  if args.control == "TTZ":  cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlTTZ/cardFiles/T2tt/T2tt_550_350.txt' # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
 #  if args.control == "DYVV": cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlDYVV/cardFiles/T2tt/T2tt_550_350.txt'
@@ -128,10 +128,11 @@ def getSampleUncertainty(cardFile, res, var, estimate, binName):
     if   estimate.name.count('TTZ'):    uncName = 'ttZ'
     elif estimate.name.count('TTJets'): uncName = 'top'
     else:                               uncName = estimate.name
-    if var and var.count(estimate.name):
-      if   args.scale and args.control == "DYVV" and estimate.name in ["DY","multiBoson"]: unc = getPostFitUncFromCard(cardFile, estimate.name, uncName, binName);
-      elif args.scale and args.control == "TTZ"  and estimate.name in ["TTZ"]:             unc = getPostFitUncFromCard(cardFile, estimate.name, uncName, binName);
-      else:                                                                                unc = getPreFitUncFromCard(cardFile,  estimate.name, uncName, binName);
+    estimateName = estimate.name.split('-')[0]
+    if var and var.count(estimateName):
+      if   args.scale and args.control == "DYVV" and estimate.name in ["DY","multiBoson"]: unc = getPostFitUncFromCard(cardFile, estimateName, uncName, binName);
+      elif args.scale and args.control == "TTZ"  and estimate.name in ["TTZ"]:             unc = getPostFitUncFromCard(cardFile, estimateName, uncName, binName);
+      else:                                                                                unc = getPreFitUncFromCard(cardFile,  estimateName, uncName, binName);
       if   var.count('Up'):   return res*(1.+unc)
       elif var.count('Down'): return res*(1.-unc)
     return res
@@ -201,6 +202,9 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
         setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         if args.control == 'DYVV' and estimate.name in ['DY', 'multiBoson'] and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
+        if not args.control:
+          if estimate.name == 'DY':         res = res*1.055  # Warning currently coded by hand when applied for SR
+          if estimate.name == 'multiBoson': res = res*1.30
         res = getSampleUncertainty(cardFile, res, var, estimate, binName)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)

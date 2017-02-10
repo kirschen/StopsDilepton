@@ -37,7 +37,7 @@ class DataObservation():
         key =  self.uniqueKey(region, channel, setup)
         if self.cache and self.cache.contains(key):
             res = self.cache.get(key)
-            logger.info( "Loading cached %s result for %r : %r"%(self.name, key, res) )
+            logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
             return res
         elif self.cache:
             logger.info( "Adding cached %s result for %r"%(self.name, key) )

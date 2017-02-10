@@ -24,9 +24,14 @@ for e in estimators:
 
 sumCache = Cache(os.path.join(setup.defaultCacheDir(), 'sum.pkl'), verbosity=2)
 
+def applySF(val, e):
+      if   e.name.count('DY'):         return val*1.055
+      elif e.name.count('multiBoson'): return val*1.30
+      else:                            return val
+
 def wrapper(config):
       (r, c, s) = config
-      res = sum(e.cachedEstimate(r, c, s, save=False) for e in estimators)
+      res = sum(applySF(e.cachedEstimate(r, c, s, save=False),e) for e in estimators)
       sumCache.add(estimators[0].uniqueKey(r, c, s), res, save=True)
 
 jobs = []
