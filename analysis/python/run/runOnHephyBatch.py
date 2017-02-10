@@ -2,19 +2,12 @@
 import os
 
 # Here, all the estimators are defined
-estimators = [
-#              "TTJets-DD",
-#              "DY-DD",
-              "TTXNoZ",
-#              "TTZ-DD-Top16009",
-#              "multiBoson-DD",
-              "multiBoson",
-              "other",
-              "TTJets",
+estimators = ["TTJets",
+              "TTJets-DD",
               "DY",
               "TTZ",
-              "singleTop",
-#              "TTZ-DD",
+              "multiBoson",
+              "other",
              ]
 
 submitCMD = "submitBatch.py --title='Estimate' "
@@ -29,7 +22,7 @@ allRegions = regionsO
 #  for j, region in enumerate(allRegions):
 #    # print "./submit.sh 'python run_estimate.py --selectEstimator=" + estimator + " --selectRegion=%i'"%j 
 #    os.system( "%s 'python run_estimate.py --selectEstimator=%s --selectRegion=%i'"%(submitCMD, estimator, j) )
-#
+
 ## Group 2
 #from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import signals_T2tt
 #signalEstimators = [s.name for s in signals_T2tt]
@@ -49,10 +42,15 @@ allRegions = regionsO
 ## For signals, do not split up in regions, because otherwise you easily reach the maximum of allowed jobs, they are fast anyway
 #for i, estimator in enumerate(signalEstimators):
 #    os.system("%s 'python run_estimate.py --selectEstimator=%s'"%(submitCMD, estimator))
+#
+#from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5
+#signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p5]
+## For signals, do not split up in regions, because otherwise you easily reach the maximum of allowed jobs, they are fast anyway
+#for i, estimator in enumerate(signalEstimators):
+#    os.system("%s 'python run_estimate.py --selectEstimator=%s'"%(submitCMD, estimator))
 
-from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5
-signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p5]
+from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95
+signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p95]
 # For signals, do not split up in regions, because otherwise you easily reach the maximum of allowed jobs, they are fast anyway
 for i, estimator in enumerate(signalEstimators):
     os.system("%s 'python run_estimate.py --selectEstimator=%s'"%(submitCMD, estimator))
-

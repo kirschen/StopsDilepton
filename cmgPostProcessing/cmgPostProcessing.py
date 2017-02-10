@@ -1134,40 +1134,41 @@ if isData:
     logger.info( "Written JSON file %s",  jsonFile )
 
 # Write one file per mass point for T2tt
-if options.T2tt or options.T8bbllnunu:
-    if options.T2tt: output = Sample.fromDirectory("T2tt_output", outDir)
-    else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
-    print "Initialising chain, otherwise first mass point is empty"
-    print output.chain
-    if options.small: output.reduceFiles( to = 1 )
-    for s in signalWeight.keys():
-        #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
-        logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
-        cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
-        logger.debug("Using cut %s", cut)
-        if options.T2tt: signal_prefix = 'T2tt_'
-        else: signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
-        signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
-        logger.debug("Ouput file will be %s", signalFile)
-        if not os.path.exists(signalFile) or options.overwrite:
-            outF = ROOT.TFile.Open(signalFile, "RECREATE")
-            t = output.chain.CopyTree(cut)
-            nEvents = t.GetEntries()
-            outF.Write()
-            outF.Close()
-            logger.info( "Number of events %i", nEvents)
-            inF = ROOT.TFile.Open(signalFile, "READ")
-            u = inF.Get("Events")
-            nnEvents = u.GetEntries()
-            logger.debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
-            if nEvents == nnEvents: logger.debug("All events written")
-            else: logger.debug("Something went wrong, discrepancy between file and tree")
-            inF.Close()
-            logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
-        else:
-            logger.info( "Found file %s -> Skipping"%(signalFile) )
-
-    output.clear()
+if options.nJobs == 1:
+    if options.T2tt or options.T8bbllnunu:
+        if options.T2tt: output = Sample.fromDirectory("T2tt_output", outDir)
+        else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
+        print "Initialising chain, otherwise first mass point is empty"
+        print output.chain
+        if options.small: output.reduceFiles( to = 1 )
+        for s in signalWeight.keys():
+            #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
+            logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
+            cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
+            logger.debug("Using cut %s", cut)
+            if options.T2tt: signal_prefix = 'T2tt_'
+            else: signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
+            signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
+            logger.debug("Ouput file will be %s", signalFile)
+            if not os.path.exists(signalFile) or options.overwrite:
+                outF = ROOT.TFile.Open(signalFile, "RECREATE")
+                t = output.chain.CopyTree(cut)
+                nEvents = t.GetEntries()
+                outF.Write()
+                outF.Close()
+                logger.info( "Number of events %i", nEvents)
+                inF = ROOT.TFile.Open(signalFile, "READ")
+                u = inF.Get("Events")
+                nnEvents = u.GetEntries()
+                logger.debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
+                if nEvents == nnEvents: logger.debug("All events written")
+                else: logger.debug("Something went wrong, discrepancy between file and tree")
+                inF.Close()
+                logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
+            else:
+                logger.info( "Found file %s -> Skipping"%(signalFile) )
+    
+        output.clear()
 
 logger.info("Copying log file to %s"%outDir)
 copyLog = subprocess.call(['cp',logFile,outDir])

@@ -4,7 +4,7 @@ import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
-argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5"], help="which signal?")
+argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95"], help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                                                                                           help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float, nargs='?',                                                                                           help="scaling all yields")
 argParser.add_argument("--overwrite",      default = False, action = "store_true", help="Overwrite existing output files")
@@ -93,8 +93,9 @@ limitCache    = Cache(cacheFileName, verbosity=2)
 
 
 if   args.signal == "T2tt":                         fastSim = True
-elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": fastSim = False #FIXME
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": fastSim = True
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  fastSim = True
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": fastSim = True
 elif args.signal == "TTbarDM":                      fastSim = False
 
 scaleUncCache = Cache('scale_%s.pkl' % args.signal, verbosity=2)
@@ -238,6 +239,7 @@ def wrapper(s):
     elif args.signal == "T2tt":                         sConfig = s.mStop, s.mNeu
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sConfig = s.mStop, s.mNeu
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sConfig = s.mStop, s.mNeu
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
 
     if useCache and not overWrite and limitCache.contains(sConfig):
       res = limitCache.get(sConfig)
@@ -258,6 +260,7 @@ def wrapper(s):
       elif args.signal == "T2tt":                         sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sString = "mStop %i mNeu %i" % sConfig
       try:
         print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
         return sConfig, res
@@ -269,6 +272,7 @@ def wrapper(s):
 if   args.signal == "T2tt":                         from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import signals_T2tt as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 elif args.signal == "TTbarDM":                      from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM as jobs
 
 if args.only is not None:
@@ -280,7 +284,7 @@ results = map(wrapper, jobs)
 results = [r for r in results if r]
 
 # Make histograms for T2tt
-if args.signal == "T2tt" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p05" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
+if args.signal == "T2tt" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p05" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p5" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
   exp      = ROOT.TH2F("exp", "exp", 1600/25, 0, 1600, 1500/25, 0, 1500)
   exp_down = exp.Clone("exp_down")
   exp_up   = exp.Clone("exp_up")

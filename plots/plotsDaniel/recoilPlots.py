@@ -105,9 +105,9 @@ def getZCut(mode):
     if mode.lower()=="offz": return zstr+">15"
     return "(1)"
 
-postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 sample_DoubleMuon  = DoubleMuon_Run2016_backup
@@ -337,14 +337,14 @@ for sample in mc:
     sample.scale = lumi_scale*dataMCScale
     if args.pu != "None":
         if args.pu == 'custom':
-          sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F','nTrueInt/F']
-          sample.weight = lambda event, sample: nTrueInt36fb_puRW(event.nTrueInt)*event.reweightDilepTriggerBackup*event.reweightLeptonSF
+          sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F','nTrueInt/F']
+          sample.weight = lambda event, sample: nTrueInt36fb_puRW(event.nTrueInt)*event.reweightTopPt*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonSF
         else:
-          sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF
+          sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F', 'reweightTopPt/F']
+          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF*event.reweightTopPt*event.reweightBTag_SF
     else:
         sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightLeptonSF/F']
-        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightLeptonSF
+        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightLeptonSF*event.reweightTopPt*event.reweightBTag_SF
 
         sample.read_variables = [args.pu+'/F']
 
