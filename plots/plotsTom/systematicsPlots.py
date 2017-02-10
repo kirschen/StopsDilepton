@@ -7,7 +7,7 @@
 import ROOT
 ROOT.gROOT.SetBatch(True)
 
-from math                                import sqrt, cos, sin, pi
+from math                                import sqrt
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.objectSelection import getFilterCut
@@ -28,6 +28,7 @@ argParser.add_argument('--plot_directory',    action='store',      default='syst
 argParser.add_argument('--selection',         action='store',      default=None)
 argParser.add_argument('--selectSys',         action='store',      default='all')
 argParser.add_argument('--showOnly',          action='store',      default=None)
+argParser.add_argument('--unblind',           action='store_true', default=False)
 argParser.add_argument('--splitBosons',       action='store_true', default=False)
 argParser.add_argument('--LO',                action='store_true', default=False)
 argParser.add_argument('--splitTop',          action='store_true', default=False)
@@ -54,19 +55,19 @@ selections = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet01-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
               'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+             #'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5',
+             #'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
+             #'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
+             #'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
+             #'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll0To25',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll25To50',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll50To75',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll75To100',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100To140',
+             #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll0To25',
+             #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll25To50',
+             #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll50To75',
+             #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll75To100',
+             #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100To140',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140'
            ]
@@ -77,7 +78,7 @@ selections = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
 jet_systematics    = ['JECUp','JECDown']# 'JERDown','JECVUp','JECVDown']
 met_systematics    = ['UnclusteredEnUp', 'UnclusteredEnDown']
 jme_systematics    = jet_systematics + met_systematics
-weight_systematics = ['PU36fbUp', 'PU36fbDown', 'TopPt', 'DilepTriggerBackupDown', 'DilepTriggerBackupUp', 'LeptonSFDown', 'LeptonSFUp']
+weight_systematics = ['PU36fbUp', 'PU36fbDown', 'TopPt', 'DilepTriggerBackupDown', 'DilepTriggerBackupUp', 'LeptonSFDown', 'LeptonSFUp','BTag_SF_b_Down', 'BTag_SF_b_Up','BTag_SF_l_Down', 'BTag_SF_l_Up']
 
 
 if args.selectSys != "all" and args.selectSys != "combine": all_systematics = [args.selectSys if args.selectSys != 'None' else None]
@@ -90,8 +91,8 @@ sys_pairs = [\
     ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
     ('TopPt',       'TopPt', None),
 #   ('JER',         'JERUp', 'JERDown'),
-#    ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
-#    ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
+    ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up'),
+    ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
     ('trigger',     'DilepTriggerBackupDown', 'DilepTriggerBackupUp'),
     ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
 ]
@@ -108,16 +109,18 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
     if not sys: sys = 'None'
     os.system("mkdir -p log")
     for selection in selections:
+      if args.unblind and "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" not in selection: continue
       command = "./systematicsPlots.py --selection=" + selection + (" --noData"            if args.noData            else "")\
-								 + (" --splitBosons"       if args.splitBosons       else "")\
-								 + (" --splitTop"          if args.splitTop          else "")\
-								 + (" --LO"                if args.LO                else "")\
-								 + (" --powheg"            if args.powheg            else "")\
-								 + (" --normalizeBinWidth" if args.normalizeBinWidth else "")\
-								 + (" --plot_directory=" + args.plot_directory)\
-								 + (" --logLevel="       + args.logLevel)\
-								 + (" --signal="         + args.signal)\
-								 + (" --selectSys="      + sys)
+                                                                 + (" --splitBosons"       if args.splitBosons       else "")\
+                                                                 + (" --splitTop"          if args.splitTop          else "")\
+                                                                 + (" --unblind"           if args.unblind           else "")\
+                                                                 + (" --LO"                if args.LO                else "")\
+                                                                 + (" --powheg"            if args.powheg            else "")\
+                                                                 + (" --normalizeBinWidth" if args.normalizeBinWidth else "")\
+                                                                 + (" --plot_directory=" + args.plot_directory)\
+                                                                 + (" --logLevel="       + args.logLevel)\
+                                                                 + (" --signal="         + args.signal)\
+                                                                 + (" --selectSys="      + sys)
       logfile = "log/systematicPlots_" + selection + "_" + sys + ".log"
       logger.info("Launching " + selection + " on cream02 with child command: " + command)
       if not args.dryRun: launch(command, logfile, sys=="combine")
@@ -125,6 +128,7 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
   exit(0)
 
 if args.noData:                   args.plot_directory += "_noData"
+if args.unblind:                  args.plot_directory += "_unblinded"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
 #if not args.LO:                   args.plot_directory += "_ttZNLO"
@@ -132,22 +136,19 @@ if args.signal == "DM":           args.plot_directory += "_DM"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 signals = []
 if   args.signal == "T2tt":
-  postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
   from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-  T2tt        = T2tt_650_1
-  T2tt2       = T2tt_500_250
+ #from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
+  T2tt        = T2tt_750_1
+  T2tt2       = T2tt_600_300
   T2tt.style  = styles.lineStyle( ROOT.kBlack, width=3 )
   T2tt2.style = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
   signals     = [T2tt, T2tt2]
 elif args.signal == "DM":
-  postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
   from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
   DM        = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
   DM2       = TTbarDMJets_scalar_Mchi_1_Mphi_10
@@ -180,10 +181,12 @@ def addSys( selectionString , sys = None ):
 
 
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup, "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb")
-    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup, "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweight"+sys)
-#    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
-    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
+    if sys is None:                 return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF,                                "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF")
+    elif 'TopPt' in sys:            return (lambda event, sample:event.weight*                    event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF,                                "weight*              reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF") # no top pt reweighting here, because the default 'None' is to have it switched on
+    elif 'LeptonSF' in sys:         return (lambda event, sample:event.weight*event.reweightTopPt*                       event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightTopPt*                 reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF*reweight"+sys)
+    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*                     event.reweightDilepTriggerBackup*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightTopPt*reweightLeptonSF*               reweightDilepTriggerBackup*reweightBTag_SF*reweight"+sys)
+    elif 'Trigger' in sys:          return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*                                 event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*                          *reweightBTag_SF*reweight"+sys)
+    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*                      getattr(event, "reweight"+sys), "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*                reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
 
@@ -244,7 +247,7 @@ for index, mode in enumerate(allModes):
     lumi_scale        = data_sample.lumi/1000
 
   # Blinding policies for DM and T2tt analyses
-  if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection:
+  if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.unblind:
     if args.signal == "DM":
       weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.evt % 15 == 0) else 0)
       weightString_ = "weight*(evt%15==0)"
@@ -265,7 +268,7 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables  = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
+    sample.read_variables  = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
     sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics]
     sample.read_variables += ["dl_mt2ll_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2bb_%s/F"%s   for s in jme_systematics]
@@ -285,15 +288,15 @@ for index, mode in enumerate(allModes):
   if args.signal == "T2tt":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+      s.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F','reweightTopPt/F']
+      s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightTopPt
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
-      s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+      s.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F','reweightTopPt/F']
+      s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightTopPt
       s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
@@ -314,10 +317,10 @@ for index, mode in enumerate(allModes):
 
   def appendPlots(name, texX, texY, binning, attribute, binWidth):
     plots_mc = {sys: Plot(
-	name            = name if sys is None else name + sys, texX = texX, texY = texY,
-	binning         = binning,
-	stack           = sys_stacks[sys],
-	attribute       = attribute[sys],
+        name            = name if sys is None else name + sys, texX = texX, texY = texY,
+        binning         = binning,
+        stack           = sys_stacks[sys],
+        attribute       = attribute[sys],
         selectionString = addSys(selectionString, sys),
         weight          = weightMC(sys=sys)[0],
       ) for sys in all_systematics}
@@ -326,10 +329,10 @@ for index, mode in enumerate(allModes):
 
     if None in all_systematics: # Only run these when we are in None child job or in combine
       plot_data = Plot(
-	name      = name + "_data", texX = texX, texY = texY,
-	binning   = binning,
-	stack     = stack_data,
-	attribute = attribute[None],
+        name      = name + "_data", texX = texX, texY = texY,
+        binning   = binning,
+        stack     = stack_data,
+        attribute = attribute[None],
       )
       plots.append(plot_data)
       plotConfigs.append([plots_mc, plot_data, binWidth])
@@ -475,7 +478,7 @@ for index, mode in enumerate(allModes):
       total         = yield_data
       logger.info( "Data: %i MC TT %3.2f MC other %3.2f SF %3.2f", yield_data, yields[topName+'None'], yield_non_top, top_sf[None] )
       if args.selection.count('njet01-btag0-looseLeptonVeto-mll20-metInv') and mode != "mue":
-	top_sf[None] = 1
+        top_sf[None] = 1
     else:
       top_sf[None] = 1
       total        = sum(yield_mc.values())
@@ -484,143 +487,143 @@ for index, mode in enumerate(allModes):
     #Scaling systematic shapes to MT2ll<100 region
     for sys_pair in sys_pairs:
       for sys in sys_pair[1:]:
-	if not top_sf.has_key( sys ):
-	    mc_sys_weight_func, mc_sys_weight_string = weightMC( sys = sys )
-	    non_top                                  = sum(yields[s.name+sys] for s in mc if s.name != topName)
-	    top_sf[sys]                              = (total - non_top)/yields[topName+sys]
-	    logger.info( "Total: %i sys %s MC TT %3.2f MC other %3.2f SF %3.2f", total, sys, yields[topName+sys], non_top, top_sf[sys] )
+        if not top_sf.has_key( sys ):
+            mc_sys_weight_func, mc_sys_weight_string = weightMC( sys = sys )
+            non_top                                  = sum(yields[s.name+sys] for s in mc if s.name != topName)
+            top_sf[sys]                              = (total - non_top)/yields[topName+sys]
+            logger.info( "Total: %i sys %s MC TT %3.2f MC other %3.2f SF %3.2f", total, sys, yields[topName+sys], non_top, top_sf[sys] )
 
             if args.selection.count('njet01-btag0-looseLeptonVeto-mll20-metInv') and mode != "mue":
               top_sf[sys] = 1
-	      logger.info( "NOT scaling top for " + args.selection + " (mode " + mode + ")" )
+              logger.info( "NOT scaling top for " + args.selection + " (mode " + mode + ")" )
 
 
     for plots_mc, plot_data, bin_width in plotConfigs:
-	if args.normalizeBinWidth and bin_width>0:
-		for p in plots_mc.values() + [plot_data]:
-		    for histo in sum(p.histos, []):
-			for ib in range(histo.GetXaxis().GetNbins()+1):
-			    val = histo.GetBinContent( ib )
-			    err = histo.GetBinError( ib )
-			    width = histo.GetBinWidth( ib )
-			    histo.SetBinContent(ib, val / (width / bin_width))
-			    histo.SetBinError(ib, err / (width / bin_width))
+        if args.normalizeBinWidth and bin_width>0:
+                for p in plots_mc.values() + [plot_data]:
+                    for histo in sum(p.histos, []):
+                        for ib in range(histo.GetXaxis().GetNbins()+1):
+                            val = histo.GetBinContent( ib )
+                            err = histo.GetBinError( ib )
+                            width = histo.GetBinWidth( ib )
+                            histo.SetBinContent(ib, val / (width / bin_width))
+                            histo.SetBinError(ib, err / (width / bin_width))
         topHist = None
         ttzHist = None
         ttxHist = None
         mbHist  = None
         dyHist  = None
 
-	# Scaling Top
-	for k in plots_mc.keys():
-	    for s in plots_mc[k].histos:
-		pos_top = [i for i,x in enumerate(mc) if x == (Top_pow if args.powheg else Top)][0]
-		plots_mc[k].histos[0][pos_top].Scale(top_sf[k])
-		pos_ttz = [i for i,x in enumerate(mc) if x == (TTZ_LO if args.LO else TTZ)][0]
-		pos_ttx = [i for i,x in enumerate(mc) if x == TTXNoZ][0]
-		pos_dy  = [i for i,x in enumerate(mc) if x == DY_HT_LO][0]
-		pos_mb  = [i for i,x in enumerate(mc) if x == multiBoson][0]
+        # Scaling Top
+        for k in plots_mc.keys():
+            for s in plots_mc[k].histos:
+                pos_top = [i for i,x in enumerate(mc) if x == (Top_pow if args.powheg else Top)][0]
+                plots_mc[k].histos[0][pos_top].Scale(top_sf[k])
+                pos_ttz = [i for i,x in enumerate(mc) if x == (TTZ_LO if args.LO else TTZ)][0]
+                pos_ttx = [i for i,x in enumerate(mc) if x == TTXNoZ][0]
+                pos_dy  = [i for i,x in enumerate(mc) if x == DY_HT_LO][0]
+                pos_mb  = [i for i,x in enumerate(mc) if x == multiBoson][0]
 
-		topHist = plots_mc[k].histos[0][pos_top]
-		ttzHist = plots_mc[k].histos[0][pos_ttz]
-		ttxHist = plots_mc[k].histos[0][pos_ttx]
-		mbHist  = plots_mc[k].histos[0][pos_mb]
-		dyHist  = plots_mc[k].histos[0][pos_dy]
-		      
-	#Calculating systematics
-	h_summed = {k: plots_mc[k].histos_added[0][0].Clone() for k in plots_mc.keys()}
+                topHist = plots_mc[k].histos[0][pos_top]
+                ttzHist = plots_mc[k].histos[0][pos_ttz]
+                ttxHist = plots_mc[k].histos[0][pos_ttx]
+                mbHist  = plots_mc[k].histos[0][pos_mb]
+                dyHist  = plots_mc[k].histos[0][pos_dy]
+                      
+        #Calculating systematics
+        h_summed = {k: plots_mc[k].histos_added[0][0].Clone() for k in plots_mc.keys()}
 
-	##Normalize systematic shapes
-	#if args.sysScaling:
-	#    for k in h_summed.keys():
-	#        if k is None: continue
-	#        h_summed[k].Scale( top_sf[ k ] )
+        ##Normalize systematic shapes
+        #if args.sysScaling:
+        #    for k in h_summed.keys():
+        #        if k is None: continue
+        #        h_summed[k].Scale( top_sf[ k ] )
 
-	h_rel_err = h_summed[None].Clone()
-	h_rel_err.Reset()
+        h_rel_err = h_summed[None].Clone()
+        h_rel_err.Reset()
 
-	#MC statistical error
-	for ib in range( 1 + h_rel_err.GetNbinsX() ):
-	    h_rel_err.SetBinContent(ib, h_summed[None].GetBinError(ib)**2 )
+        #MC statistical error
+        for ib in range( 1 + h_rel_err.GetNbinsX() ):
+            h_rel_err.SetBinContent(ib, h_summed[None].GetBinError(ib)**2 )
 
-	h_sys = {}
+        h_sys = {}
         goOn = False
-	for k, s1, s2 in ([s for s in sys_pairs if s[0] == args.showOnly] if args.showOnly else sys_pairs):
+        for k, s1, s2 in ([s for s in sys_pairs if s[0] == args.showOnly] if args.showOnly else sys_pairs):
             goOn = True
-	    h_sys[k] = h_summed[s1].Clone()
-	    h_sys[k].Scale(-1)
-	    h_sys[k].Add(h_summed[s2])
+            h_sys[k] = h_summed[s1].Clone()
+            h_sys[k].Scale(-1)
+            h_sys[k].Add(h_summed[s2])
         if not goOn: continue
 
-	# Adding in quadrature
-	for k in h_sys.keys():
-	    for ib in range( 1 + h_rel_err.GetNbinsX() ):
-		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
+        # Adding in quadrature
+        for k in h_sys.keys():
+            for ib in range( 1 + h_rel_err.GetNbinsX() ):
+                h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
         # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
         if (args.selection.count('mt2ll100') or plots_mc[None].name == "dl_mt2ll") and False:
-	    for ib in range(1 + h_rel_err.GetNbinsX() ):
+            for ib in range(1 + h_rel_err.GetNbinsX() ):
                 if plots_mc[None].name == "dl_mt2ll" and h_rel_err.GetBinCenter(ib) < 100: continue
                 topUnc = 1 if (plots_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
-		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
-		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
-		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
-		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
-		h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
+                h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
+                h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
+                h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
+                h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
+                h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
 
-	# take sqrt
-	for ib in range( 1 + h_rel_err.GetNbinsX() ):
-	    h_rel_err.SetBinContent(ib, sqrt( h_rel_err.GetBinContent(ib) ) )
+        # take sqrt
+        for ib in range( 1 + h_rel_err.GetNbinsX() ):
+            h_rel_err.SetBinContent(ib, sqrt( h_rel_err.GetBinContent(ib) ) )
 
-	# Divide
-	h_rel_err.Divide(h_summed[None])
+        # Divide
+        h_rel_err.Divide(h_summed[None])
 
-	plot = plots_mc[None]
-	if args.normalizeBinWidth: plot.name += "_normalizeBinWidth"
+        plot = plots_mc[None]
+        if args.normalizeBinWidth: plot.name += "_normalizeBinWidth"
         signal_histos = plot_data.histos[1:] if args.signal != 'None' else []
-	data_histo    = plot_data.histos[0][0]
+        data_histo    = plot_data.histos[0][0]
         for h in plot_data.histos[0][1:]:
           data_histo.Add(h)
 
-	data_histo.style = styles.errorStyle( ROOT.kBlack )
-	plot.histos += [[ data_histo ]]
+        data_histo.style = styles.errorStyle( ROOT.kBlack )
+        plot.histos += [[ data_histo ]]
         for h in signal_histos: plot.histos += [h]
-	plot_data.stack[0][0].texName = data_sample.texName if mode != "all" and mode != 'SF' else data_sample[0].texName
-	plot.stack += [[ plot_data.stack[0][0] ]]
+        plot_data.stack[0][0].texName = data_sample.texName if mode != "all" and mode != 'SF' else data_sample[0].texName
+        plot.stack += [[ plot_data.stack[0][0] ]]
         for i, signal in enumerate(signals):
-	  plot_data.stack[i+1][0].texName = signal.texName
-	  plot_data.stack[i+1][0].style   = signal.style
+          plot_data.stack[i+1][0].texName = signal.texName
+          plot_data.stack[i+1][0].style   = signal.style
           plot.stack += [[ plot_data.stack[i+1][0] ]]
 
-	boxes = []
-	ratio_boxes = []
-	for ib in range(1, 1 + h_rel_err.GetNbinsX() ):
-	    val = h_summed[None].GetBinContent(ib)
-	    if val<0: continue
-	    sys = h_rel_err.GetBinContent(ib)
-	    box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max([0.03, (1-sys)*val]), h_rel_err.GetXaxis().GetBinUpEdge(ib), max([0.03, (1+sys)*val]) )
-	    box.SetLineColor(ROOT.kBlack)
-	    box.SetFillStyle(3444)
-	    box.SetFillColor(ROOT.kBlack)
-	    r_box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max(0.1, 1-sys), h_rel_err.GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys) )
-	    r_box.SetLineColor(ROOT.kBlack)
-	    r_box.SetFillStyle(3444)
-	    r_box.SetFillColor(ROOT.kBlack)
+        boxes = []
+        ratio_boxes = []
+        for ib in range(1, 1 + h_rel_err.GetNbinsX() ):
+            val = h_summed[None].GetBinContent(ib)
+            if val<0: continue
+            sys = h_rel_err.GetBinContent(ib)
+            box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max([0.03, (1-sys)*val]), h_rel_err.GetXaxis().GetBinUpEdge(ib), max([0.03, (1+sys)*val]) )
+            box.SetLineColor(ROOT.kBlack)
+            box.SetFillStyle(3444)
+            box.SetFillColor(ROOT.kBlack)
+            r_box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max(0.1, 1-sys), h_rel_err.GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys) )
+            r_box.SetLineColor(ROOT.kBlack)
+            r_box.SetFillStyle(3444)
+            r_box.SetFillColor(ROOT.kBlack)
 
-	    boxes.append( box )
-	    ratio_boxes.append( r_box )
+            boxes.append( box )
+            ratio_boxes.append( r_box )
 
-	ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes}
+        ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes}
 
-	for log in [False, True]:
-	  plotDir = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else "") + "_scaled", args.selection)
-	  if args.showOnly: plotDir = os.path.join(plotDir, "only_" + args.showOnly)
-	  plotting.draw(plot,
-	      plot_directory = plotDir,
-	      ratio = ratio,
-	      legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.95,0.88),
-	      logX = False, logY = log, #sorting = True,
-	      yRange = (0.03, "auto"),
-	      drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes,
+        for log in [False, True]:
+          plotDir = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else "") + "_scaled", args.selection)
+          if args.showOnly: plotDir = os.path.join(plotDir, "only_" + args.showOnly)
+          plotting.draw(plot,
+              plot_directory = plotDir,
+              ratio = ratio,
+              legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.95,0.88),
+              logX = False, logY = log, #sorting = True,
+              yRange = (0.03, "auto"),
+              drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes,
               copyIndexPHP = True
-	  )
+          )
