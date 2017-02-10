@@ -119,7 +119,7 @@ for var in systematics.values():
 # Function to get the sample uncertainty from the card and nuisance files
 from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, getPostFitUncFromCard, applyNuisance, getBinNumber
 
-cardFile = '/user/tomc/StopsDilepton/results_80X_v24/fitAll/cardFiles/T2tt/T2tt_550_350.txt' 
+cardFile = '/user/tomc/StopsDilepton/results_80X_v30/controlDYVV/cardFiles/T2tt/T2tt_900_600.txt'
 #if args.control:
 #  if args.control == "TTZ":  cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlTTZ/cardFiles/T2tt/T2tt_550_350.txt' # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
 #  if args.control == "DYVV": cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlDYVV/cardFiles/T2tt/T2tt_550_350.txt'
@@ -202,6 +202,9 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
         setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         if args.control == 'DYVV' and estimate.name in ['DY', 'multiBoson'] and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
+        if not args.control:
+          if estimate.name == 'DY':         res = res*1.055  # Warning currently coded by hand when applied for SR
+          if estimate.name == 'multiBoson': res = res*1.30
         res = getSampleUncertainty(cardFile, res, var, estimate, binName)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
