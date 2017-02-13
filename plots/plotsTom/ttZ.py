@@ -24,7 +24,7 @@ argParser.add_argument('--plot_directory', action='store',      default='TTZ')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
-argParser.add_argument('--NLO',            action='store_true', default=False)
+argParser.add_argument('--LO',             action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
 
@@ -101,7 +101,7 @@ if not args.isChild and args.selection is None:
   for selection in selectionStrings:
     command = "./ttZ.py --selection=" + selection + (" --plot_directory=" + args.plot_directory)\
                                                   + (" --logLevel=" + args.logLevel)\
-                                                  + (" --NLO" if args.NLO else "")
+                                                  + (" --LO" if args.NLO else "")
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     if not args.dryRun: launch(command, logfile)
@@ -109,7 +109,7 @@ if not args.isChild and args.selection is None:
   exit(0)
 
 
-if args.NLO: args.plot_directory += "NLO"
+if args.LO: args.plot_directory += "LO"
 
 #
 # Read variables and sequences
@@ -207,7 +207,7 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-  mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZ if args.NLO else TTZ_LO]
+  mc = [ DY_HT_LO, Top_pow, multiBoson, TTXNoZ, TTZ_LO if args.LO else TTZ]
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
