@@ -448,7 +448,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'highest CSV', texY = 'Number of Events',
+    texX = 'second highest CSV', texY = 'Number of Events',
     name = 'secondCSV', attribute = lambda event, sample: event.secondCSV,
     binning=[10,0,1],
   ))
