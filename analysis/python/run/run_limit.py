@@ -229,7 +229,7 @@ def wrapper(s):
                   if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
         c.addUncertainty('Lumi', 'lnN')
-        c.specifyFlatUncertainty('Lumi', 1.062)
+        c.specifyFlatUncertainty('Lumi', 1.026)
         cardFileName = c.writeToFile(cardFileName)
     else:
         print "File %s found. Reusing."%cardFileName
