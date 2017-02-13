@@ -64,8 +64,8 @@ def getSampleUncertainty(cardFile, estimateName, binName):
 # Evaluate absolute and relative errors
 def evaluateEstimate(e, SR, binName, estimators=None):
      expected            = e.cachedEstimate(r, channel, setup).val*scale
-     if e.name.count('DY'):         expected = expected*1.055
-     if e.name.count('multiBoson'): expected = expected*1.30
+     if e.name.count('DY'):         expected = expected*1.115
+     if e.name.count('multiBoson'): expected = expected*1.265
 
      e.rel               = {}
      e.abs               = {}

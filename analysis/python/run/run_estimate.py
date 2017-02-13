@@ -65,10 +65,10 @@ estimate.initCache(setup.defaultCacheDir())
 jobs=[]
 for channel in (trilepChannels if (options.control and options.control.count('TTZ')) else channels):
     for (i, r) in enumerate(allRegions):
-	if options.selectRegion is not None and options.selectRegion != i: continue
-	jobs.append((r, channel, setup))
-	if estimate.isSignal: jobs.extend(estimate.getSigSysJobs(r, channel, setup, isFastSim))
-	else:                 jobs.extend(estimate.getBkgSysJobs(r, channel, setup))
+        if options.selectRegion is not None and options.selectRegion != i: continue
+        jobs.append((r, channel, setup))
+        if estimate.isSignal: jobs.extend(estimate.getSigSysJobs(r, channel, setup, isFastSim))
+        else:                 jobs.extend(estimate.getBkgSysJobs(r, channel, setup))
 
 if options.noMultiThreading: 
     results = map(wrapper, jobs)
@@ -81,7 +81,7 @@ else:
 
 for channel in (['all'] if (options.control and options.control.count('TTZ')) else ['SF','all']):
     for (i, r) in enumerate(allRegions):
-	if options.selectRegion is not None and options.selectRegion != i: continue
-	estimate.cachedEstimate(r, channel, setup, save=True)
-	if estimate.isSignal: map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getSigSysJobs(r, channel, setup, isFastSim))
-	else:                 map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getBkgSysJobs(r, channel, setup))
+        if options.selectRegion is not None and options.selectRegion != i: continue
+        estimate.cachedEstimate(r, channel, setup, save=True)
+        if estimate.isSignal: map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getSigSysJobs(r, channel, setup, isFastSim))
+        else:                 map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getBkgSysJobs(r, channel, setup))
