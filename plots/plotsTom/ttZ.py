@@ -498,7 +498,7 @@ try:
   os.makedirs("./" + texdir)
 except:
   pass
-with open("./" + texdir + "/" + args.selection + ("_NLO" if args.NLO else "") + ".tex", "w") as f:
+with open("./" + texdir + "/" + args.selection + ("_LO" if args.LO else "") + ".tex", "w") as f:
   f.write("&" + " & ".join(columns) + "\\\\ \n")
   for mode in allModes + ["all"]:
     f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")
