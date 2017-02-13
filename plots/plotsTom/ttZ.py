@@ -43,8 +43,8 @@ from StopsDilepton.tools.trilepSelection import getTrilepSelection
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
 jetSelection40  = "(Sum$(JetGood_pt>40&&abs(JetGood_eta)<2.4&&JetGood_id))"
-bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
-bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))"
+bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.8484))"
+bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.5426))"
 zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 
 
@@ -135,8 +135,8 @@ def makeDeltaR(event, sample):
 
 def calcBTag(event, sample):
   event.nJetGood    = len([j for j in range(event.nJetGood) if event.JetGood_pt[j] > 40])
-  event.nBTag       = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.800])
-  event.nBTagLoose  = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.460])
+  event.nBTag       = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.8484])
+  event.nBTagLoose  = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.5426])
   csvValues        = [event.JetGood_btagCSV[j] for j in range(event.nJetGood)]
   csvValues.sort()
   event.leadingCSV  = csvValues[-1] if len(csvValues) > 1 else -20
