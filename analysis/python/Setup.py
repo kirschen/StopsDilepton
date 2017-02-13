@@ -142,16 +142,16 @@ class Setup:
         return self.selection(dataMC, channel = channel, isFastSim = isFastSim, hadronicSelection = False, **self.parameters)
 
     def selection(self, dataMC,
-			mllMin, metMin, metSigMin, zWindow, dPhi, dPhiInv,
-			nJets, nBTags, leptonCharges, triLep,
-			channel = 'all', hadronicSelection = False,  isFastSim = False):
+                        mllMin, metMin, metSigMin, zWindow, dPhi, dPhiInv,
+                        nJets, nBTags, leptonCharges, triLep,
+                        channel = 'all', hadronicSelection = False,  isFastSim = False):
         '''Define full selection
-	   dataMC: 'Data' or 'MC'
-	   channel: all, EE, MuMu or EMu
-	   zWindow: offZ, onZ, or allZ
-	   hadronicSelection: whether to return only the hadronic selection
+           dataMC: 'Data' or 'MC'
+           channel: all, EE, MuMu or EMu
+           zWindow: offZ, onZ, or allZ
+           hadronicSelection: whether to return only the hadronic selection
        isFastSim: adjust filter cut etc. for fastsim
-	'''
+        '''
         #Consistency checks
         if self.sys['selectionModifier']:
           assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
@@ -167,8 +167,8 @@ class Setup:
         res={'cuts':[], 'prefixes':[]}
 
         if leptonCharges and not hadronicSelection and not triLep:
-	    res['cuts'].append(leptonCharges)
-	    res['prefixes'].append(leptonCharges)
+            res['cuts'].append(leptonCharges)
+            res['prefixes'].append(leptonCharges)
 
         if nJets and not (nJets[0]==0 and nJets[1]<0):
             assert nJets[0]>=0 and (nJets[1]>=nJets[0] or nJets[1]<0), "Not a good nJets selection: %r"%nJets
@@ -213,44 +213,44 @@ class Setup:
               res['prefixes'].append('mll'+str(mllMin))
 
             if triLep:
-	      assert channel in allTrilepChannels, "channel must be one of "+",".join(allTrilepChannels)+". Got %r."%channel
+              assert channel in allTrilepChannels, "channel must be one of "+",".join(allTrilepChannels)+". Got %r."%channel
               from StopsDilepton.tools.trilepSelection import getTrilepSelection
               if channel =="all": chStr = '(' + '||'.join([getTrilepSelection(c) for c in ['3mu','2mu1e','2e1mu','3e']]) + ')'
               else:               chStr = getTrilepSelection(channel)
-	      res['cuts'].append(chStr)
+              res['cuts'].append(chStr)
 
-	      assert zWindow == 'onZ', "zWindow must be onZ for trilep selection"
+              assert zWindow == 'onZ', "zWindow must be onZ for trilep selection"
               res['cuts'].append('abs(mlmZ_mass-91.1876)<10')
 
             else:
 
-	      preselMuMu = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0"
-	      preselEE   = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2"
-	      preselEMu  = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1"
+              preselMuMu = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0"
+              preselEE   = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2"
+              preselEMu  = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1"
 
-	      #Z window
-	      assert zWindow in ['offZ', 'onZ', 'allZ'], "zWindow must be one of onZ, offZ, allZ. Got %r"%zWindow
-	      if zWindow == 'onZ':                     res['cuts'].append(getZCut(zWindow, self.zMassRange))
-	      if zWindow == 'offZ' and channel!="EMu": res['cuts'].append(getZCut(zWindow, self.zMassRange))  # Never use offZ when in emu channel, use allZ instead
+              #Z window
+              assert zWindow in ['offZ', 'onZ', 'allZ'], "zWindow must be one of onZ, offZ, allZ. Got %r"%zWindow
+              if zWindow == 'onZ':                     res['cuts'].append(getZCut(zWindow, self.zMassRange))
+              if zWindow == 'offZ' and channel!="EMu": res['cuts'].append(getZCut(zWindow, self.zMassRange))  # Never use offZ when in emu channel, use allZ instead
 
-	      #lepton channel
-	      assert channel in allChannels, "channel must be one of "+",".join(allChannels)+". Got %r."%channel
+              #lepton channel
+              assert channel in allChannels, "channel must be one of "+",".join(allChannels)+". Got %r."%channel
 
-	      if channel=="MuMu":  chStr = preselMuMu
-	      elif channel=="EE":  chStr = preselEE
-	      elif channel=="EMu": chStr = preselEMu
-	      elif channel=="all": chStr = "("+preselMuMu+'||'+preselEE+'||'+preselEMu+')'
-	      elif channel=="SF":  chStr = "("+preselMuMu+'||'+preselEE+')'
+              if channel=="MuMu":  chStr = preselMuMu
+              elif channel=="EE":  chStr = preselEE
+              elif channel=="EMu": chStr = preselEMu
+              elif channel=="all": chStr = "("+preselMuMu+'||'+preselEE+'||'+preselEMu+')'
+              elif channel=="SF":  chStr = "("+preselMuMu+'||'+preselEE+')'
 
-	      res['cuts'].append(chStr)
+              res['cuts'].append(chStr)
 
-	      res['prefixes'].append('looseLeptonVeto')
-	      res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
+              res['prefixes'].append('looseLeptonVeto')
+              res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
 
-	      res['prefixes'].append('relIso0.12')
-	      res['cuts'].append("l1_relIso03<0.12&&l2_relIso03<0.12")
+              res['prefixes'].append('relIso0.12')
+              res['cuts'].append("l1_relIso03<0.12&&l2_relIso03<0.12")
 
-	      res['cuts'].append("l1_pt>25")
+              res['cuts'].append("l1_pt>25")
 
         res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)

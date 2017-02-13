@@ -45,11 +45,11 @@ class DataDrivenMultiBosonEstimate(SystematicEstimator):
             # Calculate data-other onZ for 0 b-jets region in normalization region
             channels = ['EE','MuMu'] if self.combineChannels else [channel]
 
-	    cut_onZ_0b      = {}
-	    cut_data_onZ_0b = {}
+            cut_onZ_0b      = {}
+            cut_data_onZ_0b = {}
             for c in channels:
-	      cut_onZ_0b[c]      = "&&".join([normRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=c, **setup.defaultParameters(update={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
-	      cut_data_onZ_0b[c] = "&&".join([normRegion.cutString(),                               setup.selection('Data', channel=c, **setup.defaultParameters(update={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
+              cut_onZ_0b[c]      = "&&".join([normRegion.cutString(setup.sys['selectionModifier']), setup.selection('MC',   channel=c, **setup.defaultParameters(update={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
+              cut_data_onZ_0b[c] = "&&".join([normRegion.cutString(),                               setup.selection('Data', channel=c, **setup.defaultParameters(update={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': self.dPhi, 'dPhiInv': self.dPhiInv, 'metMin': self.metMin, 'metSigMin': self.metSigMin}))['cut']])
 
             if not estimateDY: estimateDY = self.estimateDY
             scalefactorDY = estimateDY._estimate(region, channel, setup, returnScaleFactor=True)[2] if estimateDY else 1
@@ -78,5 +78,5 @@ class DataDrivenMultiBosonEstimate(SystematicEstimator):
 
             logger.info("MultiBoson scale factor in " + str(region) + ", channel " + channel + ": " + str(scaleFactor))
 
-	logger.info('Estimate for multiBoson in ' + channel + ' channel' + (' (lumi=' + str(setup.lumi[channel]) + '/pb)' if (channel != "all" and channel != "SF") else "") + ': ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
-	return estimate if estimate > 0 else u_float(0, 0)
+        logger.info('Estimate for multiBoson in ' + channel + ' channel' + (' (lumi=' + str(setup.lumi[channel]) + '/pb)' if (channel != "all" and channel != "SF") else "") + ': ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
+        return estimate if estimate > 0 else u_float(0, 0)
