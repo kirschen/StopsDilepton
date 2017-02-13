@@ -245,7 +245,7 @@ class Setup:
               res['cuts'].append(chStr)
 
               res['prefixes'].append('looseLeptonVeto')
-              res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
+              res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2')
 
               res['prefixes'].append('relIso0.12')
               res['cuts'].append("l1_relIso03<0.12&&l2_relIso03<0.12")
