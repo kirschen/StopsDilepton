@@ -101,7 +101,7 @@ if not args.isChild and args.selection is None:
   for selection in selectionStrings:
     command = "./ttZ.py --selection=" + selection + (" --plot_directory=" + args.plot_directory)\
                                                   + (" --logLevel=" + args.logLevel)\
-                                                  + (" --LO" if args.NLO else "")
+                                                  + (" --LO" if args.LO else "")
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     if not args.dryRun: launch(command, logfile)
