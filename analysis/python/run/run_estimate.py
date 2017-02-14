@@ -40,7 +40,7 @@ if estimate.name.count('T2tt') or estimate.name.count('TTbarDM') or estimate.nam
 isFastSim = estimate.name.count('T2tt')
 #isFastSim = estimate.name.count('T8bbllnunu') #FIXME
 if isFastSim:
-  setup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
+  setup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
 
 
 if options.control:

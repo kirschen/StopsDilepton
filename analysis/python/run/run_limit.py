@@ -194,7 +194,7 @@ def wrapper(s):
                 #signal
                 e = eSignal
                 eSignal.isSignal = True
-                if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
+                if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
                 else:       signalSetup = setup.sysClone()
                 signal = e.cachedEstimate(r, channel, signalSetup)
                 xSecScale = 1
