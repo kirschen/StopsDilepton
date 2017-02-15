@@ -196,7 +196,6 @@ def wrapper(s):
                 e = eSignal
                 eSignal.isSignal = True
                 if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
-                #if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
                 else:       signalSetup = setup.sysClone()
                 signal = e.cachedEstimate(r, channel, signalSetup)
                 xSecScale = 1
@@ -231,7 +230,7 @@ def wrapper(s):
                   if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
         c.addUncertainty('Lumi', 'lnN')
-        c.specifyFlatUncertainty('Lumi', 1.062)
+        c.specifyFlatUncertainty('Lumi', 1.026)
         cardFileName = c.writeToFile(cardFileName)
     else:
         print "File %s found. Reusing."%cardFileName
