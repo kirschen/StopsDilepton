@@ -39,11 +39,11 @@ if args.control:
   elif args.control == "VV":   setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': True,  'dPhiInv': False, 'zWindow': 'onZ'})
   elif args.control == "DYVV": setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False, 'zWindow': 'onZ'})
   elif args.control == "TTZ":
-    setups   = [setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(2,2), 'nBTags':(2,2), 'dPhi': False, 'dPhiInv': False}),
-                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3), 'nBTags':(1,1), 'dPhi': False, 'dPhiInv': False}),
-                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3), 'nBTags':(2,2), 'dPhi': False, 'dPhiInv': False}),
-                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,4), 'nBTags':(1,1), 'dPhi': False, 'dPhiInv': False}),
-                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,4), 'nBTags':(2,2), 'dPhi': False, 'dPhiInv': False})]
+    setups   = [setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(2,2),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False}),
+                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(1,1),  'dPhi': False, 'dPhiInv': False}),
+                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False}),
+                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,-1), 'nBTags':(1,1),  'dPhi': False, 'dPhiInv': False}),
+                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,-1), 'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})]
     channels = ['all'] # only make plot in channel all for TTZ CR
 
 # define order of estimators
@@ -120,8 +120,8 @@ for var in systematics.values():
 from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, getPostFitUncFromCard, applyNuisance, getBinNumber
 
 cardFile = '/user/tomc/StopsDilepton/results_80X_v30/controlDYVV/cardFiles/T2tt/T2tt_900_600.txt'
-#if args.control:
-#  if args.control == "TTZ":  cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlTTZ/cardFiles/T2tt/T2tt_550_350.txt' # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
+if args.control:
+  if args.control == "TTZ":  cardFile = '/user/tomc/StopsDilepton/results_80X_v30/controlTTZ/cardFiles/T2tt/T2tt_225_50.txt' # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
 #  if args.control == "DYVV": cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlDYVV/cardFiles/T2tt/T2tt_550_350.txt'
 
 def getSampleUncertainty(cardFile, res, var, estimate, binName):
@@ -203,8 +203,8 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         if args.control == 'DYVV' and estimate.name in ['DY', 'multiBoson'] and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
         if not args.control:
-          if estimate.name == 'DY':         res = res*1.055  # Warning currently coded by hand when applied for SR
-          if estimate.name == 'multiBoson': res = res*1.30
+          if estimate.name == 'DY':         res = res*1.115  # Warning currently coded by hand when applied for SR
+          if estimate.name == 'multiBoson': res = res*1.265
         res = getSampleUncertainty(cardFile, res, var, estimate, binName)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
