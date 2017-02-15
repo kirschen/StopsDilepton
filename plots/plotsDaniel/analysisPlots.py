@@ -211,7 +211,10 @@ for index, mode in enumerate(allModes):
       else:
         raise NotImplementedError
 
-
+  #DY_HT_LO.weight = lambda event, sample: event.reweightTopPt*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*1.06
+  #for s in multiBosonList:
+  #  s.weight = lambda event, sample: event.reweightTopPt*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*1.3
+  
   if not args.noData:
     stack = Stack(mc, data_sample)
   else:

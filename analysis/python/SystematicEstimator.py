@@ -190,8 +190,30 @@ class SystematicEstimator:
         return l
 
     def getSigSysJobs(self, region, channel, setup, isFastSim = False):
-        l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
         if isFastSim:
+            l = [
+                (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
+
+                (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
+
+                (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
+
+                (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnDown'})),
+
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']})),
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']})),
+
+                (region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']})),
+                (region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']})),
+
+                (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']})),
+                (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupUp']})),
+            ]
             l.extend( [\
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Up']})),
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']})),
@@ -199,6 +221,8 @@ class SystematicEstimator:
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
                 (region, channel, setup.sysClone({'selectionModifier':'genMet'})),
             ] )
+        else:
+            l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
         return l
 
     def getTexName(self, channel, rootTex=True):

@@ -10,7 +10,7 @@ parser.add_option("--control",               dest="control",               defau
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels, trilepChannels
 from StopsDilepton.analysis.estimators   import setup, allEstimators
-from StopsDilepton.analysis.regions      import regionsO, noRegions
+from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsS
 
 
 # Logging
@@ -39,7 +39,7 @@ if estimate.name.count('T2tt') or estimate.name.count('TTbarDM') or estimate.nam
 isFastSim = estimate.name.count('T2tt')
 isFastSim = estimate.name.count('T8bbllnunu')
 if isFastSim:
-  setup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
+  setup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
 
 
 if options.control:

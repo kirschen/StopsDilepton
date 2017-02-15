@@ -23,7 +23,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 from StopsDilepton.analysis.SetupHelpers    import channels, trilepChannels
 from StopsDilepton.analysis.estimators      import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTJetsEstimate
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions         import regionsO, noRegions 
+from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS
 from StopsDilepton.analysis.Cache           import Cache
 
 
@@ -124,7 +124,7 @@ def wrapper(s):
         c.addUncertainty('topPt',      'lnN')
         c.addUncertainty('JEC',        'lnN')
         c.addUncertainty('unclEn',     'lnN')
-        c.addUncertainty('JER',        'lnN')
+        #c.addUncertainty('JER',        'lnN')
         c.addUncertainty('SFb',        'lnN')
         c.addUncertainty('SFl',        'lnN')
         c.addUncertainty('trigger',    'lnN')
@@ -165,14 +165,14 @@ def wrapper(s):
                   total_exp_bkg += expected.val
                   xSecScale = 1
                   #if s.mStop<810:
-                  #    xSecScale = 0.1
+                  #    xSecScale = 0.01
                   #    print "SCALING XSEC DOWN BY %f"%xSecScale
                   c.specifyExpectation(binname, name, expected.val*args.scale*xSecScale)
                   if expected.val>0:
                       c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val )
                       c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val )
                       c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val )
-                      c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val )
+                      #c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val )
                       c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val )
                       c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
                       c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
@@ -195,18 +195,19 @@ def wrapper(s):
                 #signal
                 e = eSignal
                 eSignal.isSignal = True
-                if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
+                if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
+                #if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
                 else:       signalSetup = setup.sysClone()
                 signal = e.cachedEstimate(r, channel, signalSetup)
                 xSecScale = 1
-                #if s.mStop<810: xSecScale = 0.1
+                #if s.mStop<810: xSecScale = 0.01
                 c.specifyExpectation(binname, 'signal', args.scale*signal.val*xSecScale )
 
                 if signal.val>0:
-                  c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
+                  #c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
                   c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
                   c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
+                  #c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
                   c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
@@ -251,9 +252,9 @@ def wrapper(s):
     xSecScale = 1
     #if s.mStop<810:
     #    xSecScale = 0.1
-    if xSecScale != 1:
-        for k in res:
-            res[k] *= xSecScale
+    #if xSecScale != 1:
+    #    for k in res:
+    #        res[k] *= xSecScale
     
     if res: 
       if   args.signal == "TTbarDM":                      sString = "mChi %i mPhi %i type %s" % sConfig
@@ -288,17 +289,18 @@ if args.signal == "T2tt" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p05" or arg
   exp_down = exp.Clone("exp_down")
   exp_up   = exp.Clone("exp_up")
   obs      = exp.Clone("obs")
-  
+  limitPrefix = args.signal
   for r in results:
     s, res = r
     mStop, mNeu = s
     for hist, qE in [(exp, '0.500'), (exp_up, '0.160'), (exp_down, '0.840'), (obs, '-1.000')]:
-      print hist, qE, res[qE]
+      #print hist, qE, res[qE]
       if qE=='0.500':
         print "Masspoint m_gl %5.3f m_neu %5.3f, expected limit %5.3f"%(mStop,mNeu,res[qE])
-        hist.GetXaxis().FindBin(mStop)
-        hist.GetYaxis().FindBin(mNeu)
-        hist.Fill(mStop, mNeu, res[qE])
+      hist.GetXaxis().FindBin(mStop)
+      hist.GetYaxis().FindBin(mNeu)
+      #print hist.GetName(), mStop, mNeu, res[qE]
+      hist.Fill(mStop, mNeu, res[qE])
 
   limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
   if not os.path.exists(os.path.dirname(limitResultsFilename)):
