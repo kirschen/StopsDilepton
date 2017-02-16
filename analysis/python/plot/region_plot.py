@@ -246,6 +246,19 @@ def drawBinNumbers(numberOfBins):
     lines = [(min+(i+0.5)*diff, 0.25 if args.ratio else .12,  str(i)) for i in range(numberOfBins)]
     return [tex.DrawLatex(*l) for l in lines]
 
+def drawTTZLabels():
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.1 if args.ratio else 0.04)
+    tex.SetTextAlign(23) # align right
+    min = 0.15
+    max = 0.95
+    diff = (max-min) / 5
+    labels = ["=2j,#geq2b","=3j,=1b","=3j,#geq2b","#geq4j,=1b","#geq4j,#geq2b"]
+    lines = [(min+(i+0.5)*diff, 0.25 if args.ratio else .12,  labels[i]) for i in range(5)]
+    return [tex.DrawLatex(*l) for l in lines]
+
+
 def drawDivisions(regions):
     if args.control and args.control=="TTZ": return []
     min = 0.15
@@ -335,7 +348,7 @@ for channel in channels:
       data_histo[0][0].Sumw2(ROOT.kFALSE)
       data_histo[0][0].SetBinErrorOption(ROOT.TH1.kPoisson) # Set poissonian errors
 
-    region_plot = Plot.fromHisto(name = channel, histos = [ bkg_histos[None] ] + data_histo + sig_histos, texX = ("control" if args.control else "signal") + " region number", texY = "Events" )
+    region_plot = Plot.fromHisto(name = channel, histos = [ bkg_histos[None] ] + data_histo + sig_histos, texX = "" if (args.control and args.control=="TTZ") else (("control" if args.control else "signal") + " region number"), texY = "Events" )
 
     boxes = []
     ratio_boxes = []
@@ -376,7 +389,7 @@ for channel in channels:
     if not (args.control and args.control=="TTZ"): drawObjects += drawDivisions(regions_)
 
     if args.ratio:
-      ratio = {'yRange':(0.1,1.9), 'drawObjects': ratio_boxes + drawBinNumbers(numberOfBins)}
+      ratio = {'yRange':(0.1,1.9), 'drawObjects': ratio_boxes + drawTTZLabels() if (args.control and args.control=="TTZ") else drawBinNumbers(numberOfBins)}
     else:
       drawObjects += drawLabels(regions_) if args.labels else drawBinNumbers(numberOfBins)
       drawObjects += drawBinNumbers(numberOfBins)
