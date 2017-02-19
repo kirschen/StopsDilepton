@@ -7,6 +7,7 @@ import ROOT
 import logging
 logger = logging.getLogger(__name__)
 
+#data_directory = '/afs/hephy.at/data/rschoefbeck02/cmgTuples/'
 # Data directory
 try:
     data_directory = sys.modules['__main__'].data_directory
@@ -14,47 +15,48 @@ except:
     from StopsDilepton.tools.user import data_directory as user_data_directory
     data_directory = user_data_directory 
 
+#postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 # Take post processing directory if defined in main module
 try:
     postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-    postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
+    postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
 dirs = {}
 
-dirs["DoubleEG_Run2016B_backup"]    = ["DoubleEG_Run2016B_23Sep2016_Trig_ee", "SingleElectron_Run2016B_23Sep2016_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016B_backup"]  = ["DoubleMuon_Run2016B_23Sep2016_Trig_mumu", "SingleMuon_Run2016B_23Sep2016_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016B_backup"]      = ["MuonEG_Run2016B_23Sep2016_Trig_mue", "SingleElectron_Run2016B_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016B_23Sep2016_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016B_backup"]    = ["DoubleEG_Run2016B_03Feb2017_v2_Trig_ee", "SingleElectron_Run2016B_03Feb2017_v2_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016B_backup"]  = ["DoubleMuon_Run2016B_03Feb2017_v2_Trig_mumu", "SingleMuon_Run2016B_03Feb2017_v2_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016B_backup"]      = ["MuonEG_Run2016B_03Feb2017_v2_Trig_mue", "SingleElectron_Run2016B_03Feb2017_v2_Trig_e_for_mue", "SingleMuon_Run2016B_03Feb2017_v2_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016C_backup"]    = ["DoubleEG_Run2016C_23Sep2016_Trig_ee", "SingleElectron_Run2016C_23Sep2016_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016C_backup"]  = ["DoubleMuon_Run2016C_23Sep2016_Trig_mumu", "SingleMuon_Run2016C_23Sep2016_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016C_backup"]      = ["MuonEG_Run2016C_23Sep2016_Trig_mue", "SingleElectron_Run2016C_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016C_23Sep2016_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016C_backup"]    = ["DoubleEG_Run2016C_03Feb2017_Trig_ee", "SingleElectron_Run2016C_03Feb2017_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016C_backup"]  = ["DoubleMuon_Run2016C_03Feb2017_Trig_mumu", "SingleMuon_Run2016C_03Feb2017_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016C_backup"]      = ["MuonEG_Run2016C_03Feb2017_Trig_mue", "SingleElectron_Run2016C_03Feb2017_Trig_e_for_mue", "SingleMuon_Run2016C_03Feb2017_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016D_backup"]    = ["DoubleEG_Run2016D_23Sep2016_Trig_ee", "SingleElectron_Run2016D_23Sep2016_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016D_backup"]  = ["DoubleMuon_Run2016D_23Sep2016_Trig_mumu", "SingleMuon_Run2016D_23Sep2016_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016D_backup"]      = ["MuonEG_Run2016D_23Sep2016_Trig_mue", "SingleElectron_Run2016D_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016D_23Sep2016_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016D_backup"]    = ["DoubleEG_Run2016D_03Feb2017_Trig_ee", "SingleElectron_Run2016D_03Feb2017_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016D_backup"]  = ["DoubleMuon_Run2016D_03Feb2017_Trig_mumu", "SingleMuon_Run2016D_03Feb2017_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016D_backup"]      = ["MuonEG_Run2016D_03Feb2017_Trig_mue", "SingleElectron_Run2016D_03Feb2017_Trig_e_for_mue", "SingleMuon_Run2016D_03Feb2017_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016E_backup"]    = ["DoubleEG_Run2016E_23Sep2016_Trig_ee", "SingleElectron_Run2016E_23Sep2016_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016E_backup"]  = ["DoubleMuon_Run2016E_23Sep2016_Trig_mumu", "SingleMuon_Run2016E_23Sep2016_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016E_backup"]      = ["MuonEG_Run2016E_23Sep2016_Trig_mue", "SingleElectron_Run2016E_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016E_23Sep2016_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016E_backup"]    = ["DoubleEG_Run2016E_03Feb2017_Trig_ee", "SingleElectron_Run2016E_03Feb2017_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016E_backup"]  = ["DoubleMuon_Run2016E_03Feb2017_Trig_mumu", "SingleMuon_Run2016E_03Feb2017_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016E_backup"]      = ["MuonEG_Run2016E_03Feb2017_Trig_mue", "SingleElectron_Run2016E_03Feb2017_Trig_e_for_mue", "SingleMuon_Run2016E_03Feb2017_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016F_backup"]    = ["DoubleEG_Run2016F_23Sep2016_Trig_ee", "SingleElectron_Run2016F_23Sep2016_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016F_backup"]  = ["DoubleMuon_Run2016F_23Sep2016_Trig_mumu", "SingleMuon_Run2016F_23Sep2016_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016F_backup"]      = ["MuonEG_Run2016F_23Sep2016_Trig_mue", "SingleElectron_Run2016F_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016F_23Sep2016_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016F_backup"]    = ["DoubleEG_Run2016F_03Feb2017_Trig_ee", "SingleElectron_Run2016F_03Feb2017_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016F_backup"]  = ["DoubleMuon_Run2016F_03Feb2017_Trig_mumu", "SingleMuon_Run2016F_03Feb2017_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016F_backup"]      = ["MuonEG_Run2016F_03Feb2017_Trig_mue", "SingleElectron_Run2016F_03Feb2017_Trig_e_for_mue", "SingleMuon_Run2016F_03Feb2017_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016G_backup"]    = ["DoubleEG_Run2016G_23Sep2016_Trig_ee", "SingleElectron_Run2016G_23Sep2016_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016G_backup"]  = ["DoubleMuon_Run2016G_23Sep2016_Trig_mumu", "SingleMuon_Run2016G_23Sep2016_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016G_backup"]      = ["MuonEG_Run2016G_23Sep2016_Trig_mue", "SingleElectron_Run2016G_23Sep2016_Trig_e_for_mue", "SingleMuon_Run2016G_23Sep2016_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016G_backup"]    = ["DoubleEG_Run2016G_03Feb2017_Trig_ee", "SingleElectron_Run2016G_03Feb2017_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016G_backup"]  = ["DoubleMuon_Run2016G_03Feb2017_Trig_mumu", "SingleMuon_Run2016G_03Feb2017_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016G_backup"]      = ["MuonEG_Run2016G_03Feb2017_Trig_mue", "SingleElectron_Run2016G_03Feb2017_Trig_e_for_mue", "SingleMuon_Run2016G_03Feb2017_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016H_v2_backup"]    = ["DoubleEG_Run2016H_PromptReco_v2_Trig_ee", "SingleElectron_Run2016H_PromptReco_v2_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016H_v2_backup"]  = ["DoubleMuon_Run2016H_PromptReco_v2_Trig_mumu", "SingleMuon_Run2016H_PromptReco_v2_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016H_v2_backup"]      = ["MuonEG_Run2016H_PromptReco_v2_Trig_mue", "SingleElectron_Run2016H_PromptReco_v2_Trig_e_for_mue"]#, "SingleMuon_Run2016H_PromptReco_v2_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016H_v2_backup"]    = ["DoubleEG_Run2016H_03Feb2017_v2_Trig_ee", "SingleElectron_Run2016H_03Feb2017_v2_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016H_v2_backup"]  = ["DoubleMuon_Run2016H_03Feb2017_v2_Trig_mumu", "SingleMuon_Run2016H_03Feb2017_v2_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016H_v2_backup"]      = ["MuonEG_Run2016H_03Feb2017_v2_Trig_mue", "SingleElectron_Run2016H_03Feb2017_v2_Trig_e_for_mue"]#, "SingleMuon_Run2016H_03Feb2017_v2_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016H_v3_backup"]    = ["DoubleEG_Run2016H_PromptReco_v3_Trig_ee", "SingleElectron_Run2016H_PromptReco_v3_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016H_v3_backup"]  = ["DoubleMuon_Run2016H_PromptReco_v3_Trig_mumu", "SingleMuon_Run2016H_PromptReco_v3_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016H_v3_backup"]      = ["MuonEG_Run2016H_PromptReco_v3_Trig_mue", "SingleElectron_Run2016H_PromptReco_v3_Trig_e_for_mue", "SingleMuon_Run2016H_PromptReco_v3_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016H_v3_backup"]    = ["DoubleEG_Run2016H_03Feb2017_v3_Trig_ee", "SingleElectron_Run2016H_03Feb2017_v3_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016H_v3_backup"]  = ["DoubleMuon_Run2016H_03Feb2017_v3_Trig_mumu", "SingleMuon_Run2016H_03Feb2017_v3_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016H_v3_backup"]      = ["MuonEG_Run2016H_03Feb2017_v3_Trig_mue", "SingleElectron_Run2016H_03Feb2017_v3_Trig_e_for_mue", "SingleMuon_Run2016H_03Feb2017_v3_Trig_mu_for_mue"]
 
 
 dirs["DoubleEG_Run2016BCD_backup"]   =  dirs["DoubleEG_Run2016B_backup"]   + dirs["DoubleEG_Run2016C_backup"]   +  dirs["DoubleEG_Run2016D_backup"]  
@@ -88,17 +90,17 @@ DoubleEG_Run2016_backup       = Sample.fromDirectory(name="DoubleEG_Run2016_back
 DoubleMuon_Run2016_backup     = Sample.fromDirectory(name="DoubleMuon_Run2016_backup",     treeName="Events", texName="DoubleMuon (Run2016)",     directory=dirs["DoubleMuon_Run2016_backup"])
 MuonEG_Run2016_backup         = Sample.fromDirectory(name="MuonEG_Run2016_backup",         treeName="Events", texName="MuonEG (Run2016)",         directory=dirs["MuonEG_Run2016_backup"])
 
-DoubleEG_Run2016BCD_backup      .lumi = (5.883+2.646+4.353)*1000 
-DoubleMuon_Run2016BCD_backup    .lumi = (5.832+2.646+4.353)*1000 
-MuonEG_Run2016BCD_backup        .lumi = (5.887+2.646+4.353)*1000
+DoubleEG_Run2016BCD_backup      .lumi = (5.744+2.573+4.248)*1000 
+DoubleMuon_Run2016BCD_backup    .lumi = (5.744+2.573+4.248)*1000 
+MuonEG_Run2016BCD_backup        .lumi = (5.743+2.573+4.248)*1000
 
-DoubleEG_Run2016BCDEFG_backup      .lumi = (5.883+2.646+4.353+4.050+3.124+7.554)*1000 
-DoubleMuon_Run2016BCDEFG_backup    .lumi = (5.832+2.646+4.353+4.050+3.160+7.554)*1000
-MuonEG_Run2016BCDEFG_backup        .lumi = (5.887+2.646+4.353+4.050+3.160+7.554)*1000
+DoubleEG_Run2016BCDEFG_backup      .lumi = (5.744+2.573+4.248+4.009+3.101+7.540)*1000 
+DoubleMuon_Run2016BCDEFG_backup    .lumi = (5.744+2.573+4.248+4.009+3.101+7.540)*1000
+MuonEG_Run2016BCDEFG_backup        .lumi = (5.743+2.573+4.248+4.009+3.101+7.540)*1000
 
-DoubleEG_Run2016_backup      .lumi = (5.883+2.646+4.353+4.050+3.124+7.554+8.494+0.217)*1000
-DoubleMuon_Run2016_backup    .lumi = (5.832+2.646+4.353+4.050+3.160+7.554+8.364+0.217)*1000
-MuonEG_Run2016_backup        .lumi = (5.887+2.646+4.353+4.050+3.160+7.554+8.421+0.217)*1000
+DoubleEG_Run2016_backup      .lumi = (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000
+DoubleMuon_Run2016_backup    .lumi = (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000
+MuonEG_Run2016_backup        .lumi = (5.743+2.573+4.248+4.009+3.101+7.540+8.327+0.210)*1000
 
 
 allSamples_Data25ns = []
