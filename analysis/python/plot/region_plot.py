@@ -39,11 +39,11 @@ if args.control:
   elif args.control == "VV":   setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': True,  'dPhiInv': False, 'zWindow': 'onZ'})
   elif args.control == "DYVV": setup = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False, 'zWindow': 'onZ'})
   elif args.control == "TTZ":
-    setups   = [setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(2,2), 'nBTags':(2,2), 'dPhi': False, 'dPhiInv': False}),
-                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3), 'nBTags':(1,1), 'dPhi': False, 'dPhiInv': False}),
-                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3), 'nBTags':(2,2), 'dPhi': False, 'dPhiInv': False}),
-                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,4), 'nBTags':(1,1), 'dPhi': False, 'dPhiInv': False}),
-                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,4), 'nBTags':(2,2), 'dPhi': False, 'dPhiInv': False})]
+    setups   = [setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(2,2),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False}),
+                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(1,1),  'dPhi': False, 'dPhiInv': False}),
+                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False}),
+                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,-1), 'nBTags':(1,1),  'dPhi': False, 'dPhiInv': False}),
+                setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,-1), 'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})]
     channels = ['all'] # only make plot in channel all for TTZ CR
 
 # define order of estimators
@@ -120,8 +120,8 @@ for var in systematics.values():
 from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, getPostFitUncFromCard, applyNuisance, getBinNumber
 
 cardFile = '/user/tomc/StopsDilepton/results_80X_v30/controlDYVV/cardFiles/T2tt/T2tt_900_600.txt'
-#if args.control:
-#  if args.control == "TTZ":  cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlTTZ/cardFiles/T2tt/T2tt_550_350.txt' # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
+if args.control:
+  if args.control == "TTZ":  cardFile = '/user/tomc/StopsDilepton/results_80X_v30/controlTTZ/cardFiles/T2tt/T2tt_225_50.txt' # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
 #  if args.control == "DYVV": cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlDYVV/cardFiles/T2tt/T2tt_550_350.txt'
 
 def getSampleUncertainty(cardFile, res, var, estimate, binName):
@@ -203,8 +203,8 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         if args.control == 'DYVV' and estimate.name in ['DY', 'multiBoson'] and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
         if not args.control:
-          if estimate.name == 'DY':         res = res*1.055  # Warning currently coded by hand when applied for SR
-          if estimate.name == 'multiBoson': res = res*1.30
+          if estimate.name == 'DY':         res = res*1.115  # Warning currently coded by hand when applied for SR
+          if estimate.name == 'multiBoson': res = res*1.265
         res = getSampleUncertainty(cardFile, res, var, estimate, binName)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
@@ -245,6 +245,19 @@ def drawBinNumbers(numberOfBins):
     diff = (max-min) / numberOfBins
     lines = [(min+(i+0.5)*diff, 0.25 if args.ratio else .12,  str(i)) for i in range(numberOfBins)]
     return [tex.DrawLatex(*l) for l in lines]
+
+def drawTTZLabels():
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.1 if args.ratio else 0.04)
+    tex.SetTextAlign(23) # align right
+    min = 0.15
+    max = 0.95
+    diff = (max-min) / 5
+    labels = ["=2j,#geq2b","=3j,=1b","=3j,#geq2b","#geq4j,=1b","#geq4j,#geq2b"]
+    lines = [(min+(i+0.5)*diff, 0.25 if args.ratio else .12,  labels[i]) for i in range(5)]
+    return [tex.DrawLatex(*l) for l in lines]
+
 
 def drawDivisions(regions):
     if args.control and args.control=="TTZ": return []
@@ -335,7 +348,7 @@ for channel in channels:
       data_histo[0][0].Sumw2(ROOT.kFALSE)
       data_histo[0][0].SetBinErrorOption(ROOT.TH1.kPoisson) # Set poissonian errors
 
-    region_plot = Plot.fromHisto(name = channel, histos = [ bkg_histos[None] ] + data_histo + sig_histos, texX = ("control" if args.control else "signal") + " region number", texY = "Events" )
+    region_plot = Plot.fromHisto(name = channel, histos = [ bkg_histos[None] ] + data_histo + sig_histos, texX = "" if (args.control and args.control=="TTZ") else (("control" if args.control else "signal") + " region number"), texY = "Events" )
 
     boxes = []
     ratio_boxes = []
@@ -376,7 +389,7 @@ for channel in channels:
     if not (args.control and args.control=="TTZ"): drawObjects += drawDivisions(regions_)
 
     if args.ratio:
-      ratio = {'yRange':(0.1,1.9), 'drawObjects': ratio_boxes + drawBinNumbers(numberOfBins)}
+      ratio = {'yRange':(0.1,1.9), 'drawObjects': ratio_boxes + drawTTZLabels() if (args.control and args.control=="TTZ") else drawBinNumbers(numberOfBins)}
     else:
       drawObjects += drawLabels(regions_) if args.labels else drawBinNumbers(numberOfBins)
       drawObjects += drawBinNumbers(numberOfBins)

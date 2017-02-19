@@ -57,13 +57,16 @@ cuts=[
     ("njet2",             jetSelection+"==2"),
     ("njet3",             jetSelection+"==3"),
     ("njet4",             jetSelection+"==4"),
+    ("njet4p",            jetSelection+">=4"),
 #   ("njet40_3",          jetSelection40+"==3"),
 #   ("njet40_4",          jetSelection40+"==4"),
 #   ("nbtag0",            bJetSelectionM+"==0"),
 #   ("nbtagL",            bJetSelectionL+"==1"),
     ("nbtagM",            bJetSelectionM+"==1"),
+    ("nbtagMp",           bJetSelectionM+">=1"),
 #   ("nbtagLL",           bJetSelectionL+"==2"),
     ("nbtagMM",           bJetSelectionM+"==2"),
+    ("nbtagMMp",          bJetSelectionM+">=2"),
     ("onZ",               zMassSelection),
     ("met30",             "met_pt>30"),
 #   ("mt50",              "mt>50"),
@@ -134,7 +137,7 @@ def makeDeltaR(event, sample):
 
 
 def calcBTag(event, sample):
-  event.nJetGood    = len([j for j in range(event.nJetGood) if event.JetGood_pt[j] > 40])
+  event.nJetGood    = len([j for j in range(event.nJetGood) if event.JetGood_pt[j] > 30])
   event.nBTag       = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.8484])
   event.nBTagLoose  = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.5426])
   csvValues        = [event.JetGood_btagCSV[j] for j in range(event.nJetGood)]
@@ -278,7 +281,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'E_{T}^{miss}/#sqrt(H_{T}) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
+    texX = 'S (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
     name = 'metSig',
     attribute = lambda event, sample: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan'), 
     read_variables = ["met_pt/F", "ht/F"],
@@ -292,7 +295,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(\
-    texX = 'Cos(#phi(#E_{T}^{miss} Jet[0]))', texY = 'Number of Events',
+    texX = 'Cos(#phi(E_{T}^{miss} Jet[0]))', texY = 'Number of Events',
     name = 'cosMetJet0phi',
     attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
     read_variables = ["met_phi/F", "JetGood[phi/F]"],
