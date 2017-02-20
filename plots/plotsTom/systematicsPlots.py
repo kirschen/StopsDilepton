@@ -139,8 +139,10 @@ if args.signal == "DM":           args.plot_directory += "_DM"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
 signals = []
 if   args.signal == "T2tt":
@@ -227,24 +229,24 @@ elif mode=="mue":
   data_sample.texName = "data (1 #mu, 1 e)"
 elif mode=="SF":
   data_sample = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup]
-  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
-  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
+  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("mumu")])
+  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("ee")])
   for d in data_sample:
     d.texName = "data (SF)"
     d.style   = styles.errorStyle( ROOT.kBlack )
   lumi_scale = sum(d.lumi for d in data_sample)/float(len(data_sample))/1000
 elif mode=="all":
   data_sample = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]
-  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
-  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
-  MuonEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mue")])
+  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("mumu")])
+  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("ee")])
+  MuonEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("mue")])
   for d in data_sample:
     d.texName = "data"
     d.style   = styles.errorStyle( ROOT.kBlack )
   lumi_scale = sum(d.lumi for d in data_sample)/float(len(data_sample))/1000
 
 if mode != "all" and mode != "SF":
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection(mode)])
   data_sample.name  = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
