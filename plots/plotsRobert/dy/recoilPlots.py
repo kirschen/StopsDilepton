@@ -105,10 +105,10 @@ def getZCut(mode):
     if mode.lower()=="offz": return zstr+">15"
     return "(1)"
 
-postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v22/dilepTiny"
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 sample_DoubleMuon  = DoubleMuon_Run2016_backup

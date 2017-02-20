@@ -23,7 +23,6 @@ def toFlavourKey(pdgId):
     if abs(pdgId)==4: return ROOT.BTagEntry.FLAV_C
     return ROOT.BTagEntry.FLAV_UDSG
 
-# get the combinatorical weights for jet efficiency list eff
 #Method 1ab
 effFile          = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTJets_DiLepton_comb_2j_2l.pkl'
 sfFile           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2_Moriond17_B_H.csv'

@@ -52,7 +52,7 @@ class heppy_mapper:
             logger.info( "Check proxy.")
 
             # Proxy certificate
-            from StopsDilepton.tools.helpers import renew_proxy
+            from RootTools.core.helpers import renew_proxy
             user = os.environ['USER']
             # Make proxy in afs to allow batch jobs to run
             proxy_path = '/afs/hephy.at/user/%s/%s/private/.proxy'%(user[0], user)
@@ -167,13 +167,12 @@ data_dpm_directories = [def_robert, def_daniel]
 from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import dataSamples as heppy_data_samples
 data_heppy_mapper = heppy_mapper( heppy_data_samples, data_dpm_directories, data_cache_file)
 
-## open mu selection
-#data_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_data_openMu.pkl'
-#def_robert1 = "/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_24/"
-#def_robert2 = "/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_25/"
-#data_dpm_directories_openMu = [def_robert1, def_robert2]
-#from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import dataSamples as heppy_data_samples
-#data_heppy_mapper_openMu = heppy_mapper( heppy_data_samples, data_dpm_directories_openMu, data_cache_file)
+# Data ReminiAOD
+data_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_data_03Feb2017.pkl'
+def_robert = "/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_31"
+data_dpm_directories = [def_robert]
+from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import dataSamples as heppy_data_samples
+data_03Feb2017_heppy_mapper = heppy_mapper( heppy_data_samples, data_dpm_directories, data_cache_file)
 
 # TTbar DM signal
 ttbarDM_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_0l_TTbarDM.pkl'
