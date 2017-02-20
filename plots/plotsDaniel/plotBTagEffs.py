@@ -28,7 +28,7 @@ can = ROOT.TCanvas('can','can',600,600)
 can.SetBottomMargin(0.22)
 #can.SetLogy()
 
-bTagEffFile = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTJets_DiLepton_comb_2j_2l.pkl'
+bTagEffFile = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTLep_pow_Moriond17_2j_2l.pkl'
 effs = pickle.load(file(os.path.expandvars(bTagEffFile)))
 
 eff = {}
@@ -132,7 +132,7 @@ for key in effs.keys():
   
   #can.SetLogy()
    
-  can.Print('/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/btagEfficiency/'+key+'_Spring15.png')
-  can.Print('/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/btagEfficiency/'+key+'_Spring15.pdf')
-  can.Print('/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/btagEfficiency/'+key+'_Spring15.root')
+  can.Print('/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/btagEfficiency/'+key+'_Summer16.png')
+  can.Print('/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/btagEfficiency/'+key+'_Summer16.pdf')
+  can.Print('/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/btagEfficiency/'+key+'_Summer16.root')
   

@@ -55,7 +55,7 @@ postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
 postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 if args.signal == "T2tt":
     postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *

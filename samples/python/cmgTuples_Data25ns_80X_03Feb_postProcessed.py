@@ -48,13 +48,13 @@ dirs["DoubleEG_Run2016G_backup"]    = ["DoubleEG_Run2016G_03Feb2017_Trig_ee", "S
 dirs["DoubleMuon_Run2016G_backup"]  = ["DoubleMuon_Run2016G_03Feb2017_Trig_mumu", "SingleMuon_Run2016G_03Feb2017_Trig_mu_for_mumu"]
 dirs["MuonEG_Run2016G_backup"]      = ["MuonEG_Run2016G_03Feb2017_Trig_mue", "SingleElectron_Run2016G_03Feb2017_Trig_e_for_mue", "SingleMuon_Run2016G_03Feb2017_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016H_v2_backup"]    = ["DoubleEG_Run2016H_PromptReco_v2_Trig_ee", "SingleElectron_Run2016H_PromptReco_v2_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016H_v2_backup"]  = ["DoubleMuon_Run2016H_PromptReco_v2_Trig_mumu", "SingleMuon_Run2016H_PromptReco_v2_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016H_v2_backup"]      = ["MuonEG_Run2016H_PromptReco_v2_Trig_mue", "SingleElectron_Run2016H_PromptReco_v2_Trig_e_for_mue", "SingleMuon_Run2016H_PromptReco_v2_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016H_v2_backup"]    = ["DoubleEG_Run2016H_03Feb2017_v2_Trig_ee", "SingleElectron_Run2016H_03Feb2017_v2_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016H_v2_backup"]  = ["DoubleMuon_Run2016H_03Feb2017_v2_Trig_mumu", "SingleMuon_Run2016H_03Feb2017_v2_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016H_v2_backup"]      = ["MuonEG_Run2016H_03Feb2017_v2_Trig_mue", "SingleElectron_Run2016H_03Feb2017_v2_Trig_e_for_mue", "SingleMuon_Run2016H_03Feb2017_v2_Trig_mu_for_mue"]
 
-dirs["DoubleEG_Run2016H_v3_backup"]    = ["DoubleEG_Run2016H_PromptReco_v3_Trig_ee", "SingleElectron_Run2016H_PromptReco_v3_Trig_e_for_ee"]
-dirs["DoubleMuon_Run2016H_v3_backup"]  = ["DoubleMuon_Run2016H_PromptReco_v3_Trig_mumu", "SingleMuon_Run2016H_PromptReco_v3_Trig_mu_for_mumu"]
-dirs["MuonEG_Run2016H_v3_backup"]      = ["MuonEG_Run2016H_PromptReco_v3_Trig_mue", "SingleElectron_Run2016H_PromptReco_v3_Trig_e_for_mue", "SingleMuon_Run2016H_PromptReco_v3_Trig_mu_for_mue"]
+dirs["DoubleEG_Run2016H_v3_backup"]    = ["DoubleEG_Run2016H_03Feb2017_v3_Trig_ee", "SingleElectron_Run2016H_03Feb2017_v3_Trig_e_for_ee"]
+dirs["DoubleMuon_Run2016H_v3_backup"]  = ["DoubleMuon_Run2016H_03Feb2017_v3_Trig_mumu", "SingleMuon_Run2016H_03Feb2017_v3_Trig_mu_for_mumu"]
+dirs["MuonEG_Run2016H_v3_backup"]      = ["MuonEG_Run2016H_03Feb2017_v3_Trig_mue", "SingleElectron_Run2016H_03Feb2017_v3_Trig_e_for_mue", "SingleMuon_Run2016H_03Feb2017_v3_Trig_mu_for_mue"]
 
 
 dirs["DoubleEG_Run2016BCD_backup"]   =  dirs["DoubleEG_Run2016B_backup"]   + dirs["DoubleEG_Run2016C_backup"]   +  dirs["DoubleEG_Run2016D_backup"]  
