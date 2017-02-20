@@ -98,7 +98,7 @@ class SystematicEstimator:
 
     def topPtSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'remove':['reweightTopPt']}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightTopPt']}))
         return abs(0.5*(up-ref)/ref) if ref > 0 else up
 
     def JERSystematic(self, region, channel, setup):
@@ -165,7 +165,7 @@ class SystematicEstimator:
             (region, channel, setup.sysClone({'reweight':['reweightPU36fbUp']})),
             (region, channel, setup.sysClone({'reweight':['reweightPU36fbDown']})),
 
-            (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
+            (region, channel, setup.sysClone({'reweight':['reweightTopPt']})),
 
             (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
             (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
@@ -192,7 +192,7 @@ class SystematicEstimator:
     def getSigSysJobs(self, region, channel, setup, isFastSim = False):
         if isFastSim:
             l = [
-                (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
+                (region, channel, setup.sysClone({'reweight':['reweightTopPt']})),
 
                 (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
                 (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),

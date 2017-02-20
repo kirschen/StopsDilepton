@@ -70,7 +70,7 @@ class Setup:
             'triLep':        default_triLep,
         }
 
-        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF'], 'selectionModifier':None}
+        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightBTag_SF'], 'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
 
