@@ -66,7 +66,7 @@ for name, fss in [
     mc_histos[2].legendText = "multi boson"
     mc_histos[2].SetFillColor( ROOT.kOrange )
     for h in mc_histos:
-        h.style = styles.fillStyle(h.GetFillColor(), lineColor = h.GetFillColor())
+        h.style = styles.fillStyle(h.GetFillColor(), lineColor = h.GetFillColor(), errors = True)
     #for m in mc_histos:
     #    m.legendText = ' '.join(m.GetName().split('_')[4:-5])
 

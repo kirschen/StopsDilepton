@@ -41,11 +41,11 @@ for control in [None]: #, None, 'DYVV', 'TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
 
 
 ##Group 1
-#for i, estimator in enumerate(estimators):
-#  for j, region in enumerate(allRegions):
-#    # print "./submit.sh 'python run_estimate.py --selectEstimator=" + estimator + " --selectRegion=%i'"%j 
-#    os.system( "%s 'python run_estimate.py --selectEstimator=%s --selectRegion=%i'"%(submitCMD, estimator, j) )
-#
+for i, estimator in enumerate(estimators):
+  for j, region in enumerate(allRegions):
+    # print "./submit.sh 'python run_estimate.py --selectEstimator=" + estimator + " --selectRegion=%i'"%j 
+    os.system( "%s 'python run_estimate.py --selectEstimator=%s --selectRegion=%i'"%(submitCMD, estimator, j) )
+
 ## Group 2
 #from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import signals_T2tt
 #signalEstimators = [s.name for s in signals_T2tt]

@@ -25,7 +25,7 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_test')
+argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_v30')
 argParser.add_argument('--selection',          action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
@@ -56,13 +56,13 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 #postProcessing_directory = "postProcessed_80X_v22/dilepTiny"
 #from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v26/dilep/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v26/dilep"
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 if args.signal == "T2tt":
-    postProcessing_directory = "postProcessed_80X_v26/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
     T2tt                    = T2tt_650_1
     T2tt2                   = T2tt_500_250
@@ -122,25 +122,25 @@ sequence = []
 # extra lepton stuff
 read_variables += [
      "nLepGood/I", "LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]",
-     "nLepOther/I", "LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]",
+     #"nLepOther/I", "LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]",
     ]
 # Compute leptons
 from StopsDilepton.tools.objectSelection    import alwaysTrue, alwaysFalse, getGoodAndOtherLeptons, leptonVars
 from StopsDilepton.tools.helpers            import deltaR
 import itertools
 
-def makeLeptons( event, sample ):
-    all_muons = sorted( getGoodAndOtherLeptons(event, collVars = leptonVars, ptCut=10, mu_selector = alwaysTrue, ele_selector = alwaysFalse), key = lambda p:-p['pt'] )
-    if len(all_muons)>2:
-        minDR = min([ deltaR(l1, l2) for l1, l2 in itertools.combinations( all_muons, 2 ) ] )
-    else: 
-        minDR = None
-
-    print minDR 
-
-    return
-
-sequence.append( makeLeptons )
+#def makeLeptons( event, sample ):
+#    all_muons = sorted( getGoodAndOtherLeptons(event, collVars = leptonVars, ptCut=10, mu_selector = alwaysTrue, ele_selector = alwaysFalse), key = lambda p:-p['pt'] )
+#    if len(all_muons)>2:
+#        minDR = min([ deltaR(l1, l2) for l1, l2 in itertools.combinations( all_muons, 2 ) ] )
+#    else: 
+#        minDR = None
+#
+#    print minDR 
+#
+#    return
+#
+#sequence.append( makeLeptons )
 
 
 # default offZ for SF
