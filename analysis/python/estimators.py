@@ -3,7 +3,7 @@ from StopsDilepton.analysis.DataDrivenDYEstimate         import DataDrivenDYEsti
 from StopsDilepton.analysis.DataDrivenMultiBosonEstimate import DataDrivenMultiBosonEstimate
 from StopsDilepton.analysis.DataDrivenTTZEstimate        import DataDrivenTTZEstimate
 from StopsDilepton.analysis.DataDrivenTTJetsEstimate     import DataDrivenTTJetsEstimate
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 from SetupHelpers import channels 
 from Setup import Setup, otherEWKComponents
 from StopsDilepton.analysis.Region import Region

@@ -18,7 +18,7 @@ except:
 try:
     postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-    postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
+    postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
@@ -92,18 +92,17 @@ DoubleEG_Run2016_backup       = Sample.fromDirectory(name="DoubleEG_Run2016_back
 DoubleMuon_Run2016_backup     = Sample.fromDirectory(name="DoubleMuon_Run2016_backup",     treeName="Events", texName="DoubleMuon (Run2016)",     directory=dirs["DoubleMuon_Run2016_backup"])
 MuonEG_Run2016_backup         = Sample.fromDirectory(name="MuonEG_Run2016_backup",         treeName="Events", texName="MuonEG (Run2016)",         directory=dirs["MuonEG_Run2016_backup"])
 
-DoubleEG_Run2016BCD_backup      .lumi = (5.883+2.646+4.353)*1000 
-DoubleMuon_Run2016BCD_backup    .lumi = (5.832+2.646+4.353)*1000 
-MuonEG_Run2016BCD_backup        .lumi = (5.887+2.646+4.353)*1000
+DoubleEG_Run2016BCD_backup      .lumi = (5.744+2.573+4.248)*1000
+DoubleMuon_Run2016BCD_backup    .lumi = (5.744+2.573+4.248)*1000
+MuonEG_Run2016BCD_backup        .lumi = (5.743+2.573+4.248)*1000
 
-DoubleEG_Run2016BCDEFG_backup      .lumi = (5.883+2.646+4.353+4.050+3.124+7.554)*1000 
-DoubleMuon_Run2016BCDEFG_backup    .lumi = (5.832+2.646+4.353+4.050+3.160+7.554)*1000
-MuonEG_Run2016BCDEFG_backup        .lumi = (5.887+2.646+4.353+4.050+3.160+7.554)*1000
+DoubleEG_Run2016BCDEFG_backup      .lumi = (5.744+2.573+4.248+4.009+3.101+7.540)*1000
+DoubleMuon_Run2016BCDEFG_backup    .lumi = (5.744+2.573+4.248+4.009+3.101+7.540)*1000
+MuonEG_Run2016BCDEFG_backup        .lumi = (5.743+2.573+4.248+4.009+3.101+7.540)*1000
 
-DoubleEG_Run2016_backup      .lumi = (5.883+2.646+4.353+4.050+3.124+7.554+8.494+0.217)*1000
-DoubleMuon_Run2016_backup    .lumi = (5.832+2.646+4.353+4.050+3.160+7.554+8.364+0.217)*1000
-MuonEG_Run2016_backup        .lumi = (5.887+2.646+4.353+4.050+3.160+7.554+8.421+0.217)*1000
-
+DoubleEG_Run2016_backup      .lumi = (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000
+DoubleMuon_Run2016_backup    .lumi = (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000
+MuonEG_Run2016_backup        .lumi = (5.743+2.573+4.248+4.009+3.101+7.540+8.327+0.210)*1000
 
 allSamples_Data25ns = []
 ##allSamples_Data25ns += [DoubleEG_Run2016B, MuonEG_Run2016B, DoubleMuon_Run2016B]#, SingleElectron_Run2016B, SingleMuon_Run2016B]
