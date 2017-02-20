@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 #binning in pt and eta
-ptBorders = [30, 40, 50, 60, 70, 80, 100, 120, 160, 210, 260, 320, 400, 500, 670]
+ptBorders = [30, 50, 70, 100, 140, 200, 300, 600, 1000]
 ptBins = []
 etaBins = [[0,0.8], [0.8,1.6], [ 1.6, 2.4]]
 for i in range(len(ptBorders)-1):

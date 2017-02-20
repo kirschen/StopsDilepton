@@ -9,7 +9,8 @@ from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 ROOT.gROOT.SetBatch(True)
 
-defFile= os.path.join(analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/limits/T2tt/regionsO/limitResults.root")
+defFile= os.path.join(analysis_results, "signalOnly/limits/T2tt/T2tt/limitResults.root")
+#defFile= os.path.join(analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/limits/T2tt/regionsO/limitResults.root")
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -34,7 +35,7 @@ for i in ["obs_up","obs_down"]:
 
 from StopsDilepton.tools.xSecSusy import xSecSusy
 xSecSusy_ = xSecSusy()
-xSecKey = "exp" # exp or obs
+xSecKey = "obs" # exp or obs
 for ix in range(hists[xSecKey].GetNbinsX()):
     for iy in range(hists[xSecKey].GetNbinsY()):
         mStop = hists[xSecKey].GetXaxis().GetBinLowEdge(ix)
@@ -92,7 +93,7 @@ outputname = os.path.join(plotDir, 'limit')
 fileIN = inputFile('T2tt_limit.cfg')
 
 # classic temperature histogra
-xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.EXPECTED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
+xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
 xsecPlot.Draw()
 xsecPlot.Save("%sXSEC" %outputname)
 
@@ -101,12 +102,12 @@ xsecPlot.c.Write("cCONT_XSEC")
 temp.Close()
 
 # only lines
-contPlot = smsPlotCONT(modelname, fileIN.HISTOGRAM, fileIN.EXPECTED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
+contPlot = smsPlotCONT(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
 contPlot.Draw()
 contPlot.Save("%sCONT" %outputname)
 
 # brazilian flag (show only 1 sigma)
-brazilPlot = smsPlotBrazil(modelname, fileIN.HISTOGRAM, fileIN.EXPECTED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
+brazilPlot = smsPlotBrazil(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
 brazilPlot.Draw()
 brazilPlot.Save("%sBAND" %outputname)
 

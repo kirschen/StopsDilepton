@@ -54,10 +54,10 @@ data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
 postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
+postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 if args.signal == "T2tt":
-    postProcessing_directory = "postProcessed_80X_v26/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
     T2tt                    = T2tt_650_1
     T2tt2                   = T2tt_500_250
@@ -65,27 +65,29 @@ if args.signal == "T2tt":
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T2tt, T2tt2]
 elif args.signal == "T8bbllnunu":
-    postProcessing_directory = "postProcessed_80X_v28/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p5_700_600
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p5_600_500
-    T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p5_500_400
+    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p95_1300_1
+    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p95_1300_300
+    T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p95_1300_600
     T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
     T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
 elif args.signal == "compilation":
-    postProcessing_directory = "postProcessed_80X_v26/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-    postProcessing_directory = "postProcessed_80X_v28/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    T2tt                    = T2tt_650_1
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_1100_1
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p5_1100_1
-    T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
-    T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-    T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-    signals = [ T2tt, T8bbllnunu, T8bbllnunu2 ]
+    T2tt                    = T2tt_800_1
+    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_800_1
+    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p5_800_1
+    T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p95_800_1
+    T2tt.style              = styles.lineStyle( ROOT.kGreen-3, width=3 )
+    T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
+    T8bbllnunu2.style        = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+    T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
+    signals = [ T2tt, T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
     
 elif args.signal == "DM":
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
@@ -198,22 +200,14 @@ for index, mode in enumerate(allModes):
     sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
 
   for sample in signals:
-      if args.signal == "T2tt":
+      if args.signal == "T2tt" or args.signal == "T8bbllnunu" or args.signal == "compilation":
         sample.scale          = lumi_scale
         sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-        sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
-        sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
-      elif args.signal == "T8bbllnunu" or args.signal == "compilation":
-        sample.scale          = lumi_scale
-        sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-        sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+        sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup
         sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
       else:
         raise NotImplementedError
 
-  #DY_HT_LO.weight = lambda event, sample: event.reweightTopPt*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*1.06
-  #for s in multiBosonList:
-  #  s.weight = lambda event, sample: event.reweightTopPt*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*1.3
   
   if not args.noData:
     stack = Stack(mc, data_sample)
