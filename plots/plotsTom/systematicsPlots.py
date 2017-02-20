@@ -184,12 +184,12 @@ def addSys( selectionString , sys = None ):
 
 
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF,                                "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF")
-    elif 'TopPt' in sys:            return (lambda event, sample:event.weight*                    event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF,                                "weight*              reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF") # no top pt reweighting here, because the default 'None' is to have it switched on
-    elif 'LeptonSF' in sys:         return (lambda event, sample:event.weight*event.reweightTopPt*                       event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightTopPt*                 reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF*reweight"+sys)
-    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*                     event.reweightDilepTriggerBackup*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightTopPt*reweightLeptonSF*               reweightDilepTriggerBackup*reweightBTag_SF*reweight"+sys)
-    elif 'Trigger' in sys:          return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*                                 event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*                          *reweightBTag_SF*reweight"+sys)
-    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*                      getattr(event, "reweight"+sys), "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*                reweight"+sys)
+    if sys is None:                 return (lambda event, sample:event.weight*                    event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF,                                "weight*              reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF")
+    elif 'TopPt' in sys:            return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF,                                "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF")
+    elif 'LeptonSF' in sys:         return (lambda event, sample:event.weight*                                           event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*                               reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF*reweight"+sys)
+    elif 'PU' in sys:               return (lambda event, sample:event.weight*                    event.reweightLeptonSF*                     event.reweightDilepTriggerBackup*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*              reweightLeptonSF*               reweightDilepTriggerBackup*reweightBTag_SF*reweight"+sys)
+    elif 'Trigger' in sys:          return (lambda event, sample:event.weight*                    event.reweightLeptonSF*event.reweightPU36fb*                                 event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*              reweightLeptonSF*reweightPU36fb*                          *reweightBTag_SF*reweight"+sys)
+    elif 'BTag' in sys:             return (lambda event, sample:event.weight*                    event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*                      getattr(event, "reweight"+sys), "weight*              reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*                reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
 
@@ -287,14 +287,14 @@ if args.signal == "T2tt":
   for s in signals:
     s.scale          = lumi_scale
     s.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F','reweightTopPt/F']
-    s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightTopPt
+    s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF
     s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 if args.signal == "DM":
   for s in signals:
     s.scale          = lumi_scale
     s.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F','reweightTopPt/F']
-    s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightTopPt
+    s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF
     s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
