@@ -13,21 +13,21 @@ estimators = ["TTJets",
               "other",
              ]
 
-submitCMD = "submitBatch.py --title='Estimate' "
-#submitCMD = "echo "
+#submitCMD = "submitBatch.py --title='Estimate' "
+submitCMD = "echo "
 
 from StopsDilepton.analysis.regions import regionsO, regions80X, reducedRegionsNew, superRegion, superRegion140, regions80X_2D
 #allRegions = regions80X + superRegion + superRegion140 + regions80X_2D
 allRegions = regionsO
-signalEstimators = [s.name for s in signals_T2tt]
+#signalEstimators = [s.name for s in signals_T2tt]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p05]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p5]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p95]
-#signalEstimators = []
+signalEstimators = []
 
-estimators = []
+#estimators = []
 
-for control in ['DYVV']: #, None 'TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
+for control in [None]: #, None, 'DYVV', 'TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
 #for control in ['TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
   controlString = '' if not control else (' --control=' + control)
   for i, estimator in enumerate(estimators):
