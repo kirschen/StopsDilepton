@@ -52,13 +52,32 @@ class SystematicEstimator:
     def uniqueKey(self, region, channel, setup):
         return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
 
+    def replace(self, i, r):
+        try:
+          if i.count('reweight'): return i.replace(r[0], r[1])
+          else:                   return i
+        except:                   return i
+
+    def keyVariations(self, key):
+        variations = []
+        replaceList = [('"reweightLeptonSF", "reweightPU36fb", "reweightBTag_SF", "reweightTopPt", "reweightDilepTriggerBackup"','"reweightPU36fb", "reweightDilepTriggerBackup", "reweightLeptonSF", "reweightTopPt", "reweightBTag_SF"')]
+        for r in replaceList:
+          variations.append(tuple(self.replace(i, r) for i in key))
+        return variations
+
     def cachedEstimate(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
         if (self.cache and self.cache.contains(key)) and not overwrite:
             res = self.cache.get(key)
             logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
         elif self.cache:
-            logger.debug( "Calculating %s result for %r"%(self.name, key) )
+            for altKey in self.keyVariations(key):
+              logger.info( "Trying alternative key: " + str(altKey) + " instead of " + str(key))
+              if self.cache.contains(altKey):
+                res = self.cache.get(altKey)
+                logger.debug( "Loading cached %s result for %r : %r"%(self.name, altKey, res) )
+                return res if res > 0 else u_float(0,0)
+            logger.info( "Calculating %s result for %r"%(self.name, key) )
             estimate = self._estimate( region, channel, setup)
             res = self.cache.add( key, estimate, save=save)
             logger.debug( "Adding cached %s result for %r : %r" %(self.name, key, estimate) )
@@ -171,8 +190,30 @@ class SystematicEstimator:
         return l
 
     def getSigSysJobs(self, region, channel, setup, isFastSim = False):
-        l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
         if isFastSim:
+            l = [
+                (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
+
+                (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
+
+                (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
+
+                (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnDown'})),
+
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']})),
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']})),
+
+                (region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']})),
+                (region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']})),
+
+                (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']})),
+                (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupUp']})),
+            ]
             l.extend( [\
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Up']})),
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']})),
@@ -180,6 +221,8 @@ class SystematicEstimator:
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
                 (region, channel, setup.sysClone({'selectionModifier':'genMet'})),
             ] )
+        else:
+            l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
         return l
 
     def getTexName(self, channel, rootTex=True):

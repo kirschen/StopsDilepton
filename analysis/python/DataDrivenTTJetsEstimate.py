@@ -49,5 +49,5 @@ class DataDrivenTTJetsEstimate(SystematicEstimator):
             logger.info("normalization:             " + str(normalization))
             if normRegYield < 0 and yield_data > 0: logger.warn("Negative normalization region yield!")
 
-	logger.info('Estimate for TTJets in ' + channel + ' channel' + (' (lumi=' + str(setup.lumi[channel]) + '/pb)' if (channel != "all" and channel != "SF") else "") + ': ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
-	return estimate if estimate > 0 else u_float(0, 0)
+        logger.info('Estimate for TTJets in ' + channel + ' channel' + (' (lumi=' + str(setup.lumi[channel]) + '/pb)' if (channel != "all" and channel != "SF") else "") + ': ' + str(estimate) + (" (negative estimated being replaced by 0)" if estimate < 0 else ""))
+        return estimate if estimate > 0 else u_float(0, 0)

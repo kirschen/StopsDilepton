@@ -24,15 +24,15 @@ modifiers = [ {},
             ]
 
 selections = [ 
-               ("met50",                 "$\\met > 50$ GeV"),
-               ("met80",                 "$\\met > 80$ GeV"),
-               ("met50_metSig5",         "$\\met > 50$ GeV, $\\metSig > 5$"),
-               ("met80_metSig5",         "$\\met > 80$ GeV, $\\metSig > 5$"),
-               ("met50_dPhiInv",         "$\\met > 50$ GeV, inv. $\\Delta\\phi$"),
-               ("met80_dPhiInv",         "$\\met > 80$ GeV, inv. $\\Delta\\phi$"),
-               ("met50_metSig5_dPhi",    "$\\met > 50$ GeV, $\\metSig > 5, \\Delta\\phi$"),
+#               ("met50",                 "$\\met > 50$ GeV"),
+#               ("met80",                 "$\\met > 80$ GeV"),
+#               ("met50_metSig5",         "$\\met > 50$ GeV, $\\metSig > 5$"),
+#               ("met80_metSig5",         "$\\met > 80$ GeV, $\\metSig > 5$"),
+#               ("met50_dPhiInv",         "$\\met > 50$ GeV, inv. $\\Delta\\phi$"),
+#               ("met80_dPhiInv",         "$\\met > 80$ GeV, inv. $\\Delta\\phi$"),
+#               ("met50_metSig5_dPhi",    "$\\met > 50$ GeV, $\\metSig > 5, \\Delta\\phi$"),
                ("met80_metSig5_dPhi",    "$\\met > 80$ GeV, $\\metSig > 5, \\Delta\\phi$"),
-               ("met50_metSig5_dPhiInv", "$\\met > 50$ GeV, $\\metSig > 5$, inv. $\\Delta\\phi$"),
+#               ("met50_metSig5_dPhiInv", "$\\met > 50$ GeV, $\\metSig > 5$, inv. $\\Delta\\phi$"),
                ("met80_metSig5_dPhiInv", "$\\met > 80$ GeV, $\\metSig > 5$, inv. $\\Delta\\phi$")
              ]
 
@@ -60,7 +60,7 @@ with open(texfile, "w") as table:
     for channel in ['MuMu']:  # is the same for EE
       for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a control
         for modifier in modifiers:
-  	  (yields, data, scaleFactor) = estimateDY._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True)
+          (yields, data, scaleFactor) = estimateDY._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True)
           table.write("  " + tex + " & "+ " & ".join([("%.2f" % yields[s].val) for s in ['DY','TTJets','multiBoson','TTZ','TTXNoZ']]) + " & " + "%d" % data.val)
           table.write("& $%.2f\pm%.2f$" % (scaleFactor.val, scaleFactor.sigma))
           table.write(" & $%.0f\\%%$" % (100*yields['DY'].val/sum(yields[s].val for s in ['DY','TTJets','multiBoson','TTZ','TTXNoZ'])))
@@ -89,7 +89,7 @@ with open(texfile, "w") as table:
     for channel in ['MuMu']:  # is the same for EE
       for r in [Region('dl_mt2ll', (100,-1))]:  # also the same in each applied region because we use a controlRegion
         for modifier in modifiers:
-  	  (yields, data, scaleFactor) = estimateMB._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True, estimateDY=estimateDY)
+          (yields, data, scaleFactor) = estimateMB._estimate(r, channel, setup.sysClone(modifier), returnScaleFactor=True, estimateDY=estimateDY)
           table.write("  " + tex + " & "+ " & ".join([("%.2f" % yields[s].val) for s in ['multiBoson','TTJets','DY-DD','TTZ','TTXNoZ']]) + " & " + "%d" % data.val)
           table.write("& $%.2f\pm%.2f$" % (scaleFactor.val, scaleFactor.sigma))
           table.write(" & $%.0f\\%%$" % (100*yields['multiBoson'].val/sum(yields[s].val for s in ['multiBoson','TTJets','DY-DD','TTZ','TTXNoZ'])))

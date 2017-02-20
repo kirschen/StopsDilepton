@@ -24,7 +24,7 @@ argParser.add_argument('--plot_directory', action='store',      default='TTZ')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
-argParser.add_argument('--NLO',            action='store_true', default=False)
+argParser.add_argument('--LO',             action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
 
@@ -43,8 +43,8 @@ from StopsDilepton.tools.trilepSelection import getTrilepSelection
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
 jetSelection40  = "(Sum$(JetGood_pt>40&&abs(JetGood_eta)<2.4&&JetGood_id))"
-bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
-bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))"
+bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.8484))"
+bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.5426))"
 zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 
 
@@ -57,13 +57,16 @@ cuts=[
     ("njet2",             jetSelection+"==2"),
     ("njet3",             jetSelection+"==3"),
     ("njet4",             jetSelection+"==4"),
+    ("njet4p",            jetSelection+">=4"),
 #   ("njet40_3",          jetSelection40+"==3"),
 #   ("njet40_4",          jetSelection40+"==4"),
 #   ("nbtag0",            bJetSelectionM+"==0"),
 #   ("nbtagL",            bJetSelectionL+"==1"),
     ("nbtagM",            bJetSelectionM+"==1"),
+    ("nbtagMp",           bJetSelectionM+">=1"),
 #   ("nbtagLL",           bJetSelectionL+"==2"),
     ("nbtagMM",           bJetSelectionM+"==2"),
+    ("nbtagMMp",          bJetSelectionM+">=2"),
     ("onZ",               zMassSelection),
     ("met30",             "met_pt>30"),
 #   ("mt50",              "mt>50"),
@@ -101,7 +104,7 @@ if not args.isChild and args.selection is None:
   for selection in selectionStrings:
     command = "./ttZ.py --selection=" + selection + (" --plot_directory=" + args.plot_directory)\
                                                   + (" --logLevel=" + args.logLevel)\
-                                                  + (" --NLO" if args.NLO else "")
+                                                  + (" --LO" if args.LO else "")
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     if not args.dryRun: launch(command, logfile)
@@ -109,7 +112,7 @@ if not args.isChild and args.selection is None:
   exit(0)
 
 
-if args.NLO: args.plot_directory += "NLO"
+if args.LO: args.plot_directory += "LO"
 
 #
 # Read variables and sequences
@@ -134,9 +137,9 @@ def makeDeltaR(event, sample):
 
 
 def calcBTag(event, sample):
-  event.nJetGood    = len([j for j in range(event.nJetGood) if event.JetGood_pt[j] > 40])
-  event.nBTag       = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.800])
-  event.nBTagLoose  = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.460])
+  event.nJetGood    = len([j for j in range(event.nJetGood) if event.JetGood_pt[j] > 30])
+  event.nBTag       = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.8484])
+  event.nBTagLoose  = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.5426])
   csvValues        = [event.JetGood_btagCSV[j] for j in range(event.nJetGood)]
   csvValues.sort()
   event.leadingCSV  = csvValues[-1] if len(csvValues) > 1 else -20
@@ -207,7 +210,7 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-  mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZ if args.NLO else TTZ_LO]
+  mc = [ DY_HT_LO, Top_pow, multiBoson, TTXNoZ, TTZ_LO if args.LO else TTZ]
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
@@ -278,7 +281,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'E_{T}^{miss}/#sqrt(H_{T}) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
+    texX = 'S (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
     name = 'metSig',
     attribute = lambda event, sample: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan'), 
     read_variables = ["met_pt/F", "ht/F"],
@@ -292,7 +295,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(\
-    texX = 'Cos(#phi(#E_{T}^{miss} Jet[0]))', texY = 'Number of Events',
+    texX = 'Cos(#phi(E_{T}^{miss} Jet[0]))', texY = 'Number of Events',
     name = 'cosMetJet0phi',
     attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
     read_variables = ["met_phi/F", "JetGood[phi/F]"],
@@ -448,7 +451,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'highest CSV', texY = 'Number of Events',
+    texX = 'second highest CSV', texY = 'Number of Events',
     name = 'secondCSV', attribute = lambda event, sample: event.secondCSV,
     binning=[10,0,1],
   ))
@@ -498,7 +501,7 @@ try:
   os.makedirs("./" + texdir)
 except:
   pass
-with open("./" + texdir + "/" + args.selection + ("_NLO" if args.NLO else "") + ".tex", "w") as f:
+with open("./" + texdir + "/" + args.selection + ("_LO" if args.LO else "") + ".tex", "w") as f:
   f.write("&" + " & ".join(columns) + "\\\\ \n")
   for mode in allModes + ["all"]:
     f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")

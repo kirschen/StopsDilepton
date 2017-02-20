@@ -58,7 +58,7 @@ dirs['Top']              = dirs['singleTop']# + dirs['TTJets_Lep']
 dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop']
 dirs['Top_pow_incl']     = dirs['TT_pow'] + dirs['singleTop']
 dirs['TZQ']              = ["tZq_ll_ext"]#, "tZq_nunu_reHLT"]
-dirs['TWZ']              = ["tWll"]#, "tWnunu"]
+dirs['TWZ']              = ["tWll", "tWnunu"]
 dirs['TTW']              = ["TTWToLNu_ext", "TTWToQQ"]
 dirs['TTH']              = [ \
         #"TTHbb_ext3", 

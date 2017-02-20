@@ -13,8 +13,8 @@ except:
   postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
 
 dirs = {}
-dirs['TTGJets'] = ["TTGJets"]
-dirs['ZG']      = ["ZGTo2LG"]
+dirs['TTGJets'] = ["TTGJets_comb"]
+dirs['ZG']      = ["ZGTo2LG_ext"]
 dirs['WG']      = ["WGToLNuG"]
 dirs['WWG']     = ["WWG"]
 

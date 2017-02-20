@@ -22,7 +22,8 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
 argParser.add_argument('--subtract',       action='store_true', default=False,       help='subtract residual backgrounds?')
-argParser.add_argument('--plot_directory', action='store',      default='fakeRate')
+argParser.add_argument('--plot_directory', action='store',      default='fakeRateOfficialFlags5')
+argParser.add_argument('--channel',        action='store',      default=None)
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
 argParser.add_argument('--isChild',        action='store_true', default=False)
@@ -56,10 +57,11 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./fakeRate.py --selection=" + selection + (" --plot_directory=" + args.plot_directory) + (" --subtract" if args.subtract else "") + (" --logLevel=" + args.logLevel)
-    logfile = "log/fakeRate_" + selection + ".log"
-    logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    if not args.dryRun: launch(command, logfile)
+    for channel in ["ee","mumu","emu"]:
+      command = "./fakeRate.py --selection=" + selection + (" --channel="+ channel) + (" --plot_directory=" + args.plot_directory) + (" --subtract" if args.subtract else "") + (" --logLevel=" + args.logLevel)
+      logfile = "log/fakeRate_" + selection + ".log"
+      logger.info("Launching " + selection + " on cream02 with child command: " + command)
+      if not args.dryRun: launch(command, logfile)
   logger.info("All jobs launched")
   exit(0)
 
@@ -67,9 +69,10 @@ if args.subtract: args.plot_directory += "_subtracted"
 #
 # Text on the plots
 #
+postProcessing_directory = "postProcessed_80X_v31/trilep" #not available yet
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed2 import *
 postProcessing_directory = "postProcessed_80X_v30/trilep" #not available yet
-from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed2 import *
 def drawObjects(lumi_scale ):
     tex = ROOT.TLatex()
     tex.SetNDC()
@@ -95,16 +98,17 @@ for i in leptonVars:
 
 # For third loose lepton: no isolation, but still apply id
 # Keep loosened id because otherwise we have almost no stats
-mu_selector_loose  = muonSelector(relIso03=999, dxy=99, dz=99, loose=True)
-ele_selector_loose = eleSelector(relIso03=999, eleId = 0, dxy=99, dz=99, loose=True)
-mu_selector_tight  = muonSelector(relIso03=0.12, dxy=99, dz=99)
-ele_selector_tight = eleSelector(relIso03=0.12, eleId = 4, dxy=99, dz=99)
+mu_selector_loose  = muonSelector(relIso03=999)
+ele_selector_loose = eleSelector(relIso03=999)#, eleId = 0, dxy=99, dz=99, loose=True)
+mu_selector_tight  = muonSelector(relIso03=0.12)
+ele_selector_tight = eleSelector(relIso03=0.12)#, eleId = 4, dxy=99, dz=99)
 
 yields     = {}
 allPlots   = {}
 allModes   = ['mumu','ee','mue']
 for index, mode in enumerate(allModes):
  for thirdLeptonFlavour in ['mu','e',"all"]:
+  if mode != args.channel: continue
   def isGoodLepton(l):
       return (abs(l["pdgId"])==11 and default_ele_selector(l, ptCut = 20)) or (abs(l["pdgId"])==13 and default_muon_selector(l, ptCut = 20))
 
@@ -118,6 +122,10 @@ for index, mode in enumerate(allModes):
   def getThirdLepton( event, sample ):
       allExtraLeptonsLoose = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_loose, ele_selector=ele_selector_loose) if not isGoodLepton(l)]
       allExtraLeptonsTight = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_tight, ele_selector=ele_selector_tight) if not isGoodLepton(l)]
+
+      print [l['pt'] for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_loose, ele_selector=ele_selector_loose)]
+      print [l['pt'] for l in allExtraLeptonsLoose]
+      print
       if thirdLeptonFlavour == "e":
         allExtraLeptonsLoose = filter(lambda l: abs(l['pdgId']) == 11, allExtraLeptonsLoose)
         allExtraLeptonsTight = filter(lambda l: abs(l['pdgId']) == 11, allExtraLeptonsTight)
@@ -167,7 +175,7 @@ for index, mode in enumerate(allModes):
     sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F']
     sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF
 
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection(mode)])
   for sample in mc:
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
   stack = Stack(mc, data_sample)
@@ -287,6 +295,7 @@ for index, mode in enumerate(allModes):
         ratio = {'yRange':(0.1,1.9)},
         logX = False, logY = log, sorting = False,
         yRange = (0.03, "auto"),
+        scaling = {0:1},
         drawObjects = drawObjects(lumi_scale)
       )
   allPlots[mode+thirdLeptonFlavour] = plots

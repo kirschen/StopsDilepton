@@ -60,50 +60,50 @@ class DataDrivenTTZEstimate(SystematicEstimator):
               sysError  = max((abs(x) for x in self.sysErrTop16009))    # not sure yet to handle assymetric errors
               statError = max((abs(x) for x in self.statErrTop16009))
               error     = sqrt(sysError*sysError+statError*statError)
-	      return u_float(self.ratioTop16009, error)*yield_ttZ_2l
+              return u_float(self.ratioTop16009, error)*yield_ttZ_2l
 
             else:
-	      # pt leptons > 30, 20, 10 GeV
+              # pt leptons > 30, 20, 10 GeV
               lllSelection          = {}
-	      lllSelection['MuMu']  = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)])
-	      lllSelection['MuMuE'] = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)])
-	      lllSelection['MuEE']  = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)])
-	      lllSelection['EE']    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)])
+              lllSelection['MuMu']  = "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)])
+              lllSelection['MuMuE'] = "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)])
+              lllSelection['MuEE']  = "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)])
+              lllSelection['EE']    = "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)])
               lllSelection['EMu']   = "(("+lllSelection['MuMuE']+")||("+lllSelection['MuEE']+"))"
 
-	      bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
-	      bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))"
-	      zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
+              bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
+              bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))"
+              zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 
-	      # Start from base hadronic selection and add loose b-tag and Z-mass requirement
-	      selection       = {}
-	      for dataOrMC in ["Data", "MC"]:
-		selection[dataOrMC]  = setup.selection(dataOrMC, hadronicSelection = True, **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 0., 'metSigMin':0., 'dPhi':False }))['cut']
-		selection[dataOrMC] += "&&" + bJetSelectionL+">="+str(self.nLooseBTags[0])
-		selection[dataOrMC] += "&&" + zMassSelection 
+              # Start from base hadronic selection and add loose b-tag and Z-mass requirement
+              selection       = {}
+              for dataOrMC in ["Data", "MC"]:
+                selection[dataOrMC]  = setup.selection(dataOrMC, hadronicSelection = True, **setup.defaultParameters(update={'nJets': self.nJets, 'nBTags':self.nMediumBTags, 'metMin': 0., 'metSigMin':0., 'dPhi':False }))['cut']
+                selection[dataOrMC] += "&&" + bJetSelectionL+">="+str(self.nLooseBTags[0])
+                selection[dataOrMC] += "&&" + zMassSelection 
 
-	      # Calculate yields (take together channels together)
+              # Calculate yields (take together channels together)
               channels      = ['MuMu','EE','EMu']
-	      yield_ttZ_3l  = sum(self.yieldFromCache(setup, 'TTZ',  c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels)
-	      yield_other   = sum(self.yieldFromCache(setup, s,      c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels for s in ['TTJets', 'DY', 'multiBoson', 'other'])
-	      yield_data_3l = sum(self.yieldFromCache(setup, 'Data', c, "&&".join([lllSelection[c], selection["Data"]]), "(1)")                               for c in channels)
+              yield_ttZ_3l  = sum(self.yieldFromCache(setup, 'TTZ',  c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels)
+              yield_other   = sum(self.yieldFromCache(setup, s,      c, "&&".join([lllSelection[c], selection["MC"]]),   weight)*setup.dataLumi[channel]/1000 for c in channels for s in ['TTJets', 'DY', 'multiBoson', 'other'])
+              yield_data_3l = sum(self.yieldFromCache(setup, 'Data', c, "&&".join([lllSelection[c], selection["Data"]]), "(1)")                               for c in channels)
 
               if not yield_ttZ_3l > 0:
                 logger.warn("No yield for 3l selection")
                 estimate = u_float(0, 0)
 
-	      yield_ttZ_data = yield_data_3l - yield_other
-	      if yield_ttZ_data < 0:
+              yield_ttZ_data = yield_data_3l - yield_other
+              if yield_ttZ_data < 0:
                 logger.warn("Data-driven ratio is negative!")
                 yield_ttZ_data = u_float(0, 0)
 
-	      logger.info("Control region predictions: ")
-	      logger.info("  data:        " + str(yield_data_3l))
-	      logger.info("  MC other:    " + str(yield_other))
-	      logger.info("  TTZ (MC):    " + str(yield_ttZ_3l))
-	      logger.info("  TTZ (data):  " + str(yield_ttZ_data))
-	      logger.info("  TTZ (ratio): " + str(yield_ttZ_data/yield_ttZ_3l))
-	      estimate = (yield_ttZ_data/yield_ttZ_3l)*yield_ttZ_2l
+              logger.info("Control region predictions: ")
+              logger.info("  data:        " + str(yield_data_3l))
+              logger.info("  MC other:    " + str(yield_other))
+              logger.info("  TTZ (MC):    " + str(yield_ttZ_3l))
+              logger.info("  TTZ (data):  " + str(yield_ttZ_data))
+              logger.info("  TTZ (ratio): " + str(yield_ttZ_data/yield_ttZ_3l))
+              estimate = (yield_ttZ_data/yield_ttZ_3l)*yield_ttZ_2l
 
         logger.info("  -->  " + str(estimate))
-	return estimate
+        return estimate
