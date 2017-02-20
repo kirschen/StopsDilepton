@@ -69,9 +69,9 @@ if args.subtract: args.plot_directory += "_subtracted"
 #
 # Text on the plots
 #
-postProcessing_directory = "postProcessed_80X_v31/trilep" #not available yet
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed2 import *
-postProcessing_directory = "postProcessed_80X_v30/trilep" #not available yet
+postProcessing_directory = "postProcessed_80X_v31/trilep"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v30/trilep"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed2 import *
 def drawObjects(lumi_scale ):
     tex = ROOT.TLatex()
@@ -173,7 +173,7 @@ for index, mode in enumerate(allModes):
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
     sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F']
-    sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF
 
   data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection(mode)])
   for sample in mc:
@@ -295,7 +295,6 @@ for index, mode in enumerate(allModes):
         ratio = {'yRange':(0.1,1.9)},
         logX = False, logY = log, sorting = False,
         yRange = (0.03, "auto"),
-        scaling = {0:1},
         drawObjects = drawObjects(lumi_scale)
       )
   allPlots[mode+thirdLeptonFlavour] = plots
