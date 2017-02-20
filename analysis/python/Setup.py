@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 from StopsDilepton.tools.user import analysis_results
 
 #define samples
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
 #Choices for specific samples
