@@ -25,6 +25,7 @@ argParser.add_argument('--noData',         action='store_true', default=False,  
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
+argParser.add_argument('--scaleDYVV',      action='store_true', default=False)
 argParser.add_argument('--LO',             action='store_true', default=False)
 argParser.add_argument('--splitBosons',    action='store_true', default=False)
 argParser.add_argument('--splitBosons2',   action='store_true', default=False)
@@ -83,7 +84,6 @@ selectionStrings = ['relIso0.12',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']
 
-
 def launch(command, logfile):
   if args.runLocal: os.system(command + " --isChild &> " + logfile)
   else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
@@ -109,6 +109,7 @@ if not args.isChild and args.selection is None:
   exit(0)
 
 if args.noData:                   args.plot_directory += "_noData"
+if args.scaleDYVV:                args.plot_directory += "_scaleDYVV"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.splitBosons2:             args.plot_directory += "_splitMultiBoson2"
 if args.signal == "DM":           args.plot_directory += "_DM"
@@ -125,7 +126,7 @@ if args.selection.count("njet2p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSi
 # Make samples, will be searched for in the postProcessing directory
 #
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
 signals = []
 if args.signal == "T2tt":
@@ -235,14 +236,10 @@ for index, mode in enumerate(allModes):
   lumi_scale                 = data_sample.lumi/1000
 
   if args.noData: lumi_scale = 36.5
-  # Blinding policies for DM and T2tt analyses
-  if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.noData:
-    if args.signal == "DM":
+  # Blinding policy for DM
+  if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.noData and args.signal == "DM":
       weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
       lumi_scale = lumi_scale/15
-    else:
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-      lumi_scale = 17.3
   else:
     weight_ = lambda event, sample: event.weight
 
@@ -254,7 +251,9 @@ for index, mode in enumerate(allModes):
 
   for sample in mc + signals:
     if not hasattr(sample, 'isFastSim'): sample.isFastSim = False
-    sample.scale          = lumi_scale
+    if   args.scaleDYVV and sample == DY_HT_LO.name:  sample.scale = lumi_scale*1.115
+    elif args.scaleDYVV and sample in multiBosonList: sample.scale = lumi_scale*1.265
+    else:                                             sample.scale = lumi_scale
     sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F'] + (['reweightLeptonFastSimSF/F'] if sample.isFastSim else [])
     sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*(event.reweightLeptonFastSimSF if sample.isFastSim else 1.)
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
