@@ -216,8 +216,8 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightLeptonSF
+    sample.read_variables = ['reweightDilepTriggerBackup/F','reweightTopPt/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
+    sample.weight         = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightTopPt
     sample.setSelectionString([getFilterCut(isData=False), getTrilepSelection(mode, args.selection.count('lpt_40_20_20'))])
 
   stack = Stack(mc, data_sample)
