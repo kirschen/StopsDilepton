@@ -24,7 +24,7 @@ def toFlavourKey(pdgId):
     return ROOT.BTagEntry.FLAV_UDSG
 
 #Method 1ab
-effFile          = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTJets_DiLepton_comb_2j_2l.pkl'
+effFile          = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTLep_pow_Moriond17_2j_2l.pkl'
 sfFile           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2_Moriond17_B_H.csv'
 sfFile_FastSim   = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/fastsim_csvv2_ttbar_26_1_2017.csv'
 

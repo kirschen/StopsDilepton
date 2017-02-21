@@ -155,7 +155,6 @@ mc_Moriond_dpm_directories = daniel
 from CMGTools.RootTools.samples.samples_13TeV_RunIISummer16MiniAODv2 import mcSamples as heppy_mc_Moriond_samples
 mc_heppy_mapper = heppy_mapper( heppy_mc_Moriond_samples, mc_Moriond_dpm_directories, mc_cache_file)
 
-
 #
 # Data
 data_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_1l_data.pkl'
@@ -173,10 +172,11 @@ from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import dataSamples as hep
 data_03Feb2017_heppy_mapper = heppy_mapper( heppy_data_samples, data_dpm_directories, data_cache_file)
 
 # TTbar DM signal
-ttbarDM_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_0l_TTbarDM.pkl'
-def_robert_0l = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_0l_23'
-ttbarDM_dpm_directories = [ def_robert_0l ]
-from CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2 import samples as heppy_TTbarDM_samples
+ttbarDM_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_0l_TTbarDM.pkl'
+#def_robert_0l = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_0l_23'
+def_daniel_0l = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_0l_32'
+ttbarDM_dpm_directories = [ def_daniel_0l ]
+from CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISummer16MiniAODv2 import samples as heppy_TTbarDM_samples
 ttbarDM_heppy_mapper = heppy_mapper( heppy_TTbarDM_samples, ttbarDM_dpm_directories, ttbarDM_cache_file)
 #
 # SUSY Signal

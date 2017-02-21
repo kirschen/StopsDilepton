@@ -109,8 +109,8 @@ if not args.isChild and args.selection is None and (args.selectSys == "all" or a
   for sys in (all_systematics if args.selectSys == "all" else ["combine"]):
     if not sys: sys = 'None'
     os.system("mkdir -p log")
-    for selection in selections:
-      for channel in ['mue','ee','mumu','SF','all']:
+    for channel in ['mue','SF','all','ee','mumu']:
+      for selection in selections:
         if args.unblind and "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" not in selection: continue
         command = "./systematicsPlots.py --selection=" + selection + (" --noData"            if args.noData            else "")\
                                                                    + (" --splitBosons"       if args.splitBosons       else "")\
@@ -139,8 +139,10 @@ if args.signal == "DM":           args.plot_directory += "_DM"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
 signals = []
 if   args.signal == "T2tt":
@@ -184,12 +186,12 @@ def addSys( selectionString , sys = None ):
 
 
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*                    event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF,                                "weight*              reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF")
-    elif 'TopPt' in sys:            return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF,                                "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF")
-    elif 'LeptonSF' in sys:         return (lambda event, sample:event.weight*                                           event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*                               reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF*reweight"+sys)
-    elif 'PU' in sys:               return (lambda event, sample:event.weight*                    event.reweightLeptonSF*                     event.reweightDilepTriggerBackup*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*              reweightLeptonSF*               reweightDilepTriggerBackup*reweightBTag_SF*reweight"+sys)
-    elif 'Trigger' in sys:          return (lambda event, sample:event.weight*                    event.reweightLeptonSF*event.reweightPU36fb*                                 event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*              reweightLeptonSF*reweightPU36fb*                          *reweightBTag_SF*reweight"+sys)
-    elif 'BTag' in sys:             return (lambda event, sample:event.weight*                    event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*                      getattr(event, "reweight"+sys), "weight*              reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*                reweight"+sys)
+    if sys is None:                 return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF,                                "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF")
+    elif 'TopPt' in sys:            return (lambda event, sample:event.weight*                    event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF,                                "weight*              reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF")
+    elif 'LeptonSF' in sys:         return (lambda event, sample:event.weight*event.reweightTopPt*                       event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightTopPt*                 reweightPU36fb*reweightDilepTriggerBackup*reweightBTag_SF*reweight"+sys)
+    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*                     event.reweightDilepTriggerBackup*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightTopPt*reweightLeptonSF*               reweightDilepTriggerBackup*reweightBTag_SF*reweight"+sys)
+    elif 'Trigger' in sys:          return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*                                 event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*                          *reweightBTag_SF*reweight"+sys)
+    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightTopPt*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*                      getattr(event, "reweight"+sys), "weight*reweightTopPt*reweightLeptonSF*reweightPU36fb*reweightDilepTriggerBackup*                reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
 
@@ -215,7 +217,7 @@ def getLeptonSelection(mode):
 # Loop over channels
 #
 allPlots   = {}
-mode == args.channel
+mode =args.channel
 if mode=="mumu":
   data_sample         = DoubleMuon_Run2016_backup
   data_sample.texName = "data (2 #mu)"
@@ -227,24 +229,24 @@ elif mode=="mue":
   data_sample.texName = "data (1 #mu, 1 e)"
 elif mode=="SF":
   data_sample = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup]
-  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
-  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
+  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("mumu")])
+  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("ee")])
   for d in data_sample:
     d.texName = "data (SF)"
     d.style   = styles.errorStyle( ROOT.kBlack )
   lumi_scale = sum(d.lumi for d in data_sample)/float(len(data_sample))/1000
 elif mode=="all":
   data_sample = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]
-  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
-  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
-  MuonEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mue")])
+  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("mumu")])
+  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("ee")])
+  MuonEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("mue")])
   for d in data_sample:
     d.texName = "data"
     d.style   = styles.errorStyle( ROOT.kBlack )
   lumi_scale = sum(d.lumi for d in data_sample)/float(len(data_sample))/1000
 
 if mode != "all" and mode != "SF":
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection(mode)])
   data_sample.name  = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
@@ -287,14 +289,14 @@ if args.signal == "T2tt":
   for s in signals:
     s.scale          = lumi_scale
     s.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F','reweightTopPt/F']
-    s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF
+    s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightTopPt
     s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 if args.signal == "DM":
   for s in signals:
     s.scale          = lumi_scale
     s.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F','reweightTopPt/F']
-    s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF
+    s.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightTopPt
     s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 

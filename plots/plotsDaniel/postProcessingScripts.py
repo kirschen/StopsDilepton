@@ -22,7 +22,7 @@ data_samples = data.heppy_sample_names
 #data_samples = []
 
 samples = data_samples + mc_samples + DM_signal_samples + SUSY_signal_samples
-samples = mc_samples
+#samples = mc_samples
 
 def getPPString(sampleName, processType, jobtitle='2l_PP', vetoString='supercomplicatedstringnevertobefoundinasample', additionalOptions=''):
   sm = sorted([a for a in samples if sampleName in a])

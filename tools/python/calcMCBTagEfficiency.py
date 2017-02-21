@@ -9,7 +9,10 @@ from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper
 tt = mc_heppy_mapper.from_heppy_samplename("TTLep_pow")
 tWnunu = mc_heppy_mapper.from_heppy_samplename("tWnunu")
 
-T2tt = T2tt_heppy_mapper.from
+T2tt_all = ROOT.TChain("tree")
+for s in T2tt_heppy_mapper.heppy_sample_names[:1]:
+    t2tt = T2tt_heppy_mapper.from_heppy_samplename(s)
+    T2tt_all.Add(t2tt.chain)
 
 def getBTagMCTruthEfficiencies(c, cut="(1)", overwrite=False, btagVar='Jet_btagCSV', btagWP='0.8484'):
   print c, cut
@@ -40,11 +43,12 @@ def getBTagMCTruthEfficiencies(c, cut="(1)", overwrite=False, btagVar='Jet_btagC
 
 presel = "(Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))>=2&&Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.4)>=2"
 
-res = getBTagMCTruthEfficiencies(tt.chain, cut=presel, overwrite=False, btagVar='Jet_btagCSV', btagWP='0.8484')
+#res = getBTagMCTruthEfficiencies(tt.chain, cut=presel, overwrite=False, btagVar='Jet_btagCSV', btagWP='0.8484')
+res = getBTagMCTruthEfficiencies(T2tt_all, cut=presel, overwrite=False, btagVar='Jet_btagCSV', btagWP='0.8484')
 #res = getBTagMCTruthEfficiencies(tWnunu.chain, cut=presel, overwrite=False, btagVar='Jet_btagCSV', btagWP='0.8484') #to test
 
 print "Efficiencies:"
 print res
 pickle.dump(res, \
-    file(os.path.expandvars('$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTLep_pow_Moriond17_2j_2l.pkl'), 'w')
+    file(os.path.expandvars('$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/T2tt_Moriond17_2j_2l.pkl'), 'w')
 )

@@ -231,7 +231,7 @@ for index, mode in enumerate(allModes):
   elif mode=="ee":   data_sample.texName = "data (2 e)"
   elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
 
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["evt/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
@@ -257,7 +257,7 @@ for index, mode in enumerate(allModes):
     elif args.scaleDYVV and sample in multiBosonList: sample.scale = lumi_scale*1.265
     else:                                             sample.scale = lumi_scale
     sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F'] + (['reweightLeptonFastSimSF/F'] if sample.isFastSim else [])
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*(event.reweightLeptonFastSimSF if sample.isFastSim else 1.)
+    sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*(event.reweightLeptonFastSimSF if sample.isFastSim else 1.)
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 

@@ -366,5 +366,11 @@ def getFilterCut(isData=False, isFastSim = False, badMuonFilters = "Summer2016")
             filterCut += "&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016_pt20"
         elif badMuonFilters is None or badMuonFilters == "None":
             pass
+        elif badMuonFilters == "Moriond2017OnlyClone":
+            filterCut += "&&Flag_badChargedHadronSummer2016"
+            if isData: filterCut += "&&Flag_badCloneMuonMoriond2017"
+        elif badMuonFilters == "Moriond2017OnlyOther":
+            filterCut += "&&Flag_badChargedHadronSummer2016"
+            if isData: filterCut += "&&Flag_badMuonMoriond2017"
     if isData: filterCut += "&&weight>0"
     return filterCut
