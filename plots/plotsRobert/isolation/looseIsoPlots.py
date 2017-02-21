@@ -95,10 +95,10 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 if args.isolation=='standard':
     data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-    postProcessing_directory = "postProcessed_80X_v26/dilep/"
-    from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+    postProcessing_directory = "postProcessed_80X_v30/dilep/"
+    from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
     data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-    postProcessing_directory = "postProcessed_80X_v26/dilep/"
+    postProcessing_directory = "postProcessed_80X_v30/dilep/"
     from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 
 elif args.isolation=="VeryLoose" or args.isolation=="VeryLooseInverted":

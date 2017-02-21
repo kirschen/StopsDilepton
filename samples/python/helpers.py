@@ -69,7 +69,7 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
     else:  # Vienna -> Load from DPM 
         if True: #'/dpm' in data_path:
 
-            from StopsDilepton.tools.helpers import renew_proxy
+            from RootTools.core.helpers import renew_proxy
             user = os.environ['USER']
             # Make proxy in afs to allow batch jobs to run
             proxy_path = '/afs/hephy.at/user/%s/%s/private/.proxy'%(user[0], user)
@@ -79,10 +79,7 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
             if module is not None:
                 module_ = module
             if "Run2016" in sample:
-                #if "Run2016G" not in sample: raise NotImplementedError
-                #from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper_openMu
-                #return data_heppy_mapper_openMu.from_heppy_samplename(heppy_sample.name, maxN = maxN)
-                from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
+                from StopsDilepton.samples.heppy_dpm_samples import data_03Feb2017_heppy_mapper as data_heppy_mapper
                 return data_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             elif "T2tt" in sample:
                 from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper

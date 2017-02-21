@@ -170,8 +170,10 @@ sequence = [makeDeltaR, calcBTag, calcInvMass]
 #
 # Make samples, will be searched for in the postProcessing directory
 #
+postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
 
 #
@@ -205,7 +207,7 @@ for index, mode in enumerate(allModes):
   elif mode=="2e1mu": data_sample.texName = "data (2 e, 1 #mu)"
 
 
-  data_sample.setSelectionString([getFilterCut(isData=True), getTrilepSelection(mode, args.selection.count('lpt_40_20_20'))])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getTrilepSelection(mode, args.selection.count('lpt_40_20_20'))])
   data_sample.name = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
@@ -215,8 +217,7 @@ for index, mode in enumerate(allModes):
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
     sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-   # sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)
-    sample.weight         = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightPU36fb
+    sample.weight         = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightLeptonSF
     sample.setSelectionString([getFilterCut(isData=False), getTrilepSelection(mode, args.selection.count('lpt_40_20_20'))])
 
   stack = Stack(mc, data_sample)

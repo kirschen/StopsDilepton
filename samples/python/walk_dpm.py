@@ -195,7 +195,12 @@ class walk_dpm:
         for jobID in all_jobIDs:
             if len(filter( lambda w:w[0]==jobID, all_jobIDs_withNorm ))>1:
                 instances = filter( lambda w:w[0]==jobID, all_jobIDs_withNorm )
-                logger.error ('Found %i instances of job %i with different normalizations: %r', len(instances), jobID, instances )
+                logger.error( "cmg_directories:\n%r", cmg_directories)
+                logger.error( 'Found %i instances of job %i with different normalizations: %r', len(instances), jobID, instances )
+                counter = 0
+                for job in all_jobs:
+                    if job[0] == jobID:
+                        logger.error("Duplicate %i %r", counter, job )
                 raise RuntimeError( "Found multiple instances of job %i with different normalizations!" % jobID )
         files = [] 
         normalization = 0.
@@ -209,7 +214,7 @@ class walk_dpm:
 
 if __name__ == "__main__":
 
-    from StopsDilepton.tools.helpers import renew_proxy
+    from RootTools.core.helpers import renew_proxy
     proxy = renew_proxy()
     logger.info( "Using proxy %s"%proxy )
 

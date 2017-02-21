@@ -20,12 +20,12 @@ import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v22/dilepTiny"
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v26/dilepTiny"
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 T2tt                    = T2tt_650_1
 T2tt2                   = T2tt_500_250
@@ -74,7 +74,7 @@ for s in samples:
 #multiIsoWPMT = multiIsoLepString('M','T', ('l1_index','l2_index'))
 relIso04sm12Cut =   "&&".join(["LepGood_relIso04["+ist+"]<0.12" for ist in ('l1_index','l2_index')])
 
-weight_string = 'weight * reweightDilepTriggerBackup * reweightLeptonSF * reweightPU36fb'
+weight_string = 'weight*reweightTopPt*reweightBTag_SF*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb'
 lumiFac = 36.5
 
 cuts=[
@@ -101,8 +101,8 @@ with open(cutFlowFile, "w") as cf:
     for i in range(len(cuts)):
         r=[]
         for s in samples:
-            #selection = "&&".join(c[2] for c in cuts[:i+1])
-            selection = "&&".join(c[2] for c in cuts)
+            selection = "&&".join(c[2] for c in cuts[:i+1])
+            #selection = "&&".join(c[2] for c in cuts)
             if selection=="":selection="(1)"
             y = lumiFac*getYieldFromChain(s.chain, selection, weight_string)
             n = getYieldFromChain(s.chain, selection, '(1)')
