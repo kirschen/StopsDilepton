@@ -53,9 +53,8 @@ class heppy_mapper:
 
             # Proxy certificate
             from RootTools.core.helpers import renew_proxy
-            user = os.environ['USER']
             # Make proxy in afs to allow batch jobs to run
-            proxy_path = '/afs/hephy.at/user/%s/%s/private/.proxy'%(user[0], user)
+            proxy_path = os.path.expandvars('$HOME/private/.proxy')
             proxy = renew_proxy( proxy_path )
             logger.info( "Using proxy %s"%proxy )
 
@@ -134,9 +133,8 @@ class heppy_mapper:
         
 # Proxy certificate
 from RootTools.core.helpers import renew_proxy
-user = os.environ['USER']
 # Make proxy in afs to allow batch jobs to run
-proxy_path = '/afs/hephy.at/user/%s/%s/private/.proxy'%(user[0], user)
+proxy_path = os.path.expandvars('$HOME/private/.proxy')
 proxy = renew_proxy( proxy_path )
 logger.info( "Using proxy %s"%proxy )
 
