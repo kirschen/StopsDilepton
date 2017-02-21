@@ -10,6 +10,8 @@ ROOT.gStyle.SetOptStat("")
 fname = analysis_results + '/signalOnly/cardFiles/T2tt/T2tt_750_500.txt'
 releaseLocation = combineReleaseLocation
 
+postfix = "_postfit"
+
 def calcCovariance(fname=None, options=""):
     import uuid, os
     ustr          = str(uuid.uuid4())
@@ -72,7 +74,8 @@ if not os.path.isfile(fname.replace(".txt","_mlfit.root")):
     calcCovariance(fname=fname, options="")
 
 f1 = ROOT.TFile(fname.replace(".txt","_mlfit.root"))
-tt = f1.Get("shapes_prefit")
+#tt = f1.Get("shapes_prefit")
+tt = f1.Get("shapes_fit_b")
 h2 = tt.Get("overall_total_covar")
 
 binNames = []
@@ -115,7 +118,7 @@ if not os.path.isdir(plot_dir):
 outname = fname.split('.')[-2].split('/')[-1]
 filetypes = ['.png','.pdf','.root']
 for f in filetypes:
-    c2.Print(plot_dir+outname+f)
+    c2.Print(plot_dir+outname+postfix+f)
 
 # Calculate correlation matrix
 
@@ -138,7 +141,7 @@ for i,k in enumerate(binNames):
     for j,l in enumerate(binNames):
         sorted_corr.SetBinContent(i+1,j+1,corr[i][j])
 
-sorted_corr.GetZaxis().SetRangeUser(0.0, 1.1)
+sorted_corr.GetZaxis().SetRangeUser(-0.1, 1.1)
 
 c3 = ROOT.TCanvas('c3','c3',700,700)
 
@@ -150,5 +153,5 @@ sorted_corr.Draw("colz")
 outname = fname.split('.')[-2].split('/')[-1] + '_correlation'
 filetypes = ['.png','.pdf','.root']
 for f in filetypes:
-    c3.Print(plot_dir+outname+f)
+    c3.Print(plot_dir+outname+postfix+f)
 
