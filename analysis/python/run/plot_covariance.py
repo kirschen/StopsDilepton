@@ -7,10 +7,14 @@ from StopsDilepton.tools.user import combineReleaseLocation, analysis_results, p
 
 ROOT.gStyle.SetOptStat("")
 
-fname = analysis_results + '/signalOnly/cardFiles/T2tt/T2tt_750_500.txt'
+fname = analysis_results + '/signalOnly/cardFiles/T2tt/T2tt_1200_650.txt'
 releaseLocation = combineReleaseLocation
 
-postfix = "_postfit"
+postFit = False
+makeTable = True
+
+if postFit: postfix = "_postfit"
+else: postfix = ''
 
 def calcCovariance(fname=None, options=""):
     import uuid, os
@@ -74,8 +78,8 @@ if not os.path.isfile(fname.replace(".txt","_mlfit.root")):
     calcCovariance(fname=fname, options="")
 
 f1 = ROOT.TFile(fname.replace(".txt","_mlfit.root"))
-#tt = f1.Get("shapes_prefit")
-tt = f1.Get("shapes_fit_b")
+if postFit: tt = f1.Get("shapes_fit_b")
+else: tt = f1.Get("shapes_prefit")
 h2 = tt.Get("overall_total_covar")
 
 binNames = []
@@ -87,14 +91,15 @@ for i in range(1, nbins+1):
     for j in range(1, nbins+1):
         matrix[h2.GetXaxis().GetBinLabel(i)][h2.GetXaxis().GetBinLabel(j)] = h2.GetBinContent(i,j)
 
-sorted_cov = ROOT.TH2D('cov','',26,0,26,26,0,26)
+sorted_cov = ROOT.TH2D('cov','',nbins,0,nbins,nbins,0,nbins)
 binNames = natural_sort(binNames)
 
 for i,k in enumerate(binNames):
     for j,l in enumerate(binNames):
         sorted_cov.SetBinContent(i+1,j+1,matrix[k][l])
 
-sorted_cov.GetZaxis().SetRangeUser(0.005, 3000)
+if postFit: sorted_cov.GetZaxis().SetRangeUser(0.00005, 30)
+else: sorted_cov.GetZaxis().SetRangeUser(0.005, 3000)
 c = ROOT.TCanvas('c','c',700,700)
 c.SetLogz()
 
@@ -136,7 +141,7 @@ diag_inv = numpy.linalg.inv(diag)
 corr = numpy.dot(diag_inv, cov)
 corr = numpy.dot(corr, diag_inv)
 
-sorted_corr = ROOT.TH2D('corr','',26,0,26,26,0,26)
+sorted_corr = ROOT.TH2D('corr','',nbins,0,nbins,nbins,0,nbins)
 for i,k in enumerate(binNames):
     for j,l in enumerate(binNames):
         sorted_corr.SetBinContent(i+1,j+1,corr[i][j])
@@ -155,3 +160,38 @@ filetypes = ['.png','.pdf','.root']
 for f in filetypes:
     c3.Print(plot_dir+outname+postfix+f)
 
+
+SRnames = []
+for i in range(nbins/2):
+    SRnames.append("SF"+str(i))
+    SRnames.append("EMu"+str(i))
+
+print SRnames
+
+if makeTable:
+    texdir = os.path.join(plot_dir,'matrices/')
+    if not os.path.exists(texdir): os.makedirs(texdir)
+    ofile = texdir+fname.split('.')[-2].split('/')[-1] + '.tex'
+    with open(ofile, "w") as f:
+          f.write("\\documentclass[a4paper,10pt,oneside]{article} \n \\usepackage{caption} \n \\usepackage{rotating} \n \\begin{document} \n")
+
+          f.write("\\begin{table} \n\\resizebox{\\textwidth}{!}{ \\begin{tabular}{c||" + "c"*len(SRnames) + "} \n")
+          f.write("& " + " & ".join(x for x in SRnames) + "\\\\ \n \\hline \\hline \n")
+          for i,sr in enumerate(SRnames):
+            f.write(sr + "& " + " & ".join(str(round(x,1)) for x in cov[i]) + "\\\\ \n") # \n \\hline
+          f.write(" \\end{tabular}}")
+          f.write(" \\caption{Covariance matrix} \n ")
+          f.write(" \\end{table} ")
+          
+          f.write("\\begin{table} \n\\resizebox{\\textwidth}{!}{ \\begin{tabular}{c||" + "c"*len(SRnames) + "} \n")
+          f.write("& " + " & ".join(x for x in SRnames) + "\\\\ \n \\hline \\hline \n")
+          for i,sr in enumerate(SRnames):
+            f.write(sr + "& " + " & ".join(str(round(x,2)) for x in corr[i]) + "\\\\ \n") # \n \\hline
+          f.write(" \\end{tabular}}")
+          f.write(" \\caption{Correlation matrix} \n ")
+          f.write(" \\end{table} ")
+
+
+          f.write(" \\end{document}")
+    
+    os.system("cd "+texdir+";pdflatex "+ofile)
