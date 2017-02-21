@@ -106,10 +106,10 @@ def launch(command, logfile, local=False):
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
 #
 if not args.isChild and args.selection is None and (args.selectSys == "all" or args.selectSys == "combine"):
-  for sys in (all_systematics if args.selectSys == "all" else ["combine"]):
-    if not sys: sys = 'None'
-    os.system("mkdir -p log")
-    for channel in ['mue','SF','all','ee','mumu']:
+  os.system("mkdir -p log")
+  for channel in ['mue','SF','all','ee','mumu']:
+    for sys in (all_systematics if args.selectSys == "all" else ["combine"]):
+      if not sys: sys = 'None'
       for selection in selections:
         if args.unblind and "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" not in selection: continue
         command = "./systematicsPlots.py --selection=" + selection + (" --noData"            if args.noData            else "")\
@@ -154,6 +154,7 @@ if   args.signal == "T2tt":
   T2tt2.style = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
   signals     = [T2tt, T2tt2]
 elif args.signal == "DM":
+  postProcessing_directory = 'postProcessed_80X_v28/dilepTiny'
   from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
   DM        = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
   DM2       = TTbarDMJets_scalar_Mchi_1_Mphi_10
@@ -229,24 +230,24 @@ elif mode=="mue":
   data_sample.texName = "data (1 #mu, 1 e)"
 elif mode=="SF":
   data_sample = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup]
-  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("mumu")])
-  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("ee")])
+  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection("mumu")])
+  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection("ee")])
   for d in data_sample:
     d.texName = "data (SF)"
     d.style   = styles.errorStyle( ROOT.kBlack )
   lumi_scale = sum(d.lumi for d in data_sample)/float(len(data_sample))/1000
 elif mode=="all":
   data_sample = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]
-  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("mumu")])
-  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("ee")])
-  MuonEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection("mue")])
+  DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection("mumu")])
+  DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection("ee")])
+  MuonEG_Run2016_backup.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection("mue")])
   for d in data_sample:
     d.texName = "data"
     d.style   = styles.errorStyle( ROOT.kBlack )
   lumi_scale = sum(d.lumi for d in data_sample)/float(len(data_sample))/1000
 
 if mode != "all" and mode != "SF":
-  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection(mode)])
   data_sample.name  = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000

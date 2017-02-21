@@ -231,7 +231,7 @@ for index, mode in enumerate(allModes):
   elif mode=="ee":   data_sample.texName = "data (2 e)"
   elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
 
-  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["evt/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
