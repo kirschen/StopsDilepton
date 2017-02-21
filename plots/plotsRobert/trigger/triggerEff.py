@@ -49,7 +49,7 @@ argParser.add_argument('--dileptonTrigger',
 
 
 argParser.add_argument('--sample',
-    default='MET',
+    default='JetHT',
     type=str,
     action='store',
 )
@@ -84,10 +84,10 @@ maxN = 10 if args.small else -1
 
 from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import *
 
-from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
+from StopsDilepton.samples.heppy_dpm_samples import data_03Feb2017_heppy_mapper as data_heppy_mapper
 #                return data_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
 
-data_samples = [data_heppy_mapper.from_heppy_samplename(s.name) for s in dataSamples_23Sep2016 if s.name.startswith(args.sample)]
+data_samples = [data_heppy_mapper.from_heppy_samplename(s.name) for s in dataSamples_03Feb2017 if s.name.startswith(args.sample)]
 for s in data_samples:
     if maxN>0:
         s.files = s.files[:maxN]
@@ -99,8 +99,8 @@ for s in data_samples:
 #data_Run2016D = fromHeppySample("%s_Run2016D_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_12', maxN = maxN)
 #
 
-data=Sample.combine( "Run2016BCDEFG", data_samples )
-preprefix = "Run2016BCDEFG"
+data=Sample.combine( "Run2016BCDEFGH", data_samples )
+preprefix = "Run2016BCDEFGH"
 triggerName = args.dileptonTrigger.replace('||','_OR_')
 
 pt_thresholds = range(0,30,2)+range(30,50,5)+range(50,210,10)
