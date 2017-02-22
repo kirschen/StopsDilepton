@@ -37,7 +37,7 @@ from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain
 
 #Define chains for signals and backgrounds
 samples = [
-    TTZ_LO, TTXNoZ, multiBoson, #QCD_Mu5EMbcToE, 
+    TTZ, TTXNoZ, multiBoson, #QCD_Mu5EMbcToE, 
     DY_HT_LO, 
     #TTbarDMJets_scalar_Mchi_1_Mphi_100,
     #TTbarDMJets_pseudoscalar_Mchi_1_Mphi_100,
@@ -45,7 +45,9 @@ samples = [
 #    TTbarDMJets_pseudoscalar_Mchi_1_Mphi_20,
 #    TTbarDMJets_scalar_Mchi_1_Mphi_50,
 #    TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50,
-    Top_pow, 
+#    Top_pow, 
+    TTLep_pow,
+    singleTop,
     T2tt_650_1,
     T2tt_500_250,
 ]

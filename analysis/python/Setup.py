@@ -254,7 +254,7 @@ class Setup:
 
               res['cuts'].append("l1_pt>25")
 
-        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
+        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), badMuonFilters='Moriond2017', isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
 
         if self.sys['selectionModifier'] == 'genMet':

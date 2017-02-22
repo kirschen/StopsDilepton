@@ -35,8 +35,11 @@ argParser.add_argument('--selection',
     action='store',
 )
 
+HLT_MET_hadronic = "(HLT_HT350_MET100||HLT_HT350||HLT_HT475||HLT_HT600||HLT_dijet||HLT_jet||HLT_dijet70met120||HLT_dijet55met110||HLT_HT900||HLT_HT800||HLT_MET170_NotCleaned||HLT_MET170_HBHECleaned||HLT_MET170_BeamHaloCleaned||HLT_AllMET170||HLT_AllMET300||HLT_HT350_MET100)"
+
 argParser.add_argument('--baseTrigger',
-    default='',
+    default=HLT_MET_hadronic,
+
     type=str,
     action='store',
 )
@@ -49,7 +52,7 @@ argParser.add_argument('--dileptonTrigger',
 
 
 argParser.add_argument('--sample',
-    default='MET',
+    default='JetHT',
     type=str,
     action='store',
 )
@@ -84,10 +87,10 @@ maxN = 10 if args.small else -1
 
 from CMGTools.RootTools.samples.samples_13TeV_DATA2016 import *
 
-from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
+from StopsDilepton.samples.heppy_dpm_samples import data_03Feb2017_heppy_mapper as data_heppy_mapper
 #                return data_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
 
-data_samples = [data_heppy_mapper.from_heppy_samplename(s.name) for s in dataSamples_23Sep2016 if s.name.startswith(args.sample)]
+data_samples = [data_heppy_mapper.from_heppy_samplename(s.name) for s in dataSamples_03Feb2017 if s.name.startswith(args.sample)]
 for s in data_samples:
     if maxN>0:
         s.files = s.files[:maxN]
@@ -99,8 +102,8 @@ for s in data_samples:
 #data_Run2016D = fromHeppySample("%s_Run2016D_PromptReco_v2" % args.sample, data_path = '/scratch/rschoefbeck/cmgTuples/80X_1l_12', maxN = maxN)
 #
 
-data=Sample.combine( "Run2016BCDEFG", data_samples )
-preprefix = "Run2016BCDEFG"
+data=Sample.combine( "Run2016BCDEFGH", data_samples )
+preprefix = "Run2016BCDEFGH"
 triggerName = args.dileptonTrigger.replace('||','_OR_')
 
 pt_thresholds = range(0,30,2)+range(30,50,5)+range(50,210,10)
@@ -230,7 +233,7 @@ plot_string_pt2_eta2   = args.dileptonTrigger+":LepGood_eta:MinIf$(LepGood_pt,"+
 data.chain.Draw(plot_string_pt2_eta2, selection_string+"&&LepGood_pt==MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff')
 
 
-prefix = preprefix+"_%s_%s_measuredIn%s_minLeadLepPt%i" % ( triggerName, args.baseTrigger if args.baseTrigger is not '' else 'None', args.sample, args.minLeadingLeptonPt)
+prefix = preprefix+"_%s_%s_measuredIn%s_minLeadLepPt%i" % ( triggerName, 'baseTrigger_METhadronic', args.sample, args.minLeadingLeptonPt)
 if args.small: prefix = "small_" + prefix
 
 from StopsDilepton.tools.user import plot_directory
@@ -290,7 +293,8 @@ for name, plot in [
     c1 = ROOT.TCanvas()
     if 'veryCoarse' in name:
         plot.SetMarkerSize(0.8)
-        plot.Draw("COLZTextE")
+        #plot.Draw("COLZTextE")
+        plot.Draw("COLZText")
     else:
         plot.Draw("COLZ" )
 

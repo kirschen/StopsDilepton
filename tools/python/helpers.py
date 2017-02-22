@@ -264,18 +264,3 @@ def getPlotFromChain(c, var, binning, cutString = "(1)", weight = "weight", binn
         res.SetBinContent(1 , res.GetBinContent(0) + res.GetBinContent(1))
         res.SetBinError(1 , sqrt(res.GetBinError(0)**2 + res.GetBinError(1)**2))
     return res
-
-def read_from_subprocess(arglist):
-    ''' Read line by line from subprocess
-    '''
-    import subprocess
-
-    proc = subprocess.Popen(arglist,stdout=subprocess.PIPE)
-    res = []
-    while True:
-        l = proc.stdout.readline()
-        if l !=  '':
-            res.append( l.rstrip() )
-        else:
-            break
-    return res
