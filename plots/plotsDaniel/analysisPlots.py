@@ -312,7 +312,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
+    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l1_pt/F" ),
     binning=[20,0,300],
   ))
@@ -330,7 +330,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 5 GeV',
+    texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,300],
   ))

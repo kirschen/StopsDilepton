@@ -25,7 +25,7 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_v30')
+argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_v30_03Feb')
 argParser.add_argument('--selection',          action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
@@ -59,8 +59,8 @@ data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
 postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v31/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 if args.signal == "T2tt":
     postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
@@ -315,9 +315,15 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
+    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l1_pt/F" ),
     binning=[20,0,300],
+  ))
+
+  plots.append(Plot(
+    texX = 'd_{xy}(l_{1})', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l1_dxy/F" ),
+    binning=[40,-0.2,0.2],
   ))
 
   plots.append(Plot(
@@ -333,9 +339,15 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 5 GeV',
+    texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,300],
+  ))
+
+  plots.append(Plot(
+    texX = 'd_{xy}(l_{2})', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l2_dxy/F" ),
+    binning=[40,-0.2,0.2],
   ))
 
   plots.append(Plot(

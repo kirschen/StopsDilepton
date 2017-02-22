@@ -35,8 +35,11 @@ argParser.add_argument('--selection',
     action='store',
 )
 
+HLT_MET_hadronic = "(HLT_HT350_MET100||HLT_HT350||HLT_HT475||HLT_HT600||HLT_dijet||HLT_jet||HLT_dijet70met120||HLT_dijet55met110||HLT_HT900||HLT_HT800||HLT_MET170_NotCleaned||HLT_MET170_HBHECleaned||HLT_MET170_BeamHaloCleaned||HLT_AllMET170||HLT_AllMET300||HLT_HT350_MET100)"
+
 argParser.add_argument('--baseTrigger',
-    default='',
+    default=HLT_MET_hadronic,
+
     type=str,
     action='store',
 )
@@ -230,7 +233,7 @@ plot_string_pt2_eta2   = args.dileptonTrigger+":LepGood_eta:MinIf$(LepGood_pt,"+
 data.chain.Draw(plot_string_pt2_eta2, selection_string+"&&LepGood_pt==MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff')
 
 
-prefix = preprefix+"_%s_%s_measuredIn%s_minLeadLepPt%i" % ( triggerName, args.baseTrigger if args.baseTrigger is not '' else 'None', args.sample, args.minLeadingLeptonPt)
+prefix = preprefix+"_%s_%s_measuredIn%s_minLeadLepPt%i" % ( triggerName, 'baseTrigger_METhadronic', args.sample, args.minLeadingLeptonPt)
 if args.small: prefix = "small_" + prefix
 
 from StopsDilepton.tools.user import plot_directory
@@ -290,7 +293,8 @@ for name, plot in [
     c1 = ROOT.TCanvas()
     if 'veryCoarse' in name:
         plot.SetMarkerSize(0.8)
-        plot.Draw("COLZTextE")
+        #plot.Draw("COLZTextE")
+        plot.Draw("COLZText")
     else:
         plot.Draw("COLZ" )
 
