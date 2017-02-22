@@ -282,13 +282,13 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
+      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events',
       attribute = TreeVariable.fromString( "met_pt/F" ),
       binning=[400/20,0,400],
   ))
 
   plots.append(Plot(
-      texX = '#phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
+      texX = '#phi(E_{T}^{miss})', texY = 'Number of Events',
       attribute = TreeVariable.fromString( "met_phi/F" ),
       binning=[10,-pi,pi],
   ))
@@ -330,7 +330,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 10 GeV',
+    texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
     attribute = TreeVariable.fromString( "dl_pt/F" ),
     binning=[20,0,400],
   ))
@@ -356,7 +356,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
+    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l1_pt/F" ),
     binning=[20,0,300],
   ))
@@ -374,7 +374,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 5 GeV',
+    texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,300],
   ))
