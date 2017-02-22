@@ -264,3 +264,18 @@ def getPlotFromChain(c, var, binning, cutString = "(1)", weight = "weight", binn
         res.SetBinContent(1 , res.GetBinContent(0) + res.GetBinContent(1))
         res.SetBinError(1 , sqrt(res.GetBinError(0)**2 + res.GetBinError(1)**2))
     return res
+
+
+import re
+def natural_sort(list, key=lambda s:s):
+    """
+    Sort the list into natural alphanumeric order.
+    http://stackoverflow.com/questions/4836710/does-python-have-a-built-in-function-for-string-natural-sort
+    """
+    def get_alphanum_key_func(key):
+        convert = lambda text: int(text) if text.isdigit() else text
+        return lambda s: [convert(c) for c in re.split('([0-9]+)', key(s))]
+    sort_key = get_alphanum_key_func(key)
+
+    lc = sorted(list, key=sort_key)
+    return lc
