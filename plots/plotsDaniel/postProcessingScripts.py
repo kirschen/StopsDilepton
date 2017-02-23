@@ -53,7 +53,7 @@ def getPPString(sampleName, processType, jobtitle='2l_PP', vetoString='supercomp
 def getTexTable(samples, filename="samples.tex", vetoString='supercomplicatedstringnevertobefoundinasample'):
     replaceMap =    {
                     "RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6":"[Summer16mAOD]",
-                    "RunIISummer16MiniAODv2-PUMoriond17_HCALDebug_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1":"[Summer16mAOD*]"
+                    "RunIISummer16MiniAODv2-PUMoriond17_HCALDebug_80X_mcRun2_asymptotic_2016_TrancheIV_v6":"[Summer16mAOD*]"
                     }
                  
     l = []
