@@ -50,7 +50,10 @@ class SystematicEstimator:
 
 
     def uniqueKey(self, region, channel, setup):
-        return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
+        sysForKey = setup.sys.copy()
+        sysForKey['reweight'] = 'TEMP'
+        reweightKey ='["' + '", "'.join([i for i in setup.sys['reweight']]) + '"]' # little hack to preserve order of list when being dumped into json
+        return region, channel, json.dumps(sysForKey, sort_keys=True).replace('"TEMP"',reweightKey), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
 
     def replace(self, i, r):
         try:
@@ -58,25 +61,12 @@ class SystematicEstimator:
           else:                   return i
         except:                   return i
 
-    def keyVariations(self, key):
-        variations = []
-        replaceList = [('"reweightLeptonSF", "reweightPU36fb", "reweightBTag_SF", "reweightTopPt", "reweightDilepTriggerBackup"','"reweightPU36fb", "reweightDilepTriggerBackup", "reweightLeptonSF", "reweightTopPt", "reweightBTag_SF"')]
-        for r in replaceList:
-          variations.append(tuple(self.replace(i, r) for i in key))
-        return variations
-
     def cachedEstimate(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
         if (self.cache and self.cache.contains(key)) and not overwrite:
             res = self.cache.get(key)
             logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
         elif self.cache:
-            for altKey in self.keyVariations(key):
-              logger.info( "Trying alternative key: " + str(altKey) + " instead of " + str(key))
-              if self.cache.contains(altKey):
-                res = self.cache.get(altKey)
-                logger.debug( "Loading cached %s result for %r : %r"%(self.name, altKey, res) )
-                return res if res > 0 else u_float(0,0)
             logger.info( "Calculating %s result for %r"%(self.name, key) )
             estimate = self._estimate( region, channel, setup)
             res = self.cache.add( key, estimate, save=save)
