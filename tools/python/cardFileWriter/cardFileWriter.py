@@ -229,7 +229,7 @@ class cardFileWriter:
         shutil.rmtree(uniqueDirname)
         return res
 
-    def calcNuisances(self, fname=None, options=""):
+    def calcNuisances(self, fname=None, options="",bonly=False):
         import uuid, os
         ustr          = str(uuid.uuid4())
         uniqueDirname = os.path.join(self.releaseLocation, ustr)
@@ -252,8 +252,12 @@ class cardFileWriter:
         combineCommand  = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --forceRecreateNLL -M MaxLikelihoodFit "+filename
         combineCommand +=";python diffNuisances.py  mlfit.root &> nuisances.txt"
         combineCommand +=";python diffNuisances.py -a mlfit.root &> nuisances_full.txt"
-        combineCommand +=";python diffNuisances.py -f latex mlfit.root &> nuisances.tex"
-        combineCommand +=";python diffNuisances.py -af latex mlfit.root &> nuisances_full.tex"
+        if bonly:
+          combineCommand +=";python diffNuisances.py -bf latex mlfit.root &> nuisances.tex"
+          combineCommand +=";python diffNuisances.py -baf latex mlfit.root &> nuisances_full.tex"
+        else:
+          combineCommand +=";python diffNuisances.py -f latex mlfit.root &> nuisances.tex"
+          combineCommand +=";python diffNuisances.py -af latex mlfit.root &> nuisances_full.tex"
         print combineCommand
         os.system(combineCommand)
 
@@ -296,4 +300,3 @@ class cardFileWriter:
                 os.system("cp higgsCombineTest.ProfileLikelihood.mH120.root "+fname.replace('.txt','')+'.root')
 
         return res
-
