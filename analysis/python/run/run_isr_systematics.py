@@ -16,10 +16,10 @@ import os
 import sys
 
 # Analysis
-from StopsDilepton.analysis.SetupHelpers import channels, allChannels
-from StopsDilepton.analysis.estimators   import setup
-from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140, regions80X_2D
-from StopsDilepton.analysis.u_float import u_float
+from StopsDilepton.analysis.SetupHelpers    import channels, allChannels
+from StopsDilepton.analysis.estimators      import setup
+from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS
+from StopsDilepton.analysis.u_float         import u_float
 
 # Logging
 import StopsDilepton.tools.logger as logger
@@ -52,7 +52,7 @@ normalization_corrections = pickle.load(file( norm_file ))
 logger.info( "Loaded ISR normalization file %s", norm_file )
 
 if options.signal == "T2tt":
-    postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
     signals = signals_T2tt
     for s in signals:
