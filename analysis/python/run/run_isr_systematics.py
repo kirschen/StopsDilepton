@@ -68,7 +68,11 @@ elif options.signal == "TTbarDM":
         s.is76X     = False
 
 nominal     = "(1)"
-from StopsDilepton.analysis.robert.helpers import isrWeight
+
+from StopsDilepton.analysis.daniel.isrWeight import ISRweight
+isr = ISRweight()
+isrWeight = isr.getWeightString()
+
 wgts        = [ nominal, isrWeight ]
 
 signalEstimators = [ MCBasedEstimate(name=s.name, sample={channel:s for channel in allChannels}) for s in signals ]

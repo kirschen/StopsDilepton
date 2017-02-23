@@ -3,11 +3,13 @@
 from math import exp, sqrt
 
 #https://indico.cern.ch/event/463433/contribution/5/attachments/1193635/1733505/MSavitskyi_ToppTRew13TeV_TopModGen.pdf
+#updated a and b parameters for 13 TeV: https://twiki.cern.ch/twiki/bin/view/CMS/TopSystematics#pt_top_Reweighting
+
 
 def getUnscaledTopPairPtReweightungFunction(selection = "dilep"):
     if selection == "dilep":
-        a = 0.148
-        b = -0.00129
+        a = 0.0615
+        b = -0.0005
     else:
         raise ValueError ("top pt reweighting implemented only for 'dilep' ")
     def f(topPts):
@@ -21,8 +23,8 @@ def getUnscaledTopPairPtReweightungFunction(selection = "dilep"):
 #https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting
 def getTopPtDrawString(selection = "dilep"):
     if selection == "dilep":
-        a = 0.148
-        b = -0.00129
+        a = 0.0615
+        b = -0.0005
     else:
         raise ValueError ("top pt reweighting implemented only for 'dilep' ")
 

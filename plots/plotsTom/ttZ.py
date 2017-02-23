@@ -21,9 +21,10 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
 argParser.add_argument('--plot_directory', action='store',      default='TTZ')
-argParser.add_argument('--pdType',         action='store',      default='doubleLep', choices=['singleLep','doubleLep'])
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
+argParser.add_argument('--runLocal',       action='store_true', default=False)
+argParser.add_argument('--LO',             action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
 
@@ -38,27 +39,12 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selections (three leptons with pt > 30, 20, 10 GeV)
 #
-isoCut="VT" if args.selection and args.selection.count("VT") else 0.6
-from StopsDilepton.tools.objectSelection import muonSelectorString,eleSelectorString
-def getLooseLeptonString(nMu, nE):
-  return muonSelectorString(ptCut=10, iso=isoCut) + "==" + str(nMu) + "&&" + eleSelectorString(ptCut=10, eleId = 3, absEtaCut=2.5, iso=isoCut) + "==" + str(nE)
-
-def getLeptonString(nMu, nE):
-  return getLooseLeptonString(nMu, nE)
-
-def getPtThresholdString(firstPt, secondPt):
-    return "&&".join([muonSelectorString(ptCut=firstPt,  iso=isoCut) + "+" + eleSelectorString(ptCut=firstPt,  iso=isoCut) + ">=1",
-                      muonSelectorString(ptCut=secondPt, iso=isoCut) + "+" + eleSelectorString(ptCut=secondPt, iso=isoCut) + ">=2"])
-
-def getLeptonSelection(mode):
-  if   mode=="3mu":   return "&&".join([getLeptonString(3, 0), getPtThresholdString(30, 20)])
-  elif mode=="2mu1e": return "&&".join([getLeptonString(2, 1), getPtThresholdString(30, 20)])
-  elif mode=="2e1mu": return "&&".join([getLeptonString(1, 2), getPtThresholdString(30, 20)])
-  elif mode=="3e":    return "&&".join([getLeptonString(0, 3), getPtThresholdString(30, 20)])
+from StopsDilepton.tools.trilepSelection import getTrilepSelection
 
 jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))"
-bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))"
-bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))"
+jetSelection40  = "(Sum$(JetGood_pt>40&&abs(JetGood_eta)<2.4&&JetGood_id))"
+bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.8484))"
+bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.5426))"
 zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 
 
@@ -66,20 +52,25 @@ zMassSelection  = "abs(mlmZ_mass-91.1876)<10"
 # Cuts to iterate over: at least 3/4 jets with 1/2 btags
 #
 cuts=[
-    ("njet01",            jetSelection+"<2"),
-    ("njet2",             jetSelection+">=2"),
-    ("njet3",             jetSelection+">=3"),
-    ("njet4",             jetSelection+">=4"),
-    ("nbtag0",            bJetSelectionL+"==0"),
-    ("nbtagL",            bJetSelectionL+">=1"),
-    ("nbtagM",            bJetSelectionM+">=1"),
-    ("nbtagLL",           bJetSelectionL+">=2"),
-    ("nbtagMM",           bJetSelectionM+">=2"),
+#   ("lpt_40_20_20",      '(1)'),
+#   ("njet01",            jetSelection+"<2"),
+    ("njet2",             jetSelection+"==2"),
+    ("njet3",             jetSelection+"==3"),
+    ("njet4",             jetSelection+"==4"),
+    ("njet4p",            jetSelection+">=4"),
+#   ("njet40_3",          jetSelection40+"==3"),
+#   ("njet40_4",          jetSelection40+"==4"),
+#   ("nbtag0",            bJetSelectionM+"==0"),
+#   ("nbtagL",            bJetSelectionL+"==1"),
+    ("nbtagM",            bJetSelectionM+"==1"),
+    ("nbtagMp",           bJetSelectionM+">=1"),
+#   ("nbtagLL",           bJetSelectionL+"==2"),
+    ("nbtagMM",           bJetSelectionM+"==2"),
+    ("nbtagMMp",          bJetSelectionM+">=2"),
     ("onZ",               zMassSelection),
     ("met30",             "met_pt>30"),
-    ("mt50",              "mt>50"),
+#   ("mt50",              "mt>50"),
     ("dR",                "(1)"),
-    ("VT",                "(1)"),
 ]
 
 
@@ -97,9 +88,12 @@ for i_comb in reversed( range( len(cuts)+1 ) ):
         if selection.count("njet") != 1: continue
         if selection.count("njet01") and (selection.count("nbtagL") or selection.count("nbtagM")): continue # only look at 0b for diboson CR
         if selection.count("nbtag0") and not selection.count("njet01"): continue # only look at 0b for diboson CR
-        if selection.count("met")    and not selection.count("njet01"): continue # only look at met cut for diboson CR
         if selection.count("mt")     and not selection.count("njet01"): continue # only look at met cut for diboson CR
         selectionStrings[selection] = "&&".join( [p[1] for p in presel])
+
+def launch(command, logfile):
+  if args.runLocal: os.system(command + " --isChild &> " + logfile)
+  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
 
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
@@ -109,19 +103,22 @@ if not args.isChild and args.selection is None:
   os.system("mkdir -p log")
   for selection in selectionStrings:
     command = "./ttZ.py --selection=" + selection + (" --plot_directory=" + args.plot_directory)\
-                                                  + (" --logLevel=" + args.logLevel)
+                                                  + (" --logLevel=" + args.logLevel)\
+                                                  + (" --LO" if args.LO else "")
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
+    if not args.dryRun: launch(command, logfile)
   logger.info("All jobs launched")
   exit(0)
 
+
+if args.LO: args.plot_directory += "LO"
 
 #
 # Read variables and sequences
 #
 read_variables = ["weight/F" , "met_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "LepGood[pt/F,eta/F,phi/F]", "nLepGood/I", "nJetGood/I", "nBTag/I", "ht/F", "metSig/F", "met_pt/F", "met_phi/F",
-		  "dl_mass/F", "mlmZ_mass/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F"]
+                  "dl_mass/F", "mlmZ_mass/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F"]
 
 from StopsDilepton.tools.helpers import deltaPhi
 def deltaR(eta, phi, eta2, phi2):
@@ -140,8 +137,9 @@ def makeDeltaR(event, sample):
 
 
 def calcBTag(event, sample):
-  event.nBTag       = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.800])
-  event.nBTagLoose  = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.460])
+  event.nJetGood    = len([j for j in range(event.nJetGood) if event.JetGood_pt[j] > 30])
+  event.nBTag       = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.8484])
+  event.nBTagLoose  = len([j for j in range(event.nJetGood) if event.JetGood_btagCSV[j] > 0.5426])
   csvValues        = [event.JetGood_btagCSV[j] for j in range(event.nJetGood)]
   csvValues.sort()
   event.leadingCSV  = csvValues[-1] if len(csvValues) > 1 else -20
@@ -157,12 +155,9 @@ def calcInvMass(event, sample):
 
   event.mlll = (l1 + l2 + l3).M()
 
-  if ((l1 + l2).M() - 91.1876) < 10:
-    event.mt = sqrt(2*l3.Pt()*event.met_pt*(1-cos(l3.Phi()-event.met_phi)))
-  elif ((l1 + l3).M() - 91.1876) < 10:
-    event.mt = sqrt(2*l2.Pt()*event.met_pt*(1-cos(l2.Phi()-event.met_phi)))
-  elif ((l3 + l2).M() - 91.1876) < 10:
-    event.mt = sqrt(2*l1.Pt()*event.met_pt*(1-cos(l1.Phi()-event.met_phi)))
+  if ((l1 + l2).M() - 91.1876) < 10:   event.mt = sqrt(2*l3.Pt()*event.met_pt*(1-cos(l3.Phi()-event.met_phi)))
+  elif ((l1 + l3).M() - 91.1876) < 10: event.mt = sqrt(2*l2.Pt()*event.met_pt*(1-cos(l2.Phi()-event.met_phi)))
+  elif ((l3 + l2).M() - 91.1876) < 10: event.mt = sqrt(2*l1.Pt()*event.met_pt*(1-cos(l1.Phi()-event.met_phi)))
   else:
     event.mt = 0
     event.passed = False
@@ -175,9 +170,10 @@ sequence = [makeDeltaR, calcBTag, calcInvMass]
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
 
 #
@@ -200,33 +196,29 @@ allModes   = ['3mu', '3e', '2mu1e','2e1mu']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
 
-  if mode=="3mu":
-    data_sample         = DoubleMuon_Run2016BCD_backup
-    data_sample.texName = "data (3 #mu)"
-  elif mode=="3e":
-    data_sample         = DoubleEG_Run2016BCD_backup
-    data_sample.texName = "data (3 e)"
-  elif mode=="2mu1e":
-    data_sample         = MuonEG_Run2016BCD_backup
-    data_sample.texName = "data (2 #mu, 1 e)"
-  elif mode=="2e1mu":
-    data_sample         = MuonEG_Run2016BCD_backup
-    data_sample.texName = "data (2 e, 1 #mu)"
+  if   mode=="3mu":   data_sample         = DoubleMuon_Run2016_backup
+  elif mode=="3e":    data_sample         = DoubleEG_Run2016_backup
+  elif mode=="2mu1e": data_sample         = MuonEG_Run2016_backup
+  elif mode=="2e1mu": data_sample         = MuonEG_Run2016_backup
+
+  if mode=="3mu":     data_sample.texName = "data (3 #mu)"
+  elif mode=="3e":    data_sample.texName = "data (3 e)"
+  elif mode=="2mu1e": data_sample.texName = "data (2 #mu, 1 e)"
+  elif mode=="2e1mu": data_sample.texName = "data (2 e, 1 #mu)"
 
 
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getTrilepSelection(mode, args.selection.count('lpt_40_20_20'))])
   data_sample.name = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
-#  mc = [ DY_HT_LO, Top, EWK, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
-  mc = [ DY_HT_LO, Top, multiBoson, TTXNoZ, TTZ_LO]
+  mc = [ DY_HT_LO, Top_pow, multiBoson, TTXNoZ, TTZ_LO if args.LO else TTZ]
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+    sample.read_variables = ['reweightDilepTriggerBackup/F','reweightTopPt/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
+    sample.weight         = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightTopPt
+    sample.setSelectionString([getFilterCut(isData=False), getTrilepSelection(mode, args.selection.count('lpt_40_20_20'))])
 
   stack = Stack(mc, data_sample)
 
@@ -236,7 +228,7 @@ for index, mode in enumerate(allModes):
   plots = []
 
   plots.append(Plot(
-    name = 'yield', texX = 'yield', texY = 'Number of Events',
+    texX = 'yield', texY = 'Number of Events',
     name = 'yield', attribute = lambda event, sample: 0.5 + index,
     binning=[4, 0, 4],
   ))
@@ -290,7 +282,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'E_{T}^{miss}/#sqrt(H_{T}) (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
+    texX = 'S (GeV^{1/2})', texY = 'Number of Events / 100 GeV',
     name = 'metSig',
     attribute = lambda event, sample: event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan'), 
     read_variables = ["met_pt/F", "ht/F"],
@@ -304,7 +296,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(\
-    texX = 'Cos(#phi(#E_{T}^{miss} Jet[0]))', texY = 'Number of Events',
+    texX = 'Cos(#phi(E_{T}^{miss} Jet[0]))', texY = 'Number of Events',
     name = 'cosMetJet0phi',
     attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
     read_variables = ["met_phi/F", "JetGood[phi/F]"],
@@ -374,37 +366,37 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{1},l_{2}) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{1},l_{2})', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep1lep2', attribute = lambda event, sample: event.dR_lep1lep2,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{0},l_{2}) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{0},l_{2})', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep0lep2', attribute = lambda event, sample: event.dR_lep0lep2,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{0},l_{1}) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{0},l_{1})', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep0lep1', attribute = lambda event, sample: event.dR_lep0lep1,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{0},j) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{0},j)', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep0jet', attribute = lambda event, sample: event.dR_lep0jet,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{1},j) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{1},j)', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep1jet', attribute = lambda event, sample: event.dR_lep1jet,
     binning=[20, 0, 5],
   ))
 
   plots.append(Plot(
-    texX = '#DeltaR(l_{2},j) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = '#DeltaR(l_{2},j)', texY = 'Number of Events / 20 GeV',
     name = 'dR_lep2jet', attribute = lambda event, sample: event.dR_lep2jet,
     binning=[20, 0, 5],
   ))
@@ -429,7 +421,8 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     texX = 'number of jets', texY = 'Number of Events',
-    attribute = TreeVariable.fromString('nJetGood/I'),
+    name = 'nJetGood',
+    attribute = lambda event, sample: event.nJetGood,
     binning=[14,0,14],
   ))
 
@@ -459,7 +452,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'highest CSV', texY = 'Number of Events',
+    texX = 'second highest CSV', texY = 'Number of Events',
     name = 'secondCSV', attribute = lambda event, sample: event.secondCSV,
     binning=[10,0,1],
   ))
@@ -509,7 +502,7 @@ try:
   os.makedirs("./" + texdir)
 except:
   pass
-with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
+with open("./" + texdir + "/" + args.selection + ("_LO" if args.LO else "") + ".tex", "w") as f:
   f.write("&" + " & ".join(columns) + "\\\\ \n")
   for mode in allModes + ["all"]:
     f.write(mode + " & " + " & ".join([ " %12.1f" % yields[mode][i] for i in columns]) + "\\\\ \n")

@@ -4,6 +4,10 @@ from math import pi, sqrt, cos, sin, sinh, log, cosh
 from array import array
 import itertools
 
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+
 #scripts
 ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.setTDRStyle()
@@ -176,7 +180,10 @@ def writeObjToFile(fname, obj):
     return
 
 def getVarValue(c, var, n=-1):
-    att = getattr(c, var)
+    try:
+        att = getattr(c, var)
+    except AttributeError:
+        return float('nan')
     if n>=0:
 #    print "getVarValue %s %i"%(var,n)
         if n<att.__len__():
@@ -258,3 +265,17 @@ def getPlotFromChain(c, var, binning, cutString = "(1)", weight = "weight", binn
         res.SetBinError(1 , sqrt(res.GetBinError(0)**2 + res.GetBinError(1)**2))
     return res
 
+
+import re
+def natural_sort(list, key=lambda s:s):
+    """
+    Sort the list into natural alphanumeric order.
+    http://stackoverflow.com/questions/4836710/does-python-have-a-built-in-function-for-string-natural-sort
+    """
+    def get_alphanum_key_func(key):
+        convert = lambda text: int(text) if text.isdigit() else text
+        return lambda s: [convert(c) for c in re.split('([0-9]+)', key(s))]
+    sort_key = get_alphanum_key_func(key)
+
+    lc = sorted(list, key=sort_key)
+    return lc

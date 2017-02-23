@@ -1,10 +1,11 @@
 # Stops-dilepton + CMG in 80X
 ```
-cmsrel CMSSW_8_0_11
-cd CMSSW_8_0_11/src
+cmsrel CMSSW_8_0_25
+cd CMSSW_8_0_25/src
 cmsenv
 git cms-init
 git clone https://github.com/GhentAnalysis/StopsDilepton
+./StopsDilepton/setupOptiMass.sh
 ./StopsDilepton/setup80X.sh
 ```
 # for OptiMass M2 variables

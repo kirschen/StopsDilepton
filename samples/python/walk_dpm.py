@@ -3,10 +3,15 @@ import subprocess
 import os, re
 import shutil
 import commands
+import subprocess
+import uuid
 
 # Logging
 import logging
 logger = logging.getLogger(__name__)
+
+# multiprocessing
+from multiprocessing import Pool
 
 def is_nonemptydir( line ):
     '''Checks whether a line of output from dpns-ls corresponds to an non-empty directory
@@ -48,7 +53,17 @@ def get_job_number(f):
     return ints[0]
 
 def read_normalization( filename, skimReport_file = 'SkimReport.txt'):
-    string = commands.getoutput('/usr/bin/rfcat %s | tar xzOf - Output/%s' % (filename, skimReport_file) )
+    
+    #string = commands.getoutput('/usr/bin/rfcat %s | tar xzOf - Output/%s' % (filename, skimReport_file) )
+    # string = commands.getoutput('sleep .1;/usr/bin/rfcat %s | tar xzOf - Output/%s' % (filename, skimReport_file) )
+    unique_filename = '/tmp/%s' % str(uuid.uuid1())
+    #print 'xrdcp root://hephyse.oeaw.ac.at/%s %s; cat %s | tar xzOf - Output/%s' % (filename, unique_filename, unique_filename, skimReport_file) 
+    string = commands.getoutput('xrdcp root://hephyse.oeaw.ac.at/%s %s; cat %s | tar xzOf - Output/%s' % (filename, unique_filename, unique_filename, skimReport_file) )
+    commands.getoutput('rm %s' % unique_filename )
+#    print '/usr/bin/rfcat %s | tar xzOf - Output/%s' % (filename, skimReport_file)
+#    process = subprocess.Popen(['sleep.1; /usr/bin/rfcat %s | tar xzOf - Output/%s' % (filename, skimReport_file)], stdout=subprocess.PIPE)
+#    string, err = process.communicate()
+#    print(string)
 
     sumW = None
     allEvents = None
@@ -64,10 +79,14 @@ def read_normalization( filename, skimReport_file = 'SkimReport.txt'):
         logger.debug( "Read 'All Events' normalization %3.2f from file %s.", allEvents, filename )  
         return allEvents
 
+def _wrapper( job ):
+    jobID, tree_file, log_file = job
+    return ( jobID,tree_file,read_normalization( log_file ) )
+
 class walk_dpm:
 
     def __init__( self, path ):
-        self.cp_cmd = "/usr/bin/rfcp"
+        # self.cp_cmd = "/usr/bin/rfcp"
         # self.pretend = False
         self.path = path
         self.tree_filename_prefix = "tree_"
@@ -75,7 +94,6 @@ class walk_dpm:
 
     def abs_path( self, rel_path ):
         return os.path.join( self.path, rel_path ).replace('/./', '/')
-
 
     def is_treefilename( self, filename ):
         return filename.endswith('.root') and filename.split('/')[-1].startswith( self.tree_filename_prefix )
@@ -112,21 +130,23 @@ class walk_dpm:
         result = []
 
         pairs = [n for n in tree_files.keys() if n in log_files.keys()]
-        logger.info( "Now loading %i files from directory %s", len(pairs), self.abs_path( rel_path ) ) 
+        logger.info( "Now loading %i of %i files from directory %s", min( [ maxN, len(pairs)]) if maxN>0 else len(pairs), len(pairs), self.abs_path( rel_path ) ) 
         for jobID in pairs:
-            normalization = read_normalization( self.abs_path( log_files[jobID]['path'] ) )
-            if normalization is not None:
-                result.append( (jobID, self.abs_path(tree_files[jobID]['path']), normalization ) )
+            #normalization = read_normalization( self.abs_path( log_files[jobID]['path'] ) )
+            #if normalization is not None:
+            result.append( (jobID, self.abs_path(tree_files[jobID]['path']), self.abs_path(log_files[jobID]['path']) ) )
 
             if maxN > 0 and len(result)>=maxN:
                 break
          
         return result 
 
-    def walk_dpm_cmgdirectories( self, rel_path = '.', result = {}, maxN = -1, path_substrings = []):
+    def walk_dpm_cmgdirectories( self, rel_path = '.', __result = {}, maxN = -1, path_substrings = []):
         ''' Recursively looks for directories that look like cmg directories
         '''
         res = self.ls( rel_path )
+        result = {}
+        result.update( __result )
         if is_cmgdirectory( res ):
             logger.debug( "Found CMG dir: %s", rel_path )
             abs_path = self.abs_path(rel_path)
@@ -137,13 +157,12 @@ class walk_dpm:
                     return result
             # Otherwise update
             result[ self.abs_path(rel_path) ] = self.cmg_directory_content( rel_path, maxN = maxN)
-            return result
         else:
             dirs = filter( lambda f:f['is_dir'], res )
             if len(dirs)>0:
                 for f in dirs:
                     logger.debug( "Stepping into %s", f['path'] )
-                    result.update( self.walk_dpm_cmgdirectories( f['path'], result = result, maxN = maxN, path_substrings = path_substrings) )
+                    result.update( self.walk_dpm_cmgdirectories( f['path'], maxN = maxN, path_substrings = path_substrings) )
 
             else:
                 logger.debug( "Nothing found in %s", rel_path )
@@ -151,24 +170,54 @@ class walk_dpm:
 
 
     @staticmethod
-    def combine_cmg_directories( cmg_directories ):
+    def combine_cmg_directories( cmg_directories, multithreading = True):
         import operator
-        total = sum(cmg_directories.values(),[])
-        all_jobIDs = set( map(operator.itemgetter(0), total ) )
-        all_jobIDs_withNorm = set( map(operator.itemgetter(0,2), total ) )
+        all_jobs_ = sum(cmg_directories.values(),[])
+        logger.info( "Now reading normalization of %i files. %s", len( all_jobs_ ), "Using multithreading." if multithreading else "Sequential." )
+        #all_jobs = [ ( jobID,tree_file,read_normalization( log_file )) for jobID, tree_file, log_file in all_jobs_ ]
+
+        # Read normalization
+        if multithreading:
+            pool = Pool(processes=20)
+            all_jobs = pool.map(_wrapper, all_jobs_)
+            pool.close()
+            pool.join()
+        else:
+            all_jobs = map(_wrapper, all_jobs_)
+
+        # Remove the ones I could not read the normalization
+        len_all = len(all_jobs)
+        all_jobs = filter(lambda j:j[2] is not None, all_jobs)        
+        logger.debug("Removing files where I could not read normalization. Reduce all_jobs from %i to %i", len_all, len(all_jobs) )
+
+        all_jobIDs = set( map(operator.itemgetter(0), all_jobs ) )
+        all_jobIDs_withNorm = set( map(operator.itemgetter(0,2), all_jobs ) ) 
         for jobID in all_jobIDs:
             if len(filter( lambda w:w[0]==jobID, all_jobIDs_withNorm ))>1:
+                instances = filter( lambda w:w[0]==jobID, all_jobIDs_withNorm )
+                logger.error( "cmg_directories:\n%r", cmg_directories)
+                logger.error( 'Found %i instances of job %i with different normalizations: %r', len(instances), jobID, instances )
+                counter = 0
+                for job in all_jobs:
+                    if job[0] == jobID:
+                        logger.error("Duplicate %i %r", counter, job )
                 raise RuntimeError( "Found multiple instances of job %i with different normalizations!" % jobID )
         files = [] 
         normalization = 0.
         for jobID in all_jobIDs:
-            jobID_, file_, normalization_ = next(tup for tup in total if tup[0]==jobID)
-            normalization += normalization_
-            files.append( file_ )
+            jobID_, file_, normalization_ = next(tup for tup in all_jobs if tup[0]==jobID)
+            if normalization_ is not None:
+                normalization += normalization_
+                files.append( file_ )
 
         return normalization, files
 
 if __name__ == "__main__":
+
+    from RootTools.core.helpers import renew_proxy
+    proxy = renew_proxy()
+    logger.info( "Using proxy %s"%proxy )
+
     import StopsDilepton.tools.logger as logger
     logger = logger.get_logger('DEBUG')
 

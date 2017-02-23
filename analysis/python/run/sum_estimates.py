@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
-parser.add_option("--estimates",             dest="estimates",             default='mc',                action='store',      choices=["mc","dd"],     help="mc estimators or data-driven estimators?")
+parser.add_option('--logLevel', dest="logLevel", default='INFO', action='store', help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import allChannels, channels
 from StopsDilepton.analysis.estimators import setup, constructEstimatorList
-from StopsDilepton.analysis.regions import regions80X, superRegion, superRegion140, regions80X_2D
+from StopsDilepton.analysis.regions import regionsO as regions
 from StopsDilepton.analysis.Cache import Cache
 import os
 
@@ -17,20 +16,27 @@ logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-
 # These are the ones we are going to sum
-if   options.estimates == "mc": estimators = constructEstimatorList(["TTJets","TTZ","DY", "multiBoson", 'other'])
-elif options.estimates == "dd": estimators = constructEstimatorList(["TTJets-DD","TTZ-DD-Top16009","DY-DD", "multiBoson-DD", 'other'])
-
-regions = regions80X + superRegion + superRegion140 + regions80X_2D #Better have ordering and swallow duplicates
+estimators = constructEstimatorList(["TTJets-DD","TTZ","DY", "multiBoson", 'other'])
 
 for e in estimators:
     e.initCache(setup.defaultCacheDir())
 
-sumCache = Cache(os.path.join(setup.defaultCacheDir(), 'sum_dd.pkl' if options.estimates == "dd" else 'sum.pkl'), verbosity=2)
+sumCache = Cache(os.path.join(setup.defaultCacheDir(), 'sum.pkl'), verbosity=2)
 
+def applySF(val, e):
+      if   e.name.count('DY'):         return val*1.115
+      elif e.name.count('multiBoson'): return val*1.265
+      else:                            return val
+
+def wrapper(config):
+      (r, c, s) = config
+      res = sum(applySF(e.cachedEstimate(r, c, s, save=False),e) for e in estimators)
+      sumCache.add(estimators[0].uniqueKey(r, c, s), res, save=True)
+
+jobs = []
 for c in allChannels:
   for r in regions:
     for r, c, s in estimators[0].getBkgSysJobs(r, c, setup) + [(r, c, setup)]:
-      res = sum(e.cachedEstimate(r, c, s, save=False) for e in estimators)
-      sumCache.add(estimators[0].uniqueKey(r, c, s), res, save=True)
+      jobs.append((r, c, s))
+results = map(wrapper, jobs)

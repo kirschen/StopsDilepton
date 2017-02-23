@@ -9,7 +9,8 @@ from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 ROOT.gROOT.SetBatch(True)
 
-defFile= os.path.join(analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-multiIsoVT/DY-DD/TTZ-DD-Top16009/TTJets-DD/multiBoson-DD/limits/T2tt/regions80X/limitResults.root")
+defFile= os.path.join(analysis_results, "signalOnly/limits/T2tt/T2tt/limitResults.root")
+#defFile= os.path.join(analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/limits/T2tt/regionsO/limitResults.root")
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -17,7 +18,7 @@ parser.add_option("--file", dest="filename", default=defFile, type="string", act
 (options, args) = parser.parse_args()
 
 ifs = options.filename.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2])
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_v2')
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 
@@ -34,11 +35,12 @@ for i in ["obs_up","obs_down"]:
 
 from StopsDilepton.tools.xSecSusy import xSecSusy
 xSecSusy_ = xSecSusy()
-for ix in range(hists["obs"].GetNbinsX()):
-    for iy in range(hists["obs"].GetNbinsY()):
-        mStop = hists["obs"].GetXaxis().GetBinLowEdge(ix)
-        mNeu  = hists["obs"].GetYaxis().GetBinLowEdge(iy)
-        v = hists["obs"].GetBinContent(hists["obs"].FindBin(mStop, mNeu))
+xSecKey = "obs" # exp or obs
+for ix in range(hists[xSecKey].GetNbinsX()):
+    for iy in range(hists[xSecKey].GetNbinsY()):
+        mStop = hists[xSecKey].GetXaxis().GetBinLowEdge(ix)
+        mNeu  = hists[xSecKey].GetYaxis().GetBinLowEdge(iy)
+        v = hists[xSecKey].GetBinContent(hists[xSecKey].FindBin(mStop, mNeu))
         if v>0:
             scaleup   = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=1) /xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)
             scaledown = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=-1)/xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)

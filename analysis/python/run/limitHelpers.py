@@ -27,12 +27,24 @@ def getContours(h, plotDir):
     del ctmp
     return contours
 
-def cleanContour(g):
+def cleanContour(g, model="T2tt"):
     x, y = ROOT.Double(), ROOT.Double()
     remove=[]
     for i in range(g.GetN()):
         g.GetPoint(i, x, y)
-        if  (x<250) or x-y<200 or y>450 or x>900:
-            remove.append(i)
+        if model=="T2tt":
+            if  (x<250) or x-y<200 or y>450 or x>900:
+                remove.append(i)
+        elif model=="T8bbllnunu_XCha0p5_XSlep0p05":
+            #if y>150 or x<400 or (x<500 and y>50):
+            if x<450 or y>100 or x >1200:
+                remove.append(i)
+        elif model=="T8bbllnunu_XCha0p5_XSlep0p5":
+            if x<850:
+                remove.append(i)
+        elif model=="T8bbllnunu_XCha0p5_XSlep0p95":
+            if x>1450 or x<800:
+                remove.append(i)
+        else: print model, "not implemented"
     for i in reversed(remove):
         g.RemovePoint(i)

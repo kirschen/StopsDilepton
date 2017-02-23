@@ -44,13 +44,22 @@ class SystematicEstimator:
         if self.helperCache and self.helperCache.contains(s):
           return self.helperCache.get(s)
         else:
-	  yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
+          yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
           if self.helperCache: self.helperCache.add(s, yieldFromDraw, save=True)
-	  return yieldFromDraw
+          return yieldFromDraw
 
 
     def uniqueKey(self, region, channel, setup):
-        return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
+        sysForKey = setup.sys.copy()
+        sysForKey['reweight'] = 'TEMP'
+        reweightKey ='["' + '", "'.join([i for i in setup.sys['reweight']]) + '"]' # little hack to preserve order of list when being dumped into json
+        return region, channel, json.dumps(sysForKey, sort_keys=True).replace('"TEMP"',reweightKey), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
+
+    def replace(self, i, r):
+        try:
+          if i.count('reweight'): return i.replace(r[0], r[1])
+          else:                   return i
+        except:                   return i
 
     def cachedEstimate(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
@@ -58,7 +67,7 @@ class SystematicEstimator:
             res = self.cache.get(key)
             logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
         elif self.cache:
-            logger.debug( "Calculating %s result for %r"%(self.name, key) )
+            logger.info( "Calculating %s result for %r"%(self.name, key) )
             estimate = self._estimate( region, channel, setup)
             res = self.cache.add( key, estimate, save=save)
             logger.debug( "Adding cached %s result for %r : %r" %(self.name, key, estimate) )
@@ -73,13 +82,13 @@ class SystematicEstimator:
 
     def PUSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU12fbUp']}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU12fbDown']}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU36fbUp']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU36fbDown']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up,down)
 
     def topPtSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightTopPt']}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'remove':['reweightTopPt']}))
         return abs(0.5*(up-ref)/ref) if ref > 0 else up
 
     def JERSystematic(self, region, channel, setup):
@@ -139,15 +148,15 @@ class SystematicEstimator:
     def fastSimMETSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
         gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
-        return abs(0.5*(ref-gen)/ref) if ref > 0 else max(up, down)
+        assert ref+gen > 0, "denominator > 0 not fulfilled, this is odd and should not happen!"
+        return abs(ref-gen)/(ref+gen)
 
     def getBkgSysJobs(self, region, channel, setup):
         l = [
-            (region, channel, setup.sysClone({'reweight':['reweightPU12fbUp']})),
-            (region, channel, setup.sysClone({'reweight':['reweightPU12fbDown']})),
+            (region, channel, setup.sysClone({'reweight':['reweightPU36fbUp']})),
+            (region, channel, setup.sysClone({'reweight':['reweightPU36fbDown']})),
 
-            (region, channel, setup.sysClone({'reweight':['reweightTopPt']})),
-
+            (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
 
             (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
             (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
@@ -172,8 +181,30 @@ class SystematicEstimator:
         return l
 
     def getSigSysJobs(self, region, channel, setup, isFastSim = False):
-        l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
         if isFastSim:
+            l = [
+                (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
+
+                (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
+
+                (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
+
+                (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnDown'})),
+
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']})),
+                (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']})),
+
+                (region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']})),
+                (region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']})),
+
+                (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']})),
+                (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupUp']})),
+            ]
             l.extend( [\
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Up']})),
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']})),
@@ -181,22 +212,24 @@ class SystematicEstimator:
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
                 (region, channel, setup.sysClone({'selectionModifier':'genMet'})),
             ] )
+        else:
+            l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
         return l
 
     def getTexName(self, channel, rootTex=True):
         try:
           name = self.texName
         except:
-	  try:
-	    name = self.sample[channel].texName
-	  except:
-	    try:
-	      texNames = [self.sample[c].texName for c in channels]		# If all, only take texName if it is the same for all channels
-	      if texNames.count(texNames[0]) == len(texNames):
-		name = texNames[0]
-	      else:
-		name = self.name
-	    except:
-	      name = self.name
-	if not rootTex: name = "$" + name.replace('#','\\') + "$" # Make it tex format
-	return name
+          try:
+            name = self.sample[channel].texName
+          except:
+            try:
+              texNames = [self.sample[c].texName for c in channels]                # If all, only take texName if it is the same for all channels
+              if texNames.count(texNames[0]) == len(texNames):
+                name = texNames[0]
+              else:
+                name = self.name
+            except:
+              name = self.name
+        if not rootTex: name = "$" + name.replace('#','\\') + "$" # Make it tex format
+        return name

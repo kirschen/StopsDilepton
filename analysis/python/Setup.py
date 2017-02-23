@@ -11,14 +11,13 @@ logger = logging.getLogger(__name__)
 #user specific
 from StopsDilepton.tools.user import analysis_results
 
-# Can be removed once signal samples are updated
-from StopsDilepton.tools.objectSelection import multiIsoLepString
-multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
-
-
 #define samples
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+#postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
+#from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
 #Choices for specific samples
 #DYSample          = DY
@@ -26,17 +25,16 @@ DYSample           = DY_HT_LO #LO, HT binned including a low HT bin starting fro
 #TTJetsSample      = TTJets #NLO
 #TTJetsSample       = Sample.combine("TTJets", [TTJets_Lep, singleTop], texName = "t#bar{t}/single-t") #LO, very large dilep + single lep samples
 TTJetsSample       = Top_pow
-WJetsSample        = WJetsToLNu #WJetsToLNu_HT
-otherEWKComponents = [TTXNoZ, WJetsSample]
+otherEWKComponents = [TTXNoZ, WJetsToLNu]
 otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations, metVariations
-from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels
+from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels, trilepChannels, allTrilepChannels
 from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplacements
 from StopsDilepton.tools.objectSelection import getFilterCut
 
 #to run on data
-dataLumi = {'EMu': MuonEG_Run2016BCD_backup.lumi, 'MuMu':DoubleMuon_Run2016BCD_backup.lumi, 'EE':DoubleEG_Run2016BCD_backup.lumi}
+dataLumi = {'EMu': MuonEG_Run2016_backup.lumi, 'MuMu':DoubleMuon_Run2016_backup.lumi, 'EE':DoubleEG_Run2016_backup.lumi, '3mu':DoubleMuon_Run2016_backup.lumi, '3e':DoubleEG_Run2016_backup.lumi, '2mu1e':MuonEG_Run2016_backup.lumi, '2e1mu':MuonEG_Run2016_backup.lumi}
 #10/fb to run on MC
 #lumi = {c:10000 for c in channels}
 lumi = dataLumi
@@ -46,7 +44,9 @@ zMassRange            = 15
 default_mllMin        = 20
 default_metMin        = 80
 default_metSigMin     = 5
+default_zWindow       = "offZ"
 default_dPhi          = True
+default_triLep        = False
 default_dPhiInv       = False
 default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
@@ -65,34 +65,37 @@ class Setup:
             'mllMin':        default_mllMin,
             'metMin':        default_metMin,
             'metSigMin':     default_metSigMin,
+            'zWindow':       default_zWindow,
             'dPhi':          default_dPhi,
             'dPhiInv':       default_dPhiInv,
             'nJets':         default_nJets,
             'nBTags':        default_nBTags,
             'leptonCharges': default_leptonCharges,
+            'triLep':        default_triLep,
         }
 
-
-        self.sys      = {'weight':'weight', 'reweight':['reweightPU12fb','reweightDilepTriggerBackup','reweightBTag_SF','reweightLeptonSF','reweightLeptonHIPSF'], 'selectionModifier':None}
+        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF'], 'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
 
         self.sample = {
-        'DY':         {c:DYSample     for c in channels},
-        'TTJets' :    {c:TTJetsSample for c in channels},
-        'TTZ' :       {c:TTZ_LO       for c in channels},
-        'multiBoson' :{c:multiBoson   for c in channels},
-        'TTXNoZ' :    {c:TTXNoZ       for c in channels},
-        'other'  :    {'MuMu': Sample.combine('other', [otherEWKBkgs]),
-                       'EE':   Sample.combine('other', [otherEWKBkgs]),
-                       'EMu':  Sample.combine('other', [otherEWKBkgs])},
-        'Data'   :    {'MuMu': DoubleMuon_Run2016BCD_backup,
-                       'EE':   DoubleEG_Run2016BCD_backup,
-                       'EMu':  MuonEG_Run2016BCD_backup},
+        'DY':         {c:DYSample     for c in channels+trilepChannels},
+        'TTJets' :    {c:TTJetsSample for c in channels+trilepChannels},
+        'TTZ' :       {c:TTZ          for c in channels+trilepChannels},
+        'multiBoson' :{c:multiBoson   for c in channels+trilepChannels},
+        'TTXNoZ' :    {c:TTXNoZ       for c in channels+trilepChannels},
+        'other'  :    {c:Sample.combine('other', [otherEWKBkgs]) for c in channels+trilepChannels},
+        'Data'   :    {'MuMu':  DoubleMuon_Run2016_backup,
+                       'EE':    DoubleEG_Run2016_backup,
+                       'EMu':   MuonEG_Run2016_backup,
+                       '3mu':   DoubleMuon_Run2016_backup,
+                       '3e':    DoubleEG_Run2016_backup,
+                       '2mu1e': MuonEG_Run2016_backup,
+                       '2e1mu': MuonEG_Run2016_backup},
         }
 
     def prefix(self):
-        return '_'.join(self.prefixes+[self.preselection('MC', zWindow='allZ')['prefix']])
+        return '_'.join(self.prefixes+[self.preselection('MC')['prefix']])
 
     def defaultCacheDir(self):
         return os.path.join(self.analysis_results, self.prefix(), 'cacheFiles')
@@ -107,16 +110,18 @@ class Setup:
 
         if sys:
             for k in sys.keys():
-                if k=='reweight':
+                if k=='remove':
+                    for i in sys[k]:
+                      res.sys['reweight'].remove(i)
+                elif k=='reweight':
                     res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
                     for upOrDown in ['Up','Down']:
-                      if 'reweight12fbPU'+upOrDown             in res.sys[k]: res.sys[k].remove('reweight12fbPU')
+                      if 'reweightPU36fb'+upOrDown             in res.sys[k]: res.sys[k].remove('reweightPU36fb')
                       if 'reweightDilepTriggerBackup'+upOrDown in res.sys[k]: res.sys[k].remove('reweightDilepTriggerBackup')
                       if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightLeptonSF'+upOrDown           in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
                       if 'reweightLeptonFastSimSF'+upOrDown    in res.sys[k]: res.sys[k].remove('reweightLeptonFastSimSF')
-                      if 'reweightLeptonHIPSF'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightLeptonHIPSF')
                 else:
                     res.sys[k] = sys[k] # if sys[k] else res.sys[k]
 
@@ -136,40 +141,38 @@ class Setup:
     def weightString(self):
         return "*".join([self.sys['weight']] + (self.sys['reweight'] if self.sys['reweight'] else []))
 
-    def preselection(self, dataMC , zWindow, channel='all', isFastSim = False, is76X = False):
+    def preselection(self, dataMC , channel='all', isFastSim = False):
         '''Get preselection  cutstring.'''
-        return self.selection(dataMC, channel = channel, zWindow = zWindow, isFastSim = isFastSim, is76X = is76X, hadronicSelection = False, **self.parameters)
+        return self.selection(dataMC, channel = channel, isFastSim = isFastSim, hadronicSelection = False, **self.parameters)
 
     def selection(self, dataMC,
-			mllMin, metMin, metSigMin, dPhi, dPhiInv,
-			nJets, nBTags, leptonCharges, 
-			channel = 'all', zWindow = 'offZ', hadronicSelection = False,  isFastSim = False, is76X = False):
+                        mllMin, metMin, metSigMin, zWindow, dPhi, dPhiInv,
+                        nJets, nBTags, leptonCharges, triLep,
+                        channel = 'all', hadronicSelection = False,  isFastSim = False):
         '''Define full selection
-	   dataMC: 'Data' or 'MC'
-	   channel: all, EE, MuMu or EMu
-	   zWindow: offZ, onZ, or allZ
-	   hadronicSelection: whether to return only the hadronic selection
+           dataMC: 'Data' or 'MC'
+           channel: all, EE, MuMu or EMu
+           zWindow: offZ, onZ, or allZ
+           hadronicSelection: whether to return only the hadronic selection
        isFastSim: adjust filter cut etc. for fastsim
-       is76X: only 76X preselection
-	'''
+        '''
         #Consistency checks
-        assert dataMC in ['Data','MC'],                                                          "dataMC = Data or MC, got %r."%dataMC
-        if self.sys['selectionModifier']: assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
-        assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                           "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
+        if self.sys['selectionModifier']:
+          assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
+        assert dataMC in ['Data','MC'],                                                   "dataMC = Data or MC, got %r."%dataMC
+        assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                    "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
 
         #Postfix for variables (only for MC and if we have a jme variation)
         sysStr = ""
         metStr = ""
-        if dataMC == "MC" and self.sys['selectionModifier'] in jmeVariations:
-            sysStr = "_" + self.sys['selectionModifier']
-        if dataMC == "MC" and self.sys['selectionModifier'] in metVariations:
-            metStr = "_" + self.sys['selectionModifier']
+        if dataMC == "MC" and self.sys['selectionModifier'] in jmeVariations: sysStr = "_" + self.sys['selectionModifier']
+        if dataMC == "MC" and self.sys['selectionModifier'] in metVariations: metStr = "_" + self.sys['selectionModifier']
 
         res={'cuts':[], 'prefixes':[]}
 
-        if leptonCharges and not hadronicSelection:
-	    res['cuts'].append(leptonCharges)
-	    res['prefixes'].append(leptonCharges)
+        if leptonCharges and not hadronicSelection and not triLep:
+            res['cuts'].append(leptonCharges)
+            res['prefixes'].append(leptonCharges)
 
         if nJets and not (nJets[0]==0 and nJets[1]<0):
             assert nJets[0]>=0 and (nJets[1]>=nJets[0] or nJets[1]<0), "Not a good nJets selection: %r"%nJets
@@ -213,35 +216,48 @@ class Setup:
               res['cuts'].append('dl_mass>='+str(mllMin))
               res['prefixes'].append('mll'+str(mllMin))
 
-            preselMuMu = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0"
-            preselEE   = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2"
-            preselEMu  = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1"
+            if triLep:
+              assert channel in allTrilepChannels, "channel must be one of "+",".join(allTrilepChannels)+". Got %r."%channel
+              from StopsDilepton.tools.trilepSelection import getTrilepSelection
+              if channel =="all": chStr = '(' + '||'.join([getTrilepSelection(c) for c in ['3mu','2mu1e','2e1mu','3e']]) + ')'
+              else:               chStr = getTrilepSelection(channel)
+              res['cuts'].append(chStr)
 
-            #Z window
-            assert zWindow in ['offZ', 'onZ', 'allZ'], "zWindow must be one of onZ, offZ, allZ. Got %r"%zWindow
-            if zWindow in ['onZ', 'offZ']:
-                  res['cuts'].append(getZCut(zWindow, self.zMassRange))
+              assert zWindow == 'onZ', "zWindow must be onZ for trilep selection"
+              res['cuts'].append('abs(mlmZ_mass-91.1876)<10')
 
-            #lepton channel
-            assert channel in allChannels, "channel must be one of "+",".join(allChannels)+". Got %r."%channel
+            else:
 
-            if channel=="MuMu":  chStr = preselMuMu
-            elif channel=="EE":  chStr = preselEE
-            elif channel=="EMu": chStr = preselEMu
-            elif channel=="all": chStr = "("+preselMuMu+'||'+preselEE+'||'+preselEMu+')'
-            elif channel=="SF":  chStr = "("+preselMuMu+'||'+preselEE+')'
-            res['cuts'].append(chStr)
+              preselMuMu = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0"
+              preselEE   = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2"
+              preselEMu  = "isEMu==1&&nGoodMuons==1&&nGoodElectrons==1"
 
-            res['prefixes'].append('looseLeptonVeto')
-            res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_miniRelIso<0.4)==2')
+              #Z window
+              assert zWindow in ['offZ', 'onZ', 'allZ'], "zWindow must be one of onZ, offZ, allZ. Got %r"%zWindow
+              if zWindow == 'onZ':                     res['cuts'].append(getZCut(zWindow, self.zMassRange))
+              if zWindow == 'offZ' and channel!="EMu": res['cuts'].append(getZCut(zWindow, self.zMassRange))  # Never use offZ when in emu channel, use allZ instead
 
-            if not is76X: 
-                res['prefixes'].append('multiIsoVT')
-                res['cuts'].append("l1_mIsoWP>4&&l2_mIsoWP>4")
+              #lepton channel
+              assert channel in allChannels, "channel must be one of "+",".join(allChannels)+". Got %r."%channel
 
-            res['cuts'].append("l1_pt>25")
+              if channel=="MuMu":  chStr = preselMuMu
+              elif channel=="EE":  chStr = preselEE
+              elif channel=="EMu": chStr = preselEMu
+              elif channel=="all": chStr = "("+preselMuMu+'||'+preselEE+'||'+preselEMu+')'
+              elif channel=="SF":  chStr = "("+preselMuMu+'||'+preselEE+')'
 
-        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
+              res['cuts'].append(chStr)
+
+              res['prefixes'].append('looseLeptonVeto')
+              res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2')
+
+              res['prefixes'].append('relIso0.12')
+              res['cuts'].append("l1_relIso03<0.12&&l2_relIso03<0.12")
+
+              res['cuts'].append("l1_pt>25")
+
+        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), badMuonFilters='Moriond2017', isFastSim=isFastSim))
+        #res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
 
         if self.sys['selectionModifier'] == 'genMet':

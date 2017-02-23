@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 from StopsDilepton.analysis.Region import Region
 from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.analysis.Cache import Cache
+from StopsDilepton.analysis.SetupHelpers import channels, trilepChannels
 
 class DataObservation():
     def __init__(self, name, sample, cacheDir=None):
@@ -25,7 +26,8 @@ class DataObservation():
             self.cache=None
 
     def uniqueKey(self, region, channel, setup):
-        return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
+        if hasattr(setup, 'blinding'): return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True), setup.blinding
+        else:                          return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
 
     # alias for cachedObservation to make it easier to call the same function as for the mc's
     def cachedEstimate(self, region, channel, setup, save=True):
@@ -35,7 +37,7 @@ class DataObservation():
         key =  self.uniqueKey(region, channel, setup)
         if self.cache and self.cache.contains(key):
             res = self.cache.get(key)
-            logger.info( "Loading cached %s result for %r : %r"%(self.name, key, res) )
+            logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
             return res
         elif self.cache:
             logger.info( "Adding cached %s result for %r"%(self.name, key) )
@@ -46,17 +48,17 @@ class DataObservation():
     def observation(self, region, channel, setup):
 
         if channel=='all':
-            return sum([self.cachedObservation(region, c, setup) for c in ['MuMu', 'EE', 'EMu']])
+            return sum([self.cachedEstimate(region, c, setup) for c in (trilepChannels if setup.parameters['triLep'] else channels)])
 
         if channel=='SF':
             return sum([self.cachedObservation(region, c, setup) for c in ['MuMu', 'EE']])
 
         else:
-            zWindow= 'allZ' if channel=='EMu' else 'offZ'
-
-            preSelection = setup.preselection('Data', zWindow=zWindow, channel=channel)
+            preSelection = setup.preselection('Data', channel=channel)
             cut = "&&".join([region.cutString(setup.sys['selectionModifier']), preSelection['cut']])
 
             logger.debug( "Using cut %s"% cut )
 
-            return u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = 'weight') )
+            if hasattr(setup, 'blinding') and setup.blinding: weight = 'weight*' + setup.blinding
+            else:                                             weight = 'weight'
+            return u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = weight) )

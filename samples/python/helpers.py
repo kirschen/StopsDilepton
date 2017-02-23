@@ -38,19 +38,22 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
     if module is not None:
         module_ = module
     elif "Run2016" in sample:
-        #module_ = 'CMGTools.RootTools.samples.samples_13TeV_DATA2016'
-        module_ = 'CMGTools.StopsDilepton.samples_13TeV_Moriond2017'
+        module_ = 'CMGTools.RootTools.samples.samples_13TeV_DATA2016'
+        #module_ = 'CMGTools.StopsDilepton.samples_13TeV_Moriond2017'
     elif "T2tt" in sample:
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_signals'
+    elif "T8bbllnunu" in sample:
+        module_ = 'CMGTools.RootTools.samples.samples_13TeV_signals'
+    elif "TTbarDM" in sample:
+        module_ = 'CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISummer16MiniAODv2'
     else: 
-        module_ = 'CMGTools.RootTools.samples.samples_13TeV_RunIISpring16MiniAODv2'
+        module_ = 'CMGTools.RootTools.samples.samples_13TeV_RunIISummer16MiniAODv2'
 
     try:
         heppy_sample = getattr(importlib.import_module( module_ ), sample)
     except:
         raise ValueError( "Could not load sample '%s' from %s "%( sample, module_ ) )
 
-    # helpers
     subDir = getSubDir(heppy_sample.dataset, data_path)
     if not subDir:
         raise ValueError( "Not a good dataset name: '%s'"%heppy_sample.dataset )
@@ -63,21 +66,35 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
             path, 
             treeFilename = 'tree.root', 
             treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
-    else:   
-        if '/dpm' in data_path:
-            pd, era = heppy_sample.dataset.split('/')[1:3]
-            from walk_dpm import walk_dpm
-            walker = walk_dpm( data_path )
-            cmg_directories = walker.walk_dpm_cmgdirectories('.', path_substrings = ['/%s/'%pd, '/'+era], maxN = maxN)
-            if len( cmg_directories ) > 1:
-                logger.warning( "Sample: %s Combining paths %s", sample, ",".join(cmg_directories.keys()) )
-            normalization, files = walker.combine_cmg_directories( cmg_directories )
-            logger.info( "Sample %s: Found a total of %i files with normalization %3.2f", sample, len(files), normalization)
-            sample = Sample.fromFiles(
-                heppy_sample.name, 
-                files = ['root://hephyse.oeaw.ac.at/'+f for f in files],
-                normalization = normalization, 
-                treeName = 'tree', isData = heppy_sample.isData, maxN = maxN)
+    else:  # Vienna -> Load from DPM 
+        if True: #'/dpm' in data_path:
+
+            from RootTools.core.helpers import renew_proxy
+            user = os.environ['USER']
+            # Make proxy in afs to allow batch jobs to run
+            proxy_path = os.path.expandvars('$HOME/private/.proxy')
+            proxy = renew_proxy( proxy_path )
+            logger.info( "Using proxy %s"%proxy )
+
+            if module is not None:
+                module_ = module
+            if "Run2016" in sample:
+                from StopsDilepton.samples.heppy_dpm_samples import data_03Feb2017_heppy_mapper as data_heppy_mapper
+                return data_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
+            elif "T2tt" in sample:
+                from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper
+                return T2tt_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
+            elif "T8bbllnunu" in sample:
+                logger.debug("getting T8bbllnunu_heppy_mapper")
+                from StopsDilepton.samples.heppy_dpm_samples import T8bbllnunu_heppy_mapper
+                return T8bbllnunu_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
+            elif "TTbarDM" in sample:
+                from StopsDilepton.samples.heppy_dpm_samples import ttbarDM_heppy_mapper
+                return ttbarDM_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
+            else: 
+                from StopsDilepton.samples.heppy_dpm_samples import mc_heppy_mapper
+                return mc_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
+            raise ValueError
         else:                           
             sample = Sample.fromCMGOutput(
                 heppy_sample.name, 
@@ -95,9 +112,10 @@ def getT2ttSignalWeight(sample, lumi):
     xSecSusy_ = xSecSusy()
     channel='stop13TeV'
     signalWeight={}
-    mMax = 1500
+    mMax = 1550
     bStr = str(mMax)+','+str(mMax)
-    sample.chain.Draw("GenSusyMNeutralino:GenSusyMStop>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
+    #sample.chain.Draw("GenSusyMNeutralino:GenSusyMStop>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
+    sample.chain.Draw("Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022)):Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
     hNEvents = ROOT.gDirectory.Get("hNEvents")
     for i in range (mMax):
         for j in range (mMax):

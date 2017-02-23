@@ -33,8 +33,8 @@ from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
 triggerEff            = triggerEfficiency(with_backup_triggers = False)
 
-from StopsDilepton.tools.leptonHIPEfficiency import leptonHIPEfficiency
-leptonHIPSF = leptonHIPEfficiency()
+from StopsDilepton.tools.leptonTrackingEfficiency import leptonTrackingEfficiency
+leptonTrackingSF = leptonTrackingEfficiency()
 
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
@@ -66,7 +66,7 @@ def get_parser():
         nargs='*',
         type=str,
 #        default=['MuonEG_Run2015D_16Dec'],
-        default=['WZZ'],
+        default=['TTJets'],
         help="List of samples to be post-processed, given as CMG component name"
         )
 
@@ -75,7 +75,7 @@ def get_parser():
         nargs='?',
         type=str,
         default=None,
-        choices=['mumu', 'ee', 'mue', 'mu_for_mumu', 'e_for_ee', 'mu_for_mue', 'e_for_mue'],
+        choices=['mumu', 'ee', 'mue', 'mu_for_mumu', 'e_for_ee', 'mu_for_mue', 'e_for_mue','singleMu','singleEle'],
         help="Trigger selection?"
         )
 
@@ -130,7 +130,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=str,
-        default='postProcessed_80X_v15',
+        default='postProcessed_80X_v22',
         help="Name of the processing era"
         )
 
@@ -157,12 +157,18 @@ def get_parser():
 
     argParser.add_argument('--small',
         action='store_true',
-        help="Run the file on a small sample (for test purpose), bool flag set to True if used"
+        help="Run the file on a small sample (for test purpose), bool flag set to True if used",
+        #default = True
         )
 
     argParser.add_argument('--T2tt',
         action='store_true',
         help="Is T2tt signal?"
+        )
+    
+    argParser.add_argument('--T8bbllnunu',
+        action='store_true',
+        help="Is T8bbllnunu signal?"
         )
 
     argParser.add_argument('--TTDM',
@@ -206,11 +212,13 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger(options.logLevel, logFile ='/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) ) )
+logFile = '/tmp/%s_%s_%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'])
+logger  = logger.get_logger(options.logLevel, logFile = logFile)
+
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-# flags (I think string searching is slow, so let's not do it in the filler function)
+# Flags 
 isDiLep     =   options.skim.lower().startswith('dilep')
 isTriLep     =   options.skim.lower().startswith('trilep')
 isSingleLep =   options.skim.lower().startswith('singlelep')
@@ -227,7 +235,7 @@ skimConds = []
 if isDiLep:
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=2" )
 if isTriLep:
-    skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)&&LepGood_miniRelIso<0.4) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5&&LepGood_miniRelIso<0.4)>=2 && Sum$(LepOther_pt>10&&abs(LepOther_eta)<2.5)+Sum$(LepGood_pt>10&&abs(LepGood_eta)<2.5)>=3" )
+    skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)&&LepGood_relIso03<0.4) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5&&LepGood_relIso03<0.4)>=2 && Sum$(LepOther_pt>10&&abs(LepOther_eta)<2.5)+Sum$(LepGood_pt>10&&abs(LepGood_eta)<2.5)>=3" )
 elif isSingleLep:
     skimConds.append( "Sum$(LepGood_pt>20&&abs(LepGood_eta)<2.5) + Sum$(LepOther_pt>20&&abs(LepOther_eta)<2.5)>=1" )
 elif isJet250:
@@ -239,28 +247,33 @@ if isInclusive:
 #Samples: Load samples
 maxN = 2 if options.small else None
 from StopsDilepton.samples.helpers import fromHeppySample
-if options.T2tt:
+if options.T2tt or options.T8bbllnunu:
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
-    logger.info( "T2tt signal samples to be processed: %s", ",".join(s.name for s in samples) )
+    logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
     # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
-    assert len(samples)==1, "Can only process one T2tt sample at a time."
+    assert len(samples)==1, "Can only process one SUSY sample at a time."
     samples[0].files = samples[0].files[:maxN]
     logger.debug( "Fetching signal weights..." )
-    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
+    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi ) #Can use same x-sec/weight for T8bbllnunu as for T2tt
     logger.debug("Done fetching signal weights.")
-elif options.TTDM:
-    samples = [ fromHeppySample(s, data_path = "/scratch/rschoefbeck/cmgTuples/80X_0l_TTDM/", \
-                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2",  
-                    maxN = maxN)\
-                for s in options.samples ]
+#elif options.TTDM:
+#    samples = [ fromHeppySample(s, data_path = "/scratch/rschoefbeck/cmgTuples/80X_0l_TTDM/", \
+#                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2",  
+#                    maxN = maxN)\
+#                for s in options.samples ]
 else:
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
+    logger.debug("Reading from CMG tuples: %s", ",".join(",".join(s.files) for s in samples) )
+    
+if len(samples)==0:
+    logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
+    sys.exit(-1)
 
 isData = False not in [s.isData for s in samples]
 isMC   =  True not in [s.isData for s in samples]
 
-if options.T2tt:
+if options.T2tt or options.T8bbllnunu:
     xSection = None
     # special filet for bad jets in FastSim: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16#Cleaning_up_of_fastsim_jets_from
     skimConds.append( "Sum$(JetFailId_pt>30&&abs(JetFailId_eta)<2.5&&JetFailId_mcPt==0&&JetFailId_chHEF<0.1)+Sum$(Jet_pt>30&&abs(Jet_eta)<2.5&&Jet_mcPt==0&&Jet_chHEF<0.1)==0" )
@@ -287,6 +300,10 @@ if isData and options.triggerSelection is not None:
         skimConds.append( "HLT_SingleEle_noniso && (!(HLT_mue||HLT_mu30e30))" )
     elif options.triggerSelection == 'mu_for_mue':
         skimConds.append( "HLT_SingleMu_noniso && (!(HLT_mue||HLT_mu30e30)) && (!HLT_SingleEle_noniso)" )
+    elif options.triggerSelection == 'singleMu':
+        skimConds.append( "HLT_SingleMu_noniso" )
+    elif options.triggerSelection == 'singleEle':
+        skimConds.append( "HLT_SingleEle_noniso" )
     else:
         raise ValueError( "Don't know about triggerSelection %s"%options.triggerSelection )
     sample_name_postFix = "_Trig_"+options.triggerSelection
@@ -310,13 +327,20 @@ else:
 
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
+    mcProfile = "Summer16"
     # nTrueIntReweighting
-    nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
-    nTrueInt12fb_puRWDown    = getReweightingFunction(data="PU_2016_12000_XSecDown", mc="Spring16")
-    nTrueInt12fb_puRWUp      = getReweightingFunction(data="PU_2016_12000_XSecUp", mc="Spring16")
-    nTrueInt_puRW        = getReweightingFunction(data="PU_2016_5300_XSecCentral", mc="Spring16")
-    nTrueInt_puRWDown    = getReweightingFunction(data="PU_2016_5300_XSecDown", mc="Spring16")
-    nTrueInt_puRWUp      = getReweightingFunction(data="PU_2016_5300_XSecUp", mc="Spring16")
+    nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc=mcProfile)
+    nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc=mcProfile)
+    nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc=mcProfile)
+    nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc=mcProfile)
+    nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown",    mc=mcProfile)
+    nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp",      mc=mcProfile)
+    nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc=mcProfile)
+    nTrueInt12fb_puRWDown    = getReweightingFunction(data="PU_2016_12000_XSecDown",    mc=mcProfile)
+    nTrueInt12fb_puRWUp      = getReweightingFunction(data="PU_2016_12000_XSecUp",      mc=mcProfile)
+    nTrueInt_puRW            = getReweightingFunction(data="PU_2016_5300_XSecCentral",  mc=mcProfile)
+    nTrueInt_puRWDown        = getReweightingFunction(data="PU_2016_5300_XSecDown",     mc=mcProfile)
+    nTrueInt_puRWUp          = getReweightingFunction(data="PU_2016_5300_XSecUp",       mc=mcProfile)
     ## 2016 NVTX reweighting
     #from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
     #nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_5300pb.pkl")
@@ -371,6 +395,21 @@ if options.T2tt:
     signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T2tt")
     if not os.path.exists(signalDir): os.makedirs(signalDir)
 
+# Directory for individual signal files
+if options.T8bbllnunu:
+    T8bbllnunu_strings = options.samples[0].split('_')
+    for st in T8bbllnunu_strings:
+        if 'XSlep' in st:
+            x_slep = st.replace('XSlep','')
+            logger.info("Factor x_slep in this sample is %s",x_slep)
+        if 'XCha' in st:
+            x_cha = st.replace('XCha','')
+            logger.info("Factor x_cha in this sample is %s",x_cha)
+    signalSubDir = options.samples[0].replace('SMS_','')
+    
+    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T8bbllnunu")
+    #if not os.path.exists(signalDir): os.makedirs(signalDir) #FIXME
+
 if os.path.exists(outDir) and options.overwrite:
     if options.nJobs > 1:
         logger.warning( "NOT removing directory %s because nJobs = %i", outDir, options.nJobs )
@@ -388,13 +427,13 @@ if isTiny:
     #branches to be kept for data and MC
     branchKeepStrings_DATAMC = \
        ["run", "lumi", "evt", "isData", "nVert",
-        "met_pt", "met_phi",
+        "met_pt", "met_phi", "met_caloPt", "met_caloPhi",
 #        "puppiMet_pt","puppiMet_phi",
         "Flag_*", "HLT_*",
         #"HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
         #"HLT_3mu", "HLT_3e", "HLT_2e1mu", "HLT_2mu1e",
         "LepGood_eta", "LepGood_etaSc", "LepGood_pt","LepGood_phi", "LepGood_dxy", "LepGood_dz","LepGood_tightId", "LepGood_pdgId",
-        "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits","LepGood_jetPtRelv2", "LepGood_jetPtRatiov2", "LepGood_eleCutIdSpring15_25ns_v1"
+        "LepGood_mediumMuonId", "LepGood_miniRelIso", "LepGood_relIso03", "LepGood_sip3d", "LepGood_mvaIdSpring15", "LepGood_convVeto", "LepGood_lostHits","LepGood_jetPtRelv2", "LepGood_jetPtRatiov2", "LepGood_eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz"
         ]
 
     #branches to be kept for MC samples only
@@ -408,7 +447,7 @@ elif isSmall:
     #branches to be kept for data and MC
     branchKeepStrings_DATAMC = [\
         "run", "lumi", "evt", "isData", "rho", "nVert",
-        "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
+        "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt", "met_caloPt", "met_caloPhi",
 #        "metNoHF_pt", "metNoHF_phi",
 #        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
@@ -430,7 +469,7 @@ else:
     #branches to be kept for data and MC
     branchKeepStrings_DATAMC = [\
         "run", "lumi", "evt", "isData", "rho", "nVert",
-        "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt",
+        "met_pt", "met_phi","met_Jet*", "met_Unclustered*", "met_sumEt", "met_rawPt","met_rawPhi", "met_rawSumEt", "met_caloPt", "met_caloPhi",
 #        "metNoHF_pt", "metNoHF_phi",
 #        "puppiMet_pt","puppiMet_phi","puppiMet_sumEt","puppiMet_rawPt","puppiMet_rawPhi","puppiMet_rawSumEt",
         "Flag_*","HLT_*",
@@ -449,24 +488,26 @@ else:
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
 
-if options.T2tt or options.TTDM:
+if options.T2tt or options.TTDM or options.T8bbllnunu:
     branchKeepStrings_MC += ["nIsr"]
-if options.keepLHEWeights or options.T2tt or options.TTDM:
-        branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
+if options.keepLHEWeights or options.T2tt or options.TTDM or options.T8bbllnunu:
+    branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
 
 if isSingleLep:
     branchKeepStrings_DATAMC += ['HLT_*']
 
-if options.T2tt: branchKeepStrings_MC += ['GenSusyMStop', 'GenSusyMNeutralino']
+if options.T2tt or options.T8bbllnunu: 
+    #branchKeepStrings_MC += ['GenSusyMStop', 'GenSusyMNeutralino'] #FIXME
+    branchKeepStrings_MC += ['ngenPartAll', 'genPartAll_*'] #FIXME
 
 # Jet variables to be read from chain
 jetCorrInfo = ['corr/F', 'corr_JECUp/F', 'corr_JECDown/F'] if addSystematicVariations else []
 if isMC:
     if isTiny or isSmall:
-        jetMCInfo = ['mcPt/F', 'hadronFlavour/I']
+        jetMCInfo = ['mcPt/F', 'hadronFlavour/I','mcMatchId/I']
     else:
         jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
-        if not options.T2tt:
+        if not (options.T2tt or options.T8bbllnunu):
             jetMCInfo.append('partonFlavour/I')
 else:
     jetMCInfo = []
@@ -490,40 +531,41 @@ else:
     lumiScaleFactor = xSection*targetLumi/float(sample.normalization) if xSection is not None else None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
-jetVars = ['pt/F', 'rawPt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F'] + jetCorrInfo + jetMCInfo
+jetVars = ['pt/F', 'rawPt/F', 'eta/F', 'phi/F', 'id/I', 'btagCSV/F', 'area/F'] + jetCorrInfo + jetMCInfo
 jetVarNames = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'index/I', 'lepGoodMatchIndex/I', 'matchesPromptGoodLepton/I', 'n_t/I','n_W/I', 'n_B/I', 'n_D/I', 'n_tau/I']
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
 
 read_variables = map(TreeVariable.fromString, ['met_pt/F', 'met_phi/F', 'run/I', 'lumi/I', 'evt/l', 'nVert/I'] )
 read_variables += [ TreeVariable.fromString('ngamma/I'),
-		    VectorTreeVariable.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I,pdgId/I]') ]
+                    VectorTreeVariable.fromString('gamma[pt/F,eta/F,phi/F,mass/F,idCutBased/I,pdgId/I]') ]
 
 new_variables = [ 'weight/F']
 if isMC:
-    read_variables+= [TreeVariable.fromString('nTrueInt/F')]
+    read_variables+= [TreeVariable.fromString('nTrueInt/F'), VectorTreeVariable.fromString('LepGood[mcMatchId/I, mcMatchAny/I]')]
     # reading gen particles for top pt reweighting
     read_variables.append( TreeVariable.fromString('ngenPartAll/I') )
-    read_variables.append( VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
+    read_variables.append( VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,mass/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( TreeVariable.fromString('genWeight/F') )
     read_variables.append( VectorTreeVariable.fromString('gamma[mcPt/F]') )
 
-    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F','reweightPU27fb/F','reweightPU27fbUp/F','reweightPU27fbDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F'])
     if not options.skipGenLepMatching:
         TreeVariable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
 
 read_variables += [\
     TreeVariable.fromString('nLepGood/I'),
-    VectorTreeVariable.fromString('LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
+    VectorTreeVariable.fromString('LepGood[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]'),
     TreeVariable.fromString('nJet/I'),
     VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
 ]
 if isVeryLoose:
     read_variables += [\
         TreeVariable.fromString('nLepOther/I'),
-        VectorTreeVariable.fromString('LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutIdSpring15_25ns_v1/I]'),
+        VectorTreeVariable.fromString('LepOther[pt/F,eta/F,etaSc/F,phi/F,pdgId/I,tightId/I,miniRelIso/F,relIso03/F,sip3d/F,mediumMuonId/I,mvaIdSpring15/F,lostHits/I,convVeto/I,dxy/F,dz/F,jetPtRelv2/F,jetPtRatiov2/F,eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz/I]'),
     ]
+    if isMC: read_variables += [VectorTreeVariable.fromString('LepOther[mcMatchId/I, mcMatchAny/I]')]
 new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) )
 ]
@@ -535,12 +577,14 @@ if isSingleLep:
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
 if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
-    new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I' ] )
+    new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I' ] )
+    if isMC: new_variables.extend(['l1_mcMatchId/I', 'l1_mcMatchAny/I'])
     # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     new_variables.extend( ['mlmZ_mass/F'] )
     new_variables.extend( ['mt_photonEstimated/F'] )
 if isTriLep or isDiLep:
-    new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
+    new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
+    if isMC: new_variables.extend(['l2_mcMatchId/I', 'l2_mcMatchAny/I'])
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
@@ -548,9 +592,9 @@ if isTriLep or isDiLep:
         [   'zBoson_genPt/F', 'zBoson_genEta/F', 
             'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F', 'reweightDilepTriggerBackup/F', 'reweightDilepTriggerBackupUp/F', 'reweightDilepTriggerBackupDown/F',
             'reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F',
-            'reweightLeptonHIPSF/F',
+            'reweightLeptonTrackingSF/F',
          ] )
-    if options.T2tt or options.TTDM:
+    if options.T2tt or options.TTDM or options.T8bbllnunu:
         new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
@@ -573,19 +617,21 @@ if addSystematicVariations:
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
         if isTriLep or isDiLep:
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
-	new_variables.extend( ['met_pt_photonEstimated_'+var+'/F', 'met_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
-	if isTriLep or isDiLep:
-	    new_variables.extend( ['dl_mt2ll_photonEstimated_'+var+'/F', 'dl_mt2bb_photonEstimated_'+var+'/F', 'dl_mt2blbl_photonEstimated_'+var+'/F'] )
+        new_variables.extend( ['met_pt_photonEstimated_'+var+'/F', 'met_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
+        if isTriLep or isDiLep:
+            new_variables.extend( ['dl_mt2ll_photonEstimated_'+var+'/F', 'dl_mt2bb_photonEstimated_'+var+'/F', 'dl_mt2blbl_photonEstimated_'+var+'/F'] )
     # Btag weights Method 1a
     for var in btagEff.btagWeightNames:
         if var!='MC':
             new_variables.append('reweightBTag_'+var+'/F')
 
-if options.T2tt or options.TTDM:
+if options.T2tt or options.TTDM or options.T8bbllnunu:
     read_variables += map(TreeVariable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
-if options.T2tt:
-    read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
+if options.T2tt or options.T8bbllnunu:
+    #read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
+    if  options.T8bbllnunu:
+        new_variables  += ['mCha/I', 'mSlep/I', 'sleptonPdg/I']
 
 if options.fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
@@ -642,8 +688,25 @@ def filler( event ):
     if isMC: gPart = getGenPartsAll(r)
 
     # weight
-    if options.T2tt:
-        event.weight=signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['weight']
+    if options.T2tt or options.T8bbllnunu:
+        r.GenSusyMStop = max([p['mass']*(abs(p['pdgId']==1000006)) for p in gPart])
+        r.GenSusyMNeutralino = max([p['mass']*(abs(p['pdgId']==1000022)) for p in gPart])
+        if options.T8bbllnunu:
+            r.GenSusyMChargino = max([p['mass']*(abs(p['pdgId']==1000024)) for p in gPart])
+            r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000011)) for p in gPart]) #FIXME check PDG ID of slepton in sample
+            #logger.debug("Slepton is selectron with mass %i", r.GenSusyMSlepton)
+            event.sleptonPdg = 1000011
+            if not r.GenSusyMSlepton > 0:
+                r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000013)) for p in gPart])
+                #logger.debug("Slepton is smuon with mass %i", r.GenSusyMSlepton)
+                event.sleptonPdg = 1000013
+            if not r.GenSusyMSlepton > 0:
+                r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000015)) for p in gPart])
+                #logger.debug("Slepton is stau with mass %i", r.GenSusyMSlepton)
+                event.sleptonPdg = 1000015
+            event.mCha  = r.GenSusyMChargino
+            event.mSlep = r.GenSusyMSlepton
+        event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
         event.mStop = r.GenSusyMStop
         event.mNeu  = r.GenSusyMNeutralino
         event.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
@@ -653,7 +716,7 @@ def filler( event ):
     elif isData:
         event.weight = 1
     else:
-        raise NotImplementedError( "isMC %r isData %r T2tt? %r TTDM?" % (isMC, isData, options.T2tt, options.TTDM) )
+        raise NotImplementedError( "isMC %r isData %r T2tt? %r TTDM? %r T8bbllnunu? %r" % (isMC, isData, options.T2tt, options.TTDM, options.T8bbllnunu) )
 
     # lumi lists and vetos
     if isData:
@@ -669,6 +732,12 @@ def filler( event ):
         event.reweightPU12fb     = nTrueInt12fb_puRW       ( r.nTrueInt ) 
         event.reweightPU12fbDown = nTrueInt12fb_puRWDown   ( r.nTrueInt ) 
         event.reweightPU12fbUp   = nTrueInt12fb_puRWUp     ( r.nTrueInt ) 
+        event.reweightPU27fb     = nTrueInt27fb_puRW       ( r.nTrueInt )
+        event.reweightPU27fbDown = nTrueInt27fb_puRWDown   ( r.nTrueInt )
+        event.reweightPU27fbUp   = nTrueInt27fb_puRWUp     ( r.nTrueInt )
+        event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.nTrueInt )
+        event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.nTrueInt )
+        event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.nTrueInt )
 
     # top pt reweighting
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
@@ -683,23 +752,24 @@ def filler( event ):
     bJets        = filter(lambda j:isBJet(j), jets)
     nonBJets     = filter(lambda j:not isBJet(j), jets)
     if isVeryLoose:
-        # all leptons up to relIso 1
-        mu_selector = muonSelector( iso = 999., dxy = 1., dz = 0.1 )
-        ele_selector = eleSelector( iso = 999., dxy = 1., dz = 0.1 )
+        ## all leptons up to relIso 0.4
+        mu_selector = muonSelector( relIso03 = 999., dxy = 1., dz = 0.1 )
+        ele_selector = eleSelector( relIso03 = 999., dxy = 1., dz = 0.1 )
         leptons_pt10 = getGoodAndOtherLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
         ptCut = 20 if not isVeryLoosePt10 else 10 
         leptons      = filter(lambda l:l['pt']>ptCut, leptons_pt10)
     elif isLoose:
-        # loose relIso lepton selection
-        mu_selector = muonSelector( iso = 0.4 )
-        ele_selector = eleSelector( iso = 0.4 )
+        raise NotImplementedError
+        ## loose relIso lepton selection
+        #mu_selector = muonSelector( iso = 0.4 )
+        #ele_selector = eleSelector( iso = 0.4 )
 
-        leptons_pt10 = getGoodLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
-        leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
+        #leptons_pt10 = getGoodLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
+        #leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     else:
         # using miniRelIso 0.2 as baseline 
-        mu_selector = muonSelector( iso = 0.2 )
-        ele_selector = eleSelector( iso = 0.2 )
+        mu_selector = muonSelector( relIso03 = 0.2 )
+        ele_selector = eleSelector( relIso03 = 0.2 )
         leptons_pt10 = getGoodLeptons(r, ptCut=10, mu_selector = mu_selector, ele_selector = ele_selector)
         leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
 
@@ -788,9 +858,13 @@ def filler( event ):
             event.l1_phi    = leptons[0]['phi']
             event.l1_pdgId  = leptons[0]['pdgId']
             event.l1_index  = leptons[0]['index']
+            if isMC:
+              event.l1_mcMatchId   = leptons[0]['mcMatchId']
+              event.l1_mcMatchAny  = leptons[0]['mcMatchAny']
             event.l1_jetPtRatiov2  = leptons[0]['jetPtRatiov2']
             event.l1_jetPtRelv2    = leptons[0]['jetPtRelv2']
             event.l1_miniRelIso = leptons[0]['miniRelIso']
+            event.l1_relIso03 = leptons[0]['relIso03']
             event.l1_dxy = leptons[0]['dxy']
             event.l1_dz = leptons[0]['dz']
             event.l1_mIsoWP = multiIsoWPInt(leptons[0])
@@ -821,7 +895,7 @@ def filler( event ):
             event.reweightLeptonSFUp         = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = +1) for l in leptonsForSF], 1)
             event.reweightLeptonSFDown       = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = -1) for l in leptonsForSF], 1)
 
-            event.reweightLeptonHIPSF      = reduce(mul, [leptonHIPSF.getSF( \
+            event.reweightLeptonTrackingSF   = reduce(mul, [leptonTrackingSF.getSF( \
                 pdgId = l['pdgId'],
                 pt  =   l['pt'], 
                 eta =   (l['etaSc'] if abs(l['pdgId'])==11 else l['eta'])
@@ -834,9 +908,13 @@ def filler( event ):
             event.l2_phi    = leptons[1]['phi']
             event.l2_pdgId  = leptons[1]['pdgId']
             event.l2_index  = leptons[1]['index']
+            if isMC:
+              event.l2_mcMatchId   = leptons[1]['mcMatchId']
+              event.l2_mcMatchAny  = leptons[1]['mcMatchAny']
             event.l2_jetPtRatiov2  = leptons[1]['jetPtRatiov2']
             event.l2_jetPtRelv2    = leptons[1]['jetPtRelv2']
             event.l2_miniRelIso = leptons[1]['miniRelIso']
+            event.l2_relIso03 = leptons[1]['relIso03']
             event.l2_dxy = leptons[1]['dxy']
             event.l2_dz = leptons[1]['dz']
             event.l2_mIsoWP = multiIsoWPInt(leptons[1])
@@ -881,7 +959,7 @@ def filler( event ):
               dlg = dl + gamma
               event.dlg_mass = dlg.M()
 
-            if options.T2tt or options.TTDM:
+            if options.T2tt or options.TTDM or options.T8bbllnunu:
                 mt2Calc.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
                 setattr(event, "dl_mt2ll_gen", mt2Calc.mt2ll())
                 if len(jets)>=2:
@@ -1056,17 +1134,43 @@ if isData:
     logger.info( "Written JSON file %s",  jsonFile )
 
 # Write one file per mass point for T2tt
-if options.T2tt:
-    output = Sample.fromDirectory("T2tt_output", outDir)
-    for s in signalWeight.keys():
-        cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1])
-        signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
-        if not os.path.exists(signalFile) or options.overwrite:
-            t = output.chain.CopyTree(cut)
-            writeObjToFile(signalFile, t)
-            logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
-        else:
-            logger.info( "Found file %s -> Skipping"%(signalFile) )
+if options.nJobs == 1:
+    if options.T2tt or options.T8bbllnunu:
+        if options.T2tt: output = Sample.fromDirectory("T2tt_output", outDir)
+        else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
+        print "Initialising chain, otherwise first mass point is empty"
+        print output.chain
+        if options.small: output.reduceFiles( to = 1 )
+        for s in signalWeight.keys():
+            #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
+            logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
+            cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
+            logger.debug("Using cut %s", cut)
+            if options.T2tt: signal_prefix = 'T2tt_'
+            else: signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
+            signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
+            logger.debug("Ouput file will be %s", signalFile)
+            if not os.path.exists(signalFile) or options.overwrite:
+                outF = ROOT.TFile.Open(signalFile, "RECREATE")
+                t = output.chain.CopyTree(cut)
+                nEvents = t.GetEntries()
+                outF.Write()
+                outF.Close()
+                logger.info( "Number of events %i", nEvents)
+                inF = ROOT.TFile.Open(signalFile, "READ")
+                u = inF.Get("Events")
+                nnEvents = u.GetEntries()
+                logger.debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
+                if nEvents == nnEvents: logger.debug("All events written")
+                else: logger.debug("Something went wrong, discrepancy between file and tree")
+                inF.Close()
+                logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
+            else:
+                logger.info( "Found file %s -> Skipping"%(signalFile) )
+    
+        output.clear()
 
-    output.clear()
-
+logger.info("Copying log file to %s"%outDir)
+copyLog = subprocess.call(['cp',logFile,outDir])
+if copyLog: print "Copying log from %s to %s failed"%(logFile,outDir)
+else: print "Successfully copied log file"

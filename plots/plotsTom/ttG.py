@@ -12,6 +12,7 @@ from RootTools.core.standard import *
 from StopsDilepton.tools.user import plot_directory
 from StopsDilepton.tools.helpers import deltaPhi
 from StopsDilepton.tools.objectSelection import getFilterCut
+from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 
 #
 # Arguments
@@ -24,6 +25,7 @@ argParser.add_argument('--add2015',        action='store_true', default=False,  
 argParser.add_argument('--plot_directory', action='store',      default='TTG')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
+argParser.add_argument('--runLocal',       action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
 if args.subtract: args.plot_directory += "_subtracted"
@@ -36,70 +38,26 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-#
-# Selections (two leptons with pt > 20 GeV, photon)
-#
-from StopsDilepton.tools.objectSelection import multiIsoLepString
-multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
-def getLeptonString(nMu, nE, multiIso=False, is74x=False):
-  leptonString = "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&l1_pt>25"
-  if multiIso and is74x: leptonString += "&&l1_index>=0&&l1_index<1000&&l2_index>=0&&l2_index<1000&&"+multiIsoWP
-  elif multiIso:         leptonString += "&&l1_mIsoWP>4&&l2_mIsoWP>4"
-  return leptonString
+selectionStrings = ["njet2p-relIso0.12-looseLeptonVeto-photon30",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-mll40",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-gJetdR-gLepdR-btag1p",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80-metSig5-dPhiJet0-dPhiJet1",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-mll40",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80",
+                    "njet2p-relIso0.12-looseLeptonVeto-photon50-llgNoZ-gJetdR-gLepdR-btag1p-mll40-met80-metSig5-dPhiJet0-dPhiJet1"]
 
 
-jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
-bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.800))>="
-bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.460))>="
-
-#
-# Cuts to iterate over
-#
-cuts = [
-    ("njet2",             jetSelection+"2"),
-    ("multiIsoWP",        "(1)"),                       # implemented below
-    ("photon30",          "(1)"),
-    ("llgNoZ",            "(1)"),			# Cut implemented in lepton selection
-    ("gJetdR",            "(1)"),			# Implenented in otherSelections() method
-    ("gLepdR",            "(1)"),			# Implemented in otherSelections() method
-    ("btagL",             bJetSelectionL+"1"),
-    ("btagM",             bJetSelectionM+"1"),
-    ("mll20",             "dl_mass>20"),
-    ("met80",             "met_pt_photonEstimated>80"),
-    ("metSig5",           "metSig_photonEstimated>5"),
-    ("dPhiJet0-dPhiJet1", "cos(met_phi_photonEstimated-JetGood_phi[0])<0.8&&cos(met_phi_photonEstimated-JetGood_phi[1])<cos(0.25)"),
-  ]
-
-
-#
-# Construct prefixes and selectionstring and filter on possible cut combinations
-#
-import itertools
-selectionStrings = {}
-for i_comb in reversed( range( len(cuts)+1 ) ):
-    for comb in itertools.combinations( cuts, i_comb ):
-        presel = [] 
-        presel.extend( comb )
-        selection = '-'.join([p[0] for p in presel])
-        if selection.count("btag") > 1:    continue
-        if selection.count("photon") != 1: continue
-        if selection.count("njet") != 1:   continue
-        if selection.count("dPhiJet0-dPhiJet1") and not selection.count("metSig5"):  continue
-        if selection.count("metSig5")           and not selection.count("met80"):    continue
-        if selection.count("met80")             and not selection.count("mll20"):    continue
-        if selection.count("mll20")             and not selection.count("btag"):     continue
-        if selection.count("mll20")             and not selection.count("llgNoZ"):   continue
-        if selection.count("mll20")             and not selection.count("gJetdR"):   continue
-        if selection.count("mll20")             and not selection.count("gLepdR"):   continue
-        if not selection in ["njet2-photon30-llgNoZ-gJetdR-gLepdR-btagM-mll20",
-                             "njet2-photon30-llgNoZ-gJetdR-gLepdR-btagM-mll20-met80-metSig5-dPhiJet0-dPhiJet1",
-                             "njet2-photon30",
-                             "njet2-photon30-gJetdR-gLepdR-btagM",
-                             "njet2-photon30-llgNoZ-gJetdR-gLepdR-btagM-mll20-met80",
-                             "njet2-photon30-llgNoZ",
-                             "njet2-photon30-llgNoZ-gJetdR-gLepdR-btagM"]: continue
-
-        selectionStrings[selection] = "&&".join( [p[1] for p in presel])
+def launch(command, logfile):
+  if args.runLocal: os.system(command + " --isChild &> " + logfile)
+  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
 
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
@@ -111,7 +69,7 @@ if not args.isChild and args.selection is None:
     command = "./ttG.py --selection=" + selection + (" --subtract" if args.subtract else "") + (" --add2015" if args.add2015 else "")
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
-    if not args.dryRun: os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=03:00:00 runPlotsOnCream02.sh")
+    if not args.dryRun: launch(command, logfile)
   logger.info("All jobs launched")
   exit(0)
 
@@ -121,10 +79,9 @@ if args.add2015:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v12/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed_photonSamples import *
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed_photonSamples import *
 
 
 #
@@ -138,7 +95,7 @@ def drawObjects( dataMCScale, lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'), 
-      (0.45, 0.95, 'L=12.9 fb{}^{-1} (13 TeV) Scale %3.2f'% ( dataMCScale ) )
+      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) )
     ]
     return [tex.DrawLatex(*l) for l in lines] 
 
@@ -173,25 +130,24 @@ def filterJets(event, sample):
 def otherSelections(event, sample):
   event.passed = True
   if args.selection.count("gLepdR"):
-    event.passed = (event.passed and event.photonLep1DeltaR > 0.3 and event.photonLep2DeltaR > 0.3)
+   # event.passed = (event.passed and event.photonLep1DeltaR > 0.3 and event.photonLep2DeltaR > 0.3)
+    event.passed = (event.passed and event.photonLep1DeltaR > 0.5 and event.photonLep2DeltaR > 0.5)
   if args.selection.count("gJetdR"):
-    if args.selection.count("njet2"):             event.passed = (event.passed and event.nJetGood > 1)
+    if args.selection.count("njet2p"):            event.passed = (event.passed and event.nJetGood > 1)
     if args.selection.count("btagL"):             event.passed = (event.passed and event.nBTagLoose > 0)
-    if args.selection.count("btagM"):             event.passed = (event.passed and event.nBTag > 0)
+    if args.selection.count("btag1p"):            event.passed = (event.passed and event.nBTag > 0)
     if args.selection.count("metSig5"):           event.passed = (event.passed and event.metSig_photonEstimated > 5)
     if args.selection.count("dPhiJet0-dPhiJet1"): event.passed = (event.passed and max(event.dPhiMetJet[0], event.dPhiMetJet[1]) < cos(0.25))
 
 sequence = [makeDeltaR, filterJets, otherSelections]
 
+offZ            = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ")) else ""
+photonSelection = "(nPhotonGood>0&&photon_eta<2.5&&photon_idCutBased>2)"
+def getLeptonSelection(mode):
+  if   mode=="mumu": return photonSelection + "&&(nGoodMuons==2&&nGoodElectrons==0&&isOS&&l1_pt>25&&isMuMu" + offZ + ")"
+  elif mode=="mue":  return photonSelection + "&&(nGoodMuons==1&&nGoodElectrons==1&&isOS&&l1_pt>25&&isEMu)"
+  elif mode=="ee":   return photonSelection + "&&(nGoodMuons==0&&nGoodElectrons==2&&isOS&&l1_pt>25&&isEE" + offZ + ")"
 
-offZ            = "&&abs(dl_mass-91.1876)>15"
-offZ_dlg        = "&&abs(dlg_mass-91.1876)>15"
-photonSelection = "nPhotonGood>0&&photon_eta<2.5&&photon_idCutBased>2&&photon_pt>" + args.selection.split('photon')[1].split('-')[0]
-
-def getLeptonSelection(mode, llgCut = False):
-  if   mode=="mumu": return getLeptonString(2, 0, args.selection.count("multiIsoWP")) + "&&isOS&&isMuMu" + offZ + (offZ_dlg if llgCut else "")
-  elif mode=="mue":  return getLeptonString(1, 1, args.selection.count("multiIsoWP")) + "&&isOS&&isEMu"
-  elif mode=="ee":   return getLeptonString(0, 2, args.selection.count("multiIsoWP")) + "&&isOS&&isEE" + offZ + (offZ_dlg if llgCut else "")
 
 #
 # Loop over channels
@@ -201,17 +157,15 @@ allPlots   = {}
 allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
-  if mode=="mumu":
-    data_sample           = DoubleMuon_Run2016BCD_backup
-    data_sample.texName   = "data (2 #mu)"
-  elif mode=="ee":
-    data_sample           = DoubleEG_Run2016BCD_backup
-    data_sample.texName   = "data (2 e)"
-  elif mode=="mue":
-    data_sample           = MuonEG_Run2016BCD_backup
-    data_sample.texName   = "data (1 #mu, 1 e)"
+  if   mode=="mumu": data_sample = DoubleMuon_Run2016_backup
+  elif mode=="ee":   data_sample = DoubleEG_Run2016_backup
+  elif mode=="mue":  data_sample = MuonEG_Run2016_backup
 
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
+  if   mode=="mumu": data_sample.texName = "data (2 #mu)"
+  elif mode=="ee":   data_sample.texName = "data (2 e)"
+  elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
+
+  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
   data_sample.name  = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
@@ -222,17 +176,17 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color)
-    sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightPU/F','reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU12fb/F']
-    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*event.reweightPU12fb
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
+    sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightDilepTriggerBackup/F','reweightTopPt/F','reweightLeptonSF/F','reweightPU36fb/F', 'nTrueInt/F']
+    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightTopPt*event.reweightBTag_SF
+    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
   # For TTJets, do TTGJets overlap events removal
-  TTJets_Lep.setSelectionString(["TTGJetsEventType<4", getFilterCut(isData=False), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
-  DY_HT_LO.setSelectionString(  ["TTGJetsEventType<4", getFilterCut(isData=False), getLeptonSelection(mode, llgCut=args.selection.count('llgNoZ')), photonSelection])
+  TTJets_Lep.setSelectionString(["TTGJetsEventType<4", getFilterCut(isData=False), getLeptonSelection(mode)])
+  DY_HT_LO.setSelectionString(  ["TTGJetsEventType<4", getFilterCut(isData=False), getLeptonSelection(mode)])
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = (lambda event, sample:event.weight if event.passed else 0), selectionString = selectionStrings[args.selection])
+  Plot.setDefaults(stack = stack, weight = (lambda event, sample:event.weight if event.passed else 0), selectionString = cutInterpreter.cutString(args.selection, photonEstimated=True))
   
   plots = []
 
@@ -430,11 +384,11 @@ for index, mode in enumerate(allModes):
     if hasattr(plot, 'binWidth'):
       for histo in sum(plot.histos, []):
         for ib in range(histo.GetXaxis().GetNbins()+1):
-	  val = histo.GetBinContent( ib )
-	  err = histo.GetBinError( ib )
-	  width = histo.GetBinWidth( ib )
-	  histo.SetBinContent(ib, val / (width / plot.binWidth))
-	  histo.SetBinError(ib, err / (width / plot.binWidth))
+          val = histo.GetBinContent( ib )
+          err = histo.GetBinError( ib )
+          width = histo.GetBinWidth( ib )
+          histo.SetBinContent(ib, val / (width / plot.binWidth))
+          histo.SetBinError(ib, err / (width / plot.binWidth))
 
     if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
     plotting.draw(plot, 
@@ -471,6 +425,7 @@ with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
 
 
 # Add the different channels and plot the sums
+import itertools
 for plot in allPlots[allModes[0]]:
   logger.info("Adding " + plot.name + " for mode " + allModes[0] + " to all")
   for mode in allModes[1:]:
@@ -492,4 +447,4 @@ for plot in allPlots[allModes[0]]:
         drawObjects = drawObjects( dataMCScale, lumi_scale ),
   )
 
-logger.info( "Done with prefix %s and selectionString %s", args.selection, selectionStrings[args.selection] )
+logger.info( "Done with prefix %s", args.selection )
