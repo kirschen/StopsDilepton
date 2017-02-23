@@ -94,6 +94,11 @@ class Setup:
                        '2e1mu': MuonEG_Run2016_backup},
         }
 
+        dataPUHistForSignalPath = "$CMSSW_BASE/src/StopsDilepton/tools/data/puFastSimUncertainty/dataPU.root"
+        dataPUHistForSignalPath = os.path.expandvars(dataPUHistForSignalPath)
+        self.dataPUHistForSignalFile = ROOT.TFile(dataPUHistForSignalPath)
+        self.dataPUHistForSignal = self.dataPUHistForSignalFile.Get("data")
+
     def prefix(self):
         return '_'.join(self.prefixes+[self.preselection('MC')['prefix']])
 
@@ -158,7 +163,8 @@ class Setup:
         '''
         #Consistency checks
         if self.sys['selectionModifier']:
-          assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
+          #print self.sys['selectionModifier']
+          assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'] or 'nVert' in self.sys['selectionModifier'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
         assert dataMC in ['Data','MC'],                                                   "dataMC = Data or MC, got %r."%dataMC
         assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                    "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
 
@@ -259,8 +265,11 @@ class Setup:
         res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), badMuonFilters='Moriond2017', isFastSim=isFastSim))
         #res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
-
+        
+        if self.sys['selectionModifier']:
+            if "nVert" in self.sys['selectionModifier']:
+                res['cuts'].append(self.sys['selectionModifier'])
+        
         if self.sys['selectionModifier'] == 'genMet':
             res['cuts'] = [ fastSimGenMetReplacements(r) for r in res['cuts'] ]
-
         return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr': self.weightString()}

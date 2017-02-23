@@ -22,8 +22,10 @@ for i, estimator in enumerate(signalEstimators):
   #if "1300_1" in estimator:
   #  print i
   #  print estimator
-  if i%20==0: print
-  os.system(cmd+" 'python run_limit.py --signal T2tt              --only=%s'"%str(i))
+  #if i%20==0: print
+  if "800_100" in estimator:
+    print i
+  #os.system(cmd+" 'python run_limit.py --signal T2tt              --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlDYVV --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlTTZ  --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--fitAll      --only=%s'"%str(i))

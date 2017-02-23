@@ -44,10 +44,12 @@ class SystematicEstimator:
         if self.helperCache and self.helperCache.contains(s):
           return self.helperCache.get(s)
         else:
-	  yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
+          yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
           if self.helperCache: self.helperCache.add(s, yieldFromDraw, save=True)
 	  return yieldFromDraw
 
+    def getPU(self):
+        return 0
 
     def uniqueKey(self, region, channel, setup):
         return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
@@ -161,6 +163,47 @@ class SystematicEstimator:
         assert ref+gen > 0, "denominator > 0 not fulfilled, this is odd and should not happen!"
         return abs(ref-gen)/(ref+gen)
 
+    def fastSimPUSystematic(self, region, channel, setup):
+        incl        = self.cachedEstimate(region, channel, setup.sysClone())
+        incl_nvert  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['nVert']}))
+        if incl.val > 0:
+            exp_nvert = int(incl_nvert.val/incl.val)
+            incl_nvert = incl_nvert/incl
+        else:
+            return u_float(1) # Use 100% uncertainty until we have a better idea
+        hiPU        = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'nVert>='+str(exp_nvert)}))
+        hiPU_nvert  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'nVert>='+str(exp_nvert), 'reweight':['nVert']}))
+        loPU        = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'nVert<'+str(exp_nvert)}))
+        loPU_nvert  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'nVert<'+str(exp_nvert), 'reweight':['nVert']}))
+        if loPU.val > 0 and hiPU.val > 0:
+            loPU_nvert = loPU_nvert/loPU
+            hiPU_nvert = hiPU_nvert/hiPU
+        else:
+            return u_float(1) # Use 100% uncertainty until we have a better idea
+
+        k_central   = (loPU.val - hiPU.val)/(loPU_nvert.val - hiPU_nvert.val)
+        k_loUp      = ((loPU.val + loPU.sigma) - (hiPU.val - hiPU.sigma))/(loPU_nvert.val - hiPU_nvert.val)
+        k_loDown    = ((loPU.val - loPU.sigma) - (hiPU.val + hiPU.sigma))/(loPU_nvert.val - hiPU_nvert.val)
+        
+        d_central   = loPU.val - k_central*(loPU_nvert.val - incl_nvert.val)
+        d_loUp      = loPU.val + loPU.sigma - k_loUp*(loPU_nvert.val - incl_nvert.val)
+        d_loDown    = loPU.val - loPU.sigma - k_loDown*(loPU_nvert.val - incl_nvert.val)
+        
+        data_PU = setup.dataPUHistForSignal
+        fold_loUp   = 0.
+        fold_loDown = 0.
+        for i in range(1,data_PU.GetNbinsX()+1):
+            fold = (k_loUp*(i - incl_nvert.val) + d_loUp) * data_PU.GetBinContent(i)
+            if fold > 0:
+                fold_loUp += fold
+            fold = (k_loDown*(i - incl_nvert.val) + d_loDown) * data_PU.GetBinContent(i)
+            if fold > 0:
+                fold_loDown += fold
+        ref  = self.cachedEstimate(region, channel, setup)
+        gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
+        unc = u_float(abs(fold_loDown - fold_loUp)/(0.5*(ref.val+gen.val)))
+        return unc
+
     def getBkgSysJobs(self, region, channel, setup):
         l = [
             (region, channel, setup.sysClone({'reweight':['reweightPU36fbUp']})),
@@ -221,6 +264,9 @@ class SystematicEstimator:
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']})),
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
                 (region, channel, setup.sysClone({'selectionModifier':'genMet'})),
+                (region, channel, setup.sysClone({'selectionModifier':'highPU'})),
+                (region, channel, setup.sysClone({'selectionModifier':'lowPU'})),
+
             ] )
         else:
             l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
