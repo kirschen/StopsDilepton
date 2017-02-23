@@ -44,9 +44,9 @@ class SystematicEstimator:
         if self.helperCache and self.helperCache.contains(s):
           return self.helperCache.get(s)
         else:
-	  yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
+          yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
           if self.helperCache: self.helperCache.add(s, yieldFromDraw, save=True)
-	  return yieldFromDraw
+          return yieldFromDraw
 
 
     def uniqueKey(self, region, channel, setup):
@@ -230,16 +230,16 @@ class SystematicEstimator:
         try:
           name = self.texName
         except:
-	  try:
-	    name = self.sample[channel].texName
-	  except:
-	    try:
-	      texNames = [self.sample[c].texName for c in channels]		# If all, only take texName if it is the same for all channels
-	      if texNames.count(texNames[0]) == len(texNames):
-		name = texNames[0]
-	      else:
-		name = self.name
-	    except:
-	      name = self.name
-	if not rootTex: name = "$" + name.replace('#','\\') + "$" # Make it tex format
-	return name
+          try:
+            name = self.sample[channel].texName
+          except:
+            try:
+              texNames = [self.sample[c].texName for c in channels]                # If all, only take texName if it is the same for all channels
+              if texNames.count(texNames[0]) == len(texNames):
+                name = texNames[0]
+              else:
+                name = self.name
+            except:
+              name = self.name
+        if not rootTex: name = "$" + name.replace('#','\\') + "$" # Make it tex format
+        return name
