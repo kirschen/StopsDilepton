@@ -23,9 +23,12 @@ argParser.add_argument('--logLevel',       action='store',      default='INFO', 
 argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
 argParser.add_argument('--subtract',       action='store_true', default=False,       help='subtract residual backgrounds?')
 argParser.add_argument('--plot_directory', action='store',      default='fakeRate')
+argParser.add_argument('--filters',        action='store',      default='Moriond2017Official')
 argParser.add_argument('--channel',        action='store',      default=None)
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
+argParser.add_argument('--norm',           action='store_true', default=False)
+argParser.add_argument('--looseEle',       action='store_true', default=False)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
@@ -44,7 +47,7 @@ def getLeptonSelection(mode):
   elif mode=="mue":  return "(nGoodMuons==1&&nGoodElectrons==1&&isOS&&l1_pt>25&&isEMu)"
   elif mode=="ee":   return "(nGoodMuons==0&&nGoodElectrons==2&&isOS&&l1_pt>25&&isEE" + offZ + ")"
 
-selectionStrings = ['njet2p-relIso0.12','njet2p-relIso0.12-btag1p']
+selectionStrings = ['njet2p-relIso0.12','njet2p-relIso0.12-btag1p','njet2p-relIso0.12-mll20','njet2p-relIso0.12-btag1p-mll20']
 
 
 def launch(command, logfile):
@@ -57,15 +60,24 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    for channel in ["ee","mumu","emu"]:
-      command = "./fakeRate.py --selection=" + selection + (" --channel="+ channel) + (" --plot_directory=" + args.plot_directory) + (" --subtract" if args.subtract else "") + (" --logLevel=" + args.logLevel)
-      logfile = "log/fakeRate_" + selection + ".log"
+    for channel in ["ee","mumu","mue"]:
+      command = "./fakeRate.py --selection=" + selection + (" --channel="+ channel)\
+                                                         + (" --plot_directory=" + args.plot_directory)\
+                                                         + (" --subtract" if args.subtract else "")\
+                                                         + (" --norm" if args.norm else "")\
+                                                         + (" --looseEle" if args.looseEle else "")\
+                                                         + (" --logLevel=" + args.logLevel)\
+                                                         + (" --filters=" + args.filters)
+      logfile = "log/fakeRate_" + selection + "_" + channel + ".log"
       logger.info("Launching " + selection + " on cream02 with child command: " + command)
       if not args.dryRun: launch(command, logfile)
   logger.info("All jobs launched")
   exit(0)
 
-if args.subtract: args.plot_directory += "_subtracted"
+if args.norm:     args.plot_directory += "_normalized"
+if args.looseEle: args.plot_directory += "_looseEleId"
+if not args.filters == "Moriond2017Official": args.plot_directory += "_filters" + args.filters
+
 #
 # Text on the plots
 #
@@ -99,15 +111,12 @@ for i in leptonVars:
 # For third loose lepton: no isolation, but still apply id
 # Keep loosened id because otherwise we have almost no stats
 mu_selector_loose  = muonSelector(relIso03=999)
-ele_selector_loose = eleSelector(relIso03=999)#, eleId = 0, dxy=99, dz=99, loose=True)
+ele_selector_loose = eleSelector(relIso03=999, eleId = 0, dxy=99, dz=99, loose=True) if args.looseEle else eleSelector(relIso03=999)
 mu_selector_tight  = muonSelector(relIso03=0.12)
 ele_selector_tight = eleSelector(relIso03=0.12)#, eleId = 4, dxy=99, dz=99)
 
-yields     = {}
-allPlots   = {}
-allModes   = ['mumu','ee','mue']
-for index, mode in enumerate(allModes):
- for thirdLeptonFlavour in ['mu','e',"all"]:
+mode = args.channel
+for thirdLeptonFlavour in ['mu','e']:
   if mode != args.channel: continue
   def isGoodLepton(l):
       return (abs(l["pdgId"])==11 and default_ele_selector(l, ptCut = 20)) or (abs(l["pdgId"])==13 and default_muon_selector(l, ptCut = 20))
@@ -123,9 +132,6 @@ for index, mode in enumerate(allModes):
       allExtraLeptonsLoose = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_loose, ele_selector=ele_selector_loose) if not isGoodLepton(l)]
       allExtraLeptonsTight = [l for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_tight, ele_selector=ele_selector_tight) if not isGoodLepton(l)]
 
-      print [l['pt'] for l in getGoodAndOtherLeptons(event, collVars=leptonVars, ptCut=10, mu_selector=mu_selector_loose, ele_selector=ele_selector_loose)]
-      print [l['pt'] for l in allExtraLeptonsLoose]
-      print
       if thirdLeptonFlavour == "e":
         allExtraLeptonsLoose = filter(lambda l: abs(l['pdgId']) == 11, allExtraLeptonsLoose)
         allExtraLeptonsTight = filter(lambda l: abs(l['pdgId']) == 11, allExtraLeptonsTight)
@@ -151,10 +157,8 @@ for index, mode in enumerate(allModes):
 
   sequence = [getThirdLepton]
 
-  yields[mode] = {}
-  if   thirdLeptonFlavour == "e":   looseFlavour = "loose e"
-  elif thirdLeptonFlavour == "mu":  looseFlavour = "loose #mu"
-  elif thirdLeptonFlavour == "all": looseFlavour = "loose e/#mu"
+  if   thirdLeptonFlavour == "e":   looseFlavour = "loose e" if args.looseEle else "e"
+  elif thirdLeptonFlavour == "mu":  looseFlavour = "#mu"
   if mode=="mumu":
     data_sample         = DoubleMuon_Run2016_backup
     data_sample.texName = "Data (2#mu + " + looseFlavour + ")"
@@ -175,7 +179,7 @@ for index, mode in enumerate(allModes):
     sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F']
     sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightTopPt
 
-  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017"), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection(mode)])
   for sample in mc:
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
   stack = Stack(mc, data_sample)
@@ -272,21 +276,6 @@ for index, mode in enumerate(allModes):
           plot.histos[0] = [h]
       plot.stack = Stack([Top_pow], [data_sample])
 
-
-  # Get normalization yields from yield histogram
-#  for plot in plots:
-#    if plot.name == "yield":
-#      for i, l in enumerate(plot.histos):
-#        for j, h in enumerate(l):
-#          yields[mode][plot.stack[i][j].name] = h.GetBinContent(h.FindBin(0.5+index))
-#          h.GetXaxis().SetBinLabel(1, "#mu#mu")
-#          h.GetXaxis().SetBinLabel(2, "e#mu")
-#          h.GetXaxis().SetBinLabel(3, "ee")
-
-#  yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc)
-#  dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
-#  logger.info( "Data/MC Scale: %4.4f Yield MC %4.4f Yield Data %4.4f Lumi-scale %4.4f", dataMCScale, yields[mode]["MC"], yields[mode]["data"], lumi_scale )
-
   for log in [False, True]:
     for plot in plots:
       if plot.name == "fakeRateAll": continue
@@ -295,50 +284,6 @@ for index, mode in enumerate(allModes):
         ratio = {'yRange':(0.1,1.9)},
         logX = False, logY = log, sorting = False,
         yRange = (0.03, "auto"),
+        scaling = {0:1} if args.norm else None,
         drawObjects = drawObjects(lumi_scale)
       )
-  allPlots[mode+thirdLeptonFlavour] = plots
-
-for plot in allPlots['mumuall']:
-  logger.info("Adding " + plot.name + " for ee and mumu to all")
-  for plot2 in (p for p in (allPlots['eeall']) if p.name == plot.name):
-    for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
-      for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
-        if i==k:
-          j.Add(l)
-
-# Now divide tight third lepton by loose third lepton
-for plot in plots:
-  if plot.name == "fakeRateAll":
-    for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
-      for plot2 in plots:
-        if plot2.name == "l3_loose_pt":
-          for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
-            if i == k:
-              temp = l.Clone()
-              temp.Add(j, -1)
-              j.Divide(l)
-
-# Make sure that for the fakeRate we only plot top, even when no subtraction is done
-for plot in plots:
-  if plot.name == "fakeRateAll":
-    for j, h in enumerate(plot.histos[0]):
-      if plot.stack[0][j].name.count('Top'):
-        plot.histos[0] = [h]
-    plot.stack = Stack([Top_pow], [data_sample])
-
-
-
-
-
-for log in [False, True]:
-  for plot in plots:
-    if plot.name == "fakeRate": continue
-    plot.histos[1][0].legendText = "Data 2016 (ee/mumu + loose e/mu)"
-    plotting.draw(plot,
-      plot_directory = os.path.join(plot_directory, args.plot_directory, "all" + ("_log" if log else ""), args.selection),
-      ratio = {'yRange':(0.1,1.9)},
-      logX = False, logY = log, sorting = False,
-      yRange = (0.03, "auto"),
-      drawObjects = drawObjects(lumi_scale)
-    )

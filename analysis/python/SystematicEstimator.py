@@ -44,13 +44,15 @@ class SystematicEstimator:
         if self.helperCache and self.helperCache.contains(s):
           return self.helperCache.get(s)
         else:
-	  yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
+          yieldFromDraw = u_float(**setup.sample[sample][c].getYieldFromDraw(selectionString, weightString))
           if self.helperCache: self.helperCache.add(s, yieldFromDraw, save=True)
-	  return yieldFromDraw
-
+          return yieldFromDraw
 
     def uniqueKey(self, region, channel, setup):
-        return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
+        sysForKey = setup.sys.copy()
+        sysForKey['reweight'] = 'TEMP'
+        reweightKey ='["' + '", "'.join([i for i in setup.sys['reweight']]) + '"]' # little hack to preserve order of list when being dumped into json
+        return region, channel, json.dumps(sysForKey, sort_keys=True).replace('"TEMP"',reweightKey), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
 
     def replace(self, i, r):
         try:
@@ -58,25 +60,12 @@ class SystematicEstimator:
           else:                   return i
         except:                   return i
 
-    def keyVariations(self, key):
-        variations = []
-        replaceList = [('"reweightLeptonSF", "reweightPU36fb", "reweightBTag_SF", "reweightTopPt", "reweightDilepTriggerBackup"','"reweightPU36fb", "reweightDilepTriggerBackup", "reweightLeptonSF", "reweightTopPt", "reweightBTag_SF"')]
-        for r in replaceList:
-          variations.append(tuple(self.replace(i, r) for i in key))
-        return variations
-
     def cachedEstimate(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
         if (self.cache and self.cache.contains(key)) and not overwrite:
             res = self.cache.get(key)
             logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
         elif self.cache:
-            for altKey in self.keyVariations(key):
-              logger.info( "Trying alternative key: " + str(altKey) + " instead of " + str(key))
-              if self.cache.contains(altKey):
-                res = self.cache.get(altKey)
-                logger.debug( "Loading cached %s result for %r : %r"%(self.name, altKey, res) )
-                return res if res > 0 else u_float(0,0)
             logger.info( "Calculating %s result for %r"%(self.name, key) )
             estimate = self._estimate( region, channel, setup)
             res = self.cache.add( key, estimate, save=save)
@@ -158,7 +147,51 @@ class SystematicEstimator:
     def fastSimMETSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
         gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
-        return abs(0.5*(ref-gen)/ref) if ref > 0 else max(up, down)
+        assert ref+gen > 0, "denominator > 0 not fulfilled, this is odd and should not happen!"
+        return abs(ref-gen)/(ref+gen)
+
+    def fastSimPUSystematic(self, region, channel, setup):
+        ''' implemented based on the official SUSY recommendation https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsMoriond17#Pileup_lumi
+        '''
+        incl        = self.cachedEstimate(region, channel, setup.sysClone())
+        incl_nvert  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['nVert']}))
+        if incl.val > 0:
+            exp_nvert = int(incl_nvert.val/incl.val)
+            incl_nvert = incl_nvert/incl
+        else:
+            return u_float(1) # Use 100% uncertainty until we have a better idea
+        hiPU        = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'nVert>='+str(exp_nvert)}))
+        hiPU_nvert  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'nVert>='+str(exp_nvert), 'reweight':['nVert']}))
+        loPU        = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'nVert<'+str(exp_nvert)}))
+        loPU_nvert  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'nVert<'+str(exp_nvert), 'reweight':['nVert']}))
+        if loPU.val > 0 and hiPU.val > 0:
+            loPU_nvert = loPU_nvert/loPU
+            hiPU_nvert = hiPU_nvert/hiPU
+        else:
+            return u_float(1) # Use 100% uncertainty until we have a better idea
+
+        k_central   = (loPU.val - hiPU.val)/(loPU_nvert.val - hiPU_nvert.val)
+        k_loUp      = ((loPU.val + loPU.sigma) - (hiPU.val - hiPU.sigma))/(loPU_nvert.val - hiPU_nvert.val)
+        k_loDown    = ((loPU.val - loPU.sigma) - (hiPU.val + hiPU.sigma))/(loPU_nvert.val - hiPU_nvert.val)
+        
+        d_central   = loPU.val - k_central*(loPU_nvert.val - incl_nvert.val)
+        d_loUp      = loPU.val + loPU.sigma - k_loUp*(loPU_nvert.val - incl_nvert.val)
+        d_loDown    = loPU.val - loPU.sigma - k_loDown*(loPU_nvert.val - incl_nvert.val)
+        
+        data_PU = setup.dataPUHistForSignal
+        fold_loUp   = 0.
+        fold_loDown = 0.
+        for i in range(1,data_PU.GetNbinsX()+1):
+            fold = (k_loUp*(i - incl_nvert.val) + d_loUp) * data_PU.GetBinContent(i)
+            if fold > 0:
+                fold_loUp += fold
+            fold = (k_loDown*(i - incl_nvert.val) + d_loDown) * data_PU.GetBinContent(i)
+            if fold > 0:
+                fold_loDown += fold
+        ref  = self.cachedEstimate(region, channel, setup)
+        gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
+        unc = u_float(abs(fold_loDown - fold_loUp)/(0.5*(ref.val+gen.val)))
+        return unc
 
     def getBkgSysJobs(self, region, channel, setup):
         l = [
@@ -220,6 +253,9 @@ class SystematicEstimator:
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']})),
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
                 (region, channel, setup.sysClone({'selectionModifier':'genMet'})),
+                (region, channel, setup.sysClone({'selectionModifier':'highPU'})),
+                (region, channel, setup.sysClone({'selectionModifier':'lowPU'})),
+
             ] )
         else:
             l = self.getBkgSysJobs(region = region, channel = channel, setup = setup)
@@ -229,16 +265,16 @@ class SystematicEstimator:
         try:
           name = self.texName
         except:
-	  try:
-	    name = self.sample[channel].texName
-	  except:
-	    try:
-	      texNames = [self.sample[c].texName for c in channels]		# If all, only take texName if it is the same for all channels
-	      if texNames.count(texNames[0]) == len(texNames):
-		name = texNames[0]
-	      else:
-		name = self.name
-	    except:
-	      name = self.name
-	if not rootTex: name = "$" + name.replace('#','\\') + "$" # Make it tex format
-	return name
+          try:
+            name = self.sample[channel].texName
+          except:
+            try:
+              texNames = [self.sample[c].texName for c in channels]                # If all, only take texName if it is the same for all channels
+              if texNames.count(texNames[0]) == len(texNames):
+                name = texNames[0]
+              else:
+                name = self.name
+            except:
+              name = self.name
+        if not rootTex: name = "$" + name.replace('#','\\') + "$" # Make it tex format
+        return name

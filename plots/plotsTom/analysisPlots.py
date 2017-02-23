@@ -46,6 +46,8 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 # Selection strings for which plots need to be produced, as interpreted by the cutInterpreter
 #
 selectionStrings = ['relIso0.12',
+                    'relIso0.12-btag1p',
+                    'njet2p-relIso0.12-btag1p',
                     'relIso0.12-allZ',
                     'relIso0.12-looseLeptonVeto',
                     'relIso0.12-looseLeptonVeto-allZ',
@@ -64,6 +66,7 @@ selectionStrings = ['relIso0.12',
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-mt2ll100',
+                    'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5',
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100',
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',                          # DY control
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
@@ -83,6 +86,7 @@ selectionStrings = ['relIso0.12',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']
+
 
 def launch(command, logfile):
   if args.runLocal: os.system(command + " --isChild &> " + logfile)
@@ -282,13 +286,13 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
+      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events',
       attribute = TreeVariable.fromString( "met_pt/F" ),
       binning=[400/20,0,400],
   ))
 
   plots.append(Plot(
-      texX = '#phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
+      texX = '#phi(E_{T}^{miss})', texY = 'Number of Events',
       attribute = TreeVariable.fromString( "met_phi/F" ),
       binning=[10,-pi,pi],
   ))
@@ -330,7 +334,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 10 GeV',
+    texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
     attribute = TreeVariable.fromString( "dl_pt/F" ),
     binning=[20,0,400],
   ))
@@ -356,7 +360,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 5 GeV',
+    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l1_pt/F" ),
     binning=[20,0,300],
   ))
@@ -374,7 +378,7 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 5 GeV',
+    texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,300],
   ))

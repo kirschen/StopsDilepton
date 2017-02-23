@@ -112,13 +112,15 @@ if args.selection.count("njet2p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSi
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-#postProcessing_directory = "postProcessed_80X_v15/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v31/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-T2tt                    = T2tt_650_1
-T2tt2                   = T2tt_500_250
+T2tt                    = T2tt_750_1
+T2tt2                   = T2tt_600_300
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
 T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
 
@@ -218,21 +220,18 @@ for index, mode in enumerate(allModes):
   elif mode=="ee":   data_sample.texName = "data (2 e)"
   elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
 
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["evt/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   lumi_scale                 = data_sample.lumi/1000
 
-  if args.noData: lumi_scale = 36.4
-  # Blinding policies for DM and T2tt analyses
-  if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.noData:
+  if args.noData: lumi_scale = 36.5
+  # Blinding policy for DM
+  if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.noData and args.signal == "DM":
     if args.signal == "DM":
       weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
       lumi_scale = lumi_scale/15
-    else:
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-      lumi_scale = 17.3
   else:
     weight_ = lambda event, sample: event.weight
 

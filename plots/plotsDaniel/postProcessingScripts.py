@@ -6,6 +6,7 @@ from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper
 from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
 from StopsDilepton.samples.heppy_dpm_samples import ttbarDM_heppy_mapper
 
+from StopsDilepton.tools.helpers import natural_sort
 
 mc = mc_heppy_mapper
 mc_samples = mc.heppy_sample_names
@@ -48,3 +49,33 @@ def getPPString(sampleName, processType, jobtitle='2l_PP', vetoString='supercomp
       elif processType == 'nohup':
         command_str = 'nohup krenew -t -K 10 -- bash -c \" python cmgPostProcessing.py '+additionalOptions+' --samples ' + sample_str + '> out_%0.2X.log\" &' %time_stamp
       print command_str
+
+def getTexTable(samples, filename="samples.tex", vetoString='supercomplicatedstringnevertobefoundinasample'):
+    replaceMap =    {
+                    "RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6":"[Summer16mAOD]",
+                    "RunIISummer16MiniAODv2-PUMoriond17_HCALDebug_80X_mcRun2_asymptotic_2016_TrancheIV_v6":"[Summer16mAOD*]"
+                    }
+                 
+    l = []
+    for sample in sorted(samples.sample_map.keys()):
+        dataset = sample.dataset
+        for r in replaceMap.keys():
+            if r in dataset: dataset = dataset.replace(r, replaceMap[r])
+        sampleString = "{:10} & \\verb {:120} & {:8} \\\\ \n".format('',dataset,round(sample.xSection,3))
+        if not vetoString in dataset:
+            l.append(sampleString)
+
+    with open(filename, 'w') as f:
+        #f.write("\\documentclass[a4paper,10pt,oneside]{article} \n \\usepackage{caption} \n \\usepackage{rotating} \n \\begin{document} \n")
+        f.write("\\begin{table} \n \\tiny \\center \n \\begin{tabular}{l|l|l}  \n")
+        f.write("process & dataset path & $\sigma \cdot BR$ (pb)\\\\ \\hline \n")
+        for s in natural_sort(l):
+            f.write(s)
+        f.write(" \\end{tabular} \\\\ \n \\vspace{2mm} \n")
+        for r in replaceMap.keys():
+            f.write("\\verb {} = \\verb {} \\\\ \n".format(replaceMap[r],r))
+        f.write(" \\caption{Samples} \n \\label{samples-backgrounds2016} \n ")
+        f.write(" \n \\end{table} ")
+        #f.write(" \\end{document}")
+    return natural_sort(l)
+
