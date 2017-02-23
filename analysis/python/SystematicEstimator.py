@@ -48,9 +48,6 @@ class SystematicEstimator:
           if self.helperCache: self.helperCache.add(s, yieldFromDraw, save=True)
 	  return yieldFromDraw
 
-    def getPU(self):
-        return 0
-
     def uniqueKey(self, region, channel, setup):
         return region, channel, json.dumps(setup.sys, sort_keys=True), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
 
@@ -164,6 +161,8 @@ class SystematicEstimator:
         return abs(ref-gen)/(ref+gen)
 
     def fastSimPUSystematic(self, region, channel, setup):
+        ''' implemented based on the official SUSY recommendation https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsMoriond17#Pileup_lumi
+        '''
         incl        = self.cachedEstimate(region, channel, setup.sysClone())
         incl_nvert  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['nVert']}))
         if incl.val > 0:
