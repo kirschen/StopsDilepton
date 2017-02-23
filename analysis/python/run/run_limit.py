@@ -218,7 +218,7 @@ def wrapper(s):
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
-                    #c.specifyUncertainty('PU',       binname, 'signal', 1 + e.fastSimPUSystematic(   r, channel, signalSetup).val )
+                    c.specifyUncertainty('PU',       binname, 'signal', 1 + e.fastSimPUSystematic(   r, channel, signalSetup).val )
 
                   #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated
                   uname = 'Stat_'+binname+'_signal'
