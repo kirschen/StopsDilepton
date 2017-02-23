@@ -22,6 +22,7 @@ parser.add_option("--stol", "--sig-tolerance", dest="stol", default=0.10, type="
 parser.add_option("--vtol2", "--val-tolerance2", dest="vtol2", default=2.0, type="float", help="Report severely nuisances whose value changes by more than this amount of sigmas")
 parser.add_option("--stol2", "--sig-tolerance2", dest="stol2", default=0.50, type="float", help="Report severely nuisances whose sigma changes by more than this amount")
 parser.add_option("-a", "--all",      dest="all",    default=False,  action="store_true", help="Print all nuisances, even the ones which are unchanged w.r.t. pre-fit values.")
+parser.add_option("-b", "--bonly",    dest="bonly",  default=False,  action="store_true", help="Only show the background only columni (only inplemented for tex).")
 parser.add_option("-A", "--absolute", dest="abs",    default=False,  action="store_true", help="Report also absolute values of nuisance values and errors, not only the ones normalized to the input sigma")
 parser.add_option("-p", "--poi",      dest="poi",    default="r",    type="string",  help="Name of signal strength parameter (default is 'r' as per text2workspace.py)")
 parser.add_option("-f", "--format",   dest="format", default="text", type="string",  help="Output format ('text', 'latex', 'twiki'")
@@ -105,12 +106,18 @@ elif options.format == 'latex':
         print "\\begin{tabular}{|l|r|r|r|r|} \\hline ";
         print (fmtstring % ('name', 'pre fit', '$b$-only fit', '$s+b$ fit', r'$\rho(\theta, \mu)$')), " \\hline"
     else:
-        fmtstring = "%-40s &  %15s & %15s & %6s \\\\"
-        print "\\begin{tabular}{|l|r|r|r|} \\hline ";
-        #what = r"$(x_\text{out} - x_\text{in})/\sigma_{\text{in}}$, $\sigma_{\text{out}}/\sigma_{\text{in}}$"
-        what = r"$\Delta x/\sigma_{\text{in}}$, $\sigma_{\text{out}}/\sigma_{\text{in}}$"
-        print  fmtstring % ('',     '$b$-only fit', '$s+b$ fit', '')
-        print (fmtstring % ('name', what, what, r'$\rho(\theta, \mu)$')), " \\hline"
+        if options.bonly:
+          fmtstring = "%-40s &  %15s \\\\"
+          print "\\begin{tabular}{|l|r|} \\hline ";
+          what = r"$\Delta x/\sigma_{\text{in}}$, $\sigma_{\text{out}}/\sigma_{\text{in}}$"
+          print  fmtstring % ('',     '$b$-only fit')
+          print (fmtstring % ('name', what), " \\hline"
+        else:
+          fmtstring = "%-40s &  %15s & %15s & %6s \\\\"
+          print "\\begin{tabular}{|l|r|r|r|} \\hline ";
+          what = r"$\Delta x/\sigma_{\text{in}}$, $\sigma_{\text{out}}/\sigma_{\text{in}}$"
+          print  fmtstring % ('',     '$b$-only fit', '$s+b$ fit', '')
+          print (fmtstring % ('name', what, what, r'$\rho(\theta, \mu)$')), " \\hline"
 elif options.format == 'twiki':
     pmsub  = (r"(\S+) \+/- (\S+)", r"\1 &plusmn; \2")
     sigsub = ("sig", r"&sigma;")
@@ -158,7 +165,8 @@ for n in names:
     if options.abs:
        print fmtstring % (n, v[0], v[1], v[2], v[3])
     else:
-       print fmtstring % (n, v[0], v[1], v[2])
+       if options.bonly and options.format == 'latex': print fmtstring % (v, v[0])
+       else:                                           print fmtstring % (n, v[0], v[1], v[2])
 
 if options.format == "latex":
     print " \\hline\n\end{tabular}"
