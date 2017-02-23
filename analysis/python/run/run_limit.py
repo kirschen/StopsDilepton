@@ -197,7 +197,8 @@ def wrapper(s):
                 eSignal.isSignal = True
                 if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
                 else:       signalSetup = setup.sysClone()
-                signal = e.cachedEstimate(r, channel, signalSetup)
+                if fastSim: signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'genMet'})))
+                else: signal = e.cachedEstimate(r, channel, signalSetup)
                 xSecScale = 1
                 #if s.mStop<810: xSecScale = 0.01
                 c.specifyExpectation(binname, 'signal', args.scale*signal.val*xSecScale )

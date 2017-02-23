@@ -158,7 +158,8 @@ class SystematicEstimator:
     def fastSimMETSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
         gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
-        return abs(0.5*(ref-gen)/ref) if ref > 0 else max(up, down)
+        assert ref+gen > 0, "denominator > 0 not fulfilled, this is odd and should not happen!"
+        return abs(ref-gen)/(ref+gen)
 
     def getBkgSysJobs(self, region, channel, setup):
         l = [

@@ -21,8 +21,8 @@ class leptonSF:
         for effMap in self.mu + self.ele: assert effMap
 
     def getPartialSF(self, effMap, pt, eta):
-	sf  = effMap.GetBinContent(effMap.GetXaxis().FindBin(pt), effMap.GetYaxis().FindBin(abs(eta)))
-	err = effMap.GetBinError(  effMap.GetXaxis().FindBin(pt), effMap.GetYaxis().FindBin(abs(eta)))
+        sf  = effMap.GetBinContent(effMap.GetXaxis().FindBin(pt), effMap.GetYaxis().FindBin(abs(eta)))
+        err = effMap.GetBinError(  effMap.GetXaxis().FindBin(pt), effMap.GetYaxis().FindBin(abs(eta)))
         return u_float(sf, err)
 
     def mult(self, list):
@@ -34,6 +34,7 @@ class leptonSF:
         if abs(pdgId)==13:   
           if pt >= 120: pt = 119 # last bin is valid to infinity
           sf = self.mult([self.getPartialSF(effMap, pt, eta) for effMap in self.mu])
+          sf.sigma = 0.03 # Recommendation for Moriond17
         elif abs(pdgId)==11:
           if pt >= 200: pt = 199 # last bin is valid to infinity
           sf = self.mult([self.getPartialSF(effMap, pt, eta) for effMap in self.ele])

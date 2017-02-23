@@ -7,7 +7,7 @@ from StopsDilepton.tools.user import combineReleaseLocation, analysis_results, p
 
 ROOT.gStyle.SetOptStat("")
 
-fname = analysis_results + '/signalOnly/cardFiles/T2tt/T2tt_1200_650.txt'
+fname = analysis_results + '/signalOnly/cardFiles/T2tt/T2tt_1200_50.txt'
 releaseLocation = combineReleaseLocation
 
 postFit = False
@@ -33,10 +33,12 @@ def calcCovariance(fname=None, options=""):
     assert os.path.exists(filename), "File not found: %s"%filename
     combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combineCards.py %s -S > myshapecard.txt "%fname
     #set workspace
-    workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --X-allow-no-signal --X-allow-no-background myshapecard.txt"
-    #workspaceCommand = "text2workspace.py --channel-masks --X-allow-no-signal --X-allow-no-background myshapecard.txt"
+    #workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --X-allow-no-signal --X-allow-no-background myshapecard.txt"
+    workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --channel-masks --X-allow-no-signal --X-allow-no-background myshapecard.txt"
     #Run fit
-    fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --saveOverall --preFitValue 0  myshapecard.root"
+    #fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --saveOverall --preFitValue 0  myshapecard.root"
+    fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --setPhysicsModelParameterRange mask_signal=1 --saveOverall myshapecard.root"
+
     
     print combineCommand
     os.system(combineCommand)

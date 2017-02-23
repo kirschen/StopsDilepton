@@ -33,8 +33,8 @@ from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
 triggerEff            = triggerEfficiency(with_backup_triggers = False)
 
-from StopsDilepton.tools.leptonHIPEfficiency import leptonHIPEfficiency
-leptonHIPSF = leptonHIPEfficiency()
+from StopsDilepton.tools.leptonTrackingEfficiency import leptonTrackingEfficiency
+leptonTrackingSF = leptonTrackingEfficiency()
 
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
@@ -592,7 +592,7 @@ if isTriLep or isDiLep:
         [   'zBoson_genPt/F', 'zBoson_genEta/F', 
             'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F', 'reweightDilepTriggerBackup/F', 'reweightDilepTriggerBackupUp/F', 'reweightDilepTriggerBackupDown/F',
             'reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F',
-            'reweightLeptonHIPSF/F',
+            'reweightLeptonTrackingSF/F',
          ] )
     if options.T2tt or options.TTDM or options.T8bbllnunu:
         new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
@@ -895,7 +895,7 @@ def filler( event ):
             event.reweightLeptonSFUp         = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = +1) for l in leptonsForSF], 1)
             event.reweightLeptonSFDown       = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = -1) for l in leptonsForSF], 1)
 
-            event.reweightLeptonHIPSF      = reduce(mul, [leptonHIPSF.getSF( \
+            event.reweightLeptonTrackingSF   = reduce(mul, [leptonTrackingSF.getSF( \
                 pdgId = l['pdgId'],
                 pt  =   l['pt'], 
                 eta =   (l['etaSc'] if abs(l['pdgId'])==11 else l['eta'])

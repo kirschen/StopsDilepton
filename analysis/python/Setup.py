@@ -14,6 +14,8 @@ from StopsDilepton.tools.user import analysis_results
 #define samples
 postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+#postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
+#from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
 postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
@@ -72,7 +74,7 @@ class Setup:
             'triLep':        default_triLep,
         }
 
-        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightBTag_SF','reweightTopPt'], 'selectionModifier':None}
+        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF'], 'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
 
@@ -255,6 +257,7 @@ class Setup:
               res['cuts'].append("l1_pt>25")
 
         res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), badMuonFilters='Moriond2017', isFastSim=isFastSim))
+        #res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
 
         if self.sys['selectionModifier'] == 'genMet':
