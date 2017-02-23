@@ -1118,7 +1118,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
         if isData:
             if maker.event.jsonPassed_:
                 if reader.event.run not in outputLumiList.keys():
-                    outputLumiList[reader.event.run] = {reader.event.lumi}
+                    outputLumiList[reader.event.run] = set([reader.event.lumi])
                 else:
                     if reader.event.lumi not in outputLumiList[reader.event.run]:
                         outputLumiList[reader.event.run].add(reader.event.lumi)
@@ -1191,4 +1191,4 @@ if writeToDPM:
             logger.info( "Issue command: %s", " ".join( cmd ) )
             subprocess.call( cmd )
             # Clean up.
-            subprocess.call( 'rm', '-rf', directory ) # Let's risk it.
+            subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.

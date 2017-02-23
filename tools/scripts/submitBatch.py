@@ -99,16 +99,18 @@ voms-proxy-info -all
     elif host == 'lxplus':
         template =\
 """\
-# Lxplus Batch Job Script
 #!/bin/sh
-export CMSSW_PROJECT_SRC={cmssw_base}
+export CMSSW_PROJECT_SRC={cmssw_base}/src
 
 cd $CMSSW_PROJECT_SRC
-eval \`"scram runtime -sh"\` 
+eval `scramv1 ru -sh`
+
+which python
+python --version
 
 {proxy_cmd}
 voms-proxy-info -all
-echo CMSSW_BASE: {cmssw_base} 
+echo CMSSW_BASE: $CMSSW_BASE
 cd {pwd}
 echo Executing user command while in $PWD
 echo "{command}"
@@ -185,5 +187,5 @@ if __name__ == '__main__':
                 job_file = batch_job_file.rstrip(".sh")+"_%s.sh"%hash_string
                 make_batch_job( job_file , batch_job_title, batch_output_dir , command  )
                 submit_command = "bsub %s '%s'  < %s"%(opts , title_opt , job_file )
-                #print "command:", submit_command
                 os.system(submit_command)
+                os.remove(job_file)
