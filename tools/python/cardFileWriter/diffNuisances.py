@@ -110,8 +110,8 @@ elif options.format == 'latex':
           fmtstring = "%-40s &  %15s \\\\"
           print "\\begin{tabular}{|l|r|} \\hline ";
           what = r"$\Delta x/\sigma_{\text{in}}$, $\sigma_{\text{out}}/\sigma_{\text{in}}$"
-          print  fmtstring % ('',     '$b$-only fit')
-          print (fmtstring % ('name', what), " \\hline"
+          print fmtstring % ('',     '$b$-only fit')
+          print fmtstring % ('name', what), " \\hline"
         else:
           fmtstring = "%-40s &  %15s & %15s & %6s \\\\"
           print "\\begin{tabular}{|l|r|r|r|} \\hline ";
