@@ -163,7 +163,6 @@ class Setup:
         '''
         #Consistency checks
         if self.sys['selectionModifier']:
-          #print self.sys['selectionModifier']
           assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'] or 'nVert' in self.sys['selectionModifier'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
         assert dataMC in ['Data','MC'],                                                   "dataMC = Data or MC, got %r."%dataMC
         assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                    "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
