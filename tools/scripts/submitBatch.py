@@ -16,30 +16,50 @@ import re
 
 parser = OptionParser()
 
-slurm_job_file="slurm_job"
+batch_job_file="batch_job"
 
+# user info
 hephy_user = os.getenv("USER")
 hephy_user_initial = os.getenv("USER")[0]
 
-parser.add_option("--title", dest="title",
-                  help="Job Title on batch", default = "BATCHSUBMIT" )
-parser.add_option("--output", dest="output", 
-                  default="/afs/hephy.at/work/%s/%s/slurm_output/"%(hephy_user_initial, hephy_user),
-                  help="path for slurm output ")
+# Host Info
+hostname = os.getenv("HOSTNAME")
+hosts_info = {
+            'heplx' : {'site': 'hephy.at' , 'batch':'slurm'   ,'def_opts':''},
+            'lxplus': {'site': 'cern.ch'  , 'batch':'lxbatch' ,'def_opts':'-q 8nh'}
+        }
+host   = [ h for h in hosts_info.keys() if h in hostname ]
+if not len(host)==1:
+    raise Exception("Host name (%s) was not recognized in hosts_info=%s"%(hostname, hosts_info) )
+else:
+    host = host[0]
+host_info = hosts_info[host]
+submit_time = time.strftime("%a%H%M%S", time.localtime())
 
+# Parser
+parser.add_option("--title", dest="title",
+                  help="Job Title on batch", default = "batch" )
+parser.add_option("--output", dest="output", 
+                  default="/afs/hephy.at/work/%s/%s/batch_output/"%(hephy_user_initial, hephy_user),
+                  help="path for batch output ")
+parser.add_option("--qos", dest="qos",
+                  help="Job Title viewied in squeue", default = "" )
+parser.add_option("--opts", dest="opts",
+                  help="Give a string for any extra options", default = host_info['def_opts'] )
 parser.add_option('--dpm', dest="dpm", default=False, action='store_true', help="Use dpm?")
+
 
 (options,args) = parser.parse_args()
 
-slurm_job_title  = options.title
-slurm_output_dir = options.output
+batch_job_title  = options.title
+batch_output_dir = options.output
 
-if not os.path.isdir(slurm_output_dir):
-    os.mkdir(slurm_output_dir)
+qos        = options.qos
+qos_options = ['1h']
+if qos and qos not in qos_options:
+    raise Exception("The queue option (%s) is not recognized .... it should be one of %s"%(qos, qos_options))
 
-
-def make_slurm_job( slurm_job_file, slurm_job_title, slurm_output_dir , command ):
-
+def make_batch_job( batch_job_file, batch_job_title, batch_output_dir , command ):
     # If X509_USER_PROXY is set, use existing proxy.
     if options.dpm:
         from RootTools.core.helpers import renew_proxy
@@ -50,12 +70,13 @@ def make_slurm_job( slurm_job_file, slurm_job_title, slurm_output_dir , command 
     else:
         proxy_cmd = ""            
 
-    template =\
+    if host == 'heplx':
+        template =\
 """\
 #!/bin/sh
-#SBATCH -J {slurm_job_title}
+#SBATCH -J {batch_job_title}
 #SBATCH -D {pwd}
-#SBATCH -o {slurm_output_dir}slurm-test.%j.out
+#SBATCH -o {batch_output_dir}batch-test.%j.out
 
 {proxy_cmd}
 voms-proxy-info -all
@@ -70,15 +91,43 @@ voms-proxy-info -all
 """.format(\
                 command          = command,
                 cmssw_base       = os.getenv("CMSSW_BASE"),
-                slurm_output_dir = slurm_output_dir,
-                slurm_job_title  = slurm_job_title,
+                batch_output_dir = batch_output_dir,
+                batch_job_title  = batch_job_title,
+                pwd              = os.getenv("PWD"),
+                proxy_cmd = proxy_cmd
+              )
+    elif host == 'lxplus':
+        template =\
+"""\
+# Lxplus Batch Job Script
+#!/bin/sh
+export CMSSW_PROJECT_SRC={cmssw_base}
+
+cd $CMSSW_PROJECT_SRC
+eval \`"scram runtime -sh"\` 
+
+{proxy_cmd}
+voms-proxy-info -all
+echo CMSSW_BASE: {cmssw_base} 
+cd {pwd}
+echo Executing user command while in $PWD
+echo "{command}"
+{command} 
+
+voms-proxy-info -all
+
+""".format(\
+                command          = command,
+                cmssw_base       = os.getenv("CMSSW_BASE"),
+                #batch_output_dir = batch_output_dir,
+                #batch_job_title  = batch_job_title,
                 pwd              = os.getenv("PWD"),
                 proxy_cmd = proxy_cmd
               )
 
-    slurm_job = file(slurm_job_file, "w")
-    slurm_job.write(template)
-    slurm_job.close()
+    batch_job = file(batch_job_file, "w")
+    batch_job.write(template)
+    batch_job.close()
     return
 
 def getCommands( line ):
@@ -112,13 +161,29 @@ if __name__ == '__main__':
     elif type(args[0]) == type(""):
         commands = getCommands( args[0] ) 
     if commands:
-        #hash_string = hashlib.md5("%s"%time.time()).hexdigest()
-        #tmp_job_dir = "tmp_%s"%hash_string
-        #os.mkdir(tmp_job_dir)
-        for command in commands:
-            #job_file = tmp_job_dir +"/" + slurm_job_file
-            hash_string = hashlib.md5("%s"%time.time()).hexdigest()
-            job_file = slurm_job_file.rstrip(".sh")+"_%s.sh"%hash_string
-            make_slurm_job( job_file , slurm_job_title, slurm_output_dir , command  )
-            os.system("sbatch %s"%job_file)
-            os.remove(job_file)
+        print "host:", host
+        if host == 'heplx':
+            if not os.path.isdir(batch_output_dir):
+                os.mkdir(batch_output_dir)
+
+            print "\n Batch system .out file to be written in directory \n %s \n "%batch_output_dir
+
+            for command in commands:
+                #job_file = tmp_job_dir +"/" + batch_job_file
+                hash_string = hashlib.md5("%s"%time.time()).hexdigest()
+                job_file = batch_job_file.rstrip(".sh")+"_%s.sh"%hash_string
+                make_batch_job( job_file , batch_job_title, batch_output_dir , command  )
+                os.system("sbatch %s %s"%(job_file , qos))
+                os.remove(job_file)
+
+        elif host == 'lxplus':
+            opts = options.opts
+            title= options.title
+            title_opt = "-J %s"%title
+            for command in commands:
+                hash_string = hashlib.md5("%s"%time.time()).hexdigest()
+                job_file = batch_job_file.rstrip(".sh")+"_%s.sh"%hash_string
+                make_batch_job( job_file , batch_job_title, batch_output_dir , command  )
+                submit_command = "bsub %s '%s'  < %s"%(opts , title_opt , job_file )
+                #print "command:", submit_command
+                os.system(submit_command)

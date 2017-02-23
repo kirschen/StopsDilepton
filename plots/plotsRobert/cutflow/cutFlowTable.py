@@ -93,7 +93,7 @@ cuts=[
   ("MT2(ll) > 140",              "$M_{T2}(ll)>140$ GeV",       "dl_mt2ll>140"),
     ]
 
-cutFlowFile = "cutflow.tex"
+cutFlowFile = "/afs/hephy.at/user/r/rschoefbeck/www/etc/cutflow.tex"
 with open(cutFlowFile, "w") as cf:
 
     cf.write("\\begin{tabular}{r|"+"|l"*len(samples)+"} \n")
