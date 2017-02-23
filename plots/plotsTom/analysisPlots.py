@@ -46,6 +46,8 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 # Selection strings for which plots need to be produced, as interpreted by the cutInterpreter
 #
 selectionStrings = ['relIso0.12',
+                    'relIso0.12-btag1p',
+                    'njet2p-relIso0.12-btag1p',
                     'relIso0.12-allZ',
                     'relIso0.12-looseLeptonVeto',
                     'relIso0.12-looseLeptonVeto-allZ',
@@ -64,6 +66,7 @@ selectionStrings = ['relIso0.12',
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-mt2ll100',
+                    'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5',
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100',
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',                          # DY control
                     'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
@@ -83,6 +86,7 @@ selectionStrings = ['relIso0.12',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']
+
 
 def launch(command, logfile):
   if args.runLocal: os.system(command + " --isChild &> " + logfile)
