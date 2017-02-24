@@ -9,20 +9,20 @@ Will submit a batch job for each command line in the file_with_commands.
 --dpm: Will create proxy certificate.
 """
 
-from optparse import OptionParser
+# Standard imports
 import hashlib, time
 import os
 import re
 
-parser = OptionParser()
 
+# some defaults
 batch_job_file="batch_job"
 
 # user info
 hephy_user = os.getenv("USER")
 hephy_user_initial = os.getenv("USER")[0]
 
-# Host Info
+# info on hosts (heplx or lxplus)
 hostname = os.getenv("HOSTNAME")
 hosts_info = {
             'heplx' : {'site': 'hephy.at' , 'batch':'slurm'   ,'def_opts':''},
@@ -33,10 +33,13 @@ if not len(host)==1:
     raise Exception("Host name (%s) was not recognized in hosts_info=%s"%(hostname, hosts_info) )
 else:
     host = host[0]
+
 host_info = hosts_info[host]
 submit_time = time.strftime("%a%H%M%S", time.localtime())
 
 # Parser
+from optparse import OptionParser
+parser = OptionParser()
 parser.add_option("--title", dest="title",
                   help="Job Title on batch", default = "batch" )
 parser.add_option("--output", dest="output", 
@@ -48,14 +51,21 @@ parser.add_option("--opts", dest="opts",
                   help="Give a string for any extra options", default = host_info['def_opts'] )
 parser.add_option('--dpm', dest="dpm", default=False, action='store_true', help="Use dpm?")
 
+parser.add_option('--logLevel', action='store', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], default='INFO', help="Log level for logging" )
 
 (options,args) = parser.parse_args()
 
+
+# Logging
+import StopsDilepton.tools.logger as logger
+logger  = logger.get_logger(options.logLevel, logFile = None)
+
+# Arguments
 batch_job_title  = options.title
 batch_output_dir = options.output
+qos              = options.qos
+qos_options      = ['1h']
 
-qos        = options.qos
-qos_options = ['1h']
 if qos and qos not in qos_options:
     raise Exception("The queue option (%s) is not recognized .... it should be one of %s"%(qos, qos_options))
 
@@ -71,7 +81,7 @@ def make_batch_job( batch_job_file, batch_job_title, batch_output_dir , command 
         from RootTools.core.helpers import renew_proxy
         proxy = renew_proxy( proxy_location )
 
-        print "Using proxy certificate %s" % proxy
+        logger.info( "Using proxy certificate %s", proxy )
         proxy_cmd = "export X509_USER_PROXY=%s"%proxy
     else:
         proxy_cmd = ""            
@@ -153,7 +163,7 @@ def getCommands( line ):
     line = line.split('#')[0]
     if line:
         if split:
-            print "Splitting in %i jobs" % split
+            logger.info( "Splitting in %i jobs", split )
             for i in range(split):
                 commands.append(line+" --nJobs %i --job %i"%( split, i ))
         else:
@@ -164,7 +174,7 @@ if __name__ == '__main__':
     if not len(args) == 1:
         raise Exception("Only one argument accepted! Instead this was given: %s"%args)
     if os.path.isfile(args[0]):
-        print "Reading commands from file: %s"%args[0]
+        logger.info( "Reading commands from file: %s", args[0] )
         commands = []
         with open(args[0]) as f:
             for line in f.xreadlines():
@@ -173,12 +183,12 @@ if __name__ == '__main__':
     elif type(args[0]) == type(""):
         commands = getCommands( args[0] ) 
     if commands:
-        print "host:", host
+        logger.info( "Working on host %s", host )
         if host == 'heplx':
             if not os.path.isdir(batch_output_dir):
                 os.mkdir(batch_output_dir)
 
-            print "\n Batch system .out file to be written in directory \n %s \n "%batch_output_dir
+            logger.info( "Batch system output file to be written to directory: %s", batch_output_dir )
 
             for command in commands:
                 #job_file = tmp_job_dir +"/" + batch_job_file
