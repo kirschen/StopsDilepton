@@ -16,10 +16,10 @@ import os
 import sys
 
 # Analysis
-from StopsDilepton.analysis.SetupHelpers import channels, allChannels
-from StopsDilepton.analysis.estimators   import setup
-from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140, regions80X_2D
-from StopsDilepton.analysis.u_float import u_float
+from StopsDilepton.analysis.SetupHelpers    import channels, allChannels
+from StopsDilepton.analysis.estimators      import setup
+from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS
+from StopsDilepton.analysis.u_float         import u_float
 
 # Logging
 import StopsDilepton.tools.logger as logger
@@ -35,7 +35,7 @@ elif options.signal == 'TTbarDM':
     isFastSim         = False
     setup.verbose     = True
 
-regions = regions80X + regions80X_2D + superRegion140 #Use all the regions that are used in the limit setting
+regions = regionsO + noRegions #Use all the regions that are used in the limit setting
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 
@@ -47,12 +47,12 @@ if not options.overwrite:
         logger.warning( "Found file %s. Exiting. Use --overwrite if you want.", ofile ) 
         sys.exit(0)
 
-norm_file = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/80X_v12/systematics/isrSignalSysNormalization_%s.pkl"%options.signal
+norm_file = "/afs/hephy.at/data/dspitzbart02/StopsDilepton/results/80X_v30/systematics/isrSignalSysNormalization_%s.pkl"%options.signal
 normalization_corrections = pickle.load(file( norm_file ))
 logger.info( "Loaded ISR normalization file %s", norm_file )
 
 if options.signal == "T2tt":
-    postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
     signals = signals_T2tt
     for s in signals:
@@ -82,7 +82,7 @@ results = {}
 isr_systematics = {}
 for estimate in signalEstimators:
     logger.info("Calculating ISR  uncertainty for signal %s", estimate.name)
-    estimate.initCache("/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/80X_for_ISR/")
+    estimate.initCache("/afs/hephy.at/data/dspitzbart02/StopsDilepton/results/80X_v30_for_ISR/")
 
     def wrapper(args):
             r,channel,setup = args

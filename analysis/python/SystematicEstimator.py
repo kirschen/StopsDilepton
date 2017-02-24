@@ -190,8 +190,8 @@ class SystematicEstimator:
                 fold_loDown += fold
         ref  = self.cachedEstimate(region, channel, setup)
         gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
-        unc = u_float(abs(fold_loDown - fold_loUp)/(0.5*(ref.val+gen.val)))
-        return unc
+        unc = min([abs(fold_loDown - fold_loUp)/(0.5*(ref.val+gen.val)), 1.])
+        return u_float(unc)
 
     def getBkgSysJobs(self, region, channel, setup):
         l = [
