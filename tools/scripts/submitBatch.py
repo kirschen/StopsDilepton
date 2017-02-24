@@ -62,13 +62,21 @@ if qos and qos not in qos_options:
 def make_batch_job( batch_job_file, batch_job_title, batch_output_dir , command ):
     # If X509_USER_PROXY is set, use existing proxy.
     if options.dpm:
+        if host == 'lxplus':
+            from StopsDilepton.tools.user import cern_proxy_certificate
+            proxy_location = cern_proxy_certificate
+        else:
+            proxy_location = None
+
         from RootTools.core.helpers import renew_proxy
-        proxy = renew_proxy()
+        proxy = renew_proxy( proxy_location )
 
         print "Using proxy certificate %s" % proxy
         proxy_cmd = "export X509_USER_PROXY=%s"%proxy
     else:
         proxy_cmd = ""            
+
+    import subprocess
 
     if host == 'heplx':
         template =\
@@ -99,16 +107,19 @@ voms-proxy-info -all
     elif host == 'lxplus':
         template =\
 """\
-# Lxplus Batch Job Script
-#!/bin/sh
-export CMSSW_PROJECT_SRC={cmssw_base}
+#!/bin/bash
+export CMSSW_PROJECT_SRC={cmssw_base}/src
 
 cd $CMSSW_PROJECT_SRC
-eval \`"scram runtime -sh"\` 
+eval `scramv1 ru -sh`
+
+alias python={python_release}
+which python
+python --version
 
 {proxy_cmd}
 voms-proxy-info -all
-echo CMSSW_BASE: {cmssw_base} 
+echo CMSSW_BASE: $CMSSW_BASE
 cd {pwd}
 echo Executing user command while in $PWD
 echo "{command}"
@@ -122,7 +133,8 @@ voms-proxy-info -all
                 #batch_output_dir = batch_output_dir,
                 #batch_job_title  = batch_job_title,
                 pwd              = os.getenv("PWD"),
-                proxy_cmd = proxy_cmd
+                proxy_cmd = proxy_cmd,
+                python_release = subprocess.check_output(['which', 'python']).rstrip(), 
               )
 
     batch_job = file(batch_job_file, "w")
@@ -185,5 +197,5 @@ if __name__ == '__main__':
                 job_file = batch_job_file.rstrip(".sh")+"_%s.sh"%hash_string
                 make_batch_job( job_file , batch_job_title, batch_output_dir , command  )
                 submit_command = "bsub %s '%s'  < %s"%(opts , title_opt , job_file )
-                #print "command:", submit_command
                 os.system(submit_command)
+                os.remove(job_file)
