@@ -6,8 +6,8 @@ from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed im
 
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p05]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p5]
-#signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p95]
-signalEstimators = [s.name for s in signals_T2tt]
+signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p95]
+#signalEstimators = [s.name for s in signals_T2tt]
 #signalEstimators = [s.name for s in signals_TTbarDM]
 
 import time
@@ -20,9 +20,9 @@ for i, estimator in enumerate(signalEstimators):
   #logfileErr = "log/limit_" + estimator + "_err.log"
   #os.system("submitBatch.py --title='Limit' 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p95               --only=%s'"%(str(i)))
   #if i%20==0: print
-  #if "800_100" in estimator:
-  #  print i
-  os.system(cmd+" 'python run_limit.py --signal T2tt              --only=%s'"%str(i))
+  if "300_100" in estimator:
+    print i, estimator
+  #os.system(cmd+" 'python run_limit.py --signal T2tt              --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlDYVV --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlTTZ  --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--fitAll      --only=%s'"%str(i))
