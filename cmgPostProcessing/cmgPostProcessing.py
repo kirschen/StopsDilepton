@@ -399,7 +399,9 @@ if options.LHEHTCut>0:
 
 # output directory (store temporarily when running on dpm)
 if writeToDPM:
-    directory = os.path.join('/tmp/%s'%os.environ['USER'], options.processingEra)
+    import uuid
+    # Allow parallel processing of N threads on one worker
+    directory = os.path.join('/tmp/%s'%os.environ['USER'], str(uuid.uuid4()), options.processingEra)
     if not os.path.exists( directory ):
         os.makedirs( directory )
     from StopsDilepton.tools.user import dpm_directory as user_dpm_directory
