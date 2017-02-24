@@ -230,6 +230,8 @@ isVeryLoosePt10 =  'veryloosept10' in options.skim.lower()
 isLoose     =  'loose' in options.skim.lower() and not isVeryLoose
 isJet250    = 'jet250' in options.skim.lower()
 
+writeToDPM = options.targetDir == '/dpm/'
+
 # Skim condition
 skimConds = []
 if isDiLep:
@@ -387,12 +389,20 @@ if options.LHEHTCut>0:
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
 
-# output directory
-outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sample.name)
+# output directory (store temporarily when running on dpm)
+if writeToDPM:
+    directory = os.path.join('/tmp/%s'%os.environ['USER'], options.processingEra)
+    if not os.path.exists( directory ):
+        os.makedirs( directory )
+    from StopsDilepton.tools.user import dpm_directory as user_dpm_directory
+else:
+    directory  = os.path.join(options.targetDir, options.processingEra) 
+
+output_directory = os.path.join( directory, options.skim, sample.name )
 
 # Directory for individual signal files
 if options.T2tt:
-    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T2tt")
+    signalDir = os.path.join(directory, options.skim, "T2tt")
     if not os.path.exists(signalDir): os.makedirs(signalDir)
 
 # Directory for individual signal files
@@ -410,16 +420,16 @@ if options.T8bbllnunu:
     signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T8bbllnunu")
     #if not os.path.exists(signalDir): os.makedirs(signalDir) #FIXME
 
-if os.path.exists(outDir) and options.overwrite:
+if os.path.exists(output_directory) and options.overwrite:
     if options.nJobs > 1:
-        logger.warning( "NOT removing directory %s because nJobs = %i", outDir, options.nJobs )
+        logger.warning( "NOT removing directory %s because nJobs = %i", output_directory, options.nJobs )
     else:
-        logger.info( "Output directory %s exists. Deleting.", outDir )
-        shutil.rmtree(outDir)
+        logger.info( "Output directory %s exists. Deleting.", output_directory )
+        shutil.rmtree(output_directory)
 
 try:    #Avoid trouble with race conditions in multithreading
-    os.makedirs(outDir)
-    logger.info( "Created output directory %s.", outDir )
+    os.makedirs(output_directory)
+    logger.info( "Created output directory %s.", output_directory )
 except:
     pass
 
@@ -1067,7 +1077,7 @@ logger.info( "Splitting into %i ranges of %i events on average.",  len(eventRang
 #Define all jobs
 jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
 
-filename, ext = os.path.splitext( os.path.join(outDir, sample.name + '.root') )
+filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
 
 clonedEvents = 0
 convertedEvents = 0
@@ -1094,8 +1104,14 @@ for ievtRange, eventRange in enumerate( eventRanges ):
     outputfile = ROOT.TFile.Open(outfilename, 'recreate')
     tmp_directory.cd()
 
+    if options.small: 
+        logger.info("Running 'small'. Not more than 10000 events") 
+        nMaxEvents = eventRange[1]-eventRange[0]
+        eventRange = ( eventRange[0], eventRange[0] +  min( [nMaxEvents, 10000] ) )
+
     # Set the reader to the event range
     reader.setEventRange( eventRange )
+
     clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events", rootfile = outputfile )
     clonedEvents += clonedTree.GetEntries()
 
@@ -1111,7 +1127,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
         if isData:
             if maker.event.jsonPassed_:
                 if reader.event.run not in outputLumiList.keys():
-                    outputLumiList[reader.event.run] = {reader.event.lumi}
+                    outputLumiList[reader.event.run] = set([reader.event.lumi])
                 else:
                     if reader.event.lumi not in outputLumiList[reader.event.run]:
                         outputLumiList[reader.event.run].add(reader.event.lumi)
@@ -1136,8 +1152,8 @@ if isData:
 # Write one file per mass point for T2tt
 if options.nJobs == 1:
     if options.T2tt or options.T8bbllnunu:
-        if options.T2tt: output = Sample.fromDirectory("T2tt_output", outDir)
-        else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
+        if options.T2tt: output = Sample.fromDirectory("T2tt_output", output_directory)
+        else: output = Sample.fromDirectory("T8bbllnunu_output", output_directory) #FIXME
         print "Initialising chain, otherwise first mass point is empty"
         print output.chain
         if options.small: output.reduceFiles( to = 1 )
@@ -1170,7 +1186,20 @@ if options.nJobs == 1:
     
         output.clear()
 
-logger.info("Copying log file to %s"%outDir)
-copyLog = subprocess.call(['cp',logFile,outDir])
-if copyLog: print "Copying log from %s to %s failed"%(logFile,outDir)
-else: print "Successfully copied log file"
+logger.info("Copying log file to %s", output_directory )
+copyLog = subprocess.call(['cp', logFile, output_directory] )
+if copyLog: logger.info( "Copying log from %s to %s failed", logFile, output_directory)
+else: logger.info( "Successfully copied log file" )
+
+if writeToDPM:
+    for dirname, subdirs, files in os.walk( directory ):
+        logger.debug( 'Found directory: %s',  dirname )
+        for fname in files:
+            source = os.path.abspath(os.path.join(dirname, fname))
+            postfix = '_small' if options.small else ''
+            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_dpm_directory, 'postprocessed',  options.processingEra+postfix, options.skim, sample.name, fname ) ]
+            logger.info( "Issue copy command: %s", " ".join( cmd ) )
+            subprocess.call( cmd )
+
+    # Clean up.
+    subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.

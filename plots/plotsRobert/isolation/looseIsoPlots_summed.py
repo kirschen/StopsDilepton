@@ -17,6 +17,7 @@ import StopsDilepton.tools.logger as logger
 logger = logger.get_logger('INFO', logFile = None )
 histos = {}
 for m in ['doubleMu', 'doubleEle', 'muEle']:
+    #plot_path = "80X_looseIso/%s_offZ_standard_isOS-njet2-nbtag1-met80-metSig5-dPhiJetMET_removeLeptonsFromMET/" % m
     plot_path = "80X_looseIso/%s_offZ_standard_isOS-njet2-nbtag1-met80-metSig5-dPhiJetMET/" % m
     for fh in ["leadingLepIso"]:
         for swap in ["L1", "L2"]:
