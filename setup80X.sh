@@ -8,6 +8,7 @@ cd $CMSSW_BASE/src
 # X-PAG code for limit
 #
 git clone git@github.com:GhentAnalysis/PlotsSMS StopsDilepton/PlotsSMS
+git clone git@github.com:GhentAnalysis/RootTools
 scram b -j9
 
 #

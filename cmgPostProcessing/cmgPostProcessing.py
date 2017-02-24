@@ -391,7 +391,9 @@ if options.LHEHTCut>0:
 
 # output directory (store temporarily when running on dpm)
 if writeToDPM:
-    directory = os.path.join('.', options.processingEra)
+    directory = os.path.join('/tmp/%s'%os.environ['USER'], options.processingEra)
+    if not os.path.exists( directory ):
+        os.makedirs( directory )
     from StopsDilepton.tools.user import dpm_directory as user_dpm_directory
 else:
     directory  = os.path.join(options.targetDir, options.processingEra) 
@@ -1102,8 +1104,14 @@ for ievtRange, eventRange in enumerate( eventRanges ):
     outputfile = ROOT.TFile.Open(outfilename, 'recreate')
     tmp_directory.cd()
 
+    if options.small: 
+        logger.info("Running 'small'. Not more than 10000 events") 
+        nMaxEvents = eventRange[1]-eventRange[0]
+        eventRange = ( eventRange[0], eventRange[0] +  min( [nMaxEvents, 10000] ) )
+
     # Set the reader to the event range
     reader.setEventRange( eventRange )
+
     clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events", rootfile = outputfile )
     clonedEvents += clonedTree.GetEntries()
 
@@ -1185,11 +1193,13 @@ else: logger.info( "Successfully copied log file" )
 
 if writeToDPM:
     for dirname, subdirs, files in os.walk( directory ):
-        logger.info( 'Found directory: %s',  dirname )
+        logger.debug( 'Found directory: %s',  dirname )
         for fname in files:
             source = os.path.abspath(os.path.join(dirname, fname))
-            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_dpm_directory, dirname, fname ) ]
-            logger.info( "Issue command: %s", " ".join( cmd ) )
+            postfix = '_small' if options.small else ''
+            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_dpm_directory, 'postprocessed',  options.processingEra+postfix, options.skim, sample.name, fname ) ]
+            logger.info( "Issue copy command: %s", " ".join( cmd ) )
             subprocess.call( cmd )
-            # Clean up.
-            subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.
+
+    # Clean up.
+    subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.
