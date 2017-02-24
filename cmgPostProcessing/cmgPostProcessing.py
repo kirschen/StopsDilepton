@@ -230,7 +230,7 @@ isVeryLoosePt10 =  'veryloosept10' in options.skim.lower()
 isLoose     =  'loose' in options.skim.lower() and not isVeryLoose
 isJet250    = 'jet250' in options.skim.lower()
 
-writeToDPM = options.targetDir.startswith('/dpm/')
+writeToDPM = options.targetDir == '/dpm/'
 
 # Skim condition
 skimConds = []
@@ -392,6 +392,7 @@ if options.LHEHTCut>0:
 # output directory (store temporarily when running on dpm)
 if writeToDPM:
     directory = os.path.join('.', options.processingEra)
+    from StopsDilepton.tools.user import dpm_directory as user_dpm_directory
 else:
     directory  = os.path.join(options.targetDir, options.processingEra) 
 
@@ -1187,7 +1188,7 @@ if writeToDPM:
         logger.info( 'Found directory: %s',  dirname )
         for fname in files:
             source = os.path.abspath(os.path.join(dirname, fname))
-            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( options.targetDir, dirname, fname ) ]
+            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_dpm_directory, dirname, fname ) ]
             logger.info( "Issue command: %s", " ".join( cmd ) )
             subprocess.call( cmd )
             # Clean up.
