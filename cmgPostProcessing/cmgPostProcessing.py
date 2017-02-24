@@ -1103,6 +1103,11 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 
     # Set the reader to the event range
     reader.setEventRange( eventRange )
+
+    if options.small: 
+        logger.info("Running 'small'. Not more than 10000 events") 
+        reader.nEvents = min( [reader.nEvents, 10000] )
+
     clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events", rootfile = outputfile )
     clonedEvents += clonedTree.GetEntries()
 
