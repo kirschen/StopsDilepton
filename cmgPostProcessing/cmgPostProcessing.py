@@ -165,6 +165,14 @@ def get_parser():
         action='store_true',
         help="Is T2tt signal?"
         )
+    argParser.add_argument('--T2bW',
+        action='store_true',
+        help="Is T2tt signal?"
+        )
+    argParser.add_argument('--T2bt',
+        action='store_true',
+        help="Is T2tt signal?"
+        )
     
     argParser.add_argument('--T8bbllnunu',
         action='store_true',
@@ -249,7 +257,7 @@ if isInclusive:
 #Samples: Load samples
 maxN = 2 if options.small else None
 from StopsDilepton.samples.helpers import fromHeppySample
-if options.T2tt or options.T8bbllnunu:
+if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
     logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
@@ -275,7 +283,7 @@ if len(samples)==0:
 isData = False not in [s.isData for s in samples]
 isMC   =  True not in [s.isData for s in samples]
 
-if options.T2tt or options.T8bbllnunu:
+if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
     xSection = None
     # special filet for bad jets in FastSim: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16#Cleaning_up_of_fastsim_jets_from
     skimConds.append( "Sum$(JetFailId_pt>30&&abs(JetFailId_eta)<2.5&&JetFailId_mcPt==0&&JetFailId_chHEF<0.1)+Sum$(Jet_pt>30&&abs(Jet_eta)<2.5&&Jet_mcPt==0&&Jet_chHEF<0.1)==0" )
@@ -405,6 +413,14 @@ if options.T2tt:
     signalDir = os.path.join(directory, options.skim, "T2tt")
     if not os.path.exists(signalDir): os.makedirs(signalDir)
 
+if options.T2bt:
+    signalDir = os.path.join(directory, options.skim, "T2bt")
+    if not os.path.exists(signalDir): os.makedirs(signalDir)
+
+if options.T2bW:
+    signalDir = os.path.join(directory, options.skim, "T2bW")
+    if not os.path.exists(signalDir): os.makedirs(signalDir)
+
 # Directory for individual signal files
 if options.T8bbllnunu:
     T8bbllnunu_strings = options.samples[0].split('_')
@@ -498,15 +514,15 @@ else:
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
 
-if options.T2tt or options.TTDM or options.T8bbllnunu:
+if options.T2tt or options.TTDM or options.T8bbllnunu or options.T2bW or options.T2bt:
     branchKeepStrings_MC += ["nIsr"]
-if options.keepLHEWeights or options.T2tt or options.TTDM or options.T8bbllnunu:
+if options.keepLHEWeights or options.T2tt or options.TTDM or options.T8bbllnunu  or options.T2bW or options.T2bt:
     branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
 
 if isSingleLep:
     branchKeepStrings_DATAMC += ['HLT_*']
 
-if options.T2tt or options.T8bbllnunu: 
+if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt: 
     #branchKeepStrings_MC += ['GenSusyMStop', 'GenSusyMNeutralino'] #FIXME
     branchKeepStrings_MC += ['ngenPartAll', 'genPartAll_*'] #FIXME
 
@@ -517,7 +533,7 @@ if isMC:
         jetMCInfo = ['mcPt/F', 'hadronFlavour/I','mcMatchId/I']
     else:
         jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
-        if not (options.T2tt or options.T8bbllnunu):
+        if not (options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt):
             jetMCInfo.append('partonFlavour/I')
 else:
     jetMCInfo = []
@@ -604,7 +620,7 @@ if isTriLep or isDiLep:
             'reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F',
             'reweightLeptonTrackingSF/F',
          ] )
-    if options.T2tt or options.TTDM or options.T8bbllnunu:
+    if options.T2tt or options.TTDM or options.T8bbllnunu  or options.T2bW or options.T2bt:
         new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
@@ -635,9 +651,9 @@ if addSystematicVariations:
         if var!='MC':
             new_variables.append('reweightBTag_'+var+'/F')
 
-if options.T2tt or options.TTDM or options.T8bbllnunu:
+if options.T2tt or options.TTDM or options.T8bbllnunu  or options.T2bW or options.T2bt:
     read_variables += map(TreeVariable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
-if options.T2tt or options.T8bbllnunu:
+if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
     #read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
     if  options.T8bbllnunu:
@@ -698,7 +714,7 @@ def filler( event ):
     if isMC: gPart = getGenPartsAll(r)
 
     # weight
-    if options.T2tt or options.T8bbllnunu:
+    if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
         r.GenSusyMStop = max([p['mass']*(abs(p['pdgId']==1000006)) for p in gPart])
         r.GenSusyMNeutralino = max([p['mass']*(abs(p['pdgId']==1000022)) for p in gPart])
         if options.T8bbllnunu:
@@ -969,7 +985,7 @@ def filler( event ):
               dlg = dl + gamma
               event.dlg_mass = dlg.M()
 
-            if options.T2tt or options.TTDM or options.T8bbllnunu:
+            if options.T2tt or options.TTDM or options.T8bbllnunu or options.T2bW or options.T2bt:
                 mt2Calc.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
                 setattr(event, "dl_mt2ll_gen", mt2Calc.mt2ll())
                 if len(jets)>=2:
@@ -1151,8 +1167,10 @@ if isData:
 
 # Write one file per mass point for T2tt
 if options.nJobs == 1:
-    if options.T2tt or options.T8bbllnunu:
+    if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
         if options.T2tt: output = Sample.fromDirectory("T2tt_output", output_directory)
+        elif options.T2bW: output = Sample.fromDirectory("T2bW_output", output_directory)
+        elif options.T2bt: output = Sample.fromDirectory("T2bt_output", output_directory)
         else: output = Sample.fromDirectory("T8bbllnunu_output", output_directory) #FIXME
         print "Initialising chain, otherwise first mass point is empty"
         print output.chain
@@ -1163,6 +1181,8 @@ if options.nJobs == 1:
             cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
             logger.debug("Using cut %s", cut)
             if options.T2tt: signal_prefix = 'T2tt_'
+            elif options.T2bW: signal_prefix = 'T2bW_'
+            elif options.T2bt: signal_prefix = 'T2bt_'
             else: signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
             signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
             logger.debug("Ouput file will be %s", signalFile)
