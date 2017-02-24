@@ -391,7 +391,9 @@ if options.LHEHTCut>0:
 
 # output directory (store temporarily when running on dpm)
 if writeToDPM:
-    directory = os.path.join('.', options.processingEra)
+    directory = os.path.join('/tmp/%s'%os.environ['USER'], options.processingEra)
+    if not os.path.exists( directory ):
+        os.makedirs( directory )
     from StopsDilepton.tools.user import dpm_directory as user_dpm_directory
 else:
     directory  = os.path.join(options.targetDir, options.processingEra) 
@@ -1192,4 +1194,4 @@ if writeToDPM:
             logger.info( "Issue command: %s", " ".join( cmd ) )
             subprocess.call( cmd )
             # Clean up.
-            subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.
+            #subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.
