@@ -23,7 +23,7 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     combineReleaseLocation = '/afs/hephy.at/work/r/rschoefbeck/CMS/tmp/CMSSW_7_1_5/src'
     runOnGentT2 = False
 
-if os.environ['USER'] in ['dspitzbart']:
+if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     # Where you store cmg output
     cmg_directory      = "/scratch/rschoefbeck/cmgTuples/80X_1l_9"
     # Where postprocessed data goes 
@@ -42,6 +42,9 @@ if os.environ['USER'] in ['dspitzbart']:
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
     # 715 release for limit calculation 
     combineReleaseLocation = '/afs/hephy.at/work/d/dspitzbart/stops/CMSSW_7_4_7/src'
+    if 'cern' in os.getenv("HOSTNAME"):
+      analysis_results        = '/afs/cern.ch/work/d/dspitzba/StopsDilepton/results/80X_v30'
+      combineReleaseLocation = '/afs/cern.ch/work/d/dspitzba/CMS/stop/CMSSW_7_4_7/src'
     runOnGentT2 = False
 
 if os.environ['USER'] in ['tomc']:
