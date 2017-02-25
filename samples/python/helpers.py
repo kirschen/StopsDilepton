@@ -40,7 +40,7 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
     elif "Run2016" in sample:
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_DATA2016'
         #module_ = 'CMGTools.StopsDilepton.samples_13TeV_Moriond2017'
-    elif "T2tt" or "T2bt" or "T2bW" in sample:
+    elif ("T2tt" in sample) or ("T2bt" in sample) or ("T2bW" in sample):
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_signals'
     elif "T8bbllnunu" in sample:
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_signals'
