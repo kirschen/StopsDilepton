@@ -131,7 +131,7 @@ if args.selection.count("njet2p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSi
 #
 postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
-postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
+postProcessing_directory = 'postProcessed_80X_v32/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
 signals = []
