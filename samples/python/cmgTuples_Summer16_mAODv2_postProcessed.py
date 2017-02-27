@@ -59,7 +59,7 @@ dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop']
 #dirs['Top_pow_incl']     = dirs['TT_pow'] + dirs['singleTop'] # FIXME dilep
 dirs['TZQ']              = ["tZq_ll_ext"]#, "tZq_nunu_reHLT"]
 dirs['TWZ']              = ["tWll", "tWnunu"]
-dirs['TTW']              = ["TTWToLNu_ext", "TTWToQQ"]
+dirs['TTW']              = ["TTWToLNu_ext_comb", "TTWToQQ"]
 dirs['TTH']              = [ \
         #"TTHbb_ext3", 
         "TTHnobb_pow"]

@@ -50,8 +50,9 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
+data_directory = "/afs/cern.ch/work/d/dspitzba/cmgTuples/"
+#data_directory = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v32/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
 postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
@@ -188,7 +189,7 @@ for index, mode in enumerate(allModes):
     weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
-  mc             = [ Top_pow, TTZ_LO, TTXNoZ] + multiBosonList + [DY_HT_LO]
+  mc             = [ Top_pow, TTZ, TTXNoZ] + multiBosonList + [DY_HT_LO]
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 
