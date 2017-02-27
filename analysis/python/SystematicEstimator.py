@@ -27,7 +27,8 @@ class SystematicEstimator:
     def initCache(self, cacheDir):
         if cacheDir:
             self.cacheDir       = cacheDir
-            if not os.path.exists(cacheDir): os.makedirs(cacheDir)
+            try:    os.makedirs(cacheDir)
+            except: pass
 
             cacheFileName       = os.path.join(cacheDir, self.name+'.pkl')
             helperCacheFileName = os.path.join(cacheDir, self.name+'_helper.pkl')
