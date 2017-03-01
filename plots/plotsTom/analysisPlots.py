@@ -90,7 +90,7 @@ selectionStrings = ['relIso0.12',
 
 def launch(command, logfile):
   if args.runLocal: os.system(command + " --isChild &> " + logfile)
-  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
+  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=20:00:00 runPlotsOnCream02.sh")
 
 #
 # If this is the mother process, launch the childs and exit
@@ -260,8 +260,8 @@ for index, mode in enumerate(allModes):
     if   args.scaleDYVV and sample == DY_HT_LO.name:  sample.scale = lumi_scale*1.115
     elif args.scaleDYVV and sample in multiBosonList: sample.scale = lumi_scale*1.265
     else:                                             sample.scale = lumi_scale
-    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F'] + (['reweightLeptonFastSimSF/F'] if sample.isFastSim else [])
-    sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*(event.reweightLeptonFastSimSF if sample.isFastSim else 1.)
+    sample.read_variables = ['reweightLeptonTrackingSF/F','reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F'] + (['reweightLeptonFastSimSF/F'] if sample.isFastSim else [])
+    sample.weight         = lambda event, sample: event.reweightLeptonTrackingSF*event.reweightTopPt*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*(event.reweightLeptonFastSimSF if sample.isFastSim else 1.)
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
