@@ -26,9 +26,11 @@ argParser.add_argument('--plot_directory', action='store',      default='TTG')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
+argParser.add_argument('--topPowheg',      action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,       help='do not launch subjobs')
 args = argParser.parse_args()
 if args.subtract: args.plot_directory += "_subtracted"
+if args.topPowheg: args.plot_directory += "_topPowheg"
 
 #
 # Logger
@@ -66,7 +68,7 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./ttG.py --selection=" + selection + (" --subtract" if args.subtract else "") + (" --add2015" if args.add2015 else "")
+    command = "./ttG.py --selection=" + selection + (" --subtract" if args.subtract else "") + (" --add2015" if args.add2015 else "") + (" --topPowheg" if args.topPowheg else "")
     logfile = "log/" + selection + ".log"
     logger.info("Launching " + selection + " on cream02 with child command: " + command)
     if not args.dryRun: launch(command, logfile)
@@ -79,7 +81,9 @@ if args.add2015:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+postProcessing_directory = 'postProcessed_80X_v32/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed_photonSamples import *
 
@@ -165,19 +169,19 @@ for index, mode in enumerate(allModes):
   elif mode=="ee":   data_sample.texName = "data (2 e)"
   elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
 
-  data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection(mode)])
   data_sample.name  = "data"
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
 
-  mc    = [TTG, ZG, DY_HT_LO, multiBoson, TTJets_Lep, singleTop, TTX]
+  mc    = [TTG, ZG, DY_HT_LO, multiBoson, Top_pow if args.topPowheg else TTJets_Lep, singleTop, TTX]
   stack = Stack(mc, [data_sample])
 
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color)
-    sample.read_variables = ['reweightBTag_SF/F','reweightDilepTrigger/F','reweightDilepTriggerBackup/F','reweightTopPt/F','reweightLeptonSF/F','reweightPU36fb/F', 'nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightTopPt*event.reweightBTag_SF
+    sample.read_variables = ['reweightLeptonTrackingSF/F','reweightBTag_SF/F','reweightDilepTrigger/F','reweightDilepTriggerBackup/F','reweightTopPt/F','reweightLeptonSF/F','reweightPU36fb/F', 'nTrueInt/F']
+    sample.weight         = lambda event, sample: event.reweightLeptonTrackingSF*event.reweightTopPt*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
 
