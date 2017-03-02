@@ -2,6 +2,10 @@ import copy, os, sys
 from RootTools.core.Sample import Sample
 import ROOT
 
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+
 from StopsDilepton.samples.color import color
 
 # Data directory
@@ -16,7 +20,9 @@ try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
+  postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
+
+logger.info("Loading MC samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
 DY_M5to50_HT = [
                 #"DYJetsToLL_M5to50_LO_lheHT100", 
@@ -59,7 +65,8 @@ dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop']
 #dirs['Top_pow_incl']     = dirs['TT_pow'] + dirs['singleTop'] # FIXME dilep
 dirs['TZQ']              = ["tZq_ll_ext"]#, "tZq_nunu_reHLT"]
 dirs['TWZ']              = ["tWll", "tWnunu"]
-dirs['TTW']              = ["TTWToLNu_ext_comb", "TTWToQQ"]
+#dirs['TTW']              = ["TTWToLNu_ext_comb", "TTWToQQ"]
+dirs['TTW']              = ["TTWToLNu_ext", "TTWToQQ"]
 dirs['TTH']              = [ \
         #"TTHbb_ext3", 
         "TTHnobb_pow"]

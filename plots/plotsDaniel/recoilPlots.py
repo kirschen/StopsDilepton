@@ -95,8 +95,9 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
-dataFilterCut = mcFilterCut+"&&weight>0"
+#mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
+mcFilterCut    = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016"
+dataFilterCut = mcFilterCut+"&&Flag_noBadMuons&&!Flag_duplicateMuons&&weight>0"
 
 def getZCut(mode):
     mZ = 91.2
@@ -105,10 +106,10 @@ def getZCut(mode):
     if mode.lower()=="offz": return zstr+">15"
     return "(1)"
 
-postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+postProcessing_directory = "postProcessed_80X_v31/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
 sample_DoubleMuon  = DoubleMuon_Run2016_backup
 sample_DoubleEG    = DoubleEG_Run2016_backup
@@ -226,7 +227,7 @@ cuts=[
 #    ("dPhiJet0-dPhiJet1", "cos(met_phi-JetGood_phi[0])<cos(0.25)&&cos(met_phi-JetGood_phi[1])<cos(0.25)"),
     ("lepVeto", "nGoodMuons+nGoodElectrons==2"),
     ("looseLeptonVeto", "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2"),
-    ("mt2ll100", "dl_mt2ll>100"),
+#    ("mt2ll100", "dl_mt2ll>100"),
 ] + dPhi
 
                 
@@ -337,11 +338,11 @@ for sample in mc:
     sample.scale = lumi_scale*dataMCScale
     if args.pu != "None":
         if args.pu == 'custom':
-          sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F','nTrueInt/F']
+          sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonTrackingSF/F','nTrueInt/F']
           sample.weight = lambda event, sample: nTrueInt36fb_puRW(event.nTrueInt)*event.reweightTopPt*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonSF
         else:
-          sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F', 'reweightTopPt/F']
-          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF*event.reweightTopPt*event.reweightBTag_SF
+          sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonTrackingSF/F', 'reweightTopPt/F']
+          sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF*event.reweightTopPt*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     else:
         sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightLeptonSF/F']
         sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightLeptonSF*event.reweightTopPt*event.reweightBTag_SF
