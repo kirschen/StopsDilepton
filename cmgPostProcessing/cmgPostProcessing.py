@@ -59,6 +59,7 @@ def get_parser():
 
     argParser.add_argument('--overwrite',
         action='store_true',
+#        default = True,
         help="Overwrite existing output files, bool flag set to True  if used")
 
     argParser.add_argument('--samples',
@@ -66,7 +67,7 @@ def get_parser():
         nargs='*',
         type=str,
 #        default=['MuonEG_Run2015D_16Dec'],
-        default=['TTJets'],
+        default=['TTZToLLNuNu_ext'],
         help="List of samples to be post-processed, given as CMG component name"
         )
 
@@ -157,6 +158,7 @@ def get_parser():
 
     argParser.add_argument('--small',
         action='store_true',
+#        default=True,
         help="Run the file on a small sample (for test purpose), bool flag set to True if used",
         #default = True
         )
@@ -220,7 +222,9 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logFile = '/tmp/%s_%s_%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'])
+if options.nJobs > 1: jobnr = options.job[0]
+else: jobnr = 0
+logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(jobnr))
 logger  = logger.get_logger(options.logLevel, logFile = logFile)
 
 import RootTools.core.logger as logger_rt
@@ -775,6 +779,14 @@ def filler( event ):
         jetAbsEtaCut = 99.
     else:
         jetAbsEtaCut = 2.4
+#    print r.nJet
+#    if r.nJet == -1:
+#        print "Error"
+#        sys.exit(-1)
+#
+#    print "Good"
+#    sys.exit(0)
+        
     allJets      = getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=jetAbsEtaCut)
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)
     bJets        = filter(lambda j:isBJet(j), jets)

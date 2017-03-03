@@ -30,12 +30,12 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     data_output_directory      = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where you store the data
-    data_directory      = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+    data_directory      = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/"
     #plot_directory      = "/afs/cern.ch/work/d/dspitzba/www/stopsDilepton/"
     # Analysis result files
-    analysis_results        = '/afs/hephy.at/data/dspitzbart02/StopsDilepton/results/80X_v30' #Path to analysis results
+    analysis_results        = '/afs/hephy.at/data/dspitzbart02/StopsDilepton/results/80X_v32' #Path to analysis results
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     # directory with veto lists

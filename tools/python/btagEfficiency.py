@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 #binning in pt and eta
 ptBorders = [30, 50, 70, 100, 140, 200, 300, 600, 1000]
+#ptBorders = [30, 40, 50, 60, 70, 80, 100, 120, 160, 210, 260, 320, 400, 500, 670]
+
 ptBins = []
 etaBins = [[0,0.8], [0.8,1.6], [ 1.6, 2.4]]
 for i in range(len(ptBorders)-1):
@@ -25,6 +27,8 @@ def toFlavourKey(pdgId):
 
 #Method 1ab
 effFile          = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTLep_pow_Moriond17_2j_2l.pkl'
+#effFile          = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/TTJets_DiLepton_comb_2j_2l.pkl'
+
 sfFile           = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/CSVv2_Moriond17_B_H.csv'
 sfFile_FastSim   = '$CMSSW_BASE/src/StopsDilepton/tools/data/btagEfficiencyData/fastsim_csvv2_ttbar_26_1_2017.csv'
 
@@ -61,7 +65,11 @@ class btagEfficiency:
             raise ValueError( "Don't know what to do with b-tag variation %s" %var )
         if var != 'MC':
                 ref = reduce(mul, [j['beff']['MC'] for j in bJets] + [1-j['beff']['MC'] for j in nonBJets], 1 )
-                return reduce(mul, [j['beff'][var] for j in bJets] + [1-j['beff'][var] for j in nonBJets], 1 )/ref
+                if ref>0:
+                  return reduce(mul, [j['beff'][var] for j in bJets] + [1-j['beff'][var] for j in nonBJets], 1 )/ref
+                else:
+                  logger.warning( "getBTagSF_1a: MC efficiency is zero. Return SF 1. MC efficiencies: %r "% (  [j['beff']['MC'] for j in bJets] + [1-j['beff']['MC'] for j in nonBJets] ) )
+                  return 1
 
 
     def __init__(self,  WP = ROOT.BTagEntry.OP_MEDIUM, fastSim = False):
