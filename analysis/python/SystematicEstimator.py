@@ -52,7 +52,7 @@ class SystematicEstimator:
     def uniqueKey(self, region, channel, setup):
         sysForKey = setup.sys.copy()
         sysForKey['reweight'] = 'TEMP'
-        reweightKey ='["' + '", "'.join([i for i in setup.sys['reweight']]) + '"]' # little hack to preserve order of list when being dumped into json
+        reweightKey ='["' + '", "'.join(sorted([i for i in setup.sys['reweight']])) + '"]' # little hack to preserve order of list when being dumped into json
         return region, channel, json.dumps(sysForKey, sort_keys=True).replace('"TEMP"',reweightKey), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
 
     def replace(self, i, r):
@@ -154,6 +154,8 @@ class SystematicEstimator:
     def fastSimPUSystematic(self, region, channel, setup):
         ''' implemented based on the official SUSY recommendation https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsMoriond17#Pileup_lumi
         '''
+        #FIXME Returning 0 until the PU hist is fixed
+        return u_float(0)
         incl        = self.cachedEstimate(region, channel, setup.sysClone())
         incl_nvert  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['nVert']}))
         if incl.val > 0:

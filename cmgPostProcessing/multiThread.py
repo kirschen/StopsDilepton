@@ -5,6 +5,10 @@ import os
 import time
 import sys
 
+# Logging
+import StopsDilepton.tools.logger as logger
+logger  = logger.get_logger('INFO', logFile = None)
+
 processes = set()
 max_processes = 14
 
@@ -16,7 +20,8 @@ input_file = sys.argv[1]
 if os.path.exists(input_file):
     with open(input_file) as f:
         # Remove everything after #
-        jobs_ = [l.split('#')[0].rstrip() for l in f.readlines() ]
+        # jobs_ = [l.split('#')[0].rstrip() for l in f.readlines() ]
+        jobs_ = [ l.rstrip() for l in f.readlines() ]
         # remove empty lines
         jobs_ = filter(lambda l:len(l)>0, jobs_) 
 else:
@@ -24,21 +29,32 @@ else:
 
 jobs = []
 for job in jobs_:
-    cmds = job.split() 
-    split = filter(lambda s:s.startswith("SPLIT"), cmds)
-    args  = filter(lambda s:not s.startswith("SPLIT"), cmds)
-    if len(split)>0:
+    # Implement '<job>#SPLITn'
+    if job.count('#'):
+        job, comment = job.split('#')[:2]
+    else:
+        comment = None
+
+    # Remove blanks
+    if not job.strip(): continue
+
+    args  = job.split() #filter(lambda s:not s.startswith("SPLIT"), cmds)
+    if comment is not None and "SPLIT" in comment:
         try:
-            n = int(split[0].replace("SPLIT", ""))
+            n = int(comment.replace("SPLIT", ""))
         except ValueError:
             n = -1
     else:
         n = -1
 
     if n>0:
+        logger.info( "Splitting into %i jobs: %r", n, " ".join( args ) )
         for i in range(n):
-            jobs.append(args+["--nJobs",str(n),"--job",str(i)])
+            j_args = args+["--nJobs",str(n),"--job",str(i)]
+            logger.info( "Queuing job %r", " ".join( j_args ) )
+            jobs.append(j_args)
     else:
+        logger.info( "No splitting. Queuing job %r", " ".join( args ) )
         jobs.append(args)
 
 if len(sys.argv)>=2:
@@ -48,7 +64,7 @@ else:
 for cmds in jobs:
     if command!="": cmds_ = [command] + cmds + extra_args
     else:           cmds_ = cmds + extra_args
-    print "Processing:", " ".join(cmds_)
+    logger.info( "Processing: %s", " ".join(cmds_) )
     processes.add(subprocess.Popen( cmds_ ))
     if len(processes) >= max_processes:
         os.wait()

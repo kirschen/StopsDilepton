@@ -360,7 +360,7 @@ def getFilterCut(isData=False, isFastSim = False, badMuonFilters = "Summer2016")
         if badMuonFilters == "Moriond2017":
             filterCut += "&&Flag_badChargedHadronSummer2016"
             if isData: filterCut += "&&Flag_badMuonMoriond2017&&Flag_badCloneMuonMoriond2017"
-        if badMuonFilters == "Moriond2017Official":
+        elif badMuonFilters == "Moriond2017Official":
             filterCut += "&&Flag_badChargedHadronSummer2016"
             if isData: filterCut += "&&Flag_noBadMuons&&!Flag_duplicateMuons"
         elif badMuonFilters == "Summer2016":
