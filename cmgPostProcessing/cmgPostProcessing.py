@@ -1142,7 +1142,6 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 
     clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events", rootfile = outputfile )
     clonedEvents += clonedTree.GetEntries()
-
     # Clone the empty maker in order to avoid recompilation at every loop iteration
     maker = treeMaker_parent.cloneWithoutCompile( externalTree = clonedTree )
 

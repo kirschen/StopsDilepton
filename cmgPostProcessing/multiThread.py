@@ -34,8 +34,10 @@ for job in jobs_:
         job, comment = job.split('#')[:2]
     else:
         comment = None
-    #cmds = job.split() 
-    #split = filter(lambda s:s.startswith("SPLIT"), cmds)
+
+    # Remove blanks
+    if not job.strip(): continue
+
     args  = job.split() #filter(lambda s:not s.startswith("SPLIT"), cmds)
     if comment is not None and "SPLIT" in comment:
         try:
@@ -48,8 +50,11 @@ for job in jobs_:
     if n>0:
         logger.info( "Splitting into %i jobs: %r", n, " ".join( args ) )
         for i in range(n):
-            jobs.append(args+["--nJobs",str(n),"--job",str(i)])
+            j_args = args+["--nJobs",str(n),"--job",str(i)]
+            logger.info( "Queuing job %r", " ".join( j_args ) )
+            jobs.append(j_args)
     else:
+        logger.info( "No splitting. Queuing job %r", " ".join( args ) )
         jobs.append(args)
 
 if len(sys.argv)>=2:
