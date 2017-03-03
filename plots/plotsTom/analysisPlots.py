@@ -240,7 +240,7 @@ for index, mode in enumerate(allModes):
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   lumi_scale                 = data_sample.lumi/1000
 
-  if args.noData: lumi_scale = 36.5
+  if args.noData: lumi_scale = 35.9
   # Blinding policy for DM
   if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.noData and args.signal == "DM":
       weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
