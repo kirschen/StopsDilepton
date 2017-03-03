@@ -87,7 +87,6 @@ selectionStrings = ['relIso0.12',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']
 
-
 def launch(command, logfile):
   if args.runLocal: os.system(command + " --isChild &> " + logfile)
   else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=20:00:00 runPlotsOnCream02.sh")
@@ -100,7 +99,7 @@ if not args.isChild and args.selection is None:
   os.system("mkdir -p log")
   for selection in selectionStrings:
     command = "./analysisPlots.py --selection=" + selection + (" --noData"                if args.noData       else "")\
-                                                            + (" --splitBosons"           if args.splitBosons  else "")\
+                                                            + (" --scaleDYVV"             if args.scaleDYVV    else "")\
                                                             + (" --splitBosons2"          if args.splitBosons2 else "")\
                                                             + (" --signal=" + args.signal if args.signal       else "")\
                                                             + (" --plot_directory=" + args.plot_directory)\
@@ -131,7 +130,7 @@ if args.selection.count("njet2p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSi
 #
 postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
-postProcessing_directory = 'postProcessed_80X_v32/dilepTiny'
+postProcessing_directory = 'postProcessed_80X_v35/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
 signals = []
@@ -257,8 +256,8 @@ for index, mode in enumerate(allModes):
 
   for sample in mc + signals:
     if not hasattr(sample, 'isFastSim'): sample.isFastSim = False
-    if   args.scaleDYVV and sample == DY_HT_LO.name:  sample.scale = lumi_scale*1.115
-    elif args.scaleDYVV and sample in multiBosonList: sample.scale = lumi_scale*1.265
+    if   args.scaleDYVV and sample in [DY_HT_LO]:     sample.scale = lumi_scale*1.31
+    elif args.scaleDYVV and sample in multiBosonList: sample.scale = lumi_scale*1.19
     else:                                             sample.scale = lumi_scale
     sample.read_variables = ['reweightLeptonTrackingSF/F','reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F'] + (['reweightLeptonFastSimSF/F'] if sample.isFastSim else [])
     sample.weight         = lambda event, sample: event.reweightLeptonTrackingSF*event.reweightTopPt*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*(event.reweightLeptonFastSimSF if sample.isFastSim else 1.)
