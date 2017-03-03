@@ -13,11 +13,7 @@ try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-<<<<<<< HEAD
   postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-=======
-  postProcessing_directory = "postProcessed_80X_v32/dilepTiny"
->>>>>>> e031d2e562f1ba586411c02136fb3bdce297fc4d
 
 try:
     import sys
