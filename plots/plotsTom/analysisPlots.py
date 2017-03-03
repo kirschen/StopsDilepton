@@ -169,6 +169,7 @@ elif args.signal == "T8":
 # Text on the plots
 #
 def drawObjects( plotData, dataMCScale, lumi_scale ):
+    lumi_scale = 35.9 # fix rounding
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)

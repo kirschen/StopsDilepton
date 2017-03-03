@@ -92,6 +92,7 @@ from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed_photonSamples
 # Text on the plots
 #
 def drawObjects( dataMCScale, lumi_scale ):
+    lumi_scale = 35.9
     if args.add2015: lumi_scale += 2.16
     tex = ROOT.TLatex()
     tex.SetNDC()

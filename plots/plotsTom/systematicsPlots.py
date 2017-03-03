@@ -167,6 +167,7 @@ elif args.signal == "DM":
 # Text on the plots
 #
 def drawObjects( plotData, dataMCScale, lumi_scale ):
+    lumi_scale = 35.9
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)

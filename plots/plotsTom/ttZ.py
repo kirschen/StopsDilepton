@@ -182,6 +182,7 @@ from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 # Text on the plots
 #
 def drawObjects( dataMCScale, lumi_scale ):
+    lumi_scale = 35.9 
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
