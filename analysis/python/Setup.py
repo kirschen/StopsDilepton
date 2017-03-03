@@ -16,7 +16,7 @@ postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 #postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
 #from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-postProcessing_directory = 'postProcessed_80X_v32/dilepTiny'
+postProcessing_directory = 'postProcessed_80X_v35/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
 #Choices for specific samples
@@ -94,10 +94,11 @@ class Setup:
                        '2e1mu': MuonEG_Run2016_backup},
         }
 
-        dataPUHistForSignalPath = "$CMSSW_BASE/src/StopsDilepton/tools/data/puFastSimUncertainty/dataPU.root"
-        dataPUHistForSignalPath = os.path.expandvars(dataPUHistForSignalPath)
-        self.dataPUHistForSignalFile = ROOT.TFile(dataPUHistForSignalPath)
-        self.dataPUHistForSignal = self.dataPUHistForSignalFile.Get("data")
+#        dataPUHistForSignalPath = "$CMSSW_BASE/src/StopsDilepton/tools/data/puFastSimUncertainty/dataPU.root"
+#        dataPUHistForSignalPath = os.path.expandvars(dataPUHistForSignalPath)
+#        self.dataPUHistForSignalFile = ROOT.TFile(dataPUHistForSignalPath)
+#        self.dataPUHistForSignal = self.dataPUHistForSignalFile.Get("data")
+
 
     def prefix(self):
         return '_'.join(self.prefixes+[self.preselection('MC')['prefix']])
@@ -261,7 +262,7 @@ class Setup:
 
               res['cuts'].append("l1_pt>25")
 
-        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), badMuonFilters='Moriond2017', isFastSim=isFastSim))
+        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), badMuonFilters='Moriond2017Official', isFastSim=isFastSim))
         #res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
         
