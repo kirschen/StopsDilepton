@@ -14,8 +14,8 @@ estimators = ["TTJets",
               "other",
              ]
 
-submitCMD = "submitBatch.py --title='AggEstimate' "
-#submitCMD = "echo "
+#submitCMD = "submitBatch.py --title='AggEstimate' "
+submitCMD = "echo "
 
 from StopsDilepton.analysis.regions import regionsO, regions80X, reducedRegionsNew, superRegion, superRegion140, regions80X_2D, regionsAgg
 #allRegions = regions80X + superRegion + superRegion140 + regions80X_2D
