@@ -103,7 +103,7 @@ if args.isolation=='standard':
     data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
     postProcessing_directory = "postProcessed_80X_v30/dilep/"
     from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-    data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+    data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     postProcessing_directory = "postProcessed_80X_v31/dilep/"
     from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 

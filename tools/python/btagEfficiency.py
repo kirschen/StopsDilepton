@@ -68,8 +68,7 @@ class btagEfficiency:
                 if ref>0:
                   return reduce(mul, [j['beff'][var] for j in bJets] + [1-j['beff'][var] for j in nonBJets], 1 )/ref
                 else:
-                  print "ERROR in getBTagSF_1a"
-                  print [j['beff']['MC'] for j in bJets] + [1-j['beff']['MC'] for j in nonBJets]
+                  logger.warning( "getBTagSF_1a: MC efficiency is zero. Return SF 1. MC efficiencies: %r "% (  [j['beff']['MC'] for j in bJets] + [1-j['beff']['MC'] for j in nonBJets] ) )
                   return 1
 
 
