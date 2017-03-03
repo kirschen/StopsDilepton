@@ -25,8 +25,9 @@ for e in estimators:
 sumCache = Cache(os.path.join(setup.defaultCacheDir(), 'sum.pkl'), verbosity=2)
 
 def applySF(val, e):
-      if   e.name.count('DY'):         return val*1.115
-      elif e.name.count('multiBoson'): return val*1.265
+      if   e.name.count('DY'):         return val*1.31
+      elif e.name.count('multiBoson'): return val*1.19
+      elif e.name.count('TTZ'):        return val*1.09
       else:                            return val
 
 def wrapper(config):
