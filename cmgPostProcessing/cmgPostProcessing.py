@@ -222,9 +222,7 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
-if options.nJobs > 1: jobnr = options.job[0]
-else: jobnr = 0
-logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(jobnr))
+logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job[0]))
 logger  = logger.get_logger(options.logLevel, logFile = logFile)
 
 import RootTools.core.logger as logger_rt
