@@ -154,8 +154,6 @@ class SystematicEstimator:
     def fastSimPUSystematic(self, region, channel, setup):
         ''' implemented based on the official SUSY recommendation https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsMoriond17#Pileup_lumi
         '''
-        #FIXME Returning 0 until the PU hist is fixed
-        return u_float(0)
         incl        = self.cachedEstimate(region, channel, setup.sysClone())
         incl_nvert  = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['nVert']}))
         if incl.val > 0:
