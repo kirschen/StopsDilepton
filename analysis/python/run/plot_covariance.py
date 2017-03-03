@@ -7,14 +7,14 @@ from StopsDilepton.tools.user import combineReleaseLocation, analysis_results, p
 
 ROOT.gStyle.SetOptStat("")
 
-fname = analysis_results + '/signalOnly/cardFiles/T2tt/T2tt_1200_50.txt'
+fname = analysis_results + '/signalOnly/cardFiles/T2tt/T2tt_800_100.txt'
 releaseLocation = combineReleaseLocation
 
 postFit = False
 makeTable = True
 
 if postFit: postfix = "_postfit"
-else: postfix = ''
+else: postfix = ''#'_test2'
 
 def calcCovariance(fname=None, options=""):
     import uuid, os
@@ -29,15 +29,16 @@ def calcCovariance(fname=None, options=""):
       filename = fname if fname else os.path.join(uniqueDirname, ustr+".txt")
       self.writeToFile(filename)
     covFilename = filename.replace('.txt', '_mlfit.root')
-
+    shapeFilename = filename.replace('.txt', '_shape.txt')
+    
     assert os.path.exists(filename), "File not found: %s"%filename
     combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combineCards.py %s -S > myshapecard.txt "%fname
     #set workspace
-    #workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --X-allow-no-signal --X-allow-no-background myshapecard.txt"
-    workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --channel-masks --X-allow-no-signal --X-allow-no-background myshapecard.txt"
+    workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --X-allow-no-signal --X-allow-no-background myshapecard.txt"
+    #workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --channel-masks --X-allow-no-signal --X-allow-no-background myshapecard.txt"
     #Run fit
-    #fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --saveOverall --preFitValue 0  myshapecard.root"
-    fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --setPhysicsModelParameterRange mask_signal=1 --saveOverall myshapecard.root"
+    fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 5000 --saveOverall --preFitValue 0  myshapecard.root"
+    #fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --setPhysicsModelParameterRange mask_signal=1 --saveOverall myshapecard.root"
 
     
     print combineCommand
@@ -46,8 +47,11 @@ def calcCovariance(fname=None, options=""):
     os.system(fitCommand)
 
     tempResFile = uniqueDirname+"/mlfit.root"
+    tempShapeFile = uniqueDirname+"/myshapecard.txt"
     res = os.path.isfile(tempResFile)
-    if res: shutil.copyfile(tempResFile, covFilename)
+    if res:
+        shutil.copyfile(tempResFile, covFilename)
+        shutil.copyfile(tempShapeFile, shapeFilename)
     else: print "[cardFileWrite] Did not succeed reeding result."
 
     shutil.rmtree(uniqueDirname)

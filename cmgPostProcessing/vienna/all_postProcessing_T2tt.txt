@@ -1,13 +1,13 @@
-python cmgPostProcessing.py --fastSim --T2bW --processingEra=postProcessed_80X_v32 --skim=dilepTiny --samples SMS_T2bW # SPLIT30
-python cmgPostProcessing.py --fastSim --T2bt --processingEra=postProcessed_80X_v32 --skim=dilepTiny --samples SMS_T2bt # SPLIT30
+python cmgPostProcessing.py  --fastSim --T2bW --processingEra=postProcessed_80X_v35 --skim=dilepTiny --samples SMS_T2bW # SPLIT15
+python cmgPostProcessing.py  --fastSim --T2bt --processingEra=postProcessed_80X_v35 --skim=dilepTiny --samples SMS_T2bt # SPLIT15
 
-python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v32 --skim=dilepTiny --samples  SMS_T2tt_mStop_150to250 # SPLIT30
-python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v32 --skim=dilepTiny --samples  SMS_T2tt_mStop_250to350 # SPLIT30
-python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v32 --skim=dilepTiny --samples  SMS_T2tt_mStop_350to400 # SPLIT30
-python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v32 --skim=dilepTiny --samples  SMS_T2tt_mStop_400to1200 # SPLIT30
-python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v32 --skim=dilepTiny --samples  SMS_T2tt_mStop_425_mLSP_325
-python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v32 --skim=dilepTiny --samples  SMS_T2tt_mStop_500_mLSP_325
-python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v32 --skim=dilepTiny --samples  SMS_T2tt_mStop_850_mLSP_100
+python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v35 --skim=dilepTiny --samples  SMS_T2tt_mStop_150to250 # SPLIT15
+python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v35 --skim=dilepTiny --samples  SMS_T2tt_mStop_250to350 # SPLIT15
+python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v35 --skim=dilepTiny --samples  SMS_T2tt_mStop_350to400 # SPLIT15
+python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v35 --skim=dilepTiny --samples  SMS_T2tt_mStop_400to1200 # SPLIT15
+python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v35 --skim=dilepTiny --samples  SMS_T2tt_mStop_425_mLSP_325
+python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v35 --skim=dilepTiny --samples  SMS_T2tt_mStop_500_mLSP_325
+python cmgPostProcessing.py  --fastSim --T2tt --processingEra=postProcessed_80X_v35 --skim=dilepTiny --samples  SMS_T2tt_mStop_850_mLSP_100
 
 #76X
 #python cmgPostProcessing.py  --fastSim --T2tt --samples SMS_T2tt_mStop_100_125_mLSP_1to50

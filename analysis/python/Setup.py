@@ -14,9 +14,7 @@ from StopsDilepton.tools.user import analysis_results
 #define samples
 postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
-#postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
-#from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-postProcessing_directory = 'postProcessed_80X_v32/dilepTiny'
+postProcessing_directory = 'postProcessed_80X_v35/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
 #Choices for specific samples
@@ -74,7 +72,7 @@ class Setup:
             'triLep':        default_triLep,
         }
 
-        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF'], 'selectionModifier':None}
+        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF','reweightLeptonTrackingSF'], 'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
 
