@@ -601,7 +601,7 @@ new_variables += [\
 ]
 
 if isData: new_variables.extend( ['jsonPassed/I'] )
-new_variables.extend( ['nJetGood/I','nBTag/I', 'ht/F', 'metSig/F'] )
+new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
 
 if isSingleLep:
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
