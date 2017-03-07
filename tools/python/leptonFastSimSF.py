@@ -4,8 +4,8 @@ import os
 
 #https://twiki.cern.ch/twiki/bin/view/CMS/SUSLeptonSFMC#How_to_retrieve_SF_and_stat_unce
 
-muSFFile = "sf_mu_stop"
-eleSFFile = "sf_el_stop"
+muSFFile = "sf_mu_mediumID_iso012"
+eleSFFile = "sf_el_tightCB_iso012"
 
 class leptonFastSimSF:
     def __init__(self):
@@ -24,9 +24,9 @@ class leptonFastSimSF:
 
     def get2DSFUnc(self, pdgId, pt):
         if abs(pdgId)==13:
-            return 0.01
+            return 0.02
         elif abs(pdgId)==11:
-            return 0.05
+            return 0.02
         else:
             raise Exception("FastSim SF Unc for PdgId %i not known"%pdgId)
 

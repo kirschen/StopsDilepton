@@ -35,7 +35,7 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     plot_directory      = "/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/"
     #plot_directory      = "/afs/cern.ch/work/d/dspitzba/www/stopsDilepton/"
     # Analysis result files
-    analysis_results        = '/afs/hephy.at/data/dspitzbart02/StopsDilepton/results/80X_v32' #Path to analysis results
+    analysis_results        = '/afs/hephy.at/data/dspitzbart02/StopsDilepton/results/80X_v35' #Path to analysis results
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     # directory with veto lists
