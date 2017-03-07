@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import signals_T2tt
 #from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5, signals_T8bbllnunu_XCha0p5_XSlep0p95
 
@@ -13,19 +14,20 @@ estimators = ["TTJets",
               "other",
              ]
 
-submitCMD = "submitBatch.py --title='Estimate' "
+submitCMD = "submitBatch.py --title='AggEstimate' "
 #submitCMD = "echo "
 
-from StopsDilepton.analysis.regions import regionsO, regions80X, reducedRegionsNew, superRegion, superRegion140, regions80X_2D
+from StopsDilepton.analysis.regions import regionsO, regions80X, reducedRegionsNew, superRegion, superRegion140, regions80X_2D, regionsAgg
 #allRegions = regions80X + superRegion + superRegion140 + regions80X_2D
-allRegions = regionsO
-#signalEstimators = [s.name for s in signals_T2tt]
+#allRegions = regionsO
+allRegions = regionsAgg
+signalEstimators = [s.name for s in signals_T2tt]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p05]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p5]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p95]
 #signalEstimators = []
 
-#estimators = []
+estimators = []
 
 for control in [None, 'DYVV']:#, 'TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
 #for control in ['TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
@@ -36,8 +38,8 @@ for control in [None, 'DYVV']:#, 'TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
       os.system(submitCMD+"'python run_estimate.py --selectEstimator=" + estimator + controlString + " --selectRegion=%s'"%str(j))
 
   # For signals, do not split up in regions, because otherwise you easily reach the maximum of allowed jobs, they are fast anyway
-  #for i, estimator in enumerate(signalEstimators):
-  #  os.system(submitCMD+"'python run_estimate.py --selectEstimator=" + estimator + controlString+"'")
+  for i, estimator in enumerate(signalEstimators):
+    os.system(submitCMD+"'python run_estimate.py --selectEstimator=" + estimator + controlString+"'")
 
 for control in ['TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
   controlString = '' if not control else (' --control=' + control)
@@ -46,8 +48,8 @@ for control in ['TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
     os.system(submitCMD+"'python run_estimate.py --selectEstimator=" + estimator + controlString+"'")
 
   ## For signals, do not split up in regions, because otherwise you easily reach the maximum of allowed jobs, they are fast anyway
-  #for i, estimator in enumerate(signalEstimators):
-  #  os.system(submitCMD+"'python run_estimate.py --selectEstimator=" + estimator + controlString+"'")
+  for i, estimator in enumerate(signalEstimators):
+    os.system(submitCMD+"'python run_estimate.py --selectEstimator=" + estimator + controlString+"'")
 
 ###Group 1
 #for i, estimator in enumerate(estimators):

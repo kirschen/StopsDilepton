@@ -182,13 +182,16 @@ for channel in allChannels:
       minmaxTable.write("  systematic & min-max of signal regions \\\\ \n")
       minmaxTable.write("  \\hline \n")
       longNames = {"MC stat":     "MC statistics",
-                   "PU":          "pile-up",
-                   "unclEn":      "unclustered energy",
-                   "TTJets" :     "top background",
-                   "TTZ":         "$t\\bar{t}Z$ background",
-                   "other" :      "$t\\bar{t}X$ (excl. $t\\bar{t}Z$) background",
-                   "DY" :         "DY background",
-                   "multiBoson" : "multiboson background"}
+                   "PU":          "pile-up modelling",
+                   "JEC":         "jet energy uncertainty",
+                   "unclEn":      "modelling of unclustered energy",
+                   "top-\\pt" :   "top-\\pt modelling",
+                   "trigger" :    "trigger efficiency",
+                   "TTJets":      "top background normalization",
+                   "TTZ":         "$t\\bar{t}Z$ background normalization",
+                   "other" :      "$t\\bar{t}X$ (excl. $t\\bar{t}Z$) background normalization",
+                   "DY" :         "DY background normalization",
+                   "multiBoson" : "multiboson background normalization"}
 
       for i in columns[1:]:
         name = longNames[i] if i in longNames else i

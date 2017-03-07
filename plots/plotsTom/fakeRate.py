@@ -86,6 +86,7 @@ from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v30/trilep"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed2 import *
 def drawObjects(lumi_scale ):
+    lumi_scale = 35.9
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)

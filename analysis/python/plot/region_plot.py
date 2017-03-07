@@ -293,6 +293,7 @@ def drawDivisions(regions):
 
 
 def drawLumi( lumi_scale ):
+    lumi_scale = 35.9
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)

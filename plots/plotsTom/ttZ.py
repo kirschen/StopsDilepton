@@ -55,7 +55,9 @@ cuts=[
 #   ("lpt_40_20_20",      '(1)'),
 #   ("njet01",            jetSelection+"<2"),
     ("njet2",             jetSelection+"==2"),
+    ("njet2p",            jetSelection+">=2"),
     ("njet3",             jetSelection+"==3"),
+    ("njet3p",            jetSelection+">=3"),
     ("njet4",             jetSelection+"==4"),
     ("njet4p",            jetSelection+">=4"),
 #   ("njet40_3",          jetSelection40+"==3"),
@@ -170,7 +172,7 @@ sequence = [makeDeltaR, calcBTag, calcInvMass]
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = 'postProcessed_80X_v32/dilepTiny'
+postProcessing_directory = 'postProcessed_80X_v35/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
@@ -180,6 +182,7 @@ from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 # Text on the plots
 #
 def drawObjects( dataMCScale, lumi_scale ):
+    lumi_scale = 35.9 
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)

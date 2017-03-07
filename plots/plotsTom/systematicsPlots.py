@@ -141,7 +141,7 @@ if args.signal == "DM":           args.plot_directory += "_DM"
 #
 postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
-postProcessing_directory = 'postProcessed_80X_v32/dilepTiny'
+postProcessing_directory = 'postProcessed_80X_v35/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
 signals = []
@@ -167,6 +167,7 @@ elif args.signal == "DM":
 # Text on the plots
 #
 def drawObjects( plotData, dataMCScale, lumi_scale ):
+    lumi_scale = 35.9
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
