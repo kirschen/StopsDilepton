@@ -403,7 +403,7 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
 
     output.clear()
 
-logger.info("Copying log file to %s"%outDir)
-copyLog = subprocess.call(['cp',logFileLocation,outDir])
-if copyLog: print "Copying log from %s to %s failed"%(logFileLocation,outDir)
-else: print "Successfully copied log file"
+#logger.info("Copying log file to %s"%outDir)
+#copyLog = subprocess.call(['cp',logFileLocation,outDir])
+#if copyLog: print "Copying log from %s to %s failed"%(logFileLocation,outDir)
+#else: print "Successfully copied log file"

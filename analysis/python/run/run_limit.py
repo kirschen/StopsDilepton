@@ -4,13 +4,15 @@ import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
-argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95"], help="which signal?")
+argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW"], help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                                                                                           help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float, nargs='?',                                                                                           help="scaling all yields")
 argParser.add_argument("--overwrite",      default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--controlDYVV",    default = False, action = "store_true", help="Fits for DY/VV CR")
 argParser.add_argument("--controlTTZ",     default = False, action = "store_true", help="Fits for TTZ CR")
 argParser.add_argument("--fitAll",         default = False, action = "store_true", help="Fits SR and CR together")
+argParser.add_argument("--aggregate",         default = False, action = "store_true", help="Use aggregated signal regions")
+argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 args = argParser.parse_args()
 
 
@@ -23,7 +25,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 from StopsDilepton.analysis.SetupHelpers    import channels, trilepChannels
 from StopsDilepton.analysis.estimators      import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTJetsEstimate
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS
+from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS, regionsAgg
 from StopsDilepton.analysis.Cache           import Cache
 
 
@@ -36,7 +38,10 @@ setupTTZ4 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMi
 setupTTZ5 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,-1), 'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
 
 # Define channels for CR
-setup.channels     = ['SF','EMu']
+if args.aggregate:
+    setup.channels = ['all']
+else:
+    setup.channels     = ['SF','EMu']
 setupDYVV.channels = ['SF']
 setupTTZ1.channels = ['all']
 setupTTZ2.channels = ['all']
@@ -45,8 +50,12 @@ setupTTZ4.channels = ['all']
 setupTTZ5.channels = ['all']
 
 # Define regions for CR
-setup.regions     = regionsO[1:]
-setupDYVV.regions = regionsO[1:]
+if args.aggregate:
+    setup.regions     = regionsAgg[1:]
+    setupDYVV.regions = regionsO[1:]
+else:
+    setup.regions     = regionsO[1:]
+    setupDYVV.regions = regionsO[1:]
 setupTTZ1.regions = noRegions
 setupTTZ2.regions = noRegions
 setupTTZ3.regions = noRegions
@@ -62,7 +71,7 @@ setupTTZ3.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson'
 setupTTZ4.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
 setupTTZ5.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
 
-if args.fitAll:        setups = [setup, setupDYVV] #, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
+if args.fitAll:        setups = [setup, setupDYVV, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 elif args.controlDYVV: setups = [setupDYVV]
 elif args.controlTTZ:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 else:                  setups = [setup]
@@ -76,10 +85,14 @@ from math                                                                       
 from StopsDilepton.tools.user           import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
-if args.fitAll:        subDir = 'fitAll' 
-elif args.controlDYVV: subDir = 'controlDYVV'
-elif args.controlTTZ:  subDir = 'controlTTZ'
-else:                  subDir = 'signalOnly'
+if args.aggregate:          subDir = 'aggregated/'
+else:                       subDir = ''
+
+if args.fitAll:             subDir += 'fitAll' 
+elif args.controlDYVV:      subDir += 'controlDYVV'
+elif args.controlTTZ:       subDir += 'controlTTZ'
+elif args.significanceScan: subDir += 'significance'
+else:                       subDir += 'signalOnly'
 baseDir = os.path.join(setup.analysis_results, subDir)
 
 limitDir    = os.path.join(baseDir, 'cardFiles', args.signal)
@@ -93,20 +106,22 @@ limitCache    = Cache(cacheFileName, verbosity=2)
 
 
 if   args.signal == "T2tt":                         fastSim = True
+elif args.signal == "T2bW":                         fastSim = True
+elif args.signal == "T2bt":                         fastSim = True
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": fastSim = True
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  fastSim = True
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": fastSim = True
 elif args.signal == "TTbarDM":                      fastSim = False
 
-scaleUncCache = Cache('scale_%s.pkl' % args.signal, verbosity=2)
-isrUncCache   = Cache('isr_%s.pkl'   % args.signal, verbosity=2)
+scaleUncCache = Cache(setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal, verbosity=2)
+isrUncCache   = Cache(setup.analysis_results+'/systematics/isr_%s.pkl'   % args.signal, verbosity=2)
 
 def getScaleUnc(name, r, channel):
   if scaleUncCache.contains((name, r, channel)): return max(0.01, scaleUncCache.get((name, r, channel)))
   else:                                          return 0.01
 
 def getIsrUnc(name, r, channel):
-  return 0 #FIXME
+  #return 0 #FIXME
   unc = isrUncCache.get((name, r, channel))
   return abs(unc)
 
@@ -245,16 +260,21 @@ def wrapper(s):
     
     if   args.signal == "TTbarDM":                      sConfig = s.mChi, s.mPhi, s.type
     elif args.signal == "T2tt":                         sConfig = s.mStop, s.mNeu
+    elif args.signal == "T2bt":                         sConfig = s.mStop, s.mNeu
+    elif args.signal == "T2bW":                         sConfig = s.mStop, s.mNeu
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sConfig = s.mStop, s.mNeu
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sConfig = s.mStop, s.mNeu
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
 
-    if useCache and not overWrite and limitCache.contains(sConfig):
-      res = limitCache.get(sConfig)
+    if not args.significanceScan:
+        if useCache and not overWrite and limitCache.contains(sConfig):
+          res = limitCache.get(sConfig)
+        else:
+          res = c.calcLimit(cardFileName)#, options="--run blind")
+          c.calcNuisances(cardFileName)
+          limitCache.add(sConfig, res, save=True)
     else:
-      res = c.calcLimit(cardFileName)#, options="--run blind")
-      c.calcNuisances(cardFileName)
-      limitCache.add(sConfig, res, save=True)
+        res = c.calcSignif(cardFileName)
     
     if xSecScale != 1:
         for k in res:
@@ -263,6 +283,8 @@ def wrapper(s):
     if res: 
       if   args.signal == "TTbarDM":                      sString = "mChi %i mPhi %i type %s" % sConfig
       elif args.signal == "T2tt":                         sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T2bt":                         sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T2bW":                         sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sString = "mStop %i mNeu %i" % sConfig
@@ -274,7 +296,10 @@ def wrapper(s):
         return None
 
 
+postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
 if   args.signal == "T2tt":                         from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import signals_T2tt as jobs
+elif args.signal == "T2bt":                         from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bt as jobs
+elif args.signal == "T2bW":                         from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bW as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
@@ -288,7 +313,7 @@ results = map(wrapper, jobs)
 results = [r for r in results if r]
 
 # Make histograms for T2tt
-if args.signal == "T2tt" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p05" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p5" or args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
+if "T2" in args.signal or  "T8bb" in args.signal:
   exp      = ROOT.TH2F("exp", "exp", 1600/25, 0, 1600, 1500/25, 0, 1500)
   exp_down = exp.Clone("exp_down")
   exp_up   = exp.Clone("exp_up")

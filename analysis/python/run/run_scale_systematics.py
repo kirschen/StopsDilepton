@@ -4,7 +4,7 @@ parser = OptionParser()
 parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
 #parser.add_option("--selectEstimator",       dest="selectEstimator",       default=None,                action="store",      help="select estimator?")
 #parser.add_option("--selectRegion",          dest="selectRegion",          default=None, type="int",    action="store",      help="select region?")
-parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt","TTbarDM"],                                                                                 help="which signal?")
+parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt","T2bt","T2bW","T8bbllnunu_XCha0p5_XSlep0p05","T8bbllnunu_XCha0p5_XSlep0p5","T8bbllnunu_XCha0p5_XSlep0p95","TTbarDM"], help="which signal?")
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option('--overwrite',            dest="overwrite", default = False, action = "store_true", help="Overwrite existing output files, bool flag set to True  if used")
 (options, args) = parser.parse_args()
@@ -18,7 +18,7 @@ import pickle
 # Analysis
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 from StopsDilepton.analysis.estimators   import setup
-from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsS
+from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsS, regionsAgg
 from StopsDilepton.analysis.u_float      import u_float 
 from StopsDilepton.analysis.Region       import Region 
 
@@ -33,7 +33,7 @@ logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-regions = regionsO + noRegions #Use all the regions that are used in the limit setting
+regions = regionsO + noRegions + regionsAgg #Use all the regions that are used in the limit setting
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 
@@ -60,13 +60,41 @@ if not options.overwrite:
 #n.b \1001" is index 0 in the weights() vector
 
 if options.signal == "T2tt":
-    #Loading Fall15 with PDF weights
-    data_directory           = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-    postProcessing_directory = "postProcessed_80X_v30/dilepTiny" 
+    data_directory           = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny" 
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
     for s in signals_T2tt:
-        s.is76X = True
+        s.isFastSim = True
+        s.is76X     = False
     signals = signals_T2tt
+
+elif options.signal == "T2bW":
+    data_directory           = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed    import *
+    for s in signals_T2bW:
+        s.isFastSim = True
+        s.is76X     = False
+    signals = signals_T2bW
+
+elif options.signal == "T2bt":
+    data_directory           = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed    import *
+    for s in signals_T2bt:
+        s.isFastSim = True
+        s.is76X     = False
+    signals = signals_T2bt
+
+elif "T8bb" in options.signal:
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import *
+    if options.signal == "T8bbllnunu_XCha0p5_XSlep0p05": signals = signals_T8bbllnunu_XCha0p5_XSlep0p05
+    elif options.signal == "T8bbllnunu_XCha0p5_XSlep0p5": signals = signals_T8bbllnunu_XCha0p5_XSlep0p5
+    elif options.signal == "T8bbllnunu_XCha0p5_XSlep0p95": signals = signals_T8bbllnunu_XCha0p5_XSlep0p95
+    for s in signals:
+        s.isFastSim = True
+        s.is76X     = False
 
 elif options.signal == "TTbarDM":
     postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
@@ -87,7 +115,7 @@ results = {}
 scale_systematics = {}
 for estimate in signalEstimators:
     logger.info("Calculating scale uncertainty for signal %s", estimate.name)
-    estimate.initCache("/afs/hephy.at/data/dspitzbart01/StopsDilepton/results/80X_for_Q2/")
+    estimate.initCache("/afs/hephy.at/data/dspitzbart02/StopsDilepton/results/80X_for_Q2/")
 
     def wrapper(args):
             r,channel,setup = args
