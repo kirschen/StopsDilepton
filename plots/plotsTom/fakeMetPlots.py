@@ -114,7 +114,7 @@ if args.selection.count("njet2p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSi
 #
 postProcessing_directory = "postProcessed_80X_v31/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
+postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
@@ -135,6 +135,7 @@ DM2.style               = styles.lineStyle( 28,          width=3)
 # Text on the plots
 #
 def drawObjects( plotData, dataMCScale, lumi_scale ):
+    lumi_scale = 35.9
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
@@ -240,14 +241,14 @@ for index, mode in enumerate(allModes):
   mc = [Top_pow, DY_HT_LO, TTZ_LO, TTXNoZ] + multiBosonList
   for sample in mc + [DM, DM2]:
     sample.scale          = lumi_scale
-    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+    sample.read_variables = ['reweightLeptonTrackingSF/F','reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
+    sample.weight         = lambda event, sample: event.reweightLeptonTrackingSF*event.reweightTopPt*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightPU36fb
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
 
   for sample in [T2tt, T2tt2]:
     sample.scale          = lumi_scale
-    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
-    sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightPU36fb
+    sample.read_variables = ['reweightLeptonTrackingSF/F','reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
+    sample.weight         = lambda event, sample: event.reweightLeptonTrackingSF*event.reweightTopPt*event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightPU36fb
 
   topList        = splitSampleInFakeMet(Top_pow,    ROOT.kCyan)   if args.split == 'Top' else [Top_pow]
   dyList         = splitSampleInFakeMet(DY_HT_LO,   ROOT.kGreen)  if args.split == 'DY' else [DY_HT_LO]

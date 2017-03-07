@@ -49,16 +49,18 @@ def displayAbsSysValue(val):
      if roundedVal <= 0.: return "0.00"
      return "%.2f" % roundedVal
 
-from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard
-cardFile = '/user/tomc/StopsDilepton/results_80X_v24/fitAll/cardFiles/T2tt/T2tt_550_350.txt' 
+from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, getPostFitUncFromCard
 
-def getSampleUncertainty(cardFile, estimateName, binName):
+def getSampleUncertainty(estimateName, binName):
     if   estimateName.count('TTZ'):    uncName = 'ttZ'
     elif estimateName.count('TTJets'): uncName = 'top'
     else:                              uncName = estimateName
-    if False: return getPostFitUncFromCard(cardFile, estimateName, uncName, binName); # add option to use postfit unc
-    else:     return getPreFitUncFromCard(cardFile,  estimateName, uncName, binName);
-    return unc
+    cardFile = '/user/tomc/StopsDilepton/results_80X_v35/fitAll/cardFiles/T2tt/T2tt_750_1.txt'
+    # Currently still prefit uncertainty in the table
+#   if   estimateName.count("TTZ"):                                    cardFile = '/user/tomc/StopsDilepton/results_80X_v35/controlTTZ/cardFiles/T8bbllnunu_XCha0p5_XSlep0p05/T8bbllnunu_XCha0p5_XSlep0p05_1250_350.txt'  # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
+#   elif estimateName.count("DY") or estimateName.count("multiBoson"): cardFile = '/user/tomc/StopsDilepton/results_80X_v35/controlDYVV/cardFiles/T2tt/T2tt_600_300.txt'
+    return getPreFitUncFromCard(cardFile,  estimateName, uncName, binName);
+#   return getPostFitUncFromCard(cardFile, estimateName, uncName, binName); # add option to use postfit unc, should still get fixed
 
 
 # Evaluate absolute and relative errors
@@ -83,11 +85,11 @@ def evaluateEstimate(e, SR, binName, estimators=None):
      e.rel["b-tag SF-l"] = e.btaggingSFlSystematic(r, channel, setup).val
      e.rel["trigger"]    = e.triggerSystematic(    r, channel, setup).val
      e.rel["lepton SF"]  = e.leptonSFSystematic(   r, channel, setup).val
-     e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else getSampleUncertainty(cardFile, 'TTJets',     binName) 
-     e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else getSampleUncertainty(cardFile, 'TTZ',        binName)
-     e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else getSampleUncertainty(cardFile, 'multiBoson', binName)
-     e.rel["other"]      = 0 if not e.name.count("other")      else getSampleUncertainty(cardFile, 'other',      binName)
-     e.rel["DY"]         = 0 if not e.name.count("DY")         else getSampleUncertainty(cardFile, 'DY',         binName)
+     e.rel["TTJets"]     = 0 if not e.name.count("TTJets")     else getSampleUncertainty('TTJets',     binName)
+     e.rel["TTZ"]        = 0 if not e.name.count("TTZ")        else getSampleUncertainty('TTZ',        binName)
+     e.rel["multiBoson"] = 0 if not e.name.count("multiBoson") else getSampleUncertainty('multiBoson', binName)
+     e.rel["other"]      = 0 if not e.name.count("other")      else getSampleUncertainty('other',      binName)
+     e.rel["DY"]         = 0 if not e.name.count("DY")         else getSampleUncertainty('DY',         binName)
 
      # For sum assume the individual estimators are already evaluated such that we can pick their corresponding absolute error
      if e.name.count("sum"):
@@ -180,13 +182,16 @@ for channel in allChannels:
       minmaxTable.write("  systematic & min-max of signal regions \\\\ \n")
       minmaxTable.write("  \\hline \n")
       longNames = {"MC stat":     "MC statistics",
-                   "PU":          "pile-up",
-                   "unclEn":      "unclustered energy",
-                   "TTJets" :     "top background",
-                   "TTZ":         "$t\\bar{t}Z$ background",
-                   "other" :      "$t\\bar{t}X$ (excl. $t\\bar{t}Z$) background",
-                   "DY" :         "DY background",
-                   "multiBoson" : "multiboson background"}
+                   "PU":          "pile-up modelling",
+                   "JEC":         "jet energy uncertainty",
+                   "unclEn":      "modelling of unclustered energy",
+                   "top-\\pt" :   "top-\\pt modelling",
+                   "trigger" :    "trigger efficiency",
+                   "TTJets":      "top background normalization",
+                   "TTZ":         "$t\\bar{t}Z$ background normalization",
+                   "other" :      "$t\\bar{t}X$ (excl. $t\\bar{t}Z$) background normalization",
+                   "DY" :         "DY background normalization",
+                   "multiBoson" : "multiboson background normalization"}
 
       for i in columns[1:]:
         name = longNames[i] if i in longNames else i

@@ -12,17 +12,17 @@ signalEstimators = [s.name for s in signals_T2tt]
 
 import time
 
-#cmd = "submitBatch.py --title='Limit'"
-cmd = "echo"
+cmd = "submitBatch.py --title='Limit'"
+#cmd = "echo"
 
 for i, estimator in enumerate(signalEstimators):
   #logfile    = "log/limit_" + estimator + ".log"
   #logfileErr = "log/limit_" + estimator + "_err.log"
-  #os.system("submitBatch.py --title='Limit' 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p95               --only=%s'"%(str(i)))
+  os.system(cmd +" 'python run_limit.py --signal T2tt --fitAll              --only=%s'"%(str(i)))
   #if i%20==0: print
-  #if "800_100" in estimator:
-  #  print i
-  os.system(cmd+" 'python run_limit.py --signal T2tt              --only=%s'"%str(i))
+  #if "1200_100" in estimator:
+  #  print i, estimator
+  #os.system(cmd+" 'python run_limit.py --signal T2tt              --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlDYVV --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlTTZ  --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--fitAll      --only=%s'"%str(i))

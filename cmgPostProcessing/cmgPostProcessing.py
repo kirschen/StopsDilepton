@@ -59,6 +59,7 @@ def get_parser():
 
     argParser.add_argument('--overwrite',
         action='store_true',
+#        default = True,
         help="Overwrite existing output files, bool flag set to True  if used")
 
     argParser.add_argument('--samples',
@@ -66,7 +67,7 @@ def get_parser():
         nargs='*',
         type=str,
 #        default=['MuonEG_Run2015D_16Dec'],
-        default=['TTJets'],
+        default=['TTZToLLNuNu_ext'],
         help="List of samples to be post-processed, given as CMG component name"
         )
 
@@ -157,18 +158,14 @@ def get_parser():
 
     argParser.add_argument('--small',
         action='store_true',
+#        default=True,
         help="Run the file on a small sample (for test purpose), bool flag set to True if used",
         #default = True
         )
 
-    argParser.add_argument('--T2tt',
+    argParser.add_argument('--susySignal',
         action='store_true',
-        help="Is T2tt signal?"
-        )
-    
-    argParser.add_argument('--T8bbllnunu',
-        action='store_true',
-        help="Is T8bbllnunu signal?"
+        help="Is SUSY signal?"
         )
 
     argParser.add_argument('--TTDM',
@@ -212,7 +209,7 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logFile = '/tmp/%s_%s_%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'])
+logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job[0]))
 logger  = logger.get_logger(options.logLevel, logFile = logFile)
 
 import RootTools.core.logger as logger_rt
@@ -229,6 +226,11 @@ isVeryLoose =  'veryloose' in options.skim.lower()
 isVeryLoosePt10 =  'veryloosept10' in options.skim.lower()
 isLoose     =  'loose' in options.skim.lower() and not isVeryLoose
 isJet250    = 'jet250' in options.skim.lower()
+
+writeToDPM = options.targetDir == '/dpm/'
+
+fastSim = options.fastSim
+if options.susySignal: fastSim = True
 
 # Skim condition
 skimConds = []
@@ -247,7 +249,7 @@ if isInclusive:
 #Samples: Load samples
 maxN = 2 if options.small else None
 from StopsDilepton.samples.helpers import fromHeppySample
-if options.T2tt or options.T8bbllnunu:
+if options.susySignal:
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
     logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
@@ -273,7 +275,7 @@ if len(samples)==0:
 isData = False not in [s.isData for s in samples]
 isMC   =  True not in [s.isData for s in samples]
 
-if options.T2tt or options.T8bbllnunu:
+if options.susySignal:
     xSection = None
     # special filet for bad jets in FastSim: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16#Cleaning_up_of_fastsim_jets_from
     skimConds.append( "Sum$(JetFailId_pt>30&&abs(JetFailId_eta)<2.5&&JetFailId_mcPt==0&&JetFailId_chHEF<0.1)+Sum$(Jet_pt>30&&abs(Jet_eta)<2.5&&Jet_mcPt==0&&Jet_chHEF<0.1)==0" )
@@ -366,7 +368,7 @@ else:
     topScaleF = 1
     logger.info( "Sample will NOT have top pt reweighting. topScaleF=%f",topScaleF )
 
-if options.fastSim:
+if fastSim:
    from StopsDilepton.tools.leptonFastSimSF import leptonFastSimSF as leptonFastSimSF_
    leptonFastSimSF = leptonFastSimSF_()
 
@@ -379,7 +381,7 @@ addSystematicVariations = (not isData) and (not options.skipSystematicVariations
 if addSystematicVariations:
     # B tagging SF
     from StopsDilepton.tools.btagEfficiency import btagEfficiency
-    btagEff = btagEfficiency( fastSim = options.fastSim )
+    btagEff = btagEfficiency( fastSim = fastSim )
 
 # LHE cut (DY samples)
 if options.LHEHTCut>0:
@@ -387,39 +389,36 @@ if options.LHEHTCut>0:
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
 
-# output directory
-outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sample.name)
+# output directory (store temporarily when running on dpm)
+if writeToDPM:
+    import uuid
+    # Allow parallel processing of N threads on one worker
+    directory = os.path.join('/tmp/%s'%os.environ['USER'], str(uuid.uuid4()), options.processingEra)
+    if not os.path.exists( directory ):
+        os.makedirs( directory )
+    from StopsDilepton.tools.user import dpm_directory as user_dpm_directory
+else:
+    directory  = os.path.join(options.targetDir, options.processingEra) 
+
+output_directory = os.path.join( directory, options.skim, sample.name )
 
 # Directory for individual signal files
-if options.T2tt:
-    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T2tt")
+if options.susySignal:
+    signalSubDir = options.samples[0].split('_')[1]
+    signalDir = os.path.join(directory, options.skim, signalSubDir)
+    logger.info("Separate files for each mass point will be located in %s"%signalDir)
     if not os.path.exists(signalDir): os.makedirs(signalDir)
 
-# Directory for individual signal files
-if options.T8bbllnunu:
-    T8bbllnunu_strings = options.samples[0].split('_')
-    for st in T8bbllnunu_strings:
-        if 'XSlep' in st:
-            x_slep = st.replace('XSlep','')
-            logger.info("Factor x_slep in this sample is %s",x_slep)
-        if 'XCha' in st:
-            x_cha = st.replace('XCha','')
-            logger.info("Factor x_cha in this sample is %s",x_cha)
-    signalSubDir = options.samples[0].replace('SMS_','')
-    
-    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T8bbllnunu")
-    #if not os.path.exists(signalDir): os.makedirs(signalDir) #FIXME
-
-if os.path.exists(outDir) and options.overwrite:
+if os.path.exists(output_directory) and options.overwrite:
     if options.nJobs > 1:
-        logger.warning( "NOT removing directory %s because nJobs = %i", outDir, options.nJobs )
+        logger.warning( "NOT removing directory %s because nJobs = %i", output_directory, options.nJobs )
     else:
-        logger.info( "Output directory %s exists. Deleting.", outDir )
-        shutil.rmtree(outDir)
+        logger.info( "Output directory %s exists. Deleting.", output_directory )
+        shutil.rmtree(output_directory)
 
 try:    #Avoid trouble with race conditions in multithreading
-    os.makedirs(outDir)
-    logger.info( "Created output directory %s.", outDir )
+    os.makedirs(output_directory)
+    logger.info( "Created output directory %s.", output_directory )
 except:
     pass
 
@@ -488,15 +487,15 @@ else:
     #branches to be kept for data only
     branchKeepStrings_DATA = [ ]
 
-if options.T2tt or options.TTDM or options.T8bbllnunu:
+if options.susySignal or options.TTDM:
     branchKeepStrings_MC += ["nIsr"]
-if options.keepLHEWeights or options.T2tt or options.TTDM or options.T8bbllnunu:
+if options.keepLHEWeights or options.susySignal or options.TTDM:
     branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
 
 if isSingleLep:
     branchKeepStrings_DATAMC += ['HLT_*']
 
-if options.T2tt or options.T8bbllnunu: 
+if options.susySignal: 
     #branchKeepStrings_MC += ['GenSusyMStop', 'GenSusyMNeutralino'] #FIXME
     branchKeepStrings_MC += ['ngenPartAll', 'genPartAll_*'] #FIXME
 
@@ -507,7 +506,7 @@ if isMC:
         jetMCInfo = ['mcPt/F', 'hadronFlavour/I','mcMatchId/I']
     else:
         jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
-        if not (options.T2tt or options.T8bbllnunu):
+        if not (options.susySignal):
             jetMCInfo.append('partonFlavour/I')
 else:
     jetMCInfo = []
@@ -594,7 +593,7 @@ if isTriLep or isDiLep:
             'reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F',
             'reweightLeptonTrackingSF/F',
          ] )
-    if options.T2tt or options.TTDM or options.T8bbllnunu:
+    if options.susySignal:
         new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
@@ -625,15 +624,15 @@ if addSystematicVariations:
         if var!='MC':
             new_variables.append('reweightBTag_'+var+'/F')
 
-if options.T2tt or options.TTDM or options.T8bbllnunu:
+if options.susySignal or options.TTDM:
     read_variables += map(TreeVariable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
-if options.T2tt or options.T8bbllnunu:
+if options.susySignal:
     #read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
-    if  options.T8bbllnunu:
+    if  'T8bbllnunu' in options.samples[0]:
         new_variables  += ['mCha/I', 'mSlep/I', 'sleptonPdg/I']
 
-if options.fastSim and (isTriLep or isDiLep):
+if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
 
@@ -688,10 +687,10 @@ def filler( event ):
     if isMC: gPart = getGenPartsAll(r)
 
     # weight
-    if options.T2tt or options.T8bbllnunu:
+    if options.susySignal:
         r.GenSusyMStop = max([p['mass']*(abs(p['pdgId']==1000006)) for p in gPart])
         r.GenSusyMNeutralino = max([p['mass']*(abs(p['pdgId']==1000022)) for p in gPart])
-        if options.T8bbllnunu:
+        if 'T8bbllnunu' in options.samples[0]:
             r.GenSusyMChargino = max([p['mass']*(abs(p['pdgId']==1000024)) for p in gPart])
             r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000011)) for p in gPart]) #FIXME check PDG ID of slepton in sample
             #logger.debug("Slepton is selectron with mass %i", r.GenSusyMSlepton)
@@ -716,7 +715,7 @@ def filler( event ):
     elif isData:
         event.weight = 1
     else:
-        raise NotImplementedError( "isMC %r isData %r T2tt? %r TTDM? %r T8bbllnunu? %r" % (isMC, isData, options.T2tt, options.TTDM, options.T8bbllnunu) )
+        raise NotImplementedError( "isMC %r isData %r susySignal? %r TTDM? %r" % (isMC, isData, options.susySignal, options.TTDM) )
 
     # lumi lists and vetos
     if isData:
@@ -747,6 +746,14 @@ def filler( event ):
         jetAbsEtaCut = 99.
     else:
         jetAbsEtaCut = 2.4
+#    print r.nJet
+#    if r.nJet == -1:
+#        print "Error"
+#        sys.exit(-1)
+#
+#    print "Good"
+#    sys.exit(0)
+        
     allJets      = getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=jetAbsEtaCut)
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)
     bJets        = filter(lambda j:isBJet(j), jets)
@@ -876,7 +883,7 @@ def filler( event ):
 #            for i in metVariants:
 #              setattr(event, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(event, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(event, "met_phi"+i)))))
 
-        if options.fastSim:
+        if fastSim:
             event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
             event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
             event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
@@ -959,7 +966,7 @@ def filler( event ):
               dlg = dl + gamma
               event.dlg_mass = dlg.M()
 
-            if options.T2tt or options.TTDM or options.T8bbllnunu:
+            if options.susySignal:
                 mt2Calc.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
                 setattr(event, "dl_mt2ll_gen", mt2Calc.mt2ll())
                 if len(jets)>=2:
@@ -1067,7 +1074,7 @@ logger.info( "Splitting into %i ranges of %i events on average.",  len(eventRang
 #Define all jobs
 jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
 
-filename, ext = os.path.splitext( os.path.join(outDir, sample.name + '.root') )
+filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
 
 clonedEvents = 0
 convertedEvents = 0
@@ -1094,11 +1101,16 @@ for ievtRange, eventRange in enumerate( eventRanges ):
     outputfile = ROOT.TFile.Open(outfilename, 'recreate')
     tmp_directory.cd()
 
+    if options.small: 
+        logger.info("Running 'small'. Not more than 10000 events") 
+        nMaxEvents = eventRange[1]-eventRange[0]
+        eventRange = ( eventRange[0], eventRange[0] +  min( [nMaxEvents, 10000] ) )
+
     # Set the reader to the event range
     reader.setEventRange( eventRange )
+
     clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events", rootfile = outputfile )
     clonedEvents += clonedTree.GetEntries()
-
     # Clone the empty maker in order to avoid recompilation at every loop iteration
     maker = treeMaker_parent.cloneWithoutCompile( externalTree = clonedTree )
 
@@ -1111,7 +1123,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
         if isData:
             if maker.event.jsonPassed_:
                 if reader.event.run not in outputLumiList.keys():
-                    outputLumiList[reader.event.run] = {reader.event.lumi}
+                    outputLumiList[reader.event.run] = set([reader.event.lumi])
                 else:
                     if reader.event.lumi not in outputLumiList[reader.event.run]:
                         outputLumiList[reader.event.run].add(reader.event.lumi)
@@ -1133,11 +1145,11 @@ if isData:
     LumiList( runsAndLumis = outputLumiList ).writeJSON(jsonFile)
     logger.info( "Written JSON file %s",  jsonFile )
 
-# Write one file per mass point for T2tt
+# Write one file per mass point for SUSY signals
 if options.nJobs == 1:
-    if options.T2tt or options.T8bbllnunu:
-        if options.T2tt: output = Sample.fromDirectory("T2tt_output", outDir)
-        else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
+    if options.susySignal:
+        signalModel = options.samples[0].split('_')[1]
+        output = Sample.fromDirectory(signalModel+"_output", output_directory)
         print "Initialising chain, otherwise first mass point is empty"
         print output.chain
         if options.small: output.reduceFiles( to = 1 )
@@ -1146,8 +1158,21 @@ if options.nJobs == 1:
             logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
             cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
             logger.debug("Using cut %s", cut)
-            if options.T2tt: signal_prefix = 'T2tt_'
-            else: signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
+
+            signal_prefix = signalModel + '_'
+            if 'T8bbllnunu' in signalModel:
+                T8bbllnunu_strings = options.samples[0].split('_')
+                for st in T8bbllnunu_strings:
+                    if 'XSlep' in st:
+                        x_slep = st.replace('XSlep','')
+                        logger.info("Factor x_slep in this sample is %s",x_slep)
+                    if 'XCha' in st:
+                        x_cha = st.replace('XCha','')
+                        logger.info("Factor x_cha in this sample is %s",x_cha)
+                assert x_cha, "Could not find X factor for chargino in T8bbllnunu model"
+                assert x_slep, "Could not find X factor for slepton in T8bbllnunu model"
+                signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
+
             signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
             logger.debug("Ouput file will be %s", signalFile)
             if not os.path.exists(signalFile) or options.overwrite:
@@ -1170,7 +1195,20 @@ if options.nJobs == 1:
     
         output.clear()
 
-logger.info("Copying log file to %s"%outDir)
-copyLog = subprocess.call(['cp',logFile,outDir])
-if copyLog: print "Copying log from %s to %s failed"%(logFile,outDir)
-else: print "Successfully copied log file"
+logger.info("Copying log file to %s", output_directory )
+copyLog = subprocess.call(['cp', logFile, output_directory] )
+if copyLog: logger.info( "Copying log from %s to %s failed", logFile, output_directory)
+else: logger.info( "Successfully copied log file" )
+
+if writeToDPM:
+    for dirname, subdirs, files in os.walk( directory ):
+        logger.debug( 'Found directory: %s',  dirname )
+        for fname in files:
+            source = os.path.abspath(os.path.join(dirname, fname))
+            postfix = '_small' if options.small else ''
+            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_dpm_directory, 'postprocessed',  options.processingEra+postfix, options.skim, sample.name, fname ) ]
+            logger.info( "Issue copy command: %s", " ".join( cmd ) )
+            subprocess.call( cmd )
+
+    # Clean up.
+    subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.

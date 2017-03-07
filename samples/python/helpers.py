@@ -40,7 +40,7 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
     elif "Run2016" in sample:
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_DATA2016'
         #module_ = 'CMGTools.StopsDilepton.samples_13TeV_Moriond2017'
-    elif "T2tt" in sample:
+    elif ("T2tt" in sample) or ("T2bt" in sample) or ("T2bW" in sample):
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_signals'
     elif "T8bbllnunu" in sample:
         module_ = 'CMGTools.RootTools.samples.samples_13TeV_signals'
@@ -84,6 +84,9 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
             elif "T2tt" in sample:
                 from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper
                 return T2tt_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
+            elif "T2b" in sample:
+                from StopsDilepton.samples.heppy_dpm_samples import T2bX_heppy_mapper
+                return T2bX_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             elif "T8bbllnunu" in sample:
                 logger.debug("getting T8bbllnunu_heppy_mapper")
                 from StopsDilepton.samples.heppy_dpm_samples import T8bbllnunu_heppy_mapper

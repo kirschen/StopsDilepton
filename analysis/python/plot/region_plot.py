@@ -17,7 +17,7 @@ from StopsDilepton.analysis.SetupHelpers    import channels, allChannels
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel', action='store',      default='INFO', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument("--signal",   action='store',      default='T2tt', nargs='?', choices=["T2tt","TTbarDM"],                                                   help="Which signal to plot?")
+argParser.add_argument("--signal",   action='store',      default='T2tt', nargs='?', choices=["T2tt","TTbarDM","T8"],                                              help="Which signal to plot?")
 argParser.add_argument("--control",  action='store',      default=None,   nargs='?', choices=[None, "DY", "VV", "DYVV","TTZ"],                                     help="For CR region?")
 argParser.add_argument("--scale",    action='store_true', default=False,  help="Scale CR using pulls from nuisance table? (not yet for TTZ)")
 argParser.add_argument("--labels",   action='store_true', default=False,  help="Plot labels?")
@@ -65,15 +65,19 @@ if not args.control:
   if args.signal == "T2tt":
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import T2tt_750_1, T2tt_600_300
     signals        = [T2tt_750_1, T2tt_600_300]
-#    setup.blinding = "(run<=276811||(run>=277820&&run<=279931))"
-#    scale          = 17.3/36.4
     signalSetup    = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
+  elif args.signal == "T8":
+    from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import T8bbllnunu_XCha0p5_XSlep0p05_800_1, T8bbllnunu_XCha0p5_XSlep0p5_800_1, T8bbllnunu_XCha0p5_XSlep0p95_800_1
+    signals        = [T8bbllnunu_XCha0p5_XSlep0p05_800_1, T8bbllnunu_XCha0p5_XSlep0p5_800_1, T8bbllnunu_XCha0p5_XSlep0p95_800_1]
+    signalSetup    = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
+    postfix       += "_T8bbllnunu"
   elif args.signal == "TTbarDM":
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
     signals        = [TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10]
     setup.blinding = "(evt%15==0)"
     scale          = 1./15.
     signalSetup    = setup
+    postfix       += "_DM"
 
  
 # no signals if we are looking at CR
@@ -119,10 +123,10 @@ for var in systematics.values():
 # Function to get the sample uncertainty from the card and nuisance files
 from StopsDilepton.analysis.infoFromCards import getPreFitUncFromCard, getPostFitUncFromCard, applyNuisance, getBinNumber
 
-cardFile = '/user/tomc/StopsDilepton/results_80X_v30/controlDYVV/cardFiles/T2tt/T2tt_900_600.txt'
+cardFile = '/user/tomc/StopsDilepton/results_80X_v30/controlDYVV/cardFiles/T2tt/T2tt_750_1.txt'
 if args.control:
-  if args.control == "TTZ":  cardFile = '/user/tomc/StopsDilepton/results_80X_v30/controlTTZ/cardFiles/T2tt/T2tt_225_50.txt' # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
-#  if args.control == "DYVV": cardFile = '/user/tomc/StopsDilepton/results_80X_v24/controlDYVV/cardFiles/T2tt/T2tt_550_350.txt'
+  if args.control == "TTZ":  cardFile = '/user/tomc/StopsDilepton/results_80X_v35/controlTTZ/cardFiles/T8bbllnunu_XCha0p5_XSlep0p05/T8bbllnunu_XCha0p5_XSlep0p05_1250_350.txt'  # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
+  if args.control == "DYVV": cardFile = '/user/tomc/StopsDilepton/results_80X_v35/controlDYVV/cardFiles/T2tt/T2tt_600_300.txt'
 
 def getSampleUncertainty(cardFile, res, var, estimate, binName):
     if   estimate.name.count('TTZ'):    uncName = 'ttZ'
@@ -289,6 +293,7 @@ def drawDivisions(regions):
 
 
 def drawLumi( lumi_scale ):
+    lumi_scale = 35.9
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
@@ -369,8 +374,8 @@ for channel in channels:
         ratio_boxes.append( r_box )
 
 
-    if args.signal == "T2tt":      legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
-    elif args.signal == "TTbarDM": legend = (0.55,0.85-0.010*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
+    if args.signal == "T2tt" or args.signal == "T8": legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
+    elif args.signal == "TTbarDM":                   legend = (0.55,0.85-0.010*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
 
     def setRatioBorder(c, y_border):
       topPad = c.GetPad(1)
@@ -389,7 +394,7 @@ for channel in channels:
     if not (args.control and args.control=="TTZ"): drawObjects += drawDivisions(regions_)
 
     if args.ratio:
-      ratio = {'yRange':(0.1,1.9), 'drawObjects': ratio_boxes + drawTTZLabels() if (args.control and args.control=="TTZ") else drawBinNumbers(numberOfBins)}
+      ratio = {'yRange':(0.1,1.9), 'drawObjects': ratio_boxes + (drawTTZLabels() if (args.control and args.control=="TTZ") else drawBinNumbers(numberOfBins))}
     else:
       drawObjects += drawLabels(regions_) if args.labels else drawBinNumbers(numberOfBins)
       drawObjects += drawBinNumbers(numberOfBins)

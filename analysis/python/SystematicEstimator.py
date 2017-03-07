@@ -27,7 +27,8 @@ class SystematicEstimator:
     def initCache(self, cacheDir):
         if cacheDir:
             self.cacheDir       = cacheDir
-            if not os.path.exists(cacheDir): os.makedirs(cacheDir)
+            try:    os.makedirs(cacheDir)
+            except: pass
 
             cacheFileName       = os.path.join(cacheDir, self.name+'.pkl')
             helperCacheFileName = os.path.join(cacheDir, self.name+'_helper.pkl')
@@ -51,7 +52,7 @@ class SystematicEstimator:
     def uniqueKey(self, region, channel, setup):
         sysForKey = setup.sys.copy()
         sysForKey['reweight'] = 'TEMP'
-        reweightKey ='["' + '", "'.join([i for i in setup.sys['reweight']]) + '"]' # little hack to preserve order of list when being dumped into json
+        reweightKey ='["' + '", "'.join(sorted([i for i in setup.sys['reweight']])) + '"]' # little hack to preserve order of list when being dumped into json
         return region, channel, json.dumps(sysForKey, sort_keys=True).replace('"TEMP"',reweightKey), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
 
     def replace(self, i, r):
@@ -190,8 +191,8 @@ class SystematicEstimator:
                 fold_loDown += fold
         ref  = self.cachedEstimate(region, channel, setup)
         gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
-        unc = u_float(abs(fold_loDown - fold_loUp)/(0.5*(ref.val+gen.val)))
-        return unc
+        unc = min([abs(fold_loDown - fold_loUp)/(0.5*(ref.val+gen.val)), 1.])
+        return u_float(unc)
 
     def getBkgSysJobs(self, region, channel, setup):
         l = [

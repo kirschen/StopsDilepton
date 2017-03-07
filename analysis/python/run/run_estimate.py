@@ -7,11 +7,12 @@ parser.add_option("--selectRegion",          dest="selectRegion",          defau
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option("--control",               dest="control",               default=None,                action='store',      choices=[None, "DY", "VV", "DYVV", "TTZ1", "TTZ2", "TTZ3", "TTZ4", "TTZ5"], help="For CR region?")
 parser.add_option("--useGenMet",             dest="useGenMet",             default=False,               action='store_true', help="use genMET instead of recoMET, used for signal studies")
+parser.add_option("--aggregate",             dest="aggregate",             default=False,               action='store_true', help="run over aggregated signal regions")
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels, trilepChannels
 from StopsDilepton.analysis.estimators   import setup, allEstimators
-from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsS
+from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsAgg
 
 
 # Logging
@@ -21,12 +22,15 @@ import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsO
+if options.aggregate: allRegions = regionsAgg
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
+postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import signals_T2tt
-from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5, signals_T8bbllnunu_XCha0p5_XSlep0p95
-from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
-allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in channels + trilepChannels}) for s in signals_TTbarDM + signals_T2tt + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p05 + signals_T8bbllnunu_XCha0p5_XSlep0p95]
+#from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5, signals_T8bbllnunu_XCha0p5_XSlep0p95
+#from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
+#allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in channels + trilepChannels}) for s in signals_TTbarDM + signals_T2tt + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p05 + signals_T8bbllnunu_XCha0p5_XSlep0p95]
+allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in channels + trilepChannels}) for s signals_T2tt ]
 
 # Select estimate
 estimate = next((e for e in allEstimators if e.name == options.selectEstimator), None)
@@ -80,7 +84,7 @@ else:
     pool.close()
     pool.join()
 
-for channel in (['all'] if (options.control and options.control.count('TTZ')) else ['SF','all']):
+for channel in (['all'] if ((options.control and options.control.count('TTZ')) or options.aggregate) else ['SF','all']):
     for (i, r) in enumerate(allRegions):
         if options.selectRegion is not None and options.selectRegion != i: continue
         if options.useGenMet: estimate.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'genMet'}), save=True)

@@ -10,13 +10,12 @@ logger = logging.getLogger(__name__)
 
 #user specific
 from StopsDilepton.tools.user import analysis_results
+from StopsDilepton.tools.helpers import getObjFromFile
 
 #define samples
 postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
-#postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
-#from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-postProcessing_directory = 'postProcessed_80X_v30/dilepTiny'
+postProcessing_directory = 'postProcessed_80X_v35/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 
 #Choices for specific samples
@@ -74,7 +73,7 @@ class Setup:
             'triLep':        default_triLep,
         }
 
-        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF'], 'selectionModifier':None}
+        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF','reweightLeptonTrackingSF'], 'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
 
@@ -93,11 +92,9 @@ class Setup:
                        '2mu1e': MuonEG_Run2016_backup,
                        '2e1mu': MuonEG_Run2016_backup},
         }
-
+        
         dataPUHistForSignalPath = "$CMSSW_BASE/src/StopsDilepton/tools/data/puFastSimUncertainty/dataPU.root"
-        dataPUHistForSignalPath = os.path.expandvars(dataPUHistForSignalPath)
-        self.dataPUHistForSignalFile = ROOT.TFile(dataPUHistForSignalPath)
-        self.dataPUHistForSignal = self.dataPUHistForSignalFile.Get("data")
+        self.dataPUHistForSignalFile = getObjFromFile(os.path.expandvars(dataPUHistForSignalPath), "data")
 
     def prefix(self):
         return '_'.join(self.prefixes+[self.preselection('MC')['prefix']])
@@ -261,7 +258,7 @@ class Setup:
 
               res['cuts'].append("l1_pt>25")
 
-        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), badMuonFilters='Moriond2017', isFastSim=isFastSim))
+        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), badMuonFilters='Moriond2017Official', isFastSim=isFastSim))
         #res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
         

@@ -1,6 +1,6 @@
 #Standard imports
 import ROOT
-from math import sqrt, cos, sin, pi, acos
+from math import sqrt, cos, sin, pi, acos, atan2
 import itertools
 import pickle
 
@@ -58,6 +58,12 @@ argParser.add_argument('--small',
     help='Small?',
 )
 
+argParser.add_argument('--removeLeptonsFromMET',
+    action='store_true',
+    #default = True,
+    help='Try that for Alexis.',
+)
+
 argParser.add_argument('--reversed',
     action='store_true',
     help='Reversed?',
@@ -97,9 +103,9 @@ if args.isolation=='standard':
     data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
     postProcessing_directory = "postProcessed_80X_v30/dilep/"
     from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-    data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-    postProcessing_directory = "postProcessed_80X_v30/dilep/"
-    from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+    data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
+    postProcessing_directory = "postProcessed_80X_v31/dilep/"
+    from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
 elif args.isolation=="VeryLoose" or args.isolation=="VeryLooseInverted":
     #postProcessing_directory = "postProcessed_80X_v12/dilepVeryLoose/" 
@@ -139,19 +145,22 @@ TTJets_1l.name = "TTJets_1l"
 TTJets_1l.texName = "TTJets 1l"
 TTJets_1l.color = ROOT.kAzure - 2
 
-TTJets_l2_prompt    = TTJets_Dilep
+#ttjets_sample = TTJets_Dilep
+ttjets_2l_sample = TTLep_pow
+
+TTJets_l2_prompt    = ttjets_2l_sample
 TTJets_l2_prompt.name = "TTJets_2l_prompt"
 TTJets_l2_prompt.texName = "TTJets 2l (prompt)"
 TTJets_l2_prompt.weight = lambda event, sample: not event.l2_matched_nonPrompt
 
-TTJets_l2_nonPrompt = copy.deepcopy(TTJets_Dilep)
+TTJets_l2_nonPrompt = copy.deepcopy(ttjets_2l_sample)
 TTJets_l2_nonPrompt.name = "TTJets_2l_nonPrompt"
 TTJets_l2_nonPrompt.texName = "TTJets 2l (non-prompt)"
 TTJets_l2_nonPrompt.weight = lambda event, sample: event.l2_matched_nonPrompt
 TTJets_l2_nonPrompt.color = ROOT.kAzure + 9
 
 mc = [ DY_HT_LO, TTJets_l2_prompt, TTJets_1l, singleTop, TTZ, TTXNoZ, diBoson, triBoson, TTJets_l2_nonPrompt]
-mc_for_normalization = [ DY_HT_LO, TTJets, singleTop, TTZ, TTXNoZ, diBoson, triBoson]
+mc_for_normalization = [ DY_HT_LO, TTLep_pow, singleTop, TTZ, TTXNoZ, diBoson, triBoson]
 
 if args.small:
     for s in mc + mc_for_normalization:
@@ -271,7 +280,7 @@ if args.isolation == "standard":
 
     def makeSwappedMT2ll(event, l1, l2, nonIsoLep, verbose = False):
         mt2Calc.reset()
-        mt2Calc.setMet(event.met_pt, event.met_phi)
+
 
         # swap l1
         final_hierarchy = "leadingLepNonIso" if nonIsoLep['pt']>l2['pt'] else "leadingLepIso"
@@ -279,7 +288,19 @@ if args.isolation == "standard":
         finalState = "".join(fs(p['pdgId']) for p in [l1p, l2p])
         pfix = "_".join([final_hierarchy, "swapL1", finalState])
         mt2Calc.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
+        if args.removeLeptonsFromMET:
+            d_met_x = l1['pt']*cos(l1['phi']) + l2['pt']*cos(l2['phi']) - l1p['pt']*cos(l1p['phi']) - l2p['pt']*cos(l2p['phi'])
+            d_met_y = l1['pt']*sin(l1['phi']) + l2['pt']*sin(l2['phi']) - l1p['pt']*sin(l1p['phi']) - l2p['pt']*sin(l2p['phi'])
+            met_corr_x = event.met_pt*cos(event.met_phi) + d_met_x
+            met_corr_y = event.met_pt*sin(event.met_phi) + d_met_y
+
+            met_corr = sqrt( met_corr_x**2 + met_corr_y**2 )
+            met_phi_corr = atan2( met_corr_y, met_corr_x ) 
+            mt2Calc.setMet( met_corr, met_phi_corr )
+        else:
+            mt2Calc.setMet(event.met_pt, event.met_phi)
         setattr(event, "dl_mt2ll_"+pfix, mt2Calc.mt2ll() )
+
         if verbose: print "dl_mt2ll_"+pfix, mt2Calc.mt2ll()
 
         # swap l2
@@ -288,7 +309,20 @@ if args.isolation == "standard":
         finalState = "".join(fs(p['pdgId']) for p in [l1p, l2p])
         pfix = "_".join([final_hierarchy, "swapL2", finalState])
         mt2Calc.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
+        if args.removeLeptonsFromMET:
+            d_met_x = l1['pt']*cos(l1['phi']) + l2['pt']*cos(l2['phi']) - l1p['pt']*cos(l1p['phi']) - l2p['pt']*cos(l2p['phi'])
+            d_met_y = l1['pt']*sin(l1['phi']) + l2['pt']*sin(l2['phi']) - l1p['pt']*sin(l1p['phi']) - l2p['pt']*sin(l2p['phi'])
+            met_corr_x = event.met_pt*cos(event.met_phi) + d_met_x
+            met_corr_y = event.met_pt*sin(event.met_phi) + d_met_y
+
+            met_corr = sqrt( met_corr_x**2 + met_corr_y**2 )
+            met_phi_corr = atan2( met_corr_y, met_corr_x ) 
+            mt2Calc.setMet( met_corr, met_phi_corr )
+        else:
+            mt2Calc.setMet(event.met_pt, event.met_phi)
+
         setattr(event, "dl_mt2ll_"+pfix, mt2Calc.mt2ll() )
+
         if verbose: print "dl_mt2ll_"+pfix, mt2Calc.mt2ll() 
 
     verbose = False
@@ -353,8 +387,11 @@ for i_comb in [len(cuts)]:
         ppfixes = [args.mode, args.zMode, args.isolation]
         if args.small: ppfixes = ['small'] + ppfixes
         prefix = '_'.join( ppfixes + [ '-'.join([p[0] for p in presel ] ) ] )
+        if args.removeLeptonsFromMET:
+            prefix += "_removeLeptonsFromMET"
 
         plot_path = os.path.join(plot_directory, args.plot_directory, prefix)
+
         if os.path.exists(plot_path) and not args.overwrite:
             logger.info( "Path %s not empty. Skipping."%path )
             continue

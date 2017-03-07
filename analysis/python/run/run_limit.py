@@ -113,6 +113,10 @@ def getIsrUnc(name, r, channel):
 
 def wrapper(s):
     xSecScale = 1
+    if "T8bb" in s.name:
+        if s.mStop<810:
+            xSecScale = 0.01
+            print "Will scale signal x-sec by %f to guarantee a fit result"%xSecScale
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = combineReleaseLocation
 
@@ -137,9 +141,10 @@ def wrapper(s):
         c.addUncertainty('ttZ',        'lnN')
         c.addUncertainty('other',      'lnN')
         if fastSim:
-            c.addUncertainty('SFFS',     'lnN')
+            c.addUncertainty('btagFS',   'lnN')
             c.addUncertainty('leptonFS', 'lnN')
             c.addUncertainty('FSmet',    'lnN')
+            c.addUncertainty('PUFS',     'lnN')
 
         for setup in setups:
           eSignal     = MCBasedEstimate(name=s.name, sample={channel:s for channel in channels+trilepChannels}, cacheDir=setup.defaultCacheDir())
@@ -163,11 +168,7 @@ def wrapper(s):
                   name = e.name.split('-')[0]
                   expected = e.cachedEstimate(r, channel, setup)
                   total_exp_bkg += expected.val
-                  xSecScale = 1
-                  #if s.mStop<810:
-                  #    xSecScale = 0.01
-                  #    print "SCALING XSEC DOWN BY %f"%xSecScale
-                  c.specifyExpectation(binname, name, expected.val*args.scale*xSecScale)
+                  c.specifyExpectation(binname, name, expected.val*args.scale)
                   if expected.val>0:
                       c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val )
                       c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val )
@@ -195,16 +196,17 @@ def wrapper(s):
                 #signal
                 e = eSignal
                 eSignal.isSignal = True
-                if fastSim: signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
-                else:       signalSetup = setup.sysClone()
-                if fastSim: signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'genMet'})))
-                else: signal = e.cachedEstimate(r, channel, signalSetup)
-                xSecScale = 1
-                #if s.mStop<810: xSecScale = 0.01
+                if fastSim:
+                    signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
+                    signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'genMet'})))
+                else:
+                    signalSetup = setup.sysClone()
+                    signal = e.cachedEstimate(r, channel, signalSetup)
+
                 c.specifyExpectation(binname, 'signal', args.scale*signal.val*xSecScale )
 
                 if signal.val>0:
-                  #c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val ) #FIXME Should be back in for DM signals
+                  if not fastSim: c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
                   c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
                   c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
@@ -216,15 +218,19 @@ def wrapper(s):
                   c.specifyUncertainty('isr',      binname, 'signal', 1 + getIsrUnc(  eSignal.name, r, channel))
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
-                    c.specifyUncertainty('SFFS',     binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
+                    c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
-                    c.specifyUncertainty('PU',       binname, 'signal', 1 + e.fastSimPUSystematic(   r, channel, signalSetup).val )
+                    c.specifyUncertainty('PUFS',     binname, 'signal', 1 + e.fastSimPUSystematic(   r, channel, signalSetup).val )
 
                   #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated
                   uname = 'Stat_'+binname+'_signal'
                   c.addUncertainty(uname, 'lnN')
                   c.specifyUncertainty(uname, binname, 'signal', 1 + sqrt(0.1**2 + signal.sigma/signal.val) )
-
+                else:
+                  uname = 'Stat_'+binname+'_signal'
+                  c.addUncertainty(uname, 'lnN')
+                  c.specifyUncertainty(uname, binname, 'signal', 1 )
+                
                 if not args.controlDYVV and (signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg<=0):# or (total_exp_bkg>300 and signal.val<0.05):
                   if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
                   c.muted[binname] = True
@@ -250,12 +256,9 @@ def wrapper(s):
       c.calcNuisances(cardFileName)
       limitCache.add(sConfig, res, save=True)
     
-    xSecScale = 1
-    #if s.mStop<810:
-    #    xSecScale = 0.1
-    #if xSecScale != 1:
-    #    for k in res:
-    #        res[k] *= xSecScale
+    if xSecScale != 1:
+        for k in res:
+            res[k] *= xSecScale
     
     if res: 
       if   args.signal == "TTbarDM":                      sString = "mChi %i mPhi %i type %s" % sConfig

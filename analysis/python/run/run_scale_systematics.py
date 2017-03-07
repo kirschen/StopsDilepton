@@ -18,13 +18,13 @@ import pickle
 # Analysis
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 from StopsDilepton.analysis.estimators   import setup
-from StopsDilepton.analysis.regions      import regions80X, superRegion, superRegion140, regions80X_2D
+from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsS
 from StopsDilepton.analysis.u_float      import u_float 
 from StopsDilepton.analysis.Region       import Region 
 
 isFastSim         = True
-#setup             = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
-setup.sys['reweight'] = [] #Fall15 doesn't have the reweights. Not needed.
+setup             = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
+#setup.sys['reweight'] = [] #Fall15 doesn't have the reweights. Not needed.
 setup.verbose     = True
 
 # Logging
@@ -33,7 +33,7 @@ logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-regions = regions80X + regions80X_2D #Use all the regions that are used in the limit setting
+regions = regionsO + noRegions #Use all the regions that are used in the limit setting
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 
@@ -61,8 +61,8 @@ if not options.overwrite:
 
 if options.signal == "T2tt":
     #Loading Fall15 with PDF weights
-    data_directory           = "/afs/hephy.at/data/rschoefbeck01/cmgTuples/"
-    postProcessing_directory = "postProcessed_Fall15_v3/dilepTiny" 
+    data_directory           = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
+    postProcessing_directory = "postProcessed_80X_v30/dilepTiny" 
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
     for s in signals_T2tt:
         s.is76X = True
@@ -87,7 +87,7 @@ results = {}
 scale_systematics = {}
 for estimate in signalEstimators:
     logger.info("Calculating scale uncertainty for signal %s", estimate.name)
-    estimate.initCache("/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/76X_for_Q2/")
+    estimate.initCache("/afs/hephy.at/data/dspitzbart01/StopsDilepton/results/80X_for_Q2/")
 
     def wrapper(args):
             r,channel,setup = args

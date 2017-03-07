@@ -47,12 +47,12 @@ def getLeptonSelection(mode):
   elif mode=="mue":  return "(nGoodMuons==1&&nGoodElectrons==1&&isOS&&l1_pt>25&&isEMu)"
   elif mode=="ee":   return "(nGoodMuons==0&&nGoodElectrons==2&&isOS&&l1_pt>25&&isEE" + offZ + ")"
 
-selectionStrings = ['njet2p-relIso0.12','njet2p-relIso0.12-btag1p','njet2p-relIso0.12-mll20','njet2p-relIso0.12-btag1p-mll20']
+selectionStrings = ['njet2p-relIso0.12','njet2p-relIso0.12-btag1p','njet2p-relIso0.12-mll20','njet2p-relIso0.12-btag1p-mll20','njet2p-relIso0.12-mll30','njet2p-relIso0.12-btag1p-mll30']
 
 
 def launch(command, logfile):
   if args.runLocal: os.system(command + " --isChild &> " + logfile)
-  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
+  else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=20:00:00 runPlotsOnCream02.sh")
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
 #
@@ -86,6 +86,7 @@ from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v30/trilep"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed2 import *
 def drawObjects(lumi_scale ):
+    lumi_scale = 35.9
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
@@ -111,7 +112,7 @@ for i in leptonVars:
 # For third loose lepton: no isolation, but still apply id
 # Keep loosened id because otherwise we have almost no stats
 mu_selector_loose  = muonSelector(relIso03=999)
-ele_selector_loose = eleSelector(relIso03=999, eleId = 0, dxy=99, dz=99, loose=True) if args.looseEle else eleSelector(relIso03=999)
+ele_selector_loose = eleSelector(relIso03=999, eleId = 2, loose=True) if args.looseEle else eleSelector(relIso03=999)
 mu_selector_tight  = muonSelector(relIso03=0.12)
 ele_selector_tight = eleSelector(relIso03=0.12)#, eleId = 4, dxy=99, dz=99)
 
@@ -176,10 +177,11 @@ for thirdLeptonFlavour in ['mu','e']:
   for sample in mc:
     sample.scale = lumi_scale
     sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F']
-    sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightTopPt
+    sample.read_variables = ['reweightLeptonTrackingSF/F','reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F']
+    sample.weight         = lambda event, sample: event.reweightLeptonTrackingSF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*event.reweightTopPt
 
-  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters="Moriond2017Official"), getLeptonSelection(mode)])
+  print getFilterCut(isData=True, badMuonFilters=args.filters)
+  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters=args.filters), getLeptonSelection(mode)])
   for sample in mc:
     sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
   stack = Stack(mc, data_sample)
@@ -284,6 +286,6 @@ for thirdLeptonFlavour in ['mu','e']:
         ratio = {'yRange':(0.1,1.9)},
         logX = False, logY = log, sorting = False,
         yRange = (0.03, "auto"),
-        scaling = {0:1} if args.norm else None,
+        scaling = {0:1} if args.norm else {},
         drawObjects = drawObjects(lumi_scale)
       )

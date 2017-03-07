@@ -154,7 +154,14 @@ def get_parser():
         action='store_true',
         help="Is T2tt signal?"
         )
-
+    argParser.add_argument('--T2bW',
+        action='store_true',
+        help="Is T2tt signal?"
+        )
+    argParser.add_argument('--T2bt',
+        action='store_true',
+        help="Is T2tt signal?"
+        )
     argParser.add_argument('--small',
         action='store_true',
         help="Run the file on a small sample (for test purpose), bool flag set to True if used",
@@ -248,7 +255,7 @@ if isInclusive:
 #Samples: Load samples
 maxN = 2 if options.small else None
 from StopsDilepton.samples.helpers import fromHeppySample
-if options.T2tt or options.T8bbllnunu:
+if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
     samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
     logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
@@ -294,7 +301,7 @@ else:
 
 outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sample.name)
 
-if options.T2tt or options.T8bbllnunu:
+if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
     xSection = None
     # special filet for bad jets in FastSim: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16#Cleaning_up_of_fastsim_jets_from
     skimConds.append( "Sum$(JetFailId_pt>30&&abs(JetFailId_eta)<2.5&&JetFailId_mcPt==0&&JetFailId_chHEF<0.1)+Sum$(Jet_pt>30&&abs(Jet_eta)<2.5&&Jet_mcPt==0&&Jet_chHEF<0.1)==0" )
@@ -309,6 +316,14 @@ else:
 # Directory for individual signal files
 if options.T2tt:
     signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T2tt")
+    if not os.path.exists(signalDir): os.makedirs(signalDir)
+
+if options.T2bt:
+    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T2bt")
+    if not os.path.exists(signalDir): os.makedirs(signalDir)
+
+if options.T2bW:
+    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T2bW")
     if not os.path.exists(signalDir): os.makedirs(signalDir)
 
 if options.T8bbllnunu:
@@ -348,8 +363,10 @@ job = options.job
 print job
 
 # Write one file per mass point for T2tt
-if options.T2tt or options.T8bbllnunu:
+if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
     if options.T2tt: output = Sample.fromDirectory("T2tt_output", outDir)
+    elif options.T2bW: output = Sample.fromDirectory("T2bW_output", outDir)
+    elif options.T2bt: output = Sample.fromDirectory("T2bt_output", outDir)
     else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
     print "Initialising chain, otherwise first mass point is empty"
     print output.chain
@@ -360,6 +377,8 @@ if options.T2tt or options.T8bbllnunu:
         cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
         logger.debug("Using cut %s", cut)
         if options.T2tt: signal_prefix = 'T2tt_'
+        elif options.T2bW: signal_prefix = 'T2bW_'
+        elif options.T2bt: signal_prefix = 'T2bt_'
         else: signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
         signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
         #signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
