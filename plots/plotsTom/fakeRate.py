@@ -240,7 +240,7 @@ for thirdLeptonFlavour in ['mu','e']:
   plots.append(Plot(
     texX = 'I_{rel.}(l_{3})', texY = 'Number of Events',
     name = 'l3_RelIso', attribute = lambda event, sample: event.thirdLeptonRelIso,
-    binning=[20,0,2.4],
+    binning=[10,0,1.2],
     weight = looseWeight,
   ))
 
