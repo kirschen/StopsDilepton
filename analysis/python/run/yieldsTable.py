@@ -9,7 +9,7 @@ from StopsDilepton.analysis.SetupHelpers    import allChannels, channels
 from StopsDilepton.analysis.estimators      import setup, constructEstimatorList, MCBasedEstimate
 from StopsDilepton.analysis.DataObservation import DataObservation
 from StopsDilepton.analysis.SumEstimate     import SumEstimate
-from StopsDilepton.analysis.regions         import regionsO as regions
+from StopsDilepton.analysis.regions         import regionsAgg as regions
 from StopsDilepton.analysis.Cache           import Cache
 
 # Logging
@@ -37,7 +37,7 @@ texdir  = os.path.join(setup.analysis_results, setup.prefix(), 'tables')
 try:    os.makedirs(texdir)
 except: pass
 
-
+allChannels = ["all"]
 for channel in allChannels:
   try:    os.makedirs(os.path.join(texdir, channel))
   except: pass

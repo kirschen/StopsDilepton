@@ -1,11 +1,11 @@
-python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v36 --skim=dilepTiny --samples SMS_T2bW # SPLIT5
-python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v36 --skim=dilepTiny --samples SMS_T2bt # SPLIT5
+#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples SMS_T2bW # SPLIT5
+#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples SMS_T2bt # SPLIT5
 
-python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v36 --skim=dilepTiny --samples  SMS_T2tt_mStop_150to250 # SPLIT10
-python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v36 --skim=dilepTiny --samples  SMS_T2tt_mStop_250to350 # SPLIT10
-python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v36 --skim=dilepTiny --samples  SMS_T2tt_mStop_350to400 # SPLIT10
-python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v36 --skim=dilepTiny --samples  SMS_T2tt_mStop_400to1200 # SPLIT10
-python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v36 --skim=dilepTiny --samples  SMS_T2tt_mStop_425_mLSP_325
-python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v36 --skim=dilepTiny --samples  SMS_T2tt_mStop_500_mLSP_325
-python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v36 --skim=dilepTiny --samples  SMS_T2tt_mStop_850_mLSP_100
+#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples  SMS_T2tt_mStop_150to250 # SPLIT10
+#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples  SMS_T2tt_mStop_250to350 # SPLIT10
+python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples  SMS_T2tt_mStop_350to400 # SPLIT10
+#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples  SMS_T2tt_mStop_400to1200 # SPLIT10
+#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples  SMS_T2tt_mStop_425_mLSP_325
+#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples  SMS_T2tt_mStop_500_mLSP_325
+#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples  SMS_T2tt_mStop_850_mLSP_100
 

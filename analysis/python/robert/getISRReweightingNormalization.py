@@ -6,7 +6,7 @@ import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument("--small",           action='store_true')
-argParser.add_argument("--signal",          action='store', default='T2tt',     nargs='?',  choices=["T2tt","T2bt","T2bW","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05","T8bbllnunu_XCha0p5_XSlep0p5","T8bbllnunu_XCha0p5_XSlep0p95"], help="which signal?")
+argParser.add_argument("--signal",          action='store', default='T2tt',     nargs='?',  choices=["T2tt","T2bt","T2bW","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05","T8bbllnunu_XCha0p5_XSlep0p5","T8bbllnunu_XCha0p5_XSlep0p95", "T8bbllnunu_XCha0p5_XSlep0p09"], help="which signal?")
 args = argParser.parse_args()
 
 from StopsDilepton.analysis.daniel.isrWeight import ISRweight
@@ -68,6 +68,12 @@ if 'T2' in args.signal or args.small or 'T8bbllnunu' in args.signal:
             tmpList = []
             for s in samples:
                 if 'XSlep0p05' in s: tmpList.append(s)
+            samples = tmpList
+
+        elif args.signal == 'T8bbllnunu_XCha0p5_XSlep0p09':
+            tmpList = []
+            for s in samples:
+                if 'XSlep0p09' in s: tmpList.append(s)
             samples = tmpList
 
         elif args.signal == 'T8bbllnunu_XCha0p5_XSlep0p5':

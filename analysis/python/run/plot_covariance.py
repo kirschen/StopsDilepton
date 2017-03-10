@@ -11,12 +11,12 @@ ROOT.gStyle.SetOptStat("")
 
 #'aggregated/fitAll/cardFiles/T2tt/T2tt_800_100.txt'
 #'aggregated/signalOnly/cardFiles/T2tt/T2tt_800_100.txt'
-fname = analysis_results + '/fitAll/cardFiles/T2tt/T2tt_800_1.txt'
+fname = analysis_results + '/aggregated/fitAll/cardFiles/T2tt/T2tt_800_1.txt'
 releaseLocation = combineReleaseLocation
 
 postFit = True
 makeTable = True
-aggregate = False
+aggregate = True
 onlySR = False
 
 nSR = 26
@@ -136,7 +136,8 @@ h2.Draw("colz")
 
 c2 = ROOT.TCanvas('c2','c2',700,700)
 
-pad1=ROOT.TPad("pad1","Main",0.,0.,.95,1.)
+pad1=ROOT.TPad("pad1","Main",0.,0.,1.,1.)
+pad1.SetRightMargin(0.15)
 #pad1.SetLeftMargin(0.15)
 #pad1.SetBottomMargin(0.02)
 pad1.Draw()

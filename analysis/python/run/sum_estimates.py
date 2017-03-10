@@ -6,7 +6,7 @@ parser.add_option('--logLevel', dest="logLevel", default='INFO', action='store',
 
 from StopsDilepton.analysis.SetupHelpers import allChannels, channels
 from StopsDilepton.analysis.estimators import setup, constructEstimatorList
-from StopsDilepton.analysis.regions import regionsO as regions
+from StopsDilepton.analysis.regions import regionsAgg as regions
 from StopsDilepton.analysis.Cache import Cache
 import os
 

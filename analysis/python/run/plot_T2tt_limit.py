@@ -9,7 +9,10 @@ from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 ROOT.gROOT.SetBatch(True)
 
-defFile= os.path.join(analysis_results, "fitAll/limits/T2tt/T2tt/limitResults.root")
+signalString = 'T2bW'
+
+#defFile= os.path.join(analysis_results, "fitAll/limits/T2tt/T2tt/limitResults.root")
+defFile= os.path.join(analysis_results, "fitAll/limits/"+signalString+"/"+signalString+"/limitResults.root")
 #defFile= os.path.join(analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/limits/T2tt/regionsO/limitResults.root")
 
 from optparse import OptionParser
@@ -18,7 +21,7 @@ parser.add_option("--file", dest="filename", default=defFile, type="string", act
 (options, args) = parser.parse_args()
 
 ifs = options.filename.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_new')
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_update')
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 
@@ -85,7 +88,7 @@ from StopsDilepton.PlotsSMS.smsPlotBrazil import smsPlotBrazil
 
 
 # read input arguments
-modelname = "T2tt"
+modelname = signalString
 analysisLabel = "SUS-16-027"
 outputname = os.path.join(plotDir, 'limit')
 
