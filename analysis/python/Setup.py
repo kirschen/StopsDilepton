@@ -94,7 +94,7 @@ class Setup:
         }
         
         dataPUHistForSignalPath = "$CMSSW_BASE/src/StopsDilepton/tools/data/puFastSimUncertainty/dataPU.root"
-        self.dataPUHistForSignalFile = getObjFromFile(os.path.expandvars(dataPUHistForSignalPath), "data")
+        self.dataPUHistForSignal = getObjFromFile(os.path.expandvars(dataPUHistForSignalPath), "data")
 
     def prefix(self):
         return '_'.join(self.prefixes+[self.preselection('MC')['prefix']])

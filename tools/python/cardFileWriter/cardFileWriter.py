@@ -276,27 +276,27 @@ class cardFileWriter:
 
     def calcSignif(self, fname="", options=""):
         import uuid, os
-        uniqueDirname=""
-        unique=False
+        ustr          = str(uuid.uuid4())
+        uniqueDirname = os.path.join(self.releaseLocation, ustr)
+        print "Creating %s"%uniqueDirname
+        os.makedirs(uniqueDirname)
+
         if fname=="":
-            uniqueDirname = str(uuid.uuid4())
-            unique=True
-            os.system('mkdir '+uniqueDirname)
-            fname = str(uuid.uuid4())+".txt"
+            fname = str(ustr+".txt")
             self.writeToFile(uniqueDirname+"/"+fname)
         else:
             self.writeToFile(fname)
-        os.system("pushd "+self.releaseLocation+";eval `scramv1 runtime -sh`;popd;cd "+uniqueDirname+";"+self.combineStr+" --saveWorkspace  -M ProfileLikelihood --significance "+fname+" -t -1 --expectSignal=1 ")
+        combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M ProfileLikelihood --uncapped 1 --significance --rMin -5 "+fname
+        os.system(combineCommand)
+        #os.system("pushd "+self.releaseLocation+";eval `scramv1 runtime -sh`;popd;cd "+uniqueDirname+";"+self.combineStr+" --saveWorkspace  -M ProfileLikelihood --significance "+fname+" -t -1 --expectSignal=1 ")
         try:
             res= self.readResFile(uniqueDirname+"/higgsCombineTest.ProfileLikelihood.mH120.root")
         except:
             res=None
             print "Did not succeed."
         os.system("rm -rf roostats-*")
-        if unique:
-              os.system("rm -rf "+uniqueDirname)
-        else:
-            if res:
-                os.system("cp higgsCombineTest.ProfileLikelihood.mH120.root "+fname.replace('.txt','')+'.root')
+        if res:
+            os.system("cp "+uniqueDirname+"/higgsCombineTest.ProfileLikelihood.mH120.root "+fname.replace('.txt','')+'.root')
+        shutil.rmtree(uniqueDirname)
 
         return res

@@ -1,4 +1,6 @@
-# We calculate first SF, then EMu
+'''
+Calculate covariance matrices following https://twiki.cern.ch/twiki/bin/view/CMS/SimplifiedLikelihood
+'''
 
 import shutil, os
 import ROOT
@@ -7,14 +9,26 @@ from StopsDilepton.tools.user import combineReleaseLocation, analysis_results, p
 
 ROOT.gStyle.SetOptStat("")
 
-fname = analysis_results + '/signalOnly/cardFiles/T2tt/T2tt_800_100.txt'
+#'aggregated/fitAll/cardFiles/T2tt/T2tt_800_100.txt'
+#'aggregated/signalOnly/cardFiles/T2tt/T2tt_800_100.txt'
+fname = analysis_results + '/fitAll/cardFiles/T2tt/T2tt_800_1.txt'
 releaseLocation = combineReleaseLocation
 
-postFit = False
+postFit = True
 makeTable = True
+aggregate = False
+onlySR = False
 
-if postFit: postfix = "_postfit"
-else: postfix = ''#'_test2'
+nSR = 26
+if aggregate: nSR = 3
+
+postfix = ''
+
+if postFit: postfix += "_postfit"
+if aggregate: postfix += '_aggregated'
+if onlySR: postfix += '_onlySR'
+
+postfix += '_SBtest'
 
 def calcCovariance(fname=None, options=""):
     import uuid, os
@@ -33,12 +47,18 @@ def calcCovariance(fname=None, options=""):
     
     assert os.path.exists(filename), "File not found: %s"%filename
     combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combineCards.py %s -S > myshapecard.txt "%fname
+
     #set workspace
-    workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --X-allow-no-signal --X-allow-no-background myshapecard.txt"
-    #workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --channel-masks --X-allow-no-signal --X-allow-no-background myshapecard.txt"
+    if postFit:
+        workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --channel-masks --X-allow-no-signal --X-allow-no-background myshapecard.txt"
+    else:
+        workspaceCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;text2workspace.py --X-allow-no-signal --X-allow-no-background myshapecard.txt"
+
     #Run fit
-    fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 5000 --saveOverall --preFitValue 0  myshapecard.root"
-    #fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --setPhysicsModelParameterRange mask_signal=1 --saveOverall myshapecard.root"
+    if postFit:
+        fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --setPhysicsModelParameterRange mask_signal=1 --saveOverall myshapecard.root"
+    else:
+        fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 5000 --saveOverall --preFitValue 0  myshapecard.root"
 
     
     print combineCommand
@@ -91,12 +111,15 @@ h2 = tt.Get("overall_total_covar")
 binNames = []
 matrix = {}
 nbins = h2.GetNbinsX()
+#if onlySR: nbins = nSR
+
 for i in range(1, nbins+1):
     binNames.append(h2.GetXaxis().GetBinLabel(i))
     matrix[h2.GetXaxis().GetBinLabel(i)] = {}
     for j in range(1, nbins+1):
         matrix[h2.GetXaxis().GetBinLabel(i)][h2.GetXaxis().GetBinLabel(j)] = h2.GetBinContent(i,j)
 
+if onlySR: nbins = nSR
 sorted_cov = ROOT.TH2D('cov','',nbins,0,nbins,nbins,0,nbins)
 binNames = natural_sort(binNames)
 
@@ -137,9 +160,10 @@ import numpy, math
 cov = numpy.zeros((sorted_cov.GetNbinsX(),sorted_cov.GetNbinsX()))
 diag = numpy.zeros((sorted_cov.GetNbinsX(),sorted_cov.GetNbinsX()))
 
-for i,k in enumerate(binNames):
+print binNames[:nbins]
+for i,k in enumerate(binNames[:nbins]):
     diag[i][i] = math.sqrt(matrix[k][k])
-    for j,l in enumerate(binNames):
+    for j,l in enumerate(binNames[:nbins]):
         cov[i][j] = matrix[k][l]
 
 diag_inv = numpy.linalg.inv(diag)
@@ -148,11 +172,11 @@ corr = numpy.dot(diag_inv, cov)
 corr = numpy.dot(corr, diag_inv)
 
 sorted_corr = ROOT.TH2D('corr','',nbins,0,nbins,nbins,0,nbins)
-for i,k in enumerate(binNames):
-    for j,l in enumerate(binNames):
+for i,k in enumerate(binNames[:nbins]):
+    for j,l in enumerate(binNames[:nbins]):
         sorted_corr.SetBinContent(i+1,j+1,corr[i][j])
 
-sorted_corr.GetZaxis().SetRangeUser(-0.1, 1.1)
+sorted_corr.GetZaxis().SetRangeUser(-1.05, 1.05)
 
 c3 = ROOT.TCanvas('c3','c3',700,700)
 
@@ -168,16 +192,21 @@ for f in filetypes:
 
 
 SRnames = []
-for i in range(nbins/2):
-    SRnames.append("SF"+str(i))
-    SRnames.append("EMu"+str(i))
+if aggregate:
+    for i in range(nbins):
+        SRnames.append("All"+str(i))
+else:
+    for i in range(nbins/2):
+        SRnames.append("SF"+str(i))
+        SRnames.append("EMu"+str(i))
+
 
 print SRnames
 
 if makeTable:
     texdir = os.path.join(plot_dir,'matrices/')
     if not os.path.exists(texdir): os.makedirs(texdir)
-    ofile = texdir+fname.split('.')[-2].split('/')[-1] + '.tex'
+    ofile = texdir+fname.split('.')[-2].split('/')[-1] + postfix + '.tex'
     with open(ofile, "w") as f:
           f.write("\\documentclass[a4paper,10pt,oneside]{article} \n \\usepackage{caption} \n \\usepackage{rotating} \n \\begin{document} \n")
 
@@ -201,3 +230,5 @@ if makeTable:
           f.write(" \\end{document}")
     
     os.system("cd "+texdir+";pdflatex "+ofile)
+
+f1.Close()

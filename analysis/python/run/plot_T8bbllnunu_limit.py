@@ -9,8 +9,10 @@ from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 ROOT.gROOT.SetBatch(True)
 
-defFile= os.path.join(analysis_results, "fitAll/limits/T2tt/T2tt/limitResults.root")
-#defFile= os.path.join(analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/limits/T2tt/regionsO/limitResults.root")
+#signalString = 'T8bbllnunu_XCha0p5_XSlep0p5'
+signalString = 'T8bbllnunu_XCha0p5_XSlep0p05'
+
+defFile= os.path.join(analysis_results, "signalOnly/limits/%s/%s/limitResults.root"%(signalString,signalString))
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -18,7 +20,7 @@ parser.add_option("--file", dest="filename", default=defFile, type="string", act
 (options, args) = parser.parse_args()
 
 ifs = options.filename.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_new')
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_v12')
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 
@@ -33,44 +35,60 @@ for i in ["obs_UL","obs_up","obs_down"]:
 for i in ["obs_up","obs_down"]:
   hists[i].Reset()
 
+if signalString == 'T8bbllnunu_XCha0p5_XSlep0p05':
+    blanklist = [(560,155),(560,180),(560,205),(580,230),(610,260),(630,205),(655,205),(655,230),(680,230),(680,255),(705,230),(705,255)]
+else:
+    blanklist = []
+
 from StopsDilepton.tools.xSecSusy import xSecSusy
 xSecSusy_ = xSecSusy()
-xSecKey = "obs" # exp or obs
+xSecKey = "exp" # exp or obs
 for ix in range(hists[xSecKey].GetNbinsX()):
     for iy in range(hists[xSecKey].GetNbinsY()):
+        #mStop = 200
         mStop = hists[xSecKey].GetXaxis().GetBinLowEdge(ix)
         mNeu  = hists[xSecKey].GetYaxis().GetBinLowEdge(iy)
         v = hists[xSecKey].GetBinContent(hists[xSecKey].FindBin(mStop, mNeu))
-        if v>0:
+        if mStop>99 and v>0:
+            #print mStop
             scaleup   = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=1) /xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)
             scaledown = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=-1)/xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)
-            hists["obs_UL"].SetBinContent(hists["obs"].FindBin(mStop, mNeu), v*xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0))
-            hists["obs_up"].SetBinContent(hists["obs"].FindBin(mStop, mNeu), v*scaleup)
-            hists["obs_down"].SetBinContent(hists["obs"].FindBin(mStop, mNeu), v*scaledown)
+            hists["obs_UL"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), v*xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0))
+            hists["obs_up"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), v*scaleup)
+            hists["obs_down"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), v*scaledown)
+
+for bl in blanklist:
+    hists["obs_UL"].SetBinContent(hists[xSecKey].FindBin(bl[0],bl[1]), 0)
 
 for i in ["exp", "exp_up", "exp_down", "obs", "obs_UL", "obs_up", "obs_down"]:
   hists[i + "_int"]    = interpolate(hists[i])
 
 for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
   hists[i + "_smooth"] = hists[i + "_int"].Clone(i + "_smooth")
- #hists[i + "_smooth"] = rebin(hists[i + "_smooth")
+  #hists[i + "_smooth"] = rebin(hists[i + "_smooth"])
   hists[i + "_smooth"].Smooth()
 
 ROOT.gStyle.SetPadRightMargin(0.15)
 c1 = ROOT.TCanvas()
 niceColorPalette(255)
 
-hists["obs"].GetZaxis().SetRangeUser(0.02, 99)
+hists["obs"].GetZaxis().SetRangeUser(0.02, 299)
 hists["obs"].Draw('COLZ')
 c1.SetLogz()
 
+modelname = signalString
 temp = ROOT.TFile("tmp.root","recreate")
 hists["obs_UL_int"].Clone("temperature").Write()
 
+
 for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
   contours = getContours(hists[i + "_smooth"], plotDir)
-  for g in contours: cleanContour(g)
+  for g in contours: cleanContour(g, model=modelname)
+  print len(contours)
   contours = max(contours , key=lambda x:x.GetN()).Clone("contour_" + i)
+  #for cont in contours:
+  #  cont.Draw('same')
+  #  cont.Write()
   contours.Draw('same')
   contours.Write()
 
@@ -85,15 +103,14 @@ from StopsDilepton.PlotsSMS.smsPlotBrazil import smsPlotBrazil
 
 
 # read input arguments
-modelname = "T2tt"
-analysisLabel = "SUS-16-027"
+analysisLabel = "SUS-17-001"
 outputname = os.path.join(plotDir, 'limit')
 
 # read the config file
-fileIN = inputFile('T2tt_limit.cfg')
+fileIN = inputFile('T8bbllnunu_limit.cfg')
 
 # classic temperature histogra
-xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
+xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "asdf")
 xsecPlot.Draw()
 xsecPlot.Save("%sXSEC" %outputname)
 
