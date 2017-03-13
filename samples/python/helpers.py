@@ -81,7 +81,7 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
             if "Run2016" in sample:
                 from StopsDilepton.samples.heppy_dpm_samples import data_03Feb2017_heppy_mapper as data_heppy_mapper
                 return data_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
-            elif "T2tt" in sample or "T8bb" in sample or "T2b" in sample:
+            elif ("T2tt" in sample) or ("T8bb" in sample) or ("T2b" in sample):
                 from StopsDilepton.samples.heppy_dpm_samples import SUSY_heppy_mapper
                 return SUSY_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             #elif "T2b" in sample:

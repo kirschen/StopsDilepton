@@ -11,7 +11,7 @@ ROOT.gStyle.SetOptStat("")
 
 #'aggregated/fitAll/cardFiles/T2tt/T2tt_800_100.txt'
 #'aggregated/signalOnly/cardFiles/T2tt/T2tt_800_100.txt'
-fname = analysis_results + '/aggregated/fitAll/cardFiles/T2tt/T2tt_800_1.txt'
+fname = analysis_results + '/aggregated/fitAll/cardFiles/T2tt/T2tt_400_1.txt'
 releaseLocation = combineReleaseLocation
 
 postFit = True

@@ -88,6 +88,7 @@ elif args.signal == "compilation":
     signals = [ T2tt, T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
     
 elif args.signal == "DM":
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
     DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
     DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
