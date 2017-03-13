@@ -22,18 +22,30 @@ try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
+  postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
 
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory)):
     if f.startswith('TTbarDMJets_'):
-        s = f.split('_')
-        if s[1] == 'pseudoscalar':
-            tp_ = "PS"
-        elif s[1] == 'scalar':
-            tp_ = "S"
 
-        mChi = int(s[3])
-        mPhi = int(s[5])
+        splitter = ''
+        if '_Tune' in f: splitter = '_Tune'
+        else: splitter = '_13TeV'
+        if 'ext1' in f: ext = '_ext1'
+        elif 'ext2' in f: ext = '_ext2'
+        else: ext = ''
+        tmp1 = f.split(splitter)
+        sampleName = tmp1[0].replace('/','').replace('-','_')
+        masses = sampleName.split('_')
+        BR = 1
+        tp_ = ''
+        if masses == ['']: break
+        for i, m in enumerate(masses):
+          if 'dilep' in m.lower(): BR = (3*0.108)**2
+          if m.lower() == 'mchi': mChi = int(masses[i+1])
+          if m.lower() == 'mphi': mPhi = int(masses[i+1])
+          if m.lower() == 'scalar': tp_ = 'S'
+          if m.lower() == 'pseudoscalar': tp_ = 'PS'
+          if m.lower() == 'smm': tp_ = 'SMM'
 
         tmp = Sample.fromDirectory(\
             name = f,
