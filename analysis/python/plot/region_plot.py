@@ -59,7 +59,7 @@ for estimator in detailedEstimators:
 
 
 # signals and blindings
-scale = 1
+scale = 1.
 if not args.control:
   postfix = 'signalRegions'
   if args.signal == "T2tt":
@@ -253,7 +253,7 @@ def drawBinNumbers(numberOfBins):
 def drawTTZLabels():
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.1 if args.ratio else 0.04)
+    tex.SetTextSize(0.2 if args.ratio else 0.04)
     tex.SetTextAlign(23) # align right
     min = 0.15
     max = 0.95
@@ -293,7 +293,7 @@ def drawDivisions(regions):
 
 
 def drawLumi( lumi_scale ):
-    lumi_scale = 35.9
+    lumi_scale = 35.9*1000
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
@@ -376,6 +376,7 @@ for channel in channels:
 
     if args.signal == "T2tt" or args.signal == "T8": legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
     elif args.signal == "TTbarDM":                   legend = (0.55,0.85-0.010*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
+    if args.control == "TTZ":                        legend = ((0.35,0.7, 0.9, 0.85), 2)
 
     def setRatioBorder(c, y_border):
       topPad = c.GetPad(1)
@@ -402,7 +403,7 @@ for channel in channels:
 
     if not args.control:       yRange = (0.006, 'auto')
     elif args.control=='DYVV': yRange = (0.006, 2000000)
-    elif args.control=='TTZ':  yRange = (0.6, 20000)
+    elif args.control=='TTZ':  yRange = (2.6, 500)
 
     plotting.draw( region_plot, \
         plot_directory = os.path.join(plot_directory, postfix),

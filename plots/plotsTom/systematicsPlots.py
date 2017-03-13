@@ -31,6 +31,7 @@ argParser.add_argument('--selectSys',         action='store',      default='all'
 argParser.add_argument('--showOnly',          action='store',      default=None)
 argParser.add_argument('--unblind',           action='store_true', default=False)
 argParser.add_argument('--splitBosons',       action='store_true', default=False)
+argParser.add_argument('--scaleDYVV',         action='store_true', default=False)
 argParser.add_argument('--LO',                action='store_true', default=False)
 argParser.add_argument('--splitTop',          action='store_true', default=False)
 argParser.add_argument('--powheg',            action='store_true', default=True)
@@ -72,6 +73,8 @@ selections = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140'
            ]
+
+if args.scaleDYVV: selections = ['njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100']
 
 #
 # Systematics to run over
@@ -134,6 +137,7 @@ if args.noData:                   args.plot_directory += "_noData"
 if args.unblind:                  args.plot_directory += "_unblinded"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
+if args.scaleDYVV:                args.plot_directory += "_scaleDYVV"
 #if not args.LO:                   args.plot_directory += "_ttZNLO"
 
 #
@@ -268,7 +272,9 @@ if args.splitBosons: mc = [ Top_pow, TTZ_LO if args.LO else TTZ, TTXNoZ, WWNo2L2
 else:                mc = [ Top_pow, TTZ_LO if args.LO else TTZ, TTXNoZ, multiBoson, DY_HT_LO]
 
 for sample in mc:
-  sample.scale           = lumi_scale
+  if   args.scaleDYVV and sample in [DY_HT_LO]:                                                  sample.scale = lumi_scale*1.31
+  elif args.scaleDYVV and sample in [multiBoson, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson]: sample.scale = lumi_scale*1.19
+  else:                                                                                          sample.scale = lumi_scale
   sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
   sample.read_variables  = ['reweightLeptonTrackingSF/F','reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
   sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics]
@@ -278,12 +284,6 @@ for sample in mc:
   sample.read_variables += ["nJetGood_%s/I"%s   for s in jet_systematics]
   sample.read_variables += ["nBTag_%s/I"%s      for s in jet_systematics]
   sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
-
-  # Apply scale factors in the mt2ll > 100 GeV signal region (except Top which will be already scaled anyway)
-  if args.selection.count('njet2p-btag1p-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100') and False: # Turn on when scalefactors are rederived
-    if sample == DY_HT_LO:                sample.scale = lumi_scale*1.30
-    if sample == multiBoson:              sample.scale = lumi_scale*1.45
-    if sample == TTZ or sample == TTZ_LO: sample.scale = lumi_scale*0.89
 
 
 # Using older tuples for signals, currently do not use filtercut and read in 36 PU weights
