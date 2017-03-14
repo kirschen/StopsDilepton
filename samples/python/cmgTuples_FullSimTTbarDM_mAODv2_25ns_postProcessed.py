@@ -24,7 +24,9 @@ try:
 except:
   postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
 
-for f in os.listdir(os.path.join(data_directory, postProcessing_directory)):
+DMsamples = []
+
+for f in sorted(os.listdir(os.path.join(data_directory, postProcessing_directory))):
     if f.startswith('TTbarDMJets_'):
 
         splitter = ''
@@ -58,8 +60,13 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory)):
         tmp.mChi = mChi
         tmp.mPhi = mPhi
         tmp.type = tp_
-
-        exec("%s=tmp"%f)
-        exec("signals_TTbarDM.append(%s)"%f)
+        
+        # use dilep samples whenever available: the list is sorted in the beginning so that dilep samples are added first
+        if (mChi, mPhi, tp_) in DMsamples:
+            print "Omitting sample {}, same point was already added".format((mChi, mPhi, tp_))
+        else:
+            DMsamples.append((mChi, mPhi, tp_))
+            exec("%s=tmp"%f)
+            exec("signals_TTbarDM.append(%s)"%f)
 
 print "Loaded %i TTDM signals: %s"%(len(signals_TTbarDM), ",".join([s.name for s in signals_TTbarDM]))

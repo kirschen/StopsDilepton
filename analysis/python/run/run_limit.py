@@ -11,7 +11,8 @@ argParser.add_argument("--overwrite",      default = False, action = "store_true
 argParser.add_argument("--controlDYVV",    default = False, action = "store_true", help="Fits for DY/VV CR")
 argParser.add_argument("--controlTTZ",     default = False, action = "store_true", help="Fits for TTZ CR")
 argParser.add_argument("--fitAll",         default = False, action = "store_true", help="Fits SR and CR together")
-argParser.add_argument("--aggregate",         default = False, action = "store_true", help="Use aggregated signal regions")
+argParser.add_argument("--aggregate",      default = False, action = "store_true", help="Use aggregated signal regions")
+argParser.add_argument("--DMsync",         default = False, action = "store_true", help="Use two regions for MET+X syncing")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 args = argParser.parse_args()
 
@@ -25,7 +26,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 from StopsDilepton.analysis.SetupHelpers    import channels, trilepChannels
 from StopsDilepton.analysis.estimators      import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTJetsEstimate
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS, regionsAgg
+from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS, regionsAgg, regionsDM
 from StopsDilepton.analysis.Cache           import Cache
 
 
@@ -40,6 +41,8 @@ setupTTZ5 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMi
 # Define channels for CR
 if args.aggregate:
     setup.channels = ['all']
+elif args.DMsync:
+    setup.channels = ['all']
 else:
     setup.channels     = ['SF','EMu']
 setupDYVV.channels = ['SF']
@@ -52,6 +55,9 @@ setupTTZ5.channels = ['all']
 # Define regions for CR
 if args.aggregate:
     setup.regions     = regionsAgg[1:]
+    setupDYVV.regions = regionsO[1:]
+elif args.DMsync:
+    setup.regions     = regionsDM[1:]
     setupDYVV.regions = regionsO[1:]
 else:
     setup.regions     = regionsO[1:]
@@ -86,6 +92,7 @@ from StopsDilepton.tools.user           import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 if args.aggregate:          subDir = 'aggregated/'
+elif args.DMsync:           subDir = 'DMsync/'
 else:                       subDir = ''
 
 if args.fitAll:             subDir += 'fitAll' 
@@ -124,7 +131,7 @@ def getScaleUnc(name, r, channel):
   else:                                          return 0.01
 
 def getIsrUnc(name, r, channel):
-  #return 0 #FIXME
+  return 0 #FIXME
   unc = isrUncCache.get((name, r, channel))
   return abs(unc)
 

@@ -90,11 +90,16 @@ elif args.signal == "compilation":
 elif args.signal == "DM":
     postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-    DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-    DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
+    DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10_ext1
+    DM_alt                  = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
+    DM2                     = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50_ext1
+    DM2_alt                 = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_50
+    #DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10_ext1_comb
     DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
+    DM_alt.style            = styles.lineStyle( ROOT.kBlack, width=3, dotted=True)
     DM2.style               = styles.lineStyle( 28,          width=3)
-    signals = [DM, DM2]
+    DM2_alt.style           = styles.lineStyle( 28,          width=3, dotted=True)
+    signals = [DM, DM2, DM_alt, DM2_alt]
 else:
     signals = []
 #
@@ -201,8 +206,13 @@ for index, mode in enumerate(allModes):
   for sample in signals:
       if args.signal == "T2tt" or args.signal == "T8bbllnunu" or args.signal == "compilation":
         sample.scale          = lumi_scale
-        sample.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
+        sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
         sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
+        sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+      elif args.signal == "DM":
+        sample.scale          = lumi_scale
+        sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
+        sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF
         sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
       else:
         raise NotImplementedError
