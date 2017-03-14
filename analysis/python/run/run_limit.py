@@ -4,14 +4,15 @@ import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
-argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW"], help="which signal?")
+argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW", "T8bbllnunu_XCha0p5_XSlep0p09"], help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                                                                                           help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float, nargs='?',                                                                                           help="scaling all yields")
 argParser.add_argument("--overwrite",      default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--controlDYVV",    default = False, action = "store_true", help="Fits for DY/VV CR")
 argParser.add_argument("--controlTTZ",     default = False, action = "store_true", help="Fits for TTZ CR")
 argParser.add_argument("--fitAll",         default = False, action = "store_true", help="Fits SR and CR together")
-argParser.add_argument("--aggregate",         default = False, action = "store_true", help="Use aggregated signal regions")
+argParser.add_argument("--aggregate",      default = False, action = "store_true", help="Use aggregated signal regions")
+argParser.add_argument("--DMsync",         default = False, action = "store_true", help="Use two regions for MET+X syncing")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 args = argParser.parse_args()
 
@@ -25,7 +26,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 from StopsDilepton.analysis.SetupHelpers    import channels, trilepChannels
 from StopsDilepton.analysis.estimators      import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTJetsEstimate
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS, regionsAgg
+from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS, regionsAgg, regionsDM
 from StopsDilepton.analysis.Cache           import Cache
 
 
@@ -40,6 +41,8 @@ setupTTZ5 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMi
 # Define channels for CR
 if args.aggregate:
     setup.channels = ['all']
+elif args.DMsync:
+    setup.channels = ['all']
 else:
     setup.channels     = ['SF','EMu']
 setupDYVV.channels = ['SF']
@@ -52,6 +55,9 @@ setupTTZ5.channels = ['all']
 # Define regions for CR
 if args.aggregate:
     setup.regions     = regionsAgg[1:]
+    setupDYVV.regions = regionsO[1:]
+elif args.DMsync:
+    setup.regions     = regionsDM[1:]
     setupDYVV.regions = regionsO[1:]
 else:
     setup.regions     = regionsO[1:]
@@ -86,6 +92,7 @@ from StopsDilepton.tools.user           import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 if args.aggregate:          subDir = 'aggregated/'
+elif args.DMsync:           subDir = 'DMsync/'
 else:                       subDir = ''
 
 if args.fitAll:             subDir += 'fitAll' 
@@ -104,11 +111,14 @@ if not os.path.exists(limitDir): os.makedirs(limitDir)
 cacheFileName = os.path.join(limitDir, 'calculatedLimits.pkl')
 limitCache    = Cache(cacheFileName, verbosity=2)
 
+cacheFileNameS  = os.path.join(limitDir, 'calculatedSignifs.pkl')
+signifCache     = Cache(cacheFileNameS, verbosity=2)
 
 if   args.signal == "T2tt":                         fastSim = True
 elif args.signal == "T2bW":                         fastSim = True
 elif args.signal == "T2bt":                         fastSim = True
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": fastSim = True
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": fastSim = True
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  fastSim = True
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": fastSim = True
 elif args.signal == "TTbarDM":                      fastSim = False
@@ -121,7 +131,7 @@ def getScaleUnc(name, r, channel):
   else:                                          return 0.01
 
 def getIsrUnc(name, r, channel):
-  #return 0 #FIXME
+  return 0 #FIXME
   unc = isrUncCache.get((name, r, channel))
   return abs(unc)
 
@@ -130,8 +140,18 @@ def wrapper(s):
     xSecScale = 1
     if "T8bb" in s.name:
         if s.mStop<810:
-            xSecScale = 0.01
-            print "Will scale signal x-sec by %f to guarantee a fit result"%xSecScale
+                xSecScale = 0.01
+        #if "XSlep0p95" in s.name:
+        #    if s.mStop<810:
+        #        xSecScale = 0.01
+        #        print "Will scale signal x-sec by %f to guarantee a fit result"%xSecScale
+        #elif "XSlep0p5" in s.name:
+        #    if s.mStop<650:
+        #        xSecScale = 0.01
+        #        print "Will scale signal x-sec by %f to guarantee a fit result"%xSecScale
+        #else:
+        #    print "Won't scale x-sec"
+    print xSecScale
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = combineReleaseLocation
 
@@ -263,6 +283,7 @@ def wrapper(s):
     elif args.signal == "T2bt":                         sConfig = s.mStop, s.mNeu
     elif args.signal == "T2bW":                         sConfig = s.mStop, s.mNeu
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sConfig = s.mStop, s.mNeu
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": sConfig = s.mStop, s.mNeu
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sConfig = s.mStop, s.mNeu
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
 
@@ -274,8 +295,13 @@ def wrapper(s):
           c.calcNuisances(cardFileName)
           limitCache.add(sConfig, res, save=True)
     else:
-        res = c.calcSignif(cardFileName)
+        if useCache and not overWrite and signifCache.contains(sConfig):
+            res = signifCache.get(sConfig)
+        else:
+            res = c.calcSignif(cardFileName)
+            signifCache.add(sConfig,res,save=True)
     
+    #print xSecScale
     if xSecScale != 1:
         for k in res:
             res[k] *= xSecScale
@@ -286,14 +312,23 @@ def wrapper(s):
       elif args.signal == "T2bt":                         sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T2bW":                         sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sString = "mStop %i mNeu %i" % sConfig
-      try:
-        print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
-        return sConfig, res
-      except:
-        print "Problem with limit: %r" + str(res)
-        return None
+      if args.significanceScan:
+        try:   
+            print "Result: %r significance %5.3f"%(sString, res['-1.000'])
+            return sConfig, res
+        except:
+            print "Problem with limit: %r" + str(res)
+            return None
+      else:
+        try:
+            print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
+            return sConfig, res
+        except:
+            print "Problem with limit: %r" + str(res)
+            return None
 
 
 postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
@@ -303,6 +338,7 @@ elif args.signal == "T2bW":                         from StopsDilepton.samples.c
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
 elif args.signal == "TTbarDM":                      from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM as jobs
 
 if args.only is not None:
@@ -322,16 +358,27 @@ if "T2" in args.signal or  "T8bb" in args.signal:
   for r in results:
     s, res = r
     mStop, mNeu = s
-    for hist, qE in [(exp, '0.500'), (exp_up, '0.160'), (exp_down, '0.840'), (obs, '-1.000')]:
+    if args.significanceScan:
+        resultList = [(obs, '-1.000')]
+    else:
+        resultList = [(exp, '0.500'), (exp_up, '0.160'), (exp_down, '0.840'), (obs, '-1.000')]
+
+    for hist, qE in resultList:
       #print hist, qE, res[qE]
       if qE=='0.500':
         print "Masspoint m_gl %5.3f m_neu %5.3f, expected limit %5.3f"%(mStop,mNeu,res[qE])
+      if qE=='-1.000':
+        print "Observed limit %5.3f"%(res[qE])
       hist.GetXaxis().FindBin(mStop)
       hist.GetYaxis().FindBin(mNeu)
       #print hist.GetName(), mStop, mNeu, res[qE]
       hist.Fill(mStop, mNeu, res[qE])
 
-  limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
+  if args.significanceScan:
+    limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'signifResults.root')
+  else:
+    limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
+
   if not os.path.exists(os.path.dirname(limitResultsFilename)):
       os.makedirs(os.path.dirname(limitResultsFilename))
 

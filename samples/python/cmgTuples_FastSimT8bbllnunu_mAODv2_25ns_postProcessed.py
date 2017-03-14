@@ -7,6 +7,7 @@ import ROOT
 from RootTools.core.standard import *
 
 signals_T8bbllnunu_XCha0p5_XSlep0p05    = []
+signals_T8bbllnunu_XCha0p5_XSlep0p09    = []
 signals_T8bbllnunu_XCha0p5_XSlep0p5     = []
 signals_T8bbllnunu_XCha0p5_XSlep0p95     = []
 
@@ -63,5 +64,7 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T8bb
             exec("signals_T8bbllnunu_XCha0p5_XSlep0p5.append(%s)"%name)
         elif f.startswith('T8bbllnunu_XCha0p5_XSlep0p95'):
             exec("signals_T8bbllnunu_XCha0p5_XSlep0p95.append(%s)"%name)
-
+        elif f.startswith('T8bbllnunu_XCha0p5_XSlep0p09'):
+            exec("signals_T8bbllnunu_XCha0p5_XSlep0p09.append(%s)"%name)
+        
 print "Loaded %i T8bbllnunu signals: %s"%(len(signals_T8bbllnunu_XCha0p5_XSlep0p05) + len(signals_T8bbllnunu_XCha0p5_XSlep0p5) + len(signals_T8bbllnunu_XCha0p5_XSlep0p95), ",".join([s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p05 + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p95]))

@@ -200,3 +200,11 @@ T2bX_dpm_directories = [ def_daniel_0l ]
 from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
 T2bX_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T2bX_dpm_directories, T2bX_cache_file)
 
+# SUSY Signal
+SUSY_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_0l_SUSY.pkl'
+def_daniel_0l = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_0l_35/'
+SUSY_dpm_directories = [ def_daniel_0l ]
+from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
+SUSY_heppy_mapper = heppy_mapper( heppy_SUSY_samples, SUSY_dpm_directories, SUSY_cache_file)
+
+

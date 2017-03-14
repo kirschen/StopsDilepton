@@ -4,7 +4,7 @@ parser = OptionParser()
 parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
 #parser.add_option("--selectEstimator",       dest="selectEstimator",       default=None,                action="store",      help="select estimator?")
 #parser.add_option("--selectRegion",          dest="selectRegion",          default=None, type="int",    action="store",      help="select region?")
-parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt","T2bt","T2bW","T8bbllnunu_XCha0p5_XSlep0p05","T8bbllnunu_XCha0p5_XSlep0p5","T8bbllnunu_XCha0p5_XSlep0p95","TTbarDM"], help="which signal?")
+parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt","T2bt","T2bW","T8bbllnunu_XCha0p5_XSlep0p05","T8bbllnunu_XCha0p5_XSlep0p5","T8bbllnunu_XCha0p5_XSlep0p95","T8bbllnunu_XCha0p5_XSlep0p09","TTbarDM"], help="which signal?")
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option('--overwrite',            dest="overwrite", default = False, action = "store_true", help="Overwrite existing output files, bool flag set to True  if used")
 (options, args) = parser.parse_args()
@@ -60,8 +60,7 @@ if not options.overwrite:
 #n.b \1001" is index 0 in the weights() vector
 
 if options.signal == "T2tt":
-    data_directory           = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny" 
+    postProcessing_directory = "postProcessed_80X_v37/dilepTiny" 
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import *
     for s in signals_T2tt:
         s.isFastSim = True
@@ -69,8 +68,7 @@ if options.signal == "T2tt":
     signals = signals_T2tt
 
 elif options.signal == "T2bW":
-    data_directory           = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v37/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed    import *
     for s in signals_T2bW:
         s.isFastSim = True
@@ -78,8 +76,7 @@ elif options.signal == "T2bW":
     signals = signals_T2bW
 
 elif options.signal == "T2bt":
-    data_directory           = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v37/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed    import *
     for s in signals_T2bt:
         s.isFastSim = True
@@ -87,9 +84,10 @@ elif options.signal == "T2bt":
     signals = signals_T2bt
 
 elif "T8bb" in options.signal:
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v37/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import *
     if options.signal == "T8bbllnunu_XCha0p5_XSlep0p05": signals = signals_T8bbllnunu_XCha0p5_XSlep0p05
+    elif options.signal == "T8bbllnunu_XCha0p5_XSlep0p09": signals = signals_T8bbllnunu_XCha0p5_XSlep0p09
     elif options.signal == "T8bbllnunu_XCha0p5_XSlep0p5": signals = signals_T8bbllnunu_XCha0p5_XSlep0p5
     elif options.signal == "T8bbllnunu_XCha0p5_XSlep0p95": signals = signals_T8bbllnunu_XCha0p5_XSlep0p95
     for s in signals:
