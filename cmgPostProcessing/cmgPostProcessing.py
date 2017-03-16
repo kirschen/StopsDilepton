@@ -570,7 +570,7 @@ new_variables += [\
 ]
 
 if isData: new_variables.extend( ['jsonPassed/I'] )
-new_variables.extend( ['nJetGood/I','nBTag/I', 'ht/F', 'metSig/F'] )
+new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
 
 if isSingleLep:
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
@@ -580,7 +580,8 @@ if isTriLep or isDiLep or isSingleLep:
     if isMC: new_variables.extend(['l1_mcMatchId/I', 'l1_mcMatchAny/I'])
     # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     new_variables.extend( ['mlmZ_mass/F'] )
-    new_variables.extend( ['mt_photonEstimated/F'] )
+    new_variables.extend( ['mt_photonEstimated/F'])
+    if isMC: new_variables.extend(['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F'])
 if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
     if isMC: new_variables.extend(['l2_mcMatchId/I', 'l2_mcMatchAny/I'])
@@ -590,7 +591,6 @@ if isTriLep or isDiLep:
     if isMC: new_variables.extend( \
         [   'zBoson_genPt/F', 'zBoson_genEta/F', 
             'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F', 'reweightDilepTriggerBackup/F', 'reweightDilepTriggerBackupUp/F', 'reweightDilepTriggerBackupDown/F',
-            'reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F',
             'reweightLeptonTrackingSF/F',
          ] )
     if options.susySignal:
@@ -888,7 +888,6 @@ def filler( event ):
             event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
             event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
 
-    if isTriLep or isDiLep:
         if isMC:
             event.reweightDilepTrigger       = 0 
             event.reweightDilepTriggerUp     = 0 
@@ -897,7 +896,7 @@ def filler( event ):
             event.reweightDilepTriggerBackupUp     = 0 
             event.reweightDilepTriggerBackupDown   = 0 
 
-            leptonsForSF = (leptons[:2] if isDiLep else (leptons[:3] if isTriLep else leptons))
+            leptonsForSF = (leptons[:2] if isDiLep else (leptons[:3] if isTriLep else leptons[:1]))
             event.reweightLeptonSF           = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta']) for l in leptonsForSF], 1)
             event.reweightLeptonSFUp         = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = +1) for l in leptonsForSF], 1)
             event.reweightLeptonSFDown       = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = -1) for l in leptonsForSF], 1)
@@ -908,6 +907,7 @@ def filler( event ):
                 eta =   (l['etaSc'] if abs(l['pdgId'])==11 else l['eta'])
                 )[0]  for l in leptonsForSF], 1)
 
+    if isTriLep or isDiLep:
         if len(leptons)>=2:
             mt2Calc.reset()
             event.l2_pt     = leptons[1]['pt']
