@@ -2,6 +2,10 @@
 import copy, os, sys
 import ROOT
 
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+
 #user specific
 from StopsDilepton.tools.user import data_directory
 
@@ -23,6 +27,9 @@ try:
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
   postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+
+logger.info("Loading DM samples from directory %s", os.path.join(data_directory, postProcessing_directory))
+
 
 DMsamples = []
 
@@ -63,10 +70,11 @@ for f in sorted(os.listdir(os.path.join(data_directory, postProcessing_directory
         
         # use dilep samples whenever available: the list is sorted in the beginning so that dilep samples are added first
         if (mChi, mPhi, tp_) in DMsamples:
-            print "Omitting sample {}, same point was already added".format((mChi, mPhi, tp_))
+            logger.debug("Omitting sample %s, same point was already added", (mChi, mPhi, tp_))
         else:
             DMsamples.append((mChi, mPhi, tp_))
             exec("%s=tmp"%f)
             exec("signals_TTbarDM.append(%s)"%f)
 
-print "Loaded %i TTDM signals: %s"%(len(signals_TTbarDM), ",".join([s.name for s in signals_TTbarDM]))
+logger.info("Loaded %i TTDM signals", len(signals_TTbarDM))
+logger.debug("Loaded TTDM signals: %s", ",".join([s.name for s in signals_TTbarDM]))

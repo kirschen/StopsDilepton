@@ -150,7 +150,7 @@ logger.info( "Using proxy %s"%proxy )
 # Moriond MC
 mc_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_1l_MC_Moriond.pkl'
 #robert = ['/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_21', '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_1l_22']
-daniel = ['/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_30', '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_31']
+daniel = ['/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_30', '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_31', '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_36']
 mc_Moriond_dpm_directories = daniel
 from CMGTools.RootTools.samples.samples_13TeV_RunIISummer16MiniAODv2 import mcSamples as heppy_mc_Moriond_samples
 mc_heppy_mapper = heppy_mapper( heppy_mc_Moriond_samples, mc_Moriond_dpm_directories, mc_cache_file)
@@ -178,27 +178,6 @@ def_daniel_0l = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_0l_3
 ttbarDM_dpm_directories = [ def_daniel_0l ]
 from CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISummer16MiniAODv2 import samples as heppy_TTbarDM_samples
 ttbarDM_heppy_mapper = heppy_mapper( heppy_TTbarDM_samples, ttbarDM_dpm_directories, ttbarDM_cache_file)
-#
-# SUSY Signal
-T2tt_cache_file = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/dpm_sample_caches/80X_0l_T2tt.pkl'
-def_robert_0l = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/cmgTuples/80X_0l_22/'
-T2tt_dpm_directories = [ def_robert_0l ]
-from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
-T2tt_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T2tt_dpm_directories, T2tt_cache_file)
-
-# SUSY Signal T8bbllnunu
-T8bbllnunu_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_0l_T8bbllnunu_v2.pkl'
-def_daniel_0l = ['/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_0l_24/', '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_0l_32/','/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_0l_33/']
-T8bbllnunu_dpm_directories = def_daniel_0l
-from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
-T8bbllnunu_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T8bbllnunu_dpm_directories, T8bbllnunu_cache_file)
-
-# SUSY Signal
-T2bX_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_0l_T2bX.pkl'
-def_daniel_0l = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_0l_33/'
-T2bX_dpm_directories = [ def_daniel_0l ]
-from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
-T2bX_heppy_mapper = heppy_mapper( heppy_SUSY_samples, T2bX_dpm_directories, T2bX_cache_file)
 
 # SUSY Signal
 SUSY_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_0l_SUSY.pkl'

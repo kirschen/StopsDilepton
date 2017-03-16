@@ -84,13 +84,6 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
             elif ("T2tt" in sample) or ("T8bb" in sample) or ("T2b" in sample):
                 from StopsDilepton.samples.heppy_dpm_samples import SUSY_heppy_mapper
                 return SUSY_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
-            #elif "T2b" in sample:
-            #    from StopsDilepton.samples.heppy_dpm_samples import T2bX_heppy_mapper
-            #    return T2bX_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
-            #elif "T8bbllnunu" in sample:
-            #    logger.debug("getting T8bbllnunu_heppy_mapper")
-            #    from StopsDilepton.samples.heppy_dpm_samples import T8bbllnunu_heppy_mapper
-            #    return T8bbllnunu_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)
             elif "TTbarDM" in sample:
                 from StopsDilepton.samples.heppy_dpm_samples import ttbarDM_heppy_mapper
                 return ttbarDM_heppy_mapper.from_heppy_samplename(heppy_sample.name, maxN = maxN)

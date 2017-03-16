@@ -2,6 +2,9 @@
 import copy, os, sys
 import ROOT
 
+# Logging
+import logging
+logger = logging.getLogger(__name__)
 
 #RootTools
 from RootTools.core.standard import *
@@ -25,6 +28,8 @@ except:
     #user specific
     import StopsDilepton.tools.user as user
     data_directory = user.data_directory
+
+logger.info("Loading T8bbllnunu samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T8bbllnunu')):
     if f.endswith('.root') and f.startswith('T8bbllnunu_'):
@@ -67,4 +72,6 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T8bb
         elif f.startswith('T8bbllnunu_XCha0p5_XSlep0p09'):
             exec("signals_T8bbllnunu_XCha0p5_XSlep0p09.append(%s)"%name)
         
-print "Loaded %i T8bbllnunu signals: %s"%(len(signals_T8bbllnunu_XCha0p5_XSlep0p05) + len(signals_T8bbllnunu_XCha0p5_XSlep0p5) + len(signals_T8bbllnunu_XCha0p5_XSlep0p95), ",".join([s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p05 + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p95]))
+logger.info("Loaded %i T8bbllnunu signals", len(signals_T8bbllnunu_XCha0p5_XSlep0p05) + len(signals_T8bbllnunu_XCha0p5_XSlep0p5) + len(signals_T8bbllnunu_XCha0p5_XSlep0p95))
+logger.debug("Loaded T8bbllnunu signals: %s", ",".join([s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p05 + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p95]))
+

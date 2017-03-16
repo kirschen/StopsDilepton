@@ -90,16 +90,16 @@ elif args.signal == "compilation":
 elif args.signal == "DM":
     postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-    DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10_ext1
-    DM_alt                  = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
-    DM2                     = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50_ext1
-    DM2_alt                 = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_50
-    #DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10_ext1_comb
+    #DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10_ext1
+    DM                      = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
+    #DM2                     = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50_ext1
+    #DM2_alt                 = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_50
+    DM2                     = TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
     DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
-    DM_alt.style            = styles.lineStyle( ROOT.kBlack, width=3, dotted=True)
+    #DM_alt.style            = styles.lineStyle( ROOT.kBlack, width=3, dotted=True)
     DM2.style               = styles.lineStyle( 28,          width=3)
-    DM2_alt.style           = styles.lineStyle( 28,          width=3, dotted=True)
-    signals = [DM, DM2, DM_alt, DM2_alt]
+    #DM2_alt.style           = styles.lineStyle( 28,          width=3, dotted=True)
+    signals = [DM, DM2]
 else:
     signals = []
 #

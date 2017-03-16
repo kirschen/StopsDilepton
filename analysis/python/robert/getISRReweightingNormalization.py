@@ -10,7 +10,7 @@ argParser.add_argument("--signal",          action='store', default='T2tt',     
 args = argParser.parse_args()
 
 from StopsDilepton.analysis.daniel.isrWeight import ISRweight
-from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper, T8bbllnunu_heppy_mapper, ttbarDM_heppy_mapper, T2bX_heppy_mapper
+from StopsDilepton.samples.heppy_dpm_samples import SUSY_heppy_mapper, ttbarDM_heppy_mapper
 
 isrWeight = ISRweight().getWeightString()
 
@@ -43,14 +43,14 @@ if 'T2' in args.signal or args.small or 'T8bbllnunu' in args.signal:
     else:
         if 'T8bb' in args.signal:
             samples = sorted(T8bbllnunu_heppy_mapper.heppy_sample_names)
-            mapper = T8bbllnunu_heppy_mapper
+            mapper = SUSY_heppy_mapper
         elif 'T2b' in args.signal:
             samples = sorted(T2bX_heppy_mapper.heppy_sample_names)
-            mapper = T2bX_heppy_mapper
+            mapper = SUSY_heppy_mapper
 
         if args.signal == 'T2tt':
             samples = sorted(T2tt_heppy_mapper.heppy_sample_names)
-            mapper = T2tt_heppy_mapper
+            mapper = SUSY_heppy_mapper
 
         elif args.signal == 'T2bt':
             tmpList = []
