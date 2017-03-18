@@ -111,7 +111,7 @@ directories = { key : [ os.path.join( data_directory, postProcessing_directory, 
 
 DY              = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=color.DY,              texName="DY",                                directory=directories['DY'])
 DY_LO           = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO'])
-DY_HT_LO        = Sample.fromDirectory(name="DY_HT_LO",         treeName="Events", isData=False, color=color.DY,              texName="DY (LO,HT)",                        directory=directories['DY_HT_LO'])
+DY_HT_LO        = Sample.fromDirectory(name="DY_HT_LO",         treeName="Events", isData=False, color=color.DY,              texName="Drell-Yan",                         directory=directories['DY_HT_LO'])
 #TTJets          = Sample.fromDirectory(name="TTJets",           treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}",                          directory=directories['TTJets'])
 TTJets_Lep      = Sample.fromDirectory(name="TTJets_Lep",       treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}(lep)",                     directory=directories['TTJets_Lep'])
 TTJets_Singlelep= Sample.fromDirectory(name="TTJets_Singlelep", treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}",                          directory=directories['TTJets_Singlelep'])
@@ -121,7 +121,7 @@ TTJets_Dilep    = Sample.fromDirectory(name="TTJets_Dilep",     treeName="Events
 TTLep_pow       = Sample.fromDirectory(name="TTLep_pow",        treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t} + Jets (lep,pow)",         directory=directories['TTLep_pow'])
 #TT_pow          = Sample.fromDirectory(name="TT_pow",        treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t} + Jets (powheg)",         directory=directories['TT_pow']) #FIXME dilep
 Top             = Sample.fromDirectory(name="Top",              treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top'])
-Top_pow         = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t(powHeg)",         directory=directories['Top_pow'])
+Top_pow         = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
 #Top_pow_incl    = Sample.fromDirectory(name="Top_pow_incl",     treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t(pow incl)",       directory=directories['Top_pow_incl']) #FIXME dilep
 #Top_amc         = Sample.fromDirectory(name="Top_amc",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t(amc@NLO)",        directory=directories['Top_amc'])
 

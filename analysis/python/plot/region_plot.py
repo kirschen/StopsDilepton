@@ -415,5 +415,6 @@ for channel in channels:
         widths = {'x_width':1000, 'y_width':700},
         drawObjects = drawObjects,
         legend = legend,
-        canvasModifications = canvasModifications
+        canvasModifications = canvasModifications,
+        histModifications = [lambda h: h.GetYaxis().SetNoExponent(), lambda h: h.GetYaxis().SetLabelSize(30)] if (args.control and args.control=="TTZ") else [],
     )
