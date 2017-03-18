@@ -20,12 +20,12 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+data_directory = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
 from RootTools.core.standard import *
 
@@ -187,7 +187,7 @@ met_bins        = [ (80,120) , (120, 160), (160,200), (80,200), (200,-1)]
 mt2ll_bins      = [ (0,25) , (25, 50), (50, 75), (75, 100)]
 mt2blbl_bins    = [ ( 0, 100), (100, 200), (200, -1 )]
 
-filename = "/afs/hephy.at/work/r/rschoefbeck/StopsDilepton/ttjets/correlation_yields_%i.pkl"% maxN
+filename = "/afs/hephy.at/work/r/rschoefbeck/StopsDilepton/ttjets/correlation_yields_03Feb2017_%i.pkl"% maxN
 if os.path.exists(filename):
     results = pickle.load(file(filename))
     print "Loaded %s" % filename 

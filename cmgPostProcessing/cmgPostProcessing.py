@@ -426,7 +426,7 @@ if isTiny:
     #branches to be kept for data and MC
     branchKeepStrings_DATAMC = \
        ["run", "lumi", "evt", "isData", "nVert",
-        "met_pt", "met_phi", "met_caloPt", "met_caloPhi",
+        "met_pt", "met_phi", "met_chsPt", "met_chsPhi",
 #        "puppiMet_pt","puppiMet_phi",
         "Flag_*", "HLT_*",
         #"HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",

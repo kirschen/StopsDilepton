@@ -29,16 +29,16 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 plot_directory += "/ttjets_correlation"
 
-data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+data_directory = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
 samples = [TTJets_Dilep, TTLep_pow, TTJets]
 
-maxN = -1
+maxN = 1
 for sample in samples:
     if maxN>0:
         sample.reduceFiles(to=maxN)
