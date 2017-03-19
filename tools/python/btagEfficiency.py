@@ -130,7 +130,12 @@ class btagEfficiency:
         return 1
 
     def getSF(self, pdgId, pt, eta):
-        if pt<20: raise ValueError( "BTag SF Not implemented below 20 GeV. Got %f"%pt )
+        # BTag SF Not implemented below 20 GeV
+        if pt<20: 
+            if self.fastSim:
+                return (1,1,1,1,1,1,1)
+            else:
+                return (1,1,1,1,1)
         #autobounds are implemented now, no doubling of uncertainties necessary anymore
         flavKey = toFlavourKey(pdgId)
         
