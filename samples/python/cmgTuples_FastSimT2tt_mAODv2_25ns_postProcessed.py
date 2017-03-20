@@ -2,6 +2,9 @@
 import copy, os, sys
 import ROOT
 
+# Logging
+import logging
+logger = logging.getLogger(__name__)
 
 #RootTools
 from RootTools.core.standard import *
@@ -22,6 +25,8 @@ except:
     #user specific
     import StopsDilepton.tools.user as user
     data_directory = user.data_directory
+
+logger.info("Loading T2tt samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
 #for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
@@ -45,4 +50,6 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt
         exec("%s=tmp"%name)
         exec("signals_T2tt.append(%s)"%name)
 
-print "Loaded %i T2tt signals: %s"%(len(signals_T2tt), ",".join([s.name for s in signals_T2tt]))
+logger.info("Loaded %i T2tt signals", len(signals_T2tt))
+logger.debug("Loaded T2tt signals: %s", ",".join([s.name for s in signals_T2tt]))
+

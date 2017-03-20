@@ -36,21 +36,22 @@ def cleanContour(g, model="T2tt"):
             if  (x<250) or x-y<200 or y>450 or x>900:
                 remove.append(i)
         elif model=="T8bbllnunu_XCha0p5_XSlep0p05":
+            pass
             #if y>150 or x<400 or (x<500 and y>50):
-            if x<440 or y>100 or x >1200:#x<480 or y>150 or x >1200
-                remove.append(i)
+            #if x<440 or y>100 or x >1200:#x<480 or y>150 or x >1200
+            #    remove.append(i)
         elif model=="T8bbllnunu_XCha0p5_XSlep0p09":
             if x>1300 or y>300 or x <500:#x<480 or y>150 or x >1200
                 remove.append(i)
         elif model=="T8bbllnunu_XCha0p5_XSlep0p5":
-            #pass
-            if y > (x-170):
-                remove.append(i)
+            pass
+            #if y > (x-170):
+            #    remove.append(i)
         elif model=="T8bbllnunu_XCha0p5_XSlep0p95":
             pass
-            if y > (x-100) or x>1450 or x<700:
+            #if y > (x-100) or x>1450 or x<700:
             #if x<700 or x > 1400:
-                remove.append(i)
+            #    remove.append(i)
         else: print model, "not implemented"
     for i in reversed(remove):
         g.RemovePoint(i)

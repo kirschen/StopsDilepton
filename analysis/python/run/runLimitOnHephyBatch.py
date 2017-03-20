@@ -17,8 +17,8 @@ signalEstimators = [s.name for s in signals_TTbarDM]
 
 import time
 
-#cmd = "submitBatch.py --title='LimitDM'"
-cmd = "echo"
+cmd = "submitBatch.py --title='LimitDM'"
+#cmd = "echo"
 
 for i, estimator in enumerate(signalEstimators):
 #for i in range(480,493):
