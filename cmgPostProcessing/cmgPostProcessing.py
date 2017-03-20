@@ -757,8 +757,8 @@ def filler( event ):
     allJets      = getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=jetAbsEtaCut)
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)
     soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
-    bJets        = filter(lambda j:isBJet(j)    , jets)
-    nonBJets     = filter(lambda j:not isBJet(j), jets)
+    bJets        = filter(lambda j:isBJet(j) and abs(j['eta'])<=2.4    , jets)
+    nonBJets     = filter(lambda j:not ( isBJet(j) and abs(j['eta'])<=2.4 ), jets)
     if isVeryLoose:
         ## all leptons up to relIso 0.4
         mu_selector = muonSelector( relIso03 = 999., dxy = 1., dz = 0.1 )
@@ -839,8 +839,8 @@ def filler( event ):
             addJERScaling(j)
         for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown']:
             jets_sys[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_'+var), allJets)
-            bjets_sys[var]      = filter(lambda j: isBJet(j), jets_sys[var])
-            nonBjets_sys[var]   = filter(lambda j: not isBJet(j), jets_sys[var])
+            bjets_sys[var]      = filter(lambda j: isBJet(j) and abs(j['eta'])<2.4, jets_sys[var])
+            nonBjets_sys[var]   = filter(lambda j: not ( isBJet(j) and abs(j['eta'])<2.4), jets_sys[var])
 
             setattr(event, "nJetGood_"+var, len(jets_sys[var]))
             setattr(event, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
@@ -1012,8 +1012,7 @@ def filler( event ):
             btagEff.addBTagEffToJet(j)
         for var in btagEff.btagWeightNames:
             if var!='MC':
-                setattr(event, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
-
+                setattr(event, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, filter( lambda j: abs(j['eta'])<2.4, nonBJets ) ) )
     # gen information on extra leptons
     if isMC and not options.skipGenLepMatching:
         genSearch.init( gPart )
