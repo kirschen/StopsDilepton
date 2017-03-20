@@ -19,17 +19,19 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v30/dilepTiny/"
+data_directory = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
+#data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
+#postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
+#from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+data_directory = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-T2tt                    = T2tt_650_1
-T2tt2                   = T2tt_500_250
-signals = [ T2tt, T2tt2]
+#T2tt                    = T2tt_650_1
+#T2tt2                   = T2tt_500_250
+#signals = [ T2tt, T2tt2]
 
 from RootTools.core.standard import *
 
@@ -39,17 +41,17 @@ from StopsDilepton.tools.helpers import getVarValue, getYieldFromChain
 samples = [
     TTZ, TTXNoZ, multiBoson, #QCD_Mu5EMbcToE, 
     DY_HT_LO, 
-    #TTbarDMJets_scalar_Mchi_1_Mphi_100,
-    #TTbarDMJets_pseudoscalar_Mchi_1_Mphi_100,
 #    TTbarDMJets_scalar_Mchi_1_Mphi_20,
 #    TTbarDMJets_pseudoscalar_Mchi_1_Mphi_20,
 #    TTbarDMJets_scalar_Mchi_1_Mphi_50,
 #    TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50,
-#    Top_pow, 
-    TTLep_pow,
-    singleTop,
-    T2tt_650_1,
-    T2tt_500_250,
+    Top_pow, 
+#    TTLep_pow,
+#    singleTop,
+#    T2tt_650_1,
+#    T2tt_500_250,
+    TTbarDMJets_scalar_Mchi_1_Mphi_10_ext1,
+    TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10,
 ]
 #QCD_Mu5EMbcToE.name = 'QCD'
 

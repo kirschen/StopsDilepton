@@ -151,9 +151,9 @@ def get_parser():
         help="LHE cut."
         )
 
-    argParser.add_argument('--keepForwardJets',
+    argParser.add_argument('--keepAllJets',
         action='store_true',
-        help="Is T2tt signal?"
+        help="Keep also forward jets?"
         )
 
     argParser.add_argument('--small',
@@ -425,8 +425,8 @@ except:
 if isTiny:
     #branches to be kept for data and MC
     branchKeepStrings_DATAMC = \
-       ["run", "lumi", "evt", "isData", "nVert",
-        "met_pt", "met_phi", "met_caloPt", "met_caloPhi",
+       ["run", "lumi", "evt", "isData", "rho", "nVert",
+        "met_pt", "met_phi", "met_chsPt", "met_chsPhi",
 #        "puppiMet_pt","puppiMet_phi",
         "Flag_*", "HLT_*",
         #"HLT_mumuIso", "HLT_ee_DZ", "HLT_mue",
@@ -742,7 +742,7 @@ def filler( event ):
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
 
     # jet/met related quantities, also load the leptons already
-    if options.keepForwardJets:
+    if options.keepAllJets:
         jetAbsEtaCut = 99.
     else:
         jetAbsEtaCut = 2.4
@@ -756,8 +756,9 @@ def filler( event ):
         
     allJets      = getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=jetAbsEtaCut)
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)
-    bJets        = filter(lambda j:isBJet(j), jets)
-    nonBJets     = filter(lambda j:not isBJet(j), jets)
+    soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
+    bJets        = filter(lambda j:isBJet(j) and abs(j['eta'])<=2.4    , jets)
+    nonBJets     = filter(lambda j:not ( isBJet(j) and abs(j['eta'])<=2.4 ), jets)
     if isVeryLoose:
         ## all leptons up to relIso 0.4
         mu_selector = muonSelector( relIso03 = 999., dxy = 1., dz = 0.1 )
@@ -786,10 +787,13 @@ def filler( event ):
     event.met_phi = r.met_phi
 
     # Filling jets
-    event.nJetGood   = len(jets)
-    for iJet, jet in enumerate(jets):
+    store_jets = jets if not options.keepAllJets else soft_jets + jets
+    store_jets.sort( key = lambda j:-j['pt'])
+    event.nJetGood   = len(store_jets)
+    for iJet, jet in enumerate(store_jets):
         for b in jetVarNames:
             getattr(event, "JetGood_"+b)[iJet] = jet[b]
+
     if isSingleLep:
         # Compute M3 and the three indiced of the jets entering m3
         event.m3, event.m3_ind1, event.m3_ind2, event.m3_ind3 = m3( jets )
@@ -835,8 +839,8 @@ def filler( event ):
             addJERScaling(j)
         for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown']:
             jets_sys[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_'+var), allJets)
-            bjets_sys[var]      = filter(isBJet, jets_sys[var])
-            nonBjets_sys[var]   = filter(lambda j: not isBJet(j), jets_sys[var])
+            bjets_sys[var]      = filter(lambda j: isBJet(j) and abs(j['eta'])<2.4, jets_sys[var])
+            nonBjets_sys[var]   = filter(lambda j: not ( isBJet(j) and abs(j['eta'])<2.4), jets_sys[var])
 
             setattr(event, "nJetGood_"+var, len(jets_sys[var]))
             setattr(event, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
@@ -1008,8 +1012,7 @@ def filler( event ):
             btagEff.addBTagEffToJet(j)
         for var in btagEff.btagWeightNames:
             if var!='MC':
-                setattr(event, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, nonBJets ) )
-
+                setattr(event, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, filter( lambda j: abs(j['eta'])<2.4, nonBJets ) ) )
     # gen information on extra leptons
     if isMC and not options.skipGenLepMatching:
         genSearch.init( gPart )

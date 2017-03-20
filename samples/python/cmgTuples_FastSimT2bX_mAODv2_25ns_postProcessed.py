@@ -2,6 +2,9 @@
 import copy, os, sys
 import ROOT
 
+# Logging
+import logging
+logger = logging.getLogger(__name__)
 
 #RootTools
 from RootTools.core.standard import *
@@ -25,6 +28,8 @@ except:
     import StopsDilepton.tools.user as user
     data_directory = user.data_directory
 
+logger.info("Loading T2bX samples from directory %s", os.path.join(data_directory, postProcessing_directory))
+
 #for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2bW')):
     if f.endswith('.root') and f.startswith('T2bW_'):
@@ -47,7 +52,9 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2bW
         exec("%s=tmp"%name)
         exec("signals_T2bW.append(%s)"%name)
 
-print "Loaded %i T2bW signals: %s"%(len(signals_T2bW), ",".join([s.name for s in signals_T2bW]))
+
+logger.info("Loaded %i T2bW signals", len(signals_T2bW))
+logger.debug("Loaded T2bW signals: %s", ",".join([s.name for s in signals_T2bW]))
 
 
 for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2bt')):
@@ -71,5 +78,7 @@ for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2bt
         exec("%s=tmp"%name)
         exec("signals_T2bt.append(%s)"%name)
 
-print "Loaded %i T2bt signals: %s"%(len(signals_T2bt), ",".join([s.name for s in signals_T2bt]))
+logger.info("Loaded %i T2bt signals", len(signals_T2bt))
+logger.debug("Loaded T2bt signals: %s", ",".join([s.name for s in signals_T2bt]))
+
 

@@ -167,10 +167,13 @@ if args.copyIndexPHP:
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+
+data_directory = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
 signals = []
 if   args.signal == "T2tt": 
