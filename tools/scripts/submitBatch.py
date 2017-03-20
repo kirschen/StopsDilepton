@@ -26,6 +26,7 @@ hephy_user_initial = os.getenv("USER")[0]
 hostname = os.getenv("HOSTNAME")
 hosts_info = {
             'heplx' : {'site': 'hephy.at' , 'batch':'slurm'   ,'def_opts':''},
+            'worker' : {'site': 'hephy.at' , 'batch':'slurm'   ,'def_opts':''},
             'lxplus': {'site': 'cern.ch'  , 'batch':'lxbatch' ,'def_opts':'-q 8nh'}
         }
 host   = [ h for h in hosts_info.keys() if h in hostname ]

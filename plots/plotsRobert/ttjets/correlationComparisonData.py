@@ -35,11 +35,11 @@ argParser.add_argument('--njet', default='2p', type=str, action='store', choices
 argParser.add_argument('--relIso03', default=0.12, type=float, action='store')
 argParser.add_argument('--nbtag', default='1p', action='store', choices=['0', '0p', '1', '1p', ])
 argParser.add_argument('--met', default='def', action='store', choices=['def', 'none', 'low'], help='met cut', )
-argParser.add_argument('--pu', default="reweightPU27fb", action='store', choices=["None", "reweightPU27fb", "reweightPU27fbUp", "reweightPU27fbDown"], help='PU weight', )
+argParser.add_argument('--pu', default="reweightPU36fb", action='store', choices=["None", "reweightPU36fb", "reweightPU36fbUp", "reweightPU36fbDown"], help='PU weight', )
 argParser.add_argument('--ttjets', default='pow', action='store', choices=['mg', 'pow'], help='ttjets sample', )
 argParser.add_argument('--signals', action='store', nargs='*', type=str, default=[], help="Signals?")
 argParser.add_argument('--overwrite', default = False, action='store_true', help='overwrite?', )
-argParser.add_argument('--plot_directory', default='80X_v21_correlation', action='store', )
+argParser.add_argument('--plot_directory', default='80X_v35_correlation', action='store', )
 
 args = argParser.parse_args()
 
@@ -58,17 +58,16 @@ def getZCut(mode):
     return "(1)"
 
 # Extra requirements on data
-mcFilterCut   = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
-dataFilterCut = mcFilterCut+"&&weight>0"
+from StopsDilepton.tools.objectSelection import getFilterCut
+mcFilterCut   = getFilterCut( isData = False ) 
+dataFilterCut = getFilterCut( isData = True )
 
-# MC
-data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-
-data_directory = "/afs/hephy.at/data/dspitzbart01/cmgTuples/"
-postProcessing_directory = "postProcessed_80X_v21/dilepTiny"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+data_directory = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
+from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
+postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
 sample_DoubleMuon  = DoubleMuon_Run2016_backup
 sample_DoubleEG    = DoubleEG_Run2016_backup
@@ -190,7 +189,7 @@ lumi_scale = sum(d.lumi for d in data_samples)/float(len(data_samples))/1000
 
 logger.info( "Lumi scale for mode %s is %3.2f", args.mode, lumi_scale )
 
-mc_weight_string = "weight*reweightDilepTriggerBackup*reweightLeptonSF"#*reweightLeptonHIPSF*reweightBTag_SF"
+mc_weight_string = "weight*reweightDilepTriggerBackup*reweightLeptonSF*reweightBTag_SF"
 if args.pu != "None":
     mc_weight_string+="*"+args.pu
 
@@ -202,11 +201,11 @@ for sample in mc_samples :
 for sample in mc_samples + signal_samples:
     sample.setSelectionString([ mcFilterCut, lepton_selection_string_mc])
     if args.pu != "None":
-        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF#*event.reweightBTag_SF*event.reweightLeptonHIPSF
+        sample.read_variables = [args.pu+'/F', 'reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightTopPt/F']
+        sample.weight = lambda event, sample: getattr( event, args.pu )*event.reweightDilepTriggerBackup*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightTopPt
     else:
-        sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightLeptonHIPSF/F']
-        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightLeptonSF#*event.reweightBTag_SF*event.reweightLeptonHIPSF
+        sample.read_variables = ['reweightDilepTriggerBackup/F', 'reweightBTag_SF/F', 'reweightLeptonSF/F', 'reweightTopPt/F']
+        sample.weight = lambda event, sample: event.reweightDilepTriggerBackup*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightTopPt
 
 weight = lambda event, sample: event.weight
 
