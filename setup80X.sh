@@ -38,8 +38,8 @@ git cms-merge-topic cms-egamma:EGM_gain_v1
 cd EgammaAnalysis/ElectronTools/data
 # download the txt files with the corrections
 git clone https://github.com/ECALELFS/ScalesSmearings.git
-git checkout Moriond17_23Jan_v2
-
+cd ScalesSmearings
+git checkout Moriond17_gainSwitch_unc
 
 #compile
 cd $CMSSW_BASE/src && scram b -j 8 
