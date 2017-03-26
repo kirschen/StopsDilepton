@@ -25,6 +25,8 @@ git push -u origin heppy_80X
 # now get the CMGTools subsystem from the cmgtools-lite repository
 git clone -o cmg-central https://github.com/CERN-PH-CMG/cmgtools-lite.git -b 80X CMGTools
 cd CMGTools 
+git fetch origin
+git checkout -b 80X_StopsDilepton origin/80X_StopsDilepton
 
 # add your fork, and push the 80X branch to it
 git remote add origin git@github.com:GhentAnalysis/cmgtools-lite.git 
@@ -38,9 +40,6 @@ cd EgammaAnalysis/ElectronTools/data
 git clone https://github.com/ECALELFS/ScalesSmearings.git
 git checkout Moriond17_23Jan_v2
 
-cd $CMSSW_BASE/src
-git fetch origin
-git checkout -b 80X_StopsDilepton origin/80X_StopsDilepton
 
 #compile
 cd $CMSSW_BASE/src && scram b -j 8 
