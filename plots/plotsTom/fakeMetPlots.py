@@ -21,7 +21,7 @@ from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',         action='store',      default='T2tt',          nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
+argParser.add_argument('--signal',         action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
 argParser.add_argument('--noData',         action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--plot_directory', action='store',      default='fakeMetPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
@@ -117,15 +117,14 @@ from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10, TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
 T2tt                    = T2tt_750_1
 T2tt2                   = T2tt_600_300
 T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
 T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
 
-DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
+DM                      = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
+DM2                     = TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
 DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
 DM2.style               = styles.lineStyle( 28,          width=3)
 
@@ -228,13 +227,7 @@ for index, mode in enumerate(allModes):
   lumi_scale                 = data_sample.lumi/1000
 
   if args.noData: lumi_scale = 36.5
-  # Blinding policy for DM
-  if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.noData and args.signal == "DM":
-    if args.signal == "DM":
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
-      lumi_scale = lumi_scale/15
-  else:
-    weight_ = lambda event, sample: event.weight
+  weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
 
