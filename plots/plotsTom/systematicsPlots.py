@@ -80,7 +80,7 @@ selections = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
 #
 # Systematics to run over
 #
-jet_systematics    = ['JECUp','JECDown']# 'JERDown','JECVUp','JECVDown']
+jet_systematics    = ['JECUp','JECDown', 'JERUp', 'JERDown']#,'JECVUp','JECVDown']
 met_systematics    = ['UnclusteredEnUp', 'UnclusteredEnDown']
 jme_systematics    = jet_systematics + met_systematics
 weight_systematics = ['PU36fbUp', 'PU36fbDown', 'TopPt', 'DilepTriggerBackupDown', 'DilepTriggerBackupUp', 'LeptonSFDown', 'LeptonSFUp','BTag_SF_b_Down', 'BTag_SF_b_Up','BTag_SF_l_Down', 'BTag_SF_l_Up']
@@ -95,7 +95,7 @@ sys_pairs = [\
     ('Unclustered', 'UnclusteredEnUp', 'UnclusteredEnDown'),
     ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
     ('TopPt',       'TopPt', None),
-#   ('JER',         'JERUp', 'JERDown'),
+    ('JER',         'JERUp', 'JERDown'),
     ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up'),
     ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
     ('trigger',     'DilepTriggerBackupDown', 'DilepTriggerBackupUp'),
