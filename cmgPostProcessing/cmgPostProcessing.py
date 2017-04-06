@@ -1200,8 +1200,12 @@ if options.nJobs == 1:
 
 logger.info("Copying log file to %s", output_directory )
 copyLog = subprocess.call(['cp', logFile, output_directory] )
-if copyLog: logger.info( "Copying log from %s to %s failed", logFile, output_directory)
-else: logger.info( "Successfully copied log file" )
+if copyLog:
+    logger.info( "Copying log from %s to %s failed", logFile, output_directory)
+else:
+    logger.info( "Successfully copied log file" )
+    os.remove(logFile)
+    logger.info( "Removed temporary log file" )
 
 if writeToDPM:
     for dirname, subdirs, files in os.walk( directory ):

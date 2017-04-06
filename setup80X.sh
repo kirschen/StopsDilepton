@@ -30,6 +30,15 @@ cd CMGTools
 git remote add origin git@github.com:GhentAnalysis/cmgtools-lite.git 
 git push -u origin 80X_StopsDilepton
 
+cd $CMSSW_BASE/src
+#add the repository with the updated Egamma package
+git cms-merge-topic cms-egamma:EGM_gain_v1
+cd EgammaAnalysis/ElectronTools/data
+# download the txt files with the corrections
+git clone https://github.com/ECALELFS/ScalesSmearings.git
+git checkout Moriond17_23Jan_v2
+
+cd $CMSSW_BASE/src
 git fetch origin
 git checkout -b 80X_StopsDilepton origin/80X_StopsDilepton
 

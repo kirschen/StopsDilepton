@@ -2,7 +2,7 @@ import ROOT,pickle
 import time
 
 from StopsDilepton.samples.heppy_dpm_samples import mc_heppy_mapper
-from StopsDilepton.samples.heppy_dpm_samples import T2tt_heppy_mapper
+from StopsDilepton.samples.heppy_dpm_samples import SUSY_heppy_mapper
 from StopsDilepton.samples.heppy_dpm_samples import data_heppy_mapper
 from StopsDilepton.samples.heppy_dpm_samples import ttbarDM_heppy_mapper
 
@@ -11,7 +11,7 @@ from StopsDilepton.tools.helpers import natural_sort
 mc = mc_heppy_mapper
 mc_samples = mc.heppy_sample_names
 
-SUSY_signal = T2tt_heppy_mapper
+SUSY_signal = SUSY_heppy_mapper
 SUSY_signal_samples = SUSY_signal.heppy_sample_names
 
 DM_signal = ttbarDM_heppy_mapper

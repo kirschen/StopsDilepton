@@ -7,17 +7,33 @@ import ROOT
 from array import array
 from StopsDilepton.tools.user import combineReleaseLocation, analysis_results, plot_directory
 
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("--postFit",          dest="postFit",             default=False,               action='store_true', help="")
+parser.add_option("--aggregate",        dest="aggregate",             default=False,               action='store_true', help="")
+parser.add_option("--onlySR",           dest="onlySR",             default=False,               action='store_true', help="")
+parser.add_option("--datacard",         dest="datacard",             default="T2tt_1100_150",               action='store', help="Which datacard?")
+parser.add_option("--overwrite",        dest="overwrite",             default=False,               action='store_true', help="Overwrite existing mlfit root file")
+(options, args) = parser.parse_args()
+
+
 ROOT.gStyle.SetOptStat("")
 
 #'aggregated/fitAll/cardFiles/T2tt/T2tt_800_100.txt'
 #'aggregated/signalOnly/cardFiles/T2tt/T2tt_800_100.txt'
-fname = analysis_results + '/aggregated/fitAll/cardFiles/T2tt/T2tt_400_1.txt'
-releaseLocation = combineReleaseLocation
 
-postFit = True
+if options.aggregate:
+    agg = "/aggregated/"
+else:
+    agg = "/"
+
+fname = analysis_results + '%sfitAll/cardFiles/T2tt/%s.txt'%(agg,options.datacard)
+releaseLocation = '/afs/hephy.at/work/d/dspitzbart/higgs/CMSSW_7_4_7/src/HiggsAnalysis/CombinedLimit/'
+
+postFit = options.postFit
 makeTable = True
-aggregate = True
-onlySR = False
+aggregate = options.aggregate
+onlySR = options.onlySR
 
 nSR = 26
 if aggregate: nSR = 3
@@ -28,7 +44,7 @@ if postFit: postfix += "_postfit"
 if aggregate: postfix += '_aggregated'
 if onlySR: postfix += '_onlySR'
 
-postfix += '_SBtest'
+postfix += ''
 
 def calcCovariance(fname=None, options=""):
     import uuid, os
@@ -56,7 +72,9 @@ def calcCovariance(fname=None, options=""):
 
     #Run fit
     if postFit:
-        fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --setPhysicsModelParameterRange mask_signal=1 --saveOverall myshapecard.root"
+        masks = ['mask_ch1_Bin'+str(i)+'=1' for i in range(nSR)]
+        maskString = ','.join(masks)
+        fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --setPhysicsModelParameters "+maskString+" --saveOverall myshapecard.root"
     else:
         fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 5000 --saveOverall --preFitValue 0  myshapecard.root"
 
@@ -100,7 +118,7 @@ blue = array("d",[1.00, 1.00, 0.50, 0.40, 0.50])
 ROOT.TColor.CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont)
 ROOT.gStyle.SetNumberContours(NCont)
 
-if not os.path.isfile(fname.replace(".txt","_mlfit.root")):
+if not os.path.isfile(fname.replace(".txt","_mlfit.root")) or options.overwrite:
     calcCovariance(fname=fname, options="")
 
 f1 = ROOT.TFile(fname.replace(".txt","_mlfit.root"))
@@ -146,7 +164,7 @@ pad1.SetLogz()
 
 sorted_cov.Draw("colz")
 
-plot_dir = plot_directory + '/covariance/'
+plot_dir = plot_directory + '/covariance_fix/'
 if not os.path.isdir(plot_dir):
     os.mkdir(plot_dir)
 
