@@ -11,7 +11,7 @@ from StopsDilepton.analysis.regions         import regionsO as regions
 from StopsDilepton.analysis.regions         import noRegions
 from StopsDilepton.tools.user               import plot_directory
 from StopsDilepton.samples.color            import color
-from StopsDilepton.analysis.SetupHelpers    import channels, allChannels
+from StopsDilepton.analysis.SetupHelpers    import channels, allChannels, trilepChannels
 
 # argParser
 import argparse
@@ -19,9 +19,11 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel', action='store',      default='INFO', nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument("--signal",   action='store',      default='T2tt', nargs='?', choices=["T2tt","TTbarDM","T8"],                                              help="Which signal to plot?")
 argParser.add_argument("--control",  action='store',      default=None,   nargs='?', choices=[None, "DY", "VV", "DYVV","TTZ"],                                     help="For CR region?")
-argParser.add_argument("--scale",    action='store_true', default=False,  help="Scale CR using pulls from nuisance table? (not yet for TTZ)")
+argParser.add_argument("--scale",    action='store_true', default=False,  help="Scale CR using pulls from nuisance table?")
+argParser.add_argument("--splitTop", action='store_true', default=False,  help="Split top in gaussian, non-gaussian and fake contribution")
 argParser.add_argument("--labels",   action='store_true', default=False,  help="Plot labels?")
 argParser.add_argument("--ratio",    action='store_true', default=True,   help="Plot ratio?")
+argParser.add_argument("--blinded",  action='store_true', default=False,  help="Blind for DM?")
 argParser.add_argument("--noData",   action='store_true', default=False,  help="Do not plot data?")
 args = argParser.parse_args()
 
@@ -53,43 +55,50 @@ elif args.control == "VV":   detailedEstimators = constructEstimatorList(['multi
 elif args.control == "DYVV": detailedEstimators = constructEstimatorList(['DY', 'multiBoson', 'TTJets', 'TTZ', 'other'])
 elif args.control == "TTZ":  detailedEstimators = constructEstimatorList(['TTZ', 'TTJets', 'multiBoson', 'DY', 'other'])
 
+if args.splitTop:            detailedEstimators = constructEstimatorList(['Top_gaussian','Top_nongaussian','Top_fakes', 'TTZ', 'multiBoson', 'other','DY'])
+
 for estimator in detailedEstimators:
     estimatorColor = getattr( color, estimator.name.split('-')[0] ) 
     estimator.style = styles.fillStyle(estimatorColor, lineColor = estimatorColor )
 
 
+if args.control: postfix = 'controlRegions_' + args.control + ('_scaled' if args.scale else '')
+else:            postfix = 'signalRegions'
+
 # signals and blindings
 scale = 1.
-if not args.control:
-  postfix = 'signalRegions'
-  if args.signal == "T2tt":
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import T2tt_750_1, T2tt_600_300
-    signals        = [T2tt_750_1, T2tt_600_300]
-    signalSetup    = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
-  elif args.signal == "T8":
-    from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import T8bbllnunu_XCha0p5_XSlep0p05_800_1, T8bbllnunu_XCha0p5_XSlep0p5_800_1, T8bbllnunu_XCha0p5_XSlep0p95_800_1
-    signals        = [T8bbllnunu_XCha0p5_XSlep0p05_800_1, T8bbllnunu_XCha0p5_XSlep0p5_800_1, T8bbllnunu_XCha0p5_XSlep0p95_800_1]
-    signalSetup    = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
-    postfix       += "_T8bbllnunu"
-  elif args.signal == "TTbarDM":
-    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-    signals        = [TTbarDMJets_scalar_Mchi_1_Mphi_10, TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10]
+if args.signal == "T2tt":
+  from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import T2tt_750_1, T2tt_600_300
+  signals        = [T2tt_750_1, T2tt_600_300]
+  signalSetup    = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
+elif args.signal == "T8":
+  from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import T8bbllnunu_XCha0p5_XSlep0p05_800_1, T8bbllnunu_XCha0p5_XSlep0p5_800_1, T8bbllnunu_XCha0p5_XSlep0p95_800_1
+  signals        = [T8bbllnunu_XCha0p5_XSlep0p05_800_1, T8bbllnunu_XCha0p5_XSlep0p5_800_1, T8bbllnunu_XCha0p5_XSlep0p95_800_1]
+  signalSetup    = setup.sysClone(sys = {'reweight':['reweightLeptonFastSimSF']})
+  postfix       += "_T8bbllnunu"
+elif args.signal == "TTbarDM":
+  from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10, TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
+  signals        = [TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10, TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10] #   setup.blinding = "(evt%15==0)"
+  if args.blinded:
     setup.blinding = "(evt%15==0)"
+    postfix       += "_blinded"
     scale          = 1./15.
-    signalSetup    = setup
-    postfix       += "_DM"
+  signalSetup    = setup
+  postfix       += "_DM"
 
- 
-# no signals if we are looking at CR
-if args.control:
-  signals = []
-  postfix = 'controlRegions_' + args.control + ('_scaled' if args.scale else '')
 
+if args.noData: 
+  postfix += '_noData'
+  args.ratio = False 
+
+if args.splitTop:
+  postfix += '_splitTop'
 
 # signals style
-signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals]
+signalEstimators = [ MCBasedEstimate(name=s.name,  sample={channel:s for channel in allChannels+trilepChannels}, cacheDir=setup.defaultCacheDir() ) for s in signals]
 for i, estimator in enumerate(signalEstimators):
-  estimator.style = styles.lineStyle( ROOT.kBlack, width=2, dotted=(i==1), dashed=(i==2))
+  if args.signal != "TTbarDM":  estimator.style = styles.lineStyle( ROOT.kBlack, width=2, dotted=(i==1), dashed=(i==2))
+  else:                         estimator.style = styles.lineStyle( ROOT.kBlack if i==0 else 28, width=3)
   estimator.isSignal=True
  
 estimators = detailedEstimators + signalEstimators
@@ -370,8 +379,9 @@ for channel in channels:
         r_box.SetFillStyle(3444)
         r_box.SetFillColor(ROOT.kBlack)
 
-        boxes.append( box )
-        ratio_boxes.append( r_box )
+        if not args.splitTop:
+          boxes.append( box )
+          ratio_boxes.append( r_box )
 
 
     if args.signal == "T2tt" or args.signal == "T8": legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
@@ -415,6 +425,7 @@ for channel in channels:
         widths = {'x_width':1000, 'y_width':700},
         drawObjects = drawObjects,
         legend = legend,
+        copyIndexPHP = True,
         canvasModifications = canvasModifications,
         histModifications = [lambda h: h.GetYaxis().SetNoExponent(), lambda h: h.GetYaxis().SetLabelSize(30)] if (args.control and args.control=="TTZ") else [],
     )
