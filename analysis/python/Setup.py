@@ -78,6 +78,9 @@ class Setup:
         self.dataLumi = dataLumi
 
         self.sample = {
+        'Top_gaussian' :   {c:Top_gaussian for c in channels+trilepChannels},
+        'Top_nongaussian': {c:Top_nongaussian for c in channels+trilepChannels},
+        'Top_fakes' :      {c:Top_fakes for c in channels+trilepChannels},
         'DY':         {c:DYSample     for c in channels+trilepChannels},
         'TTJets' :    {c:TTJetsSample for c in channels+trilepChannels},
         'TTZ' :       {c:TTZ          for c in channels+trilepChannels},
