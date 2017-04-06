@@ -102,6 +102,8 @@ dirs['EWK']              = dirs['diBoson'] + dirs['triBoson'] + dirs['TTX']
 #dirs['QCD']              = ["QCD_Pt30to50", "QCD_Pt50to80", "QCD_Pt80to120", "QCD_Pt120to170", "QCD_Pt170to300", "QCD_Pt300to470", "QCD_Pt470to600", "QCD_Pt600to800", "QCD_Pt800to1000", "QCD_Pt1000to1400", "QCD_Pt1400to1800", "QCD_Pt1800to2400", "QCD_Pt2400to3200"]
 #dirs['QCD']             = ["QCD_Pt10to15", "QCD_Pt15to30", "QCD_Pt30to50", "QCD_Pt50to80", "QCD_Pt80to120", "QCD_Pt120to170", "QCD_Pt170to300", "QCD_Pt300to470", "QCD_Pt470to600", "QCD_Pt600to800", "QCD_Pt800to1000", "QCD_Pt1000to1400", "QCD_Pt1400to1800", "QCD_Pt1800to2400", "QCD_Pt2400to3200", "QCD_Pt3200"]
 
+dirs['nonTop']           = dirs['multiBoson'] + dirs['DY_HT_LO'] + dirs['TTZ_LO'] + dirs['TTXNoZ']
+
 #dirs['WGToLNuG']     = ["WGToLNuG"]
 dirs['ZGTo2LG']      = ["ZGTo2LG_ext"]
 #dirs['WGJets']       = ["WGJets"]
@@ -126,6 +128,7 @@ Top_pow         = Sample.fromDirectory(name="Top_pow",          treeName="Events
 #Top_pow_incl    = Sample.fromDirectory(name="Top_pow_incl",     treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t(pow incl)",       directory=directories['Top_pow_incl']) #FIXME dilep
 #Top_amc         = Sample.fromDirectory(name="Top_amc",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t(amc@NLO)",        directory=directories['Top_amc'])
 
+nonTop          = Sample.fromDirectory(name="Top",              treeName="Events", isData=False, color=color.DY,          texName="other backgrounds",                 directory=directories['nonTop'])
 
 #TTJets_HT_LO   = Sample.fromDirectory(name="TTJets_HT_LO",     treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t} + Jets (HT,LO)",           directory=directories['TTJets_HT_LO'])
 singleTop      = Sample.fromDirectory(name="singleTop",        treeName="Events", isData=False, color=color.singleTop,       texName="single top",                        directory=directories['singleTop'])
@@ -168,4 +171,27 @@ multiBoson     = Sample.fromDirectory(name="multiBoson",       treeName="Events"
 #ZGJets   = Sample.fromDirectory(name="ZGJets",       treeName="Events", isData=False, color=color.diBoson,         texName="ZGJets",                       directory=directories['ZGJets']  )
 ZG        = Sample.fromDirectory(name="ZG",            treeName="Events", isData=False, color=color.QCD,             texName="ZG",                           directory=directories['ZG']  )
 EWK        = Sample.fromDirectory(name="EWK",            treeName="Events", isData=False, color=color.QCD,             texName="EWK",                           directory=directories['EWK']  )
+
+
+
+Top_gaussian         = copy.deepcopy(Top_pow)
+Top_gaussian.name    = Top_pow.name + ' (gaussian)'
+Top_gaussian.texName = Top_pow.texName + ' (gaussian)'
+Top_gaussian.color   = ROOT.kCyan
+Top_gaussian.setSelectionString('abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&l1_mcMatchId!=0&&l2_mcMatchId!=0')
+
+
+Top_nongaussian         = copy.deepcopy(Top_pow)
+Top_nongaussian.name    = Top_pow.name + ' (non-gaussian)'
+Top_nongaussian.texName = Top_pow.texName + ' (non-gaussian)'
+Top_nongaussian.color   = ROOT.kCyan + 2
+Top_nongaussian.setSelectionString('abs(met_pt-met_genPt)>50&&l1_mcMatchId!=0&&l2_mcMatchId!=0')
+
+
+Top_fakes         = copy.deepcopy(Top_pow)
+Top_fakes.name    = Top_pow.name + ' (fakes)'
+Top_fakes.texName = Top_pow.texName + ' (fakes)'
+Top_fakes.color   = ROOT.kCyan + 4
+Top_fakes.setSelectionString('!(l1_mcMatchId!=0&&l2_mcMatchId!=0)')
+
 
