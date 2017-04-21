@@ -91,7 +91,8 @@ regionsR = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Regio
 regionsS = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + getRegionsMet(mt2llThresholds = [ 140, 240], mt2blblThresholds = [0, 100, 200, -1], metThresholds = [80, 200, -1])
 
 regionsAgg = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + [Region("dl_mt2ll", (100, 140)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (200, -1))] + [Region("dl_mt2ll", (140, 240)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (200, -1))]
-regionsDM = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + [Region("dl_mt2ll", (100, 140)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + [Region("dl_mt2ll", (140, -1)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))]
+
+regionsDM = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (50, -1))] + [Region("dl_mt2ll", (100, 140)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (50, -1))] + [Region("dl_mt2ll", (140, -1)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (50, -1))]
 
 regionsA += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
 regionsB += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (100, -1))]

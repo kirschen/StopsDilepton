@@ -1,6 +1,6 @@
 import ROOT, os
 
-import pickle
+import pickle, shutil
 from RootTools.core.standard                import *
 from array import array
 
@@ -12,6 +12,8 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--particle',           action='store',      default='S',            nargs='?', choices=['S','PS'], help="scalar (S) or pseudoscalar (PS)?")
 argParser.add_argument('--mChi',               action='store',      default=1,           help='Which DM particle mass?')
 argParser.add_argument('--plot_directory',     action='store',      default='DMLimits')
+argParser.add_argument('--blinded',            action='store_true')
+argParser.add_argument('--cardDir',            action='store',      default='TTbarDM')
 args = argParser.parse_args()
 
 #ROOT.gROOT.SetBatch(True)
@@ -27,7 +29,7 @@ for s in DMsamples:
     if not s[1] in mPhi_list: mPhi_list.append(s[1])
     if not s[2] in categories: categories.append(s[2])
 
-res = pickle.load(file(os.path.join(analysis_results,"fitAll","cardFiles","TTbarDM","calculatedLimits.pkl")))
+res = pickle.load(file(os.path.join(analysis_results,"fitAll","cardFiles",args.cardDir,"calculatedLimits.pkl")))
 
 mChi = int(args.mChi)
 tp = args.particle
@@ -45,7 +47,8 @@ for s in sorted(DMsamples):
     if s[0] == mChi:
         if s[2] == tp:
             mass.append(s[1])
-            if res[(s[0],s[1],s[2])].has_key('0.500'):
+            try:
+                res[(s[0],s[1],s[2])].has_key('0.500')
                 exp.append(res[(s[0],s[1],s[2])]['0.500'])
                 exp1Up.append(res[(s[0],s[1],s[2])]['0.840'] - res[(s[0],s[1],s[2])]['0.500'])
                 exp2Up.append(res[(s[0],s[1],s[2])]['0.975'] - res[(s[0],s[1],s[2])]['0.500'])
@@ -53,6 +56,8 @@ for s in sorted(DMsamples):
                 exp2Down.append(res[(s[0],s[1],s[2])]['0.500'] - res[(s[0],s[1],s[2])]['0.025'])
                 obs.append(res[(s[0],s[1],s[2])]['-1.000'])
                 zeros.append(0)
+            except KeyError:
+                print "Result not found for",(s[0],s[1],s[2])
 
 a_mass      = array('d',mass)
 a_obs       = array('d',obs) 
@@ -117,9 +122,11 @@ mg.GetXaxis().SetRangeUser(10,1000)
 
 one.Draw("hist same")
 exp.Draw("l same")
-obs.Draw("l same")
+if not args.blinded: obs.Draw("l same")
+leg_size = 0.04 * 4
 
-leg = ROOT.TLegend(0.2,0.74,0.4,0.9)
+
+leg = ROOT.TLegend(0.2,0.9-leg_size,0.4,0.9)
 leg.SetBorderSize(1)
 leg.SetFillColor(0)
 leg.SetLineColor(0)
@@ -151,8 +158,15 @@ latex1.SetTextAlign(11) # align right
 latex1.DrawLatex(0.16,0.96,'CMS #bf{#it{Preliminary}}')
 latex1.DrawLatex(0.76,0.96,"#bf{36fb^{-1}} (13TeV)")
 
+plot_dir = os.path.join(plot_directory,args.plot_directory)
+if not os.path.isdir(plot_dir):
+    os.makedirs(plot_dir)
 
-plot_dir = os.path.join(plot_directory,args.plot_directory,'brazil_%s_mChi%s'%(tp,str(mChi)))
+if not args.blinded:
+    plot_dir += '/brazil_%s_mChi%s'%(tp,str(mChi))
+else:
+    plot_dir += '/brazil_%s_mChi%s_blinded'%(tp,str(mChi))
+
 filetypes = [".pdf",".png",".root"]
 
 for f in filetypes:

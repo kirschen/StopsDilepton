@@ -17,10 +17,11 @@ estimators = ["TTJets",
 #submitCMD = "submitBatch.py --title='Estimate' "
 submitCMD = "echo "
 
-from StopsDilepton.analysis.regions import regionsO, regions80X, reducedRegionsNew, superRegion, superRegion140, regions80X_2D, regionsAgg
+from StopsDilepton.analysis.regions import regionsO, regions80X, regionsDM, reducedRegionsNew, superRegion, superRegion140, regions80X_2D, regionsAgg
 #allRegions = regions80X + superRegion + superRegion140 + regions80X_2D
-allRegions = regionsO
+#allRegions = regionsO
 #allRegions = regionsAgg
+allRegions = regionsDM
 #signalEstimators = [s.name for s in signals_T2tt]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p05]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p5]
@@ -29,8 +30,9 @@ signalEstimators = []
 
 #estimators = []
 
+option = ' --DMsync'
 #option = ' --aggregate'
-option = ''
+#option = ''
 
 for control in [None, 'DYVV']:#, 'TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
 #for control in ['TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:

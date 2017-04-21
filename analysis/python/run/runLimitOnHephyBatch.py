@@ -10,14 +10,14 @@ from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed im
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p09]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p5]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p95]
-#signalEstimators = [s.name for s in signals_T2tt]
+signalEstimators = [s.name for s in signals_T2tt]
 #signalEstimators = [s.name for s in signals_T2bt]
 #signalEstimators = [s.name for s in signals_T2bW]
-signalEstimators = [s.name for s in signals_TTbarDM]
+#signalEstimators = [s.name for s in signals_TTbarDM]
 
 import time
 
-cmd = "submitBatch.py --title='LimitDM'"
+cmd = "submitBatch.py --title='Limit'"
 #cmd = "echo"
 
 for i, estimator in enumerate(signalEstimators):
@@ -26,11 +26,11 @@ for i, estimator in enumerate(signalEstimators):
   #logfileErr = "log/limit_" + estimator + "_err.log"
   #os.system(cmd +" 'python run_limit.py --signal T2tt --fitAll              --only=%s'"%(str(i)))
   #if i%20==0: print
-  #if "650_25" in estimator: print "HERE!!"
-  #print i, estimator
+  #if "800_1" in estimator:
+  print i, estimator
   #st = estimator.split("_")
   #if int(st[-2]) < 650:
-  os.system(cmd+" 'python run_limit.py --signal TTbarDM --fitAll            --only=%s'"%str(i))
+  os.system(cmd+" 'python run_limit.py --signal T2tt --fitAll            --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T2tt --fitAll            --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlDYVV --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlTTZ  --only=%s'"%str(i))
