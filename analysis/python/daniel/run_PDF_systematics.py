@@ -31,9 +31,6 @@ postProcessing_directory = "postProcessed_80X_v36/dilep/"
 from StopsDilepton.samples.color import color
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed_PDFsamples import *
 
-#dirs = {}
-#dirs['TTLep_pow'] = ["TTLep_pow"]
-#directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
 
 sample = TTZ
 if options.sample == "TTLep_pow":
@@ -43,13 +40,11 @@ elif options.sample == "DY":
     sample = DY_HT_LO
 elif options.sample == "multiboson":
     sample = multiBoson
-    #sample = Sample.fromDirectory(name="TTLep_pow", treeName="Events", isData=False, color=color.TTJets, texName="t#bar{t} + Jets (lep,pow)", directory=directories['TTLep_pow'])
 
 if options.small:
     sample.reduceFiles( to = 1 )
 
 setupIncl = setup.sysClone(parameters={'triLep': False, 'zWindow' : 'allZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(0,-1),  'nBTags':(0,-1), 'dPhi': False, 'dPhiInv': False})
-#setup.sys['reweight'] = [] #Fall15 doesn't have the reweights. Not needed.
 setup.verbose     = True
 
 # Logging
@@ -78,10 +73,6 @@ from StopsDilepton.tools.user import analysis_results
 #8<weight id="1009"> muR=0.50000E+00 muF=0.50000E+00 </weight>
 #n.b \1001" is index 0 in the weights() vector
 
-#if not options.selectWeight:
-#    variations  = [ "LHEweight_wgt[%i]"%i for i in range(14,20) ]
-#else:
-#    variations  = [ "LHEweight_wgt[%s]"%options.selectWeight ]
 
 # Divide the LHEweight by genWeight to get the pure reweight - otherwise problematic for (NLO) samples with neg. weights
 if not options.selectWeight:
