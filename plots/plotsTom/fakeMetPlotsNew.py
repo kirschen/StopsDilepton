@@ -23,15 +23,17 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',         action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM"], help="Add signal to plot")
 argParser.add_argument('--noData',         action='store_true', default=False,           help='also plot data?')
-argParser.add_argument('--plot_directory', action='store',      default='fakeMetPlots')
+argParser.add_argument('--plot_directory', action='store',      default='fakeMetPlotsNew')
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--split',          action='store',      default='Top')
+argParser.add_argument('--combineBkg',     action='store_true', default=True)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
 argParser.add_argument('--splitBosons',    action='store_true', default=False)
 argParser.add_argument('--splitBosons2',   action='store_true', default=False)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--dryRun',         action='store_true', default=False,           help='do not launch subjobs')
 args = argParser.parse_args()
+
 
 #
 # Logger
@@ -83,7 +85,7 @@ if not args.isChild and args.selection is None:
   import os
   os.system("mkdir -p log")
   for selection in selectionStrings:
-    command = "./fakeMetPlots.py --selection=" + selection + (" --noData"                if args.noData       else "")\
+    command = "./fakeMetPlotsNew.py --selection=" + selection + (" --noData"                if args.noData       else "")\
                                                            + (" --splitBosons"           if args.splitBosons  else "")\
                                                            + (" --splitBosons2"          if args.splitBosons2 else "")\
                                                            + (" --signal=" + args.signal if args.signal       else "")\
@@ -184,21 +186,25 @@ def getLeptonSelection(mode):
 
 def splitSampleInFakeMet(sample, color):
   fakeMetSplittings = [
-                       ('#slash{E}_{T, fake} < 50, ll match'    , 'abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&l1_mcMatchId!=0&&l2_mcMatchId!=0'),
-                       ('#slash{E}_{T, fake} < 50, ll no match' , 'abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&!(l1_mcMatchId!=0&&l2_mcMatchId!=0)'),
-                       ('50 < #slash{E}_{T, fake} < 100'        , 'abs(met_pt-met_genPt)>50&&abs(met_pt-met_genPt)<100'),
-                       ('#slash{E}_{T, fake} > 100'             , 'abs(met_pt-met_genPt)>100'),
+                       ('#slash{E}_{T, fake} < 50, '               , 'GenLep_n_tau==0&&abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&l1_mcMatchId!=0&&l2_mcMatchId!=0'),
+                       ('#slash{E}_{T, fake} < 50, lep+fake'       , 'GenLep_n_tau==0&&abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&!(l1_mcMatchId!=0&&l2_mcMatchId!=0)'),
+                       ('50 < #slash{E}_{T, fake} < 100'           , 'GenLep_n_tau==0&&abs(met_pt-met_genPt)>50&&abs(met_pt-met_genPt)<100&&l1_mcMatchId!=0&&l2_mcMatchId!=0'),
+                       ('50 < #slash{E}_{T, fake} < 100, lep+fake' , 'GenLep_n_tau==0&&abs(met_pt-met_genPt)>50&&abs(met_pt-met_genPt)<100&&!(l1_mcMatchId!=0&&l2_mcMatchId!=0)'),
+                       ('#slash{E}_{T, fake} > 100'                , 'GenLep_n_tau==0&&abs(met_pt-met_genPt)>100&&l1_mcMatchId!=0&&l2_mcMatchId!=0'),
+                       ('#slash{E}_{T, fake} > 100, lep+fake'      , 'GenLep_n_tau==0&&abs(met_pt-met_genPt)>100&&!(l1_mcMatchId!=0&&l2_mcMatchId!=0)'),
+                       ('extra genuine #slash{E}_{T}'              , 'GenLep_n_tau>0'),
                     #  ('20 < #slash{E}_{T, fake} < 50'         , 'abs(met_pt-met_genPt)>20&&abs(met_pt-met_genPt)<=50'),
                     #  ('#slash{E}_{T, fake} < 20'              , 'abs(met_pt-met_genPt)<=20')
   ]
 
   splittedList = []
+  colorList = [ROOT.kCyan, ROOT.kCyan+4, ROOT.kBlue, ROOT.kViolet, ROOT.kRed, ROOT.kOrange, ROOT.kYellow]
   i = 0
   for texName, selection in fakeMetSplittings:
     splittedSample         = copy.deepcopy(sample)
     splittedSample.name    = sample.name + '_splitInFakeMet' + str(i)
     splittedSample.texName = sample.texName + " " + texName
-    splittedSample.color   = color + i 
+    splittedSample.color   = colorList[i] if args.combineBkg else (color + i)
     splittedSample.addSelectionString(selection)
     splittedList.append(splittedSample)
     i += 1
@@ -231,7 +237,8 @@ for index, mode in enumerate(allModes):
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
 
-  mc = [Top_pow, DY_HT_LO, TTZ_LO, TTXNoZ] + multiBosonList
+  mc = ([Top_pow, DY_HT_LO, TTZ_LO, TTXNoZ] + multiBosonList) if not args.combineBkg else [Top_pow, nonTop]
+
   for sample in mc + [DM, DM2]:
     sample.scale          = lumi_scale
     sample.read_variables = ['reweightLeptonTrackingSF/F','reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F']
@@ -255,7 +262,7 @@ for index, mode in enumerate(allModes):
   if args.split == "TTXNoZ":     fakeMetList = ttxList
   if args.split == "multiBoson": fakeMetList = multiBosonList
   
-  mc = topList + ttzList + ttxList + multiBosonList + dyList
+  mc = (topList + ttzList + ttxList + multiBosonList + dyList) if not args.combineBkg else topList + [nonTop]
   for sample in mc: sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
 
 
@@ -532,7 +539,7 @@ for index, mode in enumerate(allModes):
 
   drawPlots(plots, mode, dataMCScale)
   makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",         yields, mode, mc)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV",      yields, mode, multiBosonList)
+#  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV",      yields, mode, multiBosonList)
   makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_fakeMet", yields, mode, fakeMetList)
   allPlots[mode] = plots
 
@@ -556,7 +563,7 @@ for mode in ["SF","all"]:
 
   drawPlots(allPlots['mumu'], mode, dataMCScale)
   makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",         yields, mode, mc)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV",      yields, mode, multiBosonList)
+#  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV",      yields, mode, multiBosonList)
   makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_fakeMet", yields, mode, fakeMetList)
 
 

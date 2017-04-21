@@ -24,7 +24,7 @@ estimators['TTJets-DD'][0].texName       = "t#bar{t}/single-t"
 #estimators['multiBoson-DD'][0].texName   = "diboson/triboson"
 
 # main MC based estimators
-for mc in ['DY','TTJets','TTZ','multiBoson','other','TTXNoZ']:
+for mc in ['DY','TTJets','TTZ','multiBoson','other','TTXNoZ','Top_gaussian','Top_nongaussian','Top_fakes']:
   estimators[mc] = [MCBasedEstimate(name=mc, sample=setup.sample[mc])]
 
 # detailed MC based estimators (used for plotting so leave out the small ones)

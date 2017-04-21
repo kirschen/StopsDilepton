@@ -26,6 +26,7 @@ argParser.add_argument('--signal',            action='store',      default='T2tt
 argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots')
 argParser.add_argument('--selection',         action='store',      default=None)
+argParser.add_argument('--normString',        action='store',      default=None)
 argParser.add_argument('--channel',           action='store',      default=None)
 argParser.add_argument('--selectSys',         action='store',      default='all')
 argParser.add_argument('--showOnly',          action='store',      default=None)
@@ -58,6 +59,7 @@ selections = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
               'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5',
+              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100',
               'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
               'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
               'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
@@ -74,12 +76,11 @@ selections = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140'
            ]
 
-if args.scaleDYVV: selections = ['njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100']
 
 #
 # Systematics to run over
 #
-jet_systematics    = ['JECUp','JECDown']# 'JERDown','JECVUp','JECVDown']
+jet_systematics    = ['JECUp','JECDown', 'JERUp', 'JERDown']#,'JECVUp','JECVDown']
 met_systematics    = ['UnclusteredEnUp', 'UnclusteredEnDown']
 jme_systematics    = jet_systematics + met_systematics
 weight_systematics = ['PU36fbUp', 'PU36fbDown', 'TopPt', 'DilepTriggerBackupDown', 'DilepTriggerBackupUp', 'LeptonSFDown', 'LeptonSFUp','BTag_SF_b_Down', 'BTag_SF_b_Up','BTag_SF_l_Down', 'BTag_SF_l_Up']
@@ -94,7 +95,7 @@ sys_pairs = [\
     ('Unclustered', 'UnclusteredEnUp', 'UnclusteredEnDown'),
     ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
     ('TopPt',       'TopPt', None),
-#   ('JER',         'JERUp', 'JERDown'),
+    ('JER',         'JERUp', 'JERDown'),
     ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up'),
     ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
     ('trigger',     'DilepTriggerBackupDown', 'DilepTriggerBackupUp'),
@@ -108,20 +109,21 @@ def launch(command, logfile, local=False):
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
 #
-if not args.isChild and args.selection is None and (args.selectSys == "all" or args.selectSys == "combine"):
+if not args.isChild and args.selection is None: # and (args.selectSys == "all" or args.selectSys == "combine"):
   os.system("mkdir -p log")
   for channel in ['mue','SF','all','ee','mumu']:
-    for sys in (all_systematics if args.selectSys == "all" else ["combine"]):
+    for sys in (all_systematics if args.selectSys == "all" else [args.selectSys]):
       if not sys: sys = 'None'
       for selection in selections:
-        if args.unblind and "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" not in selection: continue
         command = "./systematicsPlots.py --selection=" + selection + (" --noData"            if args.noData            else "")\
                                                                    + (" --splitBosons"       if args.splitBosons       else "")\
                                                                    + (" --splitTop"          if args.splitTop          else "")\
                                                                    + (" --unblind"           if args.unblind           else "")\
+                                                                   + (" --scaleDYVV"         if args.scaleDYVV         else "")\
                                                                    + (" --LO"                if args.LO                else "")\
                                                                    + (" --powheg"            if args.powheg            else "")\
                                                                    + (" --normalizeBinWidth" if args.normalizeBinWidth else "")\
+                                                                   + ((" --normString="     + args.normString) if args.normString else "")\
                                                                    + (" --plot_directory=" + args.plot_directory)\
                                                                    + (" --logLevel="       + args.logLevel)\
                                                                    + (" --signal="         + args.signal)\
@@ -139,6 +141,9 @@ if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
 if args.scaleDYVV:                args.plot_directory += "_scaleDYVV"
 #if not args.LO:                   args.plot_directory += "_ttZNLO"
+if args.normString:               args.plot_directory += "_alternativeNorm/"+args.normString
+
+if args.selection == "njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100": args.signal = None
 
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -158,10 +163,9 @@ if   args.signal == "T2tt":
   T2tt2.style = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
   signals     = [T2tt, T2tt2]
 elif args.signal == "DM":
-  postProcessing_directory = 'postProcessed_80X_v28/dilepTiny'
-  from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-  DM        = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-  DM2       = TTbarDMJets_scalar_Mchi_1_Mphi_10
+  from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10, TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
+  DM        = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
+  DM2       = TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
   DM.style  = styles.lineStyle( ROOT.kBlack, width=3)
   DM2.style = styles.lineStyle( 28,          width=3)
   signals   = [DM, DM2]
@@ -257,14 +261,8 @@ if mode != "all" and mode != "SF":
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale        = data_sample.lumi/1000
 
-# Blinding policy for DM
-if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.unblind and args.signal == "DM":
-    weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.evt % 15 == 0) else 0)
-    weightString_ = "weight*(evt%15==0)"
-    lumi_scale    = lumi_scale/15.
-else:
-  weight_       = lambda event, sample: event.weight
-  weightString_ = "weight"
+weight_       = lambda event, sample: event.weight
+weightString_ = "weight"
 
 logger.info('Lumi scale is ' + str(lumi_scale))
 
@@ -349,6 +347,15 @@ appendPlots(
   attribute = {sys: TreeVariable.fromString("dl_mt2ll/F" if not sys or sys in weight_systematics else "dl_mt2ll_%s/F" % sys) for sys in all_systematics}
 )
 
+appendPlots(
+  name      = "dl_mt2ll_2",
+  texX      = 'M_{T2}(ll) (GeV)',
+  texY      = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+  binWidth  = 20,
+  binning   = Binning.fromThresholds([100,140,180,220,260,300,340]),
+  attribute = {sys: TreeVariable.fromString("dl_mt2ll/F" if not sys or sys in weight_systematics else "dl_mt2ll_%s/F" % sys) for sys in all_systematics}
+)
+
 if args.selection.count('njet2p'):
   appendPlots(
     name      = "dl_mt2bb",
@@ -423,7 +430,6 @@ if not args.selection.count('metInv'):
     attribute = {sys: TreeVariable.fromString('met_pt/F' if not sys or sys not in met_systematics else "met_pt_%s/F" % sys) for sys in all_systematics},
   )
 
-
 result_file = os.path.join(plot_directory, args.plot_directory, mode, args.selection, 'results.pkl')
 try: os.makedirs(os.path.join(plot_directory, args.plot_directory, mode, args.selection))
 except: pass
@@ -431,8 +437,11 @@ except: pass
 if args.selectSys != "combine":
 
   # mc_selection_string is used for scaling the top on the mt2ll < 100 regions
-  mc_selection_string = cutInterpreter.cutString(args.selection.split('-mt2ll')[0]) # assumes that mt2ll is always the last variable in args.selection
+  if args.normString: selectionString = args.normString
+  else:               selectionString = args.selection.split('-mt2ll')[0]  # assumes that mt2ll is always the last variable in args.selection
+  mc_selection_string = cutInterpreter.cutString(selectionString)
   mc_weight_func, mc_weight_string = weightMC( sys = (args.selectSys if args.selectSys != 'None' else None) )
+  print mc_selection_string
 
   yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(mc_selection_string + "&&dl_mt2ll<100" ), weightString = mc_weight_string)['val'] for s in mc}
   if mode == "all" or mode == 'SF': yield_data = sum(s.getYieldFromDraw(       selectionString = mc_selection_string + "&&dl_mt2ll<100", weightString = weightString_)['val'] for s in data_sample )
@@ -625,7 +634,7 @@ else:
             ratio = ratio,
             legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.95,0.88),
             logX = False, logY = log, #sorting = True,
-            yRange = (0.03, "auto"),
+            yRange = (0.3, "auto") if args.selection == "njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100" else (0.03, "auto"),
             drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes,
             copyIndexPHP = True
         )

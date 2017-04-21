@@ -36,7 +36,9 @@ data_directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
 postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
-samples = [TTJets_Dilep, TTLep_pow, TTJets]
+#TTJets = Sample.fromDirectory( "TTJets", "/afs/hephy.at/data/dspitzbart02/cmgTuples/postProcessed_80X_v23/dilepTiny/TTJets", texName)
+
+samples = [TTJets_Dilep, TTLep_pow]#, TTJets]
 
 maxN = 1
 for sample in samples:
@@ -122,19 +124,20 @@ for met_bin in [ (80, -1), (80,200), (200,-1)]:
         h_TTLep_pow.style = styles.lineStyle( errors = True,  color = ROOT.kBlue )
         h_TTLep_pow.legendText = "powheg"
 
-        h_TTJets = TTJets.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + met_cuts + iso_cuts]), addOverFlowBin = 'upper', weightString = weight_string,
-        binningIsExplicit = True)
-        h_TTJets.style = styles.lineStyle( errors = True,  color = ROOT.kGreen )
-        h_TTJets.legendText = "amc@nlo"
+#        h_TTJets = TTJets.get1DHistoFromDraw( "dl_mt2ll", binning = binning, selectionString = "&&".join([c[1] for c in cuts + met_cuts + iso_cuts]), addOverFlowBin = 'upper', weightString = weight_string,
+#        binningIsExplicit = True)
+#        h_TTJets.style = styles.lineStyle( errors = True,  color = ROOT.kGreen )
+#        h_TTJets.legendText = "amc@nlo"
 
         h_TTJets_Dilep.Scale(2.4)
         h_TTLep_pow.Scale(2.4)
-        h_TTJets.Scale(2.4)
+#        h_TTJets.Scale(2.4)
 
         ratio = {'yRange':(0.1,1.9), 'num':2, 'den':1, 'texY':'pow/MG'}
         plotting.draw(
             Plot.fromHisto("mt2ll_top_comparison_met_%i_%i_rw_%s"%(met_low, met_high, prefix),
-                [ [h_TTJets], [ h_TTJets_Dilep ], [ h_TTLep_pow ] ],
+                #[ [h_TTJets], [ h_TTJets_Dilep ], [ h_TTLep_pow ] ],
+                [ [ h_TTJets_Dilep ], [ h_TTLep_pow ] ],
                 texX = "MT_{2}^{ll} (GeV)"
             ), 
             plot_directory = plot_directory, ratio = ratio, 
