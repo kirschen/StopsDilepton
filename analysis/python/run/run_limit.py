@@ -14,6 +14,7 @@ argParser.add_argument("--fitAll",         default = False, action = "store_true
 argParser.add_argument("--aggregate",      default = False, action = "store_true", help="Use aggregated signal regions")
 argParser.add_argument("--DMsync",         default = False, action = "store_true", help="Use two regions for MET+X syncing")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
+argParser.add_argument("--popFromSR",      default = False, action = "store", help="Remove one signal region?")
 args = argParser.parse_args()
 
 
@@ -28,7 +29,7 @@ from StopsDilepton.analysis.estimators      import setup, constructEstimatorList
 from StopsDilepton.analysis.DataObservation import DataObservation
 from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS, regionsAgg, regionsDM
 from StopsDilepton.analysis.Cache           import Cache
-
+from copy import deepcopy
 
 # Define CR
 setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False,  'zWindow': 'onZ'})
@@ -54,13 +55,23 @@ setupTTZ5.channels = ['all']
 
 # Define regions for CR
 if args.aggregate:
-    setup.regions     = regionsAgg[1:]
+    if args.popFromSR:
+        tmpRegion = deepcopy(regionsAgg[1:])
+        tmpRegion.pop(int(args.popFromSR))
+        setup.regions   = tmpRegion
+    else:
+        setup.regions     = regionsAgg[1:]
     setupDYVV.regions = regionsO[1:]
 elif args.DMsync:
     setup.regions     = regionsDM[1:]
     setupDYVV.regions = regionsO[1:]
 else:
-    setup.regions     = regionsO[1:]
+    if args.popFromSR:
+        tmpRegion = deepcopy(regionsO[1:])
+        tmpRegion.pop(int(args.popFromSR))
+        setup.regions   = tmpRegion
+    else:
+        setup.regions   = regionsO[1:]
     setupDYVV.regions = regionsO[1:]
 setupTTZ1.regions = noRegions
 setupTTZ2.regions = noRegions
@@ -218,7 +229,13 @@ def wrapper(s):
                   total_exp_bkg += expected.val
                   if e.name.count('TTJets'):
                     if len(setup.regions) == len(regionsO[1:]):     divider = 6
+                    elif len(setup.regions) == len(regionsO[1:])-1:
+                        if int(args.popFromSR) < 6: divider = 5
+                        else: divider = 6
                     elif len(setup.regions) == len(regionsAgg[1:]): divider = 1
+                    elif len(setup.regions) == len(regionsAgg[1:])-1:
+                        if int(args.popFromSR) < 1: divider = 0
+                        else: divider = 1
                     else:                                       divider = 0
                     if (setup.regions != noRegions and (r in setup.regions[divider:])):
                         c.specifyExpectation(binname, 'TTJetsG',  0.25*expected.val*args.scale)

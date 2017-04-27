@@ -10,30 +10,27 @@ from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed im
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p09]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p5]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p95]
-signalEstimators = [s.name for s in signals_T2tt]
+#signalEstimators = [s.name for s in signals_T2tt]
 #signalEstimators = [s.name for s in signals_T2bt]
 #signalEstimators = [s.name for s in signals_T2bW]
-#signalEstimators = [s.name for s in signals_TTbarDM]
+signalEstimators = [s.name for s in signals_TTbarDM]
 
 import time
 
-cmd = "submitBatch.py --title='Limit'"
-#cmd = "echo"
+#cmd = "submitBatch.py --title='Limit'"
+cmd = "echo"
 
-for i, estimator in enumerate(signalEstimators):
-#for i in range(480,493):
-  #logfile    = "log/limit_" + estimator + ".log"
-  #logfileErr = "log/limit_" + estimator + "_err.log"
-  #os.system(cmd +" 'python run_limit.py --signal T2tt --fitAll              --only=%s'"%(str(i)))
-  #if i%20==0: print
-  #if "800_1" in estimator:
-  print i, estimator
-  #st = estimator.split("_")
-  #if int(st[-2]) < 650:
-  os.system(cmd+" 'python run_limit.py --signal T2tt --fitAll            --only=%s'"%str(i))
+#for i, estimator in enumerate(signalEstimators):
+#  print i, estimator
+#  os.system(cmd+" 'python run_limit.py --signal TTbarDM --fitAll            --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T2tt --fitAll            --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlDYVV --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlTTZ  --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--fitAll      --only=%s'"%str(i))
 #  time.sleep(1)
+
+# 4,5,21,22 for popping
+
+for i in range(3):
+  os.system('python run_limit.py --signal TTbarDM --fitAll --only 22 --aggregate --popFromSR=%s'%str(i))
 
