@@ -368,6 +368,11 @@ else:
     topScaleF = 1
     logger.info( "Sample will NOT have top pt reweighting. topScaleF=%f",topScaleF )
 
+if isTT:
+    from StopsDilepton.analysis.daniel.isrWeight import *
+    isr = ISRweight()
+    logger.info("Sample will have ISR reweighting called reweight_nISR.")
+
 if fastSim:
    from StopsDilepton.tools.leptonFastSimSF import leptonFastSimSF as leptonFastSimSF_
    leptonFastSimSF = leptonFastSimSF_()
@@ -437,7 +442,7 @@ if isTiny:
 
     #branches to be kept for MC samples only
     branchKeepStrings_MC = [ \
-        "nTrueInt", "genWeight", "xsec", "met_genPt", "met_genPhi", "lheHTIncoming"
+        "nTrueInt", "genWeight", "xsec", "met_genPt", "met_genPhi", "lheHTIncoming", "nIsr"
     ]
 
     #branches to be kept for data only
@@ -546,9 +551,10 @@ if isMC:
     read_variables.append( TreeVariable.fromString('ngenPartAll/I') )
     read_variables.append( VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,mass/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( TreeVariable.fromString('genWeight/F') )
+    read_variables.append( TreeVariable.fromString('nIsr/I') )
     read_variables.append( VectorTreeVariable.fromString('gamma[mcPt/F]') )
 
-    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F','reweightPU27fb/F','reweightPU27fbUp/F','reweightPU27fbDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F','reweightPU27fb/F','reweightPU27fbUp/F','reweightPU27fbDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F'])
     if not options.skipGenLepMatching:
         TreeVariable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
@@ -740,6 +746,7 @@ def filler( event ):
 
     # top pt reweighting
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
+    if isMC: event.reweight_nISR = isr.getWeight(r) if isTT else 1.
 
     # jet/met related quantities, also load the leptons already
     if options.keepAllJets:

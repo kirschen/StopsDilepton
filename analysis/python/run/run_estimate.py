@@ -8,11 +8,12 @@ parser.add_option('--logLevel',              dest="logLevel",              defau
 parser.add_option("--control",               dest="control",               default=None,                action='store',      choices=[None, "DY", "VV", "DYVV", "TTZ1", "TTZ2", "TTZ3", "TTZ4", "TTZ5"], help="For CR region?")
 parser.add_option("--useGenMet",             dest="useGenMet",             default=False,               action='store_true', help="use genMET instead of recoMET, used for signal studies")
 parser.add_option("--aggregate",             dest="aggregate",             default=False,               action='store_true', help="run over aggregated signal regions")
+parser.add_option("--DMsync",             dest="DMsync",             default=False,               action='store_true', help="run over DM sync signal regions")
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels, trilepChannels
 from StopsDilepton.analysis.estimators   import setup, allEstimators
-from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsAgg
+from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsAgg, regionsDM
 
 
 # Logging
@@ -23,6 +24,7 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsO
 if options.aggregate: allRegions = regionsAgg
+elif options.DMsync: allRegions = regionsDM
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import signals_T2tt

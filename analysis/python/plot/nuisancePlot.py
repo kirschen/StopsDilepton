@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 import ROOT
 
+import argparse
+argParser = argparse.ArgumentParser(description = "Argument parser")
+argParser.add_argument('--nuisanceFile',       action='store',      default='nuisances.txt')
+args = argParser.parse_args()
+
+nuisancePath = '/'.join(args.nuisanceFile.split('/')[:-1])
+pullsFile = args.nuisanceFile.replace('.txt','')
+nuisanceFile = args.nuisanceFile.split('/')
+
 def getNuisancesFromFile(nuisanceFile):
   nuisanceList = []
   with open(nuisanceFile) as f:
@@ -13,7 +22,7 @@ def getNuisancesFromFile(nuisanceFile):
   return nuisanceList
 
 def plotNuisances(nuisanceList, name):
-  h = ROOT.TH1F("h","",len(nuisanceList)+2,0,len(nuisanceList)+2)
+  h = ROOT.TH1F("h","",len(nuisanceList),0,len(nuisanceList))
 
   for i, (sysName, pull, pullErr) in enumerate(nuisanceList):
     h.GetXaxis().SetBinLabel(i+1, sysName);
@@ -43,10 +52,10 @@ def plotNuisances(nuisanceList, name):
   h.Draw("PE1X0");
   c.SaveAs(name);
 
-nuisanceList     = getNuisancesFromFile('nuisances.txt')
-nuisanceListStat = [i for i in nuisanceList if i[0].count('Stat')] 
-nuisanceListSys  = [i for i in nuisanceList if not i[0].count('Stat')]
+nuisanceList     = getNuisancesFromFile(args.nuisanceFile)
+nuisanceListStat = [i for i in nuisanceList if i[0].count('Stat_')] 
+nuisanceListSys  = [i for i in nuisanceList if not i[0].count('Stat_')]
 
-plotNuisances(nuisanceList, 'pulls_all.png')
-plotNuisances(nuisanceListStat, 'pulls_stat.png')
-plotNuisances(nuisanceListSys, 'pulls_sys.png')
+plotNuisances(nuisanceList,     pullsFile+'_pulls_all.png')
+plotNuisances(nuisanceListStat, pullsFile+'_pulls_stat.png')
+plotNuisances(nuisanceListSys,  pullsFile+'_pulls_sys.png')
