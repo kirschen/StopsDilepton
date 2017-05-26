@@ -23,9 +23,9 @@ for s in DMsamples:
 nPseudo = len(categories) - nScalar
 
 #res = pickle.load(file(os.path.join(analysis_results,"aggregated","fitAll","cardFiles","TTbarDM","calculatedLimits.pkl")))
-res = pickle.load(file(os.path.join(analysis_results,"fitAll","cardFiles","TTbarDM_topSplit_PDFscale_noShape","calculatedLimits.pkl")))
+res = pickle.load(file(os.path.join(analysis_results,"fitAll","cardFiles","TTbarDM_preAppFix_flat_regionsDM7_noSysV2","calculatedLimits.pkl")))
 
-texdir = os.path.join(plot_directory,'DMLimits_updateEXO')
+texdir = os.path.join(plot_directory,'DMLimits_preAppFix_flat_regionsDM7_noSysV2')
 if not os.path.exists(texdir): os.makedirs(texdir)
 if blinded:
     ofile = texdir+'/limits_update_blind.tex'

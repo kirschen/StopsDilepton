@@ -20,17 +20,17 @@ import time
 #cmd = "submitBatch.py --title='Limit'"
 cmd = "echo"
 
-#for i, estimator in enumerate(signalEstimators):
-#  print i, estimator
-#  os.system(cmd+" 'python run_limit.py --signal TTbarDM --fitAll            --only=%s'"%str(i))
+for i, estimator in enumerate(signalEstimators):
+  #if estimator == "T2tt_500_200":
+  print i, estimator
+  os.system(cmd+" 'python run_limit.py --signal TTbarDM --fitAll  --extension _preAppFix_flat_regionsDM7_noSysV2          --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T2tt --fitAll            --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlDYVV --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlTTZ  --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--fitAll      --only=%s'"%str(i))
-#  time.sleep(1)
+#  time.sleep(5)
 
 # 4,5,21,22 for popping
-
-for i in range(3):
-  os.system('python run_limit.py --signal TTbarDM --fitAll --only 22 --aggregate --popFromSR=%s'%str(i))
+#for i in range(3):
+#  os.system('python run_limit.py --signal TTbarDM --fitAll --only 22 --aggregate --popFromSR=%s'%str(i))
 

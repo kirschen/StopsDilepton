@@ -13,7 +13,7 @@ parser.add_option("--DMsync",             dest="DMsync",             default=Fal
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels, trilepChannels
 from StopsDilepton.analysis.estimators   import setup, allEstimators
-from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsAgg, regionsDM
+from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsAgg, regionsDM4,regionsDM5, regionsDM6, regionsDM7
 
 
 # Logging
@@ -24,7 +24,7 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
 allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsO
 if options.aggregate: allRegions = regionsAgg
-elif options.DMsync: allRegions = regionsDM
+elif options.DMsync: allRegions = regionsDM7
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import signals_T2tt

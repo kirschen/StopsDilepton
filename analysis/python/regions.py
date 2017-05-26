@@ -92,6 +92,14 @@ regionsS = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Regio
 
 regionsAgg = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + [Region("dl_mt2ll", (100, 140)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (200, -1))] + [Region("dl_mt2ll", (140, 240)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (200, -1))]
 
+regionsDM1 = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + getRegionsMet(mt2llThresholds = [ 100, 140, 240], mt2blblThresholds = [0, 100, 200, -1], metThresholds = [80, -1])
+regionsDM2 = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + getRegionsMet(mt2llThresholds = [ 100, 140, 240], mt2blblThresholds = [0, -1], metThresholds = [80, -1])
+regionsDM3 = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + [Region("dl_mt2ll", (100, -1)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))]
+regionsDM4 = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + getRegionsMet(mt2llThresholds = [ 100, 140, -1], mt2blblThresholds = [0, -1], metThresholds = [80, -1])
+regionsDM5 = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + getRegionsMet(mt2llThresholds = [ 100, 140, 240], mt2blblThresholds = [0, -1], metThresholds = [80, 200, -1])
+regionsDM6 = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + getRegionsMet(mt2llThresholds = [ 100, -1], mt2blblThresholds = [0, -1], metThresholds = [80, 200, -1])
+regionsDM7 = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (80, -1))] + getRegionsMet(mt2llThresholds = [ 100, -1], mt2blblThresholds = [0, -1], metThresholds = [80, 120, 170, -1])
+
 regionsDM = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (50, -1))] + [Region("dl_mt2ll", (100, 140)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (50, -1))] + [Region("dl_mt2ll", (140, -1)) + Region("dl_mt2blbl", (0, -1)) + Region("met_pt", (50, -1))]
 
 regionsA += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
@@ -113,6 +121,8 @@ regionsP += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Reg
 regionsR += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
 regionsS += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
 regionsAgg += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
-#regionsDM  += []
+regionsDM1 += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
+regionsDM2 += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
+regionsDM5 += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('met_pt', (80, -1))]
 
 noRegions = [Region("dl_mt2ll", (0, -1)) + Region("dl_mt2bb", (0, -1)) + Region("met_pt", (0, -1))] # For TTZ CR 

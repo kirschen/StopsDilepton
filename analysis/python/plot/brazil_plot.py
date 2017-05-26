@@ -116,8 +116,10 @@ mg.Add(exp1Sigma)
 mg.SetMaximum(500)
 mg.SetMinimum(0.05)
 mg.Draw("a3 same")
-mg.GetXaxis().SetTitle("m_{#phi} (GeV)")
-mg.GetYaxis().SetTitle("95% CL limit")
+if tp == 'S': tp_ = 'm_{#phi}'
+elif tp == 'PS': tp_ = 'm_{a}'
+mg.GetXaxis().SetTitle(tp_+" (GeV)")
+mg.GetYaxis().SetTitle("95% CL upper limit on #mu=#sigma/#sigma_{TH}")
 mg.GetXaxis().SetRangeUser(10,1000)
 
 one.Draw("hist same")
@@ -151,12 +153,14 @@ leg2.AddEntry(none,tp_,'')
 leg2.AddEntry(none,"m_{#chi} = "+str(mChi)+" GeV",'')
 leg2.Draw()
 
+extraText = ""
+
 latex1 = ROOT.TLatex()
 latex1.SetNDC()
 latex1.SetTextSize(0.04)
 latex1.SetTextAlign(11) # align right
-latex1.DrawLatex(0.16,0.96,'CMS #bf{#it{Preliminary}}')
-latex1.DrawLatex(0.76,0.96,"#bf{36fb^{-1}} (13TeV)")
+latex1.DrawLatex(0.16,0.96,'CMS #bf{#it{'+extraText+'}}')
+latex1.DrawLatex(0.73,0.96,"#bf{35.9fb^{-1}} (13TeV)")
 
 plot_dir = os.path.join(plot_directory,args.plot_directory)
 if not os.path.isdir(plot_dir):

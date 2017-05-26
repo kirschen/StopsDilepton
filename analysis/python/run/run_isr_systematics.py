@@ -87,7 +87,7 @@ elif "T8bb" in options.signal:
         s.is76X     = False
 
 elif options.signal == "TTbarDM":
-    postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
     signals = signals_TTbarDM
     for s in signals:
