@@ -22,10 +22,13 @@ from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsS, r
 from StopsDilepton.analysis.u_float      import u_float 
 from StopsDilepton.analysis.Region       import Region 
 
-isFastSim         = True
-setup             = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
-#setup.sys['reweight'] = [] #Fall15 doesn't have the reweights. Not needed.
-setup.verbose     = True
+if ('T2' in options.signal) or ('T8' in options.signal):
+    isFastSim         = True
+    setup             = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
+    setup.verbose     = True
+elif options.signal == 'TTbarDM':
+    isFastSim         = False
+    setup.verbose     = True
 
 # Logging
 import StopsDilepton.tools.logger as logger
@@ -95,7 +98,7 @@ elif "T8bb" in options.signal:
         s.is76X     = False
 
 elif options.signal == "TTbarDM":
-    postProcessing_directory = "postProcessed_80X_v12/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
     signals = signals_TTbarDM
     for s in signals:

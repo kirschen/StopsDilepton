@@ -9,7 +9,7 @@ from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 ROOT.gROOT.SetBatch(True)
 
-signalString = 'T2tt'
+signalString = 'T2bW'
 
 #defFile= os.path.join(analysis_results, "fitAll/limits/T2tt/T2tt/limitResults.root")
 defFile= os.path.join(analysis_results, "fitAll/limits/"+signalString+"/"+signalString+"/limitResults.root")
@@ -22,7 +22,7 @@ parser.add_option("--file", dest="filename", default=defFile, type="string", act
 (options, args) = parser.parse_args()
 
 ifs = options.filename.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_topSplit')
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_paper')
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 

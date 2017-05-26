@@ -28,6 +28,7 @@ from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSelector, eleSelector, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, multiIsoWPInt
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
+from StopsDilepton.tools.polReweighting import getPolWeights
 
 from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
@@ -550,6 +551,7 @@ if isMC:
     # reading gen particles for top pt reweighting
     read_variables.append( TreeVariable.fromString('ngenPartAll/I') )
     read_variables.append( VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,mass/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
+    #read_variables.append( VectorTreeVariable.fromString('GenPart[pt/F,eta/F,phi/F,mass/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 ))
     read_variables.append( TreeVariable.fromString('genWeight/F') )
     read_variables.append( TreeVariable.fromString('nIsr/I') )
     read_variables.append( VectorTreeVariable.fromString('gamma[mcPt/F]') )
@@ -637,6 +639,8 @@ if options.susySignal:
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
     if  'T8bbllnunu' in options.samples[0]:
         new_variables  += ['mCha/I', 'mSlep/I', 'sleptonPdg/I']
+    if 'T2tt' in options.samples[0]:
+        new_variables  += ['weight_pol_L/F', 'weight_pol_R/F']
 
 if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
@@ -711,6 +715,11 @@ def filler( event ):
                 event.sleptonPdg = 1000015
             event.mCha  = r.GenSusyMChargino
             event.mSlep = r.GenSusyMSlepton
+        if 'T2tt' in options.samples[0]:
+            pol_weights = getPolWeights(r)
+            event.weight_pol_L = pol_weights[0]
+            event.weight_pol_R = pol_weights[1]
+
         event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
         event.mStop = r.GenSusyMStop
         event.mNeu  = r.GenSusyMNeutralino
