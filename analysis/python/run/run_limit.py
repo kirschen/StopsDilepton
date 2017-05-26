@@ -15,7 +15,7 @@ argParser.add_argument("--aggregate",      default = False, action = "store_true
 argParser.add_argument("--DMsync",         default = False, action = "store_true", help="Use two regions for MET+X syncing")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--popFromSR",      default = False, action = "store", help="Remove one signal region?")
-argParser.add_argument("--extension",      default = False, action = "store", help="Extension to dir name?")
+argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 
 args = argParser.parse_args()
 
@@ -295,7 +295,7 @@ def wrapper(s):
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0:
                                 c.specifyUncertainty("ttZ_SR", binname, name, 1.20)
 
-                        if e.name.count('other'):      c.specifyUncertainty('other',      binname, name, 1.5)
+                        if e.name.count('other'):      c.specifyUncertainty('other',      binname, name, 1.25)
 
                         #MC bkg stat (some condition to neglect the smaller ones?)
                         uname = 'Stat_'+binname+'_'+name
