@@ -20,6 +20,7 @@ class cardFileWriter:
         self.maxUncNameWidth = 30
         self.maxUncStrWidth = 30
         self.hasContamination=False
+        self.rateParameters = []
 
     def addBin(self, name, processes, niceName=""):
         if len(name)>30:
@@ -53,6 +54,15 @@ class cardFileWriter:
             print "That's too long:",self.uncertaintyString[name],"Max. length is", self.maxUncStrWidth
             del self.uncertaintyString[name]
             return
+    
+    def addRateParameter(self, p, value, r):
+        #if not self.processes.count(p):
+        #    print "Process %s has not been specified yet!"%p
+        #    return
+        #if self.rateParameters.count(p):
+        #    print "Rate parameter for process %s already added!"%p
+        #    return
+        self.rateParameters.append((p, value, r))
 
     def specifyExpectation(self, b, p, exp):
         self.expectation[(b,p)] = exp
@@ -178,6 +188,12 @@ class cardFileWriter:
             outfile.write( u.ljust(self.maxUncNameWidth)+' '+self.uncertaintyString[u].ljust(self.maxUncStrWidth)+' '+
                                           ' '.join( [' '.join([self.getUncertaintyString((u,b,p)).rjust(self.defWidth) for p in self.processes[b]] ) for b in unmutedBins]) +'\n')
 
+        for p in self.rateParameters:
+            outfile.write('\n')
+            for b in self.bins:
+                outfile.write('%s_norm_%s rateParam %s %s (@0*1) %s_norm\n'%(p[0], b, b, p[0], p[0]))
+            outfile.write('%s_norm extArg %s %s\n'%(p[0], str(p[1]), str(p[2])))
+
         outfile.close()
         print "[cardFileWrite] Written card file %s"%fname
         return fname
@@ -213,7 +229,7 @@ class cardFileWriter:
 
         assert os.path.exists(filename), "File not found: %s"%filename
 
-        combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M Asymptotic "+filename
+        combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M Asymptotic %s %s"%(options,filename)
         print combineCommand
         os.system(combineCommand)
 
