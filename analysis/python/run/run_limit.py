@@ -14,6 +14,9 @@ argParser.add_argument("--fitAll",         default = False, action = "store_true
 argParser.add_argument("--aggregate",      default = False, action = "store_true", help="Use aggregated signal regions")
 argParser.add_argument("--DMsync",         default = False, action = "store_true", help="Use two regions for MET+X syncing")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
+argParser.add_argument("--popFromSR",      default = False, action = "store", help="Remove one signal region?")
+argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
+
 args = argParser.parse_args()
 
 
@@ -26,9 +29,9 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 from StopsDilepton.analysis.SetupHelpers    import channels, trilepChannels
 from StopsDilepton.analysis.estimators      import setup, constructEstimatorList, MCBasedEstimate, DataDrivenTTJetsEstimate
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS, regionsAgg, regionsDM
+from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS, regionsAgg, regionsDM, regionsDM1, regionsDM2, regionsDM3, regionsDM4, regionsDM5, regionsDM6, regionsDM7
 from StopsDilepton.analysis.Cache           import Cache
-
+from copy import deepcopy
 
 # Define CR
 setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False,  'zWindow': 'onZ'})
@@ -42,7 +45,7 @@ setupTTZ5 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMi
 if args.aggregate:
     setup.channels = ['all']
 elif args.DMsync:
-    setup.channels = ['all']
+    setup.channels = ['EE','MuMu', 'EMu']
 else:
     setup.channels     = ['SF','EMu']
 setupDYVV.channels = ['SF']
@@ -54,13 +57,24 @@ setupTTZ5.channels = ['all']
 
 # Define regions for CR
 if args.aggregate:
-    setup.regions     = regionsAgg[1:]
+    if args.popFromSR:
+        tmpRegion = deepcopy(regionsAgg[1:])
+        tmpRegion.pop(int(args.popFromSR))
+        setup.regions   = tmpRegion
+    else:
+        setup.regions     = regionsAgg[1:]
     setupDYVV.regions = regionsO[1:]
 elif args.DMsync:
     setup.regions     = regionsDM[1:]
     setupDYVV.regions = regionsO[1:]
 else:
-    setup.regions     = regionsO[1:]
+    if args.popFromSR:
+        tmpRegion = deepcopy(regionsO[1:])
+        tmpRegion.pop(int(args.popFromSR))
+        setup.regions   = tmpRegion
+    else:
+        setup.regions   = regionsO[1:]
+        #setup.regions   = regionsDM7[1:]
     setupDYVV.regions = regionsO[1:]
 setupTTZ1.regions = noRegions
 setupTTZ2.regions = noRegions
@@ -102,7 +116,7 @@ elif args.significanceScan: subDir += 'significance'
 else:                       subDir += 'signalOnly'
 baseDir = os.path.join(setup.analysis_results, subDir)
 
-limitDir    = os.path.join(baseDir, 'cardFiles', args.signal)
+limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension)
 overWrite   = (args.only is not None) or args.overwrite
 useCache    = True
 verbose     = True
@@ -125,15 +139,28 @@ elif args.signal == "TTbarDM":                      fastSim = False
 
 scaleUncCache = Cache(setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal, verbosity=2)
 isrUncCache   = Cache(setup.analysis_results+'/systematics/isr_%s.pkl'   % args.signal, verbosity=2)
+PDF = ['TTLep_pow', 'DY', 'multiboson', 'TTZ'] 
+PDFUncCaches   = {p:Cache(setup.analysis_results+'/systematicsTest_v2/PDF_%s.pkl' %p, verbosity=2) for p in PDF}
+scales = ['TTLep_pow', 'TTZ']
+scaleUncCaches   = {p:Cache(setup.analysis_results+'/systematicsTest_v2/scale_%s.pkl' %p, verbosity=2) for p in scales}
+
+
 
 def getScaleUnc(name, r, channel):
-  if scaleUncCache.contains((name, r, channel)): return max(0.01, scaleUncCache.get((name, r, channel)))
-  else:                                          return 0.01
+  if scaleUncCache.contains((name, r, channel)):    return max(0.01, scaleUncCache.get((name, r, channel)))
+  else:                                             return 0.01
+
+def getPDFUnc(name, r, channel, process):
+    if PDFUncCaches[process].contains((name, r, channel)):  return max(0.01, PDFUncCaches[process].get((name, r, channel)))
+    else:                                                   return 0.02
+
+def getScaleUncBkg(name, r, channel, process):
+    if scaleUncCaches[process].contains((name, r, channel)):    return max(0.01, scaleUncCaches[process].get((name, r, channel)))
+    else:                                                       return 0.01
 
 def getIsrUnc(name, r, channel):
-  return 0 #FIXME
-  unc = isrUncCache.get((name, r, channel))
-  return abs(unc)
+  if isrUncCache.contains((name,r,channel)):    return abs(isrUncCache.get((name, r, channel)))
+  else:                                         return 0.02
 
 
 def wrapper(s):
@@ -141,17 +168,6 @@ def wrapper(s):
     if "T8bb" in s.name:
         if s.mStop<810:
                 xSecScale = 0.01
-        #if "XSlep0p95" in s.name:
-        #    if s.mStop<810:
-        #        xSecScale = 0.01
-        #        print "Will scale signal x-sec by %f to guarantee a fit result"%xSecScale
-        #elif "XSlep0p5" in s.name:
-        #    if s.mStop<650:
-        #        xSecScale = 0.01
-        #        print "Will scale signal x-sec by %f to guarantee a fit result"%xSecScale
-        #else:
-        #    print "Won't scale x-sec"
-    print xSecScale
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = combineReleaseLocation
 
@@ -169,10 +185,17 @@ def wrapper(s):
         c.addUncertainty('trigger',    'lnN')
         c.addUncertainty('leptonSF',   'lnN')
         c.addUncertainty('scale',      'lnN')
+        c.addUncertainty('scaleTT',    'lnN')
+        c.addUncertainty('scaleTTZ',   'lnN')
+        c.addUncertainty('PDF',        'lnN')
         c.addUncertainty('isr',        'lnN')
-        c.addUncertainty('top',        'lnN')
+        c.addUncertainty('topGaus',    'lnN')
+        c.addUncertainty('topNonGaus', 'lnN')
+        c.addUncertainty('topFakes',   'lnN')
         c.addUncertainty('multiBoson', 'lnN')
         c.addUncertainty('DY',         'lnN')
+        c.addUncertainty('DY_SR',      'lnN')
+        c.addUncertainty('ttZ_SR',     'lnN')
         c.addUncertainty('ttZ',        'lnN')
         c.addUncertainty('other',      'lnN')
         if fastSim:
@@ -198,33 +221,86 @@ def wrapper(s):
                 binname = 'Bin'+str(counter)
                 counter += 1
                 total_exp_bkg = 0
-                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators], niceName)
+                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators][1:] + [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ], niceName)
+
                 for e in setup.estimators:
                   name = e.name.split('-')[0]
                   expected = e.cachedEstimate(r, channel, setup)
                   total_exp_bkg += expected.val
-                  c.specifyExpectation(binname, name, expected.val*args.scale)
+                  if e.name.count('TTJets'):
+                    if len(setup.regions) == len(regionsO[1:]):     divider = 6
+                    elif len(setup.regions) == len(regionsO[1:])-1:
+                        if int(args.popFromSR) < 6: divider = 5
+                        else: divider = 6
+                    elif len(setup.regions) == len(regionsAgg[1:]): divider = 1
+                    elif len(setup.regions) == len(regionsAgg[1:])-1:
+                        if int(args.popFromSR) < 1 and args.popFromSR is not False: divider = 0
+                        else: divider = 1 # back to 1!!
+                    elif len(setup.regions) == len(regionsDM1[1:]): divider = 3
+                    elif len(setup.regions) == len(regionsDM5[1:]): divider = 2
+                    else:                                           divider = 0 # Was 0, think about changing to 1 for ttZ sideband
+                    print "divider",divider
+                    if (setup.regions != noRegions and (r in setup.regions[divider:])):
+                        c.specifyExpectation(binname, 'TTJetsG',  0.25*expected.val*args.scale)
+                        c.specifyExpectation(binname, 'TTJetsNG', 0.50*expected.val*args.scale)
+                        c.specifyExpectation(binname, 'TTJetsF',  0.25*expected.val*args.scale)
+                    else:
+                        c.specifyExpectation(binname, 'TTJetsG',  0.55*expected.val*args.scale)
+                        c.specifyExpectation(binname, 'TTJetsNG', 0.44*expected.val*args.scale)
+                        c.specifyExpectation(binname, 'TTJetsF',  0.01*expected.val*args.scale)
+                  else:
+                    c.specifyExpectation(binname, name, expected.val*args.scale)
+
                   if expected.val>0:
-                      c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val )
-                      c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val )
-                      c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val )
-                      c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val )
-                      c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val )
-                      c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
-                      c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
-                      c.specifyUncertainty('trigger',  binname, name, 1 + e.triggerSystematic(    r, channel, setup).val )
-                      c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val )
+                      if e.name.count('TTJets'):
+                        names = [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ]
+                      else:
+                        names = [name]
+                      for name in names:
+                        c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val )
+                        c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val )
+                        c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val )
+                        c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val )
+                        c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val )
+                        c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val )
+                        c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val )
+                        c.specifyUncertainty('trigger',  binname, name, 1 + e.triggerSystematic(    r, channel, setup).val )
+                        c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val )
+                        
+                        if e.name.count('TTJets'):
+                            c.specifyUncertainty('scaleTT', binname, name, 1+getScaleUncBkg('TTLep_pow', r, channel,'TTLep_pow'))
+                            c.specifyUncertainty('PDF',     binname, name, 1+getPDFUnc('TTLep_pow', r, channel,'TTLep_pow'))
 
-                      if e.name.count('TTJets'):     c.specifyUncertainty('top',        binname, name, 2 if (setup.regions != noRegions and r == setup.regions[-1]) else 1.5)
-                      if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.5)
-                      if e.name.count('DY'):         c.specifyUncertainty('DY',         binname, name, 1.5)
-                      if e.name.count('TTZ'):        c.specifyUncertainty('ttZ',        binname, name, 1.2)
-                      if e.name.count('other'):      c.specifyUncertainty('other',      binname, name, 1.25)
+                        if name == 'TTJetsG':
+                            c.specifyUncertainty('topGaus',  binname, name, 1.15)
 
-                      #MC bkg stat (some condition to neglect the smaller ones?)
-                      uname = 'Stat_'+binname+'_'+name
-                      c.addUncertainty(uname, 'lnN')
-                      c.specifyUncertainty(uname, binname, name, 1+expected.sigma/expected.val )
+                        if name == 'TTJetsNG':
+                            c.specifyUncertainty('topNonGaus', binname, name, 1.30)
+
+                        if name == 'TTJetsF':
+                            c.specifyUncertainty('topFakes', binname, name, 1.50)
+
+                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.5)
+
+                        if e.name.count('DY'):
+                            c.specifyUncertainty('DY',         binname, name, 1.5)
+                            if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0:
+                                c.specifyUncertainty("DY_SR", binname, name, 1.25)
+
+                        if e.name.count('TTZ'):
+                            c.specifyUncertainty('ttZ',        binname, name, 1.2)
+                            c.specifyUncertainty('scaleTTZ',binname, name, 1+getScaleUncBkg('TTZ', r, channel,'TTZ'))
+                            c.specifyUncertainty('PDF',     binname, name, 1+getPDFUnc('TTZ', r, channel,'TTZ'))
+
+                            if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0:
+                                c.specifyUncertainty("ttZ_SR", binname, name, 1.20)
+
+                        if e.name.count('other'):      c.specifyUncertainty('other',      binname, name, 1.25)
+
+                        #MC bkg stat (some condition to neglect the smaller ones?)
+                        uname = 'Stat_'+binname+'_'+name
+                        c.addUncertainty(uname, 'lnN')
+                        c.specifyUncertainty(uname, binname, name, 1+expected.sigma/expected.val )
 
                 c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
@@ -232,6 +308,7 @@ def wrapper(s):
                 e = eSignal
                 eSignal.isSignal = True
                 if fastSim:
+                    #signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF', 'weight_pol_L'], 'remove':['reweightPU36fb']})
                     signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
                     signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'genMet'})))
                 else:
@@ -250,17 +327,16 @@ def wrapper(s):
                   c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, channel))
-                  c.specifyUncertainty('isr',      binname, 'signal', 1 + getIsrUnc(  eSignal.name, r, channel))
+                  c.specifyUncertainty('isr',      binname, 'signal', 1 + abs(getIsrUnc(  eSignal.name, r, channel)))
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
                     c.specifyUncertainty('PUFS',     binname, 'signal', 1 + e.fastSimPUSystematic(   r, channel, signalSetup).val )
 
-                  #signal MC stat added in quadrature with PDF uncertainty: 10% uncorrelated
                   uname = 'Stat_'+binname+'_signal'
                   c.addUncertainty(uname, 'lnN')
-                  c.specifyUncertainty(uname, binname, 'signal', 1 + sqrt(0.1**2 + signal.sigma/signal.val) )
+                  c.specifyUncertainty(uname, binname, 'signal', 1 + signal.sigma/signal.val )
                 else:
                   uname = 'Stat_'+binname+'_signal'
                   c.addUncertainty(uname, 'lnN')
@@ -331,7 +407,7 @@ def wrapper(s):
             return None
 
 
-postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+postProcessing_directory = "postProcessed_80X_v40/dilepTiny"
 if   args.signal == "T2tt":                         from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import signals_T2tt as jobs
 elif args.signal == "T2bt":                         from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bt as jobs
 elif args.signal == "T2bW":                         from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bW as jobs
@@ -339,7 +415,9 @@ elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": from StopsDilepton.samples.c
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
-elif args.signal == "TTbarDM":                      from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM as jobs
+elif args.signal == "TTbarDM":
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM as jobs
 
 if args.only is not None:
   wrapper(jobs[int(args.only)])
@@ -393,6 +471,7 @@ if "T2" in args.signal or  "T8bb" in args.signal:
 
 # Make table for DM
 if args.signal == "TTbarDM":
+  limitPrefix = args.signal
   # Create table
   texdir = os.path.join(baseDir, 'limits', args.signal, limitPrefix)
   if not os.path.exists(texdir): os.makedirs(texdir)

@@ -28,6 +28,7 @@ from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSelector, eleSelector, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, multiIsoWPInt
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
+from StopsDilepton.tools.polReweighting import getPolWeights
 
 from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
@@ -368,6 +369,11 @@ else:
     topScaleF = 1
     logger.info( "Sample will NOT have top pt reweighting. topScaleF=%f",topScaleF )
 
+if isTT:
+    from StopsDilepton.analysis.daniel.isrWeight import *
+    isr = ISRweight()
+    logger.info("Sample will have ISR reweighting called reweight_nISR.")
+
 if fastSim:
    from StopsDilepton.tools.leptonFastSimSF import leptonFastSimSF as leptonFastSimSF_
    leptonFastSimSF = leptonFastSimSF_()
@@ -437,7 +443,7 @@ if isTiny:
 
     #branches to be kept for MC samples only
     branchKeepStrings_MC = [ \
-        "nTrueInt", "genWeight", "xsec", "met_genPt", "met_genPhi", "lheHTIncoming"
+        "nTrueInt", "genWeight", "xsec", "met_genPt", "met_genPhi", "lheHTIncoming", "nIsr"
     ]
 
     #branches to be kept for data only
@@ -545,10 +551,12 @@ if isMC:
     # reading gen particles for top pt reweighting
     read_variables.append( TreeVariable.fromString('ngenPartAll/I') )
     read_variables.append( VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,mass/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
+    #read_variables.append( VectorTreeVariable.fromString('GenPart[pt/F,eta/F,phi/F,mass/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 ))
     read_variables.append( TreeVariable.fromString('genWeight/F') )
+    read_variables.append( TreeVariable.fromString('nIsr/I') )
     read_variables.append( VectorTreeVariable.fromString('gamma[mcPt/F]') )
 
-    new_variables.extend([ 'reweightTopPt/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F','reweightPU27fb/F','reweightPU27fbUp/F','reweightPU27fbDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F','reweightPU27fb/F','reweightPU27fbUp/F','reweightPU27fbDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F'])
     if not options.skipGenLepMatching:
         TreeVariable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
@@ -631,6 +639,8 @@ if options.susySignal:
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
     if  'T8bbllnunu' in options.samples[0]:
         new_variables  += ['mCha/I', 'mSlep/I', 'sleptonPdg/I']
+    if 'T2tt' in options.samples[0]:
+        new_variables  += ['weight_pol_L/F', 'weight_pol_R/F']
 
 if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
@@ -705,6 +715,11 @@ def filler( event ):
                 event.sleptonPdg = 1000015
             event.mCha  = r.GenSusyMChargino
             event.mSlep = r.GenSusyMSlepton
+        if 'T2tt' in options.samples[0]:
+            pol_weights = getPolWeights(r)
+            event.weight_pol_L = pol_weights[0]
+            event.weight_pol_R = pol_weights[1]
+
         event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
         event.mStop = r.GenSusyMStop
         event.mNeu  = r.GenSusyMNeutralino
@@ -740,6 +755,7 @@ def filler( event ):
 
     # top pt reweighting
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
+    if isMC: event.reweight_nISR = isr.getWeight(r) if isTT else 1.
 
     # jet/met related quantities, also load the leptons already
     if options.keepAllJets:

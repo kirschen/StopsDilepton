@@ -28,3 +28,10 @@ git fetch origin
 git checkout v6.3.1
 scramv1 b clean; scramv1 b
 ```
+# for impact studies
+Inside the combine release location do
+```
+git clone https://github.com/cms-analysis/CombineHarvester.git CombineHarvester
+cd CombineHarvester
+scram b -j 6
+```
