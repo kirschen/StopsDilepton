@@ -42,7 +42,7 @@ from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 
 from StopsDilepton.tools.user import analysis_results
 
-ofile = os.path.join( analysis_results, "systematics", "scale_%s.pkl" % options.signal )
+ofile = os.path.join( analysis_results, "systematicsDM_test", "scale_%s.pkl" % options.signal )
 if not options.overwrite:
     if os.path.exists( ofile ):
         logger.warning( "Found file %s. Exiting. Use --overwrite if you want.", ofile ) 
@@ -158,7 +158,9 @@ for estimate in signalEstimators:
                     ref = estimate.cachedEstimate(r, channel, setup.sysClone(sys={'reweight':[nominal]}) )
                     if ref>0:
                         scale = total[nominal]/total[var]
-                        unc = abs( scale*estimate.cachedEstimate(r, channel, setup.sysClone(sys={'reweight':[var]})) - ref ) / ref 
+                        delta = estimate.cachedEstimate(r, channel, setup.sysClone(sys={'reweight':[var]}))
+                        #unc = abs( scale*estimate.cachedEstimate(r, channel, setup.sysClone(sys={'reweight':[var]})) - ref ) / ref 
+                        unc = abs( (scale*delta - ref)/ref )
                         l.append( unc.val )
 
             scale_systematics[(estimate.name, r, c)] = max(l) if len(l)>0 else 0

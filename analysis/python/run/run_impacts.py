@@ -43,7 +43,7 @@ def wrapper(s):
     
     os.system(combineCommand)
     
-    plotDir = plot_directory + "/impactsV2/"
+    plotDir = plot_directory + "/impactsV4/"
     if not os.path.isdir(plotDir): os.makedirs(plotDir)
     shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s.pdf"%(plotDir,s.name))
     logger.info("Copied result to %s"%plotDir)

@@ -1,4 +1,9 @@
 import shutil
+
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+
 class cardFileWriter:
     def __init__(self):
         self.reset()
@@ -21,17 +26,22 @@ class cardFileWriter:
         self.maxUncStrWidth = 30
         self.hasContamination=False
         self.rateParameters = []
+        self.precision = 10
+
+    
+    def setPrecision(self, prec):
+        self.precision = prec
 
     def addBin(self, name, processes, niceName=""):
         if len(name)>30:
-            print "Name for bin",name,"too long. Max. length is 30."
+            logger.info("Name for bin",name,"too long. Max. length is 30.")
             return
         if self.niceNames.has_key(name):
-            print "Bin already there! (",name,")"
+            logger.info("Bin already there! (",name,")")
             return
         for p in processes:
             if len(p)>30:
-                print "Name for process", p, "in bin", name, "is too long. Max. length is 30."
+                logger.info("Name for process", p, "in bin", name, "is too long. Max. length is 30.")
                 return
         self.niceNames[name]=niceName
         self.bins.append(name)
@@ -56,16 +66,13 @@ class cardFileWriter:
             return
     
     def addRateParameter(self, p, value, r):
-        #if not self.processes.count(p):
-        #    print "Process %s has not been specified yet!"%p
-        #    return
-        #if self.rateParameters.count(p):
-        #    print "Rate parameter for process %s already added!"%p
-        #    return
+        if [ a[0] for a in self.rateParameters ].count(p):
+            logger.info("Rate parameter for process %s already added!"%p)
+            return
         self.rateParameters.append((p, value, r))
 
     def specifyExpectation(self, b, p, exp):
-        self.expectation[(b,p)] = exp
+        self.expectation[(b,p)] = round(exp, self.precision)
 
     def specifyObservation(self, b, obs):
         if not isinstance(obs, int):
@@ -84,7 +91,7 @@ class cardFileWriter:
         print "Adding ",u,"=",val,"for all bins and processes!"
         for b in self.bins:
             for p in self.processes[b]:
-                self.uncertaintyVal[(u,b,p)] = val
+                self.uncertaintyVal[(u,b,p)] = round(val,self.precision)
 
     def specifyUncertainty(self, u, b, p, val):
         if u not in self.uncertainties:
@@ -102,7 +109,7 @@ class cardFileWriter:
             _val=1.0
         else:
             _val = val
-        self.uncertaintyVal[(u,b,p)] = _val
+        self.uncertaintyVal[(u,b,p)] = round(_val,self.precision)
 
     def getUncertaintyString(self, k):
         u, b, p = k
@@ -213,7 +220,7 @@ class cardFileWriter:
         f.Close()
         return limit
 
-    def calcLimit(self, fname=None, options=""):
+    def calcLimit(self, fname=None, options="", normList=[]):
         import uuid, os
         ustr          = str(uuid.uuid4())
         uniqueDirname = os.path.join(self.releaseLocation, ustr)
@@ -228,7 +235,11 @@ class cardFileWriter:
         resultFilename = filename.replace('.txt','')+'.root'
 
         assert os.path.exists(filename), "File not found: %s"%filename
-
+        
+        if normList:
+            from StopsDilepton.tools.cardFileWriter.getNorms import getNorms
+            filename += " > output.txt"
+        
         combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M Asymptotic %s %s"%(options,filename)
         print combineCommand
         os.system(combineCommand)
@@ -241,7 +252,11 @@ class cardFileWriter:
             print "[cardFileWrite] Did not succeed reeding result."
         if res:
             shutil.copyfile(tempResFile, resultFilename)
-
+        
+        if normList:
+            getNorms(dirName=uniqueDirname, normsToExtract=normList)
+            shutil.copyfile(uniqueDirname + '/SF.txt', resultFilename.replace('.root','_SF.txt'))
+        
         shutil.rmtree(uniqueDirname)
         return res
 

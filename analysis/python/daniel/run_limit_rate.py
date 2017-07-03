@@ -193,6 +193,7 @@ def wrapper(s):
         c.addUncertainty('topNonGaus', 'lnN')
         c.addUncertainty('topFakes',   'lnN')
         c.addUncertainty('multiBoson', 'lnN')
+        c.addUncertainty('multiBoson_SR', 'lnN')
         c.addUncertainty('DY',         'lnN')
         c.addUncertainty('DY_SR',      'lnN')
         c.addUncertainty('ttZ_SR',     'lnN')
@@ -207,6 +208,9 @@ def wrapper(s):
         c.addRateParameter('DY', 1, '[0,2]')
         c.addRateParameter('multiBoson', 1, '[0,2]')
         c.addRateParameter('TTZ', 1, '[0,2]')
+
+        c.addRateParameter('multiBoson', 1, '[0,2]')
+
         
         for setup in setups:
           eSignal     = MCBasedEstimate(name=s.name, sample={channel:s for channel in channels+trilepChannels}, cacheDir=setup.defaultCacheDir())
@@ -284,15 +288,18 @@ def wrapper(s):
                         if name == 'TTJetsF':
                             c.specifyUncertainty('topFakes', binname, name, 1.50)
 
-                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.25) #for consistency instead of 1.5
+                        if e.name.count('multiBoson'):
+                            c.specifyUncertainty('multiBoson', binname, name, 1.25) #for consistency instead of 1.5
+                            if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0:
+                                c.specifyUncertainty("multiBoson_SR", binname, name, 1.25)
 
                         if e.name.count('DY'):
-                            #c.specifyUncertainty('DY',         binname, name, 1.5)
+                            c.specifyUncertainty('DY',         binname, name, 1.5)
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0:
                                 c.specifyUncertainty("DY_SR", binname, name, 1.25)
 
                         if e.name.count('TTZ'):
-                            #c.specifyUncertainty('ttZ',        binname, name, 1.2)
+                            c.specifyUncertainty('ttZ',        binname, name, 1.2)
                             c.specifyUncertainty('scaleTTZ',binname, name, 1+getScaleUncBkg('TTZ', r, channel,'TTZ'))
                             c.specifyUncertainty('PDF',     binname, name, 1+getPDFUnc('TTZ', r, channel,'TTZ'))
 
@@ -347,10 +354,14 @@ def wrapper(s):
                   c.specifyUncertainty(uname, binname, 'signal', 1 )
                 
                 if not args.controlDYVV and (signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg<=0):# or (total_exp_bkg>300 and signal.val<0.05):
-                  if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
+                  #if verbose:
+                  logger.debug("MUTING following bin!")
+                  logger.info("Bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg))
                   c.muted[binname] = True
                 else:
-                  if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
+                  logger.debug("NOT Muting following bin!")
+                  logger.info("Bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg))
+                  #if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
         c.addUncertainty('Lumi', 'lnN')
         c.specifyFlatUncertainty('Lumi', 1.026)
@@ -371,7 +382,7 @@ def wrapper(s):
         if useCache and not overWrite and limitCache.contains(sConfig):
           res = limitCache.get(sConfig)
         else:
-          res = c.calcLimit(cardFileName, options="-v 3")
+          res = c.calcLimit(cardFileName, options="-v 3 > output.txt", normList = ["DY_norm","multiBoson_norm","TTZ_norm"])
           c.calcNuisances(cardFileName)
           limitCache.add(sConfig, res, save=True)
     else:

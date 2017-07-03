@@ -9,11 +9,11 @@ from StopsDilepton.tools.user import combineReleaseLocation, analysis_results, p
 
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--postFit",          dest="postFit",             default=False,               action='store_true', help="")
-parser.add_option("--aggregate",        dest="aggregate",             default=False,               action='store_true', help="")
-parser.add_option("--onlySR",           dest="onlySR",             default=False,               action='store_true', help="")
-parser.add_option("--datacard",         dest="datacard",             default="T2tt_1100_150",               action='store', help="Which datacard?")
-parser.add_option("--overwrite",        dest="overwrite",             default=False,               action='store_true', help="Overwrite existing mlfit root file")
+parser.add_option("--postFit",          dest="postFit",     default=False,               action='store_true',   help="")
+parser.add_option("--aggregate",        dest="aggregate",   default=False,               action='store_true',   help="")
+parser.add_option("--onlySR",           dest="onlySR",      default=False,               action='store_true',   help="")
+parser.add_option("--datacard",         dest="datacard",    default="T2tt_1100_150",     action='store',        help="Which datacard?")
+parser.add_option("--overwrite",        dest="overwrite",   default=False,               action='store_true',   help="Overwrite existing mlfit root file")
 (options, args) = parser.parse_args()
 
 
@@ -27,7 +27,8 @@ if options.aggregate:
 else:
     agg = "/"
 
-fname = analysis_results + '%sfitAll/cardFiles/T2tt/%s.txt'%(agg,options.datacard)
+fname = analysis_results + '%sfitAll/cardFiles/T2tt_newCorr/%s.txt'%(agg,options.datacard)
+#fname = analysis_results + '%sfitAll/cardFiles/T2tt/%s.txt'%(agg,options.datacard)
 releaseLocation = '/afs/hephy.at/work/d/dspitzbart/higgs/CMSSW_7_4_7/src/HiggsAnalysis/CombinedLimit/'
 
 postFit = options.postFit
@@ -74,7 +75,8 @@ def calcCovariance(fname=None, options=""):
     if postFit:
         masks = ['mask_ch1_Bin'+str(i)+'=1' for i in range(nSR)]
         maskString = ','.join(masks)
-        fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 2000 --setPhysicsModelParameters "+maskString+" --saveOverall myshapecard.root"
+        fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 5000 --setPhysicsModelParameters "+maskString+" --saveOverall myshapecard.root"
+        print fitCommand
     else:
         fitCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 5000 --saveOverall --preFitValue 0  myshapecard.root"
 
@@ -141,11 +143,32 @@ if onlySR: nbins = nSR
 sorted_cov = ROOT.TH2D('cov','',nbins,0,nbins,nbins,0,nbins)
 binNames = natural_sort(binNames)
 
+SRnames = []
+if aggregate:
+    for i in range(nbins):
+        SRnames.append("All"+str(i))
+else:
+    for i in range(nbins/2):
+        SRnames.append("SF"+str(i))
+        SRnames.append("EMu"+str(i))
+
+print SRnames
+print len(SRnames)
+print binNames
+
+
 for i,k in enumerate(binNames):
+    print i
+    if i < nSR:
+        sorted_cov.GetXaxis().SetBinLabel(i+1,SRnames[i])
+        sorted_cov.GetYaxis().SetBinLabel(i+1,SRnames[i])
     for j,l in enumerate(binNames):
         sorted_cov.SetBinContent(i+1,j+1,matrix[k][l])
+        #sorted_cov.GetXaxis().SetBinLabel(i+1,l)
 
-if postFit: sorted_cov.GetZaxis().SetRangeUser(0.00005, 30)
+sorted_cov.GetXaxis().LabelsOption("v")
+
+if postFit: sorted_cov.GetZaxis().SetRangeUser(0.005, 3000) #0.00005, 30
 else: sorted_cov.GetZaxis().SetRangeUser(0.005, 3000)
 c = ROOT.TCanvas('c','c',700,700)
 c.SetLogz()
@@ -156,6 +179,7 @@ c2 = ROOT.TCanvas('c2','c2',700,700)
 
 pad1=ROOT.TPad("pad1","Main",0.,0.,1.,1.)
 pad1.SetRightMargin(0.15)
+pad1.SetTopMargin(0.06)
 #pad1.SetLeftMargin(0.15)
 #pad1.SetBottomMargin(0.02)
 pad1.Draw()
@@ -164,7 +188,16 @@ pad1.SetLogz()
 
 sorted_cov.Draw("colz")
 
-plot_dir = plot_directory + '/covariance_fix/'
+latex1 = ROOT.TLatex()
+latex1.SetNDC()
+latex1.SetTextSize(0.04)
+latex1.SetTextAlign(11) # align right
+
+latex1.DrawLatex(0.10,0.95,'CMS #bf{#it{Supplementary}}')
+latex1.DrawLatex(0.60,0.95,"#bf{36 fb^{-1} (13TeV)}")
+
+
+plot_dir = plot_directory + '/covariance_newCorr/'
 if not os.path.isdir(plot_dir):
     os.mkdir(plot_dir)
 

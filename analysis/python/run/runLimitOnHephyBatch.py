@@ -21,7 +21,7 @@ import time
 cmd = "echo"
 
 for i, estimator in enumerate(signalEstimators):
-  #if estimator == "T2tt_500_200":
+  if estimator == "T2tt_800_100": print "#"*100
   print i, estimator
   os.system(cmd+" 'python run_limit.py --signal TTbarDM --fitAll  --extension _preAppFix_flat_regionsDM7_noSysV2          --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T2tt --fitAll            --only=%s'"%str(i))

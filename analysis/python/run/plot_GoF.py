@@ -1,5 +1,5 @@
 '''
-Calculate covariance matrices following https://twiki.cern.ch/twiki/bin/view/CMS/SimplifiedLikelihood
+Caclulate and plot the goodness-of-fit
 '''
 
 import shutil, os
@@ -12,7 +12,7 @@ ROOT.gStyle.SetOptStat("")
 
 #'aggregated/fitAll/cardFiles/T2tt/T2tt_800_100.txt'
 #'aggregated/signalOnly/cardFiles/T2tt/T2tt_800_100.txt'
-fname = analysis_results + '/fitAll/cardFiles/T2tt/T2tt_800_100.txt'
+fname = analysis_results + '/fitAll/cardFiles/T2tt_newCorr/T2tt_800_100.txt'
 releaseLocation = combineReleaseLocation
 
 
@@ -106,7 +106,7 @@ latex1.SetTextAlign(11)
 latex1.DrawLatex(0.16,0.96,'CMS #bf{#it{Preliminary}}')
 latex1.DrawLatex(0.73,0.96,'#bf{35.9fb^{-1} (13TeV)}')
 
-plot_dir = plot_directory + '/GoodnessOfFit/'
+plot_dir = plot_directory + '/GoodnessOfFit_newCorr/'
 if not os.path.isdir(plot_dir):
     os.mkdir(plot_dir)
 

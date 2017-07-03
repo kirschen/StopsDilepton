@@ -34,7 +34,7 @@ logger.info("Loading DM samples from directory %s", os.path.join(data_directory,
 DMsamples = []
 
 for f in sorted(os.listdir(os.path.join(data_directory, postProcessing_directory))):
-    if f.startswith('TTbarDMJets_'):
+    if f.startswith('TTbarDMJets_') and ('NLO' not in f):
 
         splitter = ''
         if '_Tune' in f: splitter = '_Tune'
