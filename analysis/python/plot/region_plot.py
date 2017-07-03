@@ -65,6 +65,8 @@ for estimator in detailedEstimators:
 if args.control: postfix = 'controlRegions_' + args.control + ('_scaled' if args.scale else '')
 else:            postfix = 'signalRegions'
 
+if args.control: args.signal = None
+
 # signals and blindings
 scale = 1.
 if args.signal == "T2tt":
@@ -85,7 +87,8 @@ elif args.signal == "TTbarDM":
     scale          = 1./15.
   signalSetup    = setup
   postfix       += "_DM"
-
+else:
+  signals = []
 
 if args.noData: 
   postfix += '_noData'
@@ -106,7 +109,7 @@ for e in estimators: e.initCache(setup.defaultCacheDir())
 
 # data
 observation       = DataObservation(name='Data', sample=setup.sample['Data'], cacheDir=setup.defaultCacheDir())
-observation.style = styles.errorStyle( ROOT.kBlack, markerSize = 1.5 )
+observation.style = styles.errorStyle( ROOT.kBlack, markerSize = 1.9 )
 
 # define the systemativ variations
 systematics = { 'JEC' :        ['JECUp', 'JECDown'],
@@ -118,9 +121,11 @@ systematics = { 'JEC' :        ['JECUp', 'JECDown'],
                 'b-tag-l' :    ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'],
                 'trigger' :    ['reweightDilepTriggerBackupUp', 'reweightDilepTriggerBackupDown'],
                 'leptonSF' :   ['reweightLeptonSFUp','reweightLeptonSFDown'],
-                'TTJets' :     ['shape-TTJetsUp', 'shape-TTJetsDown'],
+                'TTJetsG' :    ['shape-TTJetsGUp', 'shape-TTJetsGDown'],
+                'TTJetsNG' :   ['shape-TTJetsNGUp', 'shape-TTJetsNGDown'],
+                'TTJetsF' :    ['shape-TTJetsFUp', 'shape-TTJetsFDown'],
                 'TTZ' :        ['shape-TTZUp', 'shape-TTZDown'],
-                'other' :      ['shape-other', 'shape-other'],
+                'other' :      ['shape-otherUp', 'shape-otherDown'],
                 'multiBoson' : ['shape-multiBosonUp', 'shape-multiBosonDown'],
                 'DY' :         ['shape-DYUp', 'shape-DYDown'],
 }
@@ -138,15 +143,24 @@ if args.control:
   if args.control == "TTZ":  cardFile = '/user/tomc/StopsDilepton/results_80X_v35/controlTTZ/cardFiles/T8bbllnunu_XCha0p5_XSlep0p05/T8bbllnunu_XCha0p5_XSlep0p05_1250_350.txt'  # Warning: need to have a card where there is at least a little bit of signal, otherwise the nuisance file is not derived correctly
   if args.control == "DYVV": cardFile = '/user/tomc/StopsDilepton/results_80X_v35/controlDYVV/cardFiles/T2tt/T2tt_600_300.txt'
 
-def getSampleUncertainty(cardFile, res, var, estimate, binName):
+def getSampleUncertainty(cardFile, res, var, estimate, binName, i):
     if   estimate.name.count('TTZ'):    uncName = 'ttZ'
     elif estimate.name.count('TTJets'): uncName = 'top'
     else:                               uncName = estimate.name
     estimateName = estimate.name.split('-')[0]
+
     if var and var.count(estimateName):
       if   args.scale and args.control == "DYVV" and estimate.name in ["DY","multiBoson"]: unc = getPostFitUncFromCard(cardFile, estimateName, uncName, binName);
       elif args.scale and args.control == "TTZ"  and estimate.name in ["TTZ"]:             unc = getPostFitUncFromCard(cardFile, estimateName, uncName, binName);
       else:                                                                                unc = getPreFitUncFromCard(cardFile,  estimateName, uncName, binName);
+
+      if estimate.name.count('TTJets'):
+        if   var.count('TTJetsG'):  unc = (0.25 if i < 6 else 0.55)*0.15
+        elif var.count('TTJetsNG'): unc = (0.50 if i < 6 else 0.44)*0.30
+        elif var.count('TTJetsF'):  unc = (0.25 if i < 6 else 0.01)*0.50
+
+        print var, estimateName, unc
+
       if   var.count('Up'):   return res*(1.+unc)
       elif var.count('Down'): return res*(1.-unc)
     return res
@@ -161,13 +175,7 @@ def applyStyle(hist, estimate):
       if channel == "SF":   hist.legendText = "Data (SF)"
     else:
       hist.legendText = estimate.getTexName(channel)
-
     hist.style = estimate.style
-    hist.GetXaxis().SetLabelOffset(99)
-    hist.GetXaxis().SetTitleOffset(1.5)
-    hist.GetXaxis().SetTitleSize(2)
-    hist.GetYaxis().SetTitleSize(2)
-    hist.GetYaxis().SetLabelSize(0.7)
 
 
 # For TTZ CR we work with setups instead of regions
@@ -187,7 +195,7 @@ def getRegionHistoTTZ(estimate, channel, setups, variations = [None]):
         res = estimate.cachedEstimate(noRegions[0], channel, setup_, save=True)
         res = getEstimateFromCard
         if args.control == 'TTZ' and estimate.name == "TTZ" and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
-        res = getSampleUncertainty(cardFile, res, var, estimate, binName)
+        res = getSampleUncertainty(cardFile, res, var, estimate, binName, i)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
@@ -218,9 +226,9 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         if args.control == 'DYVV' and estimate.name in ['DY', 'multiBoson'] and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
         if not args.control:
-          if estimate.name == 'DY':         res = res*1.115  # Warning currently coded by hand when applied for SR
-          if estimate.name == 'multiBoson': res = res*1.265
-        res = getSampleUncertainty(cardFile, res, var, estimate, binName)
+          if estimate.name == 'DY':         res = res*1.31  # Warning currently coded by hand when applied for SR
+          if estimate.name == 'multiBoson': res = res*1.19
+        res = getSampleUncertainty(cardFile, res, var, estimate, binName, i)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
@@ -233,7 +241,6 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
     if not estimate.name == "Data":
       for hh in h.values(): hh.Scale(scale)
     return h
-
 
 
 def drawLabels( regions ):
@@ -253,12 +260,12 @@ def drawLabels( regions ):
 def drawBinNumbers(numberOfBins):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.1 if args.ratio else 0.04)
+    tex.SetTextSize(0.13 if args.ratio else 0.04)
     tex.SetTextAlign(23) # align right
     min = 0.15
     max = 0.95
     diff = (max-min) / numberOfBins
-    lines = [(min+(i+0.5)*diff, 0.25 if args.ratio else .12,  str(i)) for i in range(numberOfBins)]
+    lines = [(min+(i+0.5)*diff, 0.35 if args.ratio else .12,  str(i)) for i in range(numberOfBins)]
     return [tex.DrawLatex(*l) for l in lines]
 
 def drawTTZLabels():
@@ -304,14 +311,14 @@ def drawDivisions(regions):
 
 
 def drawLumi( lumi_scale ):
-    lumi_scale = 35.9*1000
+    lumi_scale = 36*1000
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
-      (0.15, 0.95, 'CMS Preliminary'),
-      (0.71, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % (lumi_scale/1000.*scale))
+      (0.15, 0.95, 'CMS'),
+      (0.73, 0.95, 'L=%3.0f fb{}^{-1} (13 TeV)' % (lumi_scale/1000.*scale))
     ]
     return [tex.DrawLatex(*l) for l in lines]
 
@@ -388,6 +395,7 @@ for channel in channels:
 
     if args.signal == "T2tt" or args.signal == "T8": legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
     elif args.signal == "TTbarDM":                   legend = (0.55,0.85-0.010*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
+    else:                                            legend = (0.55,0.85-0.010*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
     if args.control == "TTZ":                        legend = ((0.35,0.7, 0.9, 0.85), 2)
 
     def setRatioBorder(c, y_border):
@@ -398,7 +406,7 @@ for channel in channels:
 
     canvasModifications = []
     if args.labels: canvasModifications = [lambda c: c.SetWindowSize(c.GetWw(), int(c.GetWh()*2)), lambda c : c.GetPad(0).SetBottomMargin(0.5)]
-    if args.ratio:  canvasModifications = [lambda c: setRatioBorder(c, 0.2), lambda c : c.GetPad(2).SetBottomMargin(0.27)]
+    if args.ratio:  canvasModifications = [lambda c: setRatioBorder(c, 0.23), lambda c : c.GetPad(2).SetBottomMargin(0.4)]
 
     if args.control and args.control=="TTZ": numberOfBins = len(setups)
     else:                                    numberOfBins = len(regions_)
@@ -429,5 +437,6 @@ for channel in channels:
         legend = legend,
         copyIndexPHP = True,
         canvasModifications = canvasModifications,
-        histModifications = [lambda h: h.GetYaxis().SetNoExponent(), lambda h: h.GetYaxis().SetLabelSize(30)] if (args.control and args.control=="TTZ") else [],
+        histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(26)] + ([lambda h: h.GetYaxis().SetNoExponent()] if (args.control and args.control=="TTZ") else []),
+        ratioModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(26), lambda h: h.GetXaxis().SetTitleOffset(5), lambda h: h.GetXaxis().SetTitleSize(30), lambda h: h.GetXaxis().SetLabelSize(0)],
     )
