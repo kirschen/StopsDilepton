@@ -8,6 +8,7 @@ argParser.add_argument("--signal",         action='store', default='T2tt',      
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                                                                                           help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float, nargs='?',                                                                                           help="scaling all yields")
 argParser.add_argument("--overwrite",      default = False, action = "store_true", help="Overwrite existing output files")
+argParser.add_argument("--keepCard",       default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--controlDYVV",    default = False, action = "store_true", help="Fits for DY/VV CR")
 argParser.add_argument("--controlTTZ",     default = False, action = "store_true", help="Fits for TTZ CR")
 argParser.add_argument("--fitAll",         default = False, action = "store_true", help="Fits SR and CR together")
@@ -118,6 +119,8 @@ baseDir = os.path.join(setup.analysis_results, subDir)
 
 limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension)
 overWrite   = (args.only is not None) or args.overwrite
+if args.keepCard:
+    overWrite = False
 useCache    = True
 verbose     = True
 
@@ -139,10 +142,14 @@ elif args.signal == "TTbarDM":                      fastSim = False
 
 postProcessing_directory = "postProcessed_80X_v40/dilepTiny"
 if   args.signal == "T2tt":                         from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import signals_T2tt as jobs
-elif args.signal == "T2bt":                         from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bt as jobs
-elif args.signal == "T2bW":                         from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bW as jobs
+elif args.signal == "T2bt":
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bt as jobs
+elif args.signal == "T2bW":
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bW as jobs
 elif 'T8bb' in args.signal:
-    postProcessing_directory = "postProcessed_80X_v37/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
     if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
@@ -187,7 +194,7 @@ def getIsrUnc(name, r, channel):
 def wrapper(s):
     xSecScale = 1
     if "T8bb" in s.name:
-        if s.mStop<810:
+        if s.mStop<810:#810
                 xSecScale = 0.01
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = combineReleaseLocation
@@ -470,7 +477,10 @@ results = [r for r in results if r]
 
 # Make histograms for T2tt
 if "T2" in args.signal or  "T8bb" in args.signal:
-  exp      = ROOT.TH2F("exp", "exp", 1600/25, 0, 1600, 1500/25, 0, 1500)
+  binSize = 25
+  shift = binSize/2.*(-1)
+  exp      = ROOT.TH2F("exp", "exp", 1600/25, shift, 1600+shift, 1500/25, shift, 1500+shift)
+#  exp      = ROOT.TH2F("exp", "exp", 128, 0, 1600, 120, 0, 1500)
   exp_down = exp.Clone("exp_down")
   exp_up   = exp.Clone("exp_up")
   obs      = exp.Clone("obs")

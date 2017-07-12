@@ -33,7 +33,7 @@ def cleanContour(g, model="T2tt"):
     for i in range(g.GetN()):
         g.GetPoint(i, x, y)
         if model=="T2tt":
-            if  (x<250) or x-y<200 or y>450 or x>900:
+            if  (x<200) or x-y<200 or y>450 or x>900:
                 remove.append(i)
         elif model=="T8bbllnunu_XCha0p5_XSlep0p05":
             pass

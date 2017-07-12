@@ -9,7 +9,7 @@ from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 ROOT.gROOT.SetBatch(True)
 
-signalString = 'T2bW'
+signalString = 'T2tt'
 
 #defFile= os.path.join(analysis_results, "fitAll/limits/T2tt/T2tt/limitResults.root")
 defFile= os.path.join(analysis_results, "fitAll/limits/"+signalString+"/"+signalString+"/limitResults.root")
@@ -22,7 +22,7 @@ parser.add_option("--file", dest="filename", default=defFile, type="string", act
 (options, args) = parser.parse_args()
 
 ifs = options.filename.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_paper')
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_paper2')
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 
@@ -51,6 +51,29 @@ for ix in range(hists[xSecKey].GetNbinsX()):
             hists["obs_UL"].SetBinContent(hists["obs"].FindBin(mStop, mNeu), v*xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0))
             hists["obs_up"].SetBinContent(hists["obs"].FindBin(mStop, mNeu), v*scaleup)
             hists["obs_down"].SetBinContent(hists["obs"].FindBin(mStop, mNeu), v*scaledown)
+
+newHists = {}
+
+for k in ["obs","obs_UL","obs_up","obs_down","exp","exp_up","exp_down"]:
+    xmax = hists[k].GetXaxis().GetXmax()
+    xmin = hists[k].GetXaxis().GetXmin()
+    Nx = hists[k].GetXaxis().GetNbins()
+    ymax = hists[k].GetYaxis().GetXmax()
+    ymin = hists[k].GetYaxis().GetXmin()
+    Ny = hists[k].GetYaxis().GetNbins()
+    yWidth = (ymax-ymin)/Ny
+    newMin = ymin-yWidth
+    newHists[k] = ROOT.TH2F(hists[k].GetName(),hists[k].GetTitle(),Nx,xmin,xmax,Ny+1,newMin,ymax)
+    for ix in range(1, hists[k].GetNbinsX()+1):
+        newHists[k].SetBinContent(ix,1,hists[k].GetBinContent(ix,1))
+        for iy in range(1, hists[k].GetNbinsY()+1):
+            newHists[k].SetBinContent(ix,iy+1,hists[k].GetBinContent(ix,iy))
+
+hists = newHists
+
+#for k in ["obs","obs_UL","obs_up","obs_down","exp","exp_up","exp_down"]:
+#    for ix in range(hists[k].GetNbinsX()):
+#        hists[k].SetBinContent(ix,0, hists[k].GetBinContent(ix,1))
 
 for i in ["exp", "exp_up", "exp_down", "obs", "obs_UL", "obs_up", "obs_down"]:
   hists[i + "_int"]    = interpolate(hists[i])

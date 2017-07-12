@@ -8,12 +8,12 @@ from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed im
 
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p05]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p09]
-#signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p5]
+signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p5]
 #signalEstimators = [s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p95]
 #signalEstimators = [s.name for s in signals_T2tt]
 #signalEstimators = [s.name for s in signals_T2bt]
 #signalEstimators = [s.name for s in signals_T2bW]
-signalEstimators = [s.name for s in signals_TTbarDM]
+#signalEstimators = [s.name for s in signals_TTbarDM]
 
 import time
 
@@ -21,9 +21,10 @@ import time
 cmd = "echo"
 
 for i, estimator in enumerate(signalEstimators):
-  if estimator == "T2tt_800_100": print "#"*100
-  print i, estimator
-  os.system(cmd+" 'python run_limit.py --signal TTbarDM --fitAll  --extension _preAppFix_flat_regionsDM7_noSysV2          --only=%s'"%str(i))
+  #if "750_100" in estimator:
+    #print "###"*10# == "T2tt_800_100": print "#"*100
+    #print i, estimator
+  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5 --fitAll --keepCard          --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T2tt --fitAll            --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlDYVV --only=%s'"%str(i))
 #  os.system(cmd+" 'python run_limit.py --signal T8bbllnunu_XCha0p5_XSlep0p5--controlTTZ  --only=%s'"%str(i))
