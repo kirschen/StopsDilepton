@@ -11,8 +11,9 @@ ROOT.gROOT.SetBatch(True)
 
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p95'
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p5'
+signalString = 'T8bbllnunu_XCha0p5_XSlep0p09'
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p05'
-signalString = "T2bW"
+#signalString = "T2bW"
 
 defFile= os.path.join(analysis_results, "fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
 
@@ -65,15 +66,13 @@ for i in ["exp","exp_up","exp_down","obs"]:
     binSizeY = 25
     print binSizeX, binSizeY
     for ix in range(1,1625/25):
-        #for iy in range(1,15250/125):
         for iy in range(0,1525/25):
             r = tmp.GetBinContent(ix,iy)
-            if iy == 0:
-                if tmp.GetBinContent(ix,iy+1)>0:
-                    bla = tmp.GetBinContent(ix,iy+1)
-                    x.append((ix-1)*binSizeX)
-                    y.append((iy-1)*binSizeY)
-                    z.append(bla)
+            if iy == 0 and tmp.GetBinContent(ix,iy+1)>0:
+                r2 = tmp.GetBinContent(ix,iy+1)
+                x.append((ix-1)*binSizeX)
+                y.append((iy-1)*binSizeY)
+                z.append(r2)
             if r>0:
                 print ix*binSizeX, iy*binSizeY, r
 #                x.append((2*ix-3)/2.*binSizeX)

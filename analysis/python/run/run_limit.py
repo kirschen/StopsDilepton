@@ -194,7 +194,7 @@ def getIsrUnc(name, r, channel):
 def wrapper(s):
     xSecScale = 1
     if "T8bb" in s.name:
-        if s.mStop<810:#810
+        if s.mStop<10:#810
                 xSecScale = 0.01
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = combineReleaseLocation
