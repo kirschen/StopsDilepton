@@ -20,7 +20,7 @@ from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',         action='store',      default='T8',            nargs='?', choices=[None, "T2tt", "DM", "T8"], help="Add signal to plot")
+argParser.add_argument('--signal',         action='store',      default='T2tt',          nargs='?', choices=[None, "T2tt", "DM", "T8"], help="Add signal to plot")
 argParser.add_argument('--noData',         action='store_true', default=False,           help='do not plot data?')
 argParser.add_argument('--plot_directory', action='store',      default='analysisPlots')
 argParser.add_argument('--selection',      action='store',      default=None)
@@ -85,7 +85,12 @@ selectionStrings = ['relIso0.12',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140',
                     'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
-                    'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']
+                    'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+                    'njet2p-btag1p-relIso0.12-veryLooseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
+                    'njet2p-btag1p-relIso0.12-veryLooseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']
+
+selectionStrings = ['njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
+                    'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100']
 
 def launch(command, logfile):
   if args.runLocal: os.system(command + " --isChild &> " + logfile)
@@ -141,12 +146,12 @@ if args.signal == "T2tt":
   T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
   T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
   signals                 = [T2tt, T2tt2]
-elif args.signal == "TTbarDM":
-  from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-  DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-  DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
-  DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
-  DM2.style               = styles.lineStyle( 28,          width=3)
+elif args.signal == "DM":
+  from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10, TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
+  DM                      = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
+  DM2                     = TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
+  DM.style                = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+  DM2.style               = styles.lineStyle( ROOT.kBlack,          width=3)
   signals                 = [DM, DM2]
 elif args.signal == "T8":
   from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
@@ -169,17 +174,20 @@ elif args.signal == "T8":
 # Text on the plots
 #
 def drawObjects( plotData, dataMCScale, lumi_scale ):
-    lumi_scale = 35.9 # fix rounding
+  lumi_scale = 35.9 # fix rounding
+  def drawTex(align, size, line):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.04)
-    tex.SetTextAlign(11) # align right
-    lines = [
-      (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
-      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) ) if plotData else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)
-    ]
-    if "mt2ll100" in args.selection and args.noData: lines += [(0.55, 0.5, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
-    return [tex.DrawLatex(*l) for l in lines] 
+    tex.SetTextSize(size)
+    tex.SetTextAlign(align)
+    return tex.DrawLatex(*line)
+
+  lines =[
+    (11,0.06,(0.15, 0.95, 'CMS' if plotData else 'CMS Simulation')), 
+    (31,0.04,(0.95, 0.95, ('%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale )) if plotData else ('%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)))
+  ]
+  if "mt2ll100" in args.selection and args.noData: lines += [(11,0.05,(0.55, 0.5, 'M_{T2}(ll) > 100 GeV'))] # Manually put the mt2ll > 100 GeV label
+  return [drawTex(*l) for l in lines] 
 
 
 
@@ -192,13 +200,15 @@ def drawPlots(plots, mode, dataMCScale):
         if mode == "SF":  plot.histos[1][0].legendText = "Data (SF)"
       plotting.draw(plot,
             plot_directory = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection),
-            ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
+            ratio = {'yRange':(0.1,1.9), 'texY':'Obs./Exp.'} if not args.noData else None,
             logX = False, logY = log, sorting = True,
             yRange = (0.03, "auto") if log else (0.001, "auto"),
             scaling = {},
-            legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88) if not args.noData else (0.50,0.9-0.047*sum(map(len, plot.histos)),0.85,0.9),
+            legend = (0.55,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88) if not args.noData else (0.55,0.9-0.047*sum(map(len, plot.histos)),0.9,0.9),
             drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
-            copyIndexPHP = True
+            copyIndexPHP = True,
+            ratioModifications = [lambda h: h.GetXaxis().SetTitleOffset(4)],
+            histModifications = [lambda h: h.GetXaxis().SetTitleOffset(1.15)],
       )
 
 
@@ -241,17 +251,11 @@ for index, mode in enumerate(allModes):
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   lumi_scale                 = data_sample.lumi/1000
 
-  if args.noData: lumi_scale = 35.9
-  # Blinding policy for DM
-  if "njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80" in args.selection and not args.noData and args.signal == "DM":
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
-      lumi_scale = lumi_scale/15
-  else:
-    weight_ = lambda event, sample: event.weight
+  if args.noData: lumi_scale = 36
+  weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
   mc             = [ Top_pow, TTZ_LO if args.LO else TTZ, TTXNoZ] + multiBosonList + [DY_HT_LO]
-
 
   for sample in mc: sample.style = styles.fillStyle(sample.color, lineColor = sample.color)
 
@@ -274,85 +278,85 @@ for index, mode in enumerate(allModes):
   plots = []
 
   plots.append(Plot(
-    name = 'yield', texX = 'yield', texY = 'Number of Events',
+    name = 'yield', texX = 'yield', texY = 'Events',
     attribute = lambda event, sample: 0.5 + index,
     binning=[3, 0, 3],
   ))
 
   plots.append(Plot(
-    name = 'nVtxs', texX = 'vertex multiplicity', texY = 'Number of Events',
+    name = 'nVtxs', texX = 'vertex multiplicity', texY = 'Events',
     attribute = TreeVariable.fromString( "nVert/I" ),
     binning=[50,0,50],
   ))
 
   plots.append(Plot(
-      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}^{miss} (GeV)', texY = 'Events',
       attribute = TreeVariable.fromString( "met_pt/F" ),
-      binning=[400/20,0,400],
+      binning=[320/20,80,400],
   ))
 
   plots.append(Plot(
-      texX = '#phi(E_{T}^{miss})', texY = 'Number of Events',
+      texX = '#phi(E_{T}^{miss})', texY = 'Events',
       attribute = TreeVariable.fromString( "met_phi/F" ),
       binning=[10,-pi,pi],
   ))
 
   plots.append(Plot(
-    texX = 'E_{T}^{miss}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
+    texX = 'E_{T}^{miss}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Events',
     attribute = TreeVariable.fromString('metSig/F'),
     binning= [80,20,100] if args.selection.count('metSig20') else ([25,5,30] if args.selection.count('metSig') else [30,0,30]),
   ))
 
   plots.append(Plot(
-    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'M_{T2}(ll) (GeV)', texY = 'Events',
     attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
     binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [400/20,0,400]),
   ))
 
   plots.append(Plot(
-    texX = 'number of jets', texY = 'Number of Events',
+    texX = 'number of jets', texY = 'Events',
     attribute = TreeVariable.fromString('nJetGood/I'),
     binning=[14,0,14],
   ))
 
   plots.append(Plot(
-    texX = 'number of medium b-tags (CSVM)', texY = 'Number of Events',
+    texX = 'number of medium b-tags (CSVM)', texY = 'Events',
     attribute = TreeVariable.fromString('nBTag/I'),
     binning=[8,0,8],
   ))
 
   plots.append(Plot(
-    texX = 'H_{T} (GeV)', texY = 'Number of Events / 50 GeV',
+    texX = 'H_{T} (GeV)', texY = 'Events',
     attribute = TreeVariable.fromString( "ht/F" ),
     binning=[500/50,50,600],
   ))
 
   plots.append(Plot(
-    texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 4 GeV',
+    texX = 'm(ll) of leading dilepton (GeV)', texY = 'Events',
     attribute = TreeVariable.fromString( "dl_mass/F" ),
     binning=[200/4,0,200],
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'p_{T}(ll) (GeV)', texY = 'Events',
     attribute = TreeVariable.fromString( "dl_pt/F" ),
     binning=[20,0,400],
   ))
 
   plots.append(Plot(
-      texX = '#eta(ll) ', texY = 'Number of Events',
+      texX = '#eta(ll) ', texY = 'Events',
       name = 'dl_eta', attribute = lambda event, sample: abs(event.dl_eta), read_variables = ['dl_eta/F'],
       binning=[10,0,3],
   ))
 
   plots.append(Plot(
-    texX = '#phi(ll)', texY = 'Number of Events',
+    texX = '#phi(ll)', texY = 'Events',
     attribute = TreeVariable.fromString( "dl_phi/F" ),
     binning=[10,-pi,pi],
   ))
 
   plots.append(Plot(
-    texX = 'Cos(#Delta#phi(ll, E_{T}^{miss}))', texY = 'Number of Events',
+    texX = 'Cos(#Delta#phi(ll, E_{T}^{miss}))', texY = 'Events',
     name = 'cosZMetphi',
     attribute = lambda event, sample: cos( event.dl_phi - event.met_phi ), 
     read_variables = ["met_phi/F", "dl_phi/F"],
@@ -360,44 +364,44 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 15 GeV',
+    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Events',
     attribute = TreeVariable.fromString( "l1_pt/F" ),
     binning=[20,0,300],
   ))
 
   plots.append(Plot(
-    texX = '#eta(l_{1})', texY = 'Number of Events',
+    texX = '#eta(l_{1})', texY = 'Events',
     name = 'l1_eta', attribute = lambda event, sample: abs(event.l1_eta), read_variables = ['l1_eta/F'],
     binning=[15,0,3],
   ))
 
   plots.append(Plot(
-    texX = '#phi(l_{1})', texY = 'Number of Events',
+    texX = '#phi(l_{1})', texY = 'Events',
     attribute = TreeVariable.fromString( "l1_phi/F" ),
     binning=[10,-pi,pi],
   ))
 
   plots.append(Plot(
-    texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
+    texX = 'p_{T}(l_{2}) (GeV)', texY = 'Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,300],
   ))
 
   plots.append(Plot(
-    texX = '#eta(l_{2})', texY = 'Number of Events',
+    texX = '#eta(l_{2})', texY = 'Events',
     name = 'l2_eta', attribute = lambda event, sample: abs(event.l2_eta), read_variables = ['l2_eta/F'],
     binning=[15,0,3],
   ))
 
   plots.append(Plot(
-    texX = '#phi(l_{2})', texY = 'Number of Events',
+    texX = '#phi(l_{2})', texY = 'Events',
     attribute = TreeVariable.fromString( "l2_phi/F" ),
     binning=[10,-pi,pi],
   ))
 
   plots.append(Plot(
     name = "JZB",
-    texX = 'JZB (GeV)', texY = 'Number of Events / 32 GeV',
+    texX = 'JZB (GeV)', texY = 'Events',
     attribute = lambda event, sample: sqrt( (event.met_pt*cos(event.met_phi)+event.dl_pt*cos(event.dl_phi))**2 + (event.met_pt*sin(event.met_phi)+event.dl_pt*sin(event.dl_phi))**2) - event.dl_pt, 
         read_variables = ["met_phi/F", "dl_phi/F", "met_pt/F", "dl_pt/F"],
     binning=[25,-200,600],
@@ -406,7 +410,7 @@ for index, mode in enumerate(allModes):
   # Plots only when at least one b-jet:
   if args.selection.count('btag1p'):
     plots.append(Plot(
-      texX = 'p_{T}(leading b-jet) (GeV)', texY = 'Number of Events / 30 GeV',
+      texX = 'p_{T}(leading b-jet) (GeV)', texY = 'Events',
       name = 'bjet1_pt', attribute = lambda event, sample: event.bJetGoodPt,
       binning=[600/30,0,600],
     ))
@@ -414,26 +418,26 @@ for index, mode in enumerate(allModes):
   # Plots only when at least one jet:
   if args.selection.count('njet'):
     plots.append(Plot(
-      texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
+      texX = 'p_{T}(leading jet) (GeV)', texY = 'Events',
       name = 'jet1_pt', attribute = lambda event, sample: event.JetGood_pt[0],
       binning=[600/30,0,600],
     ))
 
     plots.append(Plot(
-      texX = '#eta(leading jet) (GeV)', texY = 'Number of Events',
+      texX = '#eta(leading jet) (GeV)', texY = 'Events',
       name = 'jet1_eta', attribute = lambda event, sample: abs(event.JetGood_eta[0]),
       binning=[10,0,3],
     ))
 
     plots.append(Plot(
-      texX = '#phi(leading jet) (GeV)', texY = 'Number of Events',
+      texX = '#phi(leading jet) (GeV)', texY = 'Events',
       name = 'jet1_phi', attribute = lambda event, sample: event.JetGood_phi[0],
       binning=[10,-pi,pi],
     ))
 
     plots.append(Plot(
       name = 'cosMetJet1phi',
-      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0]), 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
       binning = [10,-1,1],
@@ -441,7 +445,7 @@ for index, mode in enumerate(allModes):
     
     plots.append(Plot(
       name = 'cosMetJet1phi_smallBinning',
-      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
       binning = [20,-1,1],
@@ -449,7 +453,7 @@ for index, mode in enumerate(allModes):
 
     plots.append(Plot(
       name = 'cosZJet1phi',
-      texX = 'Cos(#Delta#phi(Z, leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(Z, leading jet))', texY = 'Events',
       attribute = lambda event, sample: cos( event.dl_phi - event.JetGood_phi[0] ) ,
       read_variables =  ["dl_phi/F", "JetGood[phi/F]"],
       binning = [10,-1,1],
@@ -458,26 +462,26 @@ for index, mode in enumerate(allModes):
   # Plots only when at least two jets:
   if args.selection.count('njet2p'):
     plots.append(Plot(
-      texX = 'p_{T}(2nd leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
+      texX = 'p_{T}(2nd leading jet) (GeV)', texY = 'Events',
       name = 'jet2_pt', attribute = lambda event, sample: event.JetGood_pt[1],
       binning=[600/30,0,600],
     ))
 
     plots.append(Plot(
-      texX = '#eta(2nd leading jet) (GeV)', texY = 'Number of Events',
+      texX = '#eta(2nd leading jet) (GeV)', texY = 'Events',
       name = 'jet2_eta', attribute = lambda event, sample: abs(event.JetGood_eta[1]),
       binning=[10,0,3],
     ))
 
     plots.append(Plot(
-      texX = '#phi(2nd leading jet) (GeV)', texY = 'Number of Events',
+      texX = '#phi(2nd leading jet) (GeV)', texY = 'Events',
       name = 'jet2_phi', attribute = lambda event, sample: event.JetGood_phi[1],
       binning=[10,-pi,pi],
     ))
 
     plots.append(Plot(
       name = 'cosMetJet2phi',
-      texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
       binning = [10,-1,1],
@@ -485,7 +489,7 @@ for index, mode in enumerate(allModes):
     
     plots.append(Plot(
       name = 'cosMetJet2phi_smallBinning',
-      texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
       binning = [20,-1,1],
@@ -493,7 +497,7 @@ for index, mode in enumerate(allModes):
 
     plots.append(Plot(
       name = 'cosZJet2phi',
-      texX = 'Cos(#Delta#phi(Z, 2nd leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(Z, 2nd leading jet))', texY = 'Events',
       attribute = lambda event, sample: cos( event.dl_phi - event.JetGood_phi[0] ),
       read_variables = ["dl_phi/F", "JetGood[phi/F]"],
       binning = [10,-1,1],
@@ -501,20 +505,20 @@ for index, mode in enumerate(allModes):
 
     plots.append(Plot(
       name = 'cosJet1Jet2phi',
-      texX = 'Cos(#Delta#phi(leading jet, 2nd leading jet))', texY = 'Number of Events',
+      texX = 'Cos(#Delta#phi(leading jet, 2nd leading jet))', texY = 'Events',
       attribute = lambda event, sample: cos( event.JetGood_phi[1] - event.JetGood_phi[0] ) ,
       read_variables =  ["JetGood[phi/F]"],
       binning = [10,-1,1],
     ))
 
     plots.append(Plot(
-      texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 30 GeV',
+      texX = 'M_{T2}(bb) (GeV)', texY = 'Events',
       attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
       binning=[420/30,70,470],
     ))
 
     plots.append(Plot(
-      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
+      texX = 'M_{T2}(blbl) (GeV)', texY = 'Events',
       attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
       binning=[420/30,0,400],
     ))
