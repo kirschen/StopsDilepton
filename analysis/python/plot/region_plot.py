@@ -113,9 +113,9 @@ observation.style = styles.errorStyle( ROOT.kBlack, markerSize = 1.9 )
 
 # define the systemativ variations
 systematics = { 'JEC' :        ['JECUp', 'JECDown'],
+                'unclEn' :     ['UnclusteredEnUp', 'UnclusteredEnDown'],
        #         'JER' :        ['JERUp', 'JERDown'],
                 'PU' :         ['reweightPU36fbUp', 'reweightPU36fbDown'],
-                'stat' :       ['statLow', 'statHigh'],
                 'topPt' :      ['reweightTopPt', None],
                 'b-tag-b' :    ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
                 'b-tag-l' :    ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'],
@@ -125,12 +125,13 @@ systematics = { 'JEC' :        ['JECUp', 'JECDown'],
                 'TTJetsNG' :   ['shape-TTJetsNGUp', 'shape-TTJetsNGDown'],
                 'TTJetsF' :    ['shape-TTJetsFUp', 'shape-TTJetsFDown'],
                 'TTZ' :        ['shape-TTZUp', 'shape-TTZDown'],
-                'TTZ2' :       ['shape-TTZ2Up', 'shape-TTZ2Down'],
                 'other' :      ['shape-otherUp', 'shape-otherDown'],
                 'multiBoson' : ['shape-multiBosonUp', 'shape-multiBosonDown'],
                 'DY' :         ['shape-DYUp', 'shape-DYDown'],
-                'DY2' :        ['shape-DY2Up', 'shape-DY2Down'],
 }
+
+for e in estimators:
+  systematics['stat' + e.name] = ['statLow' + e.name, 'statHigh' + e.name]
 
 sysVariations = [None]
 for var in systematics.values():
@@ -146,19 +147,18 @@ if args.control:
 
 def getSampleUncertainty(cardFile, res, var, estimate, binName, i):
     if   estimate.name.count('TTZ'):    uncName = 'ttZ'
-    elif estimate.name.count('TTJets'): uncName = 'top'
     else:                               uncName = estimate.name
     estimateName = estimate.name.split('-')[0]
 
     if var and var.count(estimateName):
-      if   args.scale and args.control == "DYVV" and estimate.name in ["DY","multiBoson"]: unc = getPostFitUncFromCard(cardFile, estimateName, uncName, binName);
-      elif args.scale and args.control == "TTZ"  and estimate.name in ["TTZ"]:             unc = getPostFitUncFromCard(cardFile, estimateName, uncName, binName);
-      else:                                                                                unc = getPreFitUncFromCard(cardFile,  estimateName, uncName, binName);
-
-      if estimate.name.count('TTJets'):
-        if   var.count('TTJetsG'):  unc = (0.25 if i < 6 else 0.55)*0.15
-        elif var.count('TTJetsNG'): unc = (0.50 if i < 6 else 0.44)*0.30
-        elif var.count('TTJetsF'):  unc = (0.25 if i < 6 else 0.01)*0.50
+      if   estimate.name in ["DY"]:              unc = 0.19
+      if   estimate.name in ["multiBoson"]:      unc = 0.17
+      elif estimate.name in ["TTZ"]:             unc = sqrt(.15**2+.20**2)
+      elif estimate.name.count('TTJets'):
+        if   var.count('TTJetsG'):               unc = (0.25 if i < 6 else 0.55)*0.15
+        elif var.count('TTJetsNG'):              unc = (0.50 if i < 6 else 0.44)*0.30
+        elif var.count('TTJetsF'):               unc = (0.25 if i < 6 else 0.01)*0.50
+      else:                                      unc = getPreFitUncFromCard(cardFile,  estimateName, uncName, binName);
 
       if   var.count('Up'):   return res*(1.+unc)
       elif var.count('Down'): return res*(1.-unc)
@@ -188,7 +188,7 @@ def getRegionHistoTTZ(estimate, channel, setups, variations = [None]):
 
       estimate.initCache(s.defaultCacheDir())
       for var in variations:
-        if var in ['statLow', 'statHigh']: continue
+        if var and (var.count('statLow') or var.count('statHigh')): continue
 
         setup_ = s if not var or var.count('shape') else s.sysClone({'selectionModifier': var}) if var.count('JE') else s.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(noRegions[0], channel, setup_, save=True)
@@ -197,9 +197,13 @@ def getRegionHistoTTZ(estimate, channel, setups, variations = [None]):
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
-        if not var and ('statLow' in variations or 'statHigh' in variations):
-          h['statLow'].SetBinContent(i+1,  res.val-res.sigma)
-          h['statHigh'].SetBinContent(i+1, res.val+res.sigma)
+        if not var:
+          if ('statLow' in variations or 'statHigh' in variations):
+            h['statLow'].SetBinContent(i+1,  res.val-res.sigma)
+            h['statHigh'].SetBinContent(i+1, res.val+res.sigma)
+
+
+
 
     applyStyle(h[None], estimate)
 
@@ -218,25 +222,22 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
     for i, r in enumerate(regions):
       binName = ' '.join(['SF', r.__str__()]) + ("_controlDYVV" if args.control and args.control=="DYVV" else "") #always take SF here (that's allways available for DYVV)
       for var in variations:
-        if var in ['statLow', 'statHigh']: continue
+        if var and (var.count('statLow') or var.count('statHigh')): continue
 
-        setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
+        setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') or var.count('Unclustered') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         if args.control == 'DYVV' and estimate.name in ['DY', 'multiBoson'] and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
         if not args.control:
           if estimate.name == 'DY':         res = res*1.31  # Warning currently coded by hand when applied for SR
           if estimate.name == 'multiBoson': res = res*1.19
-        if   not args.control and estimate.name == "TTZ" and var and var.count('TTZ2Up'):   res = res*(1.+0.25)
-        if   not args.control and estimate.name == "TTZ" and var and var.count('TTZ2Down'): res = res*(1.-0.25)
-        elif not args.control and estimate.name == "DY"  and var and var.count('DY2Up'):    res = res*(1.+0.2)
-        elif not args.control and estimate.name == "DY"  and var and var.count('DY2Down'):  res = res*(1.-0.2)
-        else:                                                                               res = getSampleUncertainty(cardFile, res, var, estimate, binName, i)
+          else:                             res = getSampleUncertainty(cardFile, res, var, estimate, binName, i)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
-        if not var and ('statLow' in variations or 'statHigh' in variations):
-          h['statLow'].SetBinContent(i+1,  res.val-res.sigma)
-          h['statHigh'].SetBinContent(i+1, res.val+res.sigma)
+        if not var:
+          if ('statLow'+estimate.name in variations or 'statHigh'+estimate.name in variations):
+            h['statLow'+estimate.name].SetBinContent(i+1,  res.val-res.sigma)
+            h['statHigh'+estimate.name].SetBinContent(i+1, res.val+res.sigma)
 
     applyStyle(h[None], estimate)
 
