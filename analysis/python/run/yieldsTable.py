@@ -3,13 +3,15 @@ import os
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument("--onlyStat",       action='store_true', default=False,          help="show only stat errors?")
+argParser.add_argument("--agg",            action='store_true', default=False,          help="use agg regions?")
 args = argParser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers    import allChannels, channels
 from StopsDilepton.analysis.estimators      import setup, constructEstimatorList, MCBasedEstimate
 from StopsDilepton.analysis.DataObservation import DataObservation
 from StopsDilepton.analysis.SumEstimate     import SumEstimate
-from StopsDilepton.analysis.regions         import regionsAgg as regions
+if args.agg: from StopsDilepton.analysis.regions import regionsAgg as regions
+else:        from StopsDilepton.analysis.regions import regionsO   as regions
 from StopsDilepton.analysis.Cache           import Cache
 
 # Logging
@@ -37,12 +39,12 @@ texdir  = os.path.join(setup.analysis_results, setup.prefix(), 'tables')
 try:    os.makedirs(texdir)
 except: pass
 
-allChannels = ["all"]
+allChannels = ["all","SF","EMu"]
 for channel in allChannels:
   try:    os.makedirs(os.path.join(texdir, channel))
   except: pass
 
-  yieldTexfile = os.path.join(texdir, channel, "yields_onlyStat.tex" if args.onlyStat else "yields.tex")
+  yieldTexfile = os.path.join(texdir, channel, "yields_onlyStat.tex" if args.onlyStat else "yields" + ('_agg' if args.agg else '') + ".tex")
   print "Writing to " + yieldTexfile
   with open(yieldTexfile, "w") as yieldTable:
     yieldTable.write("\\begin{tabular}{c||" + "c|"*len(estimators) + "|c||c||c} \n")
@@ -61,13 +63,25 @@ for channel in allChannels:
         expected = int(100*e.cachedEstimate(r, channel, signalSetup if e.name.count('T2tt') else setup).val+0.5)/100.
         stat     = int(100*e.cachedEstimate(r, channel, signalSetup if e.name.count('T2tt') else setup).sigma+0.99)/100.
 
+        if e.name.count('DY'): expected *= 1.31
+        if e.name.count('DY'): stat     *= 1.31
+        if e.name.count('multiboson'): expected *= 1.19
+        if e.name.count('multiboson'): stat     *= 1.19
+
         if args.onlyStat: 
           yieldTable.write(" &&  %.2f &$\pm$& %.2f && " % (expected, stat))
         else:  # Still pre-fit uncertainties here
-          if e.name.count("TTJets"):     ttJetsErr     = expected*(0.5 if i < 12 else 1)        # these should be absolute errors, because we will propagate it also to the sum
-          if e.name.count("TTZ"):        ttzErr        = expected*0.2
-          if e.name.count("DY"):         dyErr         = expected*0.5
-          if e.name.count("multiBoson"): multiBosonErr = expected*0.5
+          if e.name.count("TTJets"):
+            lowMt2ll = 1 if args.agg else 6
+            unc1 = (0.25 if i < lowMt2ll else 0.55)*0.15
+            unc2 = (0.50 if i < lowMt2ll else 0.44)*0.30
+            unc3 = (0.25 if i < lowMt2ll else 0.01)*0.50
+            unc  = sqrt(unc1**2+unc2**2+unc3**2)
+
+            ttJetsErr     = expected*unc                       # these should be absolute errors, because we will propagate it also to the sum
+          if e.name.count("TTZ"):        ttzErr        = expected*sqrt(0.2**2+0.15**2)
+          if e.name.count("DY"):         dyErr         = expected*0.19
+          if e.name.count("multiBoson"): multiBosonErr = expected*0.17
           if e.name.count("other"):      ttxErr        = expected*0.25
 
           errors   = [stat/expected if expected > 0 else 0]
