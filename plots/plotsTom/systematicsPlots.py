@@ -52,30 +52,32 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Selection strings for which plots need to be produced, as interpreted by the cutInterpreter
 #
-selections = ['njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
-              'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
-              'njet01-btag1p-relIso0.12-looseLeptonVeto-mll20-metInv',
-              'njet01-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
+selections = [#'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
+              #'njet01-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
+              #'njet01-btag1p-relIso0.12-looseLeptonVeto-mll20-metInv',
+              #'njet01-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
               'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
-              'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
+            #  'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5',
+             # 'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100',
+             # 'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv',
+             # 'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiInv-mt2ll100',
+             # 'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1',
+             # 'njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-metInv',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll0To25',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll25To50',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll50To75',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll75To100',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100To140',
+              #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll0To25',
+              #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll25To50',
+              #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll50To75',
+              #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll75To100',
+              #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100To140',
               'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100',
-              'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140'
+              #'njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll140'
            ]
 
+if args.scaleDYVV:
+  selections = ['njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100']
 
 #
 # Systematics to run over
@@ -174,18 +176,21 @@ elif args.signal == "DM":
 #
 # Text on the plots
 #
-def drawObjects( plotData, dataMCScale, lumi_scale ):
-    lumi_scale = 35.9
+def drawObjects( plotData, MataMCScale, lumi_scale ):
+  lumi_scale = 35.9 # fix rounding
+  def drawTex(align, size, line):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.04)
-    tex.SetTextAlign(11) # align right
-    lines = [
-      (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'),
-      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) ) if False else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)
-    ]
-    return [tex.DrawLatex(*l) for l in lines]
+    tex.SetTextSize(size)
+    tex.SetTextAlign(align)
+    return tex.DrawLatex(*line)
 
+  lines =[
+    (11,0.06,(0.15, 0.95, 'CMS')), 
+    (31,0.04,(0.95, 0.95, ('%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale )) if False else ('%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)))
+  ]
+  if "mt2ll100" in args.selection and args.noData: lines += [(11,0.05,(0.55, 0.5, 'M_{T2}(ll) > 100 GeV'))] # Manually put the mt2ll > 100 GeV label
+  return [drawTex(*l) for l in lines] 
 
 
 
@@ -341,7 +346,7 @@ def appendPlots(name, texX, texY, binning, attribute, binWidth):
 appendPlots(
   name      = "dl_mt2ll",
   texX      = 'M_{T2}(ll) (GeV)',
-  texY      = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+  texY      = ' Events / 20 GeV' if args.normalizeBinWidth else "Events",
   binWidth  = 20,
   binning   = Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
   attribute = {sys: TreeVariable.fromString("dl_mt2ll/F" if not sys or sys in weight_systematics else "dl_mt2ll_%s/F" % sys) for sys in all_systematics}
@@ -350,7 +355,7 @@ appendPlots(
 appendPlots(
   name      = "dl_mt2ll_2",
   texX      = 'M_{T2}(ll) (GeV)',
-  texY      = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+  texY      = ' Events / 20 GeV' if args.normalizeBinWidth else "Events",
   binWidth  = 20,
   binning   = Binning.fromThresholds([100,140,180,220,260,300,340]),
   attribute = {sys: TreeVariable.fromString("dl_mt2ll/F" if not sys or sys in weight_systematics else "dl_mt2ll_%s/F" % sys) for sys in all_systematics}
@@ -360,7 +365,7 @@ if args.selection.count('njet2p'):
   appendPlots(
     name      = "dl_mt2bb",
     texX      = 'M_{T2}(bb) (GeV)',
-    texY      = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    texY      = ' Events / 20 GeV' if args.normalizeBinWidth else "Events",
     binWidth  = 20,
     binning   = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
     attribute = {sys: TreeVariable.fromString("dl_mt2bb/F" if not sys or sys in weight_systematics else "dl_mt2bb_%s/F" % sys) for sys in all_systematics}
@@ -369,7 +374,7 @@ if args.selection.count('njet2p'):
   appendPlots(
     name      = "dl_mt2bb_2",
     texX      = 'M_{T2}(bb) (GeV)',
-    texY      = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    texY      = ' Events / 20 GeV' if args.normalizeBinWidth else "Events",
     binWidth  = 20,
     binning   = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450,500,550,600,700,800,1000]),
     attribute = {sys: TreeVariable.fromString("dl_mt2bb/F" if not sys or sys in weight_systematics else "dl_mt2bb_%s/F" % sys) for sys in all_systematics}
@@ -378,7 +383,7 @@ if args.selection.count('njet2p'):
   appendPlots(
     name      = "dl_mt2blbl",
     texX      = 'M_{T2}(blbl) (GeV)',
-    texY      = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    texY      = ' Events / 20 GeV' if args.normalizeBinWidth else "Events",
     binWidth  = 20,
     binning   = Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
     attribute = {sys: TreeVariable.fromString("dl_mt2blbl/F" if not sys or sys in weight_systematics else "dl_mt2blbl_%s/F" % sys) for sys in all_systematics}
@@ -387,7 +392,7 @@ if args.selection.count('njet2p'):
   appendPlots(
     name      = "dl_mt2blbl_2",
     texX      = 'M_{T2}(blbl) (GeV)',
-    texY      = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    texY      = ' Events / 20 GeV' if args.normalizeBinWidth else "Events",
     binWidth  = 20,
     binning   = Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350,400,450,500,600,700]),
     attribute = {sys: TreeVariable.fromString("dl_mt2blbl/F" if not sys or sys in weight_systematics else "dl_mt2blbl_%s/F" % sys) for sys in all_systematics}
@@ -396,7 +401,7 @@ if args.selection.count('njet2p'):
 appendPlots(
   name      = "nbtags",
   texX      = 'number of b-tags (CSVM)',
-  texY      = 'Number of Events',
+  texY      = ' Events',
   binWidth  = -1,
   binning   = [5, 1, 6] if args.selection.count('btag1p') else [1,0,1],
   attribute = {sys: TreeVariable.fromString('nBTag/I' if not sys or sys in weight_systematics or sys in met_systematics else "nBTag_%s/I" % sys) for sys in all_systematics},
@@ -405,7 +410,7 @@ appendPlots(
 appendPlots(
   name      = "njets",
   texX      = 'number of jets',
-  texY      = 'Number of Events',
+  texY      = ' Events',
   binWidth  = -1,
   binning   = [8,2,10] if args.selection.count('njet2p') else [2,0,2],
   attribute = {sys: TreeVariable.fromString('nJetGood/I' if not sys or sys in weight_systematics or sys in met_systematics else "nJetGood_%s/I" % sys) for sys in all_systematics},
@@ -413,8 +418,8 @@ appendPlots(
 
 appendPlots(
   name      = "met",
-  texX      = 'E_{T}^{miss} (GeV)',
-  texY      = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+  texX      = 'p_{T}^{miss} (GeV)',
+  texY      = ' Events / 20 GeV' if args.normalizeBinWidth else "Events",
   binWidth  = 20,
   binning   = Binning.fromThresholds([0,20,40,60,80] if args.selection.count('metInv') else [80,100,120,140,160,200,500] if args.selection.count('met80') else [0,80,100,120,140,160,200,500]),
   attribute = {sys: TreeVariable.fromString('met_pt/F' if not sys or sys not in met_systematics else "met_pt_%s/F" % sys) for sys in all_systematics},
@@ -423,8 +428,8 @@ appendPlots(
 if not args.selection.count('metInv'):
   appendPlots(
     name      = "met_2",
-    texX      = 'E_{T}^{miss} (GeV)',
-    texY      = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Event",
+    texX      = 'p_{T}^{miss} (GeV)',
+    texY      = ' Events / 50 GeV' if args.normalizeBinWidth else "Events",
     binWidth  = 50,
     binning   = Binning.fromThresholds([80,130,180,230,280,320,420,520,800] if args.selection.count('met80') else [0,80,130,180,230,280,320,420,520,800]),
     attribute = {sys: TreeVariable.fromString('met_pt/F' if not sys or sys not in met_systematics else "met_pt_%s/F" % sys) for sys in all_systematics},
@@ -624,7 +629,12 @@ else:
           boxes.append( box )
           ratio_boxes.append( r_box )
 
-      ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes}
+      ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes,'texY':'Obs./Exp.'}
+
+      if args.selection == "njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100":
+        modification = [lambda h: h.GetXaxis().SetNdivisions(6, 4, 0, True), lambda h: h.GetXaxis().SetTitleOffset(4)]
+      else:
+        modification = [lambda h: h.GetXaxis().SetTitleOffset(4)]
 
       for log in [False, True]:
         plotDir = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else "") + "_scaled", args.selection)
@@ -632,9 +642,11 @@ else:
         plotting.draw(plot,
             plot_directory = plotDir,
             ratio = ratio,
-            legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.95,0.88),
-            logX = False, logY = log, #sorting = True,
+            legend = (0.55,0.6 if args.scaleDYVV else 0.5,0.9,0.88),
+            logX = False, logY = log, sorting = args.scaleDYVV,
             yRange = (0.3, "auto") if args.selection == "njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-met80-metSig5-mt2ll100" else (0.03, "auto"),
             drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes,
-            copyIndexPHP = True
+            copyIndexPHP = True,
+            histModifications = modification,
+            ratioModifications = modification
         )

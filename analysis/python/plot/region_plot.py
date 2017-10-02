@@ -113,9 +113,9 @@ observation.style = styles.errorStyle( ROOT.kBlack, markerSize = 1.9 )
 
 # define the systemativ variations
 systematics = { 'JEC' :        ['JECUp', 'JECDown'],
+                'unclEn' :     ['UnclusteredEnUp', 'UnclusteredEnDown'],
        #         'JER' :        ['JERUp', 'JERDown'],
                 'PU' :         ['reweightPU36fbUp', 'reweightPU36fbDown'],
-                'stat' :       ['statLow', 'statHigh'],
                 'topPt' :      ['reweightTopPt', None],
                 'b-tag-b' :    ['reweightBTag_SF_b_Up','reweightBTag_SF_b_Down'],
                 'b-tag-l' :    ['reweightBTag_SF_l_Up','reweightBTag_SF_l_Down'],
@@ -129,6 +129,9 @@ systematics = { 'JEC' :        ['JECUp', 'JECDown'],
                 'multiBoson' : ['shape-multiBosonUp', 'shape-multiBosonDown'],
                 'DY' :         ['shape-DYUp', 'shape-DYDown'],
 }
+
+for e in estimators:
+  systematics['stat' + e.name] = ['statLow' + e.name, 'statHigh' + e.name]
 
 sysVariations = [None]
 for var in systematics.values():
@@ -145,21 +148,18 @@ if args.control:
 
 def getSampleUncertainty(cardFile, res, var, estimate, binName, i):
     if   estimate.name.count('TTZ'):    uncName = 'ttZ'
-    elif estimate.name.count('TTJets'): uncName = 'top'
     else:                               uncName = estimate.name
     estimateName = estimate.name.split('-')[0]
 
     if var and var.count(estimateName):
-      if   args.scale and args.control == "DYVV" and estimate.name in ["DY","multiBoson"]: unc = getPostFitUncFromCard(cardFile, estimateName, uncName, binName);
-      elif args.scale and args.control == "TTZ"  and estimate.name in ["TTZ"]:             unc = getPostFitUncFromCard(cardFile, estimateName, uncName, binName);
-      else:                                                                                unc = getPreFitUncFromCard(cardFile,  estimateName, uncName, binName);
-
-      if estimate.name.count('TTJets'):
-        if   var.count('TTJetsG'):  unc = (0.25 if i < 6 else 0.55)*0.15
-        elif var.count('TTJetsNG'): unc = (0.50 if i < 6 else 0.44)*0.30
-        elif var.count('TTJetsF'):  unc = (0.25 if i < 6 else 0.01)*0.50
-
-        print var, estimateName, unc
+      if   estimate.name in ["DY"]:              unc = 0.19
+      if   estimate.name in ["multiBoson"]:      unc = 0.17
+      elif estimate.name in ["TTZ"]:             unc = sqrt(.15**2+.20**2)
+      elif estimate.name.count('TTJets'):
+        if   var.count('TTJetsG'):               unc = (0.25 if i < 6 else 0.55)*0.15
+        elif var.count('TTJetsNG'):              unc = (0.50 if i < 6 else 0.44)*0.30
+        elif var.count('TTJetsF'):               unc = (0.25 if i < 6 else 0.01)*0.50
+      else:                                      unc = getPreFitUncFromCard(cardFile,  estimateName, uncName, binName);
 
       if   var.count('Up'):   return res*(1.+unc)
       elif var.count('Down'): return res*(1.-unc)
@@ -168,11 +168,11 @@ def getSampleUncertainty(cardFile, res, var, estimate, binName, i):
 # Histogram style
 def applyStyle(hist, estimate):
     if estimate.name == "Data":
-      if channel == "all":  hist.legendText = "Data"
-      if channel == "EE":   hist.legendText = "Data (2e)"
-      if channel == "MuMu": hist.legendText = "Data (2#mu)"
-      if channel == "EMu":  hist.legendText = "Data (1e, 1#mu)"
-      if channel == "SF":   hist.legendText = "Data (SF)"
+      if channel == "all":  hist.legendText = "data"
+      if channel == "EE":   hist.legendText = "data (2 e)"
+      if channel == "MuMu": hist.legendText = "data (2 #mu)"
+      if channel == "EMu":  hist.legendText = "data (1 #mu, 1 e)"
+      if channel == "SF":   hist.legendText = "data (SF)"
     else:
       hist.legendText = estimate.getTexName(channel)
     hist.style = estimate.style
@@ -189,7 +189,7 @@ def getRegionHistoTTZ(estimate, channel, setups, variations = [None]):
 
       estimate.initCache(s.defaultCacheDir())
       for var in variations:
-        if var in ['statLow', 'statHigh']: continue
+        if var and (var.count('statLow') or var.count('statHigh')): continue
 
         setup_ = s if not var or var.count('shape') else s.sysClone({'selectionModifier': var}) if var.count('JE') else s.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(noRegions[0], channel, setup_, save=True)
@@ -199,9 +199,13 @@ def getRegionHistoTTZ(estimate, channel, setups, variations = [None]):
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
-        if not var and ('statLow' in variations or 'statHigh' in variations):
-          h['statLow'].SetBinContent(i+1,  res.val-res.sigma)
-          h['statHigh'].SetBinContent(i+1, res.val+res.sigma)
+        if not var:
+          if ('statLow' in variations or 'statHigh' in variations):
+            h['statLow'].SetBinContent(i+1,  res.val-res.sigma)
+            h['statHigh'].SetBinContent(i+1, res.val+res.sigma)
+
+
+
 
     applyStyle(h[None], estimate)
 
@@ -220,21 +224,22 @@ def getRegionHisto(estimate, regions, channel, setup, variations = [None]):
     for i, r in enumerate(regions):
       binName = ' '.join(['SF', r.__str__()]) + ("_controlDYVV" if args.control and args.control=="DYVV" else "") #always take SF here (that's allways available for DYVV)
       for var in variations:
-        if var in ['statLow', 'statHigh']: continue
+        if var and (var.count('statLow') or var.count('statHigh')): continue
 
-        setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') else setup.sysClone({'reweight':[var]})
+        setup_ = setup if not var or var.count('shape') else setup.sysClone({'selectionModifier': var}) if var.count('JE') or var.count('Unclustered') else setup.sysClone({'reweight':[var]})
         res = estimate.cachedEstimate(r, channel, setup_, save=True)
         if args.control == 'DYVV' and estimate.name in ['DY', 'multiBoson'] and args.scale: res = applyNuisance(cardFile, estimate, res, binName)
         if not args.control:
           if estimate.name == 'DY':         res = res*1.31  # Warning currently coded by hand when applied for SR
           if estimate.name == 'multiBoson': res = res*1.19
-        res = getSampleUncertainty(cardFile, res, var, estimate, binName, i)
+          else:                             res = getSampleUncertainty(cardFile, res, var, estimate, binName, i)
         h[var].SetBinContent(i+1, res.val)
         h[var].SetBinError(i+1, res.sigma)
 
-        if not var and ('statLow' in variations or 'statHigh' in variations):
-          h['statLow'].SetBinContent(i+1,  res.val-res.sigma)
-          h['statHigh'].SetBinContent(i+1, res.val+res.sigma)
+        if not var:
+          if ('statLow'+estimate.name in variations or 'statHigh'+estimate.name in variations):
+            h['statLow'+estimate.name].SetBinContent(i+1,  res.val-res.sigma)
+            h['statHigh'+estimate.name].SetBinContent(i+1, res.val+res.sigma)
 
     applyStyle(h[None], estimate)
 
@@ -291,10 +296,10 @@ def drawDivisions(regions):
     tex.SetTextSize(0.04)
     tex.SetTextAlign(23) # align right
     tex.SetTextSize(0.03)
-    tex.SetTextColor(38)
+#   tex.SetTextColor(38)
 
-    lines  = [(min+3*diff,  .9, '100 GeV < M_{T2}(ll) < 140 GeV')]
-    lines += [(min+9*diff, .9, '140 GeV < M_{T2}(ll) < 240 GeV')]
+    lines  = [(min+3*diff,  .9, '100 #leq M_{T2}(ll) < 140 GeV')]
+    lines += [(min+9*diff, .9, '140 #leq M_{T2}(ll) < 240 GeV')]
 
     tex2= tex.Clone()
     tex2.SetTextAngle(90)
@@ -302,25 +307,28 @@ def drawDivisions(regions):
     lines2 = [(min+12.5*diff, .9, 'M_{T2}(ll) > 240 GeV')]
 
     line = ROOT.TLine()
-    line.SetLineColor(38)
-    line.SetLineWidth(2)
-    line.SetLineStyle(3)
+#   line.SetLineColor(38)
+    line.SetLineWidth(1)
+    line.SetLineStyle(2)
     line1 = (min+6*diff,  0.13, min+6*diff, 0.93);
     line2 = (min+12*diff, 0.13, min+12*diff, 0.93);
     return [line.DrawLineNDC(*l) for l in [line1, line2]] + [tex.DrawLatex(*l) for l in lines] + [tex2.DrawLatex(*l) for l in lines2]
 
 
 def drawLumi( lumi_scale ):
-    lumi_scale = 36*1000
+  lumi_scale = 35.9 # fix rounding
+  def drawTex(align, size, line):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.04)
-    tex.SetTextAlign(11) # align right
-    lines = [
-      (0.15, 0.95, 'CMS'),
-      (0.73, 0.95, 'L=%3.0f fb{}^{-1} (13 TeV)' % (lumi_scale/1000.*scale))
-    ]
-    return [tex.DrawLatex(*l) for l in lines]
+    tex.SetTextSize(size)
+    tex.SetTextAlign(align)
+    return tex.DrawLatex(*line)
+
+  lines =[
+    (11,0.06, (0.15, 0.95, 'CMS')), 
+    (31,0.04, (0.95, 0.95, '%3.1f fb{}^{-1} (13 TeV)' % lumi_scale))
+  ]
+  return [drawTex(*l) for l in lines] 
 
 
 
@@ -371,7 +379,7 @@ for channel in channels:
       data_histo[0][0].Sumw2(ROOT.kFALSE)
       data_histo[0][0].SetBinErrorOption(ROOT.TH1.kPoisson) # Set poissonian errors
 
-    region_plot = Plot.fromHisto(name = channel, histos = [ bkg_histos[None] ] + data_histo + sig_histos, texX = "" if (args.control and args.control=="TTZ") else (("control" if args.control else "signal") + " region number"), texY = "Events" )
+    region_plot = Plot.fromHisto(name = channel, histos = [ bkg_histos[None] ] + data_histo + sig_histos, texX = "" if (args.control and args.control=="TTZ") else (("Control" if args.control else "Signal") + " region number"), texY = "Events" )
 
     boxes = []
     ratio_boxes = []
@@ -393,9 +401,9 @@ for channel in channels:
           ratio_boxes.append( r_box )
 
 
-    if args.signal == "T2tt" or args.signal == "T8": legend = (0.55,0.85-0.013*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
-    elif args.signal == "TTbarDM":                   legend = (0.55,0.85-0.010*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
-    else:                                            legend = (0.55,0.85-0.010*(len(bkg_histos) + len(sig_histos)), 0.9, 0.85)
+    if args.signal == "T2tt" or args.signal == "T8": legend = (0.55,0.85-0.013*32, 0.9, 0.85)
+    elif args.signal == "TTbarDM":                   legend = (0.55,0.85-0.010*32, 0.9, 0.85)
+    else:                                            legend = (0.55,0.85-0.010*32, 0.9, 0.85)
     if args.control == "TTZ":                        legend = ((0.35,0.7, 0.9, 0.85), 2)
 
     def setRatioBorder(c, y_border):
@@ -415,7 +423,7 @@ for channel in channels:
     if not (args.control and args.control=="TTZ"): drawObjects += drawDivisions(regions_)
 
     if args.ratio:
-      ratio = {'yRange':(0.1,1.9), 'drawObjects': ratio_boxes + (drawTTZLabels() if (args.control and args.control=="TTZ") else drawBinNumbers(numberOfBins))}
+      ratio = {'yRange':(0.1,1.9), 'texY':'Obs./Exp.', 'drawObjects': ratio_boxes + (drawTTZLabels() if (args.control and args.control=="TTZ") else drawBinNumbers(numberOfBins))}
     else:
       drawObjects += drawLabels(regions_) if args.labels else drawBinNumbers(numberOfBins)
       drawObjects += drawBinNumbers(numberOfBins)
@@ -424,6 +432,9 @@ for channel in channels:
     if not args.control:       yRange = (0.006, 'auto')
     elif args.control=='DYVV': yRange = (0.006, 2000000)
     elif args.control=='TTZ':  yRange = (2.6, 500)
+
+    histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(26), lambda h: h.GetYaxis().SetTickLength(0.01), lambda h: h.GetXaxis().SetNdivisions(numberOfBins,0,0), lambda h: h.GetXaxis().SetTickLength(0.015)]
+
 
     plotting.draw( region_plot, \
         plot_directory = os.path.join(plot_directory, postfix),
@@ -437,6 +448,6 @@ for channel in channels:
         legend = legend,
         copyIndexPHP = True,
         canvasModifications = canvasModifications,
-        histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(26)] + ([lambda h: h.GetYaxis().SetNoExponent()] if (args.control and args.control=="TTZ") else []),
-        ratioModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(26), lambda h: h.GetXaxis().SetTitleOffset(5), lambda h: h.GetXaxis().SetTitleSize(30), lambda h: h.GetXaxis().SetLabelSize(0)],
+        histModifications = histModifications + ([lambda h: h.GetYaxis().SetNoExponent()] if (args.control and args.control=="TTZ") else []),
+        ratioModifications = histModifications + [lambda h: h.GetXaxis().SetTitleOffset(5), lambda h: h.GetXaxis().SetTitleSize(30), lambda h: h.GetXaxis().SetLabelSize(0)],
     )
