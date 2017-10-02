@@ -139,6 +139,8 @@ for i in range(1, nbins+1):
     for j in range(1, nbins+1):
         matrix[h2.GetXaxis().GetBinLabel(i)][h2.GetXaxis().GetBinLabel(j)] = h2.GetBinContent(i,j)
 
+# Start with covariance matrix
+
 if onlySR: nbins = nSR
 sorted_cov = ROOT.TH2D('cov','',nbins,0,nbins,nbins,0,nbins)
 binNames = natural_sort(binNames)
@@ -149,27 +151,20 @@ if aggregate:
         SRnames.append("All"+str(i))
 else:
     for i in range(nbins/2):
-        SRnames.append("SF"+str(i))
-        SRnames.append("EMu"+str(i))
-
-print SRnames
-print len(SRnames)
-print binNames
-
+        SRnames.append("SF "+str(i))
+        SRnames.append("DF "+str(i))
 
 for i,k in enumerate(binNames):
-    print i
     if i < nSR:
         sorted_cov.GetXaxis().SetBinLabel(i+1,SRnames[i])
         sorted_cov.GetYaxis().SetBinLabel(i+1,SRnames[i])
     for j,l in enumerate(binNames):
         sorted_cov.SetBinContent(i+1,j+1,matrix[k][l])
-        #sorted_cov.GetXaxis().SetBinLabel(i+1,l)
 
 sorted_cov.GetXaxis().LabelsOption("v")
 
-if postFit: sorted_cov.GetZaxis().SetRangeUser(0.005, 3000) #0.00005, 30
-else: sorted_cov.GetZaxis().SetRangeUser(0.005, 3000)
+if postFit: sorted_cov.GetZaxis().SetRangeUser(0.005, 900) #0.00005, 30
+else: sorted_cov.GetZaxis().SetRangeUser(0.005, 900)
 c = ROOT.TCanvas('c','c',700,700)
 c.SetLogz()
 
@@ -180,8 +175,7 @@ c2 = ROOT.TCanvas('c2','c2',700,700)
 pad1=ROOT.TPad("pad1","Main",0.,0.,1.,1.)
 pad1.SetRightMargin(0.15)
 pad1.SetTopMargin(0.06)
-#pad1.SetLeftMargin(0.15)
-#pad1.SetBottomMargin(0.02)
+pad1.SetBottomMargin(0.12)
 pad1.Draw()
 pad1.cd()
 pad1.SetLogz()
@@ -194,8 +188,13 @@ latex1.SetTextSize(0.04)
 latex1.SetTextAlign(11) # align right
 
 latex1.DrawLatex(0.10,0.95,'CMS #bf{#it{Supplementary}}')
-latex1.DrawLatex(0.60,0.95,"#bf{36 fb^{-1} (13TeV)}")
 
+latex2 = ROOT.TLatex()
+latex2.SetNDC()
+latex2.SetTextSize(0.033)
+latex2.SetTextAlign(11) # align right
+latex2.DrawLatex(0.455,0.95,'#bf{arXiv:xxx.xxxxx}')
+latex2.DrawLatex(0.68,0.95,"#bf{35.9 fb^{-1} (13TeV)}")
 
 plot_dir = plot_directory + '/covariance_newCorr/'
 if not os.path.isdir(plot_dir):
@@ -212,7 +211,6 @@ import numpy, math
 cov = numpy.zeros((sorted_cov.GetNbinsX(),sorted_cov.GetNbinsX()))
 diag = numpy.zeros((sorted_cov.GetNbinsX(),sorted_cov.GetNbinsX()))
 
-print binNames[:nbins]
 for i,k in enumerate(binNames[:nbins]):
     diag[i][i] = math.sqrt(matrix[k][k])
     for j,l in enumerate(binNames[:nbins]):
@@ -225,17 +223,40 @@ corr = numpy.dot(corr, diag_inv)
 
 sorted_corr = ROOT.TH2D('corr','',nbins,0,nbins,nbins,0,nbins)
 for i,k in enumerate(binNames[:nbins]):
+    if i < nSR:
+        sorted_corr.GetXaxis().SetBinLabel(i+1,SRnames[i])
+        sorted_corr.GetYaxis().SetBinLabel(i+1,SRnames[i])
     for j,l in enumerate(binNames[:nbins]):
         sorted_corr.SetBinContent(i+1,j+1,corr[i][j])
 
-sorted_corr.GetZaxis().SetRangeUser(-1.05, 1.05)
+sorted_corr.GetXaxis().LabelsOption("v")
+
+sorted_corr.GetZaxis().SetRangeUser(0., 1.0)
 
 c3 = ROOT.TCanvas('c3','c3',700,700)
 
-pad2=ROOT.TPad("pad2","Main",0.,0.,.95,1.)
+pad2=ROOT.TPad("pad2","Main",0.,0.,1.,1.)
+pad2.SetRightMargin(0.15)
+pad2.SetTopMargin(0.06)
+pad2.SetBottomMargin(0.12)
 pad2.Draw()
 pad2.cd()
+
 sorted_corr.Draw("colz")
+
+latex1 = ROOT.TLatex()
+latex1.SetNDC()
+latex1.SetTextSize(0.04)
+latex1.SetTextAlign(11) # align right
+
+latex1.DrawLatex(0.10,0.95,'CMS #bf{#it{Supplementary}}')
+
+latex2 = ROOT.TLatex()
+latex2.SetNDC()
+latex2.SetTextSize(0.033)
+latex2.SetTextAlign(11) # align right
+latex2.DrawLatex(0.455,0.95,'#bf{arXiv:xxx.xxxxx}')
+latex2.DrawLatex(0.68,0.95,"#bf{35.9 fb^{-1} (13TeV)}")
 
 outname = fname.split('.')[-2].split('/')[-1] + '_correlation'
 filetypes = ['.png','.pdf','.root']
@@ -249,37 +270,35 @@ if aggregate:
         SRnames.append("All"+str(i))
 else:
     for i in range(nbins/2):
-        SRnames.append("SF"+str(i))
-        SRnames.append("EMu"+str(i))
+        SRnames.append("SF "+str(i))
+        SRnames.append("DF "+str(i))
 
-
-print SRnames
+# Create latex tables
 
 if makeTable:
     texdir = os.path.join(plot_dir,'matrices/')
     if not os.path.exists(texdir): os.makedirs(texdir)
     ofile = texdir+fname.split('.')[-2].split('/')[-1] + postfix + '.tex'
     with open(ofile, "w") as f:
-          f.write("\\documentclass[a4paper,10pt,oneside]{article} \n \\usepackage{caption} \n \\usepackage{rotating} \n \\begin{document} \n")
+        f.write("\\documentclass{article}\\usepackage[hscale=0.9,vscale=0.8]{geometry}\n \\usepackage{caption} \n \\usepackage{rotating} \n \\begin{document} \n")
+        
+        f.write("\\begin{table} \n\\resizebox{\\textwidth}{!}{ \\begin{tabular}{c||" + "c"*len(SRnames) + "} \n")
+        f.write("& " + " & ".join(x for x in SRnames) + "\\\\ \n \\hline \\hline \n")
+        for i,sr in enumerate(SRnames):
+            f.write(sr + "& " + " & ".join( "%.2f"%x if j+1>i else " " for j,x in enumerate(cov[i]) ) + "\\\\ \n") # \n \\hline
+        f.write(" \\end{tabular}}")
+        f.write(" \\caption{Covariance matrix} \n ")
+        f.write(" \\end{table} ")
+        
+        f.write("\\begin{table} \n\\resizebox{\\textwidth}{!}{ \\begin{tabular}{c||" + "c"*len(SRnames) + "} \n")
+        f.write("& " + " & ".join(x for x in SRnames) + "\\\\ \n \\hline \\hline \n")
+        for i,sr in enumerate(SRnames):
+            f.write(sr + "& " + " & ".join( "%.2f"%x if j+1>i else " " for j,x in enumerate(corr[i])) + "\\\\ \n") # \n \\hline
+        f.write(" \\end{tabular}}")
+        f.write(" \\caption{Correlation matrix} \n ")
+        f.write(" \\end{table} ")
 
-          f.write("\\begin{table} \n\\resizebox{\\textwidth}{!}{ \\begin{tabular}{c||" + "c"*len(SRnames) + "} \n")
-          f.write("& " + " & ".join(x for x in SRnames) + "\\\\ \n \\hline \\hline \n")
-          for i,sr in enumerate(SRnames):
-            f.write(sr + "& " + " & ".join(str(round(x,1)) for x in cov[i]) + "\\\\ \n") # \n \\hline
-          f.write(" \\end{tabular}}")
-          f.write(" \\caption{Covariance matrix} \n ")
-          f.write(" \\end{table} ")
-          
-          f.write("\\begin{table} \n\\resizebox{\\textwidth}{!}{ \\begin{tabular}{c||" + "c"*len(SRnames) + "} \n")
-          f.write("& " + " & ".join(x for x in SRnames) + "\\\\ \n \\hline \\hline \n")
-          for i,sr in enumerate(SRnames):
-            f.write(sr + "& " + " & ".join(str(round(x,2)) for x in corr[i]) + "\\\\ \n") # \n \\hline
-          f.write(" \\end{tabular}}")
-          f.write(" \\caption{Correlation matrix} \n ")
-          f.write(" \\end{table} ")
-
-
-          f.write(" \\end{document}")
+        f.write(" \\end{document}")
     
     os.system("cd "+texdir+";pdflatex "+ofile)
 

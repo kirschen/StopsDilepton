@@ -170,7 +170,7 @@ leg.SetLineColor(0)
 leg.SetTextSize(0.03)
 
 #leg.AddEntry(obs,"#bf{Observed}",'l')
-leg.AddEntry(obs1Sigma,"#bf{Observed #pm 1 s.d._{ theory}}")
+leg.AddEntry(obs1Sigma,"#bf{Observed #pm theory uncertainty}")
 leg.AddEntry(exp,"#bf{Median expected}",'l')
 leg.AddEntry(exp1Sigma,"#bf{68% expected}",'f')
 leg.AddEntry(exp2Sigma,"#bf{95% expected}",'f')

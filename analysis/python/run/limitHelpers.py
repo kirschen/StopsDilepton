@@ -52,7 +52,7 @@ def cleanContour(g, model="T2tt"):
             #if y > (x-100) or x>1450 or x<700:
             #if x<700 or x > 1400:
             #    remove.append(i)
-        else: print model, "not implemented"
+        else: pass# print model, "not implemented"
     for i in reversed(remove):
         g.RemovePoint(i)
     #if model=="T8bbllnunu_XCha0p5_XSlep0p05":

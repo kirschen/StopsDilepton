@@ -22,7 +22,7 @@ parser.add_option("--file", dest="filename", default=defFile, type="string", act
 (options, args) = parser.parse_args()
 
 ifs = options.filename.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_paper2')
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_papers3')
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 

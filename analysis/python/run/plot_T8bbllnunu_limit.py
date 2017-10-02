@@ -9,9 +9,9 @@ from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 ROOT.gROOT.SetBatch(True)
 
-#signalString = 'T8bbllnunu_XCha0p5_XSlep0p95'
+signalString = 'T8bbllnunu_XCha0p5_XSlep0p95'
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p5'
-signalString = 'T8bbllnunu_XCha0p5_XSlep0p09'
+#signalString = 'T8bbllnunu_XCha0p5_XSlep0p09'
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p05'
 #signalString = "T2bW"
 
@@ -39,7 +39,7 @@ def toGraph2D(name,title,length,x,y,z):
 
 
 ifs = options.filename.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_preCWR')
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_preCWR2')
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 
@@ -64,7 +64,7 @@ for i in ["exp","exp_up","exp_down","obs"]:
     z = []
     binSizeX = 25
     binSizeY = 25
-    print binSizeX, binSizeY
+    #print binSizeX, binSizeY
     for ix in range(1,1625/25):
         for iy in range(0,1525/25):
             r = tmp.GetBinContent(ix,iy)
@@ -74,7 +74,7 @@ for i in ["exp","exp_up","exp_down","obs"]:
                 y.append((iy-1)*binSizeY)
                 z.append(r2)
             if r>0:
-                print ix*binSizeX, iy*binSizeY, r
+                #print ix*binSizeX, iy*binSizeY, r
 #                x.append((2*ix-3)/2.*binSizeX)
 #                y.append((2*iy-3)/2.*binSizeY)
                 x.append((ix-1)*binSizeX)
@@ -151,7 +151,7 @@ for i in ["exp", "exp_up", "exp_down", "obs", "obs_UL", "obs_up", "obs_down"]:
   histsCol[i + "_int"]    = interpolate(histsCol[i])
 
 for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
-  print i
+  #print i
   hists[i + "_smooth"] = hists[i + "_int"].Clone(i + "_smooth")
   #hists[i + "_smooth"] = rebin(hists[i + "_smooth"])
   hists[i + "_smooth"].Smooth(1,"k5a")
