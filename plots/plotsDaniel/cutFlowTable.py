@@ -25,6 +25,8 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Higgs_mAODv2_25ns_postProcessed import *
+
 
 postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
@@ -55,10 +57,12 @@ samples = [
 #    TTbarDMJets_scalar_Mchi_1_Mphi_50,
 #    TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50,
 #    Top_pow, 
-    T2tt_750_1,
-    T2tt_600_300,
-    TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10,
-    TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
+#    T2tt_750_1,
+#    T2tt_600_300,
+#    TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10,
+#    TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
+    ZH_ZToMM_HToInvisible_M125,
+    ZH_ZToEE_HToInvisible_M125
 ]
 #QCD_Mu5EMbcToE.name = 'QCD'
 
@@ -83,6 +87,7 @@ for s in samples:
 relIso04sm12Cut =   "&&".join(["LepGood_relIso04["+ist+"]<0.12" for ist in ('l1_index','l2_index')])
 
 lumiFac = 35.9
+#lumiFac = 1
 
 presel = '&&Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016'
 
@@ -99,11 +104,12 @@ cuts=[
   ("MET>80",                     "$\\ETmiss>80$ GeV",       "met_pt>80"),
   ("MET/sqrt(HT)>5",             "$\\ETmiss/\\sqrt{H_{T}}>5$",       "met_pt/sqrt(ht)>5."),
   ("dPhiJetMET",                 "$\\phi(\\ETmiss, jets)$ veto",       "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
+  ("MT2(ll) > 100",              "$M_{T2}(ll)>100$ GeV",       "dl_mt2ll>100"),
   ("MT2(ll) > 140",              "$M_{T2}(ll)>140$ GeV",       "dl_mt2ll>140"),
     ]
 
 
-cutFlowFile = "cutflow_signal_preFR.tex"
+cutFlowFile = "cutflow_signal_Higgs.tex"
 with open(cutFlowFile, "w") as cf:
 
     cf.write("\\begin{tabular}{r|"+"|l"*len(samples)+"} \n")
@@ -124,12 +130,12 @@ with open(cutFlowFile, "w") as cf:
                 else:
                     weight_string = 'weight * reweightDilepTriggerBackup * reweightLeptonSF * reweightPU36fb * reweightBTag_SF * reweightTopPt * reweightLeptonTrackingSF'
 
-
+            #weight_string = "(1)"
             y = lumiFac*getYieldFromChain(s.chain, selection, weight_string)
             n = getYieldFromChain(s.chain, selection, '(1)')
             r.append(y)
         cf.write("%30s"%cuts[i][1]+ "& "+" & ".join([ " %12.1f"%r[j] for j in range(len(r))] )+"\\\\\n")
-        print "%30s"%cuts[i][0]+ "".join([ " %12.1f"%r[j] for j in range(len(r))] )
+        print "%30s"%cuts[i][0]+ "".join([ " %12.3f"%r[j] for j in range(len(r))] )
         firstLine = False
     cf.write("\\end{tabular} \n")
     cf.write("\\caption{ Cutflow.} \n")

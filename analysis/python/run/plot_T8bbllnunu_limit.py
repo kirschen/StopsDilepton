@@ -9,11 +9,11 @@ from StopsDilepton.analysis.run.limitHelpers import getContours, cleanContour
 
 ROOT.gROOT.SetBatch(True)
 
-signalString = 'T8bbllnunu_XCha0p5_XSlep0p95'
+#signalString = 'T8bbllnunu_XCha0p5_XSlep0p95'
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p5'
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p09'
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p05'
-#signalString = "T2bW"
+signalString = "T2bW"
 
 defFile= os.path.join(analysis_results, "fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
 
@@ -39,7 +39,7 @@ def toGraph2D(name,title,length,x,y,z):
 
 
 ifs = options.filename.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_preCWR2')
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_FR')
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 

@@ -193,7 +193,7 @@ latex2 = ROOT.TLatex()
 latex2.SetNDC()
 latex2.SetTextSize(0.033)
 latex2.SetTextAlign(11) # align right
-latex2.DrawLatex(0.455,0.95,'#bf{arXiv:xxx.xxxxx}')
+latex2.DrawLatex(0.45,0.95,'#bf{arXiv:xxxx.xxxxx}')
 latex2.DrawLatex(0.68,0.95,"#bf{35.9 fb^{-1} (13TeV)}")
 
 plot_dir = plot_directory + '/covariance_newCorr/'
@@ -255,7 +255,7 @@ latex2 = ROOT.TLatex()
 latex2.SetNDC()
 latex2.SetTextSize(0.033)
 latex2.SetTextAlign(11) # align right
-latex2.DrawLatex(0.455,0.95,'#bf{arXiv:xxx.xxxxx}')
+latex2.DrawLatex(0.45,0.95,'#bf{arXiv:xxxx.xxxxx}')
 latex2.DrawLatex(0.68,0.95,"#bf{35.9 fb^{-1} (13TeV)}")
 
 outname = fname.split('.')[-2].split('/')[-1] + '_correlation'

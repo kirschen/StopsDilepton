@@ -12,7 +12,7 @@ from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed impor
 postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
 
-aggregate = False
+aggregate = True
 
 setup.channels     = ['SF','EMu']
 #setup.channels     = ['all']
@@ -20,9 +20,11 @@ setup.channels     = ['SF','EMu']
 if aggregate:
     setup.regions   = regionsAgg[1:]
     SRname_prefix = "A"
+    setup.channels     = ['all']
 else:
     setup.regions   = regionsO[1:]
     SRname_prefix = "SR"
+    setup.channels     = ['SF','EMu']
 
 setups = [setup]
 
@@ -31,8 +33,8 @@ TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10.isFastSim = False
 
 signals = [ T2tt_750_1, T2tt_600_300, TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10, TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10 ]
 
-texdir  = os.path.join(setup.analysis_results, setup.prefix(), 'tables')
-
+texdir  = os.path.join(setup.analysis_results, setup.prefix(), 'tables_agg')
+print texdir
 
 allSignals = [ MCBasedEstimate(name=s.name, sample={channel:s for channel in channels+trilepChannels}, cacheDir=setup.defaultCacheDir()) for s in signals ]
 
