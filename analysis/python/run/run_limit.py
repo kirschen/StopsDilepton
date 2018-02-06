@@ -171,10 +171,12 @@ isrUncCache   = Cache(setup.analysis_results+'/systematics/isr_%s.pkl'   % args.
 PDF = ['TTLep_pow', 'DY', 'multiboson', 'TTZ'] 
 PDFUncCaches   = {p:Cache(setup.analysis_results+'/systematicsTest_v2/PDF_%s.pkl' %p, verbosity=2) for p in PDF}
 #PDFUncCacheSignal = Cache(setup.analysis_results+'/systematicsTest_v2/PDF_%s_acceptance.pkl'   % args.signal, verbosity=2)
-PDFUncCacheSignal = Cache(setup.analysis_results+'/systematicsTest_v2/PDF_DM_signal_acceptance.pkl', verbosity=2) #should be one cache in the future. Kept like this for now
+if args.signal == "TTbarDM":
+    PDFUncCacheSignal = Cache(setup.analysis_results+'/systematicsTest_v2/PDF_DM_signal_acceptance.pkl', verbosity=2) #should be one cache in the future. Kept like this for now
+else:
+    PDFUncCacheSignal = Cache(setup.analysis_results+'/systematicsTest_v2/PDF_ttH_signal_acceptance.pkl', verbosity=2)
 scales = ['TTLep_pow', 'TTZ']
 scaleUncCaches   = {p:Cache(setup.analysis_results+'/systematicsTest_v2/scale_%s.pkl' %p, verbosity=2) for p in scales}
-
 
 
 def getScaleUnc(name, r, channel):
@@ -224,6 +226,8 @@ def wrapper(s):
         c.addUncertainty('scaleTT',    'lnN')
         c.addUncertainty('scaleTTZ',   'lnN')
         c.addUncertainty('PDF',        'lnN')
+        c.addUncertainty('xsec_PDF',   'lnN')
+        c.addUncertainty('xsec_QCD',   'lnN')
         c.addUncertainty('isr',        'lnN')
         c.addUncertainty('topGaus',    'lnN')
         c.addUncertainty('topNonGaus', 'lnN')
@@ -374,8 +378,11 @@ def wrapper(s):
                 if signal.val>0:
                   if not fastSim:
                     c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
-                    #c.specifyUncertainty('PDF',      binname, 'signal', 1 + getPDFUncSignal(s.name, r, channel))
-                    c.specifyUncertainty('PDF',      binname, 'signal', 1.1 )
+                    c.specifyUncertainty('PDF',      binname, 'signal', 1 + getPDFUncSignal(s.name, r, channel))
+                    if args.signal == "ttHinv":
+                        # x-sec uncertainties for ttH: https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBSMAt13TeV#ttH_Process
+                        c.specifyUncertainty('xsec_QCD',      binname, 'signal', 1.092)
+                        c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
                   c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
                   c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
@@ -383,9 +390,8 @@ def wrapper(s):
                   c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
-                  #c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
-                  c.specifyUncertainty('scale',    binname, 'signal', 1.2 )
-                  c.specifyUncertainty('isr',      binname, 'signal', 1 + abs(getIsrUnc(  eSignal.name, r, channel)))
+                  c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
+                  if not args.signal == "ttHinv": c.specifyUncertainty('isr',      binname, 'signal', 1 + abs(getIsrUnc(  eSignal.name, r, channel)))
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
@@ -442,14 +448,15 @@ def wrapper(s):
             res[k] *= xSecScale
     
     if res: 
-      if   args.signal == "TTbarDM":                      sString = "mChi %i mPhi %i type %s" % sConfig
-      elif args.signal == "T2tt":                         sString = "mStop %i mNeu %i" % sConfig
-      elif args.signal == "T2bt":                         sString = "mStop %i mNeu %i" % sConfig
-      elif args.signal == "T2bW":                         sString = "mStop %i mNeu %i" % sConfig
-      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sString = "mStop %i mNeu %i" % sConfig
-      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": sString = "mStop %i mNeu %i" % sConfig
-      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sString = "mStop %i mNeu %i" % sConfig
-      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sString = "mStop %i mNeu %i" % sConfig
+      if   args.signal == "TTbarDM":                        sString = "mChi %i mPhi %i type %s" % sConfig
+      elif args.signal == "T2tt":                           sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T2bt":                           sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T2bW":                           sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":   sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09":   sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":    sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":   sString = "mStop %i mNeu %i" % sConfig
+      elif args.signal == "ttHinv":                         sString = "ttH->inv"
       if args.significanceScan:
         try:   
             print "Result: %r significance %5.3f"%(sString, res['-1.000'])
@@ -462,7 +469,7 @@ def wrapper(s):
             print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
             return sConfig, res
         except:
-            print "Problem with limit: %r" + str(res)
+            print "Problem with limit: %r"%str(res)
             return None
 
 
