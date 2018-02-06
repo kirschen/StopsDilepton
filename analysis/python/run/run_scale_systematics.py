@@ -4,7 +4,7 @@ parser = OptionParser()
 parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
 #parser.add_option("--selectEstimator",       dest="selectEstimator",       default=None,                action="store",      help="select estimator?")
 #parser.add_option("--selectRegion",          dest="selectRegion",          default=None, type="int",    action="store",      help="select region?")
-parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt","T2bt","T2bW","T8bbllnunu_XCha0p5_XSlep0p05","T8bbllnunu_XCha0p5_XSlep0p5","T8bbllnunu_XCha0p5_XSlep0p95","T8bbllnunu_XCha0p5_XSlep0p09","TTbarDM"], help="which signal?")
+parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt","T2bt","T2bW","T8bbllnunu_XCha0p5_XSlep0p05","T8bbllnunu_XCha0p5_XSlep0p5","T8bbllnunu_XCha0p5_XSlep0p95","T8bbllnunu_XCha0p5_XSlep0p09","TTbarDM","ttHinv"], help="which signal?")
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option('--overwrite',            dest="overwrite", default = False, action = "store_true", help="Overwrite existing output files, bool flag set to True  if used")
 (options, args) = parser.parse_args()
@@ -27,6 +27,9 @@ if ('T2' in options.signal) or ('T8' in options.signal):
     setup             = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF']})
     setup.verbose     = True
 elif options.signal == 'TTbarDM':
+    isFastSim         = False
+    setup.verbose     = True
+elif options.signal == "ttHinv":
     isFastSim         = False
     setup.verbose     = True
 
@@ -104,6 +107,12 @@ elif options.signal == "TTbarDM":
     for s in signals:
         s.isFastSim = False
         s.is76X     = False
+    
+elif options.signal == "ttHinv":
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
+    from StopsDilepton.samples.cmgTuples_Higgs_mAODv2_25ns_postProcessed import *
+    signals = [ ttH_HToInvisible_M125 ]
+
 
 nominal     = "LHEweight_original"
 variations  = [ "LHEweight_wgt[%i]"%i for i in [0,1,2,3,4,6,8] ]

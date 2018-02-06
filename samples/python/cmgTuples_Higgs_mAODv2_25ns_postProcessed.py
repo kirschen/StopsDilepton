@@ -33,10 +33,12 @@ logger.info("Loading Higgs samples from directory %s", os.path.join(data_directo
 dirs = {}
 dirs['ZH_ZToMM_HToInvisible_M125']  = [ "ZH_ZToMM_HToInvisible_M125" ]
 dirs['ZH_ZToEE_HToInvisible_M125']  = [ "ZH_ZToEE_HToInvisible_M125" ]
+dirs['ttH_HToInvisible_M125']       = [ "ttH_HToInvisible_M125" ]
 
 
 directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
 
 ZH_ZToMM_HToInvisible_M125  = Sample.fromDirectory(name="ZH_ZToMM_HToInvisible_M125",   treeName="Events", isData=False, color=1,    texName="ZH(125), Z to \mu\mu", directory=directories['ZH_ZToMM_HToInvisible_M125'])
 ZH_ZToEE_HToInvisible_M125  = Sample.fromDirectory(name="ZH_ZToEE_HToInvisible_M125",   treeName="Events", isData=False, color=1,    texName="ZH(125), Z to ee", directory=directories['ZH_ZToEE_HToInvisible_M125'])
+ttH_HToInvisible_M125       = Sample.fromDirectory(name="ttH_HToInvisible_M125",        treeName="Events", isData=False, color=1,    texName="ttH(125)", directory=directories['ttH_HToInvisible_M125'])
 

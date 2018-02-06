@@ -4,7 +4,7 @@ parser = OptionParser()
 parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
 parser.add_option("--selectWeight",       dest="selectWeight",       default=None,                action="store",      help="select weight?")
 parser.add_option("--selectRegion",          dest="selectRegion",          default=None, type="int",    action="store",      help="select region?")
-parser.add_option("--sample",               dest='sample',  action='store', default='TTZ',    choices=["TTLep_pow","TTZ","DY","multiboson", "ttHinv"], help="which sample?")
+parser.add_option("--sample",               dest='sample',  action='store', default='TTZ',    choices=["TTLep_pow","TTZ","DY","multiboson"], help="which sample?")
 parser.add_option("--small",  action='store_true', help="small?")
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option('--overwrite',            dest="overwrite", default = False, action = "store_true", help="Overwrite existing output files, bool flag set to True  if used")
@@ -39,10 +39,6 @@ elif options.sample == "DY":
     sample = DY_HT_LO
 elif options.sample == "multiboson":
     sample = multiBoson
-elif options.sample == "ttHinv":
-    from RootTools.core.standard import *
-    sample = Sample.fromDirectory( "tth_2l", directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/postProcessed_80X_v38/dilepTiny/tth_l2" )
-
 
 if options.small:
     sample.reduceFiles( to = 1 )

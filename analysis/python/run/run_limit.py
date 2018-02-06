@@ -159,8 +159,11 @@ elif args.signal == "TTbarDM":
     postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM as jobs
 elif args.signal == "ttHinv":
-    from RootTools.core.standard import *
-    jobs = [Sample.fromDirectory( "tth_2l", directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/postProcessed_80X_v38/dilepTiny/tth_l2" )]
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    from StopsDilepton.samples.cmgTuples_Higgs_mAODv2_25ns_postProcessed import *
+    jobs = [ttH_HToInvisible_M125]
+    #from RootTools.core.standard import *
+    #jobs = [Sample.fromDirectory( "tth_2l", directory = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/postProcessed_80X_v38/dilepTiny/tth_l2" )]
 
 
 scaleUncCache = Cache(setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal, verbosity=2)
