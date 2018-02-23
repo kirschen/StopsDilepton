@@ -13,7 +13,7 @@ signalString = 'T2tt'
 
 #defFile= os.path.join(analysis_results, "fitAll/limits/T2tt/T2tt/limitResults.root")
 #defFile= os.path.join(analysis_results, "fitAll/limits/"+signalString+"/"+signalString+"/limitResults.root")
-defFile= os.path.join(analysis_results, "aggregated/fitAll/limits/"+signalString+"/"+signalString+"/limitResults.root")
+defFile= os.path.join(analysis_results, "fitAll/limits/"+signalString+"/"+signalString+"/limitResults.root")
 #defFile= os.path.join(analysis_results, "fitAll/limits/T2tt_approval/T2tt_approval/limitResults.root")
 #defFile= os.path.join(analysis_results, "isOS-nJets2p-nbtag1p-met80-metSig5-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-relIso0.12/DY/TTZ/TTJets/multiBoson/limits/T2tt/regionsO/limitResults.root")
 
@@ -23,7 +23,7 @@ parser.add_option("--file", dest="filename", default=defFile, type="string", act
 (options, args) = parser.parse_args()
 
 ifs = options.filename.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_aggregate_FR')
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_lateTest')
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 
@@ -63,7 +63,7 @@ for k in ["obs","obs_UL","obs_up","obs_down","exp","exp_up","exp_down"]:
     ymin = hists[k].GetYaxis().GetXmin()
     Ny = hists[k].GetYaxis().GetNbins()
     yWidth = (ymax-ymin)/Ny
-    newMin = ymin-yWidth
+    newMin = ymin#-yWidth
     newHists[k] = ROOT.TH2F(hists[k].GetName(),hists[k].GetTitle(),Nx,xmin,xmax,Ny+1,newMin,ymax)
     for ix in range(1, hists[k].GetNbinsX()+1):
         newHists[k].SetBinContent(ix,1,hists[k].GetBinContent(ix,1))

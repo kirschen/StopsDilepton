@@ -17,6 +17,8 @@ argParser.add_argument("--DMsync",         default = False, action = "store_true
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--popFromSR",      default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
+argParser.add_argument("--showSyst",      default = '', action = "store", help="Print the systematic uncertainties?")
+
 
 args = argParser.parse_args()
 
@@ -198,6 +200,9 @@ def getScaleUncBkg(name, r, channel, process):
 def getIsrUnc(name, r, channel):
   if isrUncCache.contains((name,r,channel)):    return abs(isrUncCache.get((name, r, channel)))
   else:                                         return 0.02
+
+systList = ["PU", "PDF", "xsec_QCD", "xsec_PDF", "JEC", "unclEn", "JER", "SFb", "SFl", "trigger", "leptonSF", "scale", "MCstat"]
+systematicUncertainties = {x:[] for x in systList}
 
 
 def wrapper(s):
@@ -392,6 +397,7 @@ def wrapper(s):
                   c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
                   if not args.signal == "ttHinv": c.specifyUncertainty('isr',      binname, 'signal', 1 + abs(getIsrUnc(  eSignal.name, r, channel)))
+
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
@@ -401,6 +407,24 @@ def wrapper(s):
                   uname = 'Stat_'+binname+'_signal'
                   c.addUncertainty(uname, 'lnN')
                   c.specifyUncertainty(uname, binname, 'signal', 1 + signal.sigma/signal.val )
+            
+                  # add all signal uncertainties to print out max
+                  if counter < 26:
+                    systematicUncertainties["PU"].append(e.PUSystematic(r, channel, signalSetup).val)
+                    systematicUncertainties["PDF"].append(getPDFUncSignal(s.name, r, channel))
+                    systematicUncertainties["xsec_QCD"].append(1.092)
+                    systematicUncertainties["xsec_PDF"].append(1.036)
+                    systematicUncertainties["JEC"].append(e.JECSystematic(        r, channel, signalSetup).val)
+                    systematicUncertainties["unclEn"].append(e.unclusteredSystematic(r, channel, signalSetup).val)
+                    systematicUncertainties["JER"].append(e.JERSystematic(        r, channel, signalSetup).val)
+                    systematicUncertainties["SFb"].append(e.btaggingSFbSystematic(r, channel, signalSetup).val)
+                    systematicUncertainties["SFl"].append(e.btaggingSFlSystematic(r, channel, signalSetup).val)
+                    systematicUncertainties["trigger"].append(e.triggerSystematic(    r, channel, signalSetup).val)
+                    systematicUncertainties["leptonSF"].append(e.leptonSFSystematic(   r, channel, signalSetup).val)
+                    systematicUncertainties["scale"].append(getScaleUnc(eSignal.name, r, channel))
+                    systematicUncertainties["MCstat"].append(signal.sigma/signal.val)
+                    #systematicUncertainties[""].append()
+                    
                 else:
                   uname = 'Stat_'+binname+'_signal'
                   c.addUncertainty(uname, 'lnN')
@@ -427,6 +451,13 @@ def wrapper(s):
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sConfig = s.mStop, s.mNeu
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
     elif args.signal == "ttHinv":                       sConfig = ("ttHinv", "2l")
+
+    # Print the systematic uncertainties
+    print
+    print "Systematic uncertainties"
+    print "{:10}{:10}{:10}".format("name", "min", "max")
+    for syst in systematicUncertainties.keys():
+        print "{:10}{:10.2f}{:10.2f}".format(syst, min(systematicUncertainties[syst])*100, max(systematicUncertainties[syst])*100)
 
     if not args.significanceScan:
         if useCache and not overWrite and limitCache.contains(sConfig):
@@ -536,7 +567,6 @@ if "T2" in args.signal or  "T8bb" in args.signal:
   obs      .Write()
   outfile.Close()
   print "Written %s"%limitResultsFilename
-
 
 # Make table for DM
 if args.signal == "TTbarDM":
