@@ -64,7 +64,7 @@ if args.signal == "T2tt":
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T2tt, T2tt2]
 elif args.signal == "T8bbllnunu":
-    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
     T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p95_1300_1
     T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p95_1300_300

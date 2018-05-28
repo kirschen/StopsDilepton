@@ -11,8 +11,11 @@ from copy import deepcopy
 from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
 from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Higgs_mAODv2_25ns_postProcessed import *
 
-aggregate = True
+ttH_HToInvisible_M125.isFastSim = False
+
+aggregate = False
 
 setup.channels     = ['SF','EMu']
 #setup.channels     = ['all']
@@ -31,7 +34,7 @@ setups = [setup]
 TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10.isFastSim = False
 TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10.isFastSim = False
 
-signals = [ T2tt_750_1, T2tt_600_300, TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10, TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10 ]
+signals = [ T2tt_750_1, T2tt_600_300, TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10, TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10, ttH_HToInvisible_M125 ]
 
 texdir  = os.path.join(setup.analysis_results, setup.prefix(), 'tables_agg')
 print texdir
