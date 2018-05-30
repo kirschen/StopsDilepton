@@ -47,6 +47,17 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
       combineReleaseLocation = '/afs/cern.ch/work/d/dspitzba/CMS/stop/CMSSW_7_4_7/src'
     runOnGentT2 = False
 
+if os.environ['USER'] in ['gungersback']:
+    # Where postprocessed data goes 
+    data_output_directory      = "/afs/hephy.at/data/gungersback01/cmgTuples/"
+    # Where you store the data
+    data_directory      = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+    # Where the plots go
+    plot_directory      = "/afs/hephy.at/user/g/gungersback/www/stopsDilepton/"
+    # Analysis result files
+    analysis_results        = '/afs/hephy.at/data/gungersback01/StopsDilepton/results/80X_v35' #Path to analysis results
+    #dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
+
 if os.environ['USER'] in ['tomc']:
     # Where you store cmg output
     cmg_directory              = "/pnfs/iihe/cms/store/user/tomc/cmgTuples/80X_1l_24"
