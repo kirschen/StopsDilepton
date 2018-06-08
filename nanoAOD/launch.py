@@ -29,7 +29,11 @@ if options.isData:
 else:
     os.environ["CRAB_PROD_LABEL"]  = m.group(2) + "_" + options.production_label
 
-os.environ["MAOD_SAMPLE_NAME"] = m.group(1)+"_"+m.group(2)
+os.environ["MAOD_SAMPLE_M1"]    = m.group(1)
+os.environ["MAOD_SAMPLE_M2"]    = m.group(2)
+os.environ["ORIG_PROD_LABEL"]   = options.production_label
+os.environ["MAOD_SAMPLE_NAME"]  = m.group(1)+"_"+m.group(2)
+
 
 if options.isData:
     os.environ["IS_DATA"] = "True"

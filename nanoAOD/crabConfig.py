@@ -12,7 +12,7 @@ if "CRAB_TOTAL_UNITS" in os.environ: totalUnits = os.environ["CRAB_TOTAL_UNITS"]
 config.section_("General")
 config.General.transferLogs = True
 config.General.requestName = production_label
-config.General.workArea = 'crab_' + production_label + "_" + os.environ["MAOD_SAMPLE_NAME"]# config.General.requestName
+config.General.workArea = 'crab_' + os.environ['ORIG_PROD_LABEL'] + "_" + os.environ["MAOD_SAMPLE_NAME"]# config.General.requestName
 
 config.section_("JobType")
 config.JobType.allowUndistributedCMSSW = True
@@ -29,8 +29,8 @@ if "IS_DATA" in os.environ:
     config.Data.lumiMask = 'json/Cert_314472-316723_13TeV_PromptReco_Collisions18_JSON.txt'
 config.Data.ignoreLocality = False
 
-config.Data.outLFNDirBase = '/store/user/%s/nanoAOD/%s/' % (getUsernameFromSiteDB(), production_label)
-config.Data.publication = False
+config.Data.outLFNDirBase = '/store/user/%s/nanoAOD/%s/' % (getUsernameFromSiteDB(), os.environ['ORIG_PROD_LABEL'])
+config.Data.publication = True
 config.Data.unitsPerJob = unitsPerJob#10
 if "CRAB_TOTAL_UNITS" in os.environ: config.Data.totalUnits = int(totalUnits)#8
 
