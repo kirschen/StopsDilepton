@@ -85,7 +85,7 @@ def get_parser():
         action='store',
         nargs='?',
         type=int,
-        default=300000,
+        default=30000000,
         help="Maximum number of events per job (Approximate!)."
         )
 
@@ -98,7 +98,6 @@ def get_parser():
         )
     argParser.add_argument('--job',
         action='store',
-        nargs='*',
         type=int,
         default=0,
         help="Run only jobs i"
@@ -219,7 +218,7 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job[0]))
+logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job))
 logger  = logger.get_logger(options.logLevel, logFile = logFile)
 
 import RootTools.core.logger as logger_rt
@@ -337,6 +336,7 @@ else:
 
 if options.fileBasedSplitting:
     len_orig = len(sample.files)
+    print options.job
     sample = sample.split( n=options.nJobs, nSub=options.job)
     logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
     logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
@@ -1062,6 +1062,8 @@ logger.info( "Splitting into %i ranges of %i events on average. FileBasedSplitti
 jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
 
 filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
+
+print eventRanges
 
 if options.fileBasedSplitting and len(eventRanges)>1:
     raise RuntimeError("Using fileBasedSplitting but have more than one event range!")
