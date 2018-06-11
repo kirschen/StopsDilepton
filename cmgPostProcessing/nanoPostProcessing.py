@@ -488,8 +488,9 @@ else:
 
 if not (isTiny or isSmall):
     branchKeepStrings_DATAMC+=[
-        "nPhoton", "Photon_cutBased", "Photon_hoe", "Photon_r9", "Photon_sieie", "Photon_pfRelIso03_chg",
+        "nPhoton", "Photon_hoe", "Photon_r9", "Photon_sieie", "Photon_pfRelIso03_chg",
         "Photon_pt", "Photon_eta", "Photon_phi", "Photon_mass",]
+    branchKeepStrings_DATAMC+= ["Photon_cutBased"] if options.year == 2016 else ["Photon_cutBasedBitmap"]
     if isMC: branchKeepStrings_DATAMC+=[ "gamma_mcMatchId", "gamma_mcPt", "gamma_genIso04", "gamma_genIso03", "gamma_drMinParton"]
 
 if sample.isData:
@@ -514,12 +515,12 @@ jetVars = ['pt/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'b
 jetVarNames = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'index/I', 'lepGoodMatchIndex/I', 'matchesPromptGoodLepton/I', 'n_t/I','n_W/I', 'n_B/I', 'n_D/I', 'n_tau/I']
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
-lepVars     = ['pt/F','eta/F','phi/F','pdgId/I','cutBased/I','miniPFRelIso_all/F','pfRelIso03_all/F','sip3d/F','lostHits/I','convVeto/I','dxy/F','dz/F','charge/I','deltaEtaSC/F','mediumId/I']
+lepVars     = ['pt/F','eta/F','phi/F','pdgId/I','cutBased/I','miniPFRelIso_all/F','pfRelIso03_all/F','sip3d/F','lostHits/b','convVeto/O','dxy/F','dz/F','charge/I','deltaEtaSC/F','mediumId/O']
 lepVarNames = [x.split('/')[0] for x in lepVars]
 
 read_variables = map(TreeVariable.fromString, ['MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
-                    VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') ]
+                    VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if options.year == 2016 else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
 
 new_variables = [ 'weight/F']
 if isMC:
@@ -540,9 +541,9 @@ if isMC:
 read_variables += [\
     # now we don't have all IDs etc for both muons and electrons
     TreeVariable.fromString('nElectron/I'),
-    VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/I,convVeto/I,dxy/F,dz/F,charge/I,deltaEtaSC/F]'),
+    VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F]'),
     TreeVariable.fromString('nMuon/I'),
-    VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
+    VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
     TreeVariable.fromString('nJet/I'),
     VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
 ]
@@ -795,14 +796,14 @@ def filler( event ):
     metVariants = [''] # default
 
     # Keep photons and estimate met including (leading pt) photon
-    photons = getGoodPhotons(r, ptCut=20, idLevel="loose", isData=isData)
+    photons = getGoodPhotons(r, ptCut=20, idLevel="loose", isData=isData, year=options.year)
     event.nPhotonGood = len(photons)
     if event.nPhotonGood > 0:
       metVariants += ['_photonEstimated']  # do all met calculations also for the photonEstimated variant
       event.photon_pt         = photons[0]['pt']
       event.photon_eta        = photons[0]['eta']
       event.photon_phi        = photons[0]['phi']
-      event.photon_idCutBased = photons[0]['cutBased']
+      event.photon_idCutBased = photons[0]['cutBasedBitmap']
       if isMC:
         genPhoton       = getGenPhoton(gPart)
         event.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')

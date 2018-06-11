@@ -57,11 +57,12 @@ def muonSelector( lepton_selection, year ):
             return \
                 l["pt"]                 >= 10 \
                 and abs(l["eta"])       < 2.4 \
-                and l["mediumId"]   >= 1 \
                 and l['pfRelIso03_all'] < 0.20 \
                 and l["sip3d"]          < 4.0 \
                 and abs(l["dxy"])       < 0.05 \
-                and abs(l["dz"])        < 0.1
+                and abs(l["dz"])        < 0.1 \
+                and l["mediumId"] 
+
 
     elif lepton_selection == 'loose':
         def func(l):
@@ -87,8 +88,8 @@ def eleSelector( lepton_selection, year ):
                 and abs(l["eta"])       < 2.4 \
                 and l['cutBased']       >= 4 \
                 and l['pfRelIso03_all'] < 0.20 \
-                and l["convVeto"]       > 0 \
-                and l["lostHits"]       == 0 \
+                and l["convVeto"] \
+                and ord(l["lostHits"])  == 0 \
                 and l["sip3d"]          < 4.0 \
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1
@@ -100,8 +101,8 @@ def eleSelector( lepton_selection, year ):
                 and abs(l["eta"])       < 2.4 \
                 and l['cutBased']       >= 1 \
                 and l['pfRelIso03_all'] < 0.20 \
-                and l["convVeto"]       > 0 \
-                and l["lostHits"]       == 0 \
+                and l["convVeto"] \
+                and ord(l["lostHits"])  == 0 \
                 and l["sip3d"]          < 4.0 \
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1
@@ -150,14 +151,18 @@ def looseTauID(l, ptCut=20, absEtaCut=2.4):
 def getGoodTaus(c, collVars=tauVars):
     return [l for l in getTaus(c,collVars=collVars) if looseTauID(l)]
 
-idCutBased={'loose':1 ,'medium':2, 'tight':3}
+idCutBased={'loose':0 ,'medium':1, 'tight':2}
 photonVars=['eta','pt','phi','mass','cutBased']
 photonVarsMC = photonVars + ['mcPt']
+
 def getPhotons(c, collVars=photonVars, idLevel='loose'):
     return [getObjDict(c, 'Photon_', collVars, i) for i in range(int(getVarValue(c, 'nPhoton')))]
-def getGoodPhotons(c, ptCut=50, idLevel="loose", isData=True, collVars=None):
-    if collVars is None: collVars = photonVars if isData else photonVarsMC
-    return [p for p in getPhotons(c, collVars) if p['cutBased'] >= idCutBased[idLevel] and p['pt'] > ptCut ]
+
+def getGoodPhotons(c, ptCut=50, idLevel="loose", isData=True, collVars=None, year=2016):
+    idVar = "cutBased" if year == 2016 else "cutBasedBitmap"
+    #if collVars is None: collVars = photonVars if isData else photonVarsMC
+    collVars = ['eta','pt','phi','mass','cutBased'] if year == 2016 else ['eta','pt','phi','mass','cutBasedBitmap']
+    return [p for p in getPhotons(c, collVars) if p[idVar] >= idCutBased[idLevel] and p['pt'] > ptCut ]
 
 def getFilterCut(isData=False, isFastSim = False, badMuonFilters = "Summer2016"):
     if isFastSim:

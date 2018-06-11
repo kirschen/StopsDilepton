@@ -27,10 +27,10 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     # Where you store cmg output
     cmg_directory      = "/scratch/rschoefbeck/cmgTuples/80X_1l_9"
     # Where postprocessed data goes 
-    data_output_directory      = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+    data_output_directory      = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where you store the data
-    data_directory      = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+    data_directory      = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/d/dspitzbart/www/stopsDilepton/"
     #plot_directory      = "/afs/cern.ch/work/d/dspitzba/www/stopsDilepton/"
