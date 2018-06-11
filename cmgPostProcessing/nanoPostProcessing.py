@@ -336,7 +336,6 @@ else:
 
 if options.fileBasedSplitting:
     len_orig = len(sample.files)
-    print options.job
     sample = sample.split( n=options.nJobs, nSub=options.job)
     logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
     logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
@@ -490,7 +489,7 @@ if not (isTiny or isSmall):
     branchKeepStrings_DATAMC+=[
         "nPhoton", "Photon_hoe", "Photon_r9", "Photon_sieie", "Photon_pfRelIso03_chg",
         "Photon_pt", "Photon_eta", "Photon_phi", "Photon_mass",]
-    branchKeepStrings_DATAMC+= ["Photon_cutBased"] if options.year == 2016 else ["Photon_cutBasedBitmap"]
+    branchKeepStrings_DATAMC+= ["Photon_cutBased"] if (not options.year == 2017) else ["Photon_cutBasedBitmap"]
     if isMC: branchKeepStrings_DATAMC+=[ "gamma_mcMatchId", "gamma_mcPt", "gamma_genIso04", "gamma_genIso03", "gamma_drMinParton"]
 
 if sample.isData:
@@ -520,7 +519,7 @@ lepVarNames = [x.split('/')[0] for x in lepVars]
 
 read_variables = map(TreeVariable.fromString, ['MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
-                    VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if options.year == 2016 else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
+                    VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (not options.year == 2017) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
 
 new_variables = [ 'weight/F']
 if isMC:
@@ -803,7 +802,7 @@ def filler( event ):
       event.photon_pt         = photons[0]['pt']
       event.photon_eta        = photons[0]['eta']
       event.photon_phi        = photons[0]['phi']
-      event.photon_idCutBased = photons[0]['cutBasedBitmap']
+      event.photon_idCutBased = photons[0]['cutBased'] if (not options.year == 2017) else photons[0]['cutBasedBitmap']
       if isMC:
         genPhoton       = getGenPhoton(gPart)
         event.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
@@ -1064,8 +1063,6 @@ jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
 
 filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
 
-print eventRanges
-
 if options.fileBasedSplitting and len(eventRanges)>1:
     raise RuntimeError("Using fileBasedSplitting but have more than one event range!")
 
@@ -1137,9 +1134,9 @@ logger.info( "Converted %i events of %i, cloned %i",  convertedEvents, reader.nE
 
 # Storing JSON file of processed events
 if isData:
-    jsonFile = filename+'.json'
+    jsonFile = filename+'_%s.json'%(0 if options.nJobs==1 else options.job)
     LumiList( runsAndLumis = outputLumiList ).writeJSON(jsonFile)
-    logger.info( "Written JSON file %s",  jsonFile )
+    logger.info( "Written JSON file %s", jsonFile )
 
 # Write one file per mass point for SUSY signals
 if options.nJobs == 1:

@@ -1,6 +1,10 @@
 from RootTools.core.standard import *
 from RootTools.fwlite.FWLiteSample import *
 
+# Logging
+import logging
+logger = logging.getLogger(__name__)
+
 hephy = 'root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/'
 cache = "/afs/hephy.at/data/dspitzbart01/StopsDilepton/nanoCache.sql"
 
@@ -60,6 +64,19 @@ sampleMap['DoubleEG_Run2017F_31Mar2018']  = Sample.fromFiles("DoubleEG_Run2017F_
 
 ## 2018 ##
 
+baseDir = "/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/nanoAOD/2018_v3/"
+
+sampleMap['DoubleMuon_Run2018B_PromptReco_v1']  = Sample.fromDPMDirectory("DoubleMuon_Run2018B_PromptReco_v1",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v1_2018_v3/180607_150517/0000", forceProxy=True)
+sampleMap['DoubleMuon_Run2018B_PromptReco_v2']  = Sample.fromDPMDirectory("DoubleMuon_Run2018B_PromptReco_v2",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v2_2018_v3/180607_150537/0000", forceProxy=True)
+sampleMap['DoubleMuon_Run2018B_PromptReco_v3']  = Sample.fromDPMDirectory("DoubleMuon_Run2018B_PromptReco_v3",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v3_2018_v3/180607_150559/0000", forceProxy=True)
+
+sampleMap['MuonEG_Run2018B_PromptReco_v1']      = Sample.fromDPMDirectory("MuonEG_Run2018B_PromptReco_v1",      baseDir+"MuonEG/crab_Run2018A-PromptReco-v1_2018_v3/180607_150722/0000", forceProxy=True)
+sampleMap['MuonEG_Run2018B_PromptReco_v2']      = Sample.fromDPMDirectory("MuonEG_Run2018B_PromptReco_v2",      baseDir+"MuonEG/crab_Run2018A-PromptReco-v2_2018_v3/180607_150742/0000", forceProxy=True)
+sampleMap['MuonEG_Run2018B_PromptReco_v3']      = Sample.fromDPMDirectory("MuonEG_Run2018B_PromptReco_v3",      baseDir+"MuonEG/crab_Run2018A-PromptReco-v3_2018_v3/180607_150803/0000", forceProxy=True)
+
+sampleMap['EGamma_Run2018B_PromptReco_v1']      = Sample.fromDPMDirectory("EGamma_Run2018B_PromptReco_v1",      baseDir+"EGamma/crab_Run2018A-PromptReco-v1_2018_v3/180607_150620/0000", forceProxy=True)
+sampleMap['EGamma_Run2018B_PromptReco_v2']      = Sample.fromDPMDirectory("EGamma_Run2018B_PromptReco_v2",      baseDir+"EGamma/crab_Run2018A-PromptReco-v2_2018_v3/180607_150640/0000", forceProxy=True)
+sampleMap['EGamma_Run2018B_PromptReco_v3']      = Sample.fromDPMDirectory("EGamma_Run2018B_PromptReco_v3",      baseDir+"EGamma/crab_Run2018A-PromptReco-v3_2018_v3/180607_150701/0000", forceProxy=True)
 
 #DoubleMuon_Run2016 = [DoubleMuon_Run2016B_05Feb2018_ver1,DoubleMuon_Run2016B_05Feb2018_ver2,DoubleMuon_Run2016C_05Feb2018,DoubleMuon_Run2016D_05Feb2018,DoubleMuon_Run2016E_05Feb2018,DoubleMuon_Run2016F_05Feb2018,DoubleMuon_Run2016G_05Feb2018,DoubleMuon_Run2016H_05Feb2018_ver2,DoubleMuon_Run2016H_05Feb2018_ver3]
 
