@@ -11,7 +11,9 @@ mIsoWP = { "VT":5, "T":4, "M":3 , "L":2 , "VL":1, 0:"None" }
 
 special_cuts = {
     # ("multiIsoVT":        "(1)", 
-    "looseLeptonVeto":   "Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2",
+    "looseLeptonVeto":   "(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2",
+    "OS":                "(l1_pdgId*l2_pdgId)<0",
+    "lepSel":            "l1_pt>30&&l2_pt>20",
 
     "allZ":              "(1)",
     "onZ":               "abs(dl_mass-91.1876)<15",

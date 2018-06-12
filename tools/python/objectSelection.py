@@ -164,28 +164,18 @@ def getGoodPhotons(c, ptCut=50, idLevel="loose", isData=True, collVars=None, yea
     collVars = ['eta','pt','phi','mass','cutBased'] if (not year == 2017) else ['eta','pt','phi','mass','cutBasedBitmap']
     return [p for p in getPhotons(c, collVars) if p[idVar] >= idCutBased[idLevel] and p['pt'] > ptCut ]
 
-def getFilterCut(isData=False, isFastSim = False, badMuonFilters = "Summer2016"):
+def getFilterCut(isData=False, isFastSim = False, year = 2016):
     if isFastSim:
         filterCut            = "Flag_goodVertices"
     else:
-        filterCut            = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter"
-        if badMuonFilters == "Moriond2017":
-            filterCut += "&&Flag_badChargedHadronSummer2016"
-            if isData: filterCut += "&&Flag_badMuonMoriond2017&&Flag_badCloneMuonMoriond2017"
-        elif badMuonFilters == "Moriond2017Official":
-            filterCut += "&&Flag_badChargedHadronSummer2016"
-            if isData: filterCut += "&&Flag_noBadMuons&&!Flag_duplicateMuons"
-        elif badMuonFilters == "Summer2016":
-            filterCut += "&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016"
-        elif badMuonFilters == "Summer2016_pt20":
-            filterCut += "&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016_pt20"
-        elif badMuonFilters is None or badMuonFilters == "None":
-            pass
-        elif badMuonFilters == "Moriond2017OnlyClone":
-            filterCut += "&&Flag_badChargedHadronSummer2016"
-            if isData: filterCut += "&&Flag_badCloneMuonMoriond2017"
-        elif badMuonFilters == "Moriond2017OnlyOther":
-            filterCut += "&&Flag_badChargedHadronSummer2016"
-            if isData: filterCut += "&&Flag_badMuonMoriond2017"
-    if isData: filterCut += "&&weight>0"
+        if year == 2017 or year == 2018:
+            filters = ["Flag_goodVertices", "Flag_globalTightHalo2016Filter", "Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_BadPFMuonFilter", "Flag_BadChargedCandidateFilter", "Flag_ecalBadCalibFilter"]
+            filterCut = "&&".join(filters)
+            if isData:
+                filterCut += "&&Flag_eeBadScFilter"
+        else:
+            filterCut            = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_EcalDeadCellTriggerPrimitiveFilter"
+            #filterCut            += "&&Flag_METFilters"#"&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016" #maybe Flag_METFilters instead?
+
+    if isData: filterCut += "&&weight>0&&jsonPassed>0" ## This is very important for samples based on nanoAOD!!
     return filterCut
