@@ -39,15 +39,15 @@ def getSample(pd, runName, lumi):
     sample.lumi = lumi
     return sample
 
-EGamma_Run2018                = getSample('EGamma',         'Run2018',       (15.)*1000)
-DoubleMuon_Run2018              = getSample('DoubleMuon',       'Run2018',       (15.)*1000)
-MuonEG_Run2018                  = getSample('MuonEG',           'Run2018',       (15.)*1000)
+EGamma_Run2018                = getSample('EGamma',         'Run2018',           (11.8)*1000)
+DoubleMuon_Run2018              = getSample('DoubleMuon',       'Run2018',       (11.8)*1000)
+MuonEG_Run2018                  = getSample('MuonEG',           'Run2018',       (11.8)*1000)
 
 allSamples_Data25ns = []
 allSamples_Data25ns += [MuonEG_Run2018, EGamma_Run2018, DoubleMuon_Run2018]
 
 Run2018 = Sample.combine("Run2018", [MuonEG_Run2018, EGamma_Run2018, DoubleMuon_Run2018], texName = "Data")
-Run2018.lumi = (15.)*1000
+Run2018.lumi = (11.8)*1000
 
 for s in allSamples_Data25ns:
   s.color   = ROOT.kBlack

@@ -175,7 +175,7 @@ def getFilterCut(isData=False, isFastSim = False, year = 2016):
                 filterCut += "&&Flag_eeBadScFilter"
         else:
             filterCut            = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_EcalDeadCellTriggerPrimitiveFilter"
-            #filterCut            += "&&Flag_METFilters"#"&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016" #maybe Flag_METFilters instead?
+            filterCut            += "&&Flag_METFilters"#"&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016" #maybe Flag_METFilters instead?
 
     if isData: filterCut += "&&weight>0&&jsonPassed>0" ## This is very important for samples based on nanoAOD!!
     return filterCut
