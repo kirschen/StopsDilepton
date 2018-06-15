@@ -423,84 +423,84 @@ for index, mode in enumerate(allModes):
     ))
     
     plots.append(Plot( name = 'nJetEtaM4',
-      texX = 'N_{jets}, |#eta|#leq -4.0', texY = 'Number of Events',
+      texX = 'N_{jets}, #eta#leq -4.0', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEtaM4,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEtaM3',
-      texX = 'N_{jets}, -4.0 <|#eta|#leq -3.0', texY = 'Number of Events',
+      texX = 'N_{jets}, -4.0 <#eta#leq -3.0', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEtaM3,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEtaM2p5',
-      texX = 'N_{jets}, -3.0 <|#eta|#leq -2.5', texY = 'Number of Events',
+      texX = 'N_{jets}, -3.0 <#eta#leq -2.5', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEtaM2p5,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEtaM2',
-      texX = 'N_{jets}, -2.5 <|#eta|#leq -2.0', texY = 'Number of Events',
+      texX = 'N_{jets}, -2.5 <#eta#leq -2.0', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEtaM2,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEtaM1',
-      texX = 'N_{jets}, -2.0 <|#eta|#leq -1.0', texY = 'Number of Events',
+      texX = 'N_{jets}, -2.0 <#eta#leq -1.0', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEtaM1,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEta0',
-      texX = 'N_{jets}, -1.0 <|#eta|#leq 0.0', texY = 'Number of Events',
+      texX = 'N_{jets}, -1.0 <#eta#leq 0.0', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEta0,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEta1',
-      texX = 'N_{jets}, 0.0 <|#eta|#leq 1.0', texY = 'Number of Events',
+      texX = 'N_{jets}, 0.0 <#eta#leq 1.0', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEta1,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEta2',
-      texX = 'N_{jets}, 1.0 <|#eta|#leq 2.0', texY = 'Number of Events',
+      texX = 'N_{jets}, 1.0 <#eta#leq 2.0', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEta2,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEta2p5',
-      texX = 'N_{jets}, 2.0 <|#eta|#leq 2.5', texY = 'Number of Events',
+      texX = 'N_{jets}, 2.0 <#eta#leq 2.5', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEta2p5,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEta3',
-      texX = 'N_{jets}, 2.5 <|#eta|#leq 3.0', texY = 'Number of Events',
+      texX = 'N_{jets}, 2.5 <#eta#leq 3.0', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEta3,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEta4',
-      texX = 'N_{jets}, 3.0 <|#eta|#leq 4.0', texY = 'Number of Events',
+      texX = 'N_{jets}, 3.0 <#eta#leq 4.0', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEta4,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = 'nJetEtaInf',
-      texX = 'N_{jets}, 4.0 <|#eta|', texY = 'Number of Events',
+      texX = 'N_{jets}, 4.0 <#eta', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEtaInf,
       binning=[8,-0.5,7.5],
       addOverFlowBin='upper',
@@ -514,84 +514,84 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot( name = "jet_pt_EtaM4",
-      texX = 'p_{T}(leading jet, |#eta|#leq -4.0) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, #eta#leq -4.0) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_EtaM4,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_EtaM3",
-      texX = 'p_{T}(leading jet, -4.0 <|#eta|#leq -3.0) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, -4.0 <#eta#leq -3.0) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_EtaM3,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_EtaM2p5",
-      texX = 'p_{T}(leading jet, -3.0 <|#eta|#leq -2.5) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, -3.0 <#eta#leq -2.5) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_EtaM2p5,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_EtaM2",
-      texX = 'p_{T}(leading jet, -2.5 <|#eta|#leq -2.0) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, -2.5 <#eta#leq -2.0) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_EtaM2,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_EtaM1",
-      texX = 'p_{T}(leading jet, -2.0 <|#eta|#leq -1.0) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, -2.0 <#eta#leq -1.0) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_EtaM1,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_Eta0",
-      texX = 'p_{T}(leading jet, -1.0 <|#eta|#leq 0.0) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, -1.0 <#eta#leq 0.0) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_Eta0,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_Eta1",
-      texX = 'p_{T}(leading jet, 0.0 <|#eta|#leq 1.0) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, 0.0 <#eta#leq 1.0) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_Eta1,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_Eta2",
-      texX = 'p_{T}(leading jet, 1.0 <|#eta|#leq 2.0) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, 1.0 <#eta#leq 2.0) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_Eta2,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_Eta2p5",
-      texX = 'p_{T}(leading jet, 2.0 <|#eta|#leq 2.5) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, 2.0 <#eta#leq 2.5) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_Eta2p5,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_Eta3",
-      texX = 'p_{T}(leading jet, 2.5 <|#eta|#leq 3.0) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, 2.5 <#eta#leq 3.0) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_Eta3,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_Eta4",
-      texX = 'p_{T}(leading jet, 3.0 <|#eta|#leq 4.0) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, 3.0 <#eta#leq 4.0) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_Eta4,
       binning=[30,0,300],
       addOverFlowBin='upper',
     ))
 
     plots.append(Plot( name = "jet_pt_EtaInf",
-      texX = 'p_{T}(leading jet, 4.0 <|#eta|) (GeV)', texY = 'Number of Events',
+      texX = 'p_{T}(leading jet, 4.0 <#eta) (GeV)', texY = 'Number of Events',
       attribute = lambda event, sample: event.Jet_pt_EtaInf,
       binning=[30,0,300],
       addOverFlowBin='upper',
