@@ -9,7 +9,10 @@ ROOT.gROOT.SetBatch(True)
 import itertools
 import copy
 
-from math                         import sqrt, cos, sin, pi
+# for smearing
+import numpy as np
+
+from math                         import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard      import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaR, deltaPhi, getObjDict, getVarValue
@@ -24,7 +27,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton_dataVsData_v1')
-argParser.add_argument('--selection',          action='store',      default='lepSel-OS-looseLeptonVeto-njet2p-relIso0.12-mll20')
+argParser.add_argument('--selection',          action='store',      default='lepSel-OS-looseLeptonVeto-njet2p-relIso0.12-mll20-badJetSrEVeto')
 args = argParser.parse_args()
 
 #
@@ -133,7 +136,7 @@ def getUpdatedMET( event, sample ):
     event.nJetRawEta4      = len( [ jet for jet in jets if  3.0 < jet['eta'] <=  4.0 and jet['pt']*jet['rawFactor']>25 ] )
     event.nJetRawEtaInf    = len( [ jet for jet in jets if  4.0 < jet['eta']         and jet['pt']*jet['rawFactor']>25 ] )
 
-    jetsToUncorrect = [ jet for jet in jets if ( jet['pt'] < 75 and 2.7 < abs(jet['eta']) < 3.0 ) ]
+    jetsToUncorrect = [ jet for jet in jets if ( jet['pt'] < 70 and 2.5 < abs(jet['eta']) < 3.0 ) ]
 
     for jet in jetsToUncorrect:
         jetVector = ROOT.TVector3()
@@ -142,6 +145,17 @@ def getUpdatedMET( event, sample ):
 
     event.UpdatedMET_pt = MET.Pt()
     event.UpdatedMET_phi = MET.Phi()    
+
+    # p5 of https://indico.cern.ch/event/735204/contributions/3032375/attachments/1667421/2673633/Multilepton_NonHadJune13.pdf 
+    shift_MEx, shift_MEy = 0.4,0.4
+    sigmaSmear = 7.
+    shift_MEx = np.random.normal(0,sigmaSmear) 
+    shift_MEy = np.random.normal(0,sigmaSmear) 
+    smearVector =  ROOT.TVector3()
+    smearVector.SetPtEtaPhi( sqrt( shift_MEx**2+shift_MEy**2), 0, atan2( shift_MEy, shift_MEx ) )
+    smearedMET = MET + smearVector
+    event.smearedMET_pt =  smearedMET.Pt()
+    event.smearedMET_phi = smearedMET.Phi()
 
 sequence += [getUpdatedMET]
 
@@ -366,6 +380,14 @@ for index, mode in enumerate(allModes):
         binning=[400/20,0,400],
       addOverFlowBin='upper',
     ))
+
+    plots.append(Plot(name = "smearedMET_pt",
+        texX = 'E_{T}^{miss} (updated+smeared) (GeV)', texY = 'Number of Events / 20 GeV',
+        attribute = lambda event, sample: event.smearedMET_pt,
+        binning=[400/20,0,400],
+      addOverFlowBin='upper',
+    ))
+    
     
     plots.append(Plot(
         texX = '#phi(E_{T}^{miss})', texY = 'Number of Events',
