@@ -397,7 +397,7 @@ for index, mode in enumerate(allModes):
       addOverFlowBin='upper',
     ))
     
-    plots.append(Plot(
+    plots.append(Plot(name = "smearedMET_pt",
         texX = 'smeared type-1 E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
         attribute = lambda event, sample: event.smearedMET_pt,
         binning=[400/20,0,400],
