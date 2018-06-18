@@ -158,7 +158,7 @@ def getMETs( event, sample ):
     shift_MEx = np.random.normal(0,sigmaSmear) 
     shift_MEy = np.random.normal(0,sigmaSmear) 
     smearVector =  ROOT.TVector3()
-    smearVector.SetPtEtaPhi( sqrt( shift_MEx**2 + shift_MEy**2) )
+    smearVector.SetPtEtaPhi( sqrt( shift_MEx**2 + shift_MEy**2), 0, atan2( shift_MEy, shift_MEx) )
 
     event.jetCorrMET_pt         = jetCorrMET.Pt()
     event.smearedMET_pt        =  (MET + smearVector).Pt() 
