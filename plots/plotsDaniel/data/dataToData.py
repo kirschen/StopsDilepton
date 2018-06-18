@@ -160,6 +160,7 @@ def getMETs( event, sample ):
     smearVector =  ROOT.TVector3()
     smearVector.SetPtEtaPhi( sqrt( shift_MEx**2 + shift_MEy**2), 0, atan2( shift_MEy, shift_MEx) )
 
+    event.jecCorrMET_pt         = jecCorrMET.Pt()
     event.jetCorrMET_pt         = jetCorrMET.Pt()
     event.smearedMET_pt        =  (MET + smearVector).Pt() 
     event.smearedJecCorrMET_pt =  (jecCorrMET + smearVector).Pt() 
