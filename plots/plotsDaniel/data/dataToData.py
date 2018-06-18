@@ -138,7 +138,7 @@ def getUpdatedMET( event, sample ):
     for jet in jetsToUncorrect:
         jetVector = ROOT.TVector3()
         jetVector.SetPtEtaPhi(jet['pt']*jet['rawFactor'], jet['eta'], jet['phi'])
-        MET = MET - jetVector
+        MET = MET + jetVector
 
     event.UpdatedMET_pt = MET.Pt()
     event.UpdatedMET_phi = MET.Phi()    
