@@ -28,7 +28,7 @@ special_cuts = {
     "dPhiInv":           '(!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)))', # here we want an njet requirement
     "metInv":            "met_pt<80",
     "metSigInv":         "metSig<5",
-    "badJetSrEVeto":     "Sum$(JetGood_neEmEF*JetGood_pt*cosh(JetGood_eta)*(2.5<abs(JetGood_eta)&&abs(JetGood_eta)<3&&JetGood_pt<50))<200",
+    "badJetSrEVeto":     "Sum$(Jet_neEmEF*Jet_pt*cosh(Jet_eta)*(2.5<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt<50))<200",
 
     "extraLepVeto":      "Sum$(abs(LepGood_pdgId)==13&&LepGood_pt>20&&( abs(LepGood_dz)>0.2 || abs(LepGood_dxy)>0.2 ) ) + Sum$(abs(LepOther_pdgId)==13&&LepOther_pt>20&&( abs(LepOther_dz)>0.2 || abs(LepOther_dxy)>0.2 ) )==0",
 
