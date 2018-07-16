@@ -12,12 +12,12 @@ except: from StopsDilepton.tools.user import data_directory
 
 # Take post processing directory if defined in main module
 try:    postProcessing_directory = sys.modules['__main__'].postProcessing_directory
-except: postProcessing_directory = '2018_nano_v1/dilep'
+except: postProcessing_directory = '2018_nano_v2/dilep'
 
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
 dirs = {}
-for (run, version) in [('B','_v1'), ('B','_v2'), ('B','_v3')]:
+for (run, version) in [('A','_v1'), ('A','_v2'), ('A','_v3'), ('B','_v1'), ('B','_v2'), ('C','_v1')]:
     runTag = 'Run2018' + run + '_PromptReco' + version
     dirs["EGamma_Run2018"           + run + version ] = ["EGamma_"            + runTag ]
     dirs["DoubleMuon_Run2018"       + run + version ] = ["DoubleMuon_"        + runTag ]
@@ -28,7 +28,7 @@ def merge(pd, totalRunName, listOfRuns):
     for run in listOfRuns: dirs[pd + '_' + totalRunName].extend(dirs[pd + '_' + run])
 
 for pd in ['MuonEG', 'DoubleMuon', 'EGamma']:
-    merge(pd, 'Run2018',    ['Run2018B_v1', 'Run2018B_v2', 'Run2018B_v3'])
+    merge(pd, 'Run2018',    ['Run2018A_v1', 'Run2018A_v2', 'Run2018A_v3', 'Run2018B_v1', 'Run2018B_v2', 'Run2018C_v1'])
 
 for key in dirs:
     dirs[key] = [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]]

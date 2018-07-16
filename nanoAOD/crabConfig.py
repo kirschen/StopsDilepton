@@ -17,7 +17,7 @@ config.General.workArea = 'crab_' + os.environ['ORIG_PROD_LABEL'] + "_" + os.env
 config.section_("JobType")
 config.JobType.allowUndistributedCMSSW = True
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = 'nanoAOD_cfg.py'
+config.JobType.psetName = 'nanoAOD_101X_HEmiss_NANO.py'
 config.JobType.outputFiles = ['nanoAOD.root']
 
 config.section_("Data")
@@ -25,8 +25,8 @@ config.Data.inputDataset = dataset
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
-if "IS_DATA" in os.environ:
-    config.Data.lumiMask = 'json/Cert_314472-316723_13TeV_PromptReco_Collisions18_JSON.txt'
+#if "IS_DATA" in os.environ:
+#    config.Data.lumiMask = 'json/Cert_314472-316723_13TeV_PromptReco_Collisions18_JSON.txt'
 config.Data.ignoreLocality = False
 
 config.Data.outLFNDirBase = '/store/user/%s/nanoAOD/%s/' % (getUsernameFromSiteDB(), os.environ['ORIG_PROD_LABEL'])

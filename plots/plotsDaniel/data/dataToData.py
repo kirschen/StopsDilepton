@@ -9,7 +9,10 @@ ROOT.gROOT.SetBatch(True)
 import itertools
 import copy
 
-from math                         import sqrt, cos, sin, pi
+# for smearing
+import numpy as np
+
+from math                         import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard      import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaR, deltaPhi, getObjDict, getVarValue
@@ -24,7 +27,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton_dataVsData_v1')
-argParser.add_argument('--selection',          action='store',      default='lepSel-OS-looseLeptonVeto-njet2p-relIso0.12-mll20')
+argParser.add_argument('--selection',          action='store',      default='lepSel-OS-looseLeptonVeto-njet2p-relIso0.12-mll20-badJetSrEVeto')
 args = argParser.parse_args()
 
 #
@@ -40,16 +43,16 @@ if args.small:                        args.plot_directory += "_small"
 # Make samples, will be searched for in the postProcessing directory
 #
 
-data_directory           = "/afs/hephy.at/data/dspitzbart01/nanoTuples"
+data_directory           = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
 
 
-postProcessing_directory = "2016_nano_v1/dilep"
+postProcessing_directory = "nanoAOD_v2/dilepTiny/"
 from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018 import *
 
-postProcessing_directory = "2017_nano_v1/dilep/"
+postProcessing_directory = "nanoAOD_v2/dilepTiny/"
 from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018 import *
 
-postProcessing_directory = "2018_nano_v1/dilep/"
+postProcessing_directory = "nanoAOD_v2/dilepTiny/"
 from StopsDilepton.samples.nanoTuples_Run2018_PromptReco import *
 
 
@@ -74,9 +77,7 @@ read_variables =    ["weight/F",
 
 sequence = []
 
-def getUpdatedMET( event, sample ):
-    MET = ROOT.TVector3()
-    MET.SetPtEtaPhi(event.MET_pt, 0., event.MET_phi)
+def getMETs( event, sample ):
 
     jetVars = ['eta','pt','phi','rawFactor']
     jets = [getObjDict(event, 'Jet_', jetVars, i) for i in range(int(getVarValue(event, 'nJet')))]
@@ -133,17 +134,44 @@ def getUpdatedMET( event, sample ):
     event.nJetRawEta4      = len( [ jet for jet in jets if  3.0 < jet['eta'] <=  4.0 and jet['pt']*jet['rawFactor']>25 ] )
     event.nJetRawEtaInf    = len( [ jet for jet in jets if  4.0 < jet['eta']         and jet['pt']*jet['rawFactor']>25 ] )
 
-    jetsToUncorrect = [ jet for jet in jets if ( jet['pt'] < 75 and 2.7 < abs(jet['eta']) < 3.0 ) ]
+    #jetsToUncorrect = [ jet for jet in jets if ( jet['pt'] < 75 and 2.7 < abs(jet['eta']) < 3.0 ) ]
+
+    #for jet in jetsToUncorrect:
+    #    jetVector = ROOT.TVector3()
+    #    jetVector.SetPtEtaPhi(jet['pt']*jet['rawFactor'], jet['eta'], jet['phi'])
+    #    MET = MET + jetVector
+    jetsToUncorrect = [ jet for jet in jets if ( jet['pt'] < 70 and 2.5 < abs(jet['eta']) < 3.0 ) ]
+
+    MET = ROOT.TVector3()
+    MET.SetPtEtaPhi(event.MET_pt, 0., event.MET_phi)
+    jecCorrMET = ROOT.TVector3()
+    jecCorrMET.SetPtEtaPhi(event.MET_pt, 0., event.MET_phi)
+    jetCorrMET = ROOT.TVector3()
+    jetCorrMET.SetPtEtaPhi(event.MET_pt, 0., event.MET_phi)
 
     for jet in jetsToUncorrect:
-        jetVector = ROOT.TVector3()
-        jetVector.SetPtEtaPhi(jet['pt']*jet['rawFactor'], jet['eta'], jet['phi'])
-        MET = MET + jetVector
+        corrVector = ROOT.TVector3()
+        # correcting by jec
+        corrVector.SetPtEtaPhi(jet['pt']*jet['rawFactor'], jet['eta'], jet['phi'])
+        jecCorrMET = jecCorrMET - corrVector
+        # correcting by jet
+        corrVector.SetPtEtaPhi(jet['pt'], jet['eta'], jet['phi'])
+        jetCorrMET = jetCorrMET + corrVector
 
-    event.UpdatedMET_pt = MET.Pt()
-    event.UpdatedMET_phi = MET.Phi()    
+    # p5 of https://indico.cern.ch/event/735204/contributions/3032375/attachments/1667421/2673633/Multilepton_NonHadJune13.pdf 
+    shift_MEx, shift_MEy = 0.4,0.4
+    sigmaSmear = 7.
+    shift_MEx = np.random.normal(0,sigmaSmear) 
+    shift_MEy = np.random.normal(0,sigmaSmear) 
+    smearVector =  ROOT.TVector3()
+    smearVector.SetPtEtaPhi( sqrt( shift_MEx**2 + shift_MEy**2) )
 
-sequence += [getUpdatedMET]
+    event.jetCorrMET_pt         = jetCorrMET.Pt()
+    event.smearedMET_pt        =  (MET + smearVector).Pt() 
+    event.smearedJecCorrMET_pt =  (jecCorrMET + smearVector).Pt() 
+    event.smearedJetCorrMET_pt =  (jetCorrMET + smearVector).Pt() 
+
+sequence += [getMETs]
 
 #
 # Text on the plots
@@ -346,27 +374,57 @@ for index, mode in enumerate(allModes):
       addOverFlowBin='upper',
     ))
     
+    
     plots.append(Plot(
-        texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
+        texX = 'raw E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
+        attribute = TreeVariable.fromString( "RawMET_pt/F" ),
+        binning=[400/20,0,400],
+      addOverFlowBin='upper',
+    ))
+
+    plots.append(Plot(
+        texX = 'type-1 E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
         attribute = TreeVariable.fromString( "MET_pt/F" ),
         binning=[400/20,0,400],
       addOverFlowBin='upper',
     ))
     
-    plots.append(Plot(
-        texX = 'E_{T}^{miss} (raw) (GeV)', texY = 'Number of Events / 20 GeV',
-        attribute = TreeVariable.fromString( "RawMET_pt/F" ),
+    plots.append(Plot(name = "jecCorrMET_pt",
+        texX = 'E_{T}^{miss} (no EE JEC)', texY = 'Number of Events / 20 GeV',
+        attribute = lambda event, sample: event.jecCorrMET_pt,
+        binning=[400/20,0,400],
+      addOverFlowBin='upper',
+    ))
+
+    plots.append(Plot(name = "jetCorrMET_pt",
+        texX = 'E_{T}^{miss} (no soft EE Jets)', texY = 'Number of Events / 20 GeV',
+        attribute = lambda event, sample: event.jetCorrMET_pt,
         binning=[400/20,0,400],
       addOverFlowBin='upper',
     ))
     
-    plots.append(Plot(name = "UpdatedMET_pt",
-        texX = 'E_{T}^{miss} (updated) (GeV)', texY = 'Number of Events / 20 GeV',
-        attribute = lambda event, sample: event.UpdatedMET_pt,
+    plots.append(Plot(name = "smearedMET_pt",
+        texX = 'smeared type-1 E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
+        attribute = lambda event, sample: event.smearedMET_pt,
         binning=[400/20,0,400],
       addOverFlowBin='upper',
     ))
     
+    plots.append(Plot(name = "smearedJecCorrMET_pt",
+        texX = 'E_{T}^{miss} (smeared, no EE JEC)', texY = 'Number of Events / 20 GeV',
+        attribute = lambda event, sample: event.smearedJecCorrMET_pt,
+        binning=[400/20,0,400],
+      addOverFlowBin='upper',
+    ))
+
+    plots.append(Plot(name = "smearedJetCorrMET_pt",
+        texX = 'E_{T}^{miss} (smeared, no soft EE Jets)', texY = 'Number of Events / 20 GeV',
+        attribute = lambda event, sample: event.smearedJetCorrMET_pt,
+        binning=[400/20,0,400],
+      addOverFlowBin='upper',
+    ))
+
+
     plots.append(Plot(
         texX = '#phi(E_{T}^{miss})', texY = 'Number of Events',
         attribute = TreeVariable.fromString( "MET_phi/F" ),
@@ -379,9 +437,9 @@ for index, mode in enumerate(allModes):
         binning=[10,-pi,pi],
     ))
     
-    plots.append(Plot(name = "UpdatedMET_phi",
+    plots.append(Plot(name = "corrForwardJECMET_phi",
         texX = '#phi(E_{T}^{miss} (updated)) (GeV)', texY = 'Number of Events',
-        attribute = lambda event, sample: event.UpdatedMET_phi,
+        attribute = lambda event, sample: event.corrForwardJECMET_phi,
         binning=[10,-pi,pi],
     ))  
     
