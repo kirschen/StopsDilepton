@@ -164,8 +164,9 @@ def getMETs( event, sample ):
     shift_MEx = np.random.normal(0,sigmaSmear) 
     shift_MEy = np.random.normal(0,sigmaSmear) 
     smearVector =  ROOT.TVector3()
-    smearVector.SetPtEtaPhi( sqrt( shift_MEx**2 + shift_MEy**2) )
+    smearVector.SetPtEtaPhi( sqrt( shift_MEx**2 + shift_MEy**2), 0, atan2( shift_MEy, shift_MEx) )
 
+    event.jecCorrMET_pt         = jecCorrMET.Pt()
     event.jetCorrMET_pt         = jetCorrMET.Pt()
     event.smearedMET_pt        =  (MET + smearVector).Pt() 
     event.smearedJecCorrMET_pt =  (jecCorrMET + smearVector).Pt() 
@@ -437,11 +438,11 @@ for index, mode in enumerate(allModes):
         binning=[10,-pi,pi],
     ))
     
-    plots.append(Plot(name = "corrForwardJECMET_phi",
-        texX = '#phi(E_{T}^{miss} (updated)) (GeV)', texY = 'Number of Events',
-        attribute = lambda event, sample: event.corrForwardJECMET_phi,
-        binning=[10,-pi,pi],
-    ))  
+#    plots.append(Plot(name = "corrForwardJECMET_phi",
+#        texX = '#phi(E_{T}^{miss} (updated)) (GeV)', texY = 'Number of Events',
+#        attribute = lambda event, sample: event.corrForwardJECMET_phi,
+#        binning=[10,-pi,pi],
+#    ))  
     
     plots.append(Plot(
         texX = 'M(ll) (GeV)', texY = 'Number of Events / 10 GeV',
