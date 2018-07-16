@@ -20,17 +20,17 @@ import os, time
 #Datestring = time.strftime("%Y-%m-%d-%H%M")
 #plotpath = plotpath_part1 + '/' + Datestring + '/'
 #NHLayer = 2
-#NUnits = 100
-#NEpochs = 100
+#units = 100
+#epochs = 100
 
 if not os.path.exists( plotpath ):
     os.makedirs( plotpath )
 
 #Initialize and build classifier
 model = Sequential()
-model.add( Dense(units= NUnits, activation='relu',  input_dim=X_train.shape[1]) ) 
+model.add( Dense(units= units, activation='relu',  input_dim=X_train.shape[1]) ) 
 for i in range(NHLayer):
-    model.add( Dense(units= NUnits, activation='relu' ) )
+    model.add( Dense(units= units, activation='relu' ) )
 model.add( Dense(units=1, activation='sigmoid') ) 
 
 # configuration
@@ -38,7 +38,7 @@ model.add( Dense(units=1, activation='sigmoid') )
 model.compile( loss='binary_crossentropy',  optimizer='rmsprop',                     metrics=['acc'])
 
 # training
-history = model.fit(X_train.values, y_train.values, epochs= NEpochs, batch_size=5120, validation_split=0.2 )
+history = model.fit(X_train.values, y_train.values, epochs= epochs, batch_size= batch_size, validation_split= validation_split)
 
 if not os.path.exists( plotpath + 'model' ):
     os.makedirs( plotpath + 'model' )
@@ -48,24 +48,28 @@ model.save(plotpath + 'model/' + 'keras.h5')
 history_dict = history.history
 
 loss_values = history_dict['loss']
-val_loss_values = history_dict['val_loss']
+if validation_split != 0:
+    val_loss_values = history_dict['val_loss']
 acc_values = history_dict['acc']
-val_acc_values = history_dict['val_acc']
+if validation_split != 0:
+    val_acc_values = history_dict['val_acc']
 epochslist = range(1,  len(loss_values)+1)
 
 plt.plot(epochslist, loss_values, 'bo', label='Training loss')
-plt.plot(epochslist, val_loss_values, 'b', label='Validation loss')
-plt.title('Training and validation loss')
-plt.xlabel('Epochs')
+if validation_split != 0:
+    plt.plot(epochslist, val_loss_values, 'b', label='Validation loss')
+plt.title('Training and validation loss (Valid. split = ' + str( validation_split ) + ')')
+plt.xlabel('Epochs  ( batch_size = ' + str( batch_size ) + ')')
 plt.ylabel('Loss')
 plt.legend()
 plt.savefig( plotpath + 'loss.png')
 plt.clf()
 
 plt.plot(epochslist, acc_values, 'bo', label='Training acc')
-plt.plot(epochslist, val_acc_values, 'b', label='Validation acc')
-plt.title('Training and validation acc')
-plt.xlabel('Epochs')
+if validation_split != 0:
+    plt.plot(epochslist, val_acc_values, 'b', label='Validation acc')
+plt.title('Training and validation acc (Valid. split = ' + str( validation_split ) + ')')
+plt.xlabel('Epochs ( batch_size = ' + str( batch_size ) + ')')
 plt.ylabel('Acc')
 plt.legend()
 plt.savefig( plotpath + 'acc.png')

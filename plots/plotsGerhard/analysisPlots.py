@@ -154,6 +154,10 @@ def getLeptonSelection( mode ):
   elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
 
+#def mva_weight_maker( mva_bin, base_weight ):
+#    def mva_weight( event, sample ):
+#        return base_weight(event, sample)*1. #keras....()
+#        weight_ = lambda event, sample: event.weight
 
 #
 # Loop over channels
@@ -270,6 +274,12 @@ for index, mode in enumerate(allModes):
     attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
     binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
   ))
+
+#  plots.append(Plot(name = "dl_mt2ll_MVA_02_04",
+#    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+#    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+#    binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
+#  ))
 
   plots.append(Plot(
     texX = 'number of jets', texY = 'Number of Events',

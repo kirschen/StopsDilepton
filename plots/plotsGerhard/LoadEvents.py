@@ -15,6 +15,7 @@ import os, time
 
 # Variables - use %load MVADefinition.py
 # datapath = 'h5_files/T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1_all/'
+# training_vars = ...
 
 # read .h5 files to create feature Matrix X and target vector y
 X = pd.read_hdf( datapath + 'data_X.h5', 'df')
