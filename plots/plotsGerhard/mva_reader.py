@@ -12,6 +12,7 @@ class MVAReader:
     def __init__(self):
         from defclassifier import training_vars, training_file
         self.training_file = training_file
+        self.training_vars = training_vars
         self.model = load_model( self.training_file )
 
     def eval( self, dict ):
@@ -38,6 +39,8 @@ class MVAReader:
 #mystring = mystring[:-2]
 
 # how to use it:
+
+best_classifer = MVAreader(...)
 
 if __name__=='__main__':
     datapath = 'h5_files/SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1_all/'

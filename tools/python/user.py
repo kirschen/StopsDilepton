@@ -55,8 +55,11 @@ if os.environ['USER'] in ['gungersback']:
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/g/gungersback/www/stopsDilepton/"
     # Analysis result files
-    analysis_results        = '/afs/hephy.at/data/gungersback01/StopsDilepton/results/80X_v35' #Path to analysis results
+    analysis_result   = '/afs/hephy.at/data/gungersback01/StopsDilepton/results/80X_v35' #Path to analysis results
     #dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
+
+    # directory to store the Stopsdilepton training data in H5 format
+    h5_training_data  = '/afs/hephy.at/work/g/gungersback/h5_training_data'
 
 if os.environ['USER'] in ['tomc']:
     # Where you store cmg output
