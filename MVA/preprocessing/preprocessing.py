@@ -8,7 +8,7 @@ one feature matrix X (columns defined by read_variables, in each row is an event
 one target vector y ( 0/1 tagged for Background/Signal event, in each row is an event)
 in SINGAL-BACKGROUND/SELECTIONSTRING_MODE(_small)/
 
-eg. python EventsToH5.py --selection njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1 --small
+eg. python preprocessing.py --selection njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1 --small
 '''
 
 # Standard imports and batch mode
@@ -19,8 +19,8 @@ import h5py
 
 #from math                                import sqrt, cos, sin, pi
 from RootTools.core.standard             import *
-from StopsDilepton.tools.user            import h5_training_data
 from StopsDilepton.tools.helpers         import deltaPhi
+from StopsDilepton.tools.user import     MVA_preprocessing_directory
 from StopsDilepton.tools.objectSelection import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 
@@ -34,6 +34,7 @@ argParser.add_argument('--signal',             action='store',      default="T8b
 argParser.add_argument('--mode',               action='store',      default="all",  nargs='?', choices = ['all', 'mumu', 'emu', 'ee'], help="dilepton mode")
 argParser.add_argument('--background',         action='store',      default="TTLep_pow",     nargs='?', help="background sample")
 argParser.add_argument('--small',              action='store_true',     help='Run only on a small subset of the data?', )
+argParser.add_argument('--version',            action='store',      default='v1')
 argParser.add_argument('--selection',          action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 args = argParser.parse_args()
 
@@ -58,13 +59,12 @@ from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed
 #
 
 if args.small:
-    store_dir = args.signal + '-' + args.background + '/' + args.selection + '_'  + args.mode + '_small' + '/'
-else:
-    store_dir = args.signal + '-' + args.background + '/' + args.selection + '_'  + args.mode + '/'
+    args.version += '_small'
 
-if not os.path.exists( os.path.join( h5_training_data, store_dir ) ):
-    os.makedirs( os.path.join( h5_training_data, store_dir ))
+output_dir = os.path.join( MVA_preprocessing_directory, args.version, args.selection, args.mode ) 
 
+if not os.path.exists( output_dir ):
+    os.makedirs( os.path.join( output_dir ) ) 
 
 # Read variables and sequences
 #
@@ -153,7 +153,7 @@ while r.run():
 df = pd.DataFrame(datadict)
 
 #save in Dataframe in .h5 file as feature matrix X and target vector y
-df.drop(['label'], axis=1).to_hdf( os.path.join( h5_training_data, store_dir, 'data_X.h5'), key='df', mode='w')
-df['label'].to_hdf(  os.path.join( h5_training_data, store_dir, 'data_y.h5'), key='df', mode='w')
+df.drop(['label'], axis=1).to_hdf( os.path.join( output_dir,  'data_X.h5'), key='df', mode='w')
+df['label'].to_hdf(  os.path.join( output_dir, 'data_y.h5'), key='df', mode='w')
 
-logger.info( "Written %s",  os.path.join( h5_training_data, store_dir, 'data_y.h5') ) 
+logger.info( "Written directory %s", output_dir )
