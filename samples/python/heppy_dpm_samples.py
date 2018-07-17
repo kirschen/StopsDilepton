@@ -186,9 +186,9 @@ SUSY_dpm_directories = [ def_daniel_0l ]
 from CMGTools.RootTools.samples.samples_13TeV_signals import samples as heppy_SUSY_samples
 SUSY_heppy_mapper = heppy_mapper( heppy_SUSY_samples, SUSY_dpm_directories, SUSY_cache_file)
 
-# Higgs Signal
-Higgs_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_1l_Higgs_v2.pkl'
-def_daniel_1l = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_32/'
-Higgs_dpm_directories = [ def_daniel_1l ]
-from CMGTools.StopsDilepton.Higgs_signals_RunIISummer16MiniAODv2 import samples as heppy_Higgs_samples
-Higgs_heppy_mapper = heppy_mapper( heppy_Higgs_samples, Higgs_dpm_directories, Higgs_cache_file)
+## Higgs Signal
+#Higgs_cache_file = '/afs/hephy.at/data/dspitzbart01/StopsDilepton/dpm_sample_caches/80X_1l_Higgs_v2.pkl'
+#def_daniel_1l = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/cmgTuples/80X_1l_32/'
+#Higgs_dpm_directories = [ def_daniel_1l ]
+#from CMGTools.StopsDilepton.Higgs_signals_RunIISummer16MiniAODv2 import samples as heppy_Higgs_samples
+#Higgs_heppy_mapper = heppy_mapper( heppy_Higgs_samples, Higgs_dpm_directories, Higgs_cache_file)
