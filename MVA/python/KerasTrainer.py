@@ -7,7 +7,8 @@ import time
 import ROOT
 
 # StopsDilepton
-from StopsDilepton.tools.user import     MVA_preprocessing_directory, MVA_model_directory, plot_directory
+from StopsDilepton.tools.user    import MVA_preprocessing_directory, MVA_model_directory, plot_directory
+from StopsDilepton.tools.helpers import deltaPhi
 
 # Keras, Pandas, numpy etc.
 import numpy as np
@@ -17,19 +18,19 @@ from   keras.models import Sequential
 from   keras.layers import Dense
 from   keras import optimizers
 
-def makeTGraph( x, y ):
-    if len(x)!=len(y):
-        raise RuntimeError( "Need same length! Got %i and %i"%(len(x), len(y) ) )
-    return ROOT.TGraph(len(x), array.array('d', x), array.array('d', y))
-
-def saveTGraph( x, y, pathstring= '/afs/hephy.at/user/g/gungersback/www/etc', filename='test.png'):
-    if len(x)!=len(y):
-        raise RuntimeError( "Need same length! Got %i and %i"%(len(x), len(y) ) )
-    g = makeTGraph( x, y )
-    c1 = ROOT.TCanvas()
-    g.Draw("AC*")
-    c1.Print(pathstring + '/' +  filename)
-    return g
+#def makeTGraph( x, y ):
+#    if len(x)!=len(y):
+#        raise RuntimeError( "Need same length! Got %i and %i"%(len(x), len(y) ) )
+#    return ROOT.TGraph(len(x), array.array('d', x), array.array('d', y))
+#
+#def saveTGraph( x, y, pathstring= '/afs/hephy.at/user/g/gungersback/www/etc', filename='test.png'):
+#    if len(x)!=len(y):
+#        raise RuntimeError( "Need same length! Got %i and %i"%(len(x), len(y) ) )
+#    g = makeTGraph( x, y )
+#    c1 = ROOT.TCanvas()
+#    g.Draw("AC*")
+#    c1.Print(pathstring + '/' +  filename)
+#    return g
 
 # Logging
 import logging
@@ -37,12 +38,12 @@ logger = logging.getLogger(__name__)
 
 class KerasTrainer:
 
-    def __init__( self, input_data_directory, training_variables):
+    def __init__( self, input_data_directory, training_variables, spectator_variables = None):
         # location of training data
         self.input_data_directory = input_data_directory
         # training variables
         self.training_variables = training_variables
-        # percentage ov events used for training
+        # fraction of events used for training
         self.train_fraction = 0.75
 
     def init_training_data( self ):
@@ -53,8 +54,9 @@ class KerasTrainer:
         self.y = pd.read_hdf( os.path.join( MVA_preprocessing_directory, self.input_data_directory,  'data_y.h5'), 'df')
 
         # create new Variables from Data
-        self.X['Jet_dphi'] = abs(self.X['Jet1_phi'] - self.X['Jet2_phi'])
-        self.X['lep_dphi'] = abs(self.X['l1_phi'] - self.X['l2_phi'])
+        # move to-> preprocessing
+        #self.X['Jet_dphi'] = abs(deltaPhi( self.X['Jet1_phi'], self.X['Jet2_phi']))
+        #self.X['lep_dphi'] = abs(deltaPhi( self.X['l1_phi'] - self.X['l2_phi']))
 
         #['Jet1_btagCSV', 'Jet1_eta', 'Jet1_phi', 'Jet1_pt',
         # 'Jet2_btagCSV', 'Jet2_eta', 'Jet2_phi', 'Jet2_pt',
@@ -77,7 +79,7 @@ class KerasTrainer:
 
         logger.info( 'Number of variables for training %i', len(self.training_variables) )
         logger.info( 'Number of signal / backround events: %i / %i', (self.y==1).sum(), (self.y==0).sum())
-        logger.info( 'Number of events and percentage of signal events in sample: %s // %5.2f\%',  self.y.shape[0], round( 100.* (self.y==1).sum() / self.y.shape[0] ,2 ))
+        logger.info( 'Number of events and percentage of signal events in sample: %s // %5.2f',  self.y.shape[0], round( 100.* (self.y==1).sum() / self.y.shape[0] ,2 ))
 
         # Normalize Data ( Using Standardscaler we would loose columns naming)
         X_mean, X_std = self.X.mean(), self.X.std()
@@ -90,7 +92,7 @@ class KerasTrainer:
         # X += X_mean
 
         # Splitting in training and test samples
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, train_size= int( self.train_fraction*self.y.shape[0] ), random_state=42)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, train_size= int( self.train_fraction*self.y.shape[0] ), random_state=42 )
 
         self.X_mt2ll = self.X_test['dl_mt2ll']
         self.X_test  = self.X_test.drop(['dl_mt2ll'], axis=1)
@@ -114,14 +116,9 @@ class KerasTrainer:
 
         self.timestamp = time.strftime("%Y-%m-%d-%H%M")
 
-        self.plot_directory = os.path.join( plot_directory, 'KerasTrainer', input_data_directory, self.timestamp) 
-
-        if not os.path.exists( self.plot_directory ):
-            os.makedirs( self.plot_directory )
-
         #Initialize and build classifier
         self.model = Sequential()
-        self.model.add( Dense(units= units, activation='relu',  input_dim=self.X_train.shape[1]) ) 
+        self.model.add( Dense(units= units, activation='relu', input_dim=self.X_train.shape[1]) ) 
         for i in range(NHLayer):
             self.model.add( Dense(units= units, activation='relu' ) )
         self.model.add( Dense(units=1, activation='sigmoid') ) 
@@ -133,16 +130,31 @@ class KerasTrainer:
         # training
         self.history = self.model.fit(self.X_train.values, self.y_train.values, epochs=epochs, batch_size=batch_size, validation_split=validation_split)
 
-        output_directory = os.path.join( MVA_model_directory, input_data_directory, self.timestamp)
+        # output directory (simplify?)
+        output_directory = os.path.join( MVA_model_directory, input_data_directory, self.timestamp) 
         if not os.path.exists( output_directory + 'model' ):
             os.makedirs( output_directory + 'model' )
         model.save(output_directory + 'model/' + 'keras.h5')
+
+
+    def validation( self ):
+        self.plot_directory = os.path.join( plot_directory, 'KerasTrainer', input_data_directory, self.timestamp) 
+
+        if not os.path.exists( self.plot_directory ):
+            os.makedirs( self.plot_directory )
 
         # for overtraining check
         self.history_dict = self.history.history
         self.loss_values  = self.history_dict['loss']
 
+
 if __name__ == '__main__':
+    import StopsDilepton.tools.logger as logger
+    logger  = logger.get_logger('INFO', logFile = None)
+
+    import RootTools.core.logger as logger_rt
+    logger_rt = logger_rt.get_logger('INFO', logFile = None )
+
 
     input_data_directory = 'v1_small/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
     from StopsDilepton.MVA.default_classifier import training_variables

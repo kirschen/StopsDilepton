@@ -16,6 +16,7 @@ import ROOT, os
 ROOT.gROOT.SetBatch(True)
 import pandas as pd
 import h5py
+import imp
 
 #from math                                import sqrt, cos, sin, pi
 from RootTools.core.standard             import *
@@ -47,14 +48,6 @@ logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 #
-# Make samples, will be searched for in the postProcessing directory
-#
-postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-
-#
 # Define Storage location for .h5 files
 #
 
@@ -79,13 +72,14 @@ def getLeptonSelection( mode ):
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
   elif mode=="all":  return "nGoodMuons+nGoodElectrons==2&&isOS&&( " + "(isEE||isMuMu)" + offZ + "|| isEMu)"
 
+samples = imp.load_source( "samples", os.path.expandvars( "$CMSSW_BASE/src/StopsDilepton/MVA/python/samples.py" ) )
 
-signal     = eval(args.signal)
+signal = getattr(samples, args.signal)
 signal.setSelectionString([getFilterCut(isData=False, badMuonFilters = "Summer16"), getLeptonSelection(args.mode)])
 signal.addSelectionString( cutInterpreter.cutString(args.selection) )
 signal.name           = "signal"
 
-background = eval(args.background)
+background = getattr(samples, args.background)
 background.setSelectionString([getFilterCut(isData=False, badMuonFilters = "Summer16"), getLeptonSelection(args.mode)])
 background.addSelectionString( cutInterpreter.cutString(args.selection) )
 background.name           = "background"
@@ -115,40 +109,23 @@ datadict = {}
 for i in ['label'] + dict_keys:
     datadict[i.split('/')[0]] = []
 
-r = signal.treeReader(variables = map( TreeVariable.fromString, read_variables) )
-#signal.chain.SetBranchStatus("*",1)
-r.start()
-while r.run():
-    datadict['label'].append(1)
-    tmpdict = { 'btagCSV' : [ x for x in r.event.JetGood_btagCSV],
-                'eta' : [ x for x in r.event.JetGood_eta],
-                'phi' : [ x for x in r.event.JetGood_phi],
-                'pt' : [ x for x in r.event.JetGood_pt] }
-    for key in datadict:
-        if key.startswith('Jet'):
-            number = int( key.replace('Jet','')[0] )
-            datadict[key].append( tmpdict[ key.replace('Jet','')[2:]][number-1] )
-        else:
-            if key !='label':
-                datadict[key].append( getattr(r.event, key) )
+for sample in [signal, background] :
+    r = sample.treeReader(variables = map( TreeVariable.fromString, read_variables) )
+    r.start()
+    while r.run():
+        datadict['label'].append(1)
+        tmpdict = { 'btagCSV' : [ x for x in r.event.JetGood_btagCSV],
+                    'eta' : [ x for x in r.event.JetGood_eta],
+                    'phi' : [ x for x in r.event.JetGood_phi],
+                    'pt' : [ x for x in r.event.JetGood_pt] }
+        for key in datadict:
+            if key.startswith('Jet'):
+                number = int( key.replace('Jet','')[0] )
+                datadict[key].append( tmpdict[ key.replace('Jet','')[2:]][number-1] )
+            else:
+                if key !='label':
+                    datadict[key].append( getattr(r.event, key) )
 
-r = background.treeReader(variables = map( TreeVariable.fromString, read_variables) )
-#background.chain.SetBranchStatus("*",1)
-r.start()
-while r.run():
-    datadict['label'].append(0)
-    tmpdict = { 'btagCSV' : [ x for x in r.event.JetGood_btagCSV],
-                'eta' : [ x for x in r.event.JetGood_eta],
-                'phi' : [ x for x in r.event.JetGood_phi],
-                'pt' : [ x for x in r.event.JetGood_pt] }
-    for key in datadict:
-        if key.startswith('Jet'):
-            number = int( key.replace('Jet','')[0] )
-            datadict[key].append( tmpdict[ key.replace('Jet','')[2:]][number-1] )
-        else:
-            if key !='label':
-                datadict[key].append( getattr(r.event, key) )
-   
 #convert dict to DataFrame
 df = pd.DataFrame(datadict)
 
