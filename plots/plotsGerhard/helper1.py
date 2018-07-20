@@ -83,7 +83,7 @@ histo.GetYaxis().SetTitle('events')
 for i in range(len(values)):
     histo.Fill(values[i])
 c2 = ROOT.TCanvas()
-histo.Scale(1000.) # norm must be set to total number of elements to get integral hist = 1
+histo.Scale(1/1000.) 
 histo.Draw() #or ('colz')                                                 
 c2.Print('/afs/hephy.at/user/g/gungersback/www/root_hist_normal.png')
 

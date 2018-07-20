@@ -62,9 +62,6 @@ if os.environ['USER'] in ['gungersback']:
     MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
     MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'
 
-    # directory to store the Stopsdilepton training data in H5 format
-    h5_training_data  = '/afs/hephy.at/work/g/gungersback/h5_training_data'
-
 if os.environ['USER'] in ['tomc']:
     # Where you store cmg output
     cmg_directory              = "/pnfs/iihe/cms/store/user/tomc/cmgTuples/80X_1l_24"

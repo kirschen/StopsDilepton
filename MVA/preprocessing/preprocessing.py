@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 '''
-EventsToH5.py reads Events using an Eventloop and saves them in pandas DataFrame format.
+preprocessing.py reads Events using an Eventloop and saves them in pandas DataFrame format.
 
 Loads Signal and Background Sample specified by arguments, applies selection string and saves Samples.
 Both samples are saved as 
 one feature matrix X (columns defined by read_variables, in each row is an event) and 
 one target vector y ( 0/1 tagged for Background/Signal event, in each row is an event)
-in SINGAL-BACKGROUND/SELECTIONSTRING_MODE(_small)/
 
-eg. python preprocessing.py --selection njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1 --small
+eg. python preprocessing.py --signal SMS_T8bbllnunu_XCha0p5_XSlep0p09 --selection njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1 --small
 '''
 
 # Standard imports and batch mode
 import ROOT, os
 ROOT.gROOT.SetBatch(True)
 import pandas as pd
-import h5py
+import numpy as np
 import imp
 
 #from math                                import sqrt, cos, sin, pi
@@ -54,7 +53,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 if args.small:
     args.version += '_small'
 
-output_dir = os.path.join( MVA_preprocessing_directory, args.version, args.selection, args.mode ) 
+output_dir = os.path.join( MVA_preprocessing_directory, args.signal + '-' + args.background, args.version, args.selection, args.mode ) 
 
 if not os.path.exists( output_dir ):
     os.makedirs( os.path.join( output_dir ) ) 
@@ -110,10 +109,14 @@ for i in ['label'] + dict_keys:
     datadict[i.split('/')[0]] = []
 
 for sample in [signal, background] :
+    if sample == signal:
+        tag = 1
+    else:
+        tag = 0
     r = sample.treeReader(variables = map( TreeVariable.fromString, read_variables) )
     r.start()
     while r.run():
-        datadict['label'].append(1)
+        datadict['label'].append( tag )
         tmpdict = { 'btagCSV' : [ x for x in r.event.JetGood_btagCSV],
                     'eta' : [ x for x in r.event.JetGood_eta],
                     'phi' : [ x for x in r.event.JetGood_phi],
@@ -126,8 +129,12 @@ for sample in [signal, background] :
                 if key !='label':
                     datadict[key].append( getattr(r.event, key) )
 
-#convert dict to DataFrame
+# convert dict to DataFrame
 df = pd.DataFrame(datadict)
+
+# calculate additional variables
+df['Jet_dphi'] = np.vectorize( deltaPhi )( df['Jet1_phi'], df['Jet2_phi'] )
+df['lep_dphi'] = np.vectorize( deltaPhi )( df['l1_phi'], df['l2_phi'] )
 
 #save in Dataframe in .h5 file as feature matrix X and target vector y
 df.drop(['label'], axis=1).to_hdf( os.path.join( output_dir,  'data_X.h5'), key='df', mode='w')
