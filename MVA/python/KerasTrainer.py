@@ -52,9 +52,9 @@ class KerasTrainer:
         # location of training data
         self.input_data_directory = input_data_directory
         # training variables
-        self.training_variables = training_variables
+        self.training_variables   = training_variables
         # spectator variables
-        self.spectator_variables = spectator_variables
+        self.spectator_variables  = spectator_variables
         # fraction of events used for training
         self.train_fraction = 0.75
 
@@ -65,25 +65,16 @@ class KerasTrainer:
         X_tmp = pd.read_hdf( os.path.join( MVA_preprocessing_directory, self.input_data_directory,  'data_X.h5'), 'df')
         y_tmp = pd.read_hdf( os.path.join( MVA_preprocessing_directory, self.input_data_directory,  'data_y.h5'), 'df')
 
-        #['Jet1_btagCSV', 'Jet1_eta', 'Jet1_phi', 'Jet1_pt',
-        # 'Jet2_btagCSV', 'Jet2_eta', 'Jet2_phi', 'Jet2_pt',
-        # 'Jet3_btagCSV', 'Jet3_eta', 'Jet3_phi', 'Jet3_pt',
-        # 'Jet4_btagCSV', 'Jet4_eta', 'Jet4_phi', 'Jet4_pt',
-        # 'dl_eta', 'dl_mass', 'dl_mt2bb', 'dl_mt2blbl', 'dl_mt2ll',
-        # 'ht',
-        # 'l1_eta', 'l1_phi', 'l2_eta', 'l2_phi',
-        # 'metSig', 'met_phi', 'met_pt',
-        # 'nBTag',
-        # 'nJetGood',
-        # 'weight',
-        # 'Jet_dphi'
-        # 'lep_dphi']
-
-        logger.info( 'Number of training / spectator variables %i / %i', len(self.training_variables), len(self.spectator_variables) )
+        ## Calculate additional variables
+        #for newvariable in self.training_variables_high:
+        #    arguments = [X_tmp[x] for x in newvariable.argumentlist ]
+        #    X_tmp[ newvariable.name ] =  map( newvariable.function , *arguments  )
+        
+        logger.info( 'Number of training variables: %i, spectator variables: %i', len(self.training_variables), len(self.spectator_variables) )
         logger.info( 'Number of signal / backround events: %i / %i', (y_tmp==1).sum(), (y_tmp==0).sum())
         logger.info( 'Number of events and percentage of signal events in sample: %s // %5.2f',  y_tmp.shape[0], round( 100.* (y_tmp==1).sum() / y_tmp.shape[0] ,2 ))
 
-        # Normalize Data - mean to 0, and std to 1 
+       # Normalize Data - mean to 0, and std to 1 
         self.X_mean, self.X_std = X_tmp.mean(), X_tmp.std()
 
         X_tmp -= self.X_mean
@@ -93,9 +84,9 @@ class KerasTrainer:
         X_tmp_train, X_tmp_test, self.y_train, self.y_test = train_test_split(X_tmp, y_tmp, train_size= int( self.train_fraction*y_tmp.shape[0] ), random_state=42 )
 
         # Separating Training and Spectator variables
-        self.X_train = X_tmp_train[ self.training_variables ] 
-        self.X_test  = X_tmp_test[ self.training_variables ]
-        self.X_spect = X_tmp_test[ self.spectator_variables ]
+        self.X_train = X_tmp_train[ self.training_variables  ] 
+        self.X_test  = X_tmp_test[  self.training_variables ]
+        self.X_spect = X_tmp_test[  self.spectator_variables ]
 
         # Inverse Transf of spectator variables
         self.X_spect *= self.X_std
@@ -134,13 +125,15 @@ class KerasTrainer:
         output_directory = os.path.join( MVA_model_directory, self.input_data_directory, self.timestamp) 
         if not os.path.exists( output_directory ):
             os.makedirs( output_directory )
-        self.model.save( os.path.join( output_directory, 'keras.h5'))
+        training_file = os.path.join( output_directory, 'keras.h5')
+        self.model.save( training_file )
+        logger.info( "Written training file %s", training_file )
 
         # also save means and std of samples
         self.X_mean.to_hdf( os.path.join( output_directory, 'X_mean.h5') , key='df', mode='w')
         self.X_std.to_hdf( os.path.join( output_directory, 'X_std.h5') , key='df', mode='w')
 
-    def validation( self ):
+    def validation( self, xbin=20, classifier_binning = [2, 0.8, 1] ):
         self.plot_directory = os.path.join( plot_directory, 'KerasTrainer', self.input_data_directory, self.timestamp) 
 
         if not os.path.exists( self.plot_directory ):
@@ -209,8 +202,7 @@ class KerasTrainer:
 
         X_tmp = pd.concat([ X_tmp, self.X_spect ], axis=1)
         ivar_can = []
-        for variable in (self.training_variables + self.spectator_variables):
-           xbin = 20
+        for variable in self.training_variables + self.spectator_variables:
            xmin = getattr( X_tmp, variable).min() 
            xmax = getattr( X_tmp, variable).max() 
            ivar_can.append( ROOT.TCanvas())
@@ -242,14 +234,11 @@ class KerasTrainer:
         # output classifier
         #        
 
-        xbin = 20
-        xmin = 0 
-        xmax = 1
         c1 = ROOT.TCanvas()
         leg1 = ROOT.TLegend(.73,.32,.97,.53)
         histos = []
         for attr in [ signalAttr , backgroundAttr ]: 
-            histos.append( ROOT.TH1F( attr.name , attr.name ,xbin,xmin,xmax) ) 
+            histos.append( ROOT.TH1F( attr.name , attr.name ,xbin, 0, 1) ) 
             histos[-1].SetLineColor( getattr(ROOT, attr.color) )
             histos[-1].SetLineStyle(3)
             histos[-1].SetLineWidth(2)
@@ -271,9 +260,9 @@ class KerasTrainer:
         # spectator shapes for classifier binning        
         #
 
-        ybin = 2 
-        ymin = 0.8
-        ymax = 1
+        ybin = classifier_binning[0] 
+        ymin = classifier_binning[1] 
+        ymax = classifier_binning[2] 
  
         deltay = (ymax-ymin)/ybin
         sh_can = []
@@ -308,9 +297,11 @@ if __name__ == '__main__':
     logger_rt = logger_rt.get_logger('INFO', logFile = None )
 
 
-    input_data_directory = 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1_small/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
-    from StopsDilepton.MVA.default_classifier import training_variables, spectator_variables
+    input_data_directory = 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1_small/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all'
+    #import StopsDilepton.MVA.default_classifier
+    from StopsDilepton.MVA.default_classifier import training_variables_list, spectator_variables_list
 
-    kerasTrainer = KerasTrainer( input_data_directory, training_variables, spectator_variables)
+    kerasTrainer = KerasTrainer( input_data_directory, training_variables_list, spectator_variables_list)
     kerasTrainer.init_training_data()
-    kerasTrainer.train( batch_size = 512 )
+    kerasTrainer.train( NHLayer = 2, units = 10, epochs = 10, batch_size = 512 )
+    #kerasTrainer.validation( xbin=20, classifier_binning = [2, 0.8, 1] )
