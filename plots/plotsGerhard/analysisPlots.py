@@ -35,7 +35,6 @@ argParser.add_argument('--selection',          action='store',      default='nje
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
-argParser.add_argument('--unblinded',          action='store_true', default=False)
 argParser.add_argument('--isr',                action='store_true', default=False)
 args = argParser.parse_args()
 
@@ -46,20 +45,6 @@ import StopsDilepton.tools.logger as logger
 import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
-
-#
-# Specify plot_directory
-#
-if args.small:                        args.plot_directory += "_small"
-if args.noData:                       args.plot_directory += "_noData"
-if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
-if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
-if args.signal == "DM":               args.plot_directory += "_DM"
-if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
-
-[MVAmin, MVAmax] = args.MVA
-MVA_string = str(MVAmin) + 'MVA' + str(MVAmax) 
-args.plot_directory = os.path.join( args.plot_directory, MVA_string)
 
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -170,10 +155,13 @@ from StopsDilepton.MVA.default_classifier import training_variables_list, get_di
 
 from StopsDilepton.MVA.KerasReader import KerasReader
 from StopsDilepton.tools.user import  MVA_model_directory
-keras_model_directory = 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
+#keras_model_directory = 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
+keras_model_directory = 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
 keras_model_date = ''
 if not keras_model_date: keras_model_date =  min(os.listdir( os.path.join( MVA_model_directory, keras_model_directory) ) )
-kerasReader = KerasReader( os.path.join(keras_model_directory, keras_model_date ) , training_variables_list)
+
+keras_model_directory_ = os.path.join(keras_model_directory, keras_model_date )
+kerasReader = KerasReader( keras_model_directory_  , training_variables_list)
 
 sequence = []
 
@@ -183,6 +171,20 @@ def MVA( event, sample ):
     event.pass_MVAthreshold = MVAmin < event.MVA <= MVAmax
 
 sequence.append(MVA)
+
+#
+# Specify plot_directory
+#
+if args.small:                        args.plot_directory += "_small"
+if args.noData:                       args.plot_directory += "_noData"
+if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
+if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
+if args.signal == "DM":               args.plot_directory += "_DM"
+if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
+
+[MVAmin, MVAmax] = args.MVA
+MVA_string = str(MVAmin) + 'MVA' + str(MVAmax) 
+args.plot_directory = os.path.join( args.plot_directory, 'KerasModel' + keras_model_date + '_' + MVA_string)
 
 #
 #
@@ -216,16 +218,7 @@ for index, mode in enumerate(allModes):
   lumi_scale                 = data_sample.lumi/1000
 
   if args.noData: lumi_scale = 36.4
-  #Blinding policies for DM and T2tt analyses #FIXME
-  if not args.unblinded:
-    if args.signal == "DM":
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
-      lumi_scale = lumi_scale/15
-    else:
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-      lumi_scale = 17.3
-  else:
-    weight_ = lambda event, sample: event.weight
+  weight_ = lambda event, sample: event.weight * event.pass_MVAthreshold
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
   mc             = [ Top_pow, TTZ, TTXNoZ] + multiBosonList + [DY_HT_LO]
@@ -269,8 +262,6 @@ for index, mode in enumerate(allModes):
         for sample in stack.samples:
             sample.reduceFiles( to = 1 )
 
-  weight_ = lambda event, sample: 1 if event.pass_MVAthreshold else 0 
- 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
   
