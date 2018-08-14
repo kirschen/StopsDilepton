@@ -44,6 +44,7 @@ genSearch = GenSearch()
 # central configuration
 targetLumi = 1000 #pb-1 Which lumi to normalize to
 
+
 def get_parser():
     ''' Argument parser for post-processing module.
     '''
@@ -190,7 +191,7 @@ def get_parser():
 
     argParser.add_argument('--checkTTGJetsOverlap',
         action='store_true',
-        default=True,
+        default=False,
         help="Keep TTGJetsEventType which can be used to clean TTG events from TTJets samples"
         )
 
@@ -231,10 +232,6 @@ isSingleLep =   options.skim.lower().startswith('singlelep')
 isTiny      =   options.skim.lower().count('tiny') 
 isSmall      =   options.skim.lower().count('small')
 isInclusive  = options.skim.lower().count('inclusive') 
-isVeryLoose =  'veryloose' in options.skim.lower()
-isVeryLoosePt10 =  'veryloosept10' in options.skim.lower()
-isLoose     =  'loose' in options.skim.lower() and not isVeryLoose
-isJet250    = 'jet250' in options.skim.lower()
 
 writeToDPM = options.targetDir == '/dpm/'
 
@@ -256,23 +253,38 @@ if isInclusive:
 #Samples: Load samples
 maxN = 2 if options.small else None
 
-from StopsDilepton.samples.nanoAOD import sampleMap
-
-
-from StopsDilepton.samples.helpers import fromHeppySample
-if options.susySignal:
-    samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
-    from StopsDilepton.samples.helpers import getT2ttSignalWeight
-    logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
-    # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
-    assert len(samples)==1, "Can only process one SUSY sample at a time."
-    samples[0].files = samples[0].files[:maxN]
-    logger.debug( "Fetching signal weights..." )
-    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi ) #Can use same x-sec/weight for T8bbllnunu as for T2tt
-    logger.debug("Done fetching signal weights.")
+#from nanoMET.samples.helpers import fromNanoSample
+if options.year == 2016:
+    from StopsDilepton.samples.nanoTuples_Summer16 import *
+elif options.year == 2017:
+    from StopsDilepton.samples.nanoTuples_Fall17 import *
 else:
-    samples = [ sampleMap[s] for s in options.samples ]
-    logger.debug("Reading from CMG tuples: %s", ",".join(",".join(s.files) for s in samples) )
+    raise NotImplementedError
+
+samples = []
+for selectedSamples in options.samples:
+    for sample in allSamples:
+        if selectedSamples == sample.name:
+            samples.append(sample)
+
+
+#from StopsDilepton.samples.nanoAOD import sampleMap
+#
+#
+#from StopsDilepton.samples.helpers import fromHeppySample
+#if options.susySignal:
+#    samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
+#    from StopsDilepton.samples.helpers import getT2ttSignalWeight
+#    logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
+#    # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
+#    assert len(samples)==1, "Can only process one SUSY sample at a time."
+#    samples[0].files = samples[0].files[:maxN]
+#    logger.debug( "Fetching signal weights..." )
+#    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi ) #Can use same x-sec/weight for T8bbllnunu as for T2tt
+#    logger.debug("Done fetching signal weights.")
+#else:
+#    samples = [ sampleMap[s] for s in options.samples ]
+#    logger.debug("Reading from CMG tuples: %s", ",".join(",".join(s.files) for s in samples) )
     
 if len(samples)==0:
     logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
@@ -288,10 +300,10 @@ if options.susySignal:
     skimConds.append( "Sum$(JetFailId_pt>30&&abs(JetFailId_eta)<2.5&&JetFailId_mcPt==0&&JetFailId_chHEF<0.1)+Sum$(Jet_pt>30&&abs(Jet_eta)<2.5&&Jet_mcPt==0&&Jet_chHEF<0.1)==0" )
 else:
     # Check that all samples which are concatenated have the same x-section.
-    assert isData or len(set([s.heppy.xSection for s in samples]))==1, "Not all samples have the same xSection: %s !"%(",".join([s.name for s in samples]))
+    assert isData or len(set([s.xSection for s in samples]))==1, "Not all samples have the same xSection: %s !"%(",".join([s.name for s in samples]))
     assert isMC or len(samples)==1, "Don't concatenate data samples"
 
-    xSection = samples[0].heppy.xSection if isMC else None
+    xSection = samples[0].xSection if isMC else None
 
 
 if isData and options.triggerSelection is not None:
@@ -347,22 +359,6 @@ if isMC:
     nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc=mcProfile)
     nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc=mcProfile)
     nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc=mcProfile)
-    nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc=mcProfile)
-    nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown",    mc=mcProfile)
-    nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp",      mc=mcProfile)
-    nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc=mcProfile)
-    nTrueInt12fb_puRWDown    = getReweightingFunction(data="PU_2016_12000_XSecDown",    mc=mcProfile)
-    nTrueInt12fb_puRWUp      = getReweightingFunction(data="PU_2016_12000_XSecUp",      mc=mcProfile)
-    nTrueInt_puRW            = getReweightingFunction(data="PU_2016_5300_XSecCentral",  mc=mcProfile)
-    nTrueInt_puRWDown        = getReweightingFunction(data="PU_2016_5300_XSecDown",     mc=mcProfile)
-    nTrueInt_puRWUp          = getReweightingFunction(data="PU_2016_5300_XSecUp",       mc=mcProfile)
-    ## 2016 NVTX reweighting
-    #from StopsDilepton.tools.puReweighting import getNVTXReweightingFunction
-    #nvtx_reweight_central = getNVTXReweightingFunction(key = 'rw', filename = "dilepton_allZ_isOS_5300pb.pkl")
-    #nvtx_reweight_up      = getNVTXReweightingFunction(key = 'up', filename = "dilepton_allZ_isOS_5300pb.pkl")
-    #nvtx_reweight_down    = getNVTXReweightingFunction(key = 'down', filename = "dilepton_allZ_isOS_5300pb.pkl")
-    #nvtx_reweight_vup      = getNVTXReweightingFunction(key = 'vup', filename = "dilepton_allZ_isOS_5300pb.pkl")
-    #nvtx_reweight_vdown    = getNVTXReweightingFunction(key = 'vdown', filename = "dilepton_allZ_isOS_5300pb.pkl")
         
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
@@ -454,43 +450,21 @@ branchKeepStrings_DATAMC = [\
 
 #branches to be kept for MC samples only
 branchKeepStrings_MC = [\
-    "nTrueInt", "genWeight", "xsec", "met_gen*", "lheHTIncoming",
-    "ngenPartAll","genPartAll_*","ngenLep","genLep_*"
+    "Generator_*", "GenPart_*", "nGenPart", "genWeight",
 ]
 
 #branches to be kept for data only
 branchKeepStrings_DATA = [ ]
 
-if options.susySignal or options.TTDM:
-    branchKeepStrings_MC += ["nIsr"]
-if options.keepLHEWeights or options.susySignal or options.TTDM:
-    branchKeepStrings_MC+=["nLHEweight", "LHEweight_id", "LHEweight_wgt", "LHEweight_original"]
-
-if isSingleLep:
-    branchKeepStrings_DATAMC += ['HLT_*']
-
-if options.susySignal: 
-    #branchKeepStrings_MC += ['GenSusyMStop', 'GenSusyMNeutralino'] #FIXME
-    branchKeepStrings_MC += ['ngenPartAll', 'genPartAll_*'] #FIXME
-
 # Jet variables to be read from chain
-jetCorrInfo = ['corr/F', 'corr_JECUp/F', 'corr_JECDown/F'] if addSystematicVariations else []
-if isMC:
-    if isTiny or isSmall:
-        jetMCInfo = ['mcPt/F', 'hadronFlavour/I','mcMatchId/I']
-    else:
-        jetMCInfo = ['mcMatchFlav/I', 'partonId/I', 'partonMotherId/I', 'mcPt/F', 'mcFlavour/I', 'hadronFlavour/I', 'mcMatchId/I']
-        if not (options.susySignal):
-            jetMCInfo.append('partonFlavour/I')
-else:
-    jetMCInfo = []
+jetCorrInfo = []
+jetMCInfo = []
 
 if not (isTiny or isSmall):
     branchKeepStrings_DATAMC+=[
         "nPhoton", "Photon_hoe", "Photon_r9", "Photon_sieie", "Photon_pfRelIso03_chg",
         "Photon_pt", "Photon_eta", "Photon_phi", "Photon_mass",]
     branchKeepStrings_DATAMC+= ["Photon_cutBased"] if (not options.year == 2017) else ["Photon_cutBasedBitmap"]
-    if isMC: branchKeepStrings_DATAMC+=[ "gamma_mcMatchId", "gamma_mcPt", "gamma_genIso04", "gamma_genIso03", "gamma_drMinParton"]
 
 if sample.isData:
     lumiScaleFactor=None
@@ -512,7 +486,7 @@ else:
 
 jetVars = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F'] + jetCorrInfo + jetMCInfo
 jetVarNames = [x.split('/')[0] for x in jetVars]
-genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'index/I', 'lepGoodMatchIndex/I', 'matchesPromptGoodLepton/I', 'n_t/I','n_W/I', 'n_B/I', 'n_D/I', 'n_tau/I']
+genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
 lepVars     = ['pt/F','eta/F','phi/F','pdgId/I','cutBased/I','miniPFRelIso_all/F','pfRelIso03_all/F','sip3d/F','lostHits/b','convVeto/O','dxy/F','dz/F','charge/I','deltaEtaSC/F','mediumId/O']
 lepVarNames = [x.split('/')[0] for x in lepVars]
@@ -523,14 +497,11 @@ read_variables += [ TreeVariable.fromString('nPhoton/I'),
 
 new_variables = [ 'weight/F']
 if isMC:
-    read_variables+= [TreeVariable.fromString('nTrueInt/F'), VectorTreeVariable.fromString('LepGood[mcMatchId/I, mcMatchAny/I]')]
+    #read_variables += [ TreeVariable.fromString('nTrueInt/F') ]
     # reading gen particles for top pt reweighting
-    read_variables.append( TreeVariable.fromString('ngenPartAll/I') )
-    read_variables.append( VectorTreeVariable.fromString('genPartAll[pt/F,eta/F,phi/F,mass/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
-    #read_variables.append( VectorTreeVariable.fromString('GenPart[pt/F,eta/F,phi/F,mass/F,pdgId/I,status/I,charge/I,motherId/I,grandmotherId/I,nMothers/I,motherIndex1/I,motherIndex2/I,nDaughters/I,daughterIndex1/I,daughterIndex2/I,isPromptHard/I]', nMax=200 ))
+    read_variables.append( TreeVariable.fromString('nGenPart/I') )
+    read_variables.append( VectorTreeVariable.fromString('GenPart[pt/F,phi/F,eta/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( TreeVariable.fromString('genWeight/F') )
-    read_variables.append( TreeVariable.fromString('nIsr/I') )
-    read_variables.append( VectorTreeVariable.fromString('gamma[mcPt/F]') )
 
     new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F','reweightPU27fb/F','reweightPU27fbUp/F','reweightPU27fbDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F'])
     if not options.skipGenLepMatching:
@@ -560,14 +531,12 @@ if isSingleLep:
 if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I' ] )
-    if isMC: new_variables.extend(['l1_mcMatchId/I', 'l1_mcMatchAny/I'])
     # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     new_variables.extend( ['mlmZ_mass/F'] )
     new_variables.extend( ['mt_photonEstimated/F'])
     if isMC: new_variables.extend(['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F'])
 if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
-    if isMC: new_variables.extend(['l2_mcMatchId/I', 'l2_mcMatchAny/I'])
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
@@ -589,10 +558,6 @@ if options.checkTTGJetsOverlap:
     new_variables.extend( ['TTGJetsEventType/I'] )
 
 if addSystematicVariations:
-    read_variables += map(TreeVariable.fromString, [\
-    "met_JetEnUp_Pt/F", "met_JetEnUp_Phi/F", "met_JetEnDown_Pt/F", "met_JetEnDown_Phi/F", "met_JetResUp_Pt/F", "met_JetResUp_Phi/F", "met_JetResDown_Pt/F", "met_JetResDown_Phi/F", 
-    "met_UnclusteredEnUp_Pt/F", "met_UnclusteredEnUp_Phi/F", "met_UnclusteredEnDown_Pt/F", "met_UnclusteredEnDown_Phi/F", 
-    ] )
 
     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
         if 'Unclustered' not in var: new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
@@ -716,22 +681,12 @@ def filler( event ):
         event.jsonPassed_ = event.jsonPassed
 
     if isMC:
-        event.reweightPU     = nTrueInt_puRW       ( r.nTrueInt ) 
-        event.reweightPUDown = nTrueInt_puRWDown   ( r.nTrueInt ) 
-        event.reweightPUUp   = nTrueInt_puRWUp     ( r.nTrueInt ) 
-        event.reweightPU12fb     = nTrueInt12fb_puRW       ( r.nTrueInt ) 
-        event.reweightPU12fbDown = nTrueInt12fb_puRWDown   ( r.nTrueInt ) 
-        event.reweightPU12fbUp   = nTrueInt12fb_puRWUp     ( r.nTrueInt ) 
-        event.reweightPU27fb     = nTrueInt27fb_puRW       ( r.nTrueInt )
-        event.reweightPU27fbDown = nTrueInt27fb_puRWDown   ( r.nTrueInt )
-        event.reweightPU27fbUp   = nTrueInt27fb_puRWUp     ( r.nTrueInt )
-        event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.nTrueInt )
-        event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.nTrueInt )
-        event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.nTrueInt )
+        event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.PV_npvsGood ) # is this correct?
+        event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.PV_npvsGood )
+        event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.PV_npvsGood )
 
     # top pt reweighting
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
-    if isMC: event.reweight_nISR = isr.getWeight(r) if isTT else 1.
 
     # jet/met related quantities, also load the leptons already
     if options.keepAllJets:
@@ -749,8 +704,8 @@ def filler( event ):
     allJets      = getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=jetAbsEtaCut)
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)
     soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
-    bJets        = filter(lambda j:isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4    , jets)
-    nonBJets     = filter(lambda j:not ( isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4 ), jets)
+    bJets        = filter(lambda j:isBJet(j, tagger="CSVv2", year=options.year) and abs(j['eta'])<=2.4    , jets)
+    nonBJets     = filter(lambda j:not ( isBJet(j, tagger="CSVv2", year=options.year) and abs(j['eta'])<=2.4 ), jets)
 
     # using miniRelIso 0.2 as baseline 
     ele_selector = eleSelector( "tight", year = options.year )
@@ -855,9 +810,6 @@ def filler( event ):
             event.l1_phi    = leptons[0]['phi']
             event.l1_pdgId  = leptons[0]['pdgId']
             event.l1_index  = leptons[0]['index']
-            if isMC:
-              event.l1_mcMatchId   = leptons[0]['mcMatchId']
-              event.l1_mcMatchAny  = leptons[0]['mcMatchAny']
             event.l1_miniRelIso = leptons[0]['miniPFRelIso_all']
             event.l1_relIso03 = leptons[0]['pfRelIso03_all']
             event.l1_dxy = leptons[0]['dxy']
@@ -891,7 +843,7 @@ def filler( event ):
             event.reweightLeptonTrackingSF   = reduce(mul, [leptonTrackingSF.getSF( \
                 pdgId = l['pdgId'],
                 pt  =   l['pt'], 
-                eta =   (l['etaSc'] if abs(l['pdgId'])==11 else l['eta'])
+                eta =   ((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])
                 )[0]  for l in leptonsForSF], 1)
 
     if isTriLep or isDiLep:
@@ -902,9 +854,6 @@ def filler( event ):
             event.l2_phi    = leptons[1]['phi']
             event.l2_pdgId  = leptons[1]['pdgId']
             event.l2_index  = leptons[1]['index']
-            if isMC:
-              event.l2_mcMatchId   = leptons[1]['mcMatchId']
-              event.l2_mcMatchAny  = leptons[1]['mcMatchAny']
             event.l2_miniRelIso = leptons[1]['miniPFRelIso_all']
             event.l2_relIso03 = leptons[1]['pfRelIso03_all']
             event.l2_dxy = leptons[1]['dxy']

@@ -66,7 +66,6 @@ sampleMap['DoubleEG_Run2017F_31Mar2018']  = Sample.fromFiles("DoubleEG_Run2017F_
 
 baseDir = "/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/nanoAOD/2018_v3/"
 
-<<<<<<< HEAD
 sampleMap['DoubleMuon_Run2018A_PromptReco_v1']  = Sample.fromDPMDirectory("DoubleMuon_Run2018A_PromptReco_v1",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v1_2018_v3/180607_150517/0000", forceProxy=True)
 sampleMap['DoubleMuon_Run2018A_PromptReco_v2']  = Sample.fromDPMDirectory("DoubleMuon_Run2018A_PromptReco_v2",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v2_2018_v3/180607_150537/0000", forceProxy=True)
 sampleMap['DoubleMuon_Run2018A_PromptReco_v3']  = Sample.fromDPMDirectory("DoubleMuon_Run2018A_PromptReco_v3",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v3_2018_v3/180607_150559/0000", forceProxy=True)

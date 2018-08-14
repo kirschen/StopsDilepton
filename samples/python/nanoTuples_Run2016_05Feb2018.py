@@ -1,62 +1,85 @@
 import copy, os, sys
-from RootTools.core.Sample import Sample 
+from RootTools.core.Sample import Sample
 import ROOT
 
-# Logging
-import logging
-logger = logging.getLogger(__name__)
 
-# Data directory
-try:    data_directory = sys.modules['__main__'].data_directory
-except: from StopsDilepton.tools.user import data_directory
+## these should go somewhere else
+dbFile = '/afs/hephy.at/data/dspitzbart01/nanoAOD/DB_Run2016.sql'
 
-# Take post processing directory if defined in main module
-try:    postProcessing_directory = sys.modules['__main__'].postProcessing_directory
-except: postProcessing_directory = '2016_nano_v1/dilep'
+# specify a local directory if you want to create (and afterwards automatically use) a local copy of the sample, otherwise use the grid.
 
-logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
+## DoubleMuon
+DoubleMuon_Run2016B_05Feb2018_ver1  = Sample.nanoAODfromDAS('DoubleMuon_Run2016B_05Feb2018_ver1',   '/DoubleMuon/Run2016B-05Feb2018_ver1-v1/NANOAOD', dbFile=dbFile)
+DoubleMuon_Run2016B_05Feb2018_ver2  = Sample.nanoAODfromDAS('DoubleMuon_Run2016B_05Feb2018_ver2',   '/DoubleMuon/Run2016B-05Feb2018_ver2-v1/NANOAOD', dbFile=dbFile)
+DoubleMuon_Run2016C_05Feb2018       = Sample.nanoAODfromDAS('DoubleMuon_Run2016C_05Feb2018',        '/DoubleMuon/Run2016C-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+DoubleMuon_Run2016D_05Feb2018       = Sample.nanoAODfromDAS('DoubleMuon_Run2016D_05Feb2018',        '/DoubleMuon/Run2016D-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+DoubleMuon_Run2016E_05Feb2018       = Sample.nanoAODfromDAS('DoubleMuon_Run2016E_05Feb2018',        '/DoubleMuon/Run2016E-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+DoubleMuon_Run2016F_05Feb2018       = Sample.nanoAODfromDAS('DoubleMuon_Run2016F_05Feb2018',        '/DoubleMuon/Run2016F-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+DoubleMuon_Run2016G_05Feb2018       = Sample.nanoAODfromDAS('DoubleMuon_Run2016G_05Feb2018',        '/DoubleMuon/Run2016G-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+DoubleMuon_Run2016H_05Feb2018_ver2  = Sample.nanoAODfromDAS('DoubleMuon_Run2016H_05Feb2018_ver2',   '/DoubleMuon/Run2016H-05Feb2018_ver2-v1/NANOAOD', dbFile=dbFile)
+DoubleMuon_Run2016H_05Feb2018_ver3  = Sample.nanoAODfromDAS('DoubleMuon_Run2016H_05Feb2018_ver3',   '/DoubleMuon/Run2016H-05Feb2018_ver3-v1/NANOAOD', dbFile=dbFile)
 
-dirs = {}
-for (run, version) in [('B','_ver2'),('C',''),('D',''),('E',''),('F',''),('G',''),('H','_ver2'),('H','_ver3')]: # no event that passes json in B_ver1
-    runTag = 'Run2016' + run + '_05Feb2018' + version
-    dirs["DoubleEG_Run2016"         + run + version ] = ["DoubleEG_"          + runTag ]
-    dirs["DoubleMuon_Run2016"       + run + version ] = ["DoubleMuon_"        + runTag ]
-    #dirs["SingleElectron_Run2016"   + run + version ] = ["SingleElectron_"    + runTag ]
-    #dirs["SingleMuon_Run2016"       + run + version ] = ["SingleMuon_"        + runTag ]
-    dirs["MuonEG_Run2016"           + run + version ] = ["MuonEG_"            + runTag ]
+DoubleMuon_Run2016 = [\
+    DoubleMuon_Run2016B_05Feb2018_ver1,
+    DoubleMuon_Run2016B_05Feb2018_ver2,
+    DoubleMuon_Run2016C_05Feb2018,
+    DoubleMuon_Run2016D_05Feb2018,
+    DoubleMuon_Run2016E_05Feb2018,
+    DoubleMuon_Run2016F_05Feb2018,
+    DoubleMuon_Run2016G_05Feb2018,
+    DoubleMuon_Run2016H_05Feb2018_ver2,
+    DoubleMuon_Run2016H_05Feb2018_ver3,
+    ]
 
-def merge(pd, totalRunName, listOfRuns):
-    dirs[pd + '_' + totalRunName] = []
-    for run in listOfRuns: dirs[pd + '_' + totalRunName].extend(dirs[pd + '_' + run])
+## MuonEG
+MuonEG_Run2016B_05Feb2018_ver1  = Sample.nanoAODfromDAS('MuonEG_Run2016B_05Feb2018_ver1',   '/MuonEG/Run2016B-05Feb2018_ver1-v1/NANOAOD', dbFile=dbFile)
+MuonEG_Run2016B_05Feb2018_ver2  = Sample.nanoAODfromDAS('MuonEG_Run2016B_05Feb2018_ver2',   '/MuonEG/Run2016B-05Feb2018_ver2-v1/NANOAOD', dbFile=dbFile)
+MuonEG_Run2016C_05Feb2018       = Sample.nanoAODfromDAS('MuonEG_Run2016C_05Feb2018',        '/MuonEG/Run2016C-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+MuonEG_Run2016D_05Feb2018       = Sample.nanoAODfromDAS('MuonEG_Run2016D_05Feb2018',        '/MuonEG/Run2016D-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+MuonEG_Run2016E_05Feb2018       = Sample.nanoAODfromDAS('MuonEG_Run2016E_05Feb2018',        '/MuonEG/Run2016E-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+MuonEG_Run2016F_05Feb2018       = Sample.nanoAODfromDAS('MuonEG_Run2016F_05Feb2018',        '/MuonEG/Run2016F-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+MuonEG_Run2016G_05Feb2018       = Sample.nanoAODfromDAS('MuonEG_Run2016G_05Feb2018',        '/MuonEG/Run2016G-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+MuonEG_Run2016H_05Feb2018_ver2  = Sample.nanoAODfromDAS('MuonEG_Run2016H_05Feb2018_ver2',   '/MuonEG/Run2016H-05Feb2018_ver2-v1/NANOAOD', dbFile=dbFile)
+MuonEG_Run2016H_05Feb2018_ver3  = Sample.nanoAODfromDAS('MuonEG_Run2016H_05Feb2018_ver3',   '/MuonEG/Run2016H-05Feb2018_ver3-v1/NANOAOD', dbFile=dbFile)
 
-for pd in ['MuonEG', 'DoubleMuon', 'DoubleEG']:
-    merge(pd, 'Run2016BCD',    ['Run2016B_ver2', 'Run2016C', 'Run2016D'])
-    merge(pd, 'Run2016BCDEFG', ['Run2016BCD', 'Run2016E', 'Run2016F', 'Run2016G'])
-    merge(pd, 'Run2016',       ['Run2016BCDEFG', 'Run2016H_ver2', 'Run2016H_ver3'])
+MuonEG_Run2016 = [\
+    MuonEG_Run2016B_05Feb2018_ver1,
+    MuonEG_Run2016B_05Feb2018_ver2,
+    MuonEG_Run2016C_05Feb2018,
+    MuonEG_Run2016D_05Feb2018,
+    MuonEG_Run2016E_05Feb2018,
+    MuonEG_Run2016F_05Feb2018,
+    MuonEG_Run2016G_05Feb2018,
+    MuonEG_Run2016H_05Feb2018_ver2,
+    MuonEG_Run2016H_05Feb2018_ver3,
+    ]
 
-for key in dirs:
-    dirs[key] = [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]]
+## DoubleEG
+DoubleEG_Run2016B_05Feb2018_ver1    = Sample.nanoAODfromDAS('DoubleEG_Run2016B_05Feb2018_ver1', '/DoubleEG/Run2016B-05Feb2018_ver1-v1/NANOAOD', dbFile=dbFile)
+DoubleEG_Run2016B_05Feb2018_ver2    = Sample.nanoAODfromDAS('DoubleEG_Run2016B_05Feb2018_ver2', '/DoubleEG/Run2016B-05Feb2018_ver2-v1/NANOAOD', dbFile=dbFile)
+DoubleEG_Run2016C_05Feb2018         = Sample.nanoAODfromDAS('DoubleEG_Run2016C_05Feb2018',      '/DoubleEG/Run2016C-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+DoubleEG_Run2016D_05Feb2018         = Sample.nanoAODfromDAS('DoubleEG_Run2016D_05Feb2018',      '/DoubleEG/Run2016D-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+DoubleEG_Run2016E_05Feb2018         = Sample.nanoAODfromDAS('DoubleEG_Run2016E_05Feb2018',      '/DoubleEG/Run2016E-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+DoubleEG_Run2016F_05Feb2018         = Sample.nanoAODfromDAS('DoubleEG_Run2016F_05Feb2018',      '/DoubleEG/Run2016F-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+DoubleEG_Run2016G_05Feb2018         = Sample.nanoAODfromDAS('DoubleEG_Run2016G_05Feb2018',      '/DoubleEG/Run2016G-05Feb2018-v1/NANOAOD', dbFile=dbFile)
+DoubleEG_Run2016H_05Feb2018_ver2    = Sample.nanoAODfromDAS('DoubleEG_Run2016H_05Feb2018_ver2', '/DoubleEG/Run2016H-05Feb2018_ver2-v1/NANOAOD', dbFile=dbFile)
+DoubleEG_Run2016H_05Feb2018_ver3    = Sample.nanoAODfromDAS('DoubleEG_Run2016H_05Feb2018_ver3', '/DoubleEG/Run2016H-05Feb2018_ver3-v1/NANOAOD', dbFile=dbFile)
 
+DoubleEG_Run2016 = [\
+    DoubleEG_Run2016B_05Feb2018_ver1,
+    DoubleEG_Run2016B_05Feb2018_ver2,
+    DoubleEG_Run2016C_05Feb2018,
+    DoubleEG_Run2016D_05Feb2018,
+    DoubleEG_Run2016E_05Feb2018,
+    DoubleEG_Run2016F_05Feb2018,
+    DoubleEG_Run2016G_05Feb2018,
+    DoubleEG_Run2016H_05Feb2018_ver2,
+    DoubleEG_Run2016H_05Feb2018_ver3,
+    ]
+    
 
-def getSample(pd, runName, lumi):
-    sample      = Sample.fromDirectory(name=(pd + '_' + runName), treeName="Events", texName=(pd + ' (' + runName + ')'), directory=dirs[pd + '_' + runName])
-    sample.lumi = lumi
-    return sample
+allSamples = DoubleMuon_Run2016 + MuonEG_Run2016 + DoubleEG_Run2016
 
-DoubleEG_Run2016                = getSample('DoubleEG',         'Run2016',       (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000)
-DoubleMuon_Run2016              = getSample('DoubleMuon',       'Run2016',       (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000)
-#SingleElectron_Run2016          = getSample('SingleElectron',   'Run2016',       (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000)
-#SingleMuon_Run2016              = getSample('SingleMuon',       'Run2016',       (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000)
-MuonEG_Run2016                  = getSample('MuonEG',           'Run2016',       (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000)
-
-allSamples_Data25ns = []
-allSamples_Data25ns += [MuonEG_Run2016, DoubleEG_Run2016, DoubleMuon_Run2016]
-
-Run2016 = Sample.combine("Run2016", [MuonEG_Run2016, DoubleEG_Run2016, DoubleMuon_Run2016], texName = "Data")
-Run2016.lumi = (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000
-
-for s in allSamples_Data25ns:
-  s.color   = ROOT.kBlack
-  s.isData  = True
-
+for s in allSamples:
+    s.isData = True
 

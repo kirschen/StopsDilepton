@@ -27,7 +27,7 @@ def merge(pd, totalRunName, listOfRuns):
     dirs[pd + '_' + totalRunName] = []
     for run in listOfRuns: dirs[pd + '_' + totalRunName].extend(dirs[pd + '_' + run])
 
-for pd in ['MuonEG', 'DoubleMuon', 'EGamma']:
+for pd in ['DoubleMuon']:#['MuonEG', 'DoubleMuon', 'EGamma']:
     merge(pd, 'Run2018',    ['Run2018A_v1', 'Run2018A_v2', 'Run2018A_v3', 'Run2018B_v1', 'Run2018B_v2', 'Run2018C_v1'])
 
 for key in dirs:
@@ -39,14 +39,16 @@ def getSample(pd, runName, lumi):
     sample.lumi = lumi
     return sample
 
-EGamma_Run2018                = getSample('EGamma',         'Run2018',           (11.8)*1000)
+#EGamma_Run2018                = getSample('EGamma',         'Run2018',           (11.8)*1000)
 DoubleMuon_Run2018              = getSample('DoubleMuon',       'Run2018',       (11.8)*1000)
-MuonEG_Run2018                  = getSample('MuonEG',           'Run2018',       (11.8)*1000)
+#MuonEG_Run2018                  = getSample('MuonEG',           'Run2018',       (11.8)*1000)
 
 allSamples_Data25ns = []
-allSamples_Data25ns += [MuonEG_Run2018, EGamma_Run2018, DoubleMuon_Run2018]
+#allSamples_Data25ns += [MuonEG_Run2018, EGamma_Run2018, DoubleMuon_Run2018]
+allSamples_Data25ns += [DoubleMuon_Run2018]
 
-Run2018 = Sample.combine("Run2018", [MuonEG_Run2018, EGamma_Run2018, DoubleMuon_Run2018], texName = "Data")
+#Run2018 = Sample.combine("Run2018", [MuonEG_Run2018, EGamma_Run2018, DoubleMuon_Run2018], texName = "Data")
+Run2018 = Sample.combine("Run2018", [DoubleMuon_Run2018], texName = "Data")
 Run2018.lumi = (11.8)*1000
 
 for s in allSamples_Data25ns:

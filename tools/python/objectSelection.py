@@ -39,9 +39,9 @@ def getGenLeps(c):
 def getGenParts(c):
     return [getObjDict(c, 'GenPart_', ['eta','pt','phi','charge', 'pdgId', 'motherId', 'grandmotherId'], i) for i in range(int(getVarValue(c, 'nGenPart')))]
 
-genVars = ['eta','pt','phi','mass','charge', 'status', 'pdgId', 'motherId', 'grandmotherId','nDaughters','daughterIndex1','daughterIndex2','nMothers','motherIndex1','motherIndex2','isPromptHard'] 
+genVars = ['eta','pt','phi','mass','charge', 'status', 'pdgId', 'genPartIdxMother', 'statusFlags'] 
 def getGenPartsAll(c):
-    return [getObjDict(c, 'genPartAll_', genVars, i) for i in range(int(getVarValue(c, 'ngenPartAll')))]
+    return [getObjDict(c, 'GenPart_', genVars, i) for i in range(int(getVarValue(c, 'nGenPart')))]
 
 def alwaysTrue(*args, **kwargs):
   return True
@@ -164,7 +164,7 @@ def getGoodPhotons(c, ptCut=50, idLevel="loose", isData=True, collVars=None, yea
     collVars = ['eta','pt','phi','mass','cutBased'] if (not year == 2017) else ['eta','pt','phi','mass','cutBasedBitmap']
     return [p for p in getPhotons(c, collVars) if p[idVar] >= idCutBased[idLevel] and p['pt'] > ptCut ]
 
-def getFilterCut(isData=False, isFastSim = False, year = 2016):
+def getFilterCut(isData=False, isFastSim = False, year = 2016, ignoreJSON=False):
     if isFastSim:
         filterCut            = "Flag_goodVertices"
     else:
@@ -177,5 +177,8 @@ def getFilterCut(isData=False, isFastSim = False, year = 2016):
             filterCut            = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_EcalDeadCellTriggerPrimitiveFilter"
             filterCut            += "&&Flag_METFilters"#"&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016" #maybe Flag_METFilters instead?
 
-    if isData: filterCut += "&&weight>0&&jsonPassed>0" ## This is very important for samples based on nanoAOD!!
+    if isData: filterCut += "&&weight>0"
+        #if not ignoreJSON: filterCut += "&&jsonPassed>0" ## This is very important for samples based on nanoAOD!!
+        #else:
+        #    logger.info("Ignoring json file. Very dangerous!!")
     return filterCut

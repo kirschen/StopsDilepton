@@ -26,7 +26,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton_dataVsData_v1')
+argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton_dataVsData_v1_lumiNorm')
 argParser.add_argument('--selection',          action='store',      default='lepSel-OS-looseLeptonVeto-njet2p-relIso0.12-mll20-badJetSrEVeto')
 args = argParser.parse_args()
 
@@ -52,7 +52,8 @@ from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018 import *
 postProcessing_directory = "nanoAOD_v2/dilepTiny/"
 from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018 import *
 
-postProcessing_directory = "nanoAOD_v2/dilepTiny/"
+data_directory           = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+postProcessing_directory = "2018_nano_v2/dilep/"
 from StopsDilepton.samples.nanoTuples_Run2018_PromptReco import *
 
 
@@ -211,7 +212,7 @@ def drawPlots(plots, mode, lumi_scale):
         ratio = {'yRange':(0.1,1.9), 'histos':ratio_histos, 'texY': '17(18) / 16'},
         logX = False, logY = log, sorting = True,
         yRange = (0.03, "auto") if log else (0.001, "auto"),
-        scaling = scaling,
+        #scaling = scaling,
         legend = [ (0.20,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2],
         drawObjects = drawObjects( lumi_scale ),
         copyIndexPHP = True
@@ -343,18 +344,23 @@ for index, mode in enumerate(allModes):
         logger.info('nVert Histo for %s', data_2018_sample.name)
         data_2018_samples[i_s].nVert_histo     = data_2018_sample.get1DHistoFromDraw("PV_npvsGood", reweight_binning, binningIsExplicit = True)
         data_2018_samples[i_s].nVert_histo.Scale(1./data_2018_samples[i_s].nVert_histo.Integral())
-        
+        data_2018_samples[i_s].totalCount       = data_2018_sample.getYieldFromDraw()['val']
+       
         logger.info('nVert Histo for %s', data_2017_sample.name)
         data_2017_sample.nVert_histo     = data_2017_sample.get1DHistoFromDraw("PV_npvsGood", reweight_binning, binningIsExplicit = True)
         data_2017_sample.nVert_histo.Scale(1./data_2017_sample.nVert_histo.Integral())
+        data_2017_samples[i_s].totalCount       = data_2017_sample.getYieldFromDraw()['val']
     
         data_2016_sample = data_2016_samples[i_s]
         logger.info('nVert Histo for %s', data_2016_sample.name)
         data_2016_samples[i_s].nVert_histo     = data_2016_sample.get1DHistoFromDraw("PV_npvsGood", reweight_binning, binningIsExplicit = True)
         data_2016_samples[i_s].nVert_histo.Scale(1./data_2016_samples[i_s].nVert_histo.Integral())
+        data_2016_samples[i_s].totalCount       = data_2016_samples[i_s].getYieldFromDraw()['val']
 
         #data_2016_sample.weight         = lambda event, sample: data_2017_samples[i_s].nVert_histo.GetBinContent(sample.nVert_histo.FindBin( event.nVert ))/sample.nVert_histo.GetBinContent(sample.nVert_histo.FindBin( event.nVert ) )
+        data_2016_sample.scale = data_2018_samples[i_s].totalCount/data_2016_samples[i_s].totalCount
         data_2016_sample.weight = get_nVtx_reweight(data_2018_samples[i_s].nVert_histo)
+        data_2017_sample.scale = data_2018_samples[i_s].totalCount/data_2017_samples[i_s].totalCount
         data_2017_sample.weight = get_nVtx_reweight(data_2018_samples[i_s].nVert_histo)
 
     # Use some defaults
