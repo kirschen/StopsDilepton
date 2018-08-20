@@ -19,16 +19,21 @@ from RootTools.core.standard import *
 
 # User specific
 import StopsDilepton.tools.user as user
+from StopsDilepton.tools.user import MVA_preprocessing_directory, MVA_model_directory
 
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection
+from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting import getPolWeights
+
+# For MVA discriminator
+from StopsDilepton.MVA.KerasReader import KerasReader
+from StopsDilepton.MVA.default_classifier import training_variables_list
 
 from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
@@ -447,7 +452,7 @@ branchKeepStrings_DATAMC = [\
     "nJet", "Jet_*",
     "nElectron", "Electron_*",
     "nMuon", "Muon_*",
-    "nTau", "Tau_*",
+    #"nTau", "Tau_*",
 ]
 
 #branches to be kept for MC samples only
@@ -540,7 +545,7 @@ if isTriLep or isDiLep or isSingleLep:
 if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
-    new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'] )
+    new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F', 'MVA_T2tt_v1/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
     if isMC: new_variables.extend( \
         [   'zBoson_genPt/F', 'zBoson_genEta/F', 
@@ -586,6 +591,10 @@ if options.susySignal:
 
 if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
+
+
+## Initialize keras for different trainings
+MVA_T2tt_v1 = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-06-1428', training_variables_list )
 
 
 # Define a reader
@@ -818,6 +827,7 @@ def filler( event ):
             event.l1_dxy = leptons[0]['dxy']
             event.l1_dz = leptons[0]['dz']
 
+
         # For TTZ studies: find Z boson candidate, and use third lepton to calculate mt
         (event.mlmZ_mass, zl1, zl2) = closestOSDLMassToMZ(leptons_pt10)
 #        if len(leptons_pt10) >= 3:
@@ -881,6 +891,26 @@ def filler( event ):
             event.dl_phi  = dl.Phi()
             event.dl_mass = dl.M()
             mt2Calc.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+
+            # need at least two jets for MVA
+            if len(store_jets)>1:
+                eventdict= {
+                    'JetGood_eta[0]':   event.JetGood_eta[0],
+                    'JetGood_pt[0]':    event.JetGood_pt[0],
+                    'JetGood_eta[1]':   event.JetGood_eta[1],
+                    'JetGood_pt[1]':    event.JetGood_pt[1],
+                    'Jet_dphi':         deltaPhi( event.JetGood_phi[0], event.JetGood_phi[1] ),
+                    'dl_eta':           event.dl_eta,
+                    'dl_mass':          event.dl_mass,
+                    'ht':               event.ht,
+                    'l1_eta':           event.l1_eta,
+                    'l2_eta':           event.l2_eta,
+                    'lep_dphi':         deltaPhi(event.l1_phi, event.l2_phi),
+                    'metSig':           event.metSig,
+                    'met_pt':           event.met_pt,
+                    }
+
+                event.MVA_T2tt_v1 = MVA_T2tt_v1.eval(eventdict)
 
             # To check MC truth when looking at the TTZToLLNuNu sample
             if isMC:

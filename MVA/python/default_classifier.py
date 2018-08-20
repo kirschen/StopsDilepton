@@ -45,7 +45,7 @@ def getLeptonSelection( mode ):
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
   elif mode=="all":  return "nGoodMuons+nGoodElectrons==2&&isOS&&( " + "(isEE||isMuMu)" + offZ + "|| isEMu)"
 
-selection_cutstring = "&&".join( [cutInterpreter.cutString(selection), getFilterCut(isData=False, badMuonFilters = "Summer16"), getLeptonSelection(mode)] )
+selection_cutstring = "&&".join( [cutInterpreter.cutString(selection), getFilterCut(isData=False, year = 2016), getLeptonSelection(mode)] )
 
 #training_variables_low = [
 #        'JetGood_pt[0]', 'JetGood_eta[0]',

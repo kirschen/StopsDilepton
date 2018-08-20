@@ -42,6 +42,8 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     # directory with veto lists
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
+    MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
+    MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'
     # 715 release for limit calculation 
     combineReleaseLocation = '/afs/hephy.at/work/d/dspitzbart/stops/CMSSW_7_4_7/src'
     if 'cern' in os.getenv("HOSTNAME"):
