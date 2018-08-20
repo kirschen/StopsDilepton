@@ -106,7 +106,9 @@ def fromHeppySample(sample, data_path, module = None, maxN = None):
     sample.heppy = heppy_sample
     return sample
 
-def getT2ttSignalWeight(sample, lumi):
+from StopsDilepton.tools.helpers import getObjFromFile, writeObjToFile
+
+def getT2ttSignalWeight(sample, lumi, cacheDir):
     '''Get a dictionary for T2tt signal weights
     '''
     from StopsDilepton.tools.xSecSusy import xSecSusy
@@ -116,8 +118,15 @@ def getT2ttSignalWeight(sample, lumi):
     mMax = 1550
     bStr = str(mMax)+','+str(mMax)
     #sample.chain.Draw("GenSusyMNeutralino:GenSusyMStop>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
-    sample.chain.Draw("Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022)):Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
-    hNEvents = ROOT.gDirectory.Get("hNEvents")
+
+    cacheFile = os.path.join(cacheDir, "%s_signalCounts.root"%sample.name)
+    if os.path.isfile(cacheFile):
+        hNEvents = getObjFromFile(cacheFile, "hNEvents")
+    else:
+        sample.chain.Draw("Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022)):Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
+        hNEvents = ROOT.gDirectory.Get("hNEvents")
+        writeObjToFile(cacheFile, hNEvents)
+
     for i in range (mMax):
         for j in range (mMax):
             n = hNEvents.GetBinContent(hNEvents.FindBin(i,j))

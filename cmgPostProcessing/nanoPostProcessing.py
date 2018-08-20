@@ -274,24 +274,6 @@ for selectedSamples in options.samples:
         if selectedSamples == sample.name:
             samples.append(sample)
 
-
-#from StopsDilepton.samples.nanoAOD import sampleMap
-#
-#
-#from StopsDilepton.samples.helpers import fromHeppySample
-if options.susySignal:
-    from StopsDilepton.samples.helpers import getT2ttSignalWeight
-    logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
-    # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
-    assert len(samples)==1, "Can only process one SUSY sample at a time."
-    samples[0].files = samples[0].files[:maxN]
-    logger.info( "Fetching signal weights..." )
-    #signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi ) #Can use same x-sec/weight for T8bbllnunu as for T2tt
-    logger.info("Done fetching signal weights.")
-#else:
-#    samples = [ sampleMap[s] for s in options.samples ]
-#    logger.debug("Reading from CMG tuples: %s", ",".join(",".join(s.files) for s in samples) )
-    
 if len(samples)==0:
     logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
     sys.exit(-1)
@@ -367,6 +349,20 @@ if isMC:
     nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc=mcProfile)
     nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc=mcProfile)
         
+
+directory  = os.path.join(options.targetDir, options.processingEra)
+output_directory = os.path.join( directory, options.skim, sample.name )
+
+if options.susySignal:
+    from StopsDilepton.samples.helpers import getT2ttSignalWeight
+    logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
+    # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
+    assert len(samples)==1, "Can only process one SUSY sample at a time."
+    samples[0].files = samples[0].files[:maxN]
+    logger.info( "Fetching signal weights..." )
+    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = output_directory) #Can use same x-sec/weight for T8bbllnunu as for T2tt
+    logger.info("Done fetching signal weights.")
+
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
 # Decision based on sample name -> whether TTJets or TTLep is in the sample name
@@ -409,19 +405,6 @@ if options.LHEHTCut>0:
     sample.name+="_lheHT"+str(options.LHEHTCut)
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
-
-# output directory (store temporarily when running on dpm)
-if writeToDPM:
-    import uuid
-    # Allow parallel processing of N threads on one worker
-    directory = os.path.join('/tmp/%s'%os.environ['USER'], str(uuid.uuid4()), options.processingEra)
-    if not os.path.exists( directory ):
-        os.makedirs( directory )
-    from StopsDilepton.tools.user import dpm_directory as user_dpm_directory
-else:
-    directory  = os.path.join(options.targetDir, options.processingEra) 
-
-output_directory = os.path.join( directory, options.skim, sample.name )
 
 # Directory for individual signal files
 if options.susySignal:
@@ -536,7 +519,7 @@ new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
 if isSingleLep:
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
 if isTriLep or isDiLep or isSingleLep:
-    new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I' ] )
+    new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I', 'nGoodLeptons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I' ] )
     # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     new_variables.extend( ['mlmZ_mass/F'] )
@@ -645,7 +628,7 @@ grannies_B = {}
 def filler( event ):
     # shortcut
     r = reader.event
-    print r.run, r.luminosityBlock, r.event
+    workaround  = (r.run, r.luminosityBlock, r.event) # some fastsim files seem to have issues, apparently solved by this.
     event.isData = s.isData
     if isMC: gPart = getGenPartsAll(r)
 
@@ -815,6 +798,7 @@ def filler( event ):
     if isSingleLep or isTriLep or isDiLep:
         event.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
         event.nGoodElectrons  = len(filter( lambda l:abs(l['pdgId'])==11, leptons))
+        event.nGoodLeptons    = len(leptons)
 
         if len(leptons)>=1:
             event.l1_pt     = leptons[0]['pt']
