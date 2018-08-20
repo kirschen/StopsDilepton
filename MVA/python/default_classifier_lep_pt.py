@@ -19,9 +19,9 @@ training_variables = {
         'met_pt':       lambda event: event.met_pt            ,
         'Jet_dphi':     lambda event: deltaPhi( event.JetGood_phi[0],   event.JetGood_phi[1] ),
         'lep_dphi':     lambda event: deltaPhi( event.l1_phi, event.l2_phi ), 
-#        'dl_pt':        lambda event: event.dl_pt             , 
-#        'l1_pt':        lambda event: event.l1_pt             , 
-#        'l2_pt':        lambda event: event.l2_pt             , 
+        'dl_pt':        lambda event: event.dl_pt             , 
+        'l1_pt':        lambda event: event.l1_pt             , 
+        'l2_pt':        lambda event: event.l2_pt             , 
 }
 
 spectator_variables = {
@@ -49,7 +49,7 @@ def getLeptonSelection( mode ):
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
   elif mode=="all":  return "nGoodMuons+nGoodElectrons==2&&isOS&&( " + "(isEE||isMuMu)" + offZ + "|| isEMu)"
 
-selection_cutstring = "&&".join( [cutInterpreter.cutString(selection), getFilterCut(isData=False, year = 2016), getLeptonSelection(mode)] )
+selection_cutstring = "&&".join( [cutInterpreter.cutString(selection), getFilterCut(isData=False, badMuonFilters = "Summer16"), getLeptonSelection(mode)] )
 
 #training_variables_low = [
 #        'JetGood_pt[0]', 'JetGood_eta[0]',

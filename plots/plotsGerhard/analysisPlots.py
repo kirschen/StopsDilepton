@@ -58,10 +58,11 @@ from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
 # waht do we import? - signal
 if args.signal == "T2tt":
-    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
+    #postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
+    postProcessing_directory = "postProcessed_80X_v40/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-    T2tt                    = T2tt_650_1
-    T2tt2                   = T2tt_500_250
+    T2tt                    = T2tt_750_1
+    T2tt2                   = T2tt_600_500
     T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T2tt, T2tt2]
@@ -156,8 +157,11 @@ from StopsDilepton.MVA.default_classifier import training_variables_list, get_di
 from StopsDilepton.MVA.KerasReader import KerasReader
 from StopsDilepton.tools.user import  MVA_model_directory
 #keras_model_directory = 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
-keras_model_directory = 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
-keras_model_date = ''
+#keras_model_directory = 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
+#keras_model_directory = 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
+keras_model_directory = 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
+#keras_model_date = '2018-08-01-1712'
+keras_model_date = '2018-08-16-1253'
 if not keras_model_date: keras_model_date =  min(os.listdir( os.path.join( MVA_model_directory, keras_model_directory) ) )
 
 keras_model_directory_ = os.path.join(keras_model_directory, keras_model_date )

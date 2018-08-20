@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 '''
 preprocessing.py reads Events using an Eventloop and saves them in pandas DataFrame format.
-
-Loads Signal and Background Sample specified by arguments, applies selection string and saves Samples.
-Both samples are saved as 
+Saving format ( Note: First events are signals then background, they are not random)
 one feature matrix X (columns defined by read_variables, in each row is an event) and 
 one target vector y ( 0/1 labelged for Background/Signal event, in each row is an event)
 
-eg. python preprocessing.py --signal SMS_T8bbllnunu_XCha0p5_XSlep0p09 --selection njet2p-blabel1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1 --small
+Available sample signals are specified in samples.py
+selection and mode in default_classifier.py
+
+eg. python preprocessing.py --signal SMS_T2tt_mStop_400to1200 --background TTLep_pow --version v1_lep_pt --small
 '''
 
 # Standard imports and batch mode
@@ -22,8 +23,8 @@ from RootTools.core.standard             import *
 from StopsDilepton.tools.helpers         import deltaPhi
 from StopsDilepton.tools.user import     MVA_preprocessing_directory
 
-# How many jets do we record from event loop:
-dict_nrJets = 4
+# MVA and sample configuration
+from StopsDilepton.MVA.default_classifier import training_variables, spectator_variables, read_variables, selection_cutstring, selection, mode
 
 #
 # Arguments
@@ -35,6 +36,7 @@ argParser.add_argument('--signal',             action='store',      default="T8b
 argParser.add_argument('--background',         action='store',      default="TTLep_pow",     nargs='?', help="background sample")
 argParser.add_argument('--small',              action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--version',            action='store',      default='v1')
+argParser.add_argument('--chunksize',          action='store',      default='100000',       type=int)
 args = argParser.parse_args()
 
 #
@@ -48,12 +50,8 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Define Storage location for .h5 files
 #
-
 if args.small:
     args.version += '_small'
-
-# MVA configuration
-from StopsDilepton.MVA.default_classifier import training_variables, spectator_variables, read_variables, selection_cutstring, selection, mode
 
 output_dir = os.path.join( MVA_preprocessing_directory, args.signal + '-' + args.background, args.version, selection, mode ) 
 
@@ -61,9 +59,6 @@ if not os.path.exists( output_dir ):
     os.makedirs( os.path.join( output_dir ) ) 
 
 # Read variables and sequences
-# (same list as in plotanalysis)
-
-
 samples = imp.load_source( "samples", os.path.expandvars( "$CMSSW_BASE/src/StopsDilepton/MVA/python/samples.py" ) )
 
 signal = getattr(samples, args.signal)
@@ -78,32 +73,16 @@ for sample in [signal, background]:
   if args.small:
         sample.reduceFiles( to = 1 )
 
-
-# keys for dict
-
-#read_variables_vector = []
-#dict_keys = []
-#
-#for variable in read_variables:
-#    if '[' not in variable:
-#        read_variables_vector.append(variable.split('/')[0])
-#        dict_keys.append(variable.split('/')[0])
-#    else:
-#        [mainvariable, sublist ] = variable.split(']')[0].split('[')
-#        sublist = sublist.split(',')
-#        tmpnr = 0
-#        while tmpnr < dict_nrJets:
-#            for subvariable in sublist:
-#                subvariable = subvariable.split('/')[0] 
-#                if tmpnr == 0:
-#                    read_variables_vector.append( mainvariable + '_' + subvariable) 
-#                dict_keys.append( mainvariable + '_' + subvariable + '[' + str(tmpnr) + ']') 
-#            tmpnr +=1 
-
-# initialize dictionary with empty lists
+# initialize dictionary 
 datadict = {key : [] for key in ['label'] + training_variables.keys() + spectator_variables.keys() }
-
+# create .h5 file
+df = pd.DataFrame(datadict)
+df.drop(['label'], axis=1).to_hdf( os.path.join( output_dir,  'data_X.h5'), key='df', format='table', mode='w')
+df['label'].to_hdf(  os.path.join( output_dir, 'data_y.h5'), key='df', format='table', mode='w')
+ 
 # event loop
+i = 0
+lastsavedindex = 0
 for sample in [signal, background] :
     if sample == signal:
         label = 1
@@ -112,22 +91,31 @@ for sample in [signal, background] :
     r = sample.treeReader(variables = map( TreeVariable.fromString, read_variables) )
     r.start()
     while r.run():
+        # write data to dictionary
         datadict['label'].append( label )
         for dictionary in training_variables, spectator_variables:
             for key, lambda_function in dictionary.iteritems():
                 datadict[key].append( lambda_function(r.event) )
-             
-#            if '[' not in key:
-#                datadict[key].append( getattr(r.event, key))
-#            else:
-#                [var, nr] = key.split('[')
-#                datadict[key].append( getattr(r.event, var)[int(nr.strip(']'))]) 
-
-# convert dict to DataFrame
-df = pd.DataFrame(datadict)
-
-#save in Dataframe in .h5 file as feature matrix X and target vector y
-df.drop(['label'], axis=1).to_hdf( os.path.join( output_dir,  'data_X.h5'), key='df', mode='w')
-df['label'].to_hdf(  os.path.join( output_dir, 'data_y.h5'), key='df', mode='w')
-
+        
+        i += 1 
+        # in chunks, convert dictionary to dataframe and append to .h5 file 
+        if not i % args.chunksize:
+            df = pd.DataFrame(datadict)
+            df.index = pd.RangeIndex(start=lastsavedindex,stop=i, step=1)
+            df.drop(['label'], axis=1).to_hdf( os.path.join( output_dir,  'data_X.h5'), key='df', format='table', append=True, mode='a')
+            df['label'].to_hdf(  os.path.join( output_dir, 'data_y.h5'), key='df', format='table', append=True, mode='a')
+            # clear dictionary and dataframe
+            datadict = {key : [] for key in ['label'] + training_variables.keys() + spectator_variables.keys() }
+            #df.iloc[0:0]
+            lastsavedindex = i
+        
+    df = pd.DataFrame(datadict)
+    df.index = pd.RangeIndex(start=lastsavedindex,stop=i, step=1)
+    # append to file
+    df.drop(['label'], axis=1).to_hdf( os.path.join( output_dir,  'data_X.h5') , key='df', format='table', append=True, mode='a')
+    df['label'].to_hdf(  os.path.join( output_dir, 'data_y.h5'), key='df', format='table', append=True, mode='a')
+    # clear Dataframe
+    datadict = {key : [] for key in ['label'] + training_variables.keys() + spectator_variables.keys() }
+    #df.iloc[0:0]
+    lastsavedindex = i
 logger.info( "Written directory %s", output_dir )
