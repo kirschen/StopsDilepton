@@ -8,7 +8,7 @@ one target vector y ( 0/1 labelged for Background/Signal event, in each row is a
 Available sample signals are specified in samples.py
 selection and mode in default_classifier.py
 
-eg. python preprocessing.py --signal SMS_T8bbllnunu_XCha0p5_XSlep0p09 --background TTLep_pow --small
+eg. python preprocessing.py --signal SMS_T2tt_mStop_400to1200 --background TTLep_pow --version v1_lep_pt --small
 '''
 
 # Standard imports and batch mode

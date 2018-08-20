@@ -20,7 +20,10 @@ from sklearn.metrics import roc_curve, roc_auc_score, auc
 from   sklearn.model_selection import train_test_split
 from   keras.models import Sequential
 from   keras.layers import Dense
+from   keras.layers import Dropout
+from   keras.callbacks import *
 from   keras import optimizers
+from   Callback_ROC import Callback_ROC
 
 def makeTGraph( x, y ):
     if len(x)!=len(y):
@@ -56,20 +59,21 @@ class KerasTrainer:
         # spectator variables
         self.spectator_variables  = spectator_variables
         # fraction of events used for training
-        self.train_fraction = 0.75
+        self.train_fraction = 0.90
 
-    def init_training_data( self ):
+    def init_training_data( self, balanced=False ):
         ''' Initialize training data
         '''
         # read .h5 files to create feature Matrix X and target vector y
         X_tmp = pd.read_hdf( os.path.join( MVA_preprocessing_directory, self.input_data_directory,  'data_X.h5'), 'df')
         y_tmp = pd.read_hdf( os.path.join( MVA_preprocessing_directory, self.input_data_directory,  'data_y.h5'), 'df')
 
-        ## Calculate additional variables
-        #for newvariable in self.training_variables_high:
-        #    arguments = [X_tmp[x] for x in newvariable.argumentlist ]
-        #    X_tmp[ newvariable.name ] =  map( newvariable.function , *arguments  )
-        
+        # balance dataset, reduce backround event number to signal event number
+        if balanced:
+            signalnr = (y_tmp==1).sum()  
+            X_tmp  = X_tmp[ y_tmp == 1 ].append( X_tmp[ y_tmp == 0 ].sample( n = signalnr ) ) 
+            y_tmp  = y_tmp[ X_tmp.index ]
+
         logger.info( 'Number of training variables: %i, spectator variables: %i', len(self.training_variables), len(self.spectator_variables) )
         logger.info( 'Number of signal / backround events: %i / %i', (y_tmp==1).sum(), (y_tmp==0).sum())
         logger.info( 'Number of events and percentage of signal events in sample: %s // %5.2f',  y_tmp.shape[0], round( 100.* (y_tmp==1).sum() / y_tmp.shape[0] ,2 ))
@@ -94,37 +98,51 @@ class KerasTrainer:
         self.X_mean   = self.X_mean.drop( self.spectator_variables )
         self.X_std    = self.X_std.drop( self.spectator_variables )
     
-    def train( self, NHLayer = 2, units = 100, epochs = 100, batch_size = 5120, validation_split = 0.2):
+    def train( self, NHLayer = 2, units = 100, epochs = 100, batch_size = 5120, validation_split = 0.2, earlystopping = False , dropout = 0):
         '''
         initializes a Keras binary classifier and trains it on X_train and y_train
-        The trained classifier and the training visualisation (Lossfunction and Accuracy over time) are saved in a subfolder specified by the date of plotpath. 
+        The trained classifier and the training visualisation (Lossfunction, Accuracy, roc_auc over epchs) are saved in a subfolder specified by the date of plotpath. 
         The classifier is saved as .h5 file.
-        NHLayer ... 
-        units   ...
-        ...
+        
+        earlystopping defines how many roc auc measurments (taken every 5 epochs) we wait until we stopp training if the value does not improve. 0 means no early stopping.
+        dropout. 0 means no dropout
         '''
         self.validation_split = validation_split
         self.batch_size = batch_size
         self.timestamp = time.strftime("%Y-%m-%d-%H%M")
+       
+        # directories for plots and triained model 
+        self.plot_directory = os.path.join( plot_directory, 'KerasTrainer', self.input_data_directory, self.timestamp) 
+        if not os.path.exists( self.plot_directory ):
+            os.makedirs( self.plot_directory )
+        
+        output_directory = os.path.join( MVA_model_directory, self.input_data_directory, self.timestamp) 
+        if not os.path.exists( output_directory ):
+            os.makedirs( output_directory )
 
         #Initialize and build classifier
         self.model = Sequential()
         self.model.add( Dense(units= units, activation='relu', input_dim=self.X_train.shape[1]) ) 
+        if dropout:
+            self.model.add( Dropout( rate = dropout ) )
         for i in range(NHLayer):
             self.model.add( Dense(units= units, activation='relu' ) )
+            if dropout:
+                self.model.add( Dropout( rate = dropout ) )
         self.model.add( Dense(units=1, activation='sigmoid') ) 
 
         # configuration
         self.model.compile( loss='binary_crossentropy', optimizer='rmsprop', metrics=['acc'])
         #self.model.compile( loss='binary_crossentropy',  optimizer=optimizers.RMSprop(lr=0.001) ,  metrics=['accuracy'])
-
+   
+        # callbacks 
+        callbacks = []
+        callbacks.append( Callback_ROC( self.X_train, self.y_train, self.plot_directory, output_directory, interval_evaluate_auc = 5,  patience_earlystopping_auc = earlystopping) )        
+        
         # training
-        self.history = self.model.fit(self.X_train.values, self.y_train.values, epochs=epochs, batch_size=batch_size, validation_split=validation_split)
+        self.history = self.model.fit(self.X_train.values, self.y_train.values, epochs=epochs, batch_size=batch_size, validation_split=validation_split, callbacks = callbacks)
 
-        # output directory (simplify?)
-        output_directory = os.path.join( MVA_model_directory, self.input_data_directory, self.timestamp) 
-        if not os.path.exists( output_directory ):
-            os.makedirs( output_directory )
+        # write training file
         training_file = os.path.join( output_directory, 'keras.h5')
         self.model.save( training_file )
         logger.info( "Written training file %s", training_file )
@@ -134,13 +152,7 @@ class KerasTrainer:
         self.X_std.to_hdf( os.path.join( output_directory, 'X_std.h5') , key='df', mode='w')
 
     def validation( self, xbin=20, classifier_binning = [2, 0.8, 1] ):
-        self.plot_directory = os.path.join( plot_directory, 'KerasTrainer', self.input_data_directory, self.timestamp) 
-
-        if not os.path.exists( self.plot_directory ):
-            os.makedirs( self.plot_directory )
         
-        # UNITS? - Implementation s.t. it works for arbitrary variables
-
         #
         # loss and accuracy 
         #
@@ -149,6 +161,7 @@ class KerasTrainer:
 
         self.loss_values  = self.history_dict['loss']
         self.acc_values = self.history_dict['acc']
+
         epochslist = range(1,  len(self.loss_values)+1)
         
         plt.plot(epochslist, self.loss_values, 'bo', label='Training loss')
@@ -172,7 +185,7 @@ class KerasTrainer:
         plt.legend()
         plt.savefig( os.path.join( self.plot_directory , 'acc.png'))
         plt.clf()
-
+ 
         #
         # ROC    
         #
@@ -182,112 +195,113 @@ class KerasTrainer:
         auc_val_test = auc(fpr_test, tpr_test)
 
         plt.plot( tpr_test, 1-fpr_test, 'b', label= 'Neural net, Auc=' + str(round(auc_val_test,4) ))
-        plt.title('ROC')
+        plt.title('ROC (sample info: ' + str( len( self.X_test[self.y_test == 1] ) + len( self.X_train[self.y_train == 1] ) ) + ' signals / '
+                                              + str( len( self.X_test[self.y_test == 0] ) + len( self.X_train[self.y_train == 0] ) ) + ' background)'  )
         plt.xlabel('$\epsilon_{Sig}$', fontsize = 20) # 'False positive rate'
         plt.ylabel('$1-\epsilon_{Back}$', fontsize = 20) #  '1-True positive rate' 
         plt.legend(loc ='lower left')
         plt.savefig( os.path.join( self.plot_directory , 'roc.png') )
         plt.clf()
 
-        signalAttr = SampleAttr('signal', 1,'kRed')
-        backgroundAttr = SampleAttr('background', 0,'kBlue')
-
-        #
-        # histogramms input variables
-        #
-        
-        # Transformation of Variables
-        X_tmp = self.X_test * self.X_std
-        X_tmp += self.X_mean
-
-        X_tmp = pd.concat([ X_tmp, self.X_spect ], axis=1)
-        ivar_can = []
-        for variable in self.training_variables + self.spectator_variables:
-           xmin = getattr( X_tmp, variable).min() 
-           xmax = getattr( X_tmp, variable).max() 
-           ivar_can.append( ROOT.TCanvas())
-           #leg1 = ROOT.TLegend(.73,.32,.97,.53)
-           histos = []
-           for attr in [ signalAttr , backgroundAttr ]: 
-               histos.append( ROOT.TH1F( attr.name , attr.name ,xbin,xmin,xmax) ) 
-               histos[-1].SetLineColor( getattr(ROOT, attr.color) )
-               histos[-1].SetLineStyle(3)
-               histos[-1].SetLineWidth(2)
-               histos[-1].SetTitle('Distribution Input Variables')
-               histos[-1].GetXaxis().SetTitle(variable)
-               histos[-1].GetYaxis().SetTitle('events')
-               for i in range( len( getattr( X_tmp, variable)[ self.y_test == attr.tag ].values )):
-                   histos[-1].Fill( getattr( X_tmp, variable)[ self.y_test == attr.tag ].values[i] )
-               #leg1.AddEntry(histos[-1], attr.name,"L")
-               histos[-1].Draw('same')
-           #leg.SetBorderSize(0) # no border
-           #leg.SetFillColor(0)
-           #leg.SetFillStyle(0)
-           #leg.SetTextFont(42)
-           #leg.SetTextSize(0.035)
-           #leg1.Draw()
-           ivar_can[-1].SetLogy()
-           ivar_can[-1].Print( os.path.join( self.plot_directory, variable + '.png') )
-           #histo.Scale(1000.) # norm must be set to total number of elements to get integral hist = 1
-        
-        #
-        # output classifier
-        #        
-
-        c1 = ROOT.TCanvas()
-        leg1 = ROOT.TLegend(.73,.32,.97,.53)
-        histos = []
-        for attr in [ signalAttr , backgroundAttr ]: 
-            histos.append( ROOT.TH1F( attr.name , attr.name ,xbin, 0, 1) ) 
-            histos[-1].SetLineColor( getattr(ROOT, attr.color) )
-            histos[-1].SetLineStyle(3)
-            histos[-1].SetLineWidth(2)
-            for i in range( len( self.y_test_pred[ self.y_test == attr.tag ].values )):
-                histos[-1].Fill( self.y_test_pred[ self.y_test == attr.tag ].values[i] )
-            leg1.AddEntry(histos[-1], attr.name,"L")
-            histos[-1].Draw('same')
-        #leg.SetBorderSize(0) # no border
-        #leg.SetFillColor(0)
-        #leg.SetFillStyle(0)
-        #leg.SetTextFont(42)
-        #leg.SetTextSize(0.035)
-        leg1.Draw()
-        c1.SetLogy()
-        c1.Print( os.path.join( self.plot_directory, 'classifier_output.png') )
-        #histo.Scale(1000.) # norm must be set to total number of elements to get integral hist = 1
-
-        #
-        # spectator shapes for classifier binning        
-        #
-
-        ybin = classifier_binning[0] 
-        ymin = classifier_binning[1] 
-        ymax = classifier_binning[2] 
- 
-        deltay = (ymax-ymin)/ybin
-        sh_can = []
-        histos = []
-        for variable in self.spectator_variables:
-            for attr in [ signalAttr , backgroundAttr ]:
-                sh_can.append( ROOT.TCanvas()) 
-                for i in range(ybin):
-                    y1 = ymin + i*deltay 
-                    y2 = y1 + deltay
-                    X_tmp = getattr( self.X_spect, variable)[ (self.y_test_pred[0] >  y1) & (self.y_test_pred[0] <= y2) ]
-                    xbin = 20
-                    xmin = 0
-                    xmax= 400
-                    histos.append( ROOT.TH1F( attr.name + str(i) , attr.name + str(i) , xbin, xmin, xmax) )
-                    histos[-1].SetLineColor( getattr(ROOT, attr.color) )
-                    histos[-1].SetLineStyle( i+1 )
-                    histos[-1].SetLineWidth(2)
-                    for i in range( len( X_tmp[ self.y_test == attr.tag ].values )):
-                        histos[-1].Fill( X_tmp[ self.y_test == attr.tag ].values[i] )
-                    #histos[-1].Sumw2()
-                    histos[-1].Scale( 1./ histos[-1].Integral() ) 
-                    histos[-1].Draw('same hist') # without argument hist it draws only markers 
-                sh_can[-1].SetLogy()
-                sh_can[-1].Print( os.path.join( self.plot_directory, variable + '_' + attr.name + '_binning.png') )
+#        signalAttr = SampleAttr('signal', 1,'kRed')
+#        backgroundAttr = SampleAttr('background', 0,'kBlue')
+#
+#        #
+#        # histogramms input variables
+#        #
+#        
+#        # Transformation of Variables
+#        X_tmp = self.X_test * self.X_std
+#        X_tmp += self.X_mean
+#
+#        X_tmp = pd.concat([ X_tmp, self.X_spect ], axis=1)
+#        ivar_can = []
+#        for variable in self.training_variables + self.spectator_variables:
+#           xmin = getattr( X_tmp, variable).min() 
+#           xmax = getattr( X_tmp, variable).max() 
+#           ivar_can.append( ROOT.TCanvas())
+#           #leg1 = ROOT.TLegend(.73,.32,.97,.53)
+#           histos = []
+#           for attr in [ signalAttr , backgroundAttr ]: 
+#               histos.append( ROOT.TH1F( attr.name , attr.name ,xbin,xmin,xmax) ) 
+#               histos[-1].SetLineColor( getattr(ROOT, attr.color) )
+#               histos[-1].SetLineStyle(3)
+#               histos[-1].SetLineWidth(2)
+#               histos[-1].SetTitle('Distribution Input Variables')
+#               histos[-1].GetXaxis().SetTitle(variable)
+#               histos[-1].GetYaxis().SetTitle('events')
+#               for i in range( len( getattr( X_tmp, variable)[ self.y_test == attr.tag ].values )):
+#                   histos[-1].Fill( getattr( X_tmp, variable)[ self.y_test == attr.tag ].values[i] )
+#               #leg1.AddEntry(histos[-1], attr.name,"L")
+#               histos[-1].Draw('same')
+#           #leg.SetBorderSize(0) # no border
+#           #leg.SetFillColor(0)
+#           #leg.SetFillStyle(0)
+#           #leg.SetTextFont(42)
+#           #leg.SetTextSize(0.035)
+#           #leg1.Draw()
+#           ivar_can[-1].SetLogy()
+#           ivar_can[-1].Print( os.path.join( self.plot_directory, variable + '.png') )
+#           #histo.Scale(1000.) # norm must be set to total number of elements to get integral hist = 1
+#        
+#        #
+#        # output classifier
+#        #        
+#
+#        c1 = ROOT.TCanvas()
+#        leg1 = ROOT.TLegend(.73,.32,.97,.53)
+#        histos = []
+#        for attr in [ signalAttr , backgroundAttr ]: 
+#            histos.append( ROOT.TH1F( attr.name , attr.name ,xbin, 0, 1) ) 
+#            histos[-1].SetLineColor( getattr(ROOT, attr.color) )
+#            histos[-1].SetLineStyle(3)
+#            histos[-1].SetLineWidth(2)
+#            for i in range( len( self.y_test_pred[ self.y_test == attr.tag ].values )):
+#                histos[-1].Fill( self.y_test_pred[ self.y_test == attr.tag ].values[i] )
+#            leg1.AddEntry(histos[-1], attr.name,"L")
+#            histos[-1].Draw('same')
+#        #leg.SetBorderSize(0) # no border
+#        #leg.SetFillColor(0)
+#        #leg.SetFillStyle(0)
+#        #leg.SetTextFont(42)
+#        #leg.SetTextSize(0.035)
+#        leg1.Draw()
+#        c1.SetLogy()
+#        c1.Print( os.path.join( self.plot_directory, 'classifier_output.png') )
+#        #histo.Scale(1000.) # norm must be set to total number of elements to get integral hist = 1
+#
+#        #
+#        # spectator shapes for classifier binning        
+#        #
+#
+#        ybin = classifier_binning[0] 
+#        ymin = classifier_binning[1] 
+#        ymax = classifier_binning[2] 
+# 
+#        deltay = (ymax-ymin)/ybin
+#        sh_can = []
+#        histos = []
+#        for variable in self.spectator_variables:
+#            for attr in [ signalAttr , backgroundAttr ]:
+#                sh_can.append( ROOT.TCanvas()) 
+#                for i in range(ybin):
+#                    y1 = ymin + i*deltay 
+#                    y2 = y1 + deltay
+#                    X_tmp = getattr( self.X_spect, variable)[ (self.y_test_pred[0] >  y1) & (self.y_test_pred[0] <= y2) ]
+#                    xbin = 20
+#                    xmin = 0
+#                    xmax= 400
+#                    histos.append( ROOT.TH1F( attr.name + str(i) , attr.name + str(i) , xbin, xmin, xmax) )
+#                    histos[-1].SetLineColor( getattr(ROOT, attr.color) )
+#                    histos[-1].SetLineStyle( i+1 )
+#                    histos[-1].SetLineWidth(2)
+#                    for i in range( len( X_tmp[ self.y_test == attr.tag ].values )):
+#                        histos[-1].Fill( X_tmp[ self.y_test == attr.tag ].values[i] )
+#                    #histos[-1].Sumw2()
+#                    histos[-1].Scale( 1./ histos[-1].Integral() ) 
+#                    histos[-1].Draw('same hist') # without argument hist it draws only markers 
+#                sh_can[-1].SetLogy()
+#                sh_can[-1].Print( os.path.join( self.plot_directory, variable + '_' + attr.name + '_binning.png') )
        
 if __name__ == '__main__':
     import StopsDilepton.tools.logger as logger
@@ -298,10 +312,10 @@ if __name__ == '__main__':
 
 
     input_data_directory = 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1_small/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all'
-    #import StopsDilepton.MVA.default_classifier
+    
     from StopsDilepton.MVA.default_classifier import training_variables_list, spectator_variables_list
 
     kerasTrainer = KerasTrainer( input_data_directory, training_variables_list, spectator_variables_list)
     kerasTrainer.init_training_data()
-    kerasTrainer.train( NHLayer = 2, units = 10, epochs = 10, batch_size = 512 )
-    #kerasTrainer.validation( xbin=20, classifier_binning = [2, 0.8, 1] )
+    kerasTrainer.train( NHLayer = 2, units = 10, epochs = 10, batch_size = 512, earlystopping = False, dropout = False )
+    kerasTrainer.validation()

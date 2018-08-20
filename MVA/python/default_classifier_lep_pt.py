@@ -19,9 +19,9 @@ training_variables = {
         'met_pt':       lambda event: event.met_pt            ,
         'Jet_dphi':     lambda event: deltaPhi( event.JetGood_phi[0],   event.JetGood_phi[1] ),
         'lep_dphi':     lambda event: deltaPhi( event.l1_phi, event.l2_phi ), 
-#        'dl_pt':        lambda event: event.dl_pt             , 
-#        'l1_pt':        lambda event: event.l1_pt             , 
-#        'l2_pt':        lambda event: event.l2_pt             , 
+        'dl_pt':        lambda event: event.dl_pt             , 
+        'l1_pt':        lambda event: event.l1_pt             , 
+        'l2_pt':        lambda event: event.l2_pt             , 
 }
 
 spectator_variables = {
