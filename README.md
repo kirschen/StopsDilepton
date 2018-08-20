@@ -1,4 +1,4 @@
-# Stops-dilepton + CMG in 80X
+# Stops-dilepton. No CMG needed anymore.
 ```
 cmsrel CMSSW_10_1_5
 cd CMSSW_10_1_5/src
@@ -12,7 +12,7 @@ git clone https://github.com/GhentAnalysis/StopsDilepton
 ./StopsDilepton/setupOptiMass.sh
 ```
 
-# for limit setting
+# Combine for limit setting
 Make a 8_1_0 WS following the recipe at [HiggsCombination gitbook](https://cms-hcomb.gitbooks.io/combine/content/part1/)
 ```
 export SCRAM_ARCH=slc6_amd64_gcc530
