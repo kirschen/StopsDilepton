@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 '''
-Analysis script for standard plots
+Analysis script for standard plots using MVA
 Do e.g.
-python analysisPlots.py --signal T8bbllnunu --plot_directory myFirstPlots --selection njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1
+python analysisPlots.py --MVA 0.8 1 --noData --signal T8bbllnunu --plot_directory myFirstPlots --selection njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1 --small
 Use --small for quick tests
-Use --noData to only use MC
 '''
 #
 # Standard imports and batch mode
@@ -26,8 +25,9 @@ from StopsDilepton.plots.pieChart        import makePieChart
 # 
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
+argParser.add_argument('--MVA',                action='store',      default=[0,1],           nargs=2,   type=float, help='MVA binning for plots, 2 numbers: min max')
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM", "T8bbllnunu", "compilation"], help="Add signal to plot")
+argParser.add_argument('--signal',             action='store',      default='T8bbllnunu',    nargs='?', choices=[None, "T2tt", "DM", "T8bbllnunu", "compilation"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_test')
@@ -35,7 +35,6 @@ argParser.add_argument('--selection',          action='store',      default='nje
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
-argParser.add_argument('--unblinded',          action='store_true', default=False)
 argParser.add_argument('--isr',                action='store_true', default=False)
 args = argParser.parse_args()
 
@@ -47,20 +46,17 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-if args.small:                        args.plot_directory += "_small"
-if args.noData:                       args.plot_directory += "_noData"
-if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
-if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
-if args.signal == "DM":               args.plot_directory += "_DM"
-if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
-
 #
 # Make samples, will be searched for in the postProcessing directory
 #
 postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
+# what do we import? - i guess Data
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
+# what do we import? - i guess Backround
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+
+# waht do we import? - signal
 if args.signal == "T2tt":
     postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
@@ -72,12 +68,19 @@ if args.signal == "T2tt":
 elif args.signal == "T8bbllnunu":
     postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p95_1300_1
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p95_1300_300
-    T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p95_1300_600
-    T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-    T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-    T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
+    #T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p95_1300_1
+    #T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p95_1300_300
+    #T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p95_1300_600
+    #T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
+    #T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+    #T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
+    #signals = [ T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
+    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p5_800_1
+    T8bbllnunu2              = T8bbllnunu_XCha0p5_XSlep0p09_800_1
+    T8bbllnunu3              = T8bbllnunu_XCha0p5_XSlep0p09_1300_300
+    T8bbllnunu.style         = styles.lineStyle( ROOT.kBlack, width=3 )
+    T8bbllnunu2.style        = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+    T8bbllnunu3.style        = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
     signals = [ T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
 elif args.signal == "compilation":
     postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
@@ -146,6 +149,44 @@ read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "
                   "met_pt/F", "met_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
 
 #
+# MVA
+#
+from StopsDilepton.MVA.default_classifier import training_variables_list, get_dict
+
+from StopsDilepton.MVA.KerasReader import KerasReader
+from StopsDilepton.tools.user import  MVA_model_directory
+#keras_model_directory = 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
+keras_model_directory = 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
+keras_model_date = ''
+if not keras_model_date: keras_model_date =  min(os.listdir( os.path.join( MVA_model_directory, keras_model_directory) ) )
+
+keras_model_directory_ = os.path.join(keras_model_directory, keras_model_date )
+kerasReader = KerasReader( keras_model_directory_  , training_variables_list)
+
+sequence = []
+
+def MVA( event, sample ):
+
+    event.MVA = kerasReader.eval( get_dict( event ) )
+    event.pass_MVAthreshold = MVAmin < event.MVA <= MVAmax
+
+sequence.append(MVA)
+
+#
+# Specify plot_directory
+#
+if args.small:                        args.plot_directory += "_small"
+if args.noData:                       args.plot_directory += "_noData"
+if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
+if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
+if args.signal == "DM":               args.plot_directory += "_DM"
+if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
+
+[MVAmin, MVAmax] = args.MVA
+MVA_string = str(MVAmin) + 'MVA' + str(MVAmax) 
+args.plot_directory = os.path.join( args.plot_directory, 'KerasModel' + keras_model_date + '_' + MVA_string)
+
+#
 #
 # default offZ for SF
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
@@ -177,16 +218,7 @@ for index, mode in enumerate(allModes):
   lumi_scale                 = data_sample.lumi/1000
 
   if args.noData: lumi_scale = 36.4
-  #Blinding policies for DM and T2tt analyses #FIXME
-  if not args.unblinded:
-    if args.signal == "DM":
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
-      lumi_scale = lumi_scale/15
-    else:
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-      lumi_scale = 17.3
-  else:
-    weight_ = lambda event, sample: event.weight
+  weight_ = lambda event, sample: event.weight * event.pass_MVAthreshold
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
   mc             = [ Top_pow, TTZ, TTXNoZ] + multiBosonList + [DY_HT_LO]
@@ -241,6 +273,13 @@ for index, mode in enumerate(allModes):
     binning=[3, 0, 3],
   ))
 
+  plots.append(Plot(
+    name = 'MVA', texX = 'discriminator', texY = 'Number of Events',
+    attribute = lambda event, sample: event.MVA,
+    binning=[50,0,1],
+  ))
+
+ 
   plots.append(Plot(
     name = 'nVtxs', texX = 'vertex multiplicity', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "nVert/I" ),
@@ -480,7 +519,7 @@ for index, mode in enumerate(allModes):
     ))
 
 
-  plotting.fill(plots, read_variables = read_variables, sequence = [])
+  plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
   # Get normalization yields from yield histogram
   for plot in plots:

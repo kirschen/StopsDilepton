@@ -713,16 +713,16 @@ def filler( event ):
                 r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000015)) for p in gPart])
                 #logger.debug("Slepton is stau with mass %i", r.GenSusyMSlepton)
                 event.sleptonPdg = 1000015
-            event.mCha  = r.GenSusyMChargino
-            event.mSlep = r.GenSusyMSlepton
+            event.mCha  = int(r.GenSusyMChargino)
+            event.mSlep = int(r.GenSusyMSlepton)
         if 'T2tt' in options.samples[0]:
             pol_weights = getPolWeights(r)
             event.weight_pol_L = pol_weights[0]
             event.weight_pol_R = pol_weights[1]
 
         event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
-        event.mStop = r.GenSusyMStop
-        event.mNeu  = r.GenSusyMNeutralino
+        event.mStop = int(r.GenSusyMStop)
+        event.mNeu  = int(r.GenSusyMNeutralino)
         event.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
         event.reweightXSecDown  = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacDown']
     elif isMC:
