@@ -255,7 +255,9 @@ maxN = 2 if options.small else None
 
 #from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
-    from StopsDilepton.samples.nanoTuples_Summer16 import *
+    from StopsDilepton.samples.nanoTuples_Summer16 import allSamples as bkgSamples
+    from StopsDilepton.samples.nanoTuples_FastSim_Spring16 import allSamples as signalSamples
+    allSamples = bkgSamples + signalSamples
 elif options.year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17 import *
 else:
@@ -272,16 +274,15 @@ for selectedSamples in options.samples:
 #
 #
 #from StopsDilepton.samples.helpers import fromHeppySample
-#if options.susySignal:
-#    samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
-#    from StopsDilepton.samples.helpers import getT2ttSignalWeight
-#    logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
-#    # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
-#    assert len(samples)==1, "Can only process one SUSY sample at a time."
-#    samples[0].files = samples[0].files[:maxN]
-#    logger.debug( "Fetching signal weights..." )
-#    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi ) #Can use same x-sec/weight for T8bbllnunu as for T2tt
-#    logger.debug("Done fetching signal weights.")
+if options.susySignal:
+    from StopsDilepton.samples.helpers import getT2ttSignalWeight
+    logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
+    # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
+    assert len(samples)==1, "Can only process one SUSY sample at a time."
+    samples[0].files = samples[0].files[:maxN]
+    logger.info( "Fetching signal weights..." )
+    #signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi ) #Can use same x-sec/weight for T8bbllnunu as for T2tt
+    logger.info("Done fetching signal weights.")
 #else:
 #    samples = [ sampleMap[s] for s in options.samples ]
 #    logger.debug("Reading from CMG tuples: %s", ",".join(",".join(s.files) for s in samples) )
@@ -296,8 +297,8 @@ isMC   =  True not in [s.isData for s in samples]
 
 if options.susySignal:
     xSection = None
-    # special filet for bad jets in FastSim: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16#Cleaning_up_of_fastsim_jets_from
-    skimConds.append( "Sum$(JetFailId_pt>30&&abs(JetFailId_eta)<2.5&&JetFailId_mcPt==0&&JetFailId_chHEF<0.1)+Sum$(Jet_pt>30&&abs(Jet_eta)<2.5&&Jet_mcPt==0&&Jet_chHEF<0.1)==0" )
+    ## special filet for bad jets in FastSim: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16#Cleaning_up_of_fastsim_jets_from
+    #skimConds.append( "Sum$(JetFailId_pt>30&&abs(JetFailId_eta)<2.5&&JetFailId_mcPt==0&&JetFailId_chHEF<0.1)+Sum$(Jet_pt>30&&abs(Jet_eta)<2.5&&Jet_mcPt==0&&Jet_chHEF<0.1)==0" )
 else:
     # Check that all samples which are concatenated have the same x-section.
     assert isData or len(set([s.xSection for s in samples]))==1, "Not all samples have the same xSection: %s !"%(",".join([s.name for s in samples]))
@@ -350,6 +351,7 @@ if options.fileBasedSplitting:
     len_orig = len(sample.files)
     sample = sample.split( n=options.nJobs, nSub=options.job)
     logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
+    print sample.files
     logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
 
 if isMC:
@@ -450,7 +452,7 @@ branchKeepStrings_DATAMC = [\
 
 #branches to be kept for MC samples only
 branchKeepStrings_MC = [\
-    "Generator_*", "GenPart_*", "nGenPart", "genWeight",
+    "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt",
 ]
 
 #branches to be kept for data only
@@ -497,10 +499,10 @@ read_variables += [ TreeVariable.fromString('nPhoton/I'),
 
 new_variables = [ 'weight/F']
 if isMC:
-    #read_variables += [ TreeVariable.fromString('nTrueInt/F') ]
+    read_variables += [ TreeVariable.fromString('Pileup_nTrueInt/F') ]
     # reading gen particles for top pt reweighting
     read_variables.append( TreeVariable.fromString('nGenPart/I') )
-    read_variables.append( VectorTreeVariable.fromString('GenPart[pt/F,phi/F,eta/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
+    read_variables.append( VectorTreeVariable.fromString('GenPart[pt/F,mass/F,phi/F,eta/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( TreeVariable.fromString('genWeight/F') )
 
     new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F','reweightPU27fb/F','reweightPU27fbUp/F','reweightPU27fbDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F'])
@@ -545,8 +547,8 @@ if isTriLep or isDiLep:
             'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F', 'reweightDilepTriggerBackup/F', 'reweightDilepTriggerBackupUp/F', 'reweightDilepTriggerBackupDown/F',
             'reweightLeptonTrackingSF/F',
          ] )
-    if options.susySignal:
-        new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
+    #if options.susySignal:
+    #    new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
 new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
@@ -572,8 +574,8 @@ if addSystematicVariations:
         if var!='MC':
             new_variables.append('reweightBTag_'+var+'/F')
 
-if options.susySignal or options.TTDM:
-    read_variables += map(TreeVariable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
+#if options.susySignal or options.TTDM:
+#    read_variables += map(TreeVariable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
 if options.susySignal:
     #read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
@@ -634,6 +636,7 @@ grannies_B = {}
 def filler( event ):
     # shortcut
     r = reader.event
+    print r.run, r.luminosityBlock, r.event
     event.isData = s.isData
     if isMC: gPart = getGenPartsAll(r)
 
@@ -656,14 +659,14 @@ def filler( event ):
                 event.sleptonPdg = 1000015
             event.mCha  = r.GenSusyMChargino
             event.mSlep = r.GenSusyMSlepton
-        if 'T2tt' in options.samples[0]:
-            pol_weights = getPolWeights(r)
-            event.weight_pol_L = pol_weights[0]
-            event.weight_pol_R = pol_weights[1]
+        #if 'T2tt' in options.samples[0]:
+        #    pol_weights = getPolWeights(r)
+        #    event.weight_pol_L = pol_weights[0]
+        #    event.weight_pol_R = pol_weights[1]
 
         event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
-        event.mStop = r.GenSusyMStop
-        event.mNeu  = r.GenSusyMNeutralino
+        event.mStop = int(r.GenSusyMStop)
+        event.mNeu  = int(r.GenSusyMNeutralino)
         event.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
         event.reweightXSecDown  = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacDown']
     elif isMC:
@@ -681,9 +684,9 @@ def filler( event ):
         event.jsonPassed_ = event.jsonPassed
 
     if isMC:
-        event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.PV_npvsGood ) # is this correct?
-        event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.PV_npvsGood )
-        event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.PV_npvsGood )
+        event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.Pileup_nTrueInt ) # is this correct?
+        event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.Pileup_nTrueInt )
+        event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.Pileup_nTrueInt )
 
     # top pt reweighting
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
@@ -823,9 +826,10 @@ def filler( event ):
 #              setattr(event, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(event, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(event, "met_phi"+i)))))
 
         if fastSim:
-            event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert) for l in leptons], 1)
-            event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = +1) for l in leptons], 1)
-            event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.nVert, sigma = -1) for l in leptons], 1)
+            ## To check whether PV_npvsGood is the correct replacement for nVert
+            event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.PV_npvsGood) for l in leptons], 1)
+            event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.PV_npvsGood, sigma = +1) for l in leptons], 1)
+            event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.PV_npvsGood, sigma = -1) for l in leptons], 1)
 
         if isMC:
             event.reweightDilepTrigger       = 0 
@@ -899,14 +903,14 @@ def filler( event ):
               dlg = dl + gamma
               event.dlg_mass = dlg.M()
 
-            if options.susySignal:
-                mt2Calc.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
-                setattr(event, "dl_mt2ll_gen", mt2Calc.mt2ll())
-                if len(jets)>=2:
-                    bj0, bj1 = (bJets+nonBJets)[:2]
-                    mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                    setattr(event, "dl_mt2bb_gen",   mt2Calc.mt2bb())
-                    setattr(event, "dl_mt2blbl_gen", mt2Calc.mt2blbl())
+            #if options.susySignal:
+            #    mt2Calc.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
+            #    setattr(event, "dl_mt2ll_gen", mt2Calc.mt2ll())
+            #    if len(jets)>=2:
+            #        bj0, bj1 = (bJets+nonBJets)[:2]
+            #        mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+            #        setattr(event, "dl_mt2bb_gen",   mt2Calc.mt2bb())
+            #        setattr(event, "dl_mt2blbl_gen", mt2Calc.mt2blbl())
                 
             for i in metVariants:
                 mt2Calc.setMet(getattr(event, 'met_pt'+i), getattr(event, 'met_phi'+i))
@@ -1098,7 +1102,7 @@ if options.nJobs == 1:
         for s in signalWeight.keys():
             #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
             logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
-            cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
+            cut = "Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))=="+str(s[0])+"&&Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022))=="+str(s[1])
             logger.debug("Using cut %s", cut)
 
             signal_prefix = signalModel + '_'

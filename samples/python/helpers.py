@@ -116,7 +116,7 @@ def getT2ttSignalWeight(sample, lumi):
     mMax = 1550
     bStr = str(mMax)+','+str(mMax)
     #sample.chain.Draw("GenSusyMNeutralino:GenSusyMStop>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
-    sample.chain.Draw("Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022)):Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
+    sample.chain.Draw("Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022)):Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
     hNEvents = ROOT.gDirectory.Get("hNEvents")
     for i in range (mMax):
         for j in range (mMax):

@@ -72,7 +72,7 @@ dirs = {}
 #        #"TTHbb_ext3", 
 #        "TTHnobb_pow"]
 #dirs['TTHbb']            = ["TTHbb"]
-#dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu_ext"]
+dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu_ext1_comb"]
 dirs['TTZtoQQ']          = ["TTZToQQ"]
 #dirs['TTZ']              = ["TTZToLLNuNu_ext", "TTZToQQ"]
 #dirs['TTZ_LO']           = ["TTZ_LO"]
@@ -143,7 +143,7 @@ directories = { key : [ os.path.join( data_directory, postProcessing_directory, 
 #TTW            = Sample.fromDirectory(name="TTW",              treeName="Events", isData=False, color=color.TTW,             texName="t#bar{t}W",                         directory=directories['TTW'])
 #TTZ            = Sample.fromDirectory(name="TTZ",              treeName="Events", isData=False, color=color.TTZ,             texName="t#bar{t}Z",                         directory=directories['TTZ'])
 #TTZ_LO        = Sample.fromDirectory(name="TTZ_LO",              treeName="Events", isData=False, color=color.TTZ,             texName="t#bar{t}Z",                         directory=directories['TTZ_LO'])
-#TTZtoLLNuNu    = Sample.fromDirectory(name="TTZtoNuNu",        treeName="Events", isData=False, color=color.TTZtoLLNuNu,     texName="t#bar{t}Z (l#bar{l}/#nu#bar{#nu})", directory=directories['TTZtoLLNuNu'])
+TTZtoLLNuNu    = Sample.fromDirectory(name="TTZtoNuNu",        treeName="Events", isData=False, color=color.TTZtoLLNuNu,     texName="t#bar{t}Z (l#bar{l}/#nu#bar{#nu})", directory=directories['TTZtoLLNuNu'])
 TTZtoQQ        = Sample.fromDirectory(name="TTZtoQQ",          treeName="Events", isData=False, color=color.TTZtoQQ,         texName="t#bar{t}Z (q#bar{q})",              directory=directories['TTZtoQQ'])
 #TZQ            = Sample.fromDirectory(name="TZQ",              treeName="Events", isData=False, color=color.TZQ,             texName="tZq",                               directory=directories['TZQ'])
 #TWZ            = Sample.fromDirectory(name="TWZ",              treeName="Events", isData=False, color=color.TWZ,             texName="tWZ",                               directory=directories['TWZ'])
