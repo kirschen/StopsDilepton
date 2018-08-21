@@ -33,7 +33,6 @@ from StopsDilepton.tools.polReweighting import getPolWeights
 
 # For MVA discriminator
 from StopsDilepton.MVA.KerasReader import KerasReader
-from StopsDilepton.MVA.default_classifier import training_variables_list
 
 from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
@@ -450,11 +449,11 @@ branchKeepStrings_DATA = [ ]
 jetCorrInfo = []
 jetMCInfo = []
 
-if not (isTiny or isSmall):
-    branchKeepStrings_DATAMC+=[
-        "nPhoton", "Photon_hoe", "Photon_r9", "Photon_sieie", "Photon_pfRelIso03_chg",
-        "Photon_pt", "Photon_eta", "Photon_phi", "Photon_mass",]
-    branchKeepStrings_DATAMC+= ["Photon_cutBased"] if (not options.year == 2017) else ["Photon_cutBasedBitmap"]
+#if not (isTiny or isSmall):
+#    branchKeepStrings_DATAMC+=[
+#        "nPhoton", "Photon_hoe", "Photon_r9", "Photon_sieie", "Photon_pfRelIso03_chg",
+#        "Photon_pt", "Photon_eta", "Photon_phi", "Photon_mass",]
+#    branchKeepStrings_DATAMC+= ["Photon_cutBased"] if (not options.year == 2017) else ["Photon_cutBasedBitmap"]
 
 if sample.isData:
     lumiScaleFactor=None
@@ -528,7 +527,7 @@ if isTriLep or isDiLep or isSingleLep:
 if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
-    new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F', 'MVA_T2tt_v1/F'] )
+    new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F', 'MVA_T2tt_default/F', 'MVA_T2tt_lep_pt/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p09/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1/F'] )
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
     if isMC: new_variables.extend( \
         [   'zBoson_genPt/F', 'zBoson_genEta/F', 
@@ -577,8 +576,14 @@ if fastSim and (isTriLep or isDiLep):
 
 
 ## Initialize keras for different trainings
-MVA_T2tt_v1 = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-06-1428', training_variables_list )
+from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
+from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
 
+MVA_T2tt_default    = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-20-1005', training_variables_list )
+MVA_T2tt_lep_pt     = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-16-1253', training_variables_list_lep_pt )
+
+MVA_T8bbllnunu_XCha0p5_XSlep0p09        = KerasReader( 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1522', training_variables_list )
+MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1   = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1153', training_variables_list )
 
 # Define a reader
 reader = sample.treeReader( \
@@ -886,15 +891,22 @@ def filler( event ):
                     'Jet_dphi':         deltaPhi( event.JetGood_phi[0], event.JetGood_phi[1] ),
                     'dl_eta':           event.dl_eta,
                     'dl_mass':          event.dl_mass,
+                    'dl_pt':            event.dl_pt,
                     'ht':               event.ht,
                     'l1_eta':           event.l1_eta,
+                    'l1_pt':            event.l1_pt,
                     'l2_eta':           event.l2_eta,
+                    'l2_pt':            event.l2_pt,
                     'lep_dphi':         deltaPhi(event.l1_phi, event.l2_phi),
                     'metSig':           event.metSig,
                     'met_pt':           event.met_pt,
                     }
 
-                event.MVA_T2tt_v1 = MVA_T2tt_v1.eval(eventdict)
+                event.MVA_T2tt_default      = MVA_T2tt_default.eval(eventdict)
+                event.MVA_T2tt_lep_pt       = MVA_T2tt_lep_pt.eval(eventdict)
+                event.MVA_T8bbllnunu_XCha0p5_XSlep0p09      = MVA_T8bbllnunu_XCha0p5_XSlep0p09.eval(eventdict)
+                event.MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1 = MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1.eval(eventdict)
+
 
             # To check MC truth when looking at the TTZToLLNuNu sample
             if isMC:
