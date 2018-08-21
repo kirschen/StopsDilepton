@@ -4,7 +4,7 @@ cmsrel CMSSW_8_0_26_patch1
 cd CMSSW_8_0_26_patch1/src
 cmsenv
 git cms-init
-git clone https://github.com/GhentAnalysis/StopsDilepton
+git clone https://github.com/HephySusySW/StopsDilepton
 ./StopsDilepton/setupOptiMass.sh
 ./StopsDilepton/setup80X.sh
 ```
