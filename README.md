@@ -4,7 +4,7 @@ cmsrel CMSSW_10_1_5
 cd CMSSW_10_1_5/src
 cmsenv
 git cms-init
-git clone https://github.com/GhentAnalysis/StopsDilepton
+git clone https://github.com/HephySusySW/StopsDilepton
 ./StopsDilepton/setup101X.sh
 ```
 # for OptiMass M2 variables
