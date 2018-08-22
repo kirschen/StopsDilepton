@@ -7,7 +7,7 @@ git cms-init
 git clone https://github.com/HephySusySW/StopsDilepton
 ./StopsDilepton/setup101X.sh
 ```
-# for OptiMass M2 variables
+# for OptiMass M2 variables (optional)
 ```
 ./StopsDilepton/setupOptiMass.sh
 ```
