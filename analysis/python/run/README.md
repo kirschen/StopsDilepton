@@ -10,7 +10,7 @@ First, get estimates using the following command:
 ```
 python run_estimate.py --selectEstimator TTJets --MVAselection MVA_T2tt_default --MVAcut 0.5
 ```
-This fills caches with several jobs in parallel, so don't run more than one of those jobs on one machine at a time. We use `TTJets`, `DY`, `TTZ`, `multiboson` and `other`. Four MVA classifiers are implemented so far, the interesting ones as a start are: `MVA_T2tt_default`, `MVA_T2tt_lep_pt`.
+This fills caches with several jobs in parallel, so don't run more than one of those jobs on one machine at a time. We use `TTJets`, `DY`, `TTZ`, `multiBoson` and `other`. Four MVA classifiers are implemented so far, the interesting ones as a start are: `MVA_T2tt_default`, `MVA_T2tt_lep_pt`.
 The MVAcut flag defines the lower cut on this classifier.
 
 If you run over a lot of points you can also write a script that submits to the batch system.
