@@ -12,6 +12,11 @@ python run_estimate.py --selectEstimator TTJets --MVAselection MVA_T2tt_default 
 ```
 This fills caches with several jobs in parallel, so don't run more than one of those jobs on one machine at a time. We use `TTJets`, `DY`, `TTZ`, `multiboson` and `other`. Four MVA classifiers are implemented so far, the interesting ones as a start are: `MVA_T2tt_default`, `MVA_T2tt_lep_pt`.
 The MVAcut flag defines the lower cut on this classifier.
+If you run over a lot of points you can also write a script that uses no multithreading (`--noMultiThreading`) and submit to the batch system with a command like
+```
+python run_estimate.py --selectEstimator DY --MVAselection MVA_T2tt_default --MVAcut 0.5 --selectRegion 0 --noMultiThreading
+```
+Right now, we use regions 0-25.
 
 # Running limits
 To run limits (and at the same time get estimates for the signal point) for e.g. the T2tt mStop=800, mNeutralino=0 point use:
