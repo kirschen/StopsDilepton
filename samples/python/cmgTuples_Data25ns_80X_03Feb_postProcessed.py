@@ -14,6 +14,9 @@ except: from StopsDilepton.tools.user import data_directory
 try:    postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except: postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 
+data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
+postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
 dirs = {}

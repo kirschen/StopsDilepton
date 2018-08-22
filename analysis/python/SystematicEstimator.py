@@ -199,27 +199,27 @@ class SystematicEstimator:
             (region, channel, setup.sysClone({'reweight':['reweightPU36fbUp']})),
             (region, channel, setup.sysClone({'reweight':['reweightPU36fbDown']})),
 
-            (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
+            #(region, channel, setup.sysClone({'remove':['reweightTopPt']})),
 
-            (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
-            (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
+            #(region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
+            #(region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
 
-            (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
-            (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
+            #(region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
+            #(region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
 
-            (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnUp'})),
-            (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnDown'})),
+            #(region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnUp'})),
+            #(region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnDown'})),
 
-            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
-            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
-            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']})),
-            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']})),
+            #(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
+            #(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
+            #(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']})),
+            #(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']})),
 
-            (region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']})),
-            (region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']})),
+            #(region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']})),
+            #(region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']})),
 
-            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']})),
-            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupUp']})),
+            #(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']})),
+            #(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupUp']})),
         ]
         return l
 

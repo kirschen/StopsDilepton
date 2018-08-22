@@ -8,13 +8,32 @@ parser.add_option('--logLevel',              dest="logLevel",              defau
 parser.add_option("--control",               dest="control",               default=None,                action='store',      choices=[None, "DY", "VV", "DYVV", "TTZ1", "TTZ2", "TTZ3", "TTZ4", "TTZ5"], help="For CR region?")
 parser.add_option("--useGenMet",             dest="useGenMet",             default=False,               action='store_true', help="use genMET instead of recoMET, used for signal studies")
 parser.add_option("--aggregate",             dest="aggregate",             default=False,               action='store_true', help="run over aggregated signal regions")
-parser.add_option("--DMsync",             dest="DMsync",             default=False,               action='store_true', help="run over DM sync signal regions")
+parser.add_option("--DMsync",                dest="DMsync",                default=False,               action='store_true', help="run over DM sync signal regions")
+parser.add_option("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices=['MVA_T2tt_default', 'MVA_T2tt_lep_pt', 'MVA_T8bbllnunu_XCha0p5_XSlep0p09', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1'])
+parser.add_option("--MVAcut",                dest="MVAcut",                default=0.0, type="float",   action='store',      help="Which value to cut at?")
+
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels, trilepChannels
-from StopsDilepton.analysis.estimators   import setup, allEstimators
+from StopsDilepton.analysis.estimators   import *
 from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsAgg, regionsDM4,regionsDM5, regionsDM6, regionsDM7
 
+from StopsDilepton.analysis.Setup import Setup
+
+#define samples
+data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
+postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+
+data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
+postProcessing_directory = 'stops_2016_nano_v2/dilep'
+from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+
+setup = Setup()
+
+if options.MVAselection:
+    MVAcut = "%s>=%s"%(options.MVAselection, options.MVAcut)
+    setup = setup.sysClone({'selectionModifier':MVAcut})
 
 # Logging
 import StopsDilepton.tools.logger as logger
@@ -27,11 +46,15 @@ if options.aggregate: allRegions = regionsAgg
 elif options.DMsync: allRegions = regionsDM7
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
-from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed    import signals_T2tt
+from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed    import signals_T2tt
 #from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5, signals_T8bbllnunu_XCha0p5_XSlep0p95
 #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
 #allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in channels + trilepChannels}) for s in signals_TTbarDM + signals_T2tt + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p05 + signals_T8bbllnunu_XCha0p5_XSlep0p95]
+
+estimators = estimatorList(setup)
+allEstimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
 allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in channels + trilepChannels}) for s in signals_T2tt ]
+
 
 # Select estimate
 estimate = next((e for e in allEstimators if e.name == options.selectEstimator), None)

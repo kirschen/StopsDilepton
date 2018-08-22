@@ -13,10 +13,8 @@ from StopsDilepton.tools.user import analysis_results
 from StopsDilepton.tools.helpers import getObjFromFile
 
 #define samples
-postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
-postProcessing_directory = 'postProcessed_80X_v35/dilepTiny'
-from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
 #Choices for specific samples
 #DYSample          = DY
@@ -24,7 +22,7 @@ DYSample           = DY_HT_LO #LO, HT binned including a low HT bin starting fro
 #TTJetsSample      = TTJets #NLO
 #TTJetsSample       = Sample.combine("TTJets", [TTJets_Lep, singleTop], texName = "t#bar{t}/single-t") #LO, very large dilep + single lep samples
 TTJetsSample       = Top_pow
-otherEWKComponents = [TTXNoZ, WJetsToLNu]
+otherEWKComponents = [TTXNoZ]#, WJetsToLNu]
 otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations, metVariations
@@ -73,11 +71,12 @@ class Setup:
             'triLep':        default_triLep,
         }
 
-        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF','reweightLeptonTrackingSF'], 'selectionModifier':None}
+        #self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF','reweightLeptonTrackingSF'], 'selectionModifier':None}
+        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb'], 'selectionModifier':None}
         self.lumi     = lumi
         self.dataLumi = dataLumi
 
-        self.sample = {
+        self.samples = {
         'Top_gaussian' :   {c:Top_gaussian for c in channels+trilepChannels},
         'Top_nongaussian': {c:Top_nongaussian for c in channels+trilepChannels},
         'Top_fakes' :      {c:Top_fakes for c in channels+trilepChannels},
@@ -163,7 +162,7 @@ class Setup:
         '''
         #Consistency checks
         if self.sys['selectionModifier']:
-          assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'] or 'nVert' in self.sys['selectionModifier'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
+          assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'] or 'nVert' in self.sys['selectionModifier'] or 'MVA' in self.sys['selectionModifier'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
         assert dataMC in ['Data','MC'],                                                   "dataMC = Data or MC, got %r."%dataMC
         assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                    "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
 
@@ -204,16 +203,16 @@ class Setup:
             res['prefixes'].append(prefix)
 
         if metMin and metMin>0:
-          res['cuts'].append('met_pt'+sysStr+metStr+'>='+str(metMin))
+          res['cuts'].append('MET_pt'+sysStr+metStr+'>='+str(metMin))
           res['prefixes'].append('met'+str(metMin))
         if metSigMin and metSigMin>0:
           res['cuts'].append('metSig'+sysStr+metStr+'>='+str(metSigMin))
           res['prefixes'].append('metSig'+str(metSigMin))
         if dPhi:
-          res['cuts'].append('cos(met_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25)')
+          res['cuts'].append('cos(MET_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(MET_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25)')
           res['prefixes'].append('dPhiJet0-dPhiJet')
         elif dPhiInv:
-          res['cuts'].append('!(cos(met_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25))')
+          res['cuts'].append('!(cos(MET_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(MET_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25))')
           res['prefixes'].append('dPhiInv')
 
         if not hadronicSelection:
@@ -254,21 +253,28 @@ class Setup:
               res['cuts'].append(chStr)
 
               res['prefixes'].append('looseLeptonVeto')
-              res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2')
+              #res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2')
+              res['cuts'].append('(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2')
 
               res['prefixes'].append('relIso0.12')
               res['cuts'].append("l1_relIso03<0.12&&l2_relIso03<0.12")
 
               res['cuts'].append("l1_pt>25")
 
-        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), badMuonFilters='Moriond2017Official', isFastSim=isFastSim))
+        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), year=2016, isFastSim=isFastSim))
         #res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
-        
+ 
+        # for SUSY PU uncertainty of 2016 samples
         if self.sys['selectionModifier']:
             if "nVert" in self.sys['selectionModifier']:
                 res['cuts'].append(self.sys['selectionModifier'])
-        
+
+        # for MVA studies
+        if self.sys['selectionModifier'].count('MVA'):
+            res['cuts'].append(self.sys['selectionModifier'])
+
+        # for SUSY fast sim MET uncertainty
         if self.sys['selectionModifier'] == 'genMet':
             res['cuts'] = [ fastSimGenMetReplacements(r) for r in res['cuts'] ]
         return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr': self.weightString()}
