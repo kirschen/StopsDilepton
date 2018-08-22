@@ -19,7 +19,8 @@ argParser.add_argument("--significanceScan",         default = False, action = "
 argParser.add_argument("--removeSR",      default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 argParser.add_argument("--showSyst",      default = '', action = "store", help="Print the systematic uncertainties?")
-
+argParser.add_argument("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices=['MVA_T2tt_default', 'MVA_T2tt_lep_pt', 'MVA_T8bbllnunu_XCha0p5_XSlep0p09', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1'])
+argParser.add_argument("--MVAcut",                dest="MVAcut",                default=0.0, type=float,   action='store',      help="Which value to cut at?")
 
 args = argParser.parse_args()
 
@@ -48,6 +49,11 @@ postProcessing_directory = 'stops_2016_nano_v2/dilep'
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
 setup = Setup()
+
+if args.MVAselection:
+    MVAcut = "%s>=%s"%(args.MVAselection, args.MVAcut)
+    setup = setup.sysClone({'selectionModifier':MVAcut})
+
 
 # Define CR
 setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False,  'zWindow': 'onZ'})
@@ -132,6 +138,9 @@ elif args.controlDYVV:      subDir += 'controlDYVV'
 elif args.controlTTZ:       subDir += 'controlTTZ'
 elif args.significanceScan: subDir += 'significance'
 else:                       subDir += 'signalOnly'
+
+if args.MVAselection:   subDir += '_'+MVAcut.replace('>=','_')
+
 baseDir = os.path.join(setup.analysis_results, subDir)
 
 limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension)
