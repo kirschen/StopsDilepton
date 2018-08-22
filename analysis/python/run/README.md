@@ -14,7 +14,7 @@ This fills caches with several jobs in parallel, so don't run more than one of t
 The MVAcut flag defines the lower cut on this classifier.
 
 If you run over a lot of points you can also write a script that submits to the batch system.
-In that case, use no multithreading (`--noMultiThreading`) and submit one job per signal region (0-25) with `--selectRegion`.
+In that case, use no multithreading (`--noMultiThreading`) and submit one job per signal region (0-13) with `--selectRegion`.
 ```
 python run_estimate.py --selectEstimator DY --MVAselection MVA_T2tt_default --MVAcut 0.5 --selectRegion 0 --noMultiThreading
 ```
