@@ -55,167 +55,32 @@ def get_parser():
     import argparse
     argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
 
-    argParser.add_argument('--logLevel',
-        action='store',
-        nargs='?',
-        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],
-        default='INFO',
-        help="Log level for logging"
-        )
-
-    argParser.add_argument('--overwrite',
-        action='store_true',
-#        default = True,
-        help="Overwrite existing output files, bool flag set to True  if used")
-
-    argParser.add_argument('--samples',
-        action='store',
-        nargs='*',
-        type=str,
-#        default=['MuonEG_Run2015D_16Dec'],
-        default=['TTZToLLNuNu_ext'],
-        help="List of samples to be post-processed, given as CMG component name"
-        )
-
-    argParser.add_argument('--triggerSelection',
-        action='store',
-        nargs='?',
-        type=str,
-        default=None,
-        choices=['mumu', 'ee', 'mue', 'mu_for_mumu', 'e_for_ee', 'mu_for_mue', 'e_for_mue','singleMu','singleEle'],
-        help="Trigger selection?"
-        )
-
-    argParser.add_argument('--eventsPerJob',
-        action='store',
-        nargs='?',
-        type=int,
-        default=30000000,
-        help="Maximum number of events per job (Approximate!)."
-        )
-
-    argParser.add_argument('--nJobs',
-        action='store',
-        nargs='?',
-        type=int,
-        default=1,
-        help="Maximum number of simultaneous jobs."
-        )
-    argParser.add_argument('--job',
-        action='store',
-        type=int,
-        default=0,
-        help="Run only jobs i"
-        )
-
-    argParser.add_argument('--minNJobs',
-        action='store',
-        nargs='?',
-        type=int,
-        default=1,
-        help="Minimum number of simultaneous jobs."
-        )
-
-    argParser.add_argument('--dataDir',
-        action='store',
-        nargs='?',
-        type=str,
-        default=user.cmg_directory,
-        help="Name of the directory where the input data is stored (for samples read from Heppy)."
-        )
-
-    argParser.add_argument('--targetDir',
-        action='store',
-        nargs='?',
-        type=str,
-        default=user.data_output_directory,
-        help="Name of the directory the post-processed files will be saved"
-        )
-
-    argParser.add_argument('--processingEra',
-        action='store',
-        nargs='?',
-        type=str,
-        default='postProcessed_80X_v22',
-        help="Name of the processing era"
-        )
-
-    argParser.add_argument('--skim',
-        action='store',
-        nargs='?',
-        type=str,
-        default='dilepTiny',
-        help="Skim conditions to be applied for post-processing"
-        )
-
-    argParser.add_argument('--LHEHTCut',
-        action='store',
-        nargs='?',
-        type=int,
-        default=-1,
-        help="LHE cut."
-        )
-
-    argParser.add_argument('--keepAllJets',
-        action='store_true',
-        help="Keep also forward jets?"
-        )
-
-    argParser.add_argument('--small',
-        action='store_true',
-#        default=True,
-        help="Run the file on a small sample (for test purpose), bool flag set to True if used",
-        #default = True
-        )
-
-    argParser.add_argument('--susySignal',
-        action='store_true',
-        help="Is SUSY signal?"
-        )
-
-    argParser.add_argument('--TTDM',
-        action='store_true',
-        help="Is TTDM signal?"
-        )
-
-    argParser.add_argument('--fastSim',
-        action='store_true',
-        help="FastSim?"
-        )
-
-    argParser.add_argument('--skipGenLepMatching',
-        action='store_true',
-        help="skip matched genleps??"
-        )
-
-    argParser.add_argument('--keepLHEWeights',
-        action='store_true',
-        help="Keep LHEWeights?"
-        )
-
-    argParser.add_argument('--checkTTGJetsOverlap',
-        action='store_true',
-        default=False,
-        help="Keep TTGJetsEventType which can be used to clean TTG events from TTJets samples"
-        )
-
-    argParser.add_argument('--skipSystematicVariations',
-        action='store_true',
-        help="Don't calulcate BTag, JES and JER variations."
-        )
-
-    argParser.add_argument('--noTopPtReweighting',
-        action='store_true',
-        help="Skip top pt reweighting.")
-
-    argParser.add_argument('--year',
-        action='store',
-        type=int,
-        help="Which year?"
-        )
-
-    argParser.add_argument('--fileBasedSplitting', action='store_true', help="Split njobs according to files")
-    argParser.add_argument('--forceProxy', action='store_true', help="Don't check certificate")
+    argParser.add_argument('--logLevel',    action='store',         nargs='?',  choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],   default='INFO', help="Log level for logging" )
+    argParser.add_argument('--overwrite',   action='store_true',    default = False,                                                    help="Overwrite existing output files, bool flag set to True  if used" )
+    argParser.add_argument('--samples',     action='store',         nargs='*',  type=str, default=['TTZToLLNuNu_ext'],                  help="List of samples to be post-processed, given as CMG component name" )
+    argParser.add_argument('--triggerSelection', action='store',    nargs='?',  type=str, default=None, choices=['mumu', 'ee', 'mue', 'mu_for_mumu', 'e_for_ee', 'mu_for_mue', 'e_for_mue','singleMu','singleEle'], help="Trigger selection?" ) # change to ttZ strategy
+    argParser.add_argument('--eventsPerJob',action='store',        nargs='?',   type=int, default=30000000,                             help="Maximum number of events per job (Approximate!)." )
+    argParser.add_argument('--nJobs',       action='store',        nargs='?',   type=int, default=1,                                    help="Maximum number of simultaneous jobs." )
+    argParser.add_argument('--job',         action='store',                     type=int, default=0,                                    help="Run only jobs i" )
+    argParser.add_argument('--minNJobs',    action='store',        nargs='?',   type=int, default=1,                                    help="Minimum number of simultaneous jobs." )
+    argParser.add_argument('--dataDir',     action='store',        nargs='?',   type=str, default=user.cmg_directory,                   help="Name of the directory where the input data is stored (for samples read from Heppy)." )
+    argParser.add_argument('--targetDir',   action='store',        nargs='?',   type=str, default=user.data_output_directory,           help="Name of the directory the post-processed files will be saved" )
+    argParser.add_argument('--processingEra', action='store',      nargs='?',   type=str, default='postProcessed_80X_v22',              help="Name of the processing era" )
+    argParser.add_argument('--skim',        action='store',        nargs='?',   type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
+    argParser.add_argument('--LHEHTCut',    action='store',        nargs='?',   type=int, default=-1,                                   help="LHE cut." )
+    argParser.add_argument('--year',        action='store',        type=int,                                                            help="Which year?" )
+    argParser.add_argument('--keepAllJets', action='store_true',                                                                        help="Keep also forward jets?" )
+    argParser.add_argument('--small',       action='store_true',                                                                        help="Run the file on a small sample (for test purpose), bool flag set to True if used" )
+    argParser.add_argument('--susySignal',  action='store_true',                                                                        help="Is SUSY signal?" )
+    argParser.add_argument('--TTDM',        action='store_true',                                                                        help="Is TTDM signal?" )
+    argParser.add_argument('--fastSim',     action='store_true',                                                                        help="FastSim?" )
+    argParser.add_argument('--skipGenLepMatching',          action='store_true',                                                        help="skip matched genleps??" )
+    argParser.add_argument('--keepLHEWeights',              action='store_true',                                                        help="Keep LHEWeights?" )
+    argParser.add_argument('--checkTTGJetsOverlap',         action='store_true',                                                        help="Keep TTGJetsEventType which can be used to clean TTG events from TTJets samples" )
+    argParser.add_argument('--skipSystematicVariations',    action='store_true',                                                        help="Don't calulcate BTag, JES and JER variations.")
+    argParser.add_argument('--noTopPtReweighting',          action='store_true',                                                        help="Skip top pt reweighting.")
+    argParser.add_argument('--fileBasedSplitting',          action='store_true',                                                        help="Split njobs according to files")
+    argParser.add_argument('--forceProxy',                  action='store_true',                                                        help="Don't check certificate")
 
     return argParser
 
