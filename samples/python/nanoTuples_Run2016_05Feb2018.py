@@ -77,7 +77,6 @@ DoubleEG_Run2016 = [\
     DoubleEG_Run2016H_05Feb2018_ver3,
     ]
     
-
 allSamples = DoubleMuon_Run2016 + MuonEG_Run2016 + DoubleEG_Run2016
 
 for s in allSamples:

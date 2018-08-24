@@ -177,8 +177,10 @@ def getFilterCut(isData=False, isFastSim = False, year = 2016, ignoreJSON=False)
             filterCut            = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_EcalDeadCellTriggerPrimitiveFilter"
             filterCut            += "&&Flag_METFilters"#"&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016" #maybe Flag_METFilters instead?
 
-    if isData: filterCut += "&&weight>0"
-        #if not ignoreJSON: filterCut += "&&jsonPassed>0" ## This is very important for samples based on nanoAOD!!
-        #else:
-        #    logger.info("Ignoring json file. Very dangerous!!")
+    if isData:
+        filterCut += "&&weight>0"
+        if not ignoreJSON:
+            filterCut += "&&jsonPassed>0" ## This is very important for samples based on nanoAOD!!
+        else:
+            logger.info("Ignoring json file. Very dangerous!!")
     return filterCut

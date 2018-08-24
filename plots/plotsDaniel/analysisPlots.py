@@ -26,7 +26,8 @@ argParser.add_argument('--signal',             action='store',      default=None
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_test')
-argParser.add_argument('--selection',          action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
+argParser.add_argument('--year',               action='store', type=int,      default=2016)
+argParser.add_argument('--selection',          action='store',      default='njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
@@ -51,10 +52,13 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+
+data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+postProcessing_directory = "stops_2016_nano_v2/dilep/"
+from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+postProcessing_directory = "stops_2016_nano_v2/dilep/"
+from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018_postProcessed import *
+
 if args.signal == "T2tt":
     postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
@@ -134,14 +138,15 @@ def drawPlots(plots, mode, dataMCScale):
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
 	    scaling = {},
 	    legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88) if not args.noData else (0.50,0.9-0.047*sum(map(len, plot.histos)),0.85,0.9),
-	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale )
+	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
+        copyIndexPHP = True,
       )
 
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
+read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
+                  "MET_pt/F", "MET_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
 
 #
 #
@@ -167,16 +172,12 @@ allPlots   = {}
 allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
-  if   mode=="mumu": data_sample = DoubleMuon_Run2016_backup
-  elif mode=="ee":   data_sample = DoubleEG_Run2016_backup
-  elif mode=="mue":  data_sample = MuonEG_Run2016_backup
-  if   mode=="mumu": data_sample.texName = "data (2 #mu)"
-  elif mode=="ee":   data_sample.texName = "data (2 e)"
-  elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
+  data_sample = Run2016
+  data_sample.texName = "data (2016)"
 
-  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, year=args.year), getLeptonSelection(mode)])
   data_sample.name           = "data"
-  data_sample.read_variables = ["evt/I","run/I"]
+  data_sample.read_variables = ["event/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   lumi_scale                 = data_sample.lumi/1000
 
@@ -184,7 +185,7 @@ for index, mode in enumerate(allModes):
   #Blinding policies for DM and T2tt analyses #FIXME
   if not args.unblinded:
     if args.signal == "DM":
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.evt % 15 == 0) else 0)
+      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.event % 15 == 0) else 0)
       lumi_scale = lumi_scale/15
     else:
       weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
@@ -199,14 +200,15 @@ for index, mode in enumerate(allModes):
 
   for sample in mc + signals:
     sample.scale          = lumi_scale
-    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
+   #sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
    #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
-    if (('ttjets' in sample.name) or ('ttlep' in sample.name)) and args.isr:
-        sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F', 'reweight_nISR/F']
-        sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF*event.reweight_nISR
-    else:
-        sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF
-    sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
+    sample.read_variables = ['reweightPU36fb/F']
+    #if (('ttjets' in sample.name) or ('ttlep' in sample.name)) and args.isr:
+    #    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F', 'reweight_nISR/F']
+    #    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF*event.reweight_nISR
+    #else:
+    sample.weight         = lambda event, sample: event.reweightPU36fb
+    sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
 
   for sample in signals:
       if args.signal == "T2tt" or args.signal == "T8bbllnunu" or args.signal == "compilation":
@@ -235,7 +237,7 @@ for index, mode in enumerate(allModes):
             sample.reduceFiles( to = 1 )
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = weight_, selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
+  Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
   
   plots = []
 
@@ -247,19 +249,31 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     name = 'nVtxs', texX = 'vertex multiplicity', texY = 'Number of Events',
-    attribute = TreeVariable.fromString( "nVert/I" ),
+    attribute = TreeVariable.fromString( "Pileup_nTrueInt/F" ),
+    binning=[50,0,50],
+  ))
+    
+  plots.append(Plot(
+    name = 'PV_npvsGood', texX = 'N_{PV} (good)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "PV_npvsGood/I" ),
+    binning=[50,0,50],
+  ))
+    
+  plots.append(Plot(
+    name = 'PV_npvs', texX = 'N_{PV} (total)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "PV_npvs/I" ),
     binning=[50,0,50],
   ))
 
   plots.append(Plot(
       texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
-      attribute = TreeVariable.fromString( "met_pt/F" ),
+      attribute = TreeVariable.fromString( "MET_pt/F" ),
       binning=[400/20,0,400],
   ))
 
   plots.append(Plot(
       texX = '#phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
-      attribute = TreeVariable.fromString( "met_phi/F" ),
+      attribute = TreeVariable.fromString( "MET_phi/F" ),
       binning=[10,-pi,pi],
   ))
 
@@ -320,8 +334,8 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX = 'Cos(#Delta#phi(ll, E_{T}^{miss}))', texY = 'Number of Events',
     name = 'cosZMetphi',
-    attribute = lambda event, sample: cos( event.dl_phi - event.met_phi ), 
-    read_variables = ["met_phi/F", "dl_phi/F"],
+    attribute = lambda event, sample: cos( event.dl_phi - event.MET_phi ), 
+    read_variables = ["MET_phi/F", "dl_phi/F"],
     binning = [10,-1,1],
   ))
 
@@ -364,8 +378,8 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     name = "JZB",
     texX = 'JZB (GeV)', texY = 'Number of Events / 32 GeV',
-    attribute = lambda event, sample: sqrt( (event.met_pt*cos(event.met_phi)+event.dl_pt*cos(event.dl_phi))**2 + (event.met_pt*sin(event.met_phi)+event.dl_pt*sin(event.dl_phi))**2) - event.dl_pt, 
-	read_variables = ["met_phi/F", "dl_phi/F", "met_pt/F", "dl_pt/F"],
+    attribute = lambda event, sample: sqrt( (event.MET_pt*cos(event.MET_phi)+event.dl_pt*cos(event.dl_phi))**2 + (event.MET_pt*sin(event.MET_phi)+event.dl_pt*sin(event.dl_phi))**2) - event.dl_pt, 
+	read_variables = ["MET_phi/F", "dl_phi/F", "MET_pt/F", "dl_pt/F"],
     binning=[25,-200,600],
   ))
 
@@ -392,16 +406,16 @@ for index, mode in enumerate(allModes):
     plots.append(Plot(
       name = 'cosMetJet1phi',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
-      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0]), 
-      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      attribute = lambda event, sample: cos( event.MET_phi - event.JetGood_phi[0]), 
+      read_variables = ["MET_phi/F", "JetGood[phi/F]"],
       binning = [10,-1,1],
     ))
     
     plots.append(Plot(
       name = 'cosMetJet1phi_smallBinning',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
-      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
-      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      attribute = lambda event, sample: cos( event.MET_phi - event.JetGood_phi[0] ) , 
+      read_variables = ["MET_phi/F", "JetGood[phi/F]"],
       binning = [20,-1,1],
     ))
 
@@ -436,16 +450,16 @@ for index, mode in enumerate(allModes):
     plots.append(Plot(
       name = 'cosMetJet2phi',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
-      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
-      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      attribute = lambda event, sample: cos( event.MET_phi - event.JetGood_phi[1] ) , 
+      read_variables = ["MET_phi/F", "JetGood[phi/F]"],
       binning = [10,-1,1],
     ))
     
     plots.append(Plot(
       name = 'cosMetJet2phi_smallBinning',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
-      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
-      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      attribute = lambda event, sample: cos( event.MET_phi - event.JetGood_phi[1] ) , 
+      read_variables = ["MET_phi/F", "JetGood[phi/F]"],
       binning = [20,-1,1],
     ))
 

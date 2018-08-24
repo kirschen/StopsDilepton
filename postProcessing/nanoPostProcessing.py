@@ -56,24 +56,24 @@ def get_parser():
     argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
 
     argParser.add_argument('--logLevel',    action='store',         nargs='?',  choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],   default='INFO', help="Log level for logging" )
-    argParser.add_argument('--overwrite',   action='store_true',    default = False,                                                    help="Overwrite existing output files, bool flag set to True  if used" )
     argParser.add_argument('--samples',     action='store',         nargs='*',  type=str, default=['TTZToLLNuNu_ext'],                  help="List of samples to be post-processed, given as CMG component name" )
-    argParser.add_argument('--triggerSelection', action='store',    nargs='?',  type=str, default=None, choices=['mumu', 'ee', 'mue', 'mu_for_mumu', 'e_for_ee', 'mu_for_mue', 'e_for_mue','singleMu','singleEle'], help="Trigger selection?" ) # change to ttZ strategy
-    argParser.add_argument('--eventsPerJob',action='store',        nargs='?',   type=int, default=30000000,                             help="Maximum number of events per job (Approximate!)." )
-    argParser.add_argument('--nJobs',       action='store',        nargs='?',   type=int, default=1,                                    help="Maximum number of simultaneous jobs." )
+    argParser.add_argument('--eventsPerJob',action='store',         nargs='?',  type=int, default=30000000,                             help="Maximum number of events per job (Approximate!)." )
+    argParser.add_argument('--nJobs',       action='store',         nargs='?',  type=int, default=1,                                    help="Maximum number of simultaneous jobs." )
     argParser.add_argument('--job',         action='store',                     type=int, default=0,                                    help="Run only jobs i" )
-    argParser.add_argument('--minNJobs',    action='store',        nargs='?',   type=int, default=1,                                    help="Minimum number of simultaneous jobs." )
-    argParser.add_argument('--dataDir',     action='store',        nargs='?',   type=str, default=user.cmg_directory,                   help="Name of the directory where the input data is stored (for samples read from Heppy)." )
-    argParser.add_argument('--targetDir',   action='store',        nargs='?',   type=str, default=user.data_output_directory,           help="Name of the directory the post-processed files will be saved" )
-    argParser.add_argument('--processingEra', action='store',      nargs='?',   type=str, default='postProcessed_80X_v22',              help="Name of the processing era" )
-    argParser.add_argument('--skim',        action='store',        nargs='?',   type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
-    argParser.add_argument('--LHEHTCut',    action='store',        nargs='?',   type=int, default=-1,                                   help="LHE cut." )
-    argParser.add_argument('--year',        action='store',        type=int,                                                            help="Which year?" )
+    argParser.add_argument('--minNJobs',    action='store',         nargs='?',  type=int, default=1,                                    help="Minimum number of simultaneous jobs." )
+    argParser.add_argument('--dataDir',     action='store',         nargs='?',  type=str, default=user.cmg_directory,                   help="Name of the directory where the input data is stored (for samples read from Heppy)." )
+    argParser.add_argument('--targetDir',   action='store',         nargs='?',  type=str, default=user.data_output_directory,           help="Name of the directory the post-processed files will be saved" )
+    argParser.add_argument('--processingEra', action='store',       nargs='?',  type=str, default='postProcessed_80X_v22',              help="Name of the processing era" )
+    argParser.add_argument('--skim',        action='store',         nargs='?',  type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
+    argParser.add_argument('--LHEHTCut',    action='store',         nargs='?',  type=int, default=-1,                                   help="LHE cut." )
+    argParser.add_argument('--year',        action='store',                     type=int,                                               help="Which year?" )
+    argParser.add_argument('--overwrite',   action='store_true',                                                                        help="Overwrite existing output files, bool flag set to True  if used" )
     argParser.add_argument('--keepAllJets', action='store_true',                                                                        help="Keep also forward jets?" )
     argParser.add_argument('--small',       action='store_true',                                                                        help="Run the file on a small sample (for test purpose), bool flag set to True if used" )
     argParser.add_argument('--susySignal',  action='store_true',                                                                        help="Is SUSY signal?" )
     argParser.add_argument('--TTDM',        action='store_true',                                                                        help="Is TTDM signal?" )
     argParser.add_argument('--fastSim',     action='store_true',                                                                        help="FastSim?" )
+    argParser.add_argument('--triggerSelection',            action='store_true',                                                        help="Trigger selection?" ) 
     argParser.add_argument('--skipGenLepMatching',          action='store_true',                                                        help="skip matched genleps??" )
     argParser.add_argument('--keepLHEWeights',              action='store_true',                                                        help="Keep LHEWeights?" )
     argParser.add_argument('--checkTTGJetsOverlap',         action='store_true',                                                        help="Keep TTGJetsEventType which can be used to clean TTG events from TTJets samples" )
@@ -124,9 +124,10 @@ maxN = 2 if options.small else None
 
 #from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
-    from StopsDilepton.samples.nanoTuples_Summer16 import allSamples as bkgSamples
-    from StopsDilepton.samples.nanoTuples_FastSim_Spring16 import allSamples as signalSamples
-    allSamples = bkgSamples + signalSamples
+    from StopsDilepton.samples.nanoTuples_Summer16          import allSamples as bkgSamples
+    from StopsDilepton.samples.nanoTuples_FastSim_Spring16  import allSamples as signalSamples
+    from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018 import allSamples as dataSamples
+    allSamples = bkgSamples + signalSamples + dataSamples
 elif options.year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17 import *
 else:
@@ -157,32 +158,16 @@ else:
 
     xSection = samples[0].xSection if isMC else None
 
+# Trigger selection
+from StopsDilepton.tools.triggerSelector import triggerSelector
+ts = triggerSelector(options.year)
+triggerCond  = ts.getSelection(options.samples[0] if isData else "MC")
+treeFormulas = {"triggerDecision": {'string':triggerCond} }
+if isData and options.triggerSelection:
+    logger.info("Sample will have the following trigger skim: %s"%triggerCond)
+    skimConds.append( triggerCond )
 
-if isData and options.triggerSelection is not None:
-    if options.triggerSelection == 'mumu':
-        skimConds.append( "(HLT_mumuIso||HLT_mumuNoiso)" )
-    elif options.triggerSelection == 'ee':
-        skimConds.append( "(HLT_ee_DZ||HLT_ee_33||HLT_ee_33_MW)" )
-    elif options.triggerSelection == 'mue':
-        skimConds.append( "(HLT_mue||HLT_mu30e30)" )
-    elif options.triggerSelection == 'mu_for_mumu':
-        skimConds.append( "HLT_SingleMu_noniso&&(!(HLT_mumuIso||HLT_mumuNoiso))" )
-    elif options.triggerSelection == 'e_for_ee':
-        skimConds.append( "HLT_SingleEle_noniso&&(!(HLT_ee_DZ||HLT_ee_33||HLT_ee_33_MW))" )
-    elif options.triggerSelection == 'e_for_mue':
-        skimConds.append( "HLT_SingleEle_noniso && (!(HLT_mue||HLT_mu30e30))" )
-    elif options.triggerSelection == 'mu_for_mue':
-        skimConds.append( "HLT_SingleMu_noniso && (!(HLT_mue||HLT_mu30e30)) && (!HLT_SingleEle_noniso)" )
-    elif options.triggerSelection == 'singleMu':
-        skimConds.append( "HLT_SingleMu_noniso||HLT_SingleMu_iso" )
-    elif options.triggerSelection == 'singleEle':
-        skimConds.append( "HLT_SingleEle_noniso||HLT_SingleEle" )
-    else:
-        raise ValueError( "Don't know about triggerSelection %s"%options.triggerSelection )
-    sample_name_postFix = "_Trig_"+options.triggerSelection
-    logger.info( "Added trigger selection %s and postFix %s", options.triggerSelection, sample_name_postFix )
-else:
-    sample_name_postFix = ""
+sample_name_postFix = ""
 
 #Samples: combine if more than one
 if len(samples)>1:
@@ -213,6 +198,13 @@ if isMC:
     nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc=mcProfile)
     nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc=mcProfile)
         
+options.skim = options.skim + '_small' if options.small else options.skim
+
+# LHE cut (DY samples)
+if options.LHEHTCut>0:
+    sample.name+="_lheHT"+str(options.LHEHTCut)
+    logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
+    skimConds.append( "LHE_HTIncoming<%f"%options.LHEHTCut )
 
 directory  = os.path.join(options.targetDir, options.processingEra)
 output_directory = os.path.join( directory, options.skim, sample.name )
@@ -263,12 +255,6 @@ if addSystematicVariations:
     # B tagging SF
     from StopsDilepton.tools.btagEfficiency import btagEfficiency
     btagEff = btagEfficiency( fastSim = fastSim )
-
-# LHE cut (DY samples)
-if options.LHEHTCut>0:
-    sample.name+="_lheHT"+str(options.LHEHTCut)
-    logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
-    skimConds.append( "lheHTIncoming<%f"%options.LHEHTCut )
 
 # Directory for individual signal files
 if options.susySignal:
@@ -691,9 +677,9 @@ def filler( event ):
 
         if fastSim:
             ## To check whether PV_npvsGood is the correct replacement for nVert
-            event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.PV_npvsGood) for l in leptons], 1)
-            event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.PV_npvsGood, sigma = +1) for l in leptons], 1)
-            event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.PV_npvsGood, sigma = -1) for l in leptons], 1)
+            event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt) for l in leptons], 1)
+            event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt, sigma = +1) for l in leptons], 1)
+            event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt, sigma = -1) for l in leptons], 1)
 
         if isMC:
             event.reweightDilepTrigger       = 0 
