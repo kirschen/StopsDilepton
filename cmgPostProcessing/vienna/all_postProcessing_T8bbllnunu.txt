@@ -1,8 +1,0 @@
-#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples SMS_T8bbllnunu_XCha0p5_XSlep0p05 # SPLIT10
-#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples SMS_T8bbllnunu_XCha0p5_XSlep0p5  # SPLIT10
-python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples SMS_T8bbllnunu_XCha0p5_XSlep0p09 # SPLIT10
-#python cmgPostProcessing.py  --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples SMS_T8bbllnunu_XCha0p5_XSlep0p95 # SPLIT10
-
-#python cmgPostProcessing.py   --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples SMS_T8bbllnunu_XCha0p5_XSlep0p5_mN1_700_1000 # SPLIT5
-#python cmgPostProcessing.py   --susySignal --processingEra=postProcessed_80X_v37 --skim=dilepTiny --samples SMS_T8bbllnunu_XCha0p5_XSlep0p95_mN1_700_1300 # SPLIT5
-

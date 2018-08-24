@@ -25,7 +25,6 @@ from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection
 from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSelector, eleSelector, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, multiIsoWPInt
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 
@@ -213,6 +212,13 @@ def get_parser():
         action='store_true',
         help="Skip top pt reweighting.")
 
+    argParser.add_argument('--year',
+        action='store',
+        type=int,
+        help="Which year?"
+        )
+
+
     return argParser
 
 options = get_parser().parse_args()
@@ -252,26 +258,39 @@ elif isJet250:
 if isInclusive:
     skimConds = []
 
+
+#from nanoMET.samples.helpers import fromNanoSample
+if options.year == 2016:
+    from StopsDilepton.samples.nanoTuples_Summer16 import allSamples as bkgSamples
+    from StopsDilepton.samples.nanoTuples_FastSim_Spring16 import allSamples as signalSamples
+    allSamples = bkgSamples + signalSamples
+elif options.year == 2017:
+    from StopsDilepton.samples.nanoTuples_Fall17 import *
+else:
+    raise NotImplementedError
+
+samples = []
+for selectedSamples in options.samples:
+    for sample in allSamples:
+        if selectedSamples == sample.name:
+            samples.append(sample)
+
+
+directory  = os.path.join(options.targetDir, options.processingEra)
+output_directory = os.path.join( directory, options.skim, sample.name )
+
 #Samples: Load samples
 maxN = 2 if options.small else None
 from StopsDilepton.samples.helpers import fromHeppySample
 if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
-    samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
     logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
     # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
     assert len(samples)==1, "Can only process one SUSY sample at a time."
     samples[0].files = samples[0].files[:maxN]
     logger.debug( "Fetching signal weights..." )
-    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi )
+    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = output_directory)
     logger.debug("Done fetching signal weights.")
-#elif options.TTDM:
-#    samples = [ fromHeppySample(s, data_path = "/scratch/rschoefbeck/cmgTuples/80X_0l_TTDM/", \
-#                    module = "CMGTools.StopsDilepton.TTbarDMJets_signals_RunIISpring16MiniAODv2",  
-#                    maxN = maxN)\
-#                for s in options.samples ]
-else:
-    samples = [ fromHeppySample(s, data_path = options.dataDir, maxN = maxN) for s in options.samples ]
 
 if len(samples)==0:
     logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
@@ -281,23 +300,6 @@ isData = False not in [s.isData for s in samples]
 isMC   =  True not in [s.isData for s in samples]
 
 sample_name_postFix = ""
-
-#Samples: combine if more than one
-if len(samples)>1:
-    sample_name =  samples[0].name+"_comb"
-    logger.info( "Combining samples %s to %s.", ",".join(s.name for s in samples), sample_name )
-    sample = Sample.combine(sample_name, samples, maxN = maxN)
-    if options.small: sample.reduceFiles( to=1 )
-    # Clean up
-    for s in samples:
-        sample.clear()
-elif len(samples)==1:
-    sample = samples[0]
-    sample.name+=sample_name_postFix
-    if options.small: sample.reduceFiles( to = 1 )
-else:
-    raise ValueError( "Need at least one sample. Got %r",samples )
-
 
 outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sample.name)
 
@@ -374,7 +376,7 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
     for s in masspoints[job]:
         #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
         logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
-        cut = "Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000006))=="+str(s[0])+"&&Max$(genPartAll_mass*(abs(genPartAll_pdgId)==1000022))=="+str(s[1])
+        cut = "Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))=="+str(s[0])+"&&Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022))=="+str(s[1])
         logger.debug("Using cut %s", cut)
         if options.T2tt: signal_prefix = 'T2tt_'
         elif options.T2bW: signal_prefix = 'T2bW_'

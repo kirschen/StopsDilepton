@@ -21,7 +21,7 @@ allRegions = regionsO
 signalEstimators = ['T2tt_850_0', 'T2tt_800_200', '700_350', '600_300']
 
 
-option = ' --MVAselection MVA_T2tt_default --MVAcut 0.1'
+option = ' --MVAselection MVA_T2tt_default --MVAcut 0.2'
 
 for control in [None]:#, 'DYVV']:#, 'TTZ1', 'TTZ2', 'TTZ3', 'TTZ4', 'TTZ5']:
     controlString = '' if not control else (' --control=' + control)
