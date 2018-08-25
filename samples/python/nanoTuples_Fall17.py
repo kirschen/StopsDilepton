@@ -244,6 +244,8 @@ other = [
 
 allSamples = DY + top + boson + wjets + rare + other
 
+allSamples = [ x for x in allSamples if x.normalization > 0 ]
+
 for s in allSamples:
     s.isData = False
 

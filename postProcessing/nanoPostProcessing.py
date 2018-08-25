@@ -30,6 +30,7 @@ from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSele
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting import getPolWeights
+from StopsDilepton.tools.puProfileCache import puProfile
 
 # For MVA discriminator
 from StopsDilepton.MVA.KerasReader import KerasReader
@@ -129,7 +130,8 @@ if options.year == 2016:
     from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018 import allSamples as dataSamples
     allSamples = bkgSamples + signalSamples + dataSamples
 elif options.year == 2017:
-    from StopsDilepton.samples.nanoTuples_Fall17 import *
+    from StopsDilepton.samples.nanoTuples_Fall17 import allSamples as bkgSamples
+    allSamples = bkgSamples
 else:
     raise NotImplementedError
 

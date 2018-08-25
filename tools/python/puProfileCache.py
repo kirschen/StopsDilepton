@@ -82,7 +82,7 @@ if __name__ == "__main__":
     from StopsDilepton.samples.nanoTuples_Fall17 import *
     from StopsDilepton.tools.user import analysis_results, plot_directory
 
-    allSamples = [TTZToLLNuNu]
+    #allSamples = [TTZToLLNuNu]
 
     for s in allSamples:
         logger.info("Working on samples %s", s.name)
