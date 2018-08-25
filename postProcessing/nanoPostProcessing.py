@@ -190,14 +190,21 @@ if options.fileBasedSplitting:
     print sample.files
     logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
 
+
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
-    mcProfile = "Summer16"
-    # nTrueIntReweighting
-    nTrueInt36fb_puRW        = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc=mcProfile)
-    nTrueInt36fb_puRWDown    = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc=mcProfile)
-    nTrueInt36fb_puRWUp      = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc=mcProfile)
-        
+    if options.year == 2016:
+        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Summer16")
+        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc="Summer16")
+        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc="Summer16")
+    elif options.year == 2017:
+        # keep the weight name for now. Should we update to a more general one?
+        puProfiles = puProfile( source_sample = samples[0] )
+        mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
+        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2017_42400_XSecCentral",  mc=mcHist)
+        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2017_42400_XSecDown",     mc=mcHist)
+        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_42400_XSecUp",       mc=mcHist)
+
 options.skim = options.skim + '_small' if options.small else options.skim
 
 # LHE cut (DY samples)
