@@ -88,12 +88,14 @@ def get_parser():
 options = get_parser().parse_args()
 
 # Logging
-import StopsDilepton.tools.logger as logger
+import StopsDilepton.tools.logger as _logger
 logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job))
-logger  = logger.get_logger(options.logLevel, logFile = logFile)
+logger  = _logger.get_logger(options.logLevel, logFile = logFile)
 
-import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
+import RootTools.core.logger as _logger_rt
+logger_rt = _logger_rt.get_logger(options.logLevel, logFile = None )
+
+_logger.   add_fileHandler( user.data_output_directory + '/logs/%s_%s_debug.txt'%(options.samples[0], options.job), options.logLevel )
 
 # Flags 
 isDiLep     =   options.skim.lower().startswith('dilep')
@@ -131,7 +133,8 @@ if options.year == 2016:
     allSamples = bkgSamples + signalSamples + dataSamples
 elif options.year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17 import allSamples as bkgSamples
-    allSamples = bkgSamples
+    from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018 import allSamples as dataSamples
+    allSamples = bkgSamples + dataSamples
 else:
     raise NotImplementedError
 
@@ -919,6 +922,10 @@ for ievtRange, eventRange in enumerate( eventRanges ):
     # Check whether file exists
     fileNumber = options.job if options.job is not None else 0
     outfilename = filename+'_'+str(fileNumber)+ext
+    
+    _logger.   add_fileHandler( outfilename.replace('.root', '.log'), options.logLevel )
+    _logger_rt.add_fileHandler( outfilename.replace('.root', '_rt.log'), options.logLevel )
+    
     if os.path.isfile(outfilename):
         logger.info( "Output file %s found.", outfilename)
         if not checkRootFile(outfilename, checkForObjects=["Events"]):
