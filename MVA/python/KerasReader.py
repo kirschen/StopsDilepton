@@ -13,18 +13,6 @@ from StopsDilepton.tools.helpers import deltaPhi
 # Keras, Pandas, numpy etc.
 import numpy as np
 import pandas as pd
-
-#from keras import backend as K
-#import os
-#def set_keras_backend(backend):
-#
-#    if K.backend() != backend:
-#        os.environ['KERAS_BACKEND'] = backend
-#        reload(K)
-#        assert K.backend() == backend
-#
-#set_keras_backend("tensorflow")
-
 from keras.models import load_model
 
 # Logging

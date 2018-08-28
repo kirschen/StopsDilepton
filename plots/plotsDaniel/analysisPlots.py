@@ -60,9 +60,9 @@ postProcessing_directory = "stops_2016_nano_v2/dilep/"
 from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018_postProcessed import *
 
 if args.signal == "T2tt":
-    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-    T2tt                    = T2tt_650_1
+    postProcessing_directory = "stops_2016_nano_v2/dilep/"
+    from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *
+    T2tt                    = T2tt_650_0
     T2tt2                   = T2tt_500_250
     T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
@@ -213,9 +213,11 @@ for index, mode in enumerate(allModes):
   for sample in signals:
       if args.signal == "T2tt" or args.signal == "T8bbllnunu" or args.signal == "compilation":
         sample.scale          = lumi_scale
-        sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
-        sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
-        sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+        sample.read_variables = ['reweightPU36fb/F']
+        sample.weight         = lambda event, sample: event.reweightPU36fb
+        sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
+        #sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
+        #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
       elif args.signal == "DM":
         sample.scale          = lumi_scale
         sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
@@ -495,6 +497,12 @@ for index, mode in enumerate(allModes):
       texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
       attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
       binning=[400/100, 0, 400],
+    ))
+    
+    plots.append(Plot( name = "MVA_T2tt_default",
+      texX = 'MVA_{T2tt} (default)', texY = 'Number of Events',
+      attribute = TreeVariable.fromString( "MVA_T2tt_default/F" ),
+      binning=[50, 0, 1],
     ))
 
 
