@@ -2,6 +2,7 @@
 
 # standard imports
 import ROOT
+ROOT.PyConfig.IgnoreCommandLineOptions = True
 import sys
 import os
 import copy
@@ -80,8 +81,9 @@ def get_parser():
     argParser.add_argument('--checkTTGJetsOverlap',         action='store_true',                                                        help="Keep TTGJetsEventType which can be used to clean TTG events from TTJets samples" )
     argParser.add_argument('--skipSystematicVariations',    action='store_true',                                                        help="Don't calulcate BTag, JES and JER variations.")
     argParser.add_argument('--noTopPtReweighting',          action='store_true',                                                        help="Skip top pt reweighting.")
-    argParser.add_argument('--fileBasedSplitting',          action='store_true',                                                        help="Split njobs according to files")
     argParser.add_argument('--forceProxy',                  action='store_true',                                                        help="Don't check certificate")
+    argParser.add_argument('--skipNanoTools',               action='store_true',                                                        help="Skipt the nanoAOD tools step for computing JEC/JER/MET etc uncertainties")
+    argParser.add_argument('--keepNanoAOD',                 action='store_true',                                                        help="Keep nanoAOD output?")
 
     return argParser
 
@@ -124,6 +126,9 @@ if isInclusive:
 
 #Samples: Load samples
 maxN = 2 if options.small else None
+if options.small:
+    options.job = 1
+    options.nJobs = 10000 # set high to just run over 1 input file
 
 #from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
@@ -188,12 +193,11 @@ elif len(samples)==1:
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
 
-if options.fileBasedSplitting:
-    len_orig = len(sample.files)
-    sample = sample.split( n=options.nJobs, nSub=options.job)
-    logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
-    print sample.files
-    logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
+len_orig = len(sample.files)
+sample = sample.split( n=options.nJobs, nSub=options.job)
+logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
+print sample.files
+logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
 
 
 if isMC:
@@ -230,6 +234,7 @@ if options.susySignal:
     logger.info( "Fetching signal weights..." )
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = output_directory) #Can use same x-sec/weight for T8bbllnunu as for T2tt
     logger.info("Done fetching signal weights.")
+
 
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
@@ -447,6 +452,26 @@ MVA_T2tt_lep_pt     = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1_lep_pt
 
 MVA_T8bbllnunu_XCha0p5_XSlep0p09        = KerasReader( 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1522', training_variables_list )
 MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1   = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1153', training_variables_list )
+
+### nanoAOD postprocessor
+from importlib import import_module
+from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+
+## modules for nanoAOD postprocessor
+from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
+
+logger.info("Preparing nanoAOD postprocessing")
+logger.info("Will put files into directory %s", output_directory)
+cut = '&&'.join(skimConds)
+p = PostProcessor(output_directory,sample.files,cut=cut, modules=[jetmetUncertaintiesProducer("2016", "Summer16_23Sep2016V4_MC", [ "Total" ])])
+logger.info("Starting nanoAOD postprocessing")
+p.run()
+logger.info("Done. Replacing input files for further processing.")
+
+sample.files = [ output_directory + '/' + x.split('/')[-1].replace('.root', '_Skim.root') for x in sample.files ]
+print sample.files
 
 # Define a reader
 reader = sample.treeReader( \
@@ -889,15 +914,12 @@ treeMaker_parent = TreeMaker(
     )
 
 # Split input in ranges
-if options.nJobs>1 and not options.fileBasedSplitting:
-    eventRanges = reader.getEventRanges( nJobs = options.nJobs )
-else:
-    eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs = options.minNJobs )
+eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs = options.minNJobs )
 
 logger.info( "Splitting into %i ranges of %i events on average. FileBasedSplitting: %s. Job number %s",  
         len(eventRanges), 
         (eventRanges[-1][1] - eventRanges[0][0])/len(eventRanges), 
-        'Yes' if options.fileBasedSplitting else 'No',
+        'Yes',
         options.job)
 
 #Define all jobs
@@ -905,17 +927,13 @@ jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
 
 filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
 
-if options.fileBasedSplitting and len(eventRanges)>1:
+if len(eventRanges)>1:
     raise RuntimeError("Using fileBasedSplitting but have more than one event range!")
 
 clonedEvents = 0
 convertedEvents = 0
 outputLumiList = {}
 for ievtRange, eventRange in enumerate( eventRanges ):
-
-    
-    if not options.fileBasedSplitting and options.nJobs>1:
-        if ievtRange != options.job: continue
 
     logger.info( "Processing range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 
