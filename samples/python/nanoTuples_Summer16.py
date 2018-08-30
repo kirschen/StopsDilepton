@@ -17,7 +17,7 @@ DYJetsToLL_M50_LO_ext1   = Sample.nanoAODfromDAS('DYJetsToLL_M50_LO_ext1', '/DYJ
 DYJetsToLL_M50_LO_ext2   = Sample.nanoAODfromDAS('DYJetsToLL_M50_LO_ext2', '/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAOD-PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2_ext2-v1/NANOAODSIM', dbFile=dbFile, xSection=2008.*3)
 DYJetsToLL_M50_ext2      = Sample.nanoAODfromDAS('DYJetsToLL_M50_ext2','/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16NanoAOD-PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2_ext2-v1/NANOAODSIM', dbFile=dbFile, xSection=2008.*3)
 
-DYJetsToLL_M10to50      = Sample.nanoAODfromDAS("DYJetsToLL_M10to50", "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAOD-PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/NANOAODSIM", dbFile=dbFile, xSection=18610)
+DYJetsToLL_M10to50_LO    = Sample.nanoAODfromDAS("DYJetsToLL_M10to50_LO", "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAOD-PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/NANOAODSIM", dbFile=dbFile, xSection=18610)
 
 
 DYJetsToLL_M50_HT70to100      =   Sample.nanoAODfromDAS("DYJetsToLL_M50_HT70to100"    ,     "/DYJetsToLL_M-50_HT-70to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAOD-PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/NANOAODSIM",         dbFile=dbFile, xSection=170.4*1.23)
@@ -72,7 +72,7 @@ DYJetsToLL_M5to50_HT600toInf_ext
 DY = [
     DYJetsToLL_M50_LO_ext1,
     DYJetsToLL_M50_LO_ext2,
-    DYJetsToLL_M10to50,
+    DYJetsToLL_M10to50_LO,
     DYJetsToLL_M50_ext2,
     ] + DYJetsM50HT + DYJetsM5to50HT
 
