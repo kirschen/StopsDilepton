@@ -453,25 +453,26 @@ MVA_T2tt_lep_pt     = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1_lep_pt
 MVA_T8bbllnunu_XCha0p5_XSlep0p09        = KerasReader( 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1522', training_variables_list )
 MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1   = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1153', training_variables_list )
 
-### nanoAOD postprocessor
-from importlib import import_module
-from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
-from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
-## modules for nanoAOD postprocessor
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
-
-logger.info("Preparing nanoAOD postprocessing")
-logger.info("Will put files into directory %s", output_directory)
-cut = '&&'.join(skimConds)
-p = PostProcessor(output_directory,sample.files,cut=cut, modules=[jetmetUncertaintiesProducer("2016", "Summer16_23Sep2016V4_MC", [ "Total" ])])
-logger.info("Starting nanoAOD postprocessing")
-p.run()
-logger.info("Done. Replacing input files for further processing.")
-
-sample.files = [ output_directory + '/' + x.split('/')[-1].replace('.root', '_Skim.root') for x in sample.files ]
-print sample.files
+if not options.skipNanoTools:
+    ### nanoAOD postprocessor
+    from importlib import import_module
+    from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
+    from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+    from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+    
+    ## modules for nanoAOD postprocessor
+    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
+    
+    logger.info("Preparing nanoAOD postprocessing")
+    logger.info("Will put files into directory %s", output_directory)
+    cut = '&&'.join(skimConds)
+    p = PostProcessor(output_directory,sample.files,cut=cut, modules=[jetmetUncertaintiesProducer("2016", "Summer16_23Sep2016V4_MC", [ "Total" ])])
+    logger.info("Starting nanoAOD postprocessing")
+    p.run()
+    logger.info("Done. Replacing input files for further processing.")
+    
+    sample.files = [ output_directory + '/' + x.split('/')[-1].replace('.root', '_Skim.root') for x in sample.files ]
 
 # Define a reader
 reader = sample.treeReader( \
