@@ -31,6 +31,7 @@ argParser.add_argument('--signal',             action='store',      default='T8b
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_test')
+argParser.add_argument('--year',               action='store',      default=2016,            type=int,)
 argParser.add_argument('--selection',          action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
@@ -49,20 +50,28 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
-# what do we import? - i guess Data
-from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
-# what do we import? - i guess Backround
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+#postProcessing_directory = "postProcessed_80X_v35/dilepTiny/"
+#from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
+#postProcessing_directory = "postProcessed_80X_v31/dilepTiny"
+#from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+
+# changes in new release 
+data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+postProcessing_directory = "stops_2016_nano_v2/dilep/"
+from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+postProcessing_directory = "stops_2016_nano_v2/dilep/"
+from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018_postProcessed import *
+
 
 # waht do we import? - signal
 if args.signal == "T2tt":
+    postProcessing_directory = "stops_2016_nano_v2/dilep/"
+    from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *    
     #postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
-    postProcessing_directory = "postProcessed_80X_v40/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-    T2tt                    = T2tt_750_1
-    T2tt2                   = T2tt_600_500
+    #postProcessing_directory = "postProcessed_80X_v40/dilepTiny"
+    #from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
+    T2tt                    = T2tt_850_0
+    T2tt2                   = T2tt_600_300
     T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T2tt, T2tt2]
@@ -146,22 +155,20 @@ def drawPlots(plots, mode, dataMCScale):
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
+read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
+                  "MET_pt/F", "MET_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
 
 #
 # MVA
 #
-from StopsDilepton.MVA.default_classifier import training_variables_list, get_dict
+from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list, get_dict
 
 from StopsDilepton.MVA.KerasReader import KerasReader
 from StopsDilepton.tools.user import  MVA_model_directory
-#keras_model_directory = 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
-#keras_model_directory = 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
 #keras_model_directory = 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
-keras_model_directory = 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
+keras_model_directory = 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all'
 #keras_model_date = '2018-08-01-1712'
-keras_model_date = '2018-08-16-1253'
+keras_model_date = '2018-08-28-1659'
 if not keras_model_date: keras_model_date =  min(os.listdir( os.path.join( MVA_model_directory, keras_model_directory) ) )
 
 keras_model_directory_ = os.path.join(keras_model_directory, keras_model_date )
@@ -208,14 +215,17 @@ allPlots   = {}
 allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
-  if   mode=="mumu": data_sample = DoubleMuon_Run2016_backup
-  elif mode=="ee":   data_sample = DoubleEG_Run2016_backup
-  elif mode=="mue":  data_sample = MuonEG_Run2016_backup
-  if   mode=="mumu": data_sample.texName = "data (2 #mu)"
-  elif mode=="ee":   data_sample.texName = "data (2 e)"
-  elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
+  #if   mode=="mumu": data_sample = DoubleMuon_Run2016_backup
+  #elif mode=="ee":   data_sample = DoubleEG_Run2016_backup
+  #elif mode=="mue":  data_sample = MuonEG_Run2016_backup
+  #if   mode=="mumu": data_sample.texName = "data (2 #mu)"
+  #elif mode=="ee":   data_sample.texName = "data (2 e)"
+  #elif mode=="mue":  data_sample.texName = "data (1 #mu, 1 e)"
+  data_sample = Run2016
+  data_sample.texName = "data (2016)"
+  data_sample.setSelectionString([getFilterCut(isData=True, year=args.year), getLeptonSelection(mode)])
 
-  data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
+  #data_sample.setSelectionString([getFilterCut(isData=True, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["evt/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
@@ -231,26 +241,36 @@ for index, mode in enumerate(allModes):
 
   for sample in mc + signals:
     sample.scale          = lumi_scale
-    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
+    #sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
+    sample.read_variables = ['reweightPU36fb/F']
    #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
     if (('ttjets' in sample.name) or ('ttlep' in sample.name)) and args.isr:
-        sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F', 'reweight_nISR/F']
-        sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF*event.reweight_nISR
+        #sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F', 'reweight_nISR/F']
+        sample.read_variables = ['reweightPU36fb/F']
+        #sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF*event.reweight_nISR
+        sample.weight         = lambda event, sample: event.reweightPU36fb
     else:
-        sample.weight         = lambda event, sample: event.reweightTopPt*event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF
-    sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
+        sample.weight         = lambda event, sample: event.reweightPU36fb
+    #sample.setSelectionString([getFilterCut(isData=False, badMuonFilters = args.badMuonFilters), getLeptonSelection(mode)])
+    sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
 
   for sample in signals:
       if args.signal == "T2tt" or args.signal == "T8bbllnunu" or args.signal == "compilation":
         sample.scale          = lumi_scale
-        sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
-        sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
-        sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+        #sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
+        sample.read_variables = ['reweightPU36fb/F']
+        #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: event.reweightPU36fb
+        #sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+        sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
       elif args.signal == "DM":
         sample.scale          = lumi_scale
-        sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
-        sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF
-        sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+        #sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
+        sample.read_variables = ['reweightPU36fb/F']
+        #sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: event.reweightPU36fb
+        #sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+        sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
       else:
         raise NotImplementedError
 
@@ -292,13 +312,13 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
       texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
-      attribute = TreeVariable.fromString( "met_pt/F" ),
+      attribute = TreeVariable.fromString( "MET_pt/F" ),
       binning=[400/20,0,400],
   ))
 
   plots.append(Plot(
       texX = '#phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
-      attribute = TreeVariable.fromString( "met_phi/F" ),
+      attribute = TreeVariable.fromString( "MET_phi/F" ),
       binning=[10,-pi,pi],
   ))
 
@@ -359,8 +379,8 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     texX = 'Cos(#Delta#phi(ll, E_{T}^{miss}))', texY = 'Number of Events',
     name = 'cosZMetphi',
-    attribute = lambda event, sample: cos( event.dl_phi - event.met_phi ), 
-    read_variables = ["met_phi/F", "dl_phi/F"],
+    attribute = lambda event, sample: cos( event.dl_phi - event.MET_phi ), 
+    read_variables = ["MET_phi/F", "dl_phi/F"],
     binning = [10,-1,1],
   ))
 
@@ -403,8 +423,8 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     name = "JZB",
     texX = 'JZB (GeV)', texY = 'Number of Events / 32 GeV',
-    attribute = lambda event, sample: sqrt( (event.met_pt*cos(event.met_phi)+event.dl_pt*cos(event.dl_phi))**2 + (event.met_pt*sin(event.met_phi)+event.dl_pt*sin(event.dl_phi))**2) - event.dl_pt, 
-	read_variables = ["met_phi/F", "dl_phi/F", "met_pt/F", "dl_pt/F"],
+    attribute = lambda event, sample: sqrt( (event.MET_pt*cos(event.MET_phi)+event.dl_pt*cos(event.dl_phi))**2 + (event.MET_pt*sin(event.MET_phi)+event.dl_pt*sin(event.dl_phi))**2) - event.dl_pt, 
+	read_variables = ["MET_phi/F", "dl_phi/F", "MET_pt/F", "dl_pt/F"],
     binning=[25,-200,600],
   ))
 
@@ -431,16 +451,16 @@ for index, mode in enumerate(allModes):
     plots.append(Plot(
       name = 'cosMetJet1phi',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
-      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0]), 
-      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      attribute = lambda event, sample: cos( event.MET_phi - event.JetGood_phi[0]), 
+      read_variables = ["MET_phi/F", "JetGood[phi/F]"],
       binning = [10,-1,1],
     ))
     
     plots.append(Plot(
       name = 'cosMetJet1phi_smallBinning',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
-      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
-      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      attribute = lambda event, sample: cos( event.MET_phi - event.JetGood_phi[0] ) , 
+      read_variables = ["MET_phi/F", "JetGood[phi/F]"],
       binning = [20,-1,1],
     ))
 
@@ -475,16 +495,16 @@ for index, mode in enumerate(allModes):
     plots.append(Plot(
       name = 'cosMetJet2phi',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
-      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
-      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      attribute = lambda event, sample: cos( event.MET_phi - event.JetGood_phi[1] ) , 
+      read_variables = ["MET_phi/F", "JetGood[phi/F]"],
       binning = [10,-1,1],
     ))
     
     plots.append(Plot(
       name = 'cosMetJet2phi_smallBinning',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
-      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
-      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      attribute = lambda event, sample: cos( event.MET_phi - event.JetGood_phi[1] ) , 
+      read_variables = ["MET_phi/F", "JetGood[phi/F]"],
       binning = [20,-1,1],
     ))
 
