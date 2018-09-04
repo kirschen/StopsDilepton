@@ -275,13 +275,13 @@ for selectedSamples in options.samples:
         if selectedSamples == sample.name:
             samples.append(sample)
 
+print [ s.name for s in samples ]
 
 directory  = os.path.join(options.targetDir, options.processingEra)
 output_directory = os.path.join( directory, options.skim, sample.name )
 
 #Samples: Load samples
 maxN = 2 if options.small else None
-from StopsDilepton.samples.helpers import fromHeppySample
 if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
     logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
@@ -301,7 +301,9 @@ isMC   =  True not in [s.isData for s in samples]
 
 sample_name_postFix = ""
 
-outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sample.name)
+outDir = os.path.join(options.targetDir, options.processingEra, options.skim, samples[0].name)
+
+print outDir
 
 if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
     xSection = None

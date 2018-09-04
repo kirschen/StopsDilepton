@@ -16,7 +16,7 @@
 #python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M50_HT2500toInf # SPLIT10
 #
 #python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M10to50_LO --LHEHTCut 70 # SPLIT20
-python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M50_LO_ext1 DYJetsToLL_M50_LO_ext2 --LHEHTCut 70 # SPLIT60
+#python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M50_LO_ext1 DYJetsToLL_M50_LO_ext2 --LHEHTCut 70 # SPLIT60
 
 #python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M5to50_HT70to100 # SPLIT10
 #python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M5to50_HT100to200 DYJetsToLL_M5to50_HT100to200_ext # SPLIT20
@@ -61,5 +61,9 @@ python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2
 #
 #
 #python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_400to1200 # SPLIT45
-
+#python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbllnunu_XCha0p5_XSlep0p05 # SPLIT40
+#python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbllnunu_XCha0p5_XSlep0p5 # SPLIT40
+#python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbllnunu_XCha0p5_XSlep0p5_mN1_700_1000 # SPLIT40
+#python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbllnunu_XCha0p5_XSlep0p95 # SPLIT32
+python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v2   --skipSystematicVariations --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbllnunu_XCha0p5_XSlep0p95_mN1_700_1300 # SPLIT32
 

@@ -193,13 +193,6 @@ elif len(samples)==1:
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
 
-len_orig = len(sample.files)
-sample = sample.split( n=options.nJobs, nSub=options.job)
-logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
-print sample.files
-logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
-
-
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
     if options.year == 2016:
@@ -231,9 +224,19 @@ if options.susySignal:
     # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
     assert len(samples)==1, "Can only process one SUSY sample at a time."
     samples[0].files = samples[0].files[:maxN]
+    print len(samples[0].files), len(sample.files)
+    logger.info( "Signal weights will be drawn from %s files. If that's not the whole sample, stuff will be wrong.", len(samples[0].files))
     logger.info( "Fetching signal weights..." )
+    logger.info( "Weights will be stored in %s for future use.", output_directory)
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = output_directory) #Can use same x-sec/weight for T8bbllnunu as for T2tt
+    print sorted(signalWeight.keys())
     logger.info("Done fetching signal weights.")
+
+len_orig = len(sample.files)
+sample = sample.split( n=options.nJobs, nSub=options.job)
+logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
+print sample.files
+logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
 
 
 # top pt reweighting
@@ -444,6 +447,7 @@ if fastSim and (isTriLep or isDiLep):
 
 
 ## Initialize keras for different trainings
+logger.info("Initializing keras readers for different models.")
 from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
 from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
 
@@ -452,7 +456,7 @@ MVA_T2tt_lep_pt     = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1_lep_pt
 
 MVA_T8bbllnunu_XCha0p5_XSlep0p09        = KerasReader( 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1522', training_variables_list )
 MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1   = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1153', training_variables_list )
-
+logger.info("Loaded MVA models.")
 
 if not options.skipNanoTools:
     ### nanoAOD postprocessor
@@ -533,28 +537,37 @@ def filler( event ):
         if 'T8bbllnunu' in options.samples[0]:
             r.GenSusyMChargino = max([p['mass']*(abs(p['pdgId']==1000024)) for p in gPart])
             r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000011)) for p in gPart]) #FIXME check PDG ID of slepton in sample
-            #logger.debug("Slepton is selectron with mass %i", r.GenSusyMSlepton)
+            logger.debug("Slepton is selectron with mass %i", r.GenSusyMSlepton)
             event.sleptonPdg = 1000011
             if not r.GenSusyMSlepton > 0:
                 r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000013)) for p in gPart])
-                #logger.debug("Slepton is smuon with mass %i", r.GenSusyMSlepton)
+                logger.debug("Slepton is smuon with mass %i", r.GenSusyMSlepton)
                 event.sleptonPdg = 1000013
             if not r.GenSusyMSlepton > 0:
                 r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000015)) for p in gPart])
-                #logger.debug("Slepton is stau with mass %i", r.GenSusyMSlepton)
+                logger.debug("Slepton is stau with mass %i", r.GenSusyMSlepton)
                 event.sleptonPdg = 1000015
-            event.mCha  = r.GenSusyMChargino
-            event.mSlep = r.GenSusyMSlepton
+            event.mCha  = int(round(r.GenSusyMChargino,0))
+            event.mSlep = int(round(r.GenSusyMSlepton,0))
         #if 'T2tt' in options.samples[0]:
         #    pol_weights = getPolWeights(r)
         #    event.weight_pol_L = pol_weights[0]
         #    event.weight_pol_R = pol_weights[1]
 
-        event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
+        try:
+            event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
+        except KeyError:
+            logger.info("Couldn't find weight for %s, %s. Setting weight to 0.", r.GenSusyMStop, r.GenSusyMNeutralino)
+            event.weight = 0.
         event.mStop = int(r.GenSusyMStop)
         event.mNeu  = int(r.GenSusyMNeutralino)
-        event.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
-        event.reweightXSecDown  = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacDown']
+        try:
+            event.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
+            event.reweightXSecDown  = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacDown']
+        except KeyError:
+            logger.info("Couldn't find weight for %s, %s. Setting weight to 0.", r.GenSusyMStop, r.GenSusyMNeutralino)
+            event.reweightXSecUp    = 0.
+            event.reweightXSecDown  = 0.
     elif isMC:
         event.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
     elif isData:

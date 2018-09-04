@@ -28,7 +28,7 @@ class KerasReader:
         self.training_variables = training_variables
 
         # load model
-        self.model = load_model( os.path.join( MVA_model_directory, self.keras_model_directory, 'keras.h5'))
+        self.model = load_model( os.path.join( MVA_model_directory, self.keras_model_directory, 'keras.h5'), compile=False)
         # load transformation data 
         self.X_mean =  pd.read_hdf( os.path.join( MVA_model_directory, self.keras_model_directory, 'X_mean.h5'), 'df')
         self.X_std =  pd.read_hdf( os.path.join( MVA_model_directory, self.keras_model_directory, 'X_std.h5'), 'df')
