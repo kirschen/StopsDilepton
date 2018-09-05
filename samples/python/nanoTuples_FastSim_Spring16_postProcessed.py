@@ -10,6 +10,10 @@ logger = logging.getLogger(__name__)
 from RootTools.core.standard import *
 
 signals_T2tt=[]
+signals_T8bbllnunu_XCha0p5_XSlep0p05 = []
+signals_T8bbllnunu_XCha0p5_XSlep0p09 = []
+signals_T8bbllnunu_XCha0p5_XSlep0p5  = []
+signals_T8bbllnunu_XCha0p5_XSlep0p95 = []
 
 # Take post processing directory if defined in main module
 try:
