@@ -13,7 +13,22 @@ from StopsDilepton.tools.helpers import deltaPhi
 # Keras, Pandas, numpy etc.
 import numpy as np
 import pandas as pd
+
+## use theano backend for reading. TF backend allocates too much memory
+os.environ['KERAS_BACKEND'] = 'theano'
 from keras.models import load_model
+from keras.models import model_from_yaml
+import keras.backend as k
+
+## tests with tensorflow for reducing memory allocation. there's no (default) option to reduce main memory allocation, only gpu (afaik). kept for future checks
+## https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory/48214084#48214084
+#import tensorflow as tf
+#tf_config = tf.ConfigProto()
+#tf_config.gpu_options.allow_growth = True
+##or sth like this might also work
+##tf_config.gpu_options.per_process_gpu_memory_fraction=0.333
+#sess = tf.Session(config=tf_config)
+#k.set_session(sess)
 
 # Logging
 import logging
@@ -28,10 +43,12 @@ class KerasReader:
         self.training_variables = training_variables
 
         # load model
-        self.model = load_model( os.path.join( MVA_model_directory, self.keras_model_directory, 'keras.h5'), compile=False)
+        self.model = load_model( os.path.join( MVA_model_directory, self.keras_model_directory, 'keras.h5'))
+
         # load transformation data 
         self.X_mean =  pd.read_hdf( os.path.join( MVA_model_directory, self.keras_model_directory, 'X_mean.h5'), 'df')
         self.X_std =  pd.read_hdf( os.path.join( MVA_model_directory, self.keras_model_directory, 'X_std.h5'), 'df')
+
 
     def eval( self, dict ):
         ''' Transforms Dataset for Keras use and lets model predict outcome 
