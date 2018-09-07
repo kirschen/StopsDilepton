@@ -336,7 +336,7 @@ if sample.isData:
     elif options.year == 2017:
         sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt'
     else:
-        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-318876_13TeV_PromptReco_Collisions18_JSON.txt'
+        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-321777_13TeV_PromptReco_Collisions18_JSON.txt'
     
     lumiList = LumiList(os.path.expandvars(sample.json))
     logger.info( "Loaded json %s", sample.json )
