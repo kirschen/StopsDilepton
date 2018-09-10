@@ -2,6 +2,7 @@
 
 # standard imports
 import ROOT
+ROOT.PyConfig.IgnoreCommandLineOptions = True
 import sys
 import os
 import copy
@@ -80,8 +81,9 @@ def get_parser():
     argParser.add_argument('--checkTTGJetsOverlap',         action='store_true',                                                        help="Keep TTGJetsEventType which can be used to clean TTG events from TTJets samples" )
     argParser.add_argument('--skipSystematicVariations',    action='store_true',                                                        help="Don't calulcate BTag, JES and JER variations.")
     argParser.add_argument('--noTopPtReweighting',          action='store_true',                                                        help="Skip top pt reweighting.")
-    argParser.add_argument('--fileBasedSplitting',          action='store_true',                                                        help="Split njobs according to files")
     argParser.add_argument('--forceProxy',                  action='store_true',                                                        help="Don't check certificate")
+    argParser.add_argument('--skipNanoTools',               action='store_true',                                                        help="Skipt the nanoAOD tools step for computing JEC/JER/MET etc uncertainties")
+    argParser.add_argument('--keepNanoAOD',                 action='store_true',                                                        help="Keep nanoAOD output?")
 
     return argParser
 
@@ -124,6 +126,9 @@ if isInclusive:
 
 #Samples: Load samples
 maxN = 2 if options.small else None
+if options.small:
+    options.job = 1
+    options.nJobs = 10000 # set high to just run over 1 input file
 
 #from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
@@ -188,14 +193,6 @@ elif len(samples)==1:
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
 
-if options.fileBasedSplitting:
-    len_orig = len(sample.files)
-    sample = sample.split( n=options.nJobs, nSub=options.job)
-    logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
-    print sample.files
-    logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
-
-
 if isMC:
     from StopsDilepton.tools.puReweighting import getReweightingFunction
     if options.year == 2016:
@@ -227,9 +224,20 @@ if options.susySignal:
     # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
     assert len(samples)==1, "Can only process one SUSY sample at a time."
     samples[0].files = samples[0].files[:maxN]
+    print len(samples[0].files), len(sample.files)
+    logger.info( "Signal weights will be drawn from %s files. If that's not the whole sample, stuff will be wrong.", len(samples[0].files))
     logger.info( "Fetching signal weights..." )
+    logger.info( "Weights will be stored in %s for future use.", output_directory)
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = output_directory) #Can use same x-sec/weight for T8bbllnunu as for T2tt
+    print sorted(signalWeight.keys())
     logger.info("Done fetching signal weights.")
+
+len_orig = len(sample.files)
+sample = sample.split( n=options.nJobs, nSub=options.job)
+logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
+print sample.files
+logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
+
 
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
@@ -328,7 +336,7 @@ if sample.isData:
     elif options.year == 2017:
         sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt'
     else:
-        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-318876_13TeV_PromptReco_Collisions18_JSON.txt'
+        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-321777_13TeV_PromptReco_Collisions18_JSON.txt'
     
     lumiList = LumiList(os.path.expandvars(sample.json))
     logger.info( "Loaded json %s", sample.json )
@@ -439,6 +447,7 @@ if fastSim and (isTriLep or isDiLep):
 
 
 ## Initialize keras for different trainings
+logger.info("Initializing keras readers for different models.")
 from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
 from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
 
@@ -447,6 +456,27 @@ MVA_T2tt_lep_pt     = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1_lep_pt
 
 MVA_T8bbllnunu_XCha0p5_XSlep0p09        = KerasReader( 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1522', training_variables_list )
 MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1   = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1153', training_variables_list )
+logger.info("Loaded MVA models.")
+
+if not options.skipNanoTools:
+    ### nanoAOD postprocessor
+    from importlib import import_module
+    from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
+    from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+    from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+    
+    ## modules for nanoAOD postprocessor
+    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
+    
+    logger.info("Preparing nanoAOD postprocessing")
+    logger.info("Will put files into directory %s", output_directory)
+    cut = '&&'.join(skimConds)
+    p = PostProcessor(output_directory,sample.files,cut=cut, modules=[jetmetUncertaintiesProducer("2016", "Summer16_23Sep2016V4_MC", [ "Total" ])])
+    logger.info("Starting nanoAOD postprocessing")
+    p.run()
+    logger.info("Done. Replacing input files for further processing.")
+    
+    sample.files = [ output_directory + '/' + x.split('/')[-1].replace('.root', '_Skim.root') for x in sample.files ]
 
 # Define a reader
 reader = sample.treeReader( \
@@ -507,28 +537,37 @@ def filler( event ):
         if 'T8bbllnunu' in options.samples[0]:
             r.GenSusyMChargino = max([p['mass']*(abs(p['pdgId']==1000024)) for p in gPart])
             r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000011)) for p in gPart]) #FIXME check PDG ID of slepton in sample
-            #logger.debug("Slepton is selectron with mass %i", r.GenSusyMSlepton)
+            logger.debug("Slepton is selectron with mass %i", r.GenSusyMSlepton)
             event.sleptonPdg = 1000011
             if not r.GenSusyMSlepton > 0:
                 r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000013)) for p in gPart])
-                #logger.debug("Slepton is smuon with mass %i", r.GenSusyMSlepton)
+                logger.debug("Slepton is smuon with mass %i", r.GenSusyMSlepton)
                 event.sleptonPdg = 1000013
             if not r.GenSusyMSlepton > 0:
                 r.GenSusyMSlepton = max([p['mass']*(abs(p['pdgId']==1000015)) for p in gPart])
-                #logger.debug("Slepton is stau with mass %i", r.GenSusyMSlepton)
+                logger.debug("Slepton is stau with mass %i", r.GenSusyMSlepton)
                 event.sleptonPdg = 1000015
-            event.mCha  = r.GenSusyMChargino
-            event.mSlep = r.GenSusyMSlepton
+            event.mCha  = int(round(r.GenSusyMChargino,0))
+            event.mSlep = int(round(r.GenSusyMSlepton,0))
         #if 'T2tt' in options.samples[0]:
         #    pol_weights = getPolWeights(r)
         #    event.weight_pol_L = pol_weights[0]
         #    event.weight_pol_R = pol_weights[1]
 
-        event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
+        try:
+            event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
+        except KeyError:
+            logger.info("Couldn't find weight for %s, %s. Setting weight to 0.", r.GenSusyMStop, r.GenSusyMNeutralino)
+            event.weight = 0.
         event.mStop = int(r.GenSusyMStop)
         event.mNeu  = int(r.GenSusyMNeutralino)
-        event.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
-        event.reweightXSecDown  = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacDown']
+        try:
+            event.reweightXSecUp    = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacUp']
+            event.reweightXSecDown  = signalWeight[(r.GenSusyMStop, r.GenSusyMNeutralino)]['xSecFacDown']
+        except KeyError:
+            logger.info("Couldn't find weight for %s, %s. Setting weight to 0.", r.GenSusyMStop, r.GenSusyMNeutralino)
+            event.reweightXSecUp    = 0.
+            event.reweightXSecDown  = 0.
     elif isMC:
         event.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
     elif isData:
@@ -889,15 +928,12 @@ treeMaker_parent = TreeMaker(
     )
 
 # Split input in ranges
-if options.nJobs>1 and not options.fileBasedSplitting:
-    eventRanges = reader.getEventRanges( nJobs = options.nJobs )
-else:
-    eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs = options.minNJobs )
+eventRanges = reader.getEventRanges( maxNEvents = options.eventsPerJob, minJobs = options.minNJobs )
 
 logger.info( "Splitting into %i ranges of %i events on average. FileBasedSplitting: %s. Job number %s",  
         len(eventRanges), 
         (eventRanges[-1][1] - eventRanges[0][0])/len(eventRanges), 
-        'Yes' if options.fileBasedSplitting else 'No',
+        'Yes',
         options.job)
 
 #Define all jobs
@@ -905,17 +941,13 @@ jobs = [(i, eventRanges[i]) for i in range(len(eventRanges))]
 
 filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
 
-if options.fileBasedSplitting and len(eventRanges)>1:
+if len(eventRanges)>1:
     raise RuntimeError("Using fileBasedSplitting but have more than one event range!")
 
 clonedEvents = 0
 convertedEvents = 0
 outputLumiList = {}
 for ievtRange, eventRange in enumerate( eventRanges ):
-
-    
-    if not options.fileBasedSplitting and options.nJobs>1:
-        if ievtRange != options.job: continue
 
     logger.info( "Processing range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 

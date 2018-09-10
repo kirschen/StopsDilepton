@@ -44,7 +44,7 @@ class puProfile:
 
     def initCache(self, cacheDir):
         print cacheDir
-        self.cache = resultsDB(os.path.join(cacheDir, 'puProfiles.sql'), "puProfile", ["selection", "weight", "source"])
+        self.cache = resultsDB(os.path.join(cacheDir, 'puProfiles_v2.sql'), "puProfile", ["selection", "weight", "source"])
 
     def uniqueKey( self, *arg ):
         '''No dressing required'''

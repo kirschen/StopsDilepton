@@ -25,8 +25,8 @@ special_cuts = {
    
     "dPhiJet0":          "Sum$( ( cos(MET_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0",
     "dPhiJet1":          "Sum$( ( cos(MET_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0",
-    "dPhiInv":           '(!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)))', # here we want an njet requirement
-    "metInv":            "met_pt<80",
+    "dPhiInv":           '(!(cos(MET_phi-JetGood_phi[0])<0.8&&cos(MET_phi-JetGood_phi[1])<cos(0.25)))', # here we want an njet requirement
+    "metInv":            "MET_pt<80",
     "metSigInv":         "metSig<5",
     "badJetSrEVeto":     "Sum$(Jet_neEmEF*Jet_pt*cosh(Jet_eta)*(2.5<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt<50))<200",
 
@@ -108,7 +108,7 @@ class cutInterpreter:
         cutString = "&&".join( map( cutInterpreter.translate_cut_to_string, cuts ) )
 
         if photonEstimated:
-          for var in ['met_pt','met_phi','metSig','dl_mt2ll','dl_mt2bb']:
+          for var in ['MET_pt','MET_phi','metSig','dl_mt2ll','dl_mt2bb']:
             cutString = cutString.replace(var, var + '_photonEstimated')
 
         return cutString

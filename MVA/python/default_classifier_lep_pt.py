@@ -2,7 +2,7 @@ from StopsDilepton.tools.helpers import deltaPhi
 
 # Read from root files
 read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I",
+                  "MET_pt/F", "met_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I",
                   "dl_pt/F","l1_pt/F","l2_pt/F"]
 
 training_variables = {
@@ -16,7 +16,7 @@ training_variables = {
         'l1_eta':       lambda event: event.l1_eta            , 
         'l2_eta':       lambda event: event.l2_eta            ,
         'metSig':       lambda event: event.metSig            , 
-        'met_pt':       lambda event: event.met_pt            ,
+        'met_pt':       lambda event: event.MET_pt            ,
         'Jet_dphi':     lambda event: deltaPhi( event.JetGood_phi[0],   event.JetGood_phi[1] ),
         'lep_dphi':     lambda event: deltaPhi( event.l1_phi, event.l2_phi ), 
         'dl_pt':        lambda event: event.dl_pt             , 
@@ -57,7 +57,7 @@ selection_cutstring = "&&".join( [cutInterpreter.cutString(selection), getFilter
 #        'dl_eta', 'dl_mass',
 #        'ht',
 #        'l1_eta', 'l2_eta',
-#        'metSig', 'met_pt',
+#        'metSig', 'MET_pt',
 #]
 #
 ## Class to define new variables based on variables from root file 

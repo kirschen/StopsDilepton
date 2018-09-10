@@ -25,7 +25,7 @@ except:
 logger.info("Loading MC samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
 DY_M5to50_HT = [
-#                #"DYJetsToLL_M5to50_LO_lheHT100", 
+                "DYJetsToLL_M10to50_LO_lheHT70", 
                 "DYJetsToLL_M5to50_HT70to100",
                 "DYJetsToLL_M5to50_HT100to200_comb",
                 "DYJetsToLL_M5to50_HT200to400_comb",
@@ -34,7 +34,7 @@ DY_M5to50_HT = [
                 ] 
 
 DY_M50_HT =[
-#            "DYJetsToLL_M50_LO_ext_lheHT100", 
+            "DYJetsToLL_M50_LO_ext1_comb_lheHT70", 
             "DYJetsToLL_M50_HT70to100",
             "DYJetsToLL_M50_HT100to200_comb",
             "DYJetsToLL_M50_HT200to400_comb",

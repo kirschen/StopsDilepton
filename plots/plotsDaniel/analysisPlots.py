@@ -54,10 +54,19 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 #
 
 data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-postProcessing_directory = "stops_2016_nano_v2/dilep/"
-from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-postProcessing_directory = "stops_2016_nano_v2/dilep/"
-from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018_postProcessed import *
+
+if args.year == 2016:
+    postProcessing_directory = "stops_2016_nano_v2/dilep/"
+    from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+    postProcessing_directory = "stops_2016_nano_v2/dilep/"
+    from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018_postProcessed import *
+elif args.year == 2017:
+    postProcessing_directory = "stops_2017_nano_v2/dilep/"
+    from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
+    postProcessing_directory = "stops_2017_nano_v2/dilep/"
+    from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
+
+
 
 if args.signal == "T2tt":
     postProcessing_directory = "stops_2016_nano_v2/dilep/"
@@ -172,8 +181,12 @@ allPlots   = {}
 allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
-  data_sample = Run2016
-  data_sample.texName = "data (2016)"
+  if args.year == 2016:
+    data_sample = Run2016
+    data_sample.texName = "data (2016)"
+  else:
+    data_sample = Run2017
+    data_sample.texName = "data (2017)"
 
   data_sample.setSelectionString([getFilterCut(isData=True, year=args.year), getLeptonSelection(mode)])
   data_sample.name           = "data"
@@ -249,11 +262,11 @@ for index, mode in enumerate(allModes):
     binning=[3, 0, 3],
   ))
 
-  plots.append(Plot(
-    name = 'nVtxs', texX = 'vertex multiplicity', texY = 'Number of Events',
-    attribute = TreeVariable.fromString( "Pileup_nTrueInt/F" ),
-    binning=[50,0,50],
-  ))
+  #plots.append(Plot(
+  #  name = 'nVtxs', texX = 'vertex multiplicity', texY = 'Number of Events',
+  #  attribute = TreeVariable.fromString( "Pileup_nTrueInt/F" ),
+  #  binning=[50,0,50],
+  #))
     
   plots.append(Plot(
     name = 'PV_npvsGood', texX = 'N_{PV} (good)', texY = 'Number of Events',

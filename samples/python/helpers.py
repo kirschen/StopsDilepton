@@ -121,10 +121,12 @@ def getT2ttSignalWeight(sample, lumi, cacheDir):
 
     cacheFile = os.path.join(cacheDir, "%s_signalCounts.root"%sample.name)
     if os.path.isfile(cacheFile):
+        logger.info("Loading signal weights from %s", cacheFile)
         hNEvents = getObjFromFile(cacheFile, "hNEvents")
     else:
         sample.chain.Draw("Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022)):Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
         hNEvents = ROOT.gDirectory.Get("hNEvents")
+        logger.info("Writing signal weights to %s", cacheFile)
         writeObjToFile(cacheFile, hNEvents)
 
     for i in range (mMax):
