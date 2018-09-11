@@ -207,7 +207,7 @@ for index, mode in enumerate(allModes):
     weight_ = lambda event, sample: event.weight
 
   multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
-  mc             = [ Top_pow, TTZ, TTXNoZ] + multiBosonList + [DY_HT_LO]
+  mc             = [ Top_pow, TTZ, TTXNoZ] + multiBosonList + [DY_LO] # DY_HT_LO
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 

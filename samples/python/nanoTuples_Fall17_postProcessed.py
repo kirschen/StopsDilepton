@@ -25,7 +25,7 @@ except:
 logger.info("Loading MC samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
 DY_M5to50_HT = [
-                "DYJetsToLL_M5to50_LO_lheHT100", 
+                "DYJetsToLL_M10to50_LO_lheHT70", 
                 "DYJetsToLL_M4to50_HT70to100",
                 "DYJetsToLL_M4to50_HT100to200",
                 "DYJetsToLL_M4to50_HT200to400_comb",
@@ -34,7 +34,7 @@ DY_M5to50_HT = [
                 ] 
 
 DY_M50_HT =[
-            "DYJetsToLL_M50_LO_ext_lheHT100", 
+            "DYJetsToLL_M50_LO_ext1_lheHT100", 
             "DYJetsToLL_M50_HT100to200_comb",
             "DYJetsToLL_M50_HT200to400_comb",
             "DYJetsToLL_M50_HT400to600_comb",
@@ -47,7 +47,7 @@ DY_M50_HT =[
 
 dirs = {}
 dirs['DY']               = ["DYJetsToLL_M50_ext2", "DYJetsToLL_M10to50" ]
-dirs['DY_LO']            = ["DYJetsToLL_M50_LO_ext1_comb"]
+dirs['DY_LO']            = ["DYJetsToLL_M50_LO_ext1", "DYJetsToLL_M10to50_LO"]
 dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 
 dirs['TTLep_pow']        = ["TTLep_pow"]
@@ -103,7 +103,7 @@ directories = { key : [ os.path.join( data_directory, postProcessing_directory, 
 
 #
 #DY              = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=color.DY,              texName="DY",                                directory=directories['DY'])
-#DY_LO           = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO'])
+DY_LO           = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO'])
 DY_HT_LO        = Sample.fromDirectory(name="DY_HT_LO",         treeName="Events", isData=False, color=color.DY,              texName="Drell-Yan",                         directory=directories['DY_HT_LO'])
 Top_pow         = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
 TTX            = Sample.fromDirectory(name="TTX",              treeName="Events", isData=False, color=color.TTX,             texName="t#bar{t}H/W/Z, tZq",                directory=directories['TTX'])
