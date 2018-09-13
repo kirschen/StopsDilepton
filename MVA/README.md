@@ -36,7 +36,7 @@ cd CombineHarvester
 scram b -j 6
 ```
 
-# for MVA
+# for MVA. important to call, otherwise theano might cause problems on batch.
 ```
 cmsenv
 ./setPyMva.sh

@@ -5,9 +5,10 @@
 import os
 import time
 import ROOT
+import uuid
 
 # StopsDilepton
-from StopsDilepton.tools.user    import MVA_preprocessing_directory, MVA_model_directory, plot_directory
+from StopsDilepton.tools.user    import MVA_preprocessing_directory, MVA_model_directory, plot_directory, data_directory
 from StopsDilepton.tools.helpers import deltaPhi
 
 # Keras, Pandas, numpy etc.
@@ -18,7 +19,8 @@ import pandas as pd
 os.environ['KERAS_BACKEND'] = 'theano'
 from keras.models import load_model
 from keras.models import model_from_yaml
-import keras.backend as k
+#import theano
+#import keras.backend as k
 
 ## tests with tensorflow for reducing memory allocation. there's no (default) option to reduce main memory allocation, only gpu (afaik). kept for future checks
 ## https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory/48214084#48214084
