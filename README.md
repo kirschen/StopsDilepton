@@ -6,6 +6,9 @@ cmsenv
 git cms-init
 git clone https://github.com/HephySusySW/StopsDilepton
 ./StopsDilepton/setup101X.sh
+
+VERY IMPORTANT: if you use the MVA, run `MVA/setPyMva.sh` or best, add it to your bash profile.
+
 ```
 # for OptiMass M2 variables (optional)
 ```
