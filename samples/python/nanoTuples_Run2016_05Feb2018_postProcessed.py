@@ -43,17 +43,17 @@ def getSample(pd, runName, lumi):
     sample.lumi = lumi
     return sample
 
-DoubleEG_Run2016                = getSample('DoubleEG',         'Run2016',       (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000)
-DoubleMuon_Run2016              = getSample('DoubleMuon',       'Run2016',       (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000)
-#SingleElectron_Run2016          = getSample('SingleElectron',   'Run2016',       (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000)
-#SingleMuon_Run2016              = getSample('SingleMuon',       'Run2016',       (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000)
-MuonEG_Run2016                  = getSample('MuonEG',           'Run2016',       (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000)
+DoubleEG_Run2016                = getSample('DoubleEG',         'Run2016',       (35.9)*1000)
+DoubleMuon_Run2016              = getSample('DoubleMuon',       'Run2016',       (35.9)*1000)
+#SingleElectron_Run2016          = getSample('SingleElectron',   'Run2016',      (35.9)*1000)
+#SingleMuon_Run2016              = getSample('SingleMuon',       'Run2016',      (35.9)*1000)
+MuonEG_Run2016                  = getSample('MuonEG',           'Run2016',       (35.9)*1000)
 
 allSamples_Data25ns = []
 allSamples_Data25ns += [MuonEG_Run2016, DoubleEG_Run2016, DoubleMuon_Run2016]
 
 Run2016 = Sample.combine("Run2016", [MuonEG_Run2016, DoubleEG_Run2016, DoubleMuon_Run2016], texName = "Data")
-Run2016.lumi = (5.744+2.573+4.248+4.009+3.101+7.540+8.329+0.210)*1000
+Run2016.lumi = (35.9)*1000
 
 for s in allSamples_Data25ns:
   s.color   = ROOT.kBlack

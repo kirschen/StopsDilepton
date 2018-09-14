@@ -140,6 +140,9 @@ elif options.year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17 import allSamples as bkgSamples
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018 import allSamples as dataSamples
     allSamples = bkgSamples + dataSamples
+elif options.year == 2018:
+    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco import allSamples as dataSamples
+    allSamples = dataSamples
 else:
     raise NotImplementedError
 
@@ -335,8 +338,10 @@ if sample.isData:
         sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt'
     elif options.year == 2017:
         sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt'
-    else:
+    elif options.year == 2018:
         sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-321777_13TeV_PromptReco_Collisions18_JSON.txt'
+    else:
+        raise NotImplementedError
     
     lumiList = LumiList(os.path.expandvars(sample.json))
     logger.info( "Loaded json %s", sample.json )
@@ -450,6 +455,7 @@ if fastSim and (isTriLep or isDiLep):
 logger.info("Initializing keras readers for different models.")
 from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
 from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
+
 
 MVA_T2tt_default    = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-20-1005', training_variables_list )
 MVA_T2tt_lep_pt     = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-16-1253', training_variables_list_lep_pt )
@@ -1011,7 +1017,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 logger.info( "Converted %i events of %i, cloned %i",  convertedEvents, reader.nEvents , clonedEvents )
 
 # Storing JSON file of processed events
-if isData:
+if isData and convertedEvents>0: # avoid json to be overwritten in cases where a root file was found already
     jsonFile = filename+'_%s.json'%(0 if options.nJobs==1 else options.job)
     LumiList( runsAndLumis = outputLumiList ).writeJSON(jsonFile)
     logger.info( "Written JSON file %s", jsonFile )
