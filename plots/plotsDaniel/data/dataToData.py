@@ -43,18 +43,17 @@ if args.small:                        args.plot_directory += "_small"
 # Make samples, will be searched for in the postProcessing directory
 #
 
-data_directory           = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
-
-
-postProcessing_directory = "nanoAOD_v2/dilepTiny/"
-from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018 import *
-
-postProcessing_directory = "nanoAOD_v2/dilepTiny/"
-from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018 import *
-
 data_directory           = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-postProcessing_directory = "2018_nano_v2/dilep/"
-from StopsDilepton.samples.nanoTuples_Run2018_PromptReco import *
+
+
+postProcessing_directory = "stops_2016_nano_v2/dilep/"
+from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018_postProcessed import *
+
+postProcessing_directory = "stops_2017_nano_v2/dilep/"
+from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
+
+postProcessing_directory = "stops_2018_nano_v2/dilep/"
+from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
 
 
 # define 2l selections
