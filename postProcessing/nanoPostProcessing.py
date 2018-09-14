@@ -403,7 +403,7 @@ if isTriLep or isDiLep or isSingleLep:
 if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
-    new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F', 'MVA_T2tt_default/F', 'MVA_T2tt_lep_pt/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p09/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1/F'] )
+    new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'])
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
     if isMC: new_variables.extend( \
         [   'zBoson_genPt/F', 'zBoson_genEta/F', 
@@ -452,16 +452,25 @@ if fastSim and (isTriLep or isDiLep):
 
 
 ## Initialize keras for different trainings
+if isTriLep or isDiLep:
+    new_variables.extend( [ 'MVA_T2tt_dM350_smaller_TTLep_pow/F', 'MVA_T2tt_dM350_TTLep_pow/F', 'MVA_T2tt_dM350_TTZtoLLNuNu/F', 
+                            'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow /F',
+                            'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow/F'])
+
 logger.info("Initializing keras readers for different models.")
 from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
 from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
+from StopsDilepton.MVA.default_classifier_lep_pt_nobtag import training_variables_list as training_variables_list_lep_pt_nobtag
 
+MVA_T2tt_dM350_smaller_TTLep_pow    = KerasReader( 'T2tt_dM350_smaller-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-30-1930', training_variables_list_lep_pt_nobtag)
+MVA_T2tt_dM350_TTLep_pow            = KerasReader( 'T2tt_dM350-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-31-0318', training_variables_list_lep_pt_nobtag)
+MVA_T2tt_dM350_TTZtoLLNuNu          = KerasReader( 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134', training_variables_list_lep_pt)
+MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1639', training_variables_list_lep_pt)
+MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511', training_variables_list_lep_pt)
+MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow         = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1555', training_variables_list_lep_pt)
+MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow= KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1631', training_variables_list_lep_pt)
+MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626', training_variables_list_lep_pt)
 
-MVA_T2tt_default    = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-20-1005', training_variables_list )
-MVA_T2tt_lep_pt     = KerasReader( 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-16-1253', training_variables_list_lep_pt )
-
-MVA_T8bbllnunu_XCha0p5_XSlep0p09        = KerasReader( 'SMS_T8bbllnunu_XCha0p5_XSlep0p09-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1522', training_variables_list )
-MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1   = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_800_1-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-07-25-1153', training_variables_list )
 logger.info("Loaded MVA models.")
 
 if not options.skipNanoTools:
@@ -810,10 +819,14 @@ def filler( event ):
                     'met_pt':           event.met_pt,
                     }
 
-                event.MVA_T2tt_default      = MVA_T2tt_default.eval(eventdict)
-                event.MVA_T2tt_lep_pt       = MVA_T2tt_lep_pt.eval(eventdict)
-                event.MVA_T8bbllnunu_XCha0p5_XSlep0p09      = MVA_T8bbllnunu_XCha0p5_XSlep0p09.eval(eventdict)
-                event.MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1 = MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1.eval(eventdict)
+                event.MVA_T2tt_dM350_smaller_TTLep_pow                            = MVA_T2tt_dM350_smaller_TTLep_pow.eval(eventdict)
+                event.MVA_T2tt_dM350_TTLep_pow                                    = MVA_T2tt_dM350_TTLep_pow.eval(eventdict)
+                event.MVA_T2tt_dM350_TTZtoLLNuNu                                  = MVA_T2tt_dM350_TTZtoLLNuNu.eval(eventdict)
+                event.MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow            = MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow.eval(eventdict)
+                event.MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow     = MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow.eval(eventdict)
+                event.MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow             = MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow.eval(eventdict)
+                event.MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow    = MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow.eval(eventdict)
+                event.MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow            = MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow.eval(eventdict)
 
 
             # To check MC truth when looking at the TTZToLLNuNu sample
