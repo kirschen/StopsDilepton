@@ -125,7 +125,7 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
-      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) ) if plotData else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)
+      (0.70, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale ) ) if plotData else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)
     ]
     if "mt2ll100" in args.selection and args.noData: lines += [(0.55, 0.5, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
     return [tex.DrawLatex(*l) for l in lines] 
@@ -154,7 +154,7 @@ def drawPlots(plots, mode, dataMCScale):
 # Read variables and sequences
 #
 read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "MET_pt/F", "MET_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
+                  "MET_pt/F", "MET_phi/F", "MET_significance/F", "MET_sumEt/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
 
 #
 #
@@ -294,6 +294,18 @@ for index, mode in enumerate(allModes):
     texX = 'E_{T}^{miss}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
     attribute = TreeVariable.fromString('metSig/F'),
     binning= [80,20,100] if args.selection.count('metSig20') else ([25,5,30] if args.selection.count('metSig') else [30,0,30]),
+  ))
+  
+  plots.append(Plot(
+    texX = 'E_{T}^{miss} significance', texY = 'Number of Events',
+    attribute = TreeVariable.fromString('MET_significance/F'),
+    binning= [50,0,200],
+  ))
+
+  plots.append(Plot(
+    texX = 'uncl. E_{T} (GeV)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString('MET_sumEt/F'),
+    binning= [60,0,6000],
   ))
 
   plots.append(Plot(
