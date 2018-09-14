@@ -21,6 +21,7 @@ from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout
+#from keras.regularizers import l1_l2
 #from keras.callbacks import *
 from Callback_ROC import Callback_ROC
 
@@ -77,6 +78,9 @@ class KerasTrainer:
         logger.info( 'Number of training variables: %i, spectator variables: %i', len(self.training_variables), len(self.spectator_variables) )
         logger.info( 'Number of signal / backround events: %i / %i', (y_tmp==1).sum(), (y_tmp==0).sum())
         logger.info( 'Number of events and percentage of signal events in sample: %s // %5.2f',  y_tmp.shape[0], round( 100.* (y_tmp==1).sum() / y_tmp.shape[0] ,2 ))
+        print ( 'Number of training variables: %i, spectator variables: %i', len(self.training_variables), len(self.spectator_variables) )
+        print ( 'Number of signal / backround events: %i / %i', (y_tmp==1).sum(), (y_tmp==0).sum())
+        print ( 'Number of events and percentage of signal events in sample: %s // %5.2f',  y_tmp.shape[0], round( 100.* (y_tmp==1).sum() / y_tmp.shape[0] ,2 ))
 
        # Normalize Data - mean to 0, and std to 1 
         self.X_mean, self.X_std = X_tmp.mean(), X_tmp.std()
@@ -132,17 +136,22 @@ class KerasTrainer:
 
         #Initialize and build classifier
         self.model = Sequential()
-        self.model.add( Dense(units= units, activation='relu', input_dim=self.X_train.shape[1]) ) 
-        if dropout:
-            self.model.add( Dropout( rate = dropout ) )
-        for i in range(NHLayer):
-            self.model.add( Dense(units= units, activation='relu' ) )
+        if NHLayer==0:
+            self.model.add( Dense(units= 1, activation='sigmoid', input_dim=self.X_train.shape[1]) ) 
+        else:
+            self.model.add( Dense(units= units, activation='relu', input_dim=self.X_train.shape[1], )) 
             if dropout:
                 self.model.add( Dropout( rate = dropout ) )
-        self.model.add( Dense(units=1, activation='sigmoid') ) 
+            for i in range(NHLayer):
+                self.model.add( Dense(units= units, activation='relu' ) )
+                if dropout:
+                    self.model.add( Dropout( rate = dropout ) )
+            self.model.add( Dense(units=1, activation='sigmoid' ) ) 
 
         # configuration
         self.model.compile( loss='binary_crossentropy', optimizer='rmsprop', metrics=['acc'])
+        #self.model.compile( loss='binary_crossentropy', optimizer='sgd', metrics=['acc'])
+        #self.model.compile( loss='kullback_leibler_divergence', optimizer='rmsprop', metrics=['acc'])
    
         # callbacks 
         callbacks = []
@@ -182,7 +191,7 @@ class KerasTrainer:
         plt.title('Training and validation loss (Valid. split = ' + str( self.validation_split ) + ')')
         plt.xlabel('Epochs  ( batch_size = ' + str( self.batch_size ) + ')')
         plt.ylabel('Loss')
-        plt.legend()
+        plt.legend(loc='upper left')
         plt.savefig( os.path.join( self.plot_directory , 'loss.png'))
         plt.clf()
 
@@ -193,7 +202,7 @@ class KerasTrainer:
         plt.title('Training and validation acc (Valid. split = ' + str( self.validation_split ) + ')')
         plt.xlabel('Epochs ( batch_size = ' + str( self.batch_size ) + ')')
         plt.ylabel('Acc')
-        plt.legend()
+        plt.legend(loc='upper left')
         plt.savefig( os.path.join( self.plot_directory , 'acc.png'))
         plt.clf()
  
@@ -205,7 +214,7 @@ class KerasTrainer:
         fpr_test, tpr_test, thresholds_test = roc_curve( self.y_test.values, self.y_test_pred.values )
         auc_val_test = auc(fpr_test, tpr_test)
 
-        plt.plot( tpr_test, 1-fpr_test, 'b', label= 'Neural net, Auc=' + str(round(auc_val_test,4) ))
+        plt.plot( tpr_test, 1-fpr_test, 'b', label= 'Auc=' + str(round(auc_val_test,4) ))
         plt.title('ROC (sample info: ' + str( len( self.X_test[self.y_test == 1] ) + len( self.X_train[self.y_train == 1] ) ) + ' signals / '
                                               + str( len( self.X_test[self.y_test == 0] ) + len( self.X_train[self.y_train == 0] ) ) + ' background)'  )
         plt.xlabel('$\epsilon_{Sig}$', fontsize = 20) # 'False positive rate'
@@ -223,7 +232,7 @@ class KerasTrainer:
         plt.xlabel('y_pred')
         plt.ylabel('Events')
         plt.ylim([0.5,10**5])
-        plt.legend()
+        plt.legend(loc='upper right')
         plt.savefig( os.path.join( self.plot_directory , 'classifier_output.png') )
         plt.clf()
         
@@ -238,7 +247,7 @@ class KerasTrainer:
             plt.title('MT2ll shapes for Background Events (area normalized)')
             plt.xlabel('MT2ll')
             plt.ylim([10**(-3)*2,0.2])
-            plt.legend()
+            plt.legend(loc='upper right')
             plt.savefig( os.path.join( self.plot_directory , 'mt2ll_background_D.png') )
             plt.clf()
 
@@ -253,10 +262,27 @@ class KerasTrainer:
             plt.xlabel('y_pred')
             plt.ylabel('Events')
             plt.ylim([0.5,10**5])
-            plt.legend()
+            plt.legend(loc='upper right')
             plt.savefig( os.path.join( self.plot_directory , 'classifier_output_SR.png') )
             plt.clf()
-        
+       
+        #
+        # save validation results
+        #
+
+        pd.DataFrame(self.loss_values).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='loss')
+        if self.history_dict.has_key('val_loss'):
+            pd.DataFrame(self.val_loss_values).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='val_loss')
+        pd.DataFrame(self.acc_values).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='acc')
+        if self.history_dict.has_key('val_acc'):
+            pd.DataFrame(self.val_acc_values).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='val_acc')
+        pd.DataFrame(self.acc_values).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='acc')
+        pd.concat([ pd.Series( fpr_test , name='fpr'),
+                    pd.Series( tpr_test , name='tpr'),
+                    pd.Series( thresholds_test , name='thresholds'),]
+                , axis=1).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='roc')
+
+
 # ROOT plots - are very slow!
 
 #        signalAttr = SampleAttr('signal', 1,'kRed')
