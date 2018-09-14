@@ -4,11 +4,20 @@
 eval `scram runtime -sh`
 cd $CMSSW_BASE/src
 
+# nanoAOD tools
+git clone https://github.com/danbarto/nanoAOD-tools.git PhysicsTools/NanoAODTools
+cd $CMSSW_BASE/src
+
 # 
 # X-PAG code for limit
 #
 git clone https://github.com/GhentAnalysis/PlotsSMS StopsDilepton/PlotsSMS.git
-git clone https://github.com/schoef/RootTools.git
+cd $CMSSW_BASE/src
+
+# RootTools
+git clone https://github.com/danbarto/RootTools.git
+cd $CMSSW_BASE/src
+
 scram b -j9
 
 cd $CMSSW_BASE/src
