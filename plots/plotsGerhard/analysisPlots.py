@@ -27,10 +27,11 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--MVA',                action='store',      default=[0,1],           nargs=2,   type=float, help='MVA binning for plots, 2 numbers: min max')
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',             action='store',      default='T8bbllnunu',    nargs='?', choices=[None, "T2tt", "DM", "T8bbllnunu", "compilation"], help="Add signal to plot")
+argParser.add_argument('--signal',             action='store',      default='T2tt',          nargs='?', choices=[None, "T2tt", "T8bbllnunu005", "T8bbllnunu05","T8bbllnunu095"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='analysisPlots_test')
+argParser.add_argument('--keras_directory',    action='store',      default='T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134')
 argParser.add_argument('--year',               action='store',      default=2016,            type=int,)
 argParser.add_argument('--selection',          action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
@@ -67,31 +68,44 @@ from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018_postProcessed import *
 if args.signal == "T2tt":
     postProcessing_directory = "stops_2016_nano_v2/dilep/"
     from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *    
-    #postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
-    #postProcessing_directory = "postProcessed_80X_v40/dilepTiny"
-    #from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
     T2tt                    = T2tt_850_0
     T2tt2                   = T2tt_600_300
     T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T2tt, T2tt2]
-elif args.signal == "T8bbllnunu":
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    #T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p95_1300_1
-    #T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p95_1300_300
-    #T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p95_1300_600
-    #T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-    #T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-    #T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
-    #signals = [ T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p5_800_1
-    T8bbllnunu2              = T8bbllnunu_XCha0p5_XSlep0p09_800_1
-    T8bbllnunu3              = T8bbllnunu_XCha0p5_XSlep0p09_1300_300
+elif args.signal == "T8bbllnunu005":
+    postProcessing_directory = "stops_2016_nano_v2/dilep/"
+    #"postProcessed_80X_v35/dilepTiny"
+    from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *    
+    T8bbllnunu               = T8bbllnunu_XCha0p5_XSlep0p05_1100_0
+    T8bbllnunu2              = T8bbllnunu_XCha0p5_XSlep0p05_950_50
+    #T8bbllnunu3              = T8bbllnunu_XCha0p5_XSlep0p09_1300_300
     T8bbllnunu.style         = styles.lineStyle( ROOT.kBlack, width=3 )
     T8bbllnunu2.style        = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-    T8bbllnunu3.style        = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-    signals = [ T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
+    #T8bbllnunu3.style        = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
+    signals = [ T8bbllnunu, T8bbllnunu2 ]
+elif args.signal == "T8bbllnunu05":
+    postProcessing_directory = "stops_2016_nano_v2/dilep/"
+    #"postProcessed_80X_v35/dilepTiny"
+    from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *    
+    T8bbllnunu               = T8bbllnunu_XCha0p5_XSlep0p5_1252_200
+    T8bbllnunu2              = T8bbllnunu_XCha0p5_XSlep0p5_1000_650
+    #T8bbllnunu3              = T8bbllnunu_XCha0p5_XSlep0p09_1300_300
+    T8bbllnunu.style         = styles.lineStyle( ROOT.kBlack, width=3 )
+    T8bbllnunu2.style        = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+    #T8bbllnunu3.style        = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
+    signals = [ T8bbllnunu, T8bbllnunu2 ]
+elif args.signal == "T8bbllnunu095":
+    postProcessing_directory = "stops_2016_nano_v2/dilep/"
+    #"postProcessed_80X_v35/dilepTiny"
+    from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *    
+    T8bbllnunu               = T8bbllnunu_XCha0p5_XSlep0p05_1300_200
+    T8bbllnunu2              = T8bbllnunu_XCha0p5_XSlep0p05_1000_800
+    #T8bbllnunu3              = T8bbllnunu_XCha0p5_XSlep0p09_1300_300
+    T8bbllnunu.style         = styles.lineStyle( ROOT.kBlack, width=3 )
+    T8bbllnunu2.style        = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
+    #T8bbllnunu3.style        = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
+    signals = [ T8bbllnunu, T8bbllnunu2 ]
 elif args.signal == "compilation":
     postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
     from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
@@ -161,18 +175,17 @@ read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "
 #
 # MVA
 #
-from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list, get_dict
+
+if args.keras_directory in ['T2tt_dM350_smaller-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-30-1930',
+                            'T2tt_dM350-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-31-0318']:
+    from StopsDilepton.MVA.default_classifier_lep_pt_nobtag import training_variables_list, get_dict
+else:
+    from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list, get_dict
 
 from StopsDilepton.MVA.KerasReader import KerasReader
 from StopsDilepton.tools.user import  MVA_model_directory
-#keras_model_directory = 'SMS_T2tt_mStop_400to1200-TTLep_pow/v1/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/'
-keras_model_directory = 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all'
-#keras_model_date = '2018-08-01-1712'
-keras_model_date = '2018-08-28-1659'
-if not keras_model_date: keras_model_date =  min(os.listdir( os.path.join( MVA_model_directory, keras_model_directory) ) )
 
-keras_model_directory_ = os.path.join(keras_model_directory, keras_model_date )
-kerasReader = KerasReader( keras_model_directory_  , training_variables_list)
+kerasReader = KerasReader( args.keras_directory , training_variables_list)
 
 sequence = []
 
@@ -186,6 +199,7 @@ sequence.append(MVA)
 #
 # Specify plot_directory
 #
+args.plot_directory += args.keras_directory.split('/')[0] 
 if args.small:                        args.plot_directory += "_small"
 if args.noData:                       args.plot_directory += "_noData"
 if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
@@ -195,7 +209,7 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 
 [MVAmin, MVAmax] = args.MVA
 MVA_string = str(MVAmin) + 'MVA' + str(MVAmax) 
-args.plot_directory = os.path.join( args.plot_directory, 'KerasModel' + keras_model_date + '_' + MVA_string)
+args.plot_directory = os.path.join( args.plot_directory, 'KerasModel' + args.keras_directory.split('/')[-1] + '_' + MVA_string)
 
 #
 #
@@ -255,7 +269,7 @@ for index, mode in enumerate(allModes):
     sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
 
   for sample in signals:
-      if args.signal == "T2tt" or args.signal == "T8bbllnunu" or args.signal == "compilation":
+      if args.signal == "T2tt" or args.signal == "T8bbllnunu005" or args.signal == "T8bbllnunu05" or args.signal == "T8bbllnunu095" or args.signal == "compilation":
         sample.scale          = lumi_scale
         #sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
         sample.read_variables = ['reweightPU36fb/F']

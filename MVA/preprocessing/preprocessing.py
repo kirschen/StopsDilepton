@@ -24,7 +24,7 @@ from StopsDilepton.tools.helpers         import deltaPhi
 from StopsDilepton.tools.user import     MVA_preprocessing_directory
 
 # MVA and sample configuration
-from StopsDilepton.MVA.default_classifier import training_variables, spectator_variables, read_variables, selection_cutstring, selection, mode
+from StopsDilepton.MVA.default_classifier_lep_pt import training_variables, spectator_variables, read_variables, selection_cutstring, selection, mode
 
 #
 # Arguments

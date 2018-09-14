@@ -38,7 +38,7 @@ class Callback_ROC(keras.callbacks.Callback):
         plt.title('Training and validation auc')
         plt.xlabel('Epochs')
         plt.ylabel('Auc')
-        plt.legend()
+        plt.legend(loc ='lower left')
         plt.savefig( os.path.join( self.plot_directory , 'auc.png'))
         plt.grid(True)
         plt.clf()

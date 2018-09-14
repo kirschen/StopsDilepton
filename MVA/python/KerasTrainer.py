@@ -17,33 +17,34 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, roc_auc_score, auc
-from   sklearn.model_selection import train_test_split
-from   keras.models import Sequential
-from   keras.layers import Dense
-from   keras.layers import Dropout
-from   keras.callbacks import *
-from   keras import optimizers
-from   Callback_ROC import Callback_ROC
+from sklearn.model_selection import train_test_split
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import Dropout
+#from keras.regularizers import l1_l2
+#from keras.callbacks import *
+from Callback_ROC import Callback_ROC
 
-def makeTGraph( x, y ):
-    if len(x)!=len(y):
-        raise RuntimeError( "Need same length! Got %i and %i"%(len(x), len(y) ) )
-    return ROOT.TGraph(len(x), array.array('d', x), array.array('d', y))
-
-def saveTGraph( x, y, pathstring= '/afs/hephy.at/user/g/gungersback/www/etc', filename='test.png'):
-    if len(x)!=len(y):
-        raise RuntimeError( "Need same length! Got %i and %i"%(len(x), len(y) ) )
-    g = makeTGraph( x, y )
-    c1 = ROOT.TCanvas()
-    g.Draw("AC*")
-    c1.Print(pathstring + '/' +  filename)
-    return g
-
-class SampleAttr:
-    def __init__(self, name, tag, color):
-        self.name = name
-        self.tag = tag
-        self.color = color
+## Root stuff 
+#def makeTGraph( x, y ):
+#    if len(x)!=len(y):
+#        raise RuntimeError( "Need same length! Got %i and %i"%(len(x), len(y) ) )
+#    return ROOT.TGraph(len(x), array.array('d', x), array.array('d', y))
+#
+#def saveTGraph( x, y, pathstring= '/afs/hephy.at/user/g/gungersback/www/etc', filename='test.png'):
+#    if len(x)!=len(y):
+#        raise RuntimeError( "Need same length! Got %i and %i"%(len(x), len(y) ) )
+#    g = makeTGraph( x, y )
+#    c1 = ROOT.TCanvas()
+#    g.Draw("AC*")
+#    c1.Print(pathstring + '/' +  filename)
+#    return g
+#
+#class SampleAttr:
+#    def __init__(self, name, tag, color):
+#        self.name = name
+#        self.tag = tag
+#        self.color = color
 
 # Logging
 import logging
@@ -62,7 +63,7 @@ class KerasTrainer:
         self.train_fraction = 0.90
 
     def init_training_data( self, balanced=False ):
-        ''' Initialize training data
+        ''' Initialize training data, optional balance dataset - reduce backround event number to signal event number
         '''
         # read .h5 files to create feature Matrix X and target vector y
         X_tmp = pd.read_hdf( os.path.join( MVA_preprocessing_directory, self.input_data_directory,  'data_X.h5'), 'df')
@@ -77,6 +78,9 @@ class KerasTrainer:
         logger.info( 'Number of training variables: %i, spectator variables: %i', len(self.training_variables), len(self.spectator_variables) )
         logger.info( 'Number of signal / backround events: %i / %i', (y_tmp==1).sum(), (y_tmp==0).sum())
         logger.info( 'Number of events and percentage of signal events in sample: %s // %5.2f',  y_tmp.shape[0], round( 100.* (y_tmp==1).sum() / y_tmp.shape[0] ,2 ))
+        print ( 'Number of training variables: %i, spectator variables: %i', len(self.training_variables), len(self.spectator_variables) )
+        print ( 'Number of signal / backround events: %i / %i', (y_tmp==1).sum(), (y_tmp==0).sum())
+        print ( 'Number of events and percentage of signal events in sample: %s // %5.2f',  y_tmp.shape[0], round( 100.* (y_tmp==1).sum() / y_tmp.shape[0] ,2 ))
 
        # Normalize Data - mean to 0, and std to 1 
         self.X_mean, self.X_std = X_tmp.mean(), X_tmp.std()
@@ -100,59 +104,75 @@ class KerasTrainer:
     
     def train( self, NHLayer = 2, units = 100, epochs = 100, batch_size = 5120, validation_split = 0.2, earlystopping = False , dropout = 0):
         '''
-        initializes a Keras binary classifier and trains it on X_train and y_train
-        The trained classifier and the training visualisation (Lossfunction, Accuracy, roc_auc over epchs) are saved in a subfolder specified by the date of plotpath. 
-        The classifier is saved as .h5 file.
+        Initializes a Keras binary classifier and trains it on X_train and y_train
         
-        earlystopping defines how many roc auc measurments (taken every 5 epochs) we wait until we stopp training if the value does not improve. 0 means no early stopping.
-        dropout. 0 means no dropout
+        earlystopping defines how many epochs it waits until it stops the training if the roc auc measurments (taken every 10 epochs) do not increase. 
+        The model with the best roc aus is also stored in the data folder - code is in Callback_ROC. False means no early stopping.
+        
+        dropout. Percentage of numb nodes.  0 means no dropout
+        
+        Stores:
+        output_directory - Classifier, Mean and std of samples. 
+        plot_directory - Roc auc values during training. 
+ 
         '''
         self.validation_split = validation_split
         self.batch_size = batch_size
         self.timestamp = time.strftime("%Y-%m-%d-%H%M")
-       
-        # directories for plots and triained model 
+                 
+        # directory for plot 
         self.plot_directory = os.path.join( plot_directory, 'KerasTrainer', self.input_data_directory, self.timestamp) 
         if not os.path.exists( self.plot_directory ):
             os.makedirs( self.plot_directory )
+        print 'Plot directory:', self.plot_directory
+        logger.info( "Plot directory: %s ", self.plot_directory)
         
-        output_directory = os.path.join( MVA_model_directory, self.input_data_directory, self.timestamp) 
-        if not os.path.exists( output_directory ):
-            os.makedirs( output_directory )
+        # directory for data 
+        self.output_directory = os.path.join( MVA_model_directory, self.input_data_directory, self.timestamp) 
+        if not os.path.exists( self.output_directory ):
+            os.makedirs( self.output_directory )
+        print 'Data directory:', self.output_directory
+        logger.info( "Data directory: %s ", self.output_directory)
 
         #Initialize and build classifier
         self.model = Sequential()
-        self.model.add( Dense(units= units, activation='relu', input_dim=self.X_train.shape[1]) ) 
-        if dropout:
-            self.model.add( Dropout( rate = dropout ) )
-        for i in range(NHLayer):
-            self.model.add( Dense(units= units, activation='relu' ) )
+        if NHLayer==0:
+            self.model.add( Dense(units= 1, activation='sigmoid', input_dim=self.X_train.shape[1]) ) 
+        else:
+            self.model.add( Dense(units= units, activation='relu', input_dim=self.X_train.shape[1], )) 
             if dropout:
                 self.model.add( Dropout( rate = dropout ) )
-        self.model.add( Dense(units=1, activation='sigmoid') ) 
+            for i in range(NHLayer):
+                self.model.add( Dense(units= units, activation='relu' ) )
+                if dropout:
+                    self.model.add( Dropout( rate = dropout ) )
+            self.model.add( Dense(units=1, activation='sigmoid' ) ) 
 
         # configuration
         self.model.compile( loss='binary_crossentropy', optimizer='rmsprop', metrics=['acc'])
-        #self.model.compile( loss='binary_crossentropy',  optimizer=optimizers.RMSprop(lr=0.001) ,  metrics=['accuracy'])
+        #self.model.compile( loss='binary_crossentropy', optimizer='sgd', metrics=['acc'])
+        #self.model.compile( loss='kullback_leibler_divergence', optimizer='rmsprop', metrics=['acc'])
    
         # callbacks 
         callbacks = []
-        callbacks.append( Callback_ROC( self.X_train, self.y_train, self.plot_directory, output_directory, interval_evaluate_auc = 5,  patience_earlystopping_auc = earlystopping) )        
+        callbacks.append( Callback_ROC( self.X_train, self.y_train, self.plot_directory, self.output_directory, interval_evaluate_auc = 10,  patience_earlystopping_auc = earlystopping) )        
         
         # training
         self.history = self.model.fit(self.X_train.values, self.y_train.values, epochs=epochs, batch_size=batch_size, validation_split=validation_split, callbacks = callbacks)
 
         # write training file
-        training_file = os.path.join( output_directory, 'keras.h5')
+        training_file = os.path.join( self.output_directory, 'keras.h5')
         self.model.save( training_file )
         logger.info( "Written training file %s", training_file )
 
         # also save means and std of samples
-        self.X_mean.to_hdf( os.path.join( output_directory, 'X_mean.h5') , key='df', mode='w')
-        self.X_std.to_hdf( os.path.join( output_directory, 'X_std.h5') , key='df', mode='w')
+        self.X_mean.to_hdf( os.path.join( self.output_directory, 'X_mean.h5') , key='df', mode='w')
+        self.X_std.to_hdf( os.path.join( self.output_directory, 'X_std.h5') , key='df', mode='w')
 
-    def validation( self, xbin=20, classifier_binning = [2, 0.8, 1] ):
-        
+    def validation( self, xbin=20 ):
+        '''
+        Creats some validation plots on the test samples
+        '''
         #
         # loss and accuracy 
         #
@@ -171,7 +191,7 @@ class KerasTrainer:
         plt.title('Training and validation loss (Valid. split = ' + str( self.validation_split ) + ')')
         plt.xlabel('Epochs  ( batch_size = ' + str( self.batch_size ) + ')')
         plt.ylabel('Loss')
-        plt.legend()
+        plt.legend(loc='upper left')
         plt.savefig( os.path.join( self.plot_directory , 'loss.png'))
         plt.clf()
 
@@ -182,7 +202,7 @@ class KerasTrainer:
         plt.title('Training and validation acc (Valid. split = ' + str( self.validation_split ) + ')')
         plt.xlabel('Epochs ( batch_size = ' + str( self.batch_size ) + ')')
         plt.ylabel('Acc')
-        plt.legend()
+        plt.legend(loc='upper left')
         plt.savefig( os.path.join( self.plot_directory , 'acc.png'))
         plt.clf()
  
@@ -194,7 +214,7 @@ class KerasTrainer:
         fpr_test, tpr_test, thresholds_test = roc_curve( self.y_test.values, self.y_test_pred.values )
         auc_val_test = auc(fpr_test, tpr_test)
 
-        plt.plot( tpr_test, 1-fpr_test, 'b', label= 'Neural net, Auc=' + str(round(auc_val_test,4) ))
+        plt.plot( tpr_test, 1-fpr_test, 'b', label= 'Auc=' + str(round(auc_val_test,4) ))
         plt.title('ROC (sample info: ' + str( len( self.X_test[self.y_test == 1] ) + len( self.X_train[self.y_train == 1] ) ) + ' signals / '
                                               + str( len( self.X_test[self.y_test == 0] ) + len( self.X_train[self.y_train == 0] ) ) + ' background)'  )
         plt.xlabel('$\epsilon_{Sig}$', fontsize = 20) # 'False positive rate'
@@ -202,6 +222,68 @@ class KerasTrainer:
         plt.legend(loc ='lower left')
         plt.savefig( os.path.join( self.plot_directory , 'roc.png') )
         plt.clf()
+
+        #
+        # Visualisation of Classifier output
+        #
+
+        n, bins, patches = plt.hist( [ self.y_test_pred[self.y_test==0].values, self.y_test_pred[self.y_test==1].values ], xbin, log=True, label=['Background ('+ str((self.y_test==0).sum()) +')' ,'Signal ('+ str((self.y_test==1).sum()) +')'], histtype='stepfilled', alpha=0.5) 
+        plt.title('Classifier output (on Test sample)')
+        plt.xlabel('y_pred')
+        plt.ylabel('Events')
+        plt.ylim([0.5,10**5])
+        plt.legend(loc='upper right')
+        plt.savefig( os.path.join( self.plot_directory , 'classifier_output.png') )
+        plt.clf()
+        
+        #
+        # mt2ll shapes for different D cuts:
+        #
+
+        if 'dl_mt2ll' in self.X_spect:
+            for i in range(0,9,2):
+                X_temp = self.X_spect['dl_mt2ll'][ ( self.y_test_pred[0] > (i/10.)) & (self.y_test_pred[0] <= (i/10.+0.2)) ]
+                n, bins, patches = plt.hist( X_temp[self.y_test==0], xbin, log=True, normed=True, label= str(i/10.) + ' < D <= ' + str(i/10. + 0.2)  ,  histtype='stepfilled', alpha=0.2)
+            plt.title('MT2ll shapes for Background Events (area normalized)')
+            plt.xlabel('MT2ll')
+            plt.ylim([10**(-3)*2,0.2])
+            plt.legend(loc='upper right')
+            plt.savefig( os.path.join( self.plot_directory , 'mt2ll_background_D.png') )
+            plt.clf()
+
+        #
+        # Classifier output for mt2ll>100
+        #
+
+        if 'dl_mt2ll' in self.X_spect:
+            n, bins, patches = plt.hist( [   self.y_test_pred[ (self.y_test==0) & (self.X_spect['dl_mt2ll'] > 100) ].values,
+                                             self.y_test_pred[ (self.y_test==1) & (self.X_spect['dl_mt2ll'] > 100) ].values,  ], xbin, log=True, label=['Background ('+ str((self.y_test==0).sum()) +')' ,'Signal ('+ str((self.y_test==1).sum()) +')'], histtype='stepfilled', alpha=0.5) 
+            plt.title('Classifier output for MT2ll>100GeV (on Test sample)')
+            plt.xlabel('y_pred')
+            plt.ylabel('Events')
+            plt.ylim([0.5,10**5])
+            plt.legend(loc='upper right')
+            plt.savefig( os.path.join( self.plot_directory , 'classifier_output_SR.png') )
+            plt.clf()
+       
+        #
+        # save validation results
+        #
+
+        pd.DataFrame(self.loss_values).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='loss')
+        if self.history_dict.has_key('val_loss'):
+            pd.DataFrame(self.val_loss_values).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='val_loss')
+        pd.DataFrame(self.acc_values).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='acc')
+        if self.history_dict.has_key('val_acc'):
+            pd.DataFrame(self.val_acc_values).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='val_acc')
+        pd.DataFrame(self.acc_values).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='acc')
+        pd.concat([ pd.Series( fpr_test , name='fpr'),
+                    pd.Series( tpr_test , name='tpr'),
+                    pd.Series( thresholds_test , name='thresholds'),]
+                , axis=1).to_hdf( os.path.join( self.output_directory, 'validation.h5') , key='roc')
+
+
+# ROOT plots - are very slow!
 
 #        signalAttr = SampleAttr('signal', 1,'kRed')
 #        backgroundAttr = SampleAttr('background', 0,'kBlue')
@@ -317,5 +399,5 @@ if __name__ == '__main__':
 
     kerasTrainer = KerasTrainer( input_data_directory, training_variables_list, spectator_variables_list)
     kerasTrainer.init_training_data()
-    kerasTrainer.train( NHLayer = 2, units = 10, epochs = 10, batch_size = 512, earlystopping = False, dropout = False )
+    kerasTrainer.train( NHLayer = 2, units = 10, epochs = 4, batch_size = 512, earlystopping = False, dropout = False )
     kerasTrainer.validation()
