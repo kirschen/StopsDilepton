@@ -9,7 +9,10 @@ parser.add_option("--control",               dest="control",               defau
 parser.add_option("--useGenMet",             dest="useGenMet",             default=False,               action='store_true', help="use genMET instead of recoMET, used for signal studies")
 parser.add_option("--aggregate",             dest="aggregate",             default=False,               action='store_true', help="run over aggregated signal regions")
 parser.add_option("--DMsync",                dest="DMsync",                default=False,               action='store_true', help="run over DM sync signal regions")
-parser.add_option("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices=['MVA_T2tt_default', 'MVA_T2tt_lep_pt', 'MVA_T8bbllnunu_XCha0p5_XSlep0p09', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1'])
+parser.add_option("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices= [ 'MVA_T2tt_dM350_smaller_TTLep_pow', 'MVA_T2tt_dM350_TTLep_pow', 'MVA_T2tt_dM350_TTZtoLLNuNu',
+                                                                                                                                                                                     'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow',
+                                                                                                                                                                                     'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow ', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow',
+                                                                                                                                                                                     'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow',])
 parser.add_option("--MVAcut",                dest="MVAcut",                default=0.0, type="float",   action='store',      help="Which value to cut at?")
 
 (options, args) = parser.parse_args()
