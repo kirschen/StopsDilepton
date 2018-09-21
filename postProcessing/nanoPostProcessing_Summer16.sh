@@ -1,8 +1,8 @@
 ## v3 for new MVA classifiers
 
-#python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v3   --skipSystematicVariations --skipGenLepMatching --noTopPtReweighting --sample TTLep_pow # SPLIT45
+python nanoPostProcessing.py  --overwrite  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v3   --skipSystematicVariations --skipGenLepMatching --noTopPtReweighting --sample TTLep_pow # SPLIT45
 #
-python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v3   --skipSystematicVariations --skipGenLepMatching --sample TTZToQQ #SPLIT5
+#python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v3   --skipSystematicVariations --skipGenLepMatching --sample TTZToQQ #SPLIT5
 #python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v3   --skipSystematicVariations --skipGenLepMatching --sample TTZToLLNuNu_ext1 TTZToLLNuNu_ext2 TTZToLLNuNu_ext3 # SPLIT20
 #
 #python nanoPostProcessing.py  --forceProxy --skim dilep --skipNanoTools --year 2016 --processingEra stops_2016_nano_v3   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M50_LO_ext1 DYJetsToLL_M50_LO_ext2 # SPLIT40
