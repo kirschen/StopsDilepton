@@ -22,8 +22,8 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     # 715 release for limit calculation 
     combineReleaseLocation = '/afs/hephy.at/work/r/rschoefbeck/CMS/tmp/CMSSW_7_1_5/src'
     runOnGentT2 = False
-    MVA_preprocessing_directory = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/MVA_preprocessing'
-    MVA_model_directory         = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/MVA_models'
+    MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
+    MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'
 
 if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     # Where you store cmg output
