@@ -185,13 +185,13 @@ for index, mode in enumerate(allModes):
   data_2017.notInLegend = True
   data_2017.setSelectionString([getFilterCut(isData=True, year=2017), getLeptonSelection(mode)])
   data_2017.read_variables = ["event/I","run/I"]
-  data_2017.style          = styles.noStyle()
+  data_2017.style          = styles.invisibleStyle()
 
   data_2018 = Run2018
   data_2018.notInLegend = True
   data_2018.setSelectionString([getFilterCut(isData=True, year=2018), getLeptonSelection(mode)])
   data_2018.read_variables = ["event/I","run/I"]
-  data_2018.style          = styles.noStyle()
+  data_2018.style          = styles.invisibleStyle()
 
   data = [data_2016,data_2017,data_2018]
 
