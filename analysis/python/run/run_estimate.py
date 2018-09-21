@@ -23,13 +23,19 @@ from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsAgg,
 
 from StopsDilepton.analysis.Setup import Setup
 
-#define samples
-data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
-postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+#old samples
+#data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
+#postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+#from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
-data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
-postProcessing_directory = 'stops_2016_nano_v2/dilep'
+#data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
+#postProcessing_directory = 'stops_2016_nano_v2/dilep'
+#from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+
+#define samples
+#Background
+data_directory = '/afs/hephy.at/data/rschoefbeck02/cmgTuples/'
+postProcessing_directory = 'stops_2016_nano_v3/dilep'
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
 setup = Setup()
