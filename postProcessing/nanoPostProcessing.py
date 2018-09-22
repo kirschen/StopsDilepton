@@ -10,6 +10,12 @@ import random
 import subprocess
 import datetime
 import shutil
+import uuid
+
+theano_compile_dir = '/var/tmp/%s'%str(uuid.uuid4())
+if not os.path.exists( theano_compile_dir ):
+    os.makedirs( theano_compile_dir )
+os.environ['THEANO_FLAGS'] = 'base_compiledir=%s'%theano_compile_dir 
 
 from array import array
 from operator import mul
@@ -32,9 +38,6 @@ from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting import getPolWeights
 from StopsDilepton.tools.puProfileCache import puProfile
-
-# For MVA discriminator
-from StopsDilepton.MVA.KerasReader import KerasReader
 
 from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
@@ -451,27 +454,31 @@ if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
 
-## Initialize keras for different trainings
-if isTriLep or isDiLep:
-    new_variables.extend( [ 'MVA_T2tt_dM350_smaller_TTLep_pow/F', 'MVA_T2tt_dM350_TTLep_pow/F', 'MVA_T2tt_dM350_TTZtoLLNuNu/F', 
-                            'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow /F',
-                            'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow/F'])
+if options.year == 2016:
+    # For MVA discriminator
+    from StopsDilepton.MVA.KerasReader import KerasReader
 
-logger.info("Initializing keras readers for different models.")
-from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
-from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
-from StopsDilepton.MVA.default_classifier_lep_pt_nobtag import training_variables_list as training_variables_list_lep_pt_nobtag
+    ## Initialize keras for different trainings
+    if isTriLep or isDiLep:
+        new_variables.extend( [ 'MVA_T2tt_dM350_smaller_TTLep_pow/F', 'MVA_T2tt_dM350_TTLep_pow/F', 'MVA_T2tt_dM350_TTZtoLLNuNu/F', 
+                                'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow /F',
+                                'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow/F'])
 
-MVA_T2tt_dM350_smaller_TTLep_pow    = KerasReader( 'T2tt_dM350_smaller-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-30-1930', training_variables_list_lep_pt_nobtag)
-MVA_T2tt_dM350_TTLep_pow            = KerasReader( 'T2tt_dM350-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-31-0318', training_variables_list_lep_pt_nobtag)
-MVA_T2tt_dM350_TTZtoLLNuNu          = KerasReader( 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134', training_variables_list_lep_pt)
-MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1639', training_variables_list_lep_pt)
-MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511', training_variables_list_lep_pt)
-MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow         = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1555', training_variables_list_lep_pt)
-MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow= KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1631', training_variables_list_lep_pt)
-MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626', training_variables_list_lep_pt)
+    logger.info("Initializing keras readers for different models.")
+    from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
+    from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
+    from StopsDilepton.MVA.default_classifier_lep_pt_nobtag import training_variables_list as training_variables_list_lep_pt_nobtag
 
-logger.info("Loaded MVA models.")
+    MVA_T2tt_dM350_smaller_TTLep_pow    = KerasReader( 'T2tt_dM350_smaller-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-30-1930', training_variables_list_lep_pt_nobtag)
+    MVA_T2tt_dM350_TTLep_pow            = KerasReader( 'T2tt_dM350-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-31-0318', training_variables_list_lep_pt_nobtag)
+    MVA_T2tt_dM350_TTZtoLLNuNu          = KerasReader( 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134', training_variables_list_lep_pt)
+    MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1639', training_variables_list_lep_pt)
+    MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511', training_variables_list_lep_pt)
+    MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow         = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1555', training_variables_list_lep_pt)
+    MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow= KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1631', training_variables_list_lep_pt)
+    MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626', training_variables_list_lep_pt)
+
+    logger.info("Loaded MVA models.")
 
 if not options.skipNanoTools:
     ### nanoAOD postprocessor
@@ -798,8 +805,9 @@ def filler( event ):
             event.dl_mass = dl.M()
             mt2Calc.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
 
+
             # need at least two jets for MVA
-            if len(store_jets)>1:
+            if options.year == 2016 and len(store_jets)>1:
                 eventdict= {
                     'JetGood_eta[0]':   event.JetGood_eta[0],
                     'JetGood_pt[0]':    event.JetGood_pt[0],
@@ -1106,3 +1114,6 @@ if writeToDPM:
 
     # Clean up.
     subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.
+
+logger.info( "Removing theano compile directory %s", theano_compile_dir )
+shutil.rmtree( theano_compile_dir )
