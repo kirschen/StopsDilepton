@@ -19,7 +19,10 @@ argParser.add_argument("--significanceScan",         default = False, action = "
 argParser.add_argument("--removeSR",      default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 argParser.add_argument("--showSyst",      default = '', action = "store", help="Print the systematic uncertainties?")
-argParser.add_argument("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices=['MVA_T2tt_default', 'MVA_T2tt_lep_pt', 'MVA_T8bbllnunu_XCha0p5_XSlep0p09', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1'])
+argParser.add_argument("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices= [   'MVA_T2tt_dM350_smaller_TTLep_pow', 'MVA_T2tt_dM350_TTLep_pow', 'MVA_T2tt_dM350_TTZtoLLNuNu',
+                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow',
+                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow ', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow',
+                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow',])
 argParser.add_argument("--MVAcut",                dest="MVAcut",                default=0.0, type=float,   action='store',      help="Which value to cut at?")
 
 args = argParser.parse_args()
@@ -40,12 +43,16 @@ from StopsDilepton.analysis.Cache           import Cache
 from copy import deepcopy
 
 #define samples
-data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
-postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+#data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
+#postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+#from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+#
+#data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
+#postProcessing_directory = 'stops_2016_nano_v2/dilep'
+#from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
-data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
-postProcessing_directory = 'stops_2016_nano_v2/dilep'
+data_directory = '/afs/hephy.at/data/rschoefbeck02/cmgTuples/'
+postProcessing_directory = 'stops_2016_nano_v3/dilep'
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
 setup = Setup()

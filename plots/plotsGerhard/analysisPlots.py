@@ -248,8 +248,8 @@ for index, mode in enumerate(allModes):
   if args.noData: lumi_scale = 36.4
   weight_ = lambda event, sample: event.weight * event.pass_MVAthreshold
 
-  multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
-  mc             = [ Top_pow, TTZ, TTXNoZ] + multiBosonList + [DY_HT_LO]
+  multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson_16])
+  mc             = [ Top_pow_16, TTZ_16, TTXNoZ_16] + multiBosonList + [DY_HT_LO_16]
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 

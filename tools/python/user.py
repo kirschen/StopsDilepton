@@ -55,12 +55,13 @@ if os.environ['USER'] in ['gungersback']:
     # Where postprocessed data goes 
     data_output_directory      = "/afs/hephy.at/data/gungersback01/cmgTuples/"
     # Where you store the data
-    data_directory      = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    #data_directory      = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    data_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/g/gungersback/www/stopsDilepton/"
     # Analysis result files
     #analysis_result   = '/afs/hephy.at/data/gungersback01/StopsDilepton/results/80X_v35' #Path to analysis results
-    analysis_results  = '/afs/hephy.at/work/g/gungersback/CMSSW_10_1_5/src/StopsDilepton/resultsGerhard'    
+    analysis_results  = '/afs/hephy.at/work/g/gungersback/CMSSW_10_1_5/src/StopsDilepton/resultsGerhard_16'    
     #dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
     MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'

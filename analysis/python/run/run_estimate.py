@@ -55,6 +55,7 @@ if options.aggregate: allRegions = regionsAgg
 elif options.DMsync: allRegions = regionsDM7
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
+# signals, so far only T2tt
 from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed    import signals_T2tt
 #from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5, signals_T8bbllnunu_XCha0p5_XSlep0p95
 #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
