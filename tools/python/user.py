@@ -14,7 +14,7 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     plot_directory      = "/afs/hephy.at/user/r/rschoefbeck/www/"
     #plot_directory      = "/afs/cern.ch/work/s/schoef/www/"
     # Analysis result files
-    analysis_results        =  '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/80X_v12' #Path to analysis results
+    analysis_results        =  '/afs/hephy.at/data/dspitzbart02/StopsDilepton/results/80X_v35/' #Path to analysis results
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/'
     cern_proxy_certificate  = '/afs/cern.ch/user/s/schoef/private/.proxy'
     # directory with veto lists
