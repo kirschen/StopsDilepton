@@ -48,7 +48,7 @@ if options.MVAselection:
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
+logger_rt = logger_rt.get_logger('INFO', logFile = None )
 
 allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsO
 if options.aggregate: allRegions = regionsAgg

@@ -63,7 +63,7 @@ dirs['TZQ']              = ["tZq_ll_ext"]#, "tZq_nunu_reHLT"]
 dirs['TWZ']              = ["tWll", "tWnunu"]
 dirs['TTW']              = ["TTWToLNu_ext_comb"]#, "TTWToQQ"]
 
-dirs['TTH']              = ["TTHbb", "TTHnobb_mWCutfix_ext"]
+dirs['TTH']              = ["TTHbb"]#, "TTHnobb_mWCutfix_ext"] FIXME got deleted, need to be re-added later
 dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu_ext1_comb"]
 dirs['TTZtoQQ']          = ["TTZToQQ"]
 dirs['TTZ']              = ["TTZToLLNuNu_ext1_comb", "TTZToQQ"]
@@ -79,11 +79,11 @@ dirs['WW']               = ["WWToLNuQQ_comb"]
 #dirs['WW_']              = ["WWToLNuQQ_comb","WWTo2L2Nu"]
 #dirs['WWTo2L2Nu']        = ["WWTo2L2Nu"]
 dirs['VVTo2L2Nu']        = ["VVTo2L2Nu_comb"]
-dirs['WZ']               = ["WZTo1L1Nu2Q", "WZTo2L2Q", "WZTo3LNu_comb"] # "WZTo1L3Nu" missing
+dirs['WZ']               = ["WZTo1L1Nu2Q",  "WZTo3LNu_comb"] # "WZTo1L3Nu" "WZTo2L2Q",missing
 dirs['ZZ']               = ["ZZTo2L2Q", "ZZTo2Q2Nu"]
 #dirs['ZZTo2L2Nu']        = ["ZZTo2L2Nu"]
 #dirs['ZZ_']              = ["ZZTo2L2Q", "ZZTo2Q2Nu","ZZTo2L2Nu"]
-dirs['diBoson']          = dirs['WW'] + dirs['WZ'] + dirs['ZZ'] + dirs['VVTo2L2Nu']
+dirs['diBoson']          = dirs['WW'] + dirs['WZ'] + dirs['ZZ'] #+ dirs['VVTo2L2Nu'] #FIXME Got deleted
 #dirs['diBoson_']         = dirs['WW_'] + dirs['WZ'] + dirs['ZZ_']
 dirs['triBoson']         = ["WZZ","ZZZ"] 
 #dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] #FIXME... WWZ was deleted 
@@ -129,7 +129,7 @@ TWZ_16            = Sample.fromDirectory(name="TWZ",              treeName="Even
 ##WJetsToLNu_LO  = Sample.fromDirectory(name="WJetsToLNu_LO",    treeName="Events", isData=False, color=color.WJetsToLNu,      texName="W(l,#nu) + Jets (LO)",              directory=directories['WJetsToLNu_LO'])
 ##WJetsToLNu_HT  = Sample.fromDirectory(name="WJetsToLNu_HT",    treeName="Events", isData=False, color=color.WJetsToLNu,      texName="W(l,#nu) + Jets (HT)",              directory=directories['WJetsToLNu_HT'])
 diBoson_16        = Sample.fromDirectory(name="diBoson",          treeName="Events", isData=False, color=color.diBoson,         texName="VV (excl.)",                        directory=directories['diBoson'])
-VVTo2L2Nu_16      = Sample.fromDirectory(name="VVTo2L2Nu",               treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",             directory=directories['VVTo2L2Nu'])
+#VVTo2L2Nu_16      = Sample.fromDirectory(name="VVTo2L2Nu",               treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",             directory=directories['VVTo2L2Nu'])
 triBoson_16       = Sample.fromDirectory(name="triBoson",         treeName="Events", isData=False, color=color.triBoson,        texName="WWZ,WZZ,ZZZ",                       directory=directories['triBoson'])
 multiBoson_16     = Sample.fromDirectory(name="multiBoson",       treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                       directory=directories['multiBoson'])
 #QCD_HT         = Sample.fromDirectory(name="QCD_HT",           treeName="Events", isData=False, color=color.QCD,             texName="QCD (HT)",                          directory=directories['QCD_HT'])
