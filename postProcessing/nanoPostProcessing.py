@@ -205,6 +205,8 @@ if isMC:
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Summer16")
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc="Summer16")
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc="Summer16")
+        nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2016_36000_XSecVDown",    mc="Summer16")
+        nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2016_36000_XSecVUp",      mc="Summer16")
     elif options.year == 2017:
         # keep the weight name for now. Should we update to a more general one?
         puProfiles = puProfile( source_sample = samples[0] )
@@ -212,6 +214,8 @@ if isMC:
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2017_42400_XSecCentral",  mc=mcHist)
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2017_42400_XSecDown",     mc=mcHist)
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_42400_XSecUp",       mc=mcHist)
+        nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2017_42400_XSecVDown",    mc="Summer16")
+        nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2017_42400_XSecVUp",      mc="Summer16")
 
 options.skim = options.skim + '_small' if options.small else options.skim
 
@@ -342,7 +346,7 @@ if sample.isData:
     elif options.year == 2017:
         sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt'
     elif options.year == 2018:
-        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-321777_13TeV_PromptReco_Collisions18_JSON.txt'
+        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-322381_13TeV_PromptReco_Collisions18_JSON.txt'
     else:
         raise NotImplementedError
     
@@ -371,7 +375,7 @@ if isMC:
     read_variables.append( VectorTreeVariable.fromString('GenPart[pt/F,mass/F,phi/F,eta/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( TreeVariable.fromString('genWeight/F') )
 
-    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F','reweightPU27fb/F','reweightPU27fbUp/F','reweightPU27fbDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F', 'reweightPU36fbVUp/F','reweightPU36fbVDown/F'])
     if not options.skipGenLepMatching:
         TreeVariable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
@@ -608,6 +612,8 @@ def filler( event ):
         event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.Pileup_nTrueInt ) # is this correct?
         event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.Pileup_nTrueInt )
         event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.Pileup_nTrueInt )
+        event.reweightPU36fbVDown= nTrueInt36fb_puRWVDown   ( r.Pileup_nTrueInt )
+        event.reweightPU36fbVUp  = nTrueInt36fb_puRWVUp     ( r.Pileup_nTrueInt )
 
     # top pt reweighting
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
@@ -1115,5 +1121,9 @@ if writeToDPM:
     # Clean up.
     subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.
 
-logger.info( "Removing theano compile directory %s", theano_compile_dir )
-shutil.rmtree( theano_compile_dir )
+## Use garbage collector to remoe Keras readers before we clean up the Theano compile directory (otherwise error on exit)
+#import gc
+#for reader in filter( lambda o: isinstance(o, KerasReader), gc.get_objects()):
+#    del reader
+#logger.info( "Removing theano compile directory %s", theano_compile_dir )
+#shutil.rmtree( theano_compile_dir )

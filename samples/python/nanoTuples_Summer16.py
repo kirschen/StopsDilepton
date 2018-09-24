@@ -3,7 +3,6 @@ from RootTools.core.Sample import Sample
 import ROOT
 
 # Logging
-
 if __name__=='__main__':
     import StopsDilepton.tools.logger as logger
     logger = logger.get_logger('DEBUG', logFile = None )
@@ -15,7 +14,6 @@ else:
 
 ## these should go somewhere else
 dbFile = '/afs/hephy.at/data/rschoefbeck01/nanoAOD/DB_Summer16.sql'
-dataDirectory = '/afs/hephy.at/data/dspitzbart01/nanoAOD/Summer16/'
 redirector        = 'root://hephyse.oeaw.ac.at/'
 redirector_global = 'root://cms-xrd-global.cern.ch/'
 
