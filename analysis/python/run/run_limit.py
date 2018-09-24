@@ -19,7 +19,10 @@ argParser.add_argument("--significanceScan",         default = False, action = "
 argParser.add_argument("--removeSR",      default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 argParser.add_argument("--showSyst",      default = '', action = "store", help="Print the systematic uncertainties?")
-argParser.add_argument("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices=['MVA_T2tt_default', 'MVA_T2tt_lep_pt', 'MVA_T8bbllnunu_XCha0p5_XSlep0p09', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_800_1'])
+argParser.add_argument("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices= [   'MVA_T2tt_dM350_smaller_TTLep_pow', 'MVA_T2tt_dM350_TTLep_pow', 'MVA_T2tt_dM350_TTZtoLLNuNu',
+                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow',
+                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow ', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow',
+                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow',])
 argParser.add_argument("--MVAcut",                dest="MVAcut",                default=0.0, type=float,   action='store',      help="Which value to cut at?")
 
 args = argParser.parse_args()
@@ -40,12 +43,16 @@ from StopsDilepton.analysis.Cache           import Cache
 from copy import deepcopy
 
 #define samples
-data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
-postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+#data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
+#postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+#from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+#
+#data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
+#postProcessing_directory = 'stops_2016_nano_v2/dilep'
+#from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
-data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
-postProcessing_directory = 'stops_2016_nano_v2/dilep'
+data_directory = '/afs/hephy.at/data/rschoefbeck02/cmgTuples/'
+postProcessing_directory = 'stops_2016_nano_v3/dilep'
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
 setup = Setup()
@@ -168,28 +175,29 @@ elif args.signal == "TTbarDM":                      fastSim = False
 elif args.signal == "ttHinv":                       fastSim = False
 
 if   args.signal == "T2tt":
-    postProcessing_directory = 'stops_2016_nano_v2/dilep'
+    #postProcessing_directory = 'stops_2016_nano_v2/dilep'
+    postProcessing_directory = 'stops_2016_nano_v3/dilep'
     from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import signals_T2tt as jobs
-elif args.signal == "T2bt":
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bt as jobs
-elif args.signal == "T2bW":
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bW as jobs
+#elif args.signal == "T2bt":
+#    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+#    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bt as jobs
+#elif args.signal == "T2bW":
+#    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+#    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bW as jobs
 elif 'T8bb' in args.signal:
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    #postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+    postProcessing_directory = 'stops_2016_nano_v3/dilep'
     if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
-elif args.signal == "TTbarDM":
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM as jobs
-elif args.signal == "ttHinv":
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_Higgs_mAODv2_25ns_postProcessed import *
-    jobs = [ttH_HToInvisible_M125]
-
+#elif args.signal == "TTbarDM":
+#    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+#    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM as jobs
+#elif args.signal == "ttHinv":
+#    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
+#    from StopsDilepton.samples.cmgTuples_Higgs_mAODv2_25ns_postProcessed import *
+#    jobs = [ttH_HToInvisible_M125]
 
 scaleUncCache = Cache(setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal, verbosity=2)
 isrUncCache   = Cache(setup.analysis_results+'/systematics/isr_%s.pkl'   % args.signal, verbosity=2)

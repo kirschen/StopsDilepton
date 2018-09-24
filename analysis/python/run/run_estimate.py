@@ -23,13 +23,19 @@ from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsAgg,
 
 from StopsDilepton.analysis.Setup import Setup
 
-#define samples
-data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
-postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+#old samples
+#data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
+#postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
+#from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
 
-data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
-postProcessing_directory = 'stops_2016_nano_v2/dilep'
+#data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
+#postProcessing_directory = 'stops_2016_nano_v2/dilep'
+#from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+
+#define samples
+#Background
+data_directory = '/afs/hephy.at/data/rschoefbeck02/cmgTuples/'
+postProcessing_directory = 'stops_2016_nano_v3/dilep'
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
 setup = Setup()
@@ -42,13 +48,14 @@ if options.MVAselection:
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
+logger_rt = logger_rt.get_logger('INFO', logFile = None )
 
 allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsO
 if options.aggregate: allRegions = regionsAgg
 elif options.DMsync: allRegions = regionsDM7
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
+# signals, so far only T2tt
 from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed    import signals_T2tt
 #from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5, signals_T8bbllnunu_XCha0p5_XSlep0p95
 #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
