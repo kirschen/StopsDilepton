@@ -135,13 +135,10 @@ class resultsDB:
 
     def getDicts(self, key):
         objs = self.getObjects(key)
-        if objs:
-            o = []
-            for obj in objs:
-                o.append({c:str(v) for c,v in zip( self.columns, obj ) })
-            return o
-        else:
-            return False
+        o = []
+        for obj in objs:
+            o.append({c:str(v) for c,v in zip( self.columns, obj ) })
+        return o
     
     def getTable(self, key):
         '''
@@ -168,7 +165,7 @@ class resultsDB:
 
     def contains(self, key):
         objs = self.getObjects(key)
-        return len(objs) if type(objs) == type([]) else 0 # in case there's a locking problem act as if stuff existed
+        return len(objs) if type(objs) == type([]) else 1 # in case there's a locking problem act as if stuff existed
 
     def getObject(self, key):
         objs = self.getObjects(key)
@@ -184,19 +181,16 @@ class resultsDB:
         logger.debug("Getting only the newest entry in the database matching the key. You should know what you're doing here.")
         objs = self.getDicts(key)
         if not plain:
-            if objs:
-                if len(objs[-1]["value"]) > 50:
-                    try:
-                        return cPickle.loads(objs[-1]["value"])
-                    except:
-                        return False
-                else:
-                    try:
-                        return u_float.fromString(objs[-1]["value"])
-                    except IndexError:
-                        return False
+            if len(objs[-1]["value"]) > 50:
+                try:
+                    return cPickle.loads(objs[-1]["value"])
+                except:
+                    return False
             else:
-                return False
+                try:
+                    return u_float.fromString(objs[-1]["value"])
+                except IndexError:
+                    return False
         else:
             try:
                 return objs[-1]["value"]

@@ -1,11 +1,6 @@
 import pickle, os, time
 import errno
-
-# Logging
-import logging
-logger = logging.getLogger(__name__)
-
-from StopsDilepton.tools.resultsDB import resultsDB
+from StopsDilepton.tools.lock import waitForLock, removeLock
 
 class Cache:
     def __init__(self, filename=None, verbosity=0, overwrite=False):
@@ -14,26 +9,55 @@ class Cache:
 
     def initCache(self, filename):
         self.filename=filename
-        self.columns = ["region", "channel", "weights", "modification", "lumi"]
-        self.DB = resultsDB(filename, "Cache", self.columns)
+        if not os.path.isfile(filename) or os.stat(self.filename).st_size == 0:  # Check if there's already something in there
+          if self.verbosity>=1: print "File %s not found. Starting new cache."%filename
+          self._cache = {}
+        else:
+          try:
+            waitForLock(filename)
+            with open(filename, 'r') as f:
+              self._cache = pickle.load(f)
+            removeLock(filename)
+            if self.verbosity>=1: print "Loaded cache file %s"%filename
+          except:# (IOError, ValueError, EOFError):
+              print "File %s looks corrupted, please check before proceeding" % filename
+              exit(1)
 
-    def translateKey(self, key):
-        '''
-        This is unsafe. Should change the key structure in the estimators instead - will do so asap.
-        '''
-        newKey = {c:0 for c in self.columns}
-        for i,c in enumerate(self.columns):
-            newKey[c] = str(key[i])
-        return newKey
+    # Try to reload to cache file in order to get updates from other jobs/threads
+    def reload(self, removeKey=None):
+        if not os.path.isfile(self.filename) or os.stat(self.filename).st_size == 0:
+          pass
+        else:
+          try:
+            temp = self._cache
+            waitForLock(self.filename)
+            with open(self.filename, 'r') as f:
+              self._cache = pickle.load(f)
+              if removeKey and removeKey in self._cache:   # This is to avoid that an old value overwrites an updated value when using parallel jobs
+                del self._cache[removeKey]
+              self._cache.update(temp)
+            removeLock(self.filename)
+          except Exception as e:# (IOError, ValueError, EOFError):
+              if self.verbosity>=1: print "Cache file %s could not be reloaded"%self.filename
+              removeLock(self.filename)
 
     def contains (self, key):
-        key = self.translateKey(key)
-        return self.DB.contains(key)
+        return key in self._cache
 
     def get(self, key):
-        key = self.translateKey(key)
-        return self.DB.get(key)
+        return self._cache[key]
 
-    def add(self, key, val, overwrite=True):
-        key = self.translateKey(key)
-        return self.DB.add(key, val, overwrite)
+    def add(self, key, val, save):
+        self._cache[key] = val
+        if save==True:
+            if self.verbosity>=2: print "Storing new result %r to key %r"%(val, key)
+            self.save(key)
+        return self._cache[key]
+
+    def save(self, removeKey = None):
+        self.reload(removeKey)
+        waitForLock(self.filename)
+        with open(self.filename, 'w') as f:
+          pickle.dump(self._cache, f)
+        removeLock(self.filename)
+        if self.verbosity>=2: print "Written cache file %s"%self.filename
