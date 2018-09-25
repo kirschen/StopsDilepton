@@ -309,7 +309,7 @@ except:
 #branches to be kept for data and MC
 branchKeepStrings_DATAMC = [\
     "run", "luminosityBlock", "event", "fixedGridRhoFastjetAll", "PV_npvs", "PV_npvsGood",
-    "MET_pt", "MET_phi","MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance",
+    "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance",
     "RawMET_phi", "RawMET_pt", "RawMET_sumEt",
     "Flag_*","HLT_*",
     "nJet", "Jet_*",
@@ -631,7 +631,8 @@ def filler( event ):
 #    print "Good"
 #    sys.exit(0)
         
-    allJets      = getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=jetAbsEtaCut)
+    reallyAllJets= getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=99) # ... yeah, I know.
+    allJets      = filter( lambda j:abs(j['eta'])>jetAbsEtaCut, reallyAllJets)
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)
     soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
     bJets        = filter(lambda j:isBJet(j, tagger="CSVv2", year=options.year) and abs(j['eta'])<=2.4    , jets)
@@ -656,6 +657,18 @@ def filler( event ):
     
     event.met_pt  = r.MET_pt
     event.met_phi = r.MET_phi
+    
+    # MET recipe v2, p3 https://indico.cern.ch/event/759372/contributions/3149378/attachments/1721436/2779341/metreport.pdf
+    if options.year == 2017:
+        bad_ee_jets = filter( lambda j:abs(j['eta'])>2.65 and abs(j['eta'])<3.139 and (1-j['rawFactor'])*j['pt']<50, reallyAllJets )
+        corr_px = sum( [j['pt']*cos(j['phi']) for j in bad_ee_jets], 0.)
+        corr_py = sum( [j['pt']*sin(j['phi']) for j in bad_ee_jets], 0.)
+        MEx_corr = r.MET_pt*cos(r.MET_phi) + corr_px 
+        MEy_corr = r.MET_pt*sin(r.MET_phi) + corr_py
+        event.met_pt  = sqrt( MEx_corr**2 + MEy_corr**2)
+        event.met_phi = atan2( MEy_corr, MEx_corr )
+        #if len( bad_ee_jets )>0:
+        #    print [(1-j['rawFactor']) for j in bad_ee_jets], event.met_pt, r.MET_pt, event.met_phi, r.MET_phi
 
     # Filling jets
     store_jets = jets if not options.keepAllJets else soft_jets + jets
@@ -693,7 +706,7 @@ def filler( event ):
         event.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
         event.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
 
-      event.met_pt_photonEstimated, event.met_phi_photonEstimated = getMetPhotonEstimated(r.MET_pt, r.MET_phi, photons[0])
+      event.met_pt_photonEstimated, event.met_phi_photonEstimated = getMetPhotonEstimated(event.met_pt, event.met_phi, photons[0])
       event.metSig_photonEstimated = event.met_pt_photonEstimated/sqrt(event.ht) if event.ht>0 else float('nan')
 
       event.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
