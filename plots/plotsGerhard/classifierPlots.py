@@ -1,5 +1,5 @@
 '''
-Load Keras Models and create nice roc, loss and acc plots
+Load Keras Models and create nice roc plots
 '''
 import ROOT
 import pandas as pd
@@ -22,7 +22,6 @@ colorList=[]
 lineWidthList=[]
 
 # choose channel
-# TTZ, T8bbllnunu005, T8bbllnunu05, T8bbllnunu095
 #channel = 'TTZ'
 #channel = 'T8bbllnunu005'
 #channel = 'T8bbllnunu05'
@@ -33,7 +32,7 @@ if channel=='TTZ':
     paths.append( os.path.join( MVA_model_directory , 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-12-1437'))
     names.append('0x0')
     paths.append( os.path.join( MVA_model_directory , 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134'))
-    names.append('1x100, dropout 0.3')
+    names.append('1x100/DO:0.3')
 #    paths.append( os.path.join( MVA_model_directory , 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1123'))
 #    names.append('1x50, dropout 0.2')
 #    paths.append( os.path.join( MVA_model_directory , 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-12-1524'))
@@ -52,38 +51,35 @@ if channel=='T8bbllnunu005':
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1630'))
     names.append('0x0')
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1639'))
-    names.append('2x50')
+    names.append('2x50       ')
     
 if channel=='T8bbllnunu05':
-    paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1031'))
-    names.append('0x0')
-    paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626'))
-    names.append('2x50')
-    paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511'))
-    names.append('4x100, dropout 0.2')
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1516'))
     names.append('0x0')
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1555'))
     names.append('2x50')
+    paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1031'))
+    names.append('0x0, comp.')
+#    paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626'))
+#    names.append('2x50')
+    paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511'))
+    names.append('4x100/DO:0.2, comp.')
     
 if channel=='T8bbllnunu095':
-    paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1520'))
-    names.append('0x0')
-    paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1631'))
-    names.append('2x50')
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1521'))
     names.append('0x0')
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626'))
     names.append('1x50')
+    paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1520'))
+    names.append('0x0, comp.')
+    paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1631'))
+    names.append('2x50, comp.    ')
 
-colorList.append(ROOT.kGreen )
-colorList.append(ROOT.kMagenta )
-colorList.append(ROOT.kCyan )
-colorList.append(ROOT.kBlue )
-colorList.append(ROOT.kRed )
-colorList.append(ROOT.kGreen )
-colorList.append(ROOT.kBlue )
-colorList.append(ROOT.kRed )
+colorList.append(ROOT.kBlue-3 )
+colorList.append(ROOT.kMagenta-3 )
+#colorList.append(ROOT.kBlue+1 )
+colorList.append(ROOT.kCyan+1 )
+colorList.append(ROOT.kGreen+1 )
 
 lineWidthList.append(1)
 lineWidthList.append(1)

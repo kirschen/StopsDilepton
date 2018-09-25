@@ -24,8 +24,23 @@ class SystematicEstimator:
         self.initCache(cacheDir)
         self.isSignal = False
 
-    def initCache(self, cacheDir):
-        if cacheDir:
+    def initCache(self, cacheDir, cacheFile = None):
+        
+        if cacheFile is not None:
+            self.cacheDir = os.path.dirname(cacheFile)
+            try:    os.makedirs(self.cacheDir)
+            except: pass
+
+            print "Made", self.cacheDir
+
+            cacheFileName       = cacheFile+'_'+self.name+'.pkl'
+            helperCacheFileName = cacheFile+'_'+self.name+'_helper.pkl'
+
+
+            self.cache       = Cache(cacheFileName,       verbosity=1)
+            self.helperCache = Cache(helperCacheFileName, verbosity=1) if self.name.count('DD') else None
+ 
+        elif cacheDir:
             self.cacheDir       = cacheDir
             try:    os.makedirs(cacheDir)
             except: pass

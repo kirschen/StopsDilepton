@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from optparse import OptionParser
+import os
 parser = OptionParser()
 parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
 parser.add_option("--selectEstimator",       dest="selectEstimator",       default=None,                action="store",      help="select estimator?")
@@ -99,7 +100,9 @@ def wrapper(args):
         res = estimate.cachedEstimate(r, channel, setup, save=True)
         return (estimate.uniqueKey(r, channel, setup), res )
 
-estimate.initCache(setup.defaultCacheDir())
+#ython run_estimate.py --selectEstimator TTZ --MVAselection MVA_T2tt_dM350_smaller_TTLep_pow --selectRegion 5 --MVAcut 0.5 --logLevel DEBUG --noMultiThreading
+
+estimate.initCache(cacheDir = None, cacheFile = os.path.join( setup.defaultCacheDir(), options.MVAselection )+'/MVAselection_%3.2f_selectRegion_%i'%(options.MVAcut, options.selectRegion) )
 
 jobs=[]
 for channel in (trilepChannels if (options.control and options.control.count('TTZ')) else channels):
