@@ -363,7 +363,7 @@ genLepVarNames  = [x.split('/')[0] for x in genLepVars]
 lepVars     = ['pt/F','eta/F','phi/F','pdgId/I','cutBased/I','miniPFRelIso_all/F','pfRelIso03_all/F','sip3d/F','lostHits/b','convVeto/O','dxy/F','dz/F','charge/I','deltaEtaSC/F','mediumId/O']
 lepVarNames = [x.split('/')[0] for x in lepVars]
 
-read_variables = map(TreeVariable.fromString, ['MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
+read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
                     VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (not options.year == 2017) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
 
@@ -395,7 +395,7 @@ new_variables += [\
 ]
 
 if isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
-new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
+new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F', 'met_pt/F', 'met_phi/F', 'MET_pt/F', 'MET_phi/F'] )
 #new_variables.append( 'Lep[%s]'% ( ','.join(lepVars) ) )
 
 if isSingleLep:
@@ -655,9 +655,6 @@ def filler( event ):
     leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     leptons.sort(key = lambda p:-p['pt'])
     
-    event.met_pt  = r.MET_pt
-    event.met_phi = r.MET_phi
-    
     # MET recipe v2, p3 https://indico.cern.ch/event/759372/contributions/3149378/attachments/1721436/2779341/metreport.pdf
     if options.year == 2017:
         bad_ee_jets = filter( lambda j:abs(j['eta'])>2.65 and abs(j['eta'])<3.139 and (1-j['rawFactor'])*j['pt']<50, reallyAllJets )
@@ -669,6 +666,12 @@ def filler( event ):
         event.met_phi = atan2( MEy_corr, MEx_corr )
         #if len( bad_ee_jets )>0:
         #    print [(1-j['rawFactor']) for j in bad_ee_jets], event.met_pt, r.MET_pt, event.met_phi, r.MET_phi
+    else:
+        event.met_pt  = r.MET_pt
+        event.met_phi = r.MET_phi
+
+    event.MET_pt  = event.met_pt 
+    event.MET_phi = event.met_phi
 
     # Filling jets
     store_jets = jets if not options.keepAllJets else soft_jets + jets
