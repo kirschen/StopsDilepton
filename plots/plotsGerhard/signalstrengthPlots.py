@@ -19,81 +19,109 @@ argParser.add_argument("--signal", action='store', default='T2tt', nargs='?', ch
 args = argParser.parse_args()
 
 #
-# Define Masspoints and MVAs
-#
-
-if   args.signal == "T2tt":
-    resultsdict = { 
-                    (850,0):[],
-                    (900,50):[],
-                    (850,100):[],
-                    (900,150):[],
-                    (600,300):[],
-                    (750,350):[],
-                   }                 
-    MVAList = ['MVA_T2tt_dM350_smaller_TTLep_pow', 'MVA_T2tt_dM350_TTLep_pow', 'MVA_T2tt_dM350_TTZtoLLNuNu']
-
-elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
-    resultsdict = { 
-                    (1100,0):[],
-                    (1000,25):[],
-                    (900,50):[],
-                    (800,50):[],
-                   }                 
-    MVAList = ['MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow']
-
-elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
-    resultsdict = { 
-                    (1200,0):[],
-                    (1252,200):[],
-                    (1252,400):[],
-                    (1152,600):[],
-                    (1000,650):[],
-                    (800,550):[],
-                   }                 
-    MVAList = ['MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow','MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow ']
-
-elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
-    resultsdict = { 
-                    (1300,0):[],
-                    (1300,200):[],
-                    (1300,400):[],
-                    (1300,600):[],
-                    (1200,800):[],
-                    (1000,800):[],
-                   }                 
-    MVAList = ['MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow']
-
-cutlist = []
-#
 # Plotpath
 #
 plotdir_sig = os.path.join( plot_directory, 'Signalstrenght' )
+plotdir_sig = os.path.join( plotdir_sig, args.signal )
+
 if not os.path.exists( plotdir_sig ):
     os.makedirs( plotdir_sig ) 
 
+#
+# MVAs for signals
+#
+
+if   args.signal == "T2tt":
+   MVAList = ['MVA_T2tt_dM350_smaller_TTLep_pow', 'MVA_T2tt_dM350_TTLep_pow', 'MVA_T2tt_dM350_TTZtoLLNuNu']
+
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
+   MVAList = ['MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow']
+
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
+   MVAList = ['MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow','MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow']
+
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
+   MVAList = ['MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow']
+
+#
+# 1 plot per MVA
+#
+
 for MVAName in MVAList:
+    #
+    # Define Masspoints for Signal
+    # 
+    if   args.signal == "T2tt":
+        resultsdict = { 
+                        (850,0):  [[],[]],
+                        (900,50): [[],[]],
+                        (850,100):[[],[]],
+                        (900,150):[[],[]],
+                        (600,300):[[],[]],
+                        (750,350):[[],[]],
+                       }                 
     
-#    #
-#    # read data
-#    #
-#    
-#    subdirs = next(os.walk(analysis_results))[1]
-#    for subdir in subdirs:
-#        if MVAName in subdir:
-#            # MVA cuts
-#            cutlist.append( float(subdir.split('_')[-1]) )
-#            # signal stength
-#            res = pickle.load( file( os.path.join(analysis_results, subdir,'cardFiles', args.signal ,'calculatedLimits.pkl'),'r') )
-#            for masspoint in resultsdict.keys():
-#               resultsdict[masspoint].append( res[masspoint]['0.500'] )
-#    
-#    # sorting
-#    
-#    for masspoint in resultsdict.keys():
-#        resultsdict[masspoint] =  [x for _, x in sorted(zip(cutlist, resultsdict[masspoint]), key=lambda pair: pair[0])]
-#    cutlist.sort()
-#    
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
+        resultsdict = { 
+                        (1100,0): [[],[]],
+                        (1000,25):[[],[]],
+                        (900,50): [[],[]],
+                        (800,50): [[],[]],
+                       }                 
+    
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
+        resultsdict = { 
+                        (1200,0):  [[],[]],
+                        (1252,200):[[],[]],
+                        (1252,400):[[],[]],
+                        (1152,600):[[],[]],
+                        (1000,650):[[],[]],
+                        (800,550): [[],[]],
+                       }                 
+    
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
+        resultsdict = { 
+                        (1300,0):[[],[]],
+                        (1300,200):[[],[]],
+                        (1300,400):[[],[]],
+        #                (1300,600):[], no limits in calculatedLimits
+                        (1200,800):[[],[]],
+                        (1000,800):[[],[]],
+                       }                 
+
+    #
+    # read data
+    #
+    subdirs = next(os.walk(analysis_results))[1]
+    for subdir in subdirs:
+        if MVAName in subdir:
+            filename = os.path.join(analysis_results, subdir,'cardFiles', args.signal ,'calculatedLimits.pkl')
+            for masspoint in resultsdict.keys():
+                # MVA cuts
+                resultsdict[masspoint][0].append( float(subdir.split('_')[-1]) )
+                # open pickle
+                try:
+                    res = pickle.load( file( filename, 'r') )
+                except ValueError as e:
+                    print "Error in pkl file %s" % filename
+                    raise e
+
+                # signal stength
+                try: 
+                    resultsdict[masspoint][1].append( res[masspoint]['0.500'] )
+                except KeyError:
+                    resultsdict[masspoint][0].pop()
+                        
+    # sorting
+    
+    for masspoint in resultsdict.keys():
+        resultsdict[masspoint][1] =  [x for _, x in sorted(zip( resultsdict[masspoint][0], resultsdict[masspoint][1]), key=lambda pair: pair[0])]
+        print '************'
+        print masspoint
+        print resultsdict[masspoint][1]
+        resultsdict[masspoint][0].sort()
+        print resultsdict[masspoint][0]
+        print '************'
     #
     # plot
     #
@@ -129,7 +157,7 @@ for MVAName in MVAList:
     #setTDRStyle()
     
     for i,masspoint in enumerate(resultsdict.keys()):
-        g.append( ROOT.TGraph( len( cutlist ), array('d', cutlist ), array('d', resultsdict[masspoint] )) )
+        g.append( ROOT.TGraph( len( resultsdict[masspoint][0] ), array('d', resultsdict[masspoint][0] ), array('d', resultsdict[masspoint][1] )) )
         g[-1].SetName( str(masspoint) )
         g[-1].SetTitle( str(masspoint) )
         g[-1].SetLineColor( colorList[i] )
@@ -146,7 +174,7 @@ for MVAName in MVAList:
     mg.Draw("ALP")
 #    mg.SetTitle( MVAName )
     mg.GetXaxis().SetTitle('MVA cut')
-    mg.GetXaxis().SetRangeUser(0, max( cutlist ) )
+    mg.GetXaxis().SetRangeUser(0, 1 )
     mg.GetXaxis().SetTitleColor(1)
     mg.GetXaxis().SetTitleFont(43)
     mg.GetXaxis().SetTitleSize(30)
@@ -155,8 +183,15 @@ for MVAName in MVAList:
     mg.GetXaxis().SetLabelOffset(0.007)
     mg.GetXaxis().SetLabelSize(28)
 
-    mg.GetYaxis().SetTitle('signal strength')
-    mg.GetYaxis().SetRangeUser(0.0, 2)
+    mg.GetYaxis().SetTitle('95% CL upper limit on r')
+    if   args.signal == "T2tt":
+        mg.GetYaxis().SetRangeUser(0.0, 1.5)
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
+        mg.GetYaxis().SetRangeUser(0.0, 1.5)
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
+        mg.GetYaxis().SetRangeUser(0.0, 1.5)
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
+        mg.GetYaxis().SetRangeUser(0.0, 1.2)
     mg.GetYaxis().SetTitleColor(1)
     mg.GetYaxis().SetTitleFont(43)
     mg.GetYaxis().SetTitleSize(30)
@@ -165,7 +200,8 @@ for MVAName in MVAList:
     mg.GetYaxis().SetLabelOffset(0.007)
     mg.GetYaxis().SetLabelSize(28)
     
-    #c.BuildLegend(0.7,0.16,0.89,0.55, '   Masspoints' )
-    c.BuildLegend(0.8,0.16,0.98,0.6, '   Masspoints' )
+    c.BuildLegend(0.16,0.16,0.31,0.5, '   Masspoints' )
+    #c.BuildLegend(0.8,0.16,0.98,0.6, '   Masspoints' )
     c.Print( os.path.join( plotdir_sig, MVAName + '.png' ))
-    
+    c.Print( os.path.join( plotdir_sig, MVAName + '.pdf' ))
+    c.Print( os.path.join( plotdir_sig, MVAName + '.root' ))

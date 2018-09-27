@@ -176,6 +176,7 @@ read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "
 # MVA
 #
 
+# 2 MVAs with no btaged variables - import appropriate training_variables
 if args.keras_directory in ['T2tt_dM350_smaller-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-30-1930',
                             'T2tt_dM350-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-31-0318']:
     from StopsDilepton.MVA.default_classifier_lep_pt_nobtag import training_variables_list, get_dict

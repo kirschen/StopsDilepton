@@ -15,20 +15,21 @@ from StopsDilepton.MVA.default_classifier import training_variables_list, get_di
 from StopsDilepton.MVA.KerasReader import KerasReader
 from StopsDilepton.tools.user import  MVA_model_directory
 
+import os
+import argparse
+
+argParser = argparse.ArgumentParser(description = "Argument parser")
+argParser.add_argument("--signal", action='store', default='T2tt', nargs='?', choices=["TTZ","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95"], help="which signal?")
+
+args = argParser.parse_args()
+
 # define models to print
 paths = []
 names = []
 colorList=[]
 lineWidthList=[]
 
-# choose channel
-#channel = 'TTZ'
-#channel = 'T8bbllnunu005'
-#channel = 'T8bbllnunu05'
-channel = "T8bbllnunu095"
-
-
-if channel=='TTZ':
+if args.signal=='TTZ':
     paths.append( os.path.join( MVA_model_directory , 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-12-1437'))
     names.append('0x0')
     paths.append( os.path.join( MVA_model_directory , 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134'))
@@ -47,13 +48,13 @@ if channel=='TTZ':
 #    names.append('1x100, dropout 0.3, Adagrad')
     
     
-if channel=='T8bbllnunu005':
+if args.signal=='T8bbllnunu_XCha0p5_XSlep0p05':
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1630'))
     names.append('0x0')
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1639'))
     names.append('2x50       ')
     
-if channel=='T8bbllnunu05':
+if args.signal=='T8bbllnunu_XCha0p5_XSlep0p5':
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1516'))
     names.append('0x0')
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1555'))
@@ -65,7 +66,7 @@ if channel=='T8bbllnunu05':
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511'))
     names.append('4x100/DO:0.2, comp.')
     
-if channel=='T8bbllnunu095':
+if args.signal=='T8bbllnunu_XCha0p5_XSlep0p95':
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1521'))
     names.append('0x0')
     paths.append( os.path.join( MVA_model_directory , 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626'))
@@ -129,15 +130,24 @@ mg_roc.GetXaxis().SetTitle('signal efficiency')
 mg_roc.GetXaxis().SetLimits(0.0, 1.0 )
 mg_roc.GetYaxis().SetTitle('backround rejection')
 mg_roc.GetYaxis().SetRangeUser(0.0009, 1.01) if logY else mg_roc.GetYaxis().SetLimits(0.0, 1.0)
-pl_roc.BuildLegend(0.12,0.90,0.5,0.7, ctypes.c_char(channel)) if logY else pl_roc.BuildLegend()
-if channel=='TTZ':
+pl_roc.BuildLegend(0.12,0.90,0.5,0.7, ctypes.c_char(args.signal)) if logY else pl_roc.BuildLegend()
+#pl_roc.BuildLegend(0.12,0.90,0.5,0.7, args.signal)
+if args.signal=='TTZ':
     pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/TTZ_roc.png')
-if channel=='T8bbllnunu005':
-    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu005_roc.png')
-if channel=='T8bbllnunu05':
-    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu05_roc.png')
-if channel=='T8bbllnunu095':
-    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu095_roc.png')
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/TTZ_roc.pdf')
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/TTZ_roc.root')
+if args.signal=='T8bbllnunu_XCha0p5_XSlep0p05':
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu_XCha0p5_XSlep0p05_roc.png')
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu_XCha0p5_XSlep0p05_roc.pdf')
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu_XCha0p5_XSlep0p05_roc.root')
+if args.signal=='T8bbllnunu_XCha0p5_XSlep0p5':
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu_XCha0p5_XSlep0p5_roc.png')
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu_XCha0p5_XSlep0p5_roc.pdf')
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu_XCha0p5_XSlep0p5_roc.root')
+if args.signal=='T8bbllnunu_XCha0p5_XSlep0p95':
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu_XCha0p5_XSlep0p95_roc.png')
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu_XCha0p5_XSlep0p95_roc.pdf')
+    pl_roc.Print('/afs/hephy.at/user/g/gungersback/www/stopsDilepton/Classifier/T8bbllnunu_XCha0p5_XSlep0p95_roc.root')
 
 #
 # acc plot

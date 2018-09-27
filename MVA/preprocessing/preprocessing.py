@@ -9,6 +9,8 @@ Available sample signals are specified in samples.py
 selection and mode in default_classifier.py
 
 eg. python preprocessing.py --signal SMS_T2tt_mStop_400to1200 --background TTLep_pow --version v1_lep_pt --small
+
+Note: There also a direct solution to this: Root to numpy!
 '''
 
 # Standard imports and batch mode
@@ -24,7 +26,7 @@ from StopsDilepton.tools.helpers         import deltaPhi
 from StopsDilepton.tools.user import     MVA_preprocessing_directory
 
 # MVA and sample configuration
-from StopsDilepton.MVA.default_classifier_lep_pt import training_variables, spectator_variables, read_variables, selection_cutstring, selection, mode
+from StopsDilepton.MVA.default_classifier import training_variables, spectator_variables, read_variables, selection_cutstring, selection, mode
 
 #
 # Arguments

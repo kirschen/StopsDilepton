@@ -21,7 +21,7 @@ argParser.add_argument("--extension",      default = '', action = "store", help=
 argParser.add_argument("--showSyst",      default = '', action = "store", help="Print the systematic uncertainties?")
 argParser.add_argument("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices= [   'MVA_T2tt_dM350_smaller_TTLep_pow', 'MVA_T2tt_dM350_TTLep_pow', 'MVA_T2tt_dM350_TTZtoLLNuNu',
                                                                                                                                                                                             'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow',
-                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow ', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow',
+                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow',
                                                                                                                                                                                             'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow',])
 argParser.add_argument("--MVAcut",                dest="MVAcut",                default=0.0, type=float,   action='store',      help="Which value to cut at?")
 
@@ -151,7 +151,8 @@ if args.MVAselection:   subDir += '_'+MVAcut.replace('>=','_')
 baseDir = os.path.join(setup.analysis_results, subDir)
 
 limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension)
-overWrite   = (args.only is not None) or args.overwrite
+#overWrite   = (args.only is not None) or args.overwrite
+overWrite   =  args.overwrite
 if args.keepCard:
     overWrite = False
 useCache    = True
@@ -283,7 +284,7 @@ def wrapper(s):
 
         for setup in setups:
           eSignal     = MCBasedEstimate(name=s.name, sample={channel:s for channel in channels+trilepChannels}, cacheDir=setup.defaultCacheDir())
-          observation = DataObservation(name='Data', sample=setup.samples['Data'], cacheDir=setup.defaultCacheDir())
+          #observation = DataObservation(name='Data', sample=setup.samples['Data'], cacheDir=setup.defaultCacheDir())
           for e in setup.estimators: e.initCache(setup.defaultCacheDir())
 
           for r in setup.regions:
@@ -399,6 +400,7 @@ def wrapper(s):
                 if args.expected:
                     c.specifyObservation(binname, int(round(total_exp_bkg,0)))
                 else:
+                    raise RuntimeError ("we removed the observation")
                     c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
                 #signal
