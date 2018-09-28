@@ -62,7 +62,8 @@ if os.environ['USER'] in ['gungersback']:
     # Analysis result files
     #analysis_result   = '/afs/hephy.at/data/gungersback01/StopsDilepton/results/80X_v35' #Path to analysis results
     #analysis_results  = '/afs/hephy.at/work/g/gungersback/CMSSW_10_1_5/src/StopsDilepton/resultsGerhard'    
-    analysis_results  = '/afs/hephy.at/work/g/gungersback/CMSSW_10_1_5/src/StopsDilepton/resultsGerhard_16'    
+    #analysis_results  = '/afs/hephy.at/work/g/gungersback/CMSSW_10_1_5/src/StopsDilepton/resultsGerhard_16'    
+    analysis_results  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/resultsGerhard_16' # moved out of working directory    
     #dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
     MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'
