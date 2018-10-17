@@ -9,12 +9,12 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where you store the data
-    data_directory      = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+    data_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/r/rschoefbeck/www/"
     #plot_directory      = "/afs/cern.ch/work/s/schoef/www/"
     # Analysis result files
-    analysis_results        =  '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/80X_v12' #Path to analysis results
+    analysis_results        =  '/afs/hephy.at/data/dspitzbart02/StopsDilepton/results/80X_v35/' #Path to analysis results
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/'
     cern_proxy_certificate  = '/afs/cern.ch/user/s/schoef/private/.proxy'
     # directory with veto lists
@@ -22,8 +22,8 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     # 715 release for limit calculation 
     combineReleaseLocation = '/afs/hephy.at/work/r/rschoefbeck/CMS/tmp/CMSSW_7_1_5/src'
     runOnGentT2 = False
-    MVA_preprocessing_directory = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/MVA_preprocessing'
-    MVA_model_directory         = '/afs/hephy.at/data/rschoefbeck01/StopsDilepton/MVA_models'
+    MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
+    MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'
 
 if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     # Where you store cmg output
@@ -55,14 +55,19 @@ if os.environ['USER'] in ['gungersback']:
     # Where postprocessed data goes 
     data_output_directory      = "/afs/hephy.at/data/gungersback01/cmgTuples/"
     # Where you store the data
-    data_directory      = "/afs/hephy.at/data/dspitzbart02/cmgTuples/"
+    #data_directory      = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    data_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/g/gungersback/www/stopsDilepton/"
     # Analysis result files
-    analysis_result   = '/afs/hephy.at/data/gungersback01/StopsDilepton/results/80X_v35' #Path to analysis results
+    #analysis_result   = '/afs/hephy.at/data/gungersback01/StopsDilepton/results/80X_v35' #Path to analysis results
+    #analysis_results  = '/afs/hephy.at/work/g/gungersback/CMSSW_10_1_5/src/StopsDilepton/resultsGerhard'    
+    analysis_results  = '/afs/hephy.at/work/g/gungersback/CMSSW_10_1_5/src/StopsDilepton/resultsGerhard_16'    
     #dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
     MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'
+    # 715 release for limit calculation 
+    combineReleaseLocation = '/afs/hephy.at/work/g/gungersback/CMSSW_7_4_7/src'
 
 if os.environ['USER'] in ['tomc']:
     # Where you store cmg output

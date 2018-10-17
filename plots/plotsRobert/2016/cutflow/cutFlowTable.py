@@ -48,10 +48,10 @@ samples = [
     Top_pow, 
 #    TTLep_pow,
 #    singleTop,
-#    T2tt_650_1,
-#    T2tt_500_250,
-    TTbarDMJets_scalar_Mchi_1_Mphi_10_ext1,
-    TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10,
+    T2tt_650_1,
+    T2tt_500_250,
+    #TTbarDMJets_scalar_Mchi_1_Mphi_10_ext1,
+    #TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10,
 ]
 #QCD_Mu5EMbcToE.name = 'QCD'
 
@@ -79,7 +79,7 @@ for s in samples:
 relIso04sm12Cut =   "&&".join(["LepGood_relIso04["+ist+"]<0.12" for ist in ('l1_index','l2_index')])
 
 weight_string = 'weight*reweightTopPt*reweightBTag_SF*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb'
-lumiFac = 36.5
+lumiFac = 150
 
 cuts=[
   ("==2 relIso03<0.12 leptons",  "$n_{\\textrm{lep.}==2}$",       "nGoodMuons+nGoodElectrons==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>25"),

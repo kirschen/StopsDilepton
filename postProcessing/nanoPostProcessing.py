@@ -10,6 +10,12 @@ import random
 import subprocess
 import datetime
 import shutil
+import uuid
+
+theano_compile_dir = '/var/tmp/%s'%str(uuid.uuid4())
+if not os.path.exists( theano_compile_dir ):
+    os.makedirs( theano_compile_dir )
+os.environ['THEANO_FLAGS'] = 'base_compiledir=%s'%theano_compile_dir 
 
 from array import array
 from operator import mul
@@ -32,9 +38,6 @@ from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting import getPolWeights
 from StopsDilepton.tools.puProfileCache import puProfile
-
-# For MVA discriminator
-from StopsDilepton.MVA.KerasReader import KerasReader
 
 from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
@@ -202,6 +205,8 @@ if isMC:
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Summer16")
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc="Summer16")
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc="Summer16")
+        nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2016_36000_XSecVDown",    mc="Summer16")
+        nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2016_36000_XSecVUp",      mc="Summer16")
     elif options.year == 2017:
         # keep the weight name for now. Should we update to a more general one?
         puProfiles = puProfile( source_sample = samples[0] )
@@ -209,6 +214,8 @@ if isMC:
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2017_42400_XSecCentral",  mc=mcHist)
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2017_42400_XSecDown",     mc=mcHist)
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_42400_XSecUp",       mc=mcHist)
+        nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2017_42400_XSecVDown",    mc="Summer16")
+        nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2017_42400_XSecVUp",      mc="Summer16")
 
 options.skim = options.skim + '_small' if options.small else options.skim
 
@@ -302,7 +309,7 @@ except:
 #branches to be kept for data and MC
 branchKeepStrings_DATAMC = [\
     "run", "luminosityBlock", "event", "fixedGridRhoFastjetAll", "PV_npvs", "PV_npvsGood",
-    "MET_pt", "MET_phi","MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance",
+    "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance",
     "RawMET_phi", "RawMET_pt", "RawMET_sumEt",
     "Flag_*","HLT_*",
     "nJet", "Jet_*",
@@ -339,7 +346,7 @@ if sample.isData:
     elif options.year == 2017:
         sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt'
     elif options.year == 2018:
-        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-321777_13TeV_PromptReco_Collisions18_JSON.txt'
+        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-322381_13TeV_PromptReco_Collisions18_JSON.txt'
     else:
         raise NotImplementedError
     
@@ -368,7 +375,7 @@ if isMC:
     read_variables.append( VectorTreeVariable.fromString('GenPart[pt/F,mass/F,phi/F,eta/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( TreeVariable.fromString('genWeight/F') )
 
-    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU12fb/F','reweightPU12fbUp/F','reweightPU12fbDown/F','reweightPU27fb/F','reweightPU27fbUp/F','reweightPU27fbDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F', 'reweightPU36fbVUp/F','reweightPU36fbVDown/F'])
     if not options.skipGenLepMatching:
         TreeVariable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
@@ -451,27 +458,31 @@ if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
 
-## Initialize keras for different trainings
-if isTriLep or isDiLep:
-    new_variables.extend( [ 'MVA_T2tt_dM350_smaller_TTLep_pow/F', 'MVA_T2tt_dM350_TTLep_pow/F', 'MVA_T2tt_dM350_TTZtoLLNuNu/F', 
-                            'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow /F',
-                            'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow/F'])
+if options.year == 2016:
+    # For MVA discriminator
+    from StopsDilepton.MVA.KerasReader import KerasReader
 
-logger.info("Initializing keras readers for different models.")
-from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
-from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
-from StopsDilepton.MVA.default_classifier_lep_pt_nobtag import training_variables_list as training_variables_list_lep_pt_nobtag
+    ## Initialize keras for different trainings
+    if isTriLep or isDiLep:
+        new_variables.extend( [ 'MVA_T2tt_dM350_smaller_TTLep_pow/F', 'MVA_T2tt_dM350_TTLep_pow/F', 'MVA_T2tt_dM350_TTZtoLLNuNu/F', 
+                                'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow /F',
+                                'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow/F'])
 
-MVA_T2tt_dM350_smaller_TTLep_pow    = KerasReader( 'T2tt_dM350_smaller-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-30-1930', training_variables_list_lep_pt_nobtag)
-MVA_T2tt_dM350_TTLep_pow            = KerasReader( 'T2tt_dM350-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-31-0318', training_variables_list_lep_pt_nobtag)
-MVA_T2tt_dM350_TTZtoLLNuNu          = KerasReader( 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134', training_variables_list_lep_pt)
-MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1639', training_variables_list_lep_pt)
-MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511', training_variables_list_lep_pt)
-MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow         = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1555', training_variables_list_lep_pt)
-MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow= KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1631', training_variables_list_lep_pt)
-MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626', training_variables_list_lep_pt)
+    logger.info("Initializing keras readers for different models.")
+    from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
+    from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
+    from StopsDilepton.MVA.default_classifier_lep_pt_nobtag import training_variables_list as training_variables_list_lep_pt_nobtag
 
-logger.info("Loaded MVA models.")
+    MVA_T2tt_dM350_smaller_TTLep_pow    = KerasReader( 'T2tt_dM350_smaller-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-30-1930', training_variables_list_lep_pt_nobtag)
+    MVA_T2tt_dM350_TTLep_pow            = KerasReader( 'T2tt_dM350-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-31-0318', training_variables_list_lep_pt_nobtag)
+    MVA_T2tt_dM350_TTZtoLLNuNu          = KerasReader( 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134', training_variables_list_lep_pt)
+    MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1639', training_variables_list_lep_pt)
+    MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511', training_variables_list_lep_pt)
+    MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow         = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1555', training_variables_list_lep_pt)
+    MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow= KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1631', training_variables_list_lep_pt)
+    MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626', training_variables_list_lep_pt)
+
+    logger.info("Loaded MVA models.")
 
 if not options.skipNanoTools:
     ### nanoAOD postprocessor
@@ -601,6 +612,8 @@ def filler( event ):
         event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.Pileup_nTrueInt ) # is this correct?
         event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.Pileup_nTrueInt )
         event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.Pileup_nTrueInt )
+        event.reweightPU36fbVDown= nTrueInt36fb_puRWVDown   ( r.Pileup_nTrueInt )
+        event.reweightPU36fbVUp  = nTrueInt36fb_puRWVUp     ( r.Pileup_nTrueInt )
 
     # top pt reweighting
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
@@ -618,7 +631,8 @@ def filler( event ):
 #    print "Good"
 #    sys.exit(0)
         
-    allJets      = getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=jetAbsEtaCut)
+    reallyAllJets= getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=99) # ... yeah, I know.
+    allJets      = filter( lambda j:abs(j['eta'])>jetAbsEtaCut, reallyAllJets)
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)
     soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
     bJets        = filter(lambda j:isBJet(j, tagger="CSVv2", year=options.year) and abs(j['eta'])<=2.4    , jets)
@@ -643,6 +657,18 @@ def filler( event ):
     
     event.met_pt  = r.MET_pt
     event.met_phi = r.MET_phi
+    
+    # MET recipe v2, p3 https://indico.cern.ch/event/759372/contributions/3149378/attachments/1721436/2779341/metreport.pdf
+    if options.year == 2017:
+        bad_ee_jets = filter( lambda j:abs(j['eta'])>2.65 and abs(j['eta'])<3.139 and (1-j['rawFactor'])*j['pt']<50, reallyAllJets )
+        corr_px = sum( [j['pt']*cos(j['phi']) for j in bad_ee_jets], 0.)
+        corr_py = sum( [j['pt']*sin(j['phi']) for j in bad_ee_jets], 0.)
+        MEx_corr = r.MET_pt*cos(r.MET_phi) + corr_px 
+        MEy_corr = r.MET_pt*sin(r.MET_phi) + corr_py
+        event.met_pt  = sqrt( MEx_corr**2 + MEy_corr**2)
+        event.met_phi = atan2( MEy_corr, MEx_corr )
+        #if len( bad_ee_jets )>0:
+        #    print [(1-j['rawFactor']) for j in bad_ee_jets], event.met_pt, r.MET_pt, event.met_phi, r.MET_phi
 
     # Filling jets
     store_jets = jets if not options.keepAllJets else soft_jets + jets
@@ -680,7 +706,7 @@ def filler( event ):
         event.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
         event.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
 
-      event.met_pt_photonEstimated, event.met_phi_photonEstimated = getMetPhotonEstimated(r.MET_pt, r.MET_phi, photons[0])
+      event.met_pt_photonEstimated, event.met_phi_photonEstimated = getMetPhotonEstimated(event.met_pt, event.met_phi, photons[0])
       event.metSig_photonEstimated = event.met_pt_photonEstimated/sqrt(event.ht) if event.ht>0 else float('nan')
 
       event.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
@@ -798,8 +824,9 @@ def filler( event ):
             event.dl_mass = dl.M()
             mt2Calc.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
 
+
             # need at least two jets for MVA
-            if len(store_jets)>1:
+            if options.year == 2016 and len(store_jets)>1:
                 eventdict= {
                     'JetGood_eta[0]':   event.JetGood_eta[0],
                     'JetGood_pt[0]':    event.JetGood_pt[0],
@@ -1106,3 +1133,10 @@ if writeToDPM:
 
     # Clean up.
     subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.
+
+## Use garbage collector to remoe Keras readers before we clean up the Theano compile directory (otherwise error on exit)
+#import gc
+#for reader in filter( lambda o: isinstance(o, KerasReader), gc.get_objects()):
+#    del reader
+#logger.info( "Removing theano compile directory %s", theano_compile_dir )
+#shutil.rmtree( theano_compile_dir )

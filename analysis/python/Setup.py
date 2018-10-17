@@ -18,11 +18,11 @@ from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
 #Choices for specific samples
 #DYSample          = DY
-DYSample           = DY_HT_LO #LO, HT binned including a low HT bin starting from zero from the inclusive sample
+DYSample           = DY_HT_LO_16 #LO, HT binned including a low HT bin starting from zero from the inclusive sample
 #TTJetsSample      = TTJets #NLO
 #TTJetsSample       = Sample.combine("TTJets", [TTJets_Lep, singleTop], texName = "t#bar{t}/single-t") #LO, very large dilep + single lep samples
-TTJetsSample       = Top_pow
-otherEWKComponents = [TTXNoZ]#, WJetsToLNu]
+TTJetsSample       = Top_pow_16
+otherEWKComponents = [TTXNoZ_16]#, WJetsToLNu]
 otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations, metVariations
@@ -82,9 +82,9 @@ class Setup:
         'Top_fakes' :      {c:Top_fakes for c in channels+trilepChannels},
         'DY':         {c:DYSample     for c in channels+trilepChannels},
         'TTJets' :    {c:TTJetsSample for c in channels+trilepChannels},
-        'TTZ' :       {c:TTZ          for c in channels+trilepChannels},
-        'multiBoson' :{c:multiBoson   for c in channels+trilepChannels},
-        'TTXNoZ' :    {c:TTXNoZ       for c in channels+trilepChannels},
+        'TTZ' :       {c:TTZ_16       for c in channels+trilepChannels},
+        'multiBoson' :{c:multiBoson_16   for c in channels+trilepChannels},
+        'TTXNoZ' :    {c:TTXNoZ_16       for c in channels+trilepChannels},
         'other'  :    {c:Sample.combine('other', [otherEWKBkgs]) for c in channels+trilepChannels},
         'Data'   :    {'MuMu':  DoubleMuon_Run2016_backup,
                        'EE':    DoubleEG_Run2016_backup,
