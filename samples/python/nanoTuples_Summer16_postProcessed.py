@@ -20,7 +20,7 @@ try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "stops_2016_nano_v3/dilep/"
+  postProcessing_directory = "stops_2016_nano_v2/dilep/"
 
 logger.info("Loading MC samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
@@ -47,7 +47,7 @@ DY_M50_HT =[
 
 
 dirs = {}
-dirs['DY']               = ["DYJetsToLL_M50_ext2", "DYJetsToLL_M10to50_LO" ]
+dirs['DY']               = ["DYJetsToLL_M50_ext2"]#, "DYJetsToLL_M10to50_LO" ]
 dirs['DY_LO']            = ["DYJetsToLL_M50_LO_ext1_comb"]
 dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 

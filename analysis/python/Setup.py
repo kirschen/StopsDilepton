@@ -271,8 +271,9 @@ class Setup:
                 res['cuts'].append(self.sys['selectionModifier'])
 
         # for MVA studies
-        if self.sys['selectionModifier'].count('MVA'):
-            res['cuts'].append(self.sys['selectionModifier'])
+        if self.sys['selectionModifier']:
+            if self.sys['selectionModifier'].count('MVA'):
+                res['cuts'].append(self.sys['selectionModifier'])
 
         # for SUSY fast sim MET uncertainty
         if self.sys['selectionModifier'] == 'genMet':

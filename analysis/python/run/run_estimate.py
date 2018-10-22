@@ -34,8 +34,8 @@ from StopsDilepton.analysis.Setup import Setup
 
 #define samples
 #Background
-data_directory = '/afs/hephy.at/data/rschoefbeck02/cmgTuples/'
-postProcessing_directory = 'stops_2016_nano_v3/dilep'
+data_directory = '/afs/hephy.at/data/dspitzbart01/cmgTuples/'
+postProcessing_directory = 'stops_2016_nano_v2/dilep'
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
 setup = Setup()
