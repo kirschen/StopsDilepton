@@ -155,7 +155,7 @@ def drawPlots(plots, mode, dataMCScale):
 # Read variables and sequences
 #
 read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "MET_pt/F", "MET_phi/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
+                  "MET_pt/F", "MET_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
 
 #
 #
@@ -206,8 +206,8 @@ for index, mode in enumerate(allModes):
   else:
     weight_ = lambda event, sample: event.weight
 
-  multiBosonList = [WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson] if args.splitBosons else ([WW, WZ, ZZ, triBoson] if args.splitBosons2 else [multiBoson])
-  mc             = [ Top_pow, TTZ, TTXNoZ] + multiBosonList + [DY_LO] # DY_HT_LO
+  multiBosonList = [WWNo2L2Nu_16, WZ_16, ZZNo2L2Nu_16, VVTo2L2Nu_16, triBoson_16] if args.splitBosons else ([WW_16, WZ_16, ZZ_16, triBoson_16] if args.splitBosons2 else [multiBoson_16])
+  mc             = [ Top_pow_16, TTZ_16, TTXNoZ_16] + multiBosonList + [DY_LO_16] # DY_HT_LO
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 
@@ -284,6 +284,12 @@ for index, mode in enumerate(allModes):
       texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
       attribute = TreeVariable.fromString( "MET_pt/F" ),
       binning=[400/20,0,400],
+  ))
+    
+  plots.append(Plot(
+      texX = 'E_{T}^{miss} significance', texY = 'Number of Events',
+      attribute = TreeVariable.fromString( "MET_significance/F" ),
+      binning=[40,0,100],
   ))
 
   plots.append(Plot(
