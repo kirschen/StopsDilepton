@@ -106,6 +106,10 @@ dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 #dirs['ZGJets']       = ["ZGJets"]
 #dirs['ZG']           = dirs['ZGTo2LG'] + dirs['ZGJets']
 #
+
+dirs['T2tt_mStop_850_mLSP_100'] = ['T2tt_mStop_850_mLSP_100']
+dirs['T2tt_mStop_500_mLSP_325'] = ['T2tt_mStop_500_mLSP_325']
+
 directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
 
 #
@@ -145,6 +149,9 @@ multiBoson_16     = Sample.fromDirectory(name="multiBoson",       treeName="Even
 #ZG        = Sample.fromDirectory(name="ZG",            treeName="Events", isData=False, color=color.QCD,             texName="ZG",                           directory=directories['ZG']  )
 #EWK        = Sample.fromDirectory(name="EWK",            treeName="Events", isData=False, color=color.QCD,             texName="EWK",                           directory=directories['EWK']  )
 
+## FullSim signals
+T2tt_mStop_850_mLSP_100 = Sample.fromDirectory(name="T2tt_mStop_850_mLSP_100",  treeName="Events", isData=False, color=color.DY,    texName="T2tt(850,100)",                    directory=directories['T2tt_mStop_850_mLSP_100'])
+T2tt_mStop_500_mLSP_325 = Sample.fromDirectory(name="T2tt_mStop_500_mLSP_325",  treeName="Events", isData=False, color=color.DY,    texName="T2tt(500,325)",                    directory=directories['T2tt_mStop_500_mLSP_325'])
 
 
 Top_gaussian         = copy.deepcopy(Top_pow_16)
