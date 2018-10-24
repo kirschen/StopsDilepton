@@ -7,6 +7,7 @@ from RootTools.core.standard import *
 # Stopsdilepton samples 
 #
 
+data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
 postProcessing_directory = "stops_2016_nano_v2/dilep/"
 # from daniels analysis plot script
 postProcessing_directory = "stops_2016_nano_v2/dilep/"
