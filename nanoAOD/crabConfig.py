@@ -17,7 +17,7 @@ config.General.workArea = 'crab_' + os.environ['ORIG_PROD_LABEL'] + "_" + os.env
 config.section_("JobType")
 config.JobType.allowUndistributedCMSSW = True
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = 'nanoAOD_cfg.py'
+config.JobType.psetName = 'nanoAOD_101X_HEmiss_MC_NANO.py'
 config.JobType.outputFiles = ['nanoAOD.root']
 
 config.section_("Data")

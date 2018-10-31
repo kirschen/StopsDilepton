@@ -66,30 +66,30 @@ sampleMap['DoubleEG_Run2017F_31Mar2018']  = Sample.fromFiles("DoubleEG_Run2017F_
 
 baseDir = "/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/nanoAOD/2018_v3/"
 
-sampleMap['DoubleMuon_Run2018A_PromptReco_v1']  = Sample.fromDPMDirectory("DoubleMuon_Run2018A_PromptReco_v1",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v1_2018_v3/180607_150517/0000", forceProxy=True)
-sampleMap['DoubleMuon_Run2018A_PromptReco_v2']  = Sample.fromDPMDirectory("DoubleMuon_Run2018A_PromptReco_v2",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v2_2018_v3/180607_150537/0000", forceProxy=True)
-sampleMap['DoubleMuon_Run2018A_PromptReco_v3']  = Sample.fromDPMDirectory("DoubleMuon_Run2018A_PromptReco_v3",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v3_2018_v3/180607_150559/0000", forceProxy=True)
+sampleMap['DoubleMuon_Run2018A_PromptReco_v1']  = Sample.fromDPMDirectory("DoubleMuon_Run2018A_PromptReco_v1",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v1_2018_v3/180607_150517/0000")
+sampleMap['DoubleMuon_Run2018A_PromptReco_v2']  = Sample.fromDPMDirectory("DoubleMuon_Run2018A_PromptReco_v2",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v2_2018_v3/180607_150537/0000")
+sampleMap['DoubleMuon_Run2018A_PromptReco_v3']  = Sample.fromDPMDirectory("DoubleMuon_Run2018A_PromptReco_v3",  baseDir+"DoubleMuon/crab_Run2018A-PromptReco-v3_2018_v3/180607_150559/0000")
 
-sampleMap['DoubleMuon_Run2018B_PromptReco_v1']  = Sample.fromDPMDirectory("DoubleMuon_Run2018B_PromptReco_v1",  baseDir+"DoubleMuon/crab_Run2018B-PromptReco-v1_2018_v3/180712_081910/0000", forceProxy=True)
-sampleMap['DoubleMuon_Run2018B_PromptReco_v2']  = Sample.fromDPMDirectory("DoubleMuon_Run2018B_PromptReco_v2",  baseDir+"DoubleMuon/crab_Run2018B-PromptReco-v2_2018_v3/180712_081933/0000", forceProxy=True)
-sampleMap['DoubleMuon_Run2018C_PromptReco_v1']  = Sample.fromDPMDirectory("DoubleMuon_Run2018C_PromptReco_v1",  baseDir+"DoubleMuon/crab_Run2018C-PromptReco-v1_2018_v3/180712_081954/0000", forceProxy=True)
+sampleMap['DoubleMuon_Run2018B_PromptReco_v1']  = Sample.fromDPMDirectory("DoubleMuon_Run2018B_PromptReco_v1",  baseDir+"DoubleMuon/crab_Run2018B-PromptReco-v1_2018_v3/180712_081910/0000")
+sampleMap['DoubleMuon_Run2018B_PromptReco_v2']  = Sample.fromDPMDirectory("DoubleMuon_Run2018B_PromptReco_v2",  baseDir+"DoubleMuon/crab_Run2018B-PromptReco-v2_2018_v3/180712_081933/0000")
+sampleMap['DoubleMuon_Run2018C_PromptReco_v1']  = Sample.fromDPMDirectory("DoubleMuon_Run2018C_PromptReco_v1",  baseDir+"DoubleMuon/crab_Run2018C-PromptReco-v1_2018_v3/180712_081954/0000")
 
 
-sampleMap['MuonEG_Run2018A_PromptReco_v1']      = Sample.fromDPMDirectory("MuonEG_Run2018A_PromptReco_v1",      baseDir+"MuonEG/crab_Run2018A-PromptReco-v1_2018_v3/180607_150722/0000", forceProxy=True)
-sampleMap['MuonEG_Run2018A_PromptReco_v2']      = Sample.fromDPMDirectory("MuonEG_Run2018A_PromptReco_v2",      baseDir+"MuonEG/crab_Run2018A-PromptReco-v2_2018_v3/180607_150742/0000", forceProxy=True)
-sampleMap['MuonEG_Run2018A_PromptReco_v3']      = Sample.fromDPMDirectory("MuonEG_Run2018A_PromptReco_v3",      baseDir+"MuonEG/crab_Run2018A-PromptReco-v3_2018_v3/180607_150803/0000", forceProxy=True)
+sampleMap['MuonEG_Run2018A_PromptReco_v1']      = Sample.fromDPMDirectory("MuonEG_Run2018A_PromptReco_v1",      baseDir+"MuonEG/crab_Run2018A-PromptReco-v1_2018_v3/180607_150722/0000")
+sampleMap['MuonEG_Run2018A_PromptReco_v2']      = Sample.fromDPMDirectory("MuonEG_Run2018A_PromptReco_v2",      baseDir+"MuonEG/crab_Run2018A-PromptReco-v2_2018_v3/180607_150742/0000")
+sampleMap['MuonEG_Run2018A_PromptReco_v3']      = Sample.fromDPMDirectory("MuonEG_Run2018A_PromptReco_v3",      baseDir+"MuonEG/crab_Run2018A-PromptReco-v3_2018_v3/180607_150803/0000")
 
-sampleMap['EGamma_Run2018A_PromptReco_v1']      = Sample.fromDPMDirectory("EGamma_Run2018A_PromptReco_v1",      baseDir+"EGamma/crab_Run2018A-PromptReco-v1_2018_v3/180607_150620/0000", forceProxy=True)
-sampleMap['EGamma_Run2018A_PromptReco_v2']      = Sample.fromDPMDirectory("EGamma_Run2018A_PromptReco_v2",      baseDir+"EGamma/crab_Run2018A-PromptReco-v2_2018_v3/180607_150640/0000", forceProxy=True)
-sampleMap['EGamma_Run2018A_PromptReco_v3']      = Sample.fromDPMDirectory("EGamma_Run2018A_PromptReco_v3",      baseDir+"EGamma/crab_Run2018A-PromptReco-v3_2018_v3/180607_150701/0000", forceProxy=True)
+sampleMap['EGamma_Run2018A_PromptReco_v1']      = Sample.fromDPMDirectory("EGamma_Run2018A_PromptReco_v1",      baseDir+"EGamma/crab_Run2018A-PromptReco-v1_2018_v3/180607_150620/0000")
+sampleMap['EGamma_Run2018A_PromptReco_v2']      = Sample.fromDPMDirectory("EGamma_Run2018A_PromptReco_v2",      baseDir+"EGamma/crab_Run2018A-PromptReco-v2_2018_v3/180607_150640/0000")
+sampleMap['EGamma_Run2018A_PromptReco_v3']      = Sample.fromDPMDirectory("EGamma_Run2018A_PromptReco_v3",      baseDir+"EGamma/crab_Run2018A-PromptReco-v3_2018_v3/180607_150701/0000")
 
 # HEM RelVals
 
 baseDir = "/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/nanoAOD/2018_v4/"
 
-sampleMap['DoubleMuon_Run2018B_Prompt_HEmiss_v1_RelVal']    = Sample.fromDPMDirectory("DoubleMuon_Run2018B_Prompt_HEmiss_v1_RelVal", baseDir+"DoubleMuon/crab_CMSSW_10_1_7-101X_dataRun2_Prompt_HEmiss_v1_RelVal_doubMu2018B-v1_2018_v4/180713_094017/0000", forceProxy=True)
-sampleMap['DoubleMuon_Run2018B_Prompt_v11_RelVal']          = Sample.fromDPMDirectory("DoubleMuon_Run2018B_Prompt_v11_RelVal",       baseDir+"DoubleMuon/crab_CMSSW_10_1_7-101X_dataRun2_Prompt_v11_RelVal_doubMu2018B-v1_2018_v4/180713_093957/0000", forceProxy=True)
-#sampleMap['
+sampleMap['DoubleMuon_Run2018B_Prompt_HEmiss_v1_RelVal']    = Sample.fromDPMDirectory("DoubleMuon_Run2018B_Prompt_HEmiss_v1_RelVal", baseDir+"DoubleMuon/crab_CMSSW_10_1_7-101X_dataRun2_Prompt_HEmiss_v1_RelVal_doubMu2018B-v1_2018_v4/180713_094017/0000")
+sampleMap['DoubleMuon_Run2018B_Prompt_v11_RelVal']          = Sample.fromDPMDirectory("DoubleMuon_Run2018B_Prompt_v11_RelVal",       baseDir+"DoubleMuon/crab_CMSSW_10_1_7-101X_dataRun2_Prompt_v11_RelVal_doubMu2018B-v1_2018_v4/180713_093957/0000")
+
 
 #DoubleMuon_Run2016 = [DoubleMuon_Run2016B_05Feb2018_ver1,DoubleMuon_Run2016B_05Feb2018_ver2,DoubleMuon_Run2016C_05Feb2018,DoubleMuon_Run2016D_05Feb2018,DoubleMuon_Run2016E_05Feb2018,DoubleMuon_Run2016F_05Feb2018,DoubleMuon_Run2016G_05Feb2018,DoubleMuon_Run2016H_05Feb2018_ver2,DoubleMuon_Run2016H_05Feb2018_ver3]
 

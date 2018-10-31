@@ -126,3 +126,4 @@ regionsDM2 += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + R
 regionsDM5 += [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('MET_pt', (80, -1))]
 
 noRegions = [Region("dl_mt2ll", (0, -1)) + Region("dl_mt2bb", (0, -1)) + Region("MET_pt", (0, -1))] # For TTZ CR 
+regionsNoMET = getRegionsMet(mt2llThresholds = [ 100, 140, 240], mt2blblThresholds = [0, 100, 200, -1], metThresholds = [0, -1])

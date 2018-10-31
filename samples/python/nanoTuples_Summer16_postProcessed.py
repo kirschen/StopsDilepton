@@ -153,6 +153,8 @@ multiBoson_16     = Sample.fromDirectory(name="multiBoson",       treeName="Even
 T2tt_mStop_850_mLSP_100 = Sample.fromDirectory(name="T2tt_mStop_850_mLSP_100",  treeName="Events", isData=False, color=color.DY,    texName="T2tt(850,100)",                    directory=directories['T2tt_mStop_850_mLSP_100'])
 T2tt_mStop_500_mLSP_325 = Sample.fromDirectory(name="T2tt_mStop_500_mLSP_325",  treeName="Events", isData=False, color=color.DY,    texName="T2tt(500,325)",                    directory=directories['T2tt_mStop_500_mLSP_325'])
 
+allSignals_FS = [T2tt_mStop_850_mLSP_100, T2tt_mStop_500_mLSP_325]
+
 
 Top_gaussian         = copy.deepcopy(Top_pow_16)
 Top_gaussian.name    = Top_pow_16.name + ' (gaussian)'

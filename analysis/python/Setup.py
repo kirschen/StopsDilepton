@@ -207,7 +207,8 @@ class Setup:
           res['prefixes'].append('met'+str(metMin))
         if metSigMin and metSigMin>0:
           res['cuts'].append('MET_significance'+sysStr+metStr+'>='+str(metSigMin))
-          res['prefixes'].append('metSig'+str(metSigMin))
+          res['prefixes'].append('METsig'+str(metSigMin))
+
         if dPhi:
           res['cuts'].append('cos(MET_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(MET_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25)')
           res['prefixes'].append('dPhiJet0-dPhiJet')

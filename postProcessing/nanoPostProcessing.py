@@ -179,6 +179,7 @@ from StopsDilepton.tools.triggerSelector import triggerSelector
 ts = triggerSelector(options.year)
 triggerCond  = ts.getSelection(options.samples[0] if isData else "MC")
 treeFormulas = {"triggerDecision": {'string':triggerCond} }
+
 if isData and options.triggerSelection:
     logger.info("Sample will have the following trigger skim: %s"%triggerCond)
     skimConds.append( triggerCond )
@@ -309,7 +310,7 @@ except:
 #branches to be kept for data and MC
 branchKeepStrings_DATAMC = [\
     "run", "luminosityBlock", "event", "fixedGridRhoFastjetAll", "PV_npvs", "PV_npvsGood",
-    "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance",
+    "MET_pt", "MET_phi", "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance",
     "RawMET_phi", "RawMET_pt", "RawMET_sumEt",
     "Flag_*","HLT_*",
     "nJet", "Jet_*",
@@ -421,7 +422,8 @@ if isTriLep or isDiLep:
     #    new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
-new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
+new_variables.extend( ['MET_pt_photonEstimated/F','MET_phi_photonEstimated/F','metSig_photonEstimated/F'] )
+new_variables.extend( ['MET_pt_corr/F','MET_phi_corr/F'] )
 new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
 if isTriLep or isDiLep:
   new_variables.extend( ['dlg_mass/F','dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
@@ -433,10 +435,10 @@ if addSystematicVariations:
 
     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
         if 'Unclustered' not in var: new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
-        new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
+        new_variables.extend( ['MET_pt_'+var+'/F', 'MET_phi_'+var+'/F', 'metSig_'+var+'/F'] )
         if isTriLep or isDiLep:
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
-        new_variables.extend( ['met_pt_photonEstimated_'+var+'/F', 'met_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
+        new_variables.extend( ['MET_pt_photonEstimated_'+var+'/F', 'MET_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
         if isTriLep or isDiLep:
             new_variables.extend( ['dl_mt2ll_photonEstimated_'+var+'/F', 'dl_mt2bb_photonEstimated_'+var+'/F', 'dl_mt2blbl_photonEstimated_'+var+'/F'] )
     # Btag weights Method 1a
@@ -530,17 +532,17 @@ def getMetJetCorrected(met_pt, met_phi, jets, var):
 
 def getMetCorrected(r, var, addPhoton = None):
     if var == "":
-      if addPhoton is not None: return getMetPhotonEstimated(r.met_pt, r.met_phi, addPhoton)
-      else:                     return (r.met_pt, r.met_phi)
+      if addPhoton is not None: return getMetPhotonEstimated(r.MET_pt, r.MET_phi, addPhoton)
+      else:                     return (r.MET_pt, r.MET_phi)
 
     elif var in [ "JECUp", "JECDown", "UnclusteredEnUp", "UnclusteredEnDown" ]:
       var_ = var
       var_ = var_.replace("JEC", "JetEn")
       var_ = var_.replace("JER", "JetRes")
-      met_pt  = getattr(r, "met_" + var_ + "_Pt")
-      met_phi = getattr(r, "met_" + var_ + "_Phi")
-      if addPhoton is not None: return getMetPhotonEstimated(met_pt, met_phi, addPhoton)
-      else:                     return (met_pt, met_phi)
+      MET_pt  = getattr(r, "met_" + var_ + "_Pt")
+      MET_phi = getattr(r, "met_" + var_ + "_Phi")
+      if addPhoton is not None: return getMetPhotonEstimated(MET_pt, MET_phi, addPhoton)
+      else:                     return (MET_pt, MET_phi)
 
     else:
         raise ValueError
@@ -655,8 +657,8 @@ def filler( event ):
     leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     leptons.sort(key = lambda p:-p['pt'])
     
-    event.met_pt  = r.MET_pt
-    event.met_phi = r.MET_phi
+    event.MET_pt  = r.MET_pt
+    event.MET_phi = r.MET_phi
     
     # MET recipe v2, p3 https://indico.cern.ch/event/759372/contributions/3149378/attachments/1721436/2779341/metreport.pdf
     if options.year == 2017:
@@ -665,10 +667,13 @@ def filler( event ):
         corr_py = sum( [j['pt']*sin(j['phi']) for j in bad_ee_jets], 0.)
         MEx_corr = r.MET_pt*cos(r.MET_phi) + corr_px 
         MEy_corr = r.MET_pt*sin(r.MET_phi) + corr_py
-        event.met_pt  = sqrt( MEx_corr**2 + MEy_corr**2)
-        event.met_phi = atan2( MEy_corr, MEx_corr )
+        event.MET_pt_corr  = sqrt( MEx_corr**2 + MEy_corr**2)
+        event.MET_phi_corr = atan2( MEy_corr, MEx_corr )
         #if len( bad_ee_jets )>0:
         #    print [(1-j['rawFactor']) for j in bad_ee_jets], event.met_pt, r.MET_pt, event.met_phi, r.MET_phi
+    else:
+        event.MET_pt_corr   = r.MET_pt
+        event.MET_phi_corr  = r.MET_phi
 
     # Filling jets
     store_jets = jets if not options.keepAllJets else soft_jets + jets
@@ -683,7 +688,7 @@ def filler( event ):
         event.m3, event.m3_ind1, event.m3_ind2, event.m3_ind3 = m3( jets )
 
     event.ht         = sum([j['pt'] for j in jets])
-    event.metSig     = event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan')
+    event.metSig     = event.MET_pt/sqrt(event.ht) if event.ht>0 else float('nan')
     event.nBTag      = len(bJets)
 
     jets_sys      = {}
@@ -706,8 +711,8 @@ def filler( event ):
         event.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
         event.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
 
-      event.met_pt_photonEstimated, event.met_phi_photonEstimated = getMetPhotonEstimated(event.met_pt, event.met_phi, photons[0])
-      event.metSig_photonEstimated = event.met_pt_photonEstimated/sqrt(event.ht) if event.ht>0 else float('nan')
+      event.MET_pt_photonEstimated, event.MEt_phi_photonEstimated = getMetPhotonEstimated(event.MET_pt, event.MET_phi, photons[0])
+      event.metSig_photonEstimated = event.MET_pt_photonEstimated/sqrt(event.ht) if event.ht>0 else float('nan')
 
       event.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
       event.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
@@ -734,14 +739,14 @@ def filler( event ):
             for i in metVariants:
                 # use cmg MET correction values ecept for JER where it is zero. There, propagate jet variations.
                 if 'JER' in var or 'JECV' in var:
-                  (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(event, "met_pt" + i), getattr(event,"met_phi" + i), jets_sys[var], var)
+                  (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(event, "MET_pt" + i), getattr(event,"MET_phi" + i), jets_sys[var], var)
                 else:
                   (met_corr_pt, met_corr_phi) = getMetCorrected(r, var, photons[0] if i.count("photonEstimated") else None)
 
-                setattr(event, "met_pt" +i+"_"+var, met_corr_pt)
-                setattr(event, "met_phi"+i+"_"+var, met_corr_phi)
+                setattr(event, "MET_pt" +i+"_"+var, met_corr_pt)
+                setattr(event, "MET_phi"+i+"_"+var, met_corr_phi)
                 ht = getattr(event, "ht_"+var) if 'Unclustered' not in var else event.ht 
-                setattr(event, "metSig" +i+"_"+var, getattr(event, "met_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
+                setattr(event, "metSig" +i+"_"+var, getattr(event, "MET_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
 
     if isSingleLep or isTriLep or isDiLep:
         event.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
@@ -843,7 +848,7 @@ def filler( event ):
                     'l2_pt':            event.l2_pt,
                     'lep_dphi':         deltaPhi(event.l1_phi, event.l2_phi),
                     'metSig':           event.metSig,
-                    'met_pt':           event.met_pt,
+                    'met_pt':           event.MET_pt,
                     }
 
                 event.MVA_T2tt_dM350_smaller_TTLep_pow                            = MVA_T2tt_dM350_smaller_TTLep_pow.eval(eventdict)
@@ -887,7 +892,7 @@ def filler( event ):
             #        setattr(event, "dl_mt2blbl_gen", mt2Calc.mt2blbl())
                 
             for i in metVariants:
-                mt2Calc.setMet(getattr(event, 'met_pt'+i), getattr(event, 'met_phi'+i))
+                mt2Calc.setMet(getattr(event, 'MET_pt'+i), getattr(event, 'MET_phi'+i))
                 setattr(event, "dl_mt2ll"+i, mt2Calc.mt2ll())
 
                 bj0, bj1 = None, None
@@ -899,7 +904,7 @@ def filler( event ):
 
                 if addSystematicVariations:
                     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
-                        mt2Calc.setMet( getattr(event, "met_pt"+i+"_"+var), getattr(event, "met_phi"+i+"_"+var) )
+                        mt2Calc.setMet( getattr(event, "MET_pt"+i+"_"+var), getattr(event, "MET_phi"+i+"_"+var) )
                         setattr(event, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
                         if not 'Unclustered' in var:
                             if len(jets_sys[var])>=2:

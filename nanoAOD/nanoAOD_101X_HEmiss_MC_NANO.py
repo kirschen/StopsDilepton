@@ -26,7 +26,7 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('/store/relval/CMSSW_10_1_7/RelValZMM_13/MINIAODSIM/PU25ns_101X_upgrade2018_realistic_HEmiss_v1-v1/10000/9E2F84C1-1380-E811-A2E1-0CC47A78A458.root'),
+    fileNames = cms.untracked.vstring('/store/mc/RunIISpring18MiniAOD/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/HEMPremix_100X_upgrade2018_realistic_v10_ext1-v2/100000/B4CBD9E5-22A9-E811-A6BA-A4BF010120C5.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -51,6 +51,7 @@ process.NANOAODoutput = cms.OutputModule("NanoAODOutputModule",
         filterName = cms.untracked.string('')
     ),
     fileName = cms.untracked.string('nanoAOD.root'),
+    fakeNameForCrab =cms.untracked.bool(True),
     outputCommands = process.NANOAODEventContent.outputCommands
 )
 
