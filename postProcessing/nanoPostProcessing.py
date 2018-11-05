@@ -130,7 +130,7 @@ if isInclusive:
 #Samples: Load samples
 maxN = 2 if options.small else None
 if options.small:
-    options.job = 1
+    options.job = 0
     options.nJobs = 10000 # set high to just run over 1 input file
 
 #from nanoMET.samples.helpers import fromNanoSample
@@ -144,8 +144,9 @@ elif options.year == 2017:
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018 import allSamples as dataSamples
     allSamples = bkgSamples + dataSamples
 elif options.year == 2018:
-    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco import allSamples as dataSamples
-    allSamples = dataSamples
+    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco    import allSamples as dataSamples
+    from StopsDilepton.samples.nanoTuples_Spring18              import allSamples as HEMSamples
+    allSamples = dataSamples + HEMSamples
 else:
     raise NotImplementedError
 
@@ -154,6 +155,9 @@ for selectedSamples in options.samples:
     for sample in allSamples:
         if selectedSamples == sample.name:
             samples.append(sample)
+
+for s in samples:
+    print s.files
 
 if len(samples)==0:
     logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
@@ -217,6 +221,14 @@ if isMC:
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_42400_XSecUp",       mc=mcHist)
         nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2017_42400_XSecVDown",    mc="Summer16")
         nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2017_42400_XSecVUp",      mc="Summer16")
+    elif options.year == 2018:
+        # keep the weight name for now. Should we update to a more general one?
+        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral",  mc="Summer16")
+        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",     mc="Summer16")
+        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_36000_XSecUp",       mc="Summer16")
+        nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2016_36000_XSecVDown",    mc="Summer16")
+        nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2016_36000_XSecVUp",      mc="Summer16")
+
 
 options.skim = options.skim + '_small' if options.small else options.skim
 
@@ -597,7 +609,10 @@ def filler( event ):
             event.reweightXSecUp    = 0.
             event.reweightXSecDown  = 0.
     elif isMC:
-        event.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
+        if hasattr(r, "genWeight"):
+            event.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
+        else:
+            event.weight = lumiScaleFactor if lumiScaleFactor is not None else 1
     elif isData:
         event.weight = 1
     else:
@@ -610,7 +625,7 @@ def filler( event ):
         # store decision to use after filler has been executed
         event.jsonPassed_ = event.jsonPassed
 
-    if isMC:
+    if isMC and hasattr(r, "Pileup_nTrueInt"):
         event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.Pileup_nTrueInt ) # is this correct?
         event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.Pileup_nTrueInt )
         event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.Pileup_nTrueInt )

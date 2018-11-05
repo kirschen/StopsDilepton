@@ -24,6 +24,8 @@ special_cuts = {
     "gJetdR":            "(1)",
    
     "dPhiJet0":          "Sum$( ( cos(MET_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0",
+    "antiHEM":           "Sum$( ( cos(MET_phi-JetGood_phi)<-0.8 )*(Iteration$==1) )==0",
+    "antiHEMv2":         "Sum$( ( cos(MET_phi-JetGood_phi)<-0.8 )*(Iteration$<2) )==0",
     "dPhiJet1":          "Sum$( ( cos(MET_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0",
     "dPhiInv":           '(!(cos(MET_phi-JetGood_phi[0])<0.8&&cos(MET_phi-JetGood_phi[1])<cos(0.25)))', # here we want an njet requirement
     "metInv":            "MET_pt<80",
