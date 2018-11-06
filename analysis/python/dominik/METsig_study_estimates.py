@@ -35,7 +35,8 @@ import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger('INFO', logFile = None )
 
 from StopsDilepton.analysis.regions import getRegionsMet
-allRegions =  getRegionsMet(mt2llThresholds = [ 140, -1 ], mt2blblThresholds = [0, -1], metThresholds = [0, -1]) # can be refined for future studies
+allRegions = getRegionsMet(mt2llThresholds = [ 140, -1 ], mt2blblThresholds = [0, -1], metThresholds = [0, -1]) # can be refined for future studies
+#allRegions =  regionsO[1:]
 
 estimators = estimatorList(setup)
 allEstimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
