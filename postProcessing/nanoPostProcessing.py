@@ -12,7 +12,7 @@ import datetime
 import shutil
 import uuid
 
-theano_compile_dir = '/var/tmp/%s'%str(uuid.uuid4())
+theano_compile_dir = '/tmp/%s'%str(uuid.uuid4())
 if not os.path.exists( theano_compile_dir ):
     os.makedirs( theano_compile_dir )
 os.environ['THEANO_FLAGS'] = 'base_compiledir=%s'%theano_compile_dir 
