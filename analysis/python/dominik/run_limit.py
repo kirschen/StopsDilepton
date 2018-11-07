@@ -20,7 +20,6 @@ argParser.add_argument("--significanceScan",         default = False, action = "
 argParser.add_argument("--removeSR",      default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 argParser.add_argument("--showSyst",      default = '', action = "store", help="Print the systematic uncertainties?")
-
 args = argParser.parse_args()
 
 
@@ -52,9 +51,47 @@ data_directory = '/afs/hephy.at/data/dspitzbart02/nanoTuples/'
 postProcessing_directory = 'stops_2016_nano_v2/dilep'
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
+# Dirty signal region set selection
+if args.selectRegions == "regionsO":  signalRegions, metsig, met  =  regionsO[1:], 0., 80.
+if args.selectRegions == "regionsT_1":  signalRegions, metsig, met =  regionsT_1[1:], 8., 0.
+if args.selectRegions == "regionsT_2":  signalRegions, metsig, met =  regionsT_2[1:], 9., 0.
+if args.selectRegions == "regionsT_3":  signalRegions, metsig, met =  regionsT_3[1:], 10., 0.
+if args.selectRegions == "regionsT_4":  signalRegions, metsig, met =  regionsT_4[1:], 11., 0.
+if args.selectRegions == "regionsT_5":  signalRegions, metsig, met =  regionsT_5[1:], 12., 0.
+if args.selectRegions == "regionsT_6":  signalRegions, metsig, met =  regionsT_6[1:], 13., 0.
+if args.selectRegions == "regionsT_7":  signalRegions, metsig, met =  regionsT_7[1:], 14., 0.
+if args.selectRegions == "regionsT_8":  signalRegions, metsig, met =  regionsT_8[1:], 15., 0.
+if args.selectRegions == "regionsT_10":  signalRegions, metsig, met =  regionsT_10[1:], 8., 0. 
+if args.selectRegions == "regionsT_11":  signalRegions, metsig, met =  regionsT_11[1:], 8., 0.
+if args.selectRegions == "regionsT_12":  signalRegions, metsig, met =  regionsT_12[1:], 8., 0.
+if args.selectRegions == "regionsT_13":  signalRegions, metsig, met =  regionsT_13[1:], 8., 0.
+if args.selectRegions == "regionsT_14":  signalRegions, metsig, met =  regionsT_14[1:], 8., 0.
+if args.selectRegions == "regionsT_15":  signalRegions, metsig, met =  regionsT_15[1:], 8., 0.
+if args.selectRegions == "regionsT_16":  signalRegions, metsig, met =  regionsT_16[1:], 8., 0.
+if args.selectRegions == "regionsT_17":  signalRegions, metsig, met =  regionsT_17[1:], 8., 0.
+if args.selectRegions == "regionsT_18":  signalRegions, metsig, met =  regionsT_18[1:], 8., 0.
+if args.selectRegions == "regionsT_9":  signalRegions, metsig, met =  regionsT_9[1:], 8., 0.
+
+
+if args.selectRegions == "regionsU_1":  signalRegions, metsig, met =  regionsU_1[1:], 8., 0.
+if args.selectRegions == "regionsU_2":  signalRegions, metsig, met =  regionsU_2[1:], 9., 0.
+if args.selectRegions == "regionsU_3":  signalRegions, metsig, met =  regionsU_3[1:], 10., 0.
+if args.selectRegions == "regionsU_4":  signalRegions, metsig, met =  regionsU_4[1:], 11., 0.
+if args.selectRegions == "regionsU_5":  signalRegions, metsig, met =  regionsU_5[1:], 12., 0.
+if args.selectRegions == "regionsU_6":  signalRegions, metsig, met =  regionsU_6[1:], 13., 0.
+if args.selectRegions == "regionsU_7":  signalRegions, metsig, met =  regionsU_7[1:], 14., 0.
+if args.selectRegions == "regionsU_8":  signalRegions, metsig, met =  regionsU_8[1:], 15., 0.
+if args.selectRegions == "regionsU_9":  signalRegions, metsig, met =  regionsU_9[1:], 16., 0.
+if args.selectRegions == "regionsU_10":  signalRegions, metsig, met =  regionsU_10[1:], 17., 0.
+if args.selectRegions == "regionsU_11":  signalRegions, metsig, met =  regionsU_11[1:], 18., 0.
+if args.selectRegions == "regionsU_12":  signalRegions, metsig, met =  regionsU_12[1:], 19., 0.
+if args.selectRegions == "regionsU_13":  signalRegions, metsig, met =  regionsU_13[1:], 20., 0.
+# FIXME add more!
+
+
 oSetup = Setup()
 # This needs to be adjusted #FIXME
-setup = oSetup.sysClone(parameters={"metMin":80., "metSigMin":0.})
+setup = oSetup.sysClone(parameters={"metMin": met, "metSigMin": metsig})
 
 
 # Define CR
@@ -79,9 +116,6 @@ setupTTZ3.channels = ['all']
 setupTTZ4.channels = ['all']
 setupTTZ5.channels = ['all']
 
-# Dirty signal region set selection
-if args.selectRegions == "regionsO": signalRegions = regionsO[1:]
-# FIXME add more!
 
 
 # Define regions for CR
