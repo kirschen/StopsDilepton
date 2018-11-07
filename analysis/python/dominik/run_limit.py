@@ -1,3 +1,8 @@
+'''
+Slightly stripped down version of run_limit
+Use with e.g. python run_limit.py --selectRegions regionsO --expected --signal T2tt --only 0
+'''
+
 #!/usr/bin/env python
 import ROOT
 import os
