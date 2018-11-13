@@ -135,17 +135,17 @@ if options.small:
 
 #from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
-    from StopsDilepton.samples.nanoTuples_Summer16          import allSamples as bkgSamples
-    from StopsDilepton.samples.nanoTuples_FastSim_Spring16  import allSamples as signalSamples
-    from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018 import allSamples as dataSamples
+    from Samples.nanoAOD.Summer16          import allSamples as bkgSamples
+    from Samples.nanoAOD.Spring16_private  import allSamples as signalSamples
+    from Samples.nanoAOD.Run2016_05Feb2018 import allSamples as dataSamples
     allSamples = bkgSamples + signalSamples + dataSamples
 elif options.year == 2017:
-    from StopsDilepton.samples.nanoTuples_Fall17 import allSamples as bkgSamples
-    from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018 import allSamples as dataSamples
+    from Samples.nanoAOD.Fall17 import allSamples as bkgSamples
+    from Samples.nanoAOD.Run2017_31Mar2018 import allSamples as dataSamples
     allSamples = bkgSamples + dataSamples
 elif options.year == 2018:
-    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco    import allSamples as dataSamples
-    from StopsDilepton.samples.nanoTuples_Spring18              import allSamples as HEMSamples
+    from Samples.nanoAOD.Run2018_PromptReco    import allSamples as dataSamples
+    from Samples.nanoAOD.Spring18              import allSamples as HEMSamples
     allSamples = dataSamples + HEMSamples
 else:
     raise NotImplementedError
@@ -322,7 +322,7 @@ except:
 #branches to be kept for data and MC
 branchKeepStrings_DATAMC = [\
     "run", "luminosityBlock", "event", "fixedGridRhoFastjetAll", "PV_npvs", "PV_npvsGood",
-    "MET_pt", "MET_phi", "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance",
+    "MET_pt", "MET_phi", "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance", "MET_SignificanceRec",
     "RawMET_phi", "RawMET_pt", "RawMET_sumEt",
     "Flag_*","HLT_*",
     "nJet", "Jet_*",
@@ -507,11 +507,16 @@ if not options.skipNanoTools:
     
     ## modules for nanoAOD postprocessor
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
+    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METSigProducer import METSigProducer 
     
     logger.info("Preparing nanoAOD postprocessing")
     logger.info("Will put files into directory %s", output_directory)
     cut = '&&'.join(skimConds)
-    p = PostProcessor(output_directory,sample.files,cut=cut, modules=[jetmetUncertaintiesProducer("2016", "Summer16_23Sep2016V4_MC", [ "Total" ])])
+    modules = [
+#        jetmetUncertaintiesProducer("2016", "Summer16_23Sep2016V4_MC", [ "Total" ]),
+        METSigProducer("Summer16_25nsV1_MC", [1.39,1.26,1.21,1.23,1.28,-0.26,0.62]),
+    ]
+    p = PostProcessor(output_directory,sample.files,cut=cut, modules=modules)
     logger.info("Starting nanoAOD postprocessing")
     p.run()
     logger.info("Done. Replacing input files for further processing.")
