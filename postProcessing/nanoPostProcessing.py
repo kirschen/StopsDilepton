@@ -370,7 +370,7 @@ else:
     lumiScaleFactor = xSection*targetLumi/float(sample.normalization) if xSection is not None else None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
-jetVars = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F'] + jetCorrInfo + jetMCInfo
+jetVars = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'genJetIdx/I'] + jetCorrInfo + jetMCInfo
 jetVarNames = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
@@ -401,11 +401,13 @@ read_variables += [\
     TreeVariable.fromString('nMuon/I'),
     VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
     TreeVariable.fromString('nJet/I'),
-    VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
+    VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) ),
+    TreeVariable.fromString('nGenJet/I'),
+    VectorTreeVariable.fromString('GenJet[pt/F,eta/F,phi/F]' )
 ]
 
 new_variables += [\
-    'JetGood[%s]'% ( ','.join(jetVars) )
+    'JetGood[%s]'% ( ','.join(jetVars) + ',genPt/F' )
 ]
 
 if isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
@@ -703,6 +705,8 @@ def filler( event ):
     for iJet, jet in enumerate(store_jets):
         for b in jetVarNames:
             getattr(event, "JetGood_"+b)[iJet] = jet[b]
+        if store_jets[iJet]['genJetIdx'] >= 0:
+            event.JetGood_genPt[iJet] = r.GenJet_pt[store_jets[iJet]['genJetIdx']]
 
     if isSingleLep:
         # Compute M3 and the three indiced of the jets entering m3
