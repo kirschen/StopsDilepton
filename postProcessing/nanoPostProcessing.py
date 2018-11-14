@@ -144,9 +144,10 @@ elif options.year == 2017:
     from Samples.nanoAOD.Run2017_31Mar2018 import allSamples as dataSamples
     allSamples = bkgSamples + dataSamples
 elif options.year == 2018:
-    from Samples.nanoAOD.Run2018_PromptReco    import allSamples as dataSamples
-    from Samples.nanoAOD.Spring18              import allSamples as HEMSamples
-    allSamples = dataSamples + HEMSamples
+    #from Samples.nanoAOD.Run2018_14Sep2018    import allSamples as dataSamples
+    from Samples.nanoAOD.Spring18_private          import allSamples as HEMSamples
+    from Samples.nanoAOD.Run2018_26Sep2018_private import allSamples as HEMDataSamples
+    allSamples = HEMSamples + HEMDataSamples #+ dataSamples
 else:
     raise NotImplementedError
 
