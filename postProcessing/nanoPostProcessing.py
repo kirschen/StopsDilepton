@@ -360,7 +360,7 @@ if sample.isData:
     elif options.year == 2017:
         sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt'
     elif options.year == 2018:
-        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-322381_13TeV_PromptReco_Collisions18_JSON.txt'
+        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
     else:
         raise NotImplementedError
     
