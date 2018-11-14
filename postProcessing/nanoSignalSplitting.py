@@ -261,11 +261,18 @@ if isInclusive:
 
 #from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
-    from StopsDilepton.samples.nanoTuples_Summer16 import allSamples as bkgSamples
-    from StopsDilepton.samples.nanoTuples_FastSim_Spring16 import allSamples as signalSamples
-    allSamples = bkgSamples + signalSamples
+    from Samples.nanoAOD.Summer16          import allSamples as bkgSamples
+    from Samples.nanoAOD.Spring16_private  import allSamples as signalSamples
+    from Samples.nanoAOD.Run2016_05Feb2018 import allSamples as dataSamples
+    allSamples = bkgSamples + signalSamples + dataSamples
 elif options.year == 2017:
-    from StopsDilepton.samples.nanoTuples_Fall17 import *
+    from Samples.nanoAOD.Fall17 import allSamples as bkgSamples
+    from Samples.nanoAOD.Run2017_31Mar2018 import allSamples as dataSamples
+    allSamples = bkgSamples + dataSamples
+elif options.year == 2018:
+    from Samples.nanoAOD.Run2018_PromptReco    import allSamples as dataSamples
+    from Samples.nanoAOD.Spring18              import allSamples as HEMSamples
+    allSamples = dataSamples + HEMSamples
 else:
     raise NotImplementedError
 
