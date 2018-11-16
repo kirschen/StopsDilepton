@@ -334,7 +334,7 @@ branchKeepStrings_DATAMC = [\
 
 #branches to be kept for MC samples only
 branchKeepStrings_MC = [\
-    "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt",
+    "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_pt","GenMET_phi"
 ]
 
 #branches to be kept for data only
