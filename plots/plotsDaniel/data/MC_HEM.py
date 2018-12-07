@@ -43,8 +43,8 @@ if args.small:                        args.plot_directory += "_small"
 # Make samples, will be searched for in the postProcessing directory
 #
 
-data_directory           = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-postProcessing_directory = "stops_HEM_nano_v2/dilep/"
+data_directory           = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+postProcessing_directory = "stops_HEM_nano_v3/dilep/"
 
 dirs = {}
 dirs['TTLep_100X_comb']             = ['TTLep_100X']
@@ -202,7 +202,7 @@ def drawPlots(plots, mode, lumi_scale):
       l  = len(plot.histos)
       #scaling = {2*i+1:2*i for i in range(l/2)} 
       #scaling = {i:0 for i in range(1,5)}
-      scaling = {}#{0:1}
+      scaling = {0:1}
       #ratio_histos = [ (2*i,2*i+1) for i in range(l/2) ] 
       #ratio_histos = [(i,1) for i in [0]+range(2,5) ] #ratio wrt 2016
       #ratio_histps = [(1,0), (2,0)]
@@ -261,12 +261,12 @@ for index, mode in enumerate(allModes):
     #print len(data_2018_samples), len(data_2016_samples)
 
     reweight_binning = [3*i for i in range(10)]+[30,35,40,50,100]
-    #data_2018_sample.nVert_histo        = data_2018_sample.get1DHistoFromDraw("PV_npvsGood", reweight_binning, binningIsExplicit = True)
-    #data_2018_sample.nVert_histo.Scale(1./data_2018_sample.nVert_histo.Integral())
-    #data_2018_sample_HEM.nVert_histo    = data_2018_sample_HEM.get1DHistoFromDraw("PV_npvsGood", reweight_binning, binningIsExplicit = True)
-    #data_2018_sample_HEM.nVert_histo.Scale(1./data_2018_sample_HEM.nVert_histo.Integral())
+    data_2018_sample.nVert_histo        = data_2018_sample.get1DHistoFromDraw("PV_npvsGood", reweight_binning, binningIsExplicit = True)
+    data_2018_sample.nVert_histo.Scale(1./data_2018_sample.nVert_histo.Integral())
+    data_2018_sample_HEM.nVert_histo    = data_2018_sample_HEM.get1DHistoFromDraw("PV_npvsGood", reweight_binning, binningIsExplicit = True)
+    data_2018_sample_HEM.nVert_histo.Scale(1./data_2018_sample_HEM.nVert_histo.Integral())
 
-    #data_2018_sample_HEM.weight = get_nVtx_reweight(data_2018_sample.nVert_histo)
+    data_2018_sample_HEM.weight = get_nVtx_reweight(data_2018_sample.nVert_histo)
 
     #reweight_binning = [3*i for i in range(10)]+[30,35,40,50,100]
     #for i_s, data_2017_sample in enumerate(data_2017_samples):
@@ -678,6 +678,7 @@ for index, mode in enumerate(allModes):
       binning=[10,0,3],
     ))
 
+
     plots.append(Plot(
       texX = '#phi(2nd leading jet) (GeV)', texY = 'Number of Events',
       name = 'jet2_phi', attribute = lambda event, sample: event.JetGood_phi[1],
@@ -833,6 +834,7 @@ for index, mode in enumerate(allModes):
     ))
     
     plots2D = []
+    plots1D = []
     #plots2D.append(Plot2D(
     #  name = 'jetOccupancy',
     #  attribute = (
@@ -849,10 +851,15 @@ for index, mode in enumerate(allModes):
     h1 = data_2018_sample_HEM.get2DHistoFromDraw(variableString="Jet_phi:Jet_eta", binning=[20,-5., 5., 18, -3.2, 3.2], selectionString=cutInterpreter.cutString(args.selection))
     h2 = data_2018_sample.get2DHistoFromDraw(variableString="Jet_phi:Jet_eta", binning=[20,-5., 5., 18, -3.2, 3.2], selectionString=cutInterpreter.cutString(args.selection))
 
-    #p1 = Plot2D.fromHisto(
-    #    name = 'jetOccupancy_HEM',
-    #    histos = h1
-    #)
+    jet_eta         = data_2018_sample.get1DHistoFromDraw(variableString="Jet_eta", binning=[80,-4., 4.], selectionString=cutInterpreter.cutString(args.selection))
+    jet_eta.style   = styles.lineStyle(ROOT.kBlue+1, width=2)
+    jet_eta_HEM     = data_2018_sample_HEM.get1DHistoFromDraw(variableString="Jet_eta", binning=[80,-4., 4.], selectionString=cutInterpreter.cutString(args.selection))
+    jet_eta_HEM.style = styles.lineStyle(ROOT.kRed+1, width=2)
+
+    eta_plot = Plot.fromHisto(name = "jet_eta", texX = "#eta(jet)", histos = [[jet_eta],[jet_eta_HEM]])
+    #eta_plot.binning = [80,-4., 4.]
+
+    plots1D.append(eta_plot)
 
     plots2D.append(Plot2D.fromHisto(
         name = 'jetOccupancy_HEM',
@@ -890,6 +897,15 @@ for index, mode in enumerate(allModes):
         drawObjects = drawObjects( lumi_2018_scale ),
         copyIndexPHP = True
       )
+
+    for plot in plots1D:
+        plotting.draw(
+            plot = plot,
+            plot_directory = os.path.join(plot_directory, 'data_to_data', args.plot_directory, mode, args.selection),
+            logX = False, logY = False,
+            drawObjects = drawObjects( lumi_2018_scale ),
+            copyIndexPHP = True
+        )
 
     drawPlots(plots, mode, lumi_2018_scale)
     allPlots[mode] = plots

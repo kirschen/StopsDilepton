@@ -43,7 +43,7 @@ if args.small:                        args.plot_directory += "_small"
 # Make samples, will be searched for in the postProcessing directory
 #
 
-data_directory           = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+data_directory           = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
 postProcessing_directory = "stops_2018_nano_v3/dilep/"
 
 dirs = {}
@@ -907,6 +907,15 @@ for index, mode in enumerate(allModes):
         #binning = [20,-5., 5., 16, -3.2, 3.2]
     ))
     
+    h1 = data_2018_sample_HEM.get2DHistoFromDraw(variableString="Jet_phi:Jet_eta", binning=[20,-5., 5., 18, -3.2, 3.2], selectionString=cutInterpreter.cutString(args.selection))
+    h2 = data_2018_sample.get2DHistoFromDraw(variableString="Jet_phi:Jet_eta", binning=[20,-5., 5., 18, -3.2, 3.2], selectionString=cutInterpreter.cutString(args.selection))
+
+    jet_eta         = data_2018_sample.get1DHistoFromDraw(variableString="Jet_eta", binning=[80,-4., 4.], selectionString=cutInterpreter.cutString(args.selection))
+    jet_eta.style   = styles.lineStyle(ROOT.kBlue+1, width=2)
+    jet_eta_HEM     = data_2018_sample_HEM.get1DHistoFromDraw(variableString="Jet_eta", binning=[80,-4., 4.], selectionString=cutInterpreter.cutString(args.selection))
+    jet_eta_HEM.style = styles.lineStyle(ROOT.kRed+1, width=2)
+
+
     plotting.fill(plots, read_variables = read_variables, sequence = sequence)
     #plotting.fill_with_draw(plots2D)
 
