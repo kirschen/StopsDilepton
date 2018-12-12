@@ -1,5 +1,5 @@
-allowedVars = ["dl_mt2ll", "dl_mt2blbl", "dl_mt2bb", "MET_pt"]
-texString  = { "dl_mt2ll":"M_{T2}(ll)", "dl_mt2blbl":"M_{T2}(blbl)", "dl_mt2bb":"M_{T2}(bb)", "MET_pt":"E_{T}^{miss}" }
+allowedVars = ["dl_mt2ll", "dl_mt2blbl", "dl_mt2bb", "MET_pt", "MET_significance"]
+texString  = { "dl_mt2ll":"M_{T2}(ll)", "dl_mt2blbl":"M_{T2}(blbl)", "dl_mt2bb":"M_{T2}(bb)", "MET_pt":"E_{T}^{miss}", "MET_significance":"E_{T}^{miss} significance" }
 
 from StopsDilepton.analysis.SystematicEstimator import jmeVariations, metVariations
 from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplacements

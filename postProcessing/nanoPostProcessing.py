@@ -12,7 +12,7 @@ import datetime
 import shutil
 import uuid
 
-theano_compile_dir = '/var/tmp/%s'%str(uuid.uuid4())
+theano_compile_dir = '/tmp/%s'%str(uuid.uuid4())
 if not os.path.exists( theano_compile_dir ):
     os.makedirs( theano_compile_dir )
 os.environ['THEANO_FLAGS'] = 'base_compiledir=%s'%theano_compile_dir 
@@ -130,22 +130,24 @@ if isInclusive:
 #Samples: Load samples
 maxN = 2 if options.small else None
 if options.small:
-    options.job = 1
+    options.job = 0
     options.nJobs = 10000 # set high to just run over 1 input file
 
 #from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
-    from StopsDilepton.samples.nanoTuples_Summer16          import allSamples as bkgSamples
-    from StopsDilepton.samples.nanoTuples_FastSim_Spring16  import allSamples as signalSamples
-    from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018 import allSamples as dataSamples
+    from Samples.nanoAOD.Summer16          import allSamples as bkgSamples
+    from Samples.nanoAOD.Spring16_private  import allSamples as signalSamples
+    from Samples.nanoAOD.Run2016_05Feb2018 import allSamples as dataSamples
     allSamples = bkgSamples + signalSamples + dataSamples
 elif options.year == 2017:
-    from StopsDilepton.samples.nanoTuples_Fall17 import allSamples as bkgSamples
-    from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018 import allSamples as dataSamples
+    from Samples.nanoAOD.Fall17 import allSamples as bkgSamples
+    from Samples.nanoAOD.Run2017_31Mar2018 import allSamples as dataSamples
     allSamples = bkgSamples + dataSamples
 elif options.year == 2018:
-    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco import allSamples as dataSamples
-    allSamples = dataSamples
+    #from Samples.nanoAOD.Run2018_14Sep2018    import allSamples as dataSamples
+    from Samples.nanoAOD.Spring18_private          import allSamples as HEMSamples
+    from Samples.nanoAOD.Run2018_26Sep2018_private import allSamples as HEMDataSamples
+    allSamples = HEMSamples + HEMDataSamples #+ dataSamples
 else:
     raise NotImplementedError
 
@@ -154,6 +156,9 @@ for selectedSamples in options.samples:
     for sample in allSamples:
         if selectedSamples == sample.name:
             samples.append(sample)
+
+for s in samples:
+    print s.files
 
 if len(samples)==0:
     logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
@@ -179,6 +184,7 @@ from StopsDilepton.tools.triggerSelector import triggerSelector
 ts = triggerSelector(options.year)
 triggerCond  = ts.getSelection(options.samples[0] if isData else "MC")
 treeFormulas = {"triggerDecision": {'string':triggerCond} }
+
 if isData and options.triggerSelection:
     logger.info("Sample will have the following trigger skim: %s"%triggerCond)
     skimConds.append( triggerCond )
@@ -216,6 +222,14 @@ if isMC:
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_42400_XSecUp",       mc=mcHist)
         nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2017_42400_XSecVDown",    mc="Summer16")
         nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2017_42400_XSecVUp",      mc="Summer16")
+    elif options.year == 2018:
+        # keep the weight name for now. Should we update to a more general one?
+        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral",  mc="Summer16")
+        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",     mc="Summer16")
+        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_36000_XSecUp",       mc="Summer16")
+        nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2016_36000_XSecVDown",    mc="Summer16")
+        nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2016_36000_XSecVUp",      mc="Summer16")
+
 
 options.skim = options.skim + '_small' if options.small else options.skim
 
@@ -309,7 +323,7 @@ except:
 #branches to be kept for data and MC
 branchKeepStrings_DATAMC = [\
     "run", "luminosityBlock", "event", "fixedGridRhoFastjetAll", "PV_npvs", "PV_npvsGood",
-    "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance",
+    "MET_pt", "MET_phi", "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance", "MET_SignificanceRec", "MET_sumPt",
     "RawMET_phi", "RawMET_pt", "RawMET_sumEt",
     "Flag_*","HLT_*",
     "nJet", "Jet_*",
@@ -320,7 +334,7 @@ branchKeepStrings_DATAMC = [\
 
 #branches to be kept for MC samples only
 branchKeepStrings_MC = [\
-    "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt",
+    "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_pt","GenMET_phi"
 ]
 
 #branches to be kept for data only
@@ -346,7 +360,7 @@ if sample.isData:
     elif options.year == 2017:
         sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt'
     elif options.year == 2018:
-        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-322381_13TeV_PromptReco_Collisions18_JSON.txt'
+        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
     else:
         raise NotImplementedError
     
@@ -356,7 +370,8 @@ else:
     lumiScaleFactor = xSection*targetLumi/float(sample.normalization) if xSection is not None else None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
-jetVars = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F'] + jetCorrInfo + jetMCInfo
+
+jetVars = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'genJetIdx/I'] + jetCorrInfo + jetMCInfo
 jetVarNames = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
@@ -387,11 +402,13 @@ read_variables += [\
     TreeVariable.fromString('nMuon/I'),
     VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
     TreeVariable.fromString('nJet/I'),
-    VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) )
+    VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) ),
+    TreeVariable.fromString('nGenJet/I'),
+    VectorTreeVariable.fromString('GenJet[pt/F,eta/F,phi/F]' )
 ]
 
 new_variables += [\
-    'JetGood[%s]'% ( ','.join(jetVars) )
+    'JetGood[%s]'% ( ','.join(jetVars) + ',genPt/F' )
 ]
 
 if isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
@@ -421,7 +438,8 @@ if isTriLep or isDiLep:
     #    new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
-new_variables.extend( ['met_pt_photonEstimated/F','met_phi_photonEstimated/F','metSig_photonEstimated/F'] )
+new_variables.extend( ['MET_pt_photonEstimated/F','MET_phi_photonEstimated/F','metSig_photonEstimated/F'] )
+new_variables.extend( ['MET_pt_corr/F','MET_phi_corr/F'] )
 new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
 if isTriLep or isDiLep:
   new_variables.extend( ['dlg_mass/F','dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
@@ -433,10 +451,10 @@ if addSystematicVariations:
 
     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
         if 'Unclustered' not in var: new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
-        new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
+        new_variables.extend( ['MET_pt_'+var+'/F', 'MET_phi_'+var+'/F', 'metSig_'+var+'/F'] )
         if isTriLep or isDiLep:
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
-        new_variables.extend( ['met_pt_photonEstimated_'+var+'/F', 'met_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
+        new_variables.extend( ['MET_pt_photonEstimated_'+var+'/F', 'MET_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
         if isTriLep or isDiLep:
             new_variables.extend( ['dl_mt2ll_photonEstimated_'+var+'/F', 'dl_mt2bb_photonEstimated_'+var+'/F', 'dl_mt2blbl_photonEstimated_'+var+'/F'] )
     # Btag weights Method 1a
@@ -458,31 +476,31 @@ if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
 
-if options.year == 2016:
-    # For MVA discriminator
-    from StopsDilepton.MVA.KerasReader import KerasReader
-
-    ## Initialize keras for different trainings
-    if isTriLep or isDiLep:
-        new_variables.extend( [ 'MVA_T2tt_dM350_smaller_TTLep_pow/F', 'MVA_T2tt_dM350_TTLep_pow/F', 'MVA_T2tt_dM350_TTZtoLLNuNu/F', 
-                                'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow /F',
-                                'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow/F'])
-
-    logger.info("Initializing keras readers for different models.")
-    from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
-    from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
-    from StopsDilepton.MVA.default_classifier_lep_pt_nobtag import training_variables_list as training_variables_list_lep_pt_nobtag
-
-    MVA_T2tt_dM350_smaller_TTLep_pow    = KerasReader( 'T2tt_dM350_smaller-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-30-1930', training_variables_list_lep_pt_nobtag)
-    MVA_T2tt_dM350_TTLep_pow            = KerasReader( 'T2tt_dM350-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-31-0318', training_variables_list_lep_pt_nobtag)
-    MVA_T2tt_dM350_TTZtoLLNuNu          = KerasReader( 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134', training_variables_list_lep_pt)
-    MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1639', training_variables_list_lep_pt)
-    MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511', training_variables_list_lep_pt)
-    MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow         = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1555', training_variables_list_lep_pt)
-    MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow= KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1631', training_variables_list_lep_pt)
-    MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626', training_variables_list_lep_pt)
-
-    logger.info("Loaded MVA models.")
+#if options.year == 2016:
+#    # For MVA discriminator
+#    from StopsDilepton.MVA.KerasReader import KerasReader
+#
+#    ## Initialize keras for different trainings
+#    if isTriLep or isDiLep:
+#        new_variables.extend( [ 'MVA_T2tt_dM350_smaller_TTLep_pow/F', 'MVA_T2tt_dM350_TTLep_pow/F', 'MVA_T2tt_dM350_TTZtoLLNuNu/F', 
+#                                'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow /F',
+#                                'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow/F'])
+#
+#    logger.info("Initializing keras readers for different models.")
+#    from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
+#    from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
+#    from StopsDilepton.MVA.default_classifier_lep_pt_nobtag import training_variables_list as training_variables_list_lep_pt_nobtag
+#
+#    MVA_T2tt_dM350_smaller_TTLep_pow    = KerasReader( 'T2tt_dM350_smaller-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-30-1930', training_variables_list_lep_pt_nobtag)
+#    MVA_T2tt_dM350_TTLep_pow            = KerasReader( 'T2tt_dM350-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-31-0318', training_variables_list_lep_pt_nobtag)
+#    MVA_T2tt_dM350_TTZtoLLNuNu          = KerasReader( 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134', training_variables_list_lep_pt)
+#    MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1639', training_variables_list_lep_pt)
+#    MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511', training_variables_list_lep_pt)
+#    MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow         = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1555', training_variables_list_lep_pt)
+#    MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow= KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1631', training_variables_list_lep_pt)
+#    MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626', training_variables_list_lep_pt)
+#
+#    logger.info("Loaded MVA models.")
 
 if not options.skipNanoTools:
     ### nanoAOD postprocessor
@@ -493,11 +511,16 @@ if not options.skipNanoTools:
     
     ## modules for nanoAOD postprocessor
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
+    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METSigProducer import METSigProducer 
     
     logger.info("Preparing nanoAOD postprocessing")
     logger.info("Will put files into directory %s", output_directory)
     cut = '&&'.join(skimConds)
-    p = PostProcessor(output_directory,sample.files,cut=cut, modules=[jetmetUncertaintiesProducer("2016", "Summer16_23Sep2016V4_MC", [ "Total" ])])
+    modules = [
+#        jetmetUncertaintiesProducer("2016", "Summer16_23Sep2016V4_MC", [ "Total" ]),
+        METSigProducer("Summer16_25nsV1_MC", [1.39,1.26,1.21,1.23,1.28,-0.26,0.62]),
+    ]
+    p = PostProcessor(output_directory,sample.files,cut=cut, modules=modules)
     logger.info("Starting nanoAOD postprocessing")
     p.run()
     logger.info("Done. Replacing input files for further processing.")
@@ -530,17 +553,17 @@ def getMetJetCorrected(met_pt, met_phi, jets, var):
 
 def getMetCorrected(r, var, addPhoton = None):
     if var == "":
-      if addPhoton is not None: return getMetPhotonEstimated(r.met_pt, r.met_phi, addPhoton)
-      else:                     return (r.met_pt, r.met_phi)
+      if addPhoton is not None: return getMetPhotonEstimated(r.MET_pt, r.MET_phi, addPhoton)
+      else:                     return (r.MET_pt, r.MET_phi)
 
     elif var in [ "JECUp", "JECDown", "UnclusteredEnUp", "UnclusteredEnDown" ]:
       var_ = var
       var_ = var_.replace("JEC", "JetEn")
       var_ = var_.replace("JER", "JetRes")
-      met_pt  = getattr(r, "met_" + var_ + "_Pt")
-      met_phi = getattr(r, "met_" + var_ + "_Phi")
-      if addPhoton is not None: return getMetPhotonEstimated(met_pt, met_phi, addPhoton)
-      else:                     return (met_pt, met_phi)
+      MET_pt  = getattr(r, "met_" + var_ + "_Pt")
+      MET_phi = getattr(r, "met_" + var_ + "_Phi")
+      if addPhoton is not None: return getMetPhotonEstimated(MET_pt, MET_phi, addPhoton)
+      else:                     return (MET_pt, MET_phi)
 
     else:
         raise ValueError
@@ -595,7 +618,10 @@ def filler( event ):
             event.reweightXSecUp    = 0.
             event.reweightXSecDown  = 0.
     elif isMC:
-        event.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
+        if hasattr(r, "genWeight"):
+            event.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
+        else:
+            event.weight = lumiScaleFactor if lumiScaleFactor is not None else 1
     elif isData:
         event.weight = 1
     else:
@@ -608,7 +634,7 @@ def filler( event ):
         # store decision to use after filler has been executed
         event.jsonPassed_ = event.jsonPassed
 
-    if isMC:
+    if isMC and hasattr(r, "Pileup_nTrueInt"):
         event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.Pileup_nTrueInt ) # is this correct?
         event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.Pileup_nTrueInt )
         event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.Pileup_nTrueInt )
@@ -662,8 +688,8 @@ def filler( event ):
         corr_py = sum( [j['pt']*sin(j['phi']) for j in bad_ee_jets], 0.)
         MEx_corr = r.MET_pt*cos(r.MET_phi) + corr_px 
         MEy_corr = r.MET_pt*sin(r.MET_phi) + corr_py
-        event.met_pt  = sqrt( MEx_corr**2 + MEy_corr**2)
-        event.met_phi = atan2( MEy_corr, MEx_corr )
+        event.MET_pt_corr  = sqrt( MEx_corr**2 + MEy_corr**2)
+        event.MET_phi_corr = atan2( MEy_corr, MEx_corr )
         #if len( bad_ee_jets )>0:
         #    print [(1-j['rawFactor']) for j in bad_ee_jets], event.met_pt, r.MET_pt, event.met_phi, r.MET_phi
     else:
@@ -680,13 +706,15 @@ def filler( event ):
     for iJet, jet in enumerate(store_jets):
         for b in jetVarNames:
             getattr(event, "JetGood_"+b)[iJet] = jet[b]
+        if store_jets[iJet]['genJetIdx'] >= 0:
+            event.JetGood_genPt[iJet] = r.GenJet_pt[store_jets[iJet]['genJetIdx']]
 
     if isSingleLep:
         # Compute M3 and the three indiced of the jets entering m3
         event.m3, event.m3_ind1, event.m3_ind2, event.m3_ind3 = m3( jets )
 
     event.ht         = sum([j['pt'] for j in jets])
-    event.metSig     = event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan')
+    event.metSig     = event.MET_pt/sqrt(event.ht) if event.ht>0 else float('nan')
     event.nBTag      = len(bJets)
 
     jets_sys      = {}
@@ -709,8 +737,8 @@ def filler( event ):
         event.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
         event.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
 
-      event.met_pt_photonEstimated, event.met_phi_photonEstimated = getMetPhotonEstimated(event.met_pt, event.met_phi, photons[0])
-      event.metSig_photonEstimated = event.met_pt_photonEstimated/sqrt(event.ht) if event.ht>0 else float('nan')
+      event.MET_pt_photonEstimated, event.MEt_phi_photonEstimated = getMetPhotonEstimated(event.MET_pt, event.MET_phi, photons[0])
+      event.metSig_photonEstimated = event.MET_pt_photonEstimated/sqrt(event.ht) if event.ht>0 else float('nan')
 
       event.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
       event.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
@@ -737,14 +765,14 @@ def filler( event ):
             for i in metVariants:
                 # use cmg MET correction values ecept for JER where it is zero. There, propagate jet variations.
                 if 'JER' in var or 'JECV' in var:
-                  (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(event, "met_pt" + i), getattr(event,"met_phi" + i), jets_sys[var], var)
+                  (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(event, "MET_pt" + i), getattr(event,"MET_phi" + i), jets_sys[var], var)
                 else:
                   (met_corr_pt, met_corr_phi) = getMetCorrected(r, var, photons[0] if i.count("photonEstimated") else None)
 
-                setattr(event, "met_pt" +i+"_"+var, met_corr_pt)
-                setattr(event, "met_phi"+i+"_"+var, met_corr_phi)
+                setattr(event, "MET_pt" +i+"_"+var, met_corr_pt)
+                setattr(event, "MET_phi"+i+"_"+var, met_corr_phi)
                 ht = getattr(event, "ht_"+var) if 'Unclustered' not in var else event.ht 
-                setattr(event, "metSig" +i+"_"+var, getattr(event, "met_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
+                setattr(event, "metSig" +i+"_"+var, getattr(event, "MET_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
 
     if isSingleLep or isTriLep or isDiLep:
         event.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
@@ -828,35 +856,35 @@ def filler( event ):
             mt2Calc.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
 
 
-            # need at least two jets for MVA
-            if options.year == 2016 and len(store_jets)>1:
-                eventdict= {
-                    'JetGood_eta[0]':   event.JetGood_eta[0],
-                    'JetGood_pt[0]':    event.JetGood_pt[0],
-                    'JetGood_eta[1]':   event.JetGood_eta[1],
-                    'JetGood_pt[1]':    event.JetGood_pt[1],
-                    'Jet_dphi':         deltaPhi( event.JetGood_phi[0], event.JetGood_phi[1] ),
-                    'dl_eta':           event.dl_eta,
-                    'dl_mass':          event.dl_mass,
-                    'dl_pt':            event.dl_pt,
-                    'ht':               event.ht,
-                    'l1_eta':           event.l1_eta,
-                    'l1_pt':            event.l1_pt,
-                    'l2_eta':           event.l2_eta,
-                    'l2_pt':            event.l2_pt,
-                    'lep_dphi':         deltaPhi(event.l1_phi, event.l2_phi),
-                    'metSig':           event.metSig,
-                    'met_pt':           event.met_pt,
-                    }
+            ## need at least two jets for MVA
+            #if options.year == 2016 and len(store_jets)>1:
+            #    eventdict= {
+            #        'JetGood_eta[0]':   event.JetGood_eta[0],
+            #        'JetGood_pt[0]':    event.JetGood_pt[0],
+            #        'JetGood_eta[1]':   event.JetGood_eta[1],
+            #        'JetGood_pt[1]':    event.JetGood_pt[1],
+            #        'Jet_dphi':         deltaPhi( event.JetGood_phi[0], event.JetGood_phi[1] ),
+            #        'dl_eta':           event.dl_eta,
+            #        'dl_mass':          event.dl_mass,
+            #        'dl_pt':            event.dl_pt,
+            #        'ht':               event.ht,
+            #        'l1_eta':           event.l1_eta,
+            #        'l1_pt':            event.l1_pt,
+            #        'l2_eta':           event.l2_eta,
+            #        'l2_pt':            event.l2_pt,
+            #        'lep_dphi':         deltaPhi(event.l1_phi, event.l2_phi),
+            #        'metSig':           event.metSig,
+            #        'met_pt':           event.MET_pt,
+            #        }
 
-                event.MVA_T2tt_dM350_smaller_TTLep_pow                            = MVA_T2tt_dM350_smaller_TTLep_pow.eval(eventdict)
-                event.MVA_T2tt_dM350_TTLep_pow                                    = MVA_T2tt_dM350_TTLep_pow.eval(eventdict)
-                event.MVA_T2tt_dM350_TTZtoLLNuNu                                  = MVA_T2tt_dM350_TTZtoLLNuNu.eval(eventdict)
-                event.MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow            = MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow.eval(eventdict)
-                event.MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow     = MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow.eval(eventdict)
-                event.MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow             = MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow.eval(eventdict)
-                event.MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow    = MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow.eval(eventdict)
-                event.MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow            = MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow.eval(eventdict)
+            #    event.MVA_T2tt_dM350_smaller_TTLep_pow                            = MVA_T2tt_dM350_smaller_TTLep_pow.eval(eventdict)
+            #    event.MVA_T2tt_dM350_TTLep_pow                                    = MVA_T2tt_dM350_TTLep_pow.eval(eventdict)
+            #    event.MVA_T2tt_dM350_TTZtoLLNuNu                                  = MVA_T2tt_dM350_TTZtoLLNuNu.eval(eventdict)
+            #    event.MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow            = MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow.eval(eventdict)
+            #    event.MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow     = MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow.eval(eventdict)
+            #    event.MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow             = MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow.eval(eventdict)
+            #    event.MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow    = MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow.eval(eventdict)
+            #    event.MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow            = MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow.eval(eventdict)
 
 
             # To check MC truth when looking at the TTZToLLNuNu sample
@@ -890,7 +918,7 @@ def filler( event ):
             #        setattr(event, "dl_mt2blbl_gen", mt2Calc.mt2blbl())
                 
             for i in metVariants:
-                mt2Calc.setMet(getattr(event, 'met_pt'+i), getattr(event, 'met_phi'+i))
+                mt2Calc.setMet(getattr(event, 'MET_pt'+i), getattr(event, 'MET_phi'+i))
                 setattr(event, "dl_mt2ll"+i, mt2Calc.mt2ll())
 
                 bj0, bj1 = None, None
@@ -902,7 +930,7 @@ def filler( event ):
 
                 if addSystematicVariations:
                     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
-                        mt2Calc.setMet( getattr(event, "met_pt"+i+"_"+var), getattr(event, "met_phi"+i+"_"+var) )
+                        mt2Calc.setMet( getattr(event, "MET_pt"+i+"_"+var), getattr(event, "MET_phi"+i+"_"+var) )
                         setattr(event, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
                         if not 'Unclustered' in var:
                             if len(jets_sys[var])>=2:
@@ -1114,6 +1142,11 @@ if options.nJobs == 1:
                 logger.info( "Found file %s -> Skipping"%(signalFile) )
     
         output.clear()
+
+if not options.keepNanoAOD and not options.skipNanoTools:
+    for f in sample.files:
+        os.remove(f)
+        logger.info("Removed nanoAOD file: %s", f)
 
 logger.info("Copying log file to %s", output_directory )
 copyLog = subprocess.call(['cp', logFile, output_directory] )

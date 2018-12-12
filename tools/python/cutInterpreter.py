@@ -24,12 +24,16 @@ special_cuts = {
     "gJetdR":            "(1)",
    
     "dPhiJet0":          "Sum$( ( cos(MET_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0",
+    "antiHEM":           "Sum$( ( cos(MET_phi-JetGood_phi)<-0.8 )*(Iteration$==1) )==0",
+    "antiHEMv2":         "Sum$( ( cos(MET_phi-JetGood_phi)<-0.8 )*(Iteration$<2) )==0",
     "dPhiJet1":          "Sum$( ( cos(MET_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0",
     "dPhiInv":           '(!(cos(MET_phi-JetGood_phi[0])<0.8&&cos(MET_phi-JetGood_phi[1])<cos(0.25)))', # here we want an njet requirement
     "metInv":            "MET_pt<80",
     "metSigInv":         "metSig<5",
     "badJetSrEVeto":     "Sum$(Jet_neEmEF*Jet_pt*cosh(Jet_eta)*(2.5<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt<50))<200",
 
+    "HEMJetVeto":        "Sum$(Jet_eta<-1.3&&Jet_eta>-3.0&&Jet_phi<-0.87&&Jet_phi>-1.57)==0", # exact ranges: eta [-3.0, -1.3], phi [-1.57, -0.87]
+    "HEMJetVetoWide":    "Sum$(Jet_eta<-1.0&&Jet_eta>-3.2&&Jet_phi<-0.5&&Jet_phi>-2.0)==0",
     "extraLepVeto":      "Sum$(abs(LepGood_pdgId)==13&&LepGood_pt>20&&( abs(LepGood_dz)>0.2 || abs(LepGood_dxy)>0.2 ) ) + Sum$(abs(LepOther_pdgId)==13&&LepOther_pt>20&&( abs(LepOther_dz)>0.2 || abs(LepOther_dxy)>0.2 ) )==0",
 
   }
