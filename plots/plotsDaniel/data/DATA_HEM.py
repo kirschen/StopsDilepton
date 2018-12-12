@@ -38,6 +38,10 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
+# for mt2ll
+from StopsDilepton.tools.mt2Calculator              import mt2Calculator
+mt2Calc = mt2Calculator()
+
 if args.small:                        args.plot_directory += "_small"
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -189,7 +193,25 @@ def getMETs( event, sample ):
     #event.smearedJecCorrMET_pt =  (jecCorrMET + smearVector).Pt() 
     #event.smearedJetCorrMET_pt =  (jetCorrMET + smearVector).Pt() 
 
-sequence += [getMETs]
+def getMT2ll( event, sample ):
+    l1 = ROOT.TLorentzVector()
+    l2 = ROOT.TLorentzVector()
+    event.lep_pt[event.nonZ1_l1_index_4l]
+    l1.SetPtEtaPhiM(event.lep_pt[event.nonZ1_l1_index_4l], event.lep_eta[event.nonZ1_l1_index_4l], event.lep_phi[event.nonZ1_l1_index_4l], 0 )
+    l2.SetPtEtaPhiM(event.lep_pt[event.nonZ1_l2_index_4l], event.lep_eta[event.nonZ1_l2_index_4l], event.lep_phi[event.nonZ1_l2_index_4l], 0 )
+    mt2Calc.setLeptons(l1.Pt(), l1.Eta(), l1.Phi(), l2.Pt(), l2.Eta(), l2.Phi())
+
+    met         = ROOT.TLorentzVector()
+    met.SetPtEtaPhiM( event.met_pt, 0, event.met_phi, 0)
+    met_shift   = ROOT.TLorentzVector()
+    met_shift.SetPtEtaPhiM( 3, 0, -1.15, 0)
+
+    newMet = met - met_shift
+
+    mt2Calc.setMet(newMet.Pt(), newMet.Phi())
+    event.dl_mt2ll_shifted = mt2Calc.mt2ll()
+
+sequence += [ getMT2ll, getMETs ]
 
 #
 # Text on the plots
@@ -424,6 +446,13 @@ for index, mode in enumerate(allModes):
         texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 50 GeV',
         attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
         binning=[6,0,300],
+    ))
+
+    plots.append(Plot(
+        texX = 'M_{T2}(ll) MET shifted (GeV)', texY = 'Number of Events',
+        name = "mt2ll_metShift",
+        attribute = lambda event, sample: event.dl_mt2ll_shifted,
+        binning=[30,0,300],
     ))
 
     plots.append(Plot(
@@ -863,6 +892,7 @@ for index, mode in enumerate(allModes):
       binning = [10,-1,1],
     ))
     
+    plots1D = []
     plots2D = []
     #plots2D.append(Plot2D(
     #  name = 'jetOccupancy',
@@ -880,6 +910,16 @@ for index, mode in enumerate(allModes):
     h0 = data_2018_sample_HEM.get2DHistoFromDraw(variableString="Jet_phi:Jet_eta", binning=[20,-5., 5., 18, -3.2, 3.2], selectionString=cutInterpreter.cutString(args.selection))
     h1 = data_2018_sample_HEMmitigation.get2DHistoFromDraw(variableString="Jet_phi:Jet_eta", binning=[20,-5., 5., 18, -3.2, 3.2], selectionString=cutInterpreter.cutString(args.selection))
     h2 = data_2018_sample.get2DHistoFromDraw(variableString="Jet_phi:Jet_eta", binning=[20,-5., 5., 18, -3.2, 3.2], selectionString=cutInterpreter.cutString(args.selection))
+
+    jet_eta         = data_2018_sample.get1DHistoFromDraw(variableString="Jet_eta", binning=[80,-4., 4.], selectionString=cutInterpreter.cutString(args.selection))
+    jet_eta.style   = styles.lineStyle(ROOT.kBlue+1, width=2)
+    jet_eta_HEM     = data_2018_sample_HEM.get1DHistoFromDraw(variableString="Jet_eta", binning=[80,-4., 4.], selectionString=cutInterpreter.cutString(args.selection))
+    jet_eta_HEM.style = styles.lineStyle(ROOT.kRed+1, width=2)
+
+    eta_plot = Plot.fromHisto(name = "jet_eta", texX = "#eta(jet)", histos = [[jet_eta],[jet_eta_HEM]])
+    #eta_plot.binning = [80,-4., 4.]
+
+    plots1D.append(eta_plot)
 
     #p1 = Plot2D.fromHisto(
     #    name = 'jetOccupancy_HEM',
@@ -907,15 +947,6 @@ for index, mode in enumerate(allModes):
         #binning = [20,-5., 5., 16, -3.2, 3.2]
     ))
     
-    h1 = data_2018_sample_HEM.get2DHistoFromDraw(variableString="Jet_phi:Jet_eta", binning=[20,-5., 5., 18, -3.2, 3.2], selectionString=cutInterpreter.cutString(args.selection))
-    h2 = data_2018_sample.get2DHistoFromDraw(variableString="Jet_phi:Jet_eta", binning=[20,-5., 5., 18, -3.2, 3.2], selectionString=cutInterpreter.cutString(args.selection))
-
-    jet_eta         = data_2018_sample.get1DHistoFromDraw(variableString="Jet_eta", binning=[80,-4., 4.], selectionString=cutInterpreter.cutString(args.selection))
-    jet_eta.style   = styles.lineStyle(ROOT.kBlue+1, width=2)
-    jet_eta_HEM     = data_2018_sample_HEM.get1DHistoFromDraw(variableString="Jet_eta", binning=[80,-4., 4.], selectionString=cutInterpreter.cutString(args.selection))
-    jet_eta_HEM.style = styles.lineStyle(ROOT.kRed+1, width=2)
-
-
     plotting.fill(plots, read_variables = read_variables, sequence = sequence)
     #plotting.fill_with_draw(plots2D)
 
@@ -938,6 +969,16 @@ for index, mode in enumerate(allModes):
         drawObjects = drawObjects( lumi_2018_scale ),
         copyIndexPHP = True
       )
+
+    for plot in plots1D:
+        plotting.draw(
+            plot = plot,
+            plot_directory = os.path.join(plot_directory, 'data_to_data', args.plot_directory, mode, args.selection),
+            logX = False, logY = False,
+            drawObjects = drawObjects( lumi_2018_scale ),
+            copyIndexPHP = True
+        )
+
 
     drawPlots(plots, mode, lumi_2018_scale)
     allPlots[mode] = plots
