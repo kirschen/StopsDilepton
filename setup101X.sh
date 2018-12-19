@@ -18,11 +18,15 @@ cd $CMSSW_BASE/src
 git clone https://github.com/danbarto/RootTools.git
 cd $CMSSW_BASE/src
 
+# Samples
+git clone https://github.com/HephyAnalysisSW/Samples.git
+cd $CMSSW_BASE/src
+
 scram b -j9
 
 cd $CMSSW_BASE/src
 git fetch origin
-git checkout -b 80X_StopsDilepton origin/101X
+git checkout -b 101X origin/101X
 
 #compile
 cd $CMSSW_BASE/src && scram b -j 8 
