@@ -1,10 +1,10 @@
 # Stops-dilepton. No CMG needed anymore.
 ```
-cmsrel CMSSW_10_1_5
-cd CMSSW_10_1_5/src
+cmsrel CMSSW_10_2_9
+cd CMSSW_10_2_9/src
 cmsenv
 git cms-init
-git clone https://github.com/HephySusySW/StopsDilepton
+git clone https://github.com/HephyAnlysisSW/StopsDilepton
 ./StopsDilepton/setup101X.sh
 ```
 
