@@ -193,25 +193,25 @@ def getMETs( event, sample ):
     #event.smearedJecCorrMET_pt =  (jecCorrMET + smearVector).Pt() 
     #event.smearedJetCorrMET_pt =  (jetCorrMET + smearVector).Pt() 
 
-def getMT2ll( event, sample ):
-    l1 = ROOT.TLorentzVector()
-    l2 = ROOT.TLorentzVector()
-    event.lep_pt[event.nonZ1_l1_index_4l]
-    l1.SetPtEtaPhiM(event.lep_pt[event.nonZ1_l1_index_4l], event.lep_eta[event.nonZ1_l1_index_4l], event.lep_phi[event.nonZ1_l1_index_4l], 0 )
-    l2.SetPtEtaPhiM(event.lep_pt[event.nonZ1_l2_index_4l], event.lep_eta[event.nonZ1_l2_index_4l], event.lep_phi[event.nonZ1_l2_index_4l], 0 )
-    mt2Calc.setLeptons(l1.Pt(), l1.Eta(), l1.Phi(), l2.Pt(), l2.Eta(), l2.Phi())
+#def getMT2ll( event, sample ):
+#    l1 = ROOT.TLorentzVector()
+#    l2 = ROOT.TLorentzVector()
+#    event.lep_pt[event.nonZ1_l1_index_4l]
+#    l1.SetPtEtaPhiM(event.lep_pt[event.nonZ1_l1_index_4l], event.lep_eta[event.nonZ1_l1_index_4l], event.lep_phi[event.nonZ1_l1_index_4l], 0 )
+#    l2.SetPtEtaPhiM(event.lep_pt[event.nonZ1_l2_index_4l], event.lep_eta[event.nonZ1_l2_index_4l], event.lep_phi[event.nonZ1_l2_index_4l], 0 )
+#    mt2Calc.setLeptons(l1.Pt(), l1.Eta(), l1.Phi(), l2.Pt(), l2.Eta(), l2.Phi())
+#
+#    met         = ROOT.TLorentzVector()
+#    met.SetPtEtaPhiM( event.met_pt, 0, event.met_phi, 0)
+#    met_shift   = ROOT.TLorentzVector()
+#    met_shift.SetPtEtaPhiM( 3, 0, -1.15, 0)
+#
+#    newMet = met - met_shift
+#
+#    mt2Calc.setMet(newMet.Pt(), newMet.Phi())
+#    event.dl_mt2ll_shifted = mt2Calc.mt2ll()
 
-    met         = ROOT.TLorentzVector()
-    met.SetPtEtaPhiM( event.met_pt, 0, event.met_phi, 0)
-    met_shift   = ROOT.TLorentzVector()
-    met_shift.SetPtEtaPhiM( 3, 0, -1.15, 0)
-
-    newMet = met - met_shift
-
-    mt2Calc.setMet(newMet.Pt(), newMet.Phi())
-    event.dl_mt2ll_shifted = mt2Calc.mt2ll()
-
-sequence += [ getMT2ll, getMETs ]
+sequence += [ getMETs ]
 
 #
 # Text on the plots
@@ -448,12 +448,12 @@ for index, mode in enumerate(allModes):
         binning=[6,0,300],
     ))
 
-    plots.append(Plot(
-        texX = 'M_{T2}(ll) MET shifted (GeV)', texY = 'Number of Events',
-        name = "mt2ll_metShift",
-        attribute = lambda event, sample: event.dl_mt2ll_shifted,
-        binning=[30,0,300],
-    ))
+    #plots.append(Plot(
+    #    texX = 'M_{T2}(ll) MET shifted (GeV)', texY = 'Number of Events',
+    #    name = "mt2ll_metShift",
+    #    attribute = lambda event, sample: event.dl_mt2ll_shifted,
+    #    binning=[30,0,300],
+    #))
 
     plots.append(Plot(
         texX = 'E_{T}^{miss} Significance', texY = 'Number of Events GeV',
