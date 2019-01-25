@@ -80,7 +80,7 @@ def muonSelector( lepton_selection, year ):
 
 ## ELECTRONS ##
 def eleSelector( lepton_selection, year ):
-    # tigher isolation applied on analysis level
+    # tigher isolation applied on analysis level. cutBased corresponds to Fall17V2 ID for all 2016-2018.
     if lepton_selection == 'tight':
         def func(l):
             return \

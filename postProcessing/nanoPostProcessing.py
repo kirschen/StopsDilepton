@@ -103,14 +103,14 @@ logger_rt = _logger_rt.get_logger(options.logLevel, logFile = None )
 _logger.   add_fileHandler( user.data_output_directory + '/logs/%s_%s_debug.txt'%(options.samples[0], options.job), options.logLevel )
 
 # Flags 
-isDiLep     =   options.skim.lower().startswith('dilep')
-isTriLep     =   options.skim.lower().startswith('trilep')
-isSingleLep =   options.skim.lower().startswith('singlelep')
-isTiny      =   options.skim.lower().count('tiny') 
-isSmall      =   options.skim.lower().count('small')
-isInclusive  = options.skim.lower().count('inclusive') 
+isDiLep         = options.skim.lower().startswith('dilep')
+isTriLep        = options.skim.lower().startswith('trilep')
+isSingleLep     = options.skim.lower().startswith('singlelep')
+isTiny          = options.skim.lower().count('tiny') 
+isSmall         = options.skim.lower().count('small')
+isInclusive     = options.skim.lower().count('inclusive') 
 
-writeToDPM = options.targetDir == '/dpm/'
+writeToDPM      = options.targetDir == '/dpm/'
 
 fastSim = options.fastSim
 if options.susySignal: fastSim = True
@@ -135,7 +135,7 @@ if options.small:
 
 #from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
-    from Samples.nanoAOD.Summer16          import allSamples as bkgSamples
+    from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as bkgSamples
     from Samples.nanoAOD.Spring16_private  import allSamples as signalSamples
     from Samples.nanoAOD.Run2016_05Feb2018 import allSamples as dataSamples
     allSamples = bkgSamples + signalSamples + dataSamples
@@ -156,6 +156,9 @@ for selectedSamples in options.samples:
     for sample in allSamples:
         if selectedSamples == sample.name:
             samples.append(sample)
+
+if isData:
+    json = sample.json # json already defined in sample repository
 
 for s in samples:
     print s.files
@@ -355,15 +358,7 @@ if sample.isData:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
-    if options.year == 2016:
-        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt'
-    elif options.year == 2017:
-        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt'
-    elif options.year == 2018:
-        sample.json = '$CMSSW_BASE/src/StopsDilepton/tools/data/json/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
-    else:
-        raise NotImplementedError
-    
+    sample.json = json
     lumiList = LumiList(os.path.expandvars(sample.json))
     logger.info( "Loaded json %s", sample.json )
 else:
@@ -516,9 +511,12 @@ if not options.skipNanoTools:
     logger.info("Preparing nanoAOD postprocessing")
     logger.info("Will put files into directory %s", output_directory)
     cut = '&&'.join(skimConds)
+    # different different METSig parameters for data/MC and years
+    metSigParams    = [1.39,1.26,1.21,1.23,1.28,-0.26,0.62] if not isData else [1.0,1.0,1.0,1.0,1.0,0.0,0.5]
+    JER             = "Summer16_25nsV1_MC" if not isData else "Summer16_25nsV1_Data"
     modules = [
-#        jetmetUncertaintiesProducer("2016", "Summer16_23Sep2016V4_MC", [ "Total" ]),
-        METSigProducer("Summer16_25nsV1_MC", [1.39,1.26,1.21,1.23,1.28,-0.26,0.62]),
+        jetmetUncertaintiesProducer("2016", "Summer16_07Aug2017_V11_MC", [ "Total" ]),
+        METSigProducer(JER, metSigParams),
     ]
     p = PostProcessor(output_directory,sample.files,cut=cut, modules=modules)
     logger.info("Starting nanoAOD postprocessing")
