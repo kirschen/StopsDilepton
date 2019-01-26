@@ -136,18 +136,19 @@ if options.small:
 #from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
     from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as bkgSamples
-    from Samples.nanoAOD.Spring16_private  import allSamples as signalSamples
-    from Samples.nanoAOD.Run2016_05Feb2018 import allSamples as dataSamples
+    from Samples.nanoAOD.Spring16_private           import allSamples as signalSamples
+    from Samples.nanoAOD.Run2016_17Jul2018_private  import allSamples as dataSamples
     allSamples = bkgSamples + signalSamples + dataSamples
 elif options.year == 2017:
-    from Samples.nanoAOD.Fall17 import allSamples as bkgSamples
-    from Samples.nanoAOD.Run2017_31Mar2018 import allSamples as dataSamples
+    from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as bkgSamples
+    from Samples.nanoAOD.Run2017_31Mar2018_private  import allSamples as dataSamples
     allSamples = bkgSamples + dataSamples
 elif options.year == 2018:
-    #from Samples.nanoAOD.Run2018_14Sep2018    import allSamples as dataSamples
-    from Samples.nanoAOD.Spring18_private          import allSamples as HEMSamples
-    from Samples.nanoAOD.Run2018_26Sep2018_private import allSamples as HEMDataSamples
-    allSamples = HEMSamples + HEMDataSamples #+ dataSamples
+    from Samples.nanoAOD.Spring18_private           import allSamples as HEMSamples
+    from Samples.nanoAOD.Run2018_26Sep2018_private  import allSamples as HEMDataSamples
+    from Samples.nanoAOD.Autumn18_private_legacy_v1 import allSamples as bkgSamples
+    from Samples.nanoAOD.Run2018_17Sep2018_private  import allSamples as dataSamples
+    allSamples = HEMSamples + HEMDataSamples + bkgSamples + dataSamples
 else:
     raise NotImplementedError
 
@@ -157,7 +158,7 @@ for selectedSamples in options.samples:
         if selectedSamples == sample.name:
             samples.append(sample)
 
-if isData:
+if sample.isData:
     json = sample.json # json already defined in sample repository
 
 for s in samples:
@@ -185,10 +186,10 @@ else:
 # Trigger selection
 from StopsDilepton.tools.triggerSelector import triggerSelector
 ts = triggerSelector(options.year)
-triggerCond  = ts.getSelection(options.samples[0] if isData else "MC")
+triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
 treeFormulas = {"triggerDecision": {'string':triggerCond} }
 
-if isData and options.triggerSelection:
+if sample.isData and options.triggerSelection:
     logger.info("Sample will have the following trigger skim: %s"%triggerCond)
     skimConds.append( triggerCond )
 
@@ -214,8 +215,6 @@ if isMC:
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Summer16")
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc="Summer16")
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc="Summer16")
-        nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2016_36000_XSecVDown",    mc="Summer16")
-        nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2016_36000_XSecVUp",      mc="Summer16")
     elif options.year == 2017:
         # keep the weight name for now. Should we update to a more general one?
         puProfiles = puProfile( source_sample = samples[0] )
@@ -223,15 +222,11 @@ if isMC:
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2017_42400_XSecCentral",  mc=mcHist)
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2017_42400_XSecDown",     mc=mcHist)
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_42400_XSecUp",       mc=mcHist)
-        nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2017_42400_XSecVDown",    mc="Summer16")
-        nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2017_42400_XSecVUp",      mc="Summer16")
     elif options.year == 2018:
         # keep the weight name for now. Should we update to a more general one?
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral",  mc="Summer16")
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",     mc="Summer16")
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_36000_XSecUp",       mc="Summer16")
-        nTrueInt36fb_puRWVDown  = getReweightingFunction(data="PU_2016_36000_XSecVDown",    mc="Summer16")
-        nTrueInt36fb_puRWVUp    = getReweightingFunction(data="PU_2016_36000_XSecVUp",      mc="Summer16")
 
 
 options.skim = options.skim + '_small' if options.small else options.skim
@@ -326,7 +321,9 @@ except:
 #branches to be kept for data and MC
 branchKeepStrings_DATAMC = [\
     "run", "luminosityBlock", "event", "fixedGridRhoFastjetAll", "PV_npvs", "PV_npvsGood",
-    "MET_pt", "MET_phi", "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance", "MET_SignificanceRec", "MET_sumPt",
+    "MET_*",
+    "CaloMET_*",
+    #"MET_pt", "MET_phi", "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance", "MET_SignificanceRec", "MET_sumPt",
     "RawMET_phi", "RawMET_pt", "RawMET_sumEt",
     "Flag_*","HLT_*",
     "nJet", "Jet_*",
@@ -334,6 +331,11 @@ branchKeepStrings_DATAMC = [\
     "nMuon", "Muon_*",
     #"nTau", "Tau_*",
 ]
+
+if options.year == 2017:
+    branchKeepStrings_DATAMC += [\
+        "METFixEE2017_*",
+    ]
 
 #branches to be kept for MC samples only
 branchKeepStrings_MC = [\
@@ -345,7 +347,7 @@ branchKeepStrings_DATA = [ ]
 
 # Jet variables to be read from chain
 jetCorrInfo = []
-jetMCInfo = []
+jetMCInfo   = ['genJetIdx/I']
 
 #if not (isTiny or isSmall):
 #    branchKeepStrings_DATAMC+=[
@@ -366,14 +368,19 @@ else:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
 
-jetVars = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'genJetIdx/I'] + jetCorrInfo + jetMCInfo
-jetVarNames = [x.split('/')[0] for x in jetVars]
+jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F'] + jetCorrInfo
+if isMC:
+    jetVars     += jetMCInfo
+jetVarNames     = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
-lepVars     = ['pt/F','eta/F','phi/F','pdgId/I','cutBased/I','miniPFRelIso_all/F','pfRelIso03_all/F','sip3d/F','lostHits/b','convVeto/O','dxy/F','dz/F','charge/I','deltaEtaSC/F','mediumId/O']
-lepVarNames = [x.split('/')[0] for x in lepVars]
+lepVars         = ['pt/F','eta/F','phi/F','pdgId/I','cutBased/I','miniPFRelIso_all/F','pfRelIso03_all/F','sip3d/F','lostHits/b','convVeto/O','dxy/F','dz/F','charge/I','deltaEtaSC/F','mediumId/O']
+lepVarNames     = [x.split('/')[0] for x in lepVars]
 
 read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
+if options.year == 2017:
+    read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'MET_phi/F'])
+
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
                     VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (not options.year == 2017) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
 
@@ -384,7 +391,8 @@ if isMC:
     read_variables.append( TreeVariable.fromString('nGenPart/I') )
     read_variables.append( VectorTreeVariable.fromString('GenPart[pt/F,mass/F,phi/F,eta/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( TreeVariable.fromString('genWeight/F') )
-
+    read_variables.append( TreeVariable.fromString('nGenJet/I') )
+    read_variables.append( VectorTreeVariable.fromString('GenJet[pt/F,eta/F,phi/F]' ) )
     new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F', 'reweightPU36fbVUp/F','reweightPU36fbVDown/F'])
     if not options.skipGenLepMatching:
         TreeVariable.fromString( 'nGenLep/I' ),
@@ -398,16 +406,14 @@ read_variables += [\
     VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
     TreeVariable.fromString('nJet/I'),
     VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) ),
-    TreeVariable.fromString('nGenJet/I'),
-    VectorTreeVariable.fromString('GenJet[pt/F,eta/F,phi/F]' )
 ]
 
 new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) + ',genPt/F' )
 ]
 
-if isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
-new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F', 'met_pt/F', 'met_phi/F', 'MET_pt/F', 'MET_phi/F'] )
+if sample.isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
+new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
 #new_variables.append( 'Lep[%s]'% ( ','.join(lepVars) ) )
 
 if isSingleLep:
@@ -512,12 +518,45 @@ if not options.skipNanoTools:
     logger.info("Will put files into directory %s", output_directory)
     cut = '&&'.join(skimConds)
     # different different METSig parameters for data/MC and years
-    metSigParams    = [1.39,1.26,1.21,1.23,1.28,-0.26,0.62] if not isData else [1.0,1.0,1.0,1.0,1.0,0.0,0.5]
-    JER             = "Summer16_25nsV1_MC" if not isData else "Summer16_25nsV1_Data"
-    modules = [
-        jetmetUncertaintiesProducer("2016", "Summer16_07Aug2017_V11_MC", [ "Total" ]),
-        METSigProducer(JER, metSigParams),
-    ]
+    if options.year == 2016:
+        metSigParamsMC      = [1.617529475909303, 1.4505983036866312, 1.411498565372343, 1.4087559908291813, 1.3633674107893856, 0.0019861227075085516, 0.6539410816436597]
+        metSigParamsData    = [1.843242937068234, 1.64107911184195, 1.567040591823117, 1.5077143780804294, 1.614014783345394, -0.0005986196920895609, 0.6071479349467596]
+        JER                 = "Summer16_25nsV1_MC"          if not sample.isData else "Summer16_25nsV1_DATA"
+        if sample.isData:
+            if sample.name.count("Run2016B") or sample.name.count("Run2016C") or sample.name.count("Run2016D"):
+                JEC         = "Summer16_07Aug2017BCD_V11_DATA"
+            elif sample.name.count("Run2016E") or sample.name.count("Run2016F"):
+                JEC         = "Summer16_07Aug2017EF_V11_DATA"
+            elif sample.name.count("Run2016G") or sample.name.count("Run2016H"):
+                JEC         = "Summer16_07Aug2017GH_V11_DATA"
+            else:
+                raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
+        else:
+            JEC             = "Summer16_07Aug2017_V11_MC"
+    elif options.year == 2017:
+        metSigParamsMC      = [0.7908154690397596, 0.8274420527567241, 0.8625204829478312, 0.9116933716967324, 1.1863207810108252, -0.0021905431583211926, 0.6620237657886061]
+        metSigParamsData    = [1.743319492995906, 1.6882972548344242, 1.6551185757422577, 1.4185872885319166, 1.5923201986159454, -0.0002185734915505621, 0.6558819144933438]
+        JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
+        JERera              = "Fall17_V3"
+        JEC                 = "Fall17_17Nov2017_V32_MC"     if not sample.isData else "Fall17_17Nov2017_V32_DATA"
+    elif options.year == 2018:
+        metSigParamsMC      = [1.3889924894064565, 1.4100950862040742, 1.388614360360041, 1.2352876826748016, 1.0377595808114612, 0.004479319982990152, 0.6269386702181299]
+        metSigParamsData    = [1.8901832149541773, 2.026001195551111, 1.7805585857080317, 1.5987158841135176, 1.4509516794588302, 0.0003365079273751142, 0.6697617770737838]
+        JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
+        JEC                 = "Fall17_17Nov2017_V32_MC"     if not sample.isData else "Fall17_17Nov2017_V32_DATA"
+
+    # set the params for MET Significance calculation
+    metSigParams            = metSigParamsMC                if not sample.isData else metSigParamsData
+
+    logger.info("Using JERs: %s", JER)
+    logger.info("Using JECs: %s", JEC)
+
+    # define modules. JEC reapplication only works with MC right now, so just don't do it.
+    modules = []
+    if not sample.isData:
+        modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True) ) #was Total
+    modules.append( METSigProducer(JER, metSigParams) )
+
     p = PostProcessor(output_directory,sample.files,cut=cut, modules=modules)
     logger.info("Starting nanoAOD postprocessing")
     p.run()
@@ -620,13 +659,13 @@ def filler( event ):
             event.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
         else:
             event.weight = lumiScaleFactor if lumiScaleFactor is not None else 1
-    elif isData:
+    elif sample.isData:
         event.weight = 1
     else:
         raise NotImplementedError( "isMC %r isData %r susySignal? %r TTDM? %r" % (isMC, isData, options.susySignal, options.TTDM) )
 
     # lumi lists and vetos
-    if isData:
+    if sample.isData:
         #event.vetoPassed  = vetoList.passesVeto(r.run, r.lumi, r.evt)
         event.jsonPassed  = lumiList.contains(r.run, r.luminosityBlock)
         # store decision to use after filler has been executed
@@ -636,8 +675,6 @@ def filler( event ):
         event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.Pileup_nTrueInt ) # is this correct?
         event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.Pileup_nTrueInt )
         event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.Pileup_nTrueInt )
-        event.reweightPU36fbVDown= nTrueInt36fb_puRWVDown   ( r.Pileup_nTrueInt )
-        event.reweightPU36fbVUp  = nTrueInt36fb_puRWVUp     ( r.Pileup_nTrueInt )
 
     # top pt reweighting
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
@@ -679,23 +716,13 @@ def filler( event ):
     leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     leptons.sort(key = lambda p:-p['pt'])
     
-    # MET recipe v2, p3 https://indico.cern.ch/event/759372/contributions/3149378/attachments/1721436/2779341/metreport.pdf
-    if options.year == 2017:
-        bad_ee_jets = filter( lambda j:abs(j['eta'])>2.65 and abs(j['eta'])<3.139 and (1-j['rawFactor'])*j['pt']<50, reallyAllJets )
-        corr_px = sum( [j['pt']*cos(j['phi']) for j in bad_ee_jets], 0.)
-        corr_py = sum( [j['pt']*sin(j['phi']) for j in bad_ee_jets], 0.)
-        MEx_corr = r.MET_pt*cos(r.MET_phi) + corr_px 
-        MEy_corr = r.MET_pt*sin(r.MET_phi) + corr_py
-        event.MET_pt_corr  = sqrt( MEx_corr**2 + MEy_corr**2)
-        event.MET_phi_corr = atan2( MEy_corr, MEx_corr )
-        #if len( bad_ee_jets )>0:
-        #    print [(1-j['rawFactor']) for j in bad_ee_jets], event.met_pt, r.MET_pt, event.met_phi, r.MET_phi
+    if options.year == 2017 and False:
+        # v2 recipe. Not used yet. Could also use our own recipe
+        event.MET_pt    = r.METFixEE2017_pt
+        event.MET_phi   = r.METFixEE2017_phi
     else:
-        event.met_pt  = r.MET_pt
-        event.met_phi = r.MET_phi
-
-    event.MET_pt  = event.met_pt 
-    event.MET_phi = event.met_phi
+        event.MET_pt    = r.MET_pt 
+        event.MET_phi   = r.MET_phi
 
     # Filling jets
     store_jets = jets if not options.keepAllJets else soft_jets + jets
@@ -704,8 +731,9 @@ def filler( event ):
     for iJet, jet in enumerate(store_jets):
         for b in jetVarNames:
             getattr(event, "JetGood_"+b)[iJet] = jet[b]
-        if store_jets[iJet]['genJetIdx'] >= 0:
-            event.JetGood_genPt[iJet] = r.GenJet_pt[store_jets[iJet]['genJetIdx']]
+        if isMC:
+            if store_jets[iJet]['genJetIdx'] >= 0:
+                event.JetGood_genPt[iJet] = r.GenJet_pt[store_jets[iJet]['genJetIdx']]
 
     if isSingleLep:
         # Compute M3 and the three indiced of the jets entering m3
@@ -1066,7 +1094,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 
     while reader.run():
         maker.run()
-        if isData:
+        if sample.isData:
             if maker.event.jsonPassed_:
                 if reader.event.run not in outputLumiList.keys():
                     outputLumiList[reader.event.run] = set([reader.event.luminosityBlock])
@@ -1086,7 +1114,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 logger.info( "Converted %i events of %i, cloned %i",  convertedEvents, reader.nEvents , clonedEvents )
 
 # Storing JSON file of processed events
-if isData and convertedEvents>0: # avoid json to be overwritten in cases where a root file was found already
+if sample.isData and convertedEvents>0: # avoid json to be overwritten in cases where a root file was found already
     jsonFile = filename+'_%s.json'%(0 if options.nJobs==1 else options.job)
     LumiList( runsAndLumis = outputLumiList ).writeJSON(jsonFile)
     logger.info( "Written JSON file %s", jsonFile )

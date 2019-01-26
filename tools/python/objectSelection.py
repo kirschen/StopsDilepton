@@ -26,10 +26,13 @@ def isBJet(j, tagger = 'DeepCSV', year = 2016):
     elif tagger == 'DeepCSV':
         if year == 2016:
             # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80XReReco
-            return j['btagDeepB'] > 0.6324
-        elif year == 2017 or year == 2018:
+            return j['btagDeepB'] > 0.6321
+        elif year == 2017:
             # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
             return j['btagDeepB'] > 0.4941
+        elif year == 2018:
+            # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
+            return j['btagDeepB'] > 0.4184
         else:
             raise (NotImplementedError, "Don't know what cut to use for year %s"%year)
 
@@ -42,6 +45,20 @@ def getGenParts(c):
 genVars = ['eta','pt','phi','mass','charge', 'status', 'pdgId', 'genPartIdxMother', 'statusFlags'] 
 def getGenPartsAll(c):
     return [getObjDict(c, 'GenPart_', genVars, i) for i in range(int(getVarValue(c, 'nGenPart')))]
+
+def get_index_str( index ):
+    if isinstance(index, int):
+        index_str = "["+str(index)+"]"
+    elif type(index)==type(""):
+        if index.startswith('[') and index.endswith(']'):
+            index_str = index
+        else:
+            index_str = '['+index+']'
+    elif index is None:
+        index_str=""
+    else:
+        raise ValueError( "Don't know what to do with index %r" % index )
+    return index_str
 
 def alwaysTrue(*args, **kwargs):
   return True
@@ -77,6 +94,22 @@ def muonSelector( lepton_selection, year ):
 
     return func
 
+def muonSelectorString(relIso03 = 0.2, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum"):
+    idx = None if (index is None) or (type(index)==type("") and index.lower()=="sum") else index
+    index_str = get_index_str( index  = idx)
+    string = [\
+                "Muon_pt"+index_str+">=%s"%ptCut ,
+                "abs(Muon_eta"+index_str+")<%s" % absEtaCut ,
+                "Muon_mediumId"+index_str+">=1" ,
+                "Muon_sip3d"+index_str+"<4.0" ,
+                "abs(Muon_dxy"+index_str+")<%s" % dxy ,
+                "abs(Muon_dz"+index_str+")<%s" % dz ,
+                "Muon_pfRelIso03_all"+index_str+"<%s" % relIso03 ,
+             ]
+    if type(index)==type("") and index.lower()=='sum':
+        return 'Sum$('+'&&'.join(string)+')'
+    else:
+        return '&&'.join(string)
 
 ## ELECTRONS ##
 def eleSelector( lepton_selection, year ):
@@ -108,6 +141,26 @@ def eleSelector( lepton_selection, year ):
                 and abs(l["dz"])        < 0.1
 
     return func
+
+def eleSelectorString(relIso03 = 0.2, eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum", noMissingHits=True):
+    idx = None if (index is None) or (type(index)==type("") and index.lower()=="sum") else index
+    index_str = get_index_str( index  = idx)
+    string = [\
+                "Electron_pt"+index_str+">=%s" % ptCut ,
+                "abs(Electron_eta"+index_str+")<%s" % absEtaCut ,
+                "Electron_convVeto"+index_str+"",
+                "Electron_lostHits"+index_str+"==0" if noMissingHits else "(1)",
+                "Electron_sip3d"+index_str+"<4.0" ,
+                "abs(Electron_dxy"+index_str+")<%s" % dxy ,
+                "abs(Electron_dz"+index_str+")<%s" % dz ,
+                "Electron_pfRelIso03_all"+index_str+"<%s" % relIso03 ,
+                "Electron_cutBased"+index_str+">=%s"%eleId , # Fall17V2 ID
+             ]
+
+    if type(index)==type("") and index.lower()=='sum':
+        return 'Sum$('+'&&'.join(string)+')'
+    else:
+        return '&&'.join(string)
 
 
 leptonVars_data = ['eta','etaSc', 'pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'relIso03', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2', 'eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz']
@@ -163,24 +216,3 @@ def getGoodPhotons(c, ptCut=50, idLevel="loose", isData=True, collVars=None, yea
     #if collVars is None: collVars = photonVars if isData else photonVarsMC
     collVars = ['eta','pt','phi','mass','cutBased'] if (not (year == 2017 or year == 2018)) else ['eta','pt','phi','mass','cutBasedBitmap']
     return [p for p in getPhotons(c, collVars) if p[idVar] >= idCutBased[idLevel] and p['pt'] > ptCut ]
-
-def getFilterCut(isData=False, isFastSim = False, year = 2016, ignoreJSON=False):
-    if isFastSim:
-        filterCut            = "Flag_goodVertices"
-    else:
-        if year == 2017 or year == 2018:
-            filters = ["Flag_goodVertices", "Flag_globalTightHalo2016Filter", "Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_BadPFMuonFilter", "Flag_BadChargedCandidateFilter", "Flag_ecalBadCalibFilter"]
-            filterCut = "&&".join(filters)
-            if isData:
-                filterCut += "&&Flag_eeBadScFilter"
-        else:
-            filterCut            = "Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_EcalDeadCellTriggerPrimitiveFilter"
-            filterCut            += "&&Flag_METFilters"#"&&Flag_badChargedHadronSummer2016&&Flag_badMuonSummer2016" #maybe Flag_METFilters instead?
-
-    if isData:
-        filterCut += "&&weight>0"
-        if not ignoreJSON:
-            filterCut += "&&jsonPassed>0" ## This is very important for samples based on nanoAOD!!
-        else:
-            logger.info("Ignoring json file. Very dangerous!!")
-    return filterCut
