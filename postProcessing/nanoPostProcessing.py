@@ -161,9 +161,6 @@ for selectedSamples in options.samples:
 if sample.isData:
     json = sample.json # json already defined in sample repository
 
-for s in samples:
-    print s.files
-
 if len(samples)==0:
     logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
     sys.exit(-1)
@@ -257,7 +254,6 @@ if options.susySignal:
 len_orig = len(sample.files)
 sample = sample.split( n=options.nJobs, nSub=options.job)
 logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
-print sample.files
 logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
 
 
