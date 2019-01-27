@@ -207,7 +207,7 @@ else:
     raise ValueError( "Need at least one sample. Got %r",samples )
 
 if isMC:
-    from StopsDilepton.tools.puReweighting import getReweightingFunction
+    from Analysis.Tools.puReweighting import getReweightingFunction
     if options.year == 2016:
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Summer16")
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc="Summer16")
@@ -221,9 +221,9 @@ if isMC:
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_42400_XSecUp",       mc=mcHist)
     elif options.year == 2018:
         # keep the weight name for now. Should we update to a more general one?
-        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral",  mc="Summer16")
-        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",     mc="Summer16")
-        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_36000_XSecUp",       mc="Summer16")
+        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2018_58830_XSecCentral",  mc="Autumn18")
+        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2018_58830_XSecDown",     mc="Autumn18")
+        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2018_58830_XSecUp",       mc="Autumn18")
 
 
 options.skim = options.skim + '_small' if options.small else options.skim
@@ -518,6 +518,7 @@ if not options.skipNanoTools:
         metSigParamsMC      = [1.617529475909303, 1.4505983036866312, 1.411498565372343, 1.4087559908291813, 1.3633674107893856, 0.0019861227075085516, 0.6539410816436597]
         metSigParamsData    = [1.843242937068234, 1.64107911184195, 1.567040591823117, 1.5077143780804294, 1.614014783345394, -0.0005986196920895609, 0.6071479349467596]
         JER                 = "Summer16_25nsV1_MC"          if not sample.isData else "Summer16_25nsV1_DATA"
+        JERera              = "Fall17_V3"
         if sample.isData:
             if sample.name.count("Run2016B") or sample.name.count("Run2016C") or sample.name.count("Run2016D"):
                 JEC         = "Summer16_07Aug2017BCD_V11_DATA"
@@ -539,6 +540,7 @@ if not options.skipNanoTools:
         metSigParamsMC      = [1.3889924894064565, 1.4100950862040742, 1.388614360360041, 1.2352876826748016, 1.0377595808114612, 0.004479319982990152, 0.6269386702181299]
         metSigParamsData    = [1.8901832149541773, 2.026001195551111, 1.7805585857080317, 1.5987158841135176, 1.4509516794588302, 0.0003365079273751142, 0.6697617770737838]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
+        JERera              = "Fall17_V3"
         JEC                 = "Fall17_17Nov2017_V32_MC"     if not sample.isData else "Fall17_17Nov2017_V32_DATA"
 
     # set the params for MET Significance calculation
