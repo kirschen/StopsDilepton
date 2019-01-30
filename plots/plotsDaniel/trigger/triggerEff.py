@@ -14,8 +14,11 @@ from RootTools.core.standard import *
 
 #StopsDilepton
 from StopsDilepton.tools.objectSelection import muonSelectorString, eleSelectorString
+from StopsDilepton.tools.triggerSelector import *
 
 HLT_MET_hadronic = "(HLT_HT350_MET100||HLT_HT350||HLT_HT475||HLT_HT600||HLT_dijet||HLT_jet||HLT_dijet70met120||HLT_dijet55met110||HLT_HT900||HLT_HT800||HLT_MET170_NotCleaned||HLT_MET170_HBHECleaned||HLT_MET170_BeamHaloCleaned||HLT_AllMET170||HLT_AllMET300||HLT_HT350_MET100)"
+
+HLT_MET_hadronic = "(HLT_MET250||HLT_MET300||HLT_MET600||HLT_MET700)"
 
 # argParser
 import argparse
@@ -24,8 +27,8 @@ argParser.add_argument('--logLevel',            action='store',             narg
 argParser.add_argument('--small',               action='store_true',        help='Small?')   
 argParser.add_argument('--selection',           default='',                 type=str,    action='store')
 argParser.add_argument('--baseTrigger',         default=HLT_MET_hadronic,   type=str,    action='store')
-argParser.add_argument('--dileptonTrigger',     default='HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL',          type=str,    action='store')
-argParser.add_argument('--sample',              default='JetHT',            type=str,    action='store')
+#argParser.add_argument('--dileptonTrigger',     default='HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL',          type=str,    action='store')
+argParser.add_argument('--sample',              default='MET',              type=str,    action='store')
 argParser.add_argument('--plot_directory',      default='pngEff',           type=str,    action='store')
 argParser.add_argument('--minLeadingLeptonPt',  default=0,                  type=int,    action='store')
 argParser.add_argument('--mode',                default='muEle',            action='store',    choices=['doubleMu', 'doubleEle',  'muEle'])
@@ -62,7 +65,18 @@ elif year == 2018:
 
 data=Sample.combine( "Run%s"%year, data_samples )
 preprefix = "Run%s"%year
-triggerName = args.dileptonTrigger.replace('||','_OR_')
+
+tr = triggerSelector(int(args.year))
+
+if args.mode == "muEle":
+    dileptonTrigger = "(%s)"%"||".join(tr.em+tr.e+tr.m)
+    triggerName = "HLT_muEle"
+elif args.mode == "doubleEle":
+    dileptonTrigger = "(%s)"%"||".join(tr.ee+tr.e)
+    triggerName = "HLT_ee"
+elif args.mode == "doubleMu":
+    dileptonTrigger = "(%s)"%"||".join(tr.mm+tr.m)
+    triggerName = "HLT_mm"
 
 pt_thresholds = range(0,30,2)+range(30,50,5)+range(50,210,10)
 eta_thresholds = [x/10. for x in range(-25,26,1) ]
@@ -130,12 +144,25 @@ logger.info( "Sample:      %s" % data.name )
 def leptonSelectorString(index, ptCut):
     return '('+muonSelectorString(index=index, ptCut=ptCut)+'||'+eleSelectorString(index=index, ptCut=ptCut)+')'
 
-if args.mode=='doubleMu':
-    selString = muonSelectorString
-elif args.mode=='doubleEle':
-    selString = eleSelectorString
-elif args.mode== 'muEle':
-    selString = leptonSelectorString
+if args.mode == 'doubleMu':
+    selString           = muonSelectorString
+    leadingString       = "MaxIf$(Muon_pt,%s)"%selString(index=None,ptCut=0)
+    subLeadingString    = "MinIf$(Muon_pt,%s)"%selString(index=None,ptCut=0)
+    leadingStringEta    = "Muon_eta"
+    subLeadingStringEta = "Muon_eta"
+elif args.mode == 'doubleEle':
+    selString           = eleSelectorString
+    leadingStringPt     = "MaxIf$(Electron_pt,%s)"%selString(index=None,ptCut=0)
+    subLeadingStringPt  = "MinIf$(Electron_pt,%s)"%selString(index=None,ptCut=0)
+    etaString           = "Electron_eta"
+    subLeadingStringEta = "Electron_eta"
+elif args.mode == 'muEle':
+    selString           = leptonSelectorString
+    leadingStringPt     = "MaxIf$(Muon_pt,{0})*(MaxIf$(Muon_pt,{0})>MaxIf$(Electron_pt,{0}))+MaxIf$(Electron_pt,{0})*(MaxIf$(Electron_pt,{0})>MaxIf$(Muon_pt,{0}))".format(selString(index=None,ptCut=0))
+    subLeadingStringPt  = "MinIf$(Muon_pt,{0})*(MinIf$(Muon_pt,{0})<MinIf$(Electron_pt,{0}))+MaxIf$(Electron_pt,{0})*(MinIf$(Electron_pt,{0})<MinIf$(Muon_pt,{0}))".format(selString(index=None,ptCut=0)) 
+    leadingStringEta     = "Muon_eta*(MaxIf$(Muon_pt,{0})>MaxIf$(Electron_pt,{0}))+Electron_eta*(MaxIf$(Electron_pt,{0})>MaxIf$(Muon_pt,{0}))".format(selString(index=None,ptCut=0))
+    subLeadingStringEta  = "Muon_eta*(MinIf$(Muon_pt,{0})<MinIf$(Electron_pt,{0}))+Electron_eta*(MinIf$(Electron_pt,{0})<MinIf$(Muon_pt,{0}))".format(selString(index=None,ptCut=0)) 
+
 else:   
     raise ValueError( "Mode %s not known" % args.mode )
 
@@ -146,9 +173,8 @@ selection_string    = "&&".join( str_ for str_ in [\
         args.selection
     ] if str_ )
 
-
-plot_string_pt1      = args.dileptonTrigger+":MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1"
-plot_string_pt2      = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt2"
+plot_string_pt1      = dileptonTrigger+":%s>>eff_pt1"%leadingStringPt
+plot_string_pt2      = dileptonTrigger+":%s>>eff_pt2"%subLeadingStringPt
 
 logger.info( "Plot string: %s" % plot_string_pt1 )
 logger.info( "Selection:   %s" % selection_string )
@@ -158,39 +184,39 @@ data.chain.Draw(plot_string_pt2, selection_string, 'goff')
 
 data.chain.Draw("Sum$(Jet_pt*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_jetId>0))>>ht", selection_string, 'goff')
 
-plot_string_eta1     = args.dileptonTrigger+":LepGood_eta>>eff_eta1"
-data.chain.Draw(plot_string_eta1, selection_string+"&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff') 
+plot_string_eta1     = dileptonTrigger+":%s>>eff_eta1"%leadingStringEta
+data.chain.Draw(plot_string_eta1, selection_string+"&&(Muon_pt==%s||Electron_pt==%s)"%(leadingStringPt,leadingStringPt), 'goff') 
 
-plot_string_eta2     = args.dileptonTrigger+":LepGood_eta>>eff_eta2"
-data.chain.Draw(plot_string_eta2, selection_string+"&&LepGood_pt==MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff') 
+plot_string_eta2     = dileptonTrigger+":%s>>eff_eta2"%subLeadingStringEta
+data.chain.Draw(plot_string_eta2, selection_string+"&&(Muon_pt==%s||Electron_pt==%s)"%(subLeadingStringPt,subLeadingStringPt), 'goff') 
 
-plot_string_pt1_pt2    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2"
+plot_string_pt1_pt2    = dileptonTrigger+":%s:%s)>>eff_pt1_pt2"%(subLeadingStringPt,subLeadingStringPt)
 data.chain.Draw(plot_string_pt1_pt2, selection_string, 'goff')
-plot_string_pt1_pt2_veryCoarse    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2_veryCoarse"
+plot_string_pt1_pt2_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_veryCoarse"%(subLeadingStringPt,subLeadingStringPt)
 data.chain.Draw(plot_string_pt1_pt2_veryCoarse, selection_string, 'goff')
 
 if args.mode=='muEle':
     # split high/low ETA wrt muon
     # nanoAOD get sub-leading lepton:
     # MinIf$(Muon_pt,%s)*(MinIf$(Muon_pt,%s)<MinIf$(Electron_pt,%s))+MinIf$(Electron_pt,%s)*(MinIf$(Electron_pt,%s)<MinIf$(Muon_pt,%s))
-    plot_string_pt1_pt2_highEta1_veryCoarse    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2_highEta1_veryCoarse"
-    data.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_pdgId)==13&&abs(LepGood_eta)>1.5&&"+selString(index=None,ptCut=0)+')==1', 'goff')
+    plot_string_pt1_pt2_highEta1_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_highEta1_veryCoarse"%(subLeadingStringPt,leadingStringPt)
+    data.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(Muon_eta)>1.5&&"+selString(index=None,ptCut=0)+')==1', 'goff')
 
-    plot_string_pt1_pt2_lowEta1_veryCoarse    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2_lowEta1_veryCoarse"
-    data.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_pdgId)==13&&abs(LepGood_eta)<=1.5&&"+selString(index=None,ptCut=0)+')==1', 'goff')
+    plot_string_pt1_pt2_lowEta1_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_lowEta1_veryCoarse"%(subLeadingStringPt,leadingStringPt)
+    data.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(Muon_eta)<=1.5&&"+selString(index=None,ptCut=0)+')==1', 'goff')
 else:
     # split high/low ETA wrt leading lepton
-    plot_string_pt1_pt2_highEta1_veryCoarse    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2_highEta1_veryCoarse"
-    data.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_eta)>1.5&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+'))==1', 'goff')
+    plot_string_pt1_pt2_highEta1_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_highEta1_veryCoarse"%(subLeadingStringPt,leadingStringPt)
+    data.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(Muon_eta)>1.5&&Muon_pt==%s + abs(Electron_eta)>1.5&&Electron_pt==%s)==1"%(leadingStringPt,leadingStringPt), 'goff')
 
-    plot_string_pt1_pt2_lowEta1_veryCoarse    = args.dileptonTrigger+":MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+"):MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_pt2_lowEta1_veryCoarse"
-    data.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(LepGood_eta)<=1.5&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+'))==1', 'goff')
+    plot_string_pt1_pt2_lowEta1_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_lowEta1_veryCoarse"%(subLeadingStringPt,leadingStringPt)
+    data.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(Muon_eta)<=1.5&&Muon_pt==%s + abs(Electron_eta)<=1.5&&Electron_pt==%s)==1"%(leadingStringPt,leadingStringPt), 'goff')
 
-plot_string_pt1_eta1   = args.dileptonTrigger+":LepGood_eta:MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt1_eta1"
-data.chain.Draw(plot_string_pt1_eta1, selection_string+"&&LepGood_pt==MaxIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff')
+plot_string_pt1_eta1   = dileptonTrigger+":%s:%s>>eff_pt1_eta1"%(leadingStringEta, leadingStringPt)
+data.chain.Draw(plot_string_pt1_eta1, selection_string+"&&(Muon_pt==%s||Electron_pt==%s)"%(leadingStringPt,leadingStringPt), 'goff')
 
-plot_string_pt2_eta2   = args.dileptonTrigger+":LepGood_eta:MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+")>>eff_pt2_eta2"
-data.chain.Draw(plot_string_pt2_eta2, selection_string+"&&LepGood_pt==MinIf$(LepGood_pt,"+selString(index=None,ptCut=0)+')', 'goff')
+plot_string_pt2_eta2   = dileptonTrigger+":%s:%s>>eff_pt2_eta2"%(subLeadingStringEta, subLeadingStringPt)
+data.chain.Draw(plot_string_pt2_eta2, selection_string+"&&(Muon_pt==%s||Electron_pt==%s)"%(subLeadingStringPt,subLeadingStringPt), 'goff')
 
 
 prefix = preprefix+"_%s_%s_measuredIn%s_minLeadLepPt%i" % ( triggerName, 'baseTrigger_METhadronic', args.sample, args.minLeadingLeptonPt)

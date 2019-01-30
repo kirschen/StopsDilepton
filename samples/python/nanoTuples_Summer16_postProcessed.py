@@ -30,13 +30,13 @@ DY_M5to50_HT = [
                 "DYJetsToLL_M5to50_HT100to200_comb",
                 "DYJetsToLL_M5to50_HT200to400_comb",
                 "DYJetsToLL_M5to50_HT400to600_comb",
-                "DYJetsToLL_M5to50_HT600toInf_comb"
+                "DYJetsToLL_M5to50_HT600toInf"
                 ] 
 
 DY_M50_HT =[
             "DYJetsToLL_M50_LO_ext1_comb_lheHT70", 
             "DYJetsToLL_M50_HT70to100",
-            "DYJetsToLL_M50_HT100to200_comb",
+            "DYJetsToLL_M50_HT100to200_ext",
             "DYJetsToLL_M50_HT200to400_comb",
             "DYJetsToLL_M50_HT400to600_comb",
             "DYJetsToLL_M50_HT600to800",
@@ -55,19 +55,19 @@ dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 dirs['TTLep_pow']        = ["TTLep_pow"]
 
 dirs['singleTop']        = ["TBar_tWch_ext", "T_tWch_ext"]#, "TToLeptons_tch_powheg", "TBarToLeptons_tch_powheg"]
-dirs['singleTop_tch']    = ["T_tch_powheg", "TBar_tch_powheg"]
-dirs['singleTop_sch']    = ["TToLeptons_sch_amcatnlo"]
+dirs['singleTop_tch']    = ["T_tch_pow", "TBar_tch_pow"]
+#dirs['singleTop_sch']    = ["TToLeptons_sch_amcatnlo"]
 
-dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop']
+dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop'] + dirs['singleTop_tch']
 
 dirs['TZQ']              = ["tZq_ll_ext"]#, "tZq_nunu_reHLT"]
 dirs['TWZ']              = ["tWll", "tWnunu"]
-dirs['TTW']              = ["TTWToLNu_ext_comb"]#, "TTWToQQ"]
+dirs['TTW']              = ["TTWToLNu_ext2"]#, "TTWToQQ"]
 
 dirs['TTH']              = ["TTHbb"]#, "TTHnobb_mWCutfix_ext"] FIXME got deleted, need to be re-added later
-dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu_ext1_comb"]
+dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu_ext2_comb"]
 dirs['TTZtoQQ']          = ["TTZToQQ"]
-dirs['TTZ']              = ["TTZToLLNuNu_ext1_comb", "TTZToQQ"]
+dirs['TTZ']              = ["TTZToLLNuNu_ext2_comb", "TTZToQQ"]
 
 dirs['TTXNoZ']           = dirs['TTH'] + dirs['TTW'] + dirs['TWZ'] + dirs['TZQ']
 dirs['TTX']              = dirs['TTXNoZ'] + dirs['TTZ']
@@ -76,15 +76,15 @@ dirs['TTX']              = dirs['TTXNoZ'] + dirs['TTZ']
 ##dirs['WJetsToLNu_LO']    = ["WJetsToLNu_LO"]
 ##dirs['WJetsToLNu_HT']    = ["WJetsToLNu_HT100to200_comb", "WJetsToLNu_HT200to400_comb", "WJetsToLNu_HT400to600", "WJetsToLNu_HT600to800", "WJetsToLNu_HT800to1200", "WJetsToLNu_HT1200to2500", "WJetsToLNu_HT2500toInf"]
 dirs['diBosonInclusive'] = ["WW", "WZ", "ZZ"]
-dirs['WW']               = ["WWToLNuQQ_comb"]
+dirs['WW']               = []#["WWToLNuQQ_comb"]
 #dirs['WW_']              = ["WWToLNuQQ_comb","WWTo2L2Nu"]
 #dirs['WWTo2L2Nu']        = ["WWTo2L2Nu"]
 dirs['VVTo2L2Nu']        = ["VVTo2L2Nu_comb"]
-dirs['WZ']               = ["WZTo1L1Nu2Q",  "WZTo3LNu_comb"] # "WZTo1L3Nu" "WZTo2L2Q",missing
+dirs['WZ']               = ["WZTo1L1Nu2Q",  "WZTo3LNu_ext"] # "WZTo1L3Nu" "WZTo2L2Q",missing
 dirs['ZZ']               = ["ZZTo2L2Q", "ZZTo2Q2Nu"]
 #dirs['ZZTo2L2Nu']        = ["ZZTo2L2Nu"]
 #dirs['ZZ_']              = ["ZZTo2L2Q", "ZZTo2Q2Nu","ZZTo2L2Nu"]
-dirs['diBoson']          = dirs['WW'] + dirs['WZ'] + dirs['ZZ'] #+ dirs['VVTo2L2Nu'] #FIXME Got deleted
+dirs['diBoson']          = dirs['WW'] + dirs['WZ'] + dirs['ZZ']+ dirs['VVTo2L2Nu']
 #dirs['diBoson_']         = dirs['WW_'] + dirs['WZ'] + dirs['ZZ_']
 dirs['triBoson']         = ["WZZ","ZZZ"] 
 #dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] #FIXME... WWZ was deleted 
@@ -108,8 +108,8 @@ dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 #dirs['ZG']           = dirs['ZGTo2LG'] + dirs['ZGJets']
 #
 
-dirs['T2tt_mStop_850_mLSP_100'] = ['T2tt_mStop_850_mLSP_100']
-dirs['T2tt_mStop_500_mLSP_325'] = ['T2tt_mStop_500_mLSP_325']
+#dirs['T2tt_mStop_850_mLSP_100'] = ['T2tt_mStop_850_mLSP_100']
+#dirs['T2tt_mStop_500_mLSP_325'] = ['T2tt_mStop_500_mLSP_325']
 
 directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
 
@@ -120,7 +120,7 @@ DY_HT_LO_16        = Sample.fromDirectory(name="DY_HT_LO",         treeName="Eve
 Top_pow_16         = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
 singleTop_16      = Sample.fromDirectory(name="singleTop",        treeName="Events", isData=False, color=color.singleTop,       texName="single top",                        directory=directories['singleTop'])
 singleTop_tch_16  = Sample.fromDirectory(name="singleTop_tch",    treeName="Events", isData=False, color=color.singleTop,       texName="single top tch",                    directory=directories['singleTop_tch'])
-singleTop_sch_16  = Sample.fromDirectory(name="singleTop_sch",    treeName="Events", isData=False, color=color.singleTop,       texName="single top sch",                    directory=directories['singleTop_sch'])
+#singleTop_sch_16  = Sample.fromDirectory(name="singleTop_sch",    treeName="Events", isData=False, color=color.singleTop,       texName="single top sch",                    directory=directories['singleTop_sch'])
 TTX_16            = Sample.fromDirectory(name="TTX",              treeName="Events", isData=False, color=color.TTX,             texName="t#bar{t}H/W/Z, tZq",                directory=directories['TTX'])
 TTXNoZ_16         = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W, tZq, tWZ",             directory=directories['TTXNoZ'])
 TTH_16            = Sample.fromDirectory(name="TTH",              treeName="Events", isData=False, color=color.TTH,             texName="t#bar{t}H",                         directory=directories['TTH'])
@@ -151,10 +151,10 @@ multiBoson_16     = Sample.fromDirectory(name="multiBoson",       treeName="Even
 #EWK        = Sample.fromDirectory(name="EWK",            treeName="Events", isData=False, color=color.QCD,             texName="EWK",                           directory=directories['EWK']  )
 
 ## FullSim signals
-T2tt_mStop_850_mLSP_100 = Sample.fromDirectory(name="T2tt_mStop_850_mLSP_100",  treeName="Events", isData=False, color=color.DY,    texName="T2tt(850,100)",                    directory=directories['T2tt_mStop_850_mLSP_100'])
-T2tt_mStop_500_mLSP_325 = Sample.fromDirectory(name="T2tt_mStop_500_mLSP_325",  treeName="Events", isData=False, color=color.DY,    texName="T2tt(500,325)",                    directory=directories['T2tt_mStop_500_mLSP_325'])
+#T2tt_mStop_850_mLSP_100 = Sample.fromDirectory(name="T2tt_mStop_850_mLSP_100",  treeName="Events", isData=False, color=color.DY,    texName="T2tt(850,100)",                    directory=directories['T2tt_mStop_850_mLSP_100'])
+#T2tt_mStop_500_mLSP_325 = Sample.fromDirectory(name="T2tt_mStop_500_mLSP_325",  treeName="Events", isData=False, color=color.DY,    texName="T2tt(500,325)",                    directory=directories['T2tt_mStop_500_mLSP_325'])
 
-allSignals_FS = [T2tt_mStop_850_mLSP_100, T2tt_mStop_500_mLSP_325]
+#allSignals_FS = [T2tt_mStop_850_mLSP_100, T2tt_mStop_500_mLSP_325]
 
 
 Top_gaussian         = copy.deepcopy(Top_pow_16)

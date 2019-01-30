@@ -12,7 +12,7 @@ from math                                import sqrt, cos, sin, pi
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
-from StopsDilepton.tools.objectSelection import getFilterCut
+from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.plots.pieChart        import makePieChart
 
@@ -53,17 +53,17 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 # Make samples, will be searched for in the postProcessing directory
 #
 
-data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
 
 if args.year == 2016:
-    postProcessing_directory = "stops_2016_nano_v2/dilep/"
+    postProcessing_directory = "stops_2016_nano_v7/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    postProcessing_directory = "stops_2016_nano_v2/dilep/"
-    from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018_postProcessed import *
+    postProcessing_directory = "stops_2016_nano_v7/dilep/"
+    from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
 elif args.year == 2017:
-    postProcessing_directory = "stops_2017_nano_v2/dilep/"
+    postProcessing_directory = "stops_2017_nano_v7/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v2/dilep/"
+    postProcessing_directory = "stops_2017_nano_v7/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
 
 
@@ -298,11 +298,11 @@ for index, mode in enumerate(allModes):
       binning=[10,-pi,pi],
   ))
 
-  plots.append(Plot(
-    texX = 'E_{T}^{miss}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
-    attribute = TreeVariable.fromString('metSig/F'),
-    binning= [80,20,100] if args.selection.count('metSig20') else ([25,5,30] if args.selection.count('metSig') else [30,0,30]),
-  ))
+  #plots.append(Plot(
+  #  texX = 'E_{T}^{miss}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
+  #  attribute = TreeVariable.fromString('metSig/F'),
+  #  binning= [80,20,100] if args.selection.count('metSig20') else ([25,5,30] if args.selection.count('metSig') else [30,0,30]),
+  #))
 
   plots.append(Plot(
     texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
