@@ -60,11 +60,19 @@ if args.year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     postProcessing_directory = "stops_2016_nano_v7/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
+    mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
 elif args.year == 2017:
     postProcessing_directory = "stops_2017_nano_v7/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     postProcessing_directory = "stops_2017_nano_v7/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
+    mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+elif args.year == 2018:
+    postProcessing_directory = "stops_2018_nano_v7/dilep/"
+    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+    postProcessing_directory = "stops_2018_nano_v7/dilep/"
+    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    mc             = [ Top_pow_18, TTX_18, multiBoson_18, DY_LO_18]
 
 
 
@@ -184,9 +192,13 @@ for index, mode in enumerate(allModes):
   if args.year == 2016:
     data_sample = Run2016
     data_sample.texName = "data (2016)"
-  else:
+  elif args.year == 2017:
     data_sample = Run2017
     data_sample.texName = "data (2017)"
+  elif args.year == 2018:
+    data_sample = Run2018
+    data_sample.texName = "data (2018)"
+  
 
   data_sample.setSelectionString([getFilterCut(isData=True, year=args.year), getLeptonSelection(mode)])
   data_sample.name           = "data"
@@ -205,9 +217,6 @@ for index, mode in enumerate(allModes):
       lumi_scale = 17.3
   else:
     weight_ = lambda event, sample: event.weight
-
-  multiBosonList = [WWNo2L2Nu_16, WZ_16, ZZNo2L2Nu_16, VVTo2L2Nu_16, triBoson_16] if args.splitBosons else ([WW_16, WZ_16, ZZ_16, triBoson_16] if args.splitBosons2 else [multiBoson_16])
-  mc             = [ Top_pow_16, TTZ_16, TTXNoZ_16] + multiBosonList + [DY_LO_16] # DY_HT_LO
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 
@@ -518,11 +527,11 @@ for index, mode in enumerate(allModes):
       binning=[400/100, 0, 400],
     ))
     
-    plots.append(Plot( name = "MVA_T2tt_default",
-      texX = 'MVA_{T2tt} (default)', texY = 'Number of Events',
-      attribute = TreeVariable.fromString( "MVA_T2tt_default/F" ),
-      binning=[50, 0, 1],
-    ))
+    #plots.append(Plot( name = "MVA_T2tt_default",
+    #  texX = 'MVA_{T2tt} (default)', texY = 'Number of Events',
+    #  attribute = TreeVariable.fromString( "MVA_T2tt_default/F" ),
+    #  binning=[50, 0, 1],
+    #))
 
 
   plotting.fill(plots, read_variables = read_variables, sequence = [])
@@ -542,8 +551,8 @@ for index, mode in enumerate(allModes):
   dataMCScale        = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
 
   drawPlots(plots, mode, dataMCScale)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
+  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
+  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
   allPlots[mode] = plots
 
 # Add the different channels into SF and all
@@ -562,8 +571,8 @@ for mode in ["SF","all"]:
 	    j.Add(l)
 
   drawPlots(allPlots['mumu'], mode, dataMCScale)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
-  makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
+  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
+  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
 
 # Write to tex file
 columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM2.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])

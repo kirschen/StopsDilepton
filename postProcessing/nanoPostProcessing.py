@@ -31,7 +31,7 @@ from StopsDilepton.tools.user import MVA_preprocessing_directory, MVA_model_dire
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi
+from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
@@ -252,6 +252,7 @@ if options.susySignal:
     logger.info("Done fetching signal weights.")
 
 len_orig = len(sample.files)
+## sort the list of files?
 sample = sample.split( n=options.nJobs, nSub=options.job)
 logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
 logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
@@ -499,6 +500,24 @@ if fastSim and (isTriLep or isDiLep):
 #
 #    logger.info("Loaded MVA models.")
 
+## Need to check existing root files before starting nanoAODs
+
+filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
+fileNumber = options.job if options.job is not None else 0
+outfilename = filename+'_'+str(fileNumber)+ext
+if os.path.isfile(outfilename):
+    logger.info( "Output file %s found.", outfilename)
+    if not checkRootFile(outfilename, checkForObjects=["Events"]):
+        logger.info( "File %s is broken. Overwriting.", outfilename)
+    elif not options.overwrite:
+        logger.info( "Skipping.")
+        exit()
+        #continue
+    else:
+        logger.info( "Overwriting.")
+
+logger.info("Proceeding.")
+
 if not options.skipNanoTools:
     ### nanoAOD postprocessor
     from importlib import import_module
@@ -554,6 +573,8 @@ if not options.skipNanoTools:
     if not sample.isData:
         modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True) ) #was Total
     modules.append( METSigProducer(JER, metSigParams) )
+
+    sample.files = [ f for f in sample.files if nonEmptyFile(f) ]
 
     p = PostProcessor(output_directory,sample.files,cut=cut, modules=modules)
     logger.info("Starting nanoAOD postprocessing")

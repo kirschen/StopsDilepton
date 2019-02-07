@@ -125,6 +125,15 @@ def checkRootFile(f, checkForObjects=[]):
     rf.Close()
     return good
 
+def nonEmptyFile(f, treeName='Events'):
+    rf = ROOT.TFile.Open(f)
+    if not rf: return False
+    tree = getattr(rf, treeName)
+    nonEmpty = True if tree.GetEntries() else False
+    rf.Close()
+    return nonEmpty
+
+
 def getChunks(sample,  maxN=-1):
     import os, subprocess
     chunks = [{'name':x} for x in os.listdir(sample.path) if x.startswith(sample.chunkString+'_Chunk') or x==sample.chunkString]

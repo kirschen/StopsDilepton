@@ -5,7 +5,7 @@ class xSecSusy:
     def __init__(self):
         from StopsDilepton.tools.xSecSusyData.stops_13TeV import xsec as stop13TeV
         self.xSec = {
-            'stop13TeV':stop13TeV
+            'stop13TeV':stop13TeV_NNLL
         }
 
     def getXSec(self, mass, sigma=0, channel='stop13TeV'):
