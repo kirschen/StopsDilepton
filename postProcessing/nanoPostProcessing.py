@@ -320,7 +320,6 @@ branchKeepStrings_DATAMC = [\
     "run", "luminosityBlock", "event", "fixedGridRhoFastjetAll", "PV_npvs", "PV_npvsGood",
     "MET_*",
     "CaloMET_*",
-    #"MET_pt", "MET_phi", "MET_MetUnclustEnUpDeltaX", "MET_MetUnclustEnUpDeltaY", "MET_sumEt", "CaloMET_phi", "CaloMET_pt", "CaloMET_sumEt", "MET_covXX", "MET_covXY", "MET_covYY", "MET_significance", "MET_SignificanceRec", "MET_sumPt",
     "RawMET_phi", "RawMET_pt", "RawMET_sumEt",
     "Flag_*","HLT_*",
     "nJet", "Jet_*",
@@ -379,7 +378,7 @@ if options.year == 2017:
     read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'MET_phi/F'])
 
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
-                    VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (not options.year == 2017) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
+                    VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (options.year == 2016) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
 
 new_variables = [ 'weight/F']
 if isMC:
@@ -521,13 +520,14 @@ logger.info("Proceeding.")
 if not options.skipNanoTools:
     ### nanoAOD postprocessor
     from importlib import import_module
-    from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-    from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
-    from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+    from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor   import PostProcessor
+    from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel       import Collection
+    from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop       import Module
     
     ## modules for nanoAOD postprocessor
-    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
-    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METSigProducer import METSigProducer 
+    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties   import jetmetUncertaintiesProducer
+    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib            import jetRecalib
+    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METSigProducer        import METSigProducer 
     
     logger.info("Preparing nanoAOD postprocessing")
     logger.info("Will put files into directory %s", output_directory)
@@ -537,7 +537,7 @@ if not options.skipNanoTools:
         metSigParamsMC      = [1.617529475909303, 1.4505983036866312, 1.411498565372343, 1.4087559908291813, 1.3633674107893856, 0.0019861227075085516, 0.6539410816436597]
         metSigParamsData    = [1.843242937068234, 1.64107911184195, 1.567040591823117, 1.5077143780804294, 1.614014783345394, -0.0005986196920895609, 0.6071479349467596]
         JER                 = "Summer16_25nsV1_MC"          if not sample.isData else "Summer16_25nsV1_DATA"
-        JERera              = "Fall17_V3"
+        JERera              = "Summer16_25nsV1"
         if sample.isData:
             if sample.name.count("Run2016B") or sample.name.count("Run2016C") or sample.name.count("Run2016D"):
                 JEC         = "Summer16_07Aug2017BCD_V11_DATA"
@@ -560,7 +560,7 @@ if not options.skipNanoTools:
         metSigParamsData    = [1.8901832149541773, 2.026001195551111, 1.7805585857080317, 1.5987158841135176, 1.4509516794588302, 0.0003365079273751142, 0.6697617770737838]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
-        JEC                 = "Fall17_17Nov2017_V32_MC"     if not sample.isData else "Fall17_17Nov2017_V32_DATA"
+        JEC                 = "Autumn18_V1_MC"     if not sample.isData else "Fall17_17Nov2017_V32_DATA"
 
     # set the params for MET Significance calculation
     metSigParams            = metSigParamsMC                if not sample.isData else metSigParamsData
@@ -572,6 +572,10 @@ if not options.skipNanoTools:
     modules = []
     if not sample.isData:
         modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True) ) #was Total
+    else:
+        # for MC this is already done in jetmetUncertaintyProducer
+        modules.append( jetRecalib(JEC) )
+
     modules.append( METSigProducer(JER, metSigParams) )
 
     sample.files = [ f for f in sample.files if nonEmptyFile(f) ]
@@ -776,7 +780,7 @@ def filler( event ):
       event.photon_pt         = photons[0]['pt']
       event.photon_eta        = photons[0]['eta']
       event.photon_phi        = photons[0]['phi']
-      event.photon_idCutBased = photons[0]['cutBased'] if (not options.year == 2017) else photons[0]['cutBasedBitmap']
+      event.photon_idCutBased = photons[0]['cutBased'] if (options.year == 2016) else photons[0]['cutBasedBitmap']
       if isMC:
         genPhoton       = getGenPhoton(gPart)
         event.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')

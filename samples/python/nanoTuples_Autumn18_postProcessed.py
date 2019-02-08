@@ -47,16 +47,19 @@ DY_M50_HT =[
 
 dirs = {}
 dirs['DY']               = ["DYJetsToLL_M50" ]
-dirs['DY_LO']            = ["DYJetsToLL_M50_LO"]
+dirs['DY_LO']            = ["DYJetsToLL_M50_LO", "DYJetsToLL_M10to50_LO"]
 dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 
 dirs['TTLep_pow']        = ["TTLep_pow"]
 
 dirs['singleTop_sch']    = ["TToLeptons_sch_amcatnlo"]
+dirs['singleTop_tW']     = ['T_tWch', 'TBar_tWch']
 
-dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop_sch']
 
-dirs['TTX']              = ['TTWZ','TTZZ']
+dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop_sch'] + dirs['singleTop_tW']
+
+dirs['TTZ']              = ['TTZToLLNuNu', 'TTZToLLNuNu_m1to10']
+dirs['TTXNoZ']           = ['TTWZ','TTZZ', 'TTWToLNu', 'TTWToQQ', 'tWll', 'tZq_ll']
 
 dirs['diBoson']          = ['WW'] + ['ZZ']
 dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] 
@@ -67,7 +70,8 @@ directories = { key : [ os.path.join( data_directory, postProcessing_directory, 
 DY              = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=color.DY,              texName="DY",                                directory=directories['DY'])
 DY_LO_18        = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO'])
 Top_pow_18      = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
-TTX_18          = Sample.fromDirectory(name="TTX",              treeName="Events", isData=False, color=color.TTX,             texName="t#bar{t}H/W/Z, tZq",                directory=directories['TTX'])
+TTXNoZ_18       = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W, tZq",                  directory=directories['TTXNoZ'])
+TTZ_18          = Sample.fromDirectory(name="TTZ",              treeName="Events", isData=False, color=color.TTZ,             texName="t#bar{t}Z",                         directory=directories['TTZ'])
 multiBoson_18   = Sample.fromDirectory(name="multiBoson",       treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                       directory=directories['multiBoson'])
 
 #Top_gaussian         = copy.deepcopy(Top_pow)
