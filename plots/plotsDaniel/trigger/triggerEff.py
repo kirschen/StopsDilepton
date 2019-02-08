@@ -16,9 +16,15 @@ from RootTools.core.standard import *
 from StopsDilepton.tools.objectSelection import muonSelectorString, eleSelectorString
 from StopsDilepton.tools.triggerSelector import *
 
-HLT_MET_hadronic = "(HLT_HT350_MET100||HLT_HT350||HLT_HT475||HLT_HT600||HLT_dijet||HLT_jet||HLT_dijet70met120||HLT_dijet55met110||HLT_HT900||HLT_HT800||HLT_MET170_NotCleaned||HLT_MET170_HBHECleaned||HLT_MET170_BeamHaloCleaned||HLT_AllMET170||HLT_AllMET300||HLT_HT350_MET100)"
+tag_trigger = ['HLT_MET250', 'HLT_MET300', 'HLT_MET600', 'HLT_MET700']
 
-HLT_MET_hadronic = "(HLT_MET250||HLT_MET300||HLT_MET600||HLT_MET700)"
+HLT_MET_hadronic = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in tag_trigger ] )
+
+print HLT_MET_hadronic
+
+#HLT_MET_hadronic = "(HLT_HT350_MET100||HLT_HT350||HLT_HT475||HLT_HT600||HLT_dijet||HLT_jet||HLT_dijet70met120||HLT_dijet55met110||HLT_HT900||HLT_HT800||HLT_MET170_NotCleaned||HLT_MET170_HBHECleaned||HLT_MET170_BeamHaloCleaned||HLT_AllMET170||HLT_AllMET300||HLT_HT350_MET100)"
+#
+#HLT_MET_hadronic = "(HLT_MET250||HLT_MET300||HLT_MET600||HLT_MET700)"
 
 # argParser
 import argparse
@@ -69,13 +75,13 @@ preprefix = "Run%s"%year
 tr = triggerSelector(int(args.year))
 
 if args.mode == "muEle":
-    dileptonTrigger = "(%s)"%"||".join(tr.em+tr.e+tr.m)
+    dileptonTrigger = "(%s)"%"||".join([tr.SingleElectron, tr.SingleMuon, tr.MuonEG])
     triggerName = "HLT_muEle"
 elif args.mode == "doubleEle":
-    dileptonTrigger = "(%s)"%"||".join(tr.ee+tr.e)
+    dileptonTrigger = "(%s)"%"||".join([tr.DoubleEG, tr.SingleElectron])
     triggerName = "HLT_ee"
 elif args.mode == "doubleMu":
-    dileptonTrigger = "(%s)"%"||".join(tr.mm+tr.m)
+    dileptonTrigger = "(%s)"%"||".join([tr.DoubleMuon, tr.SingleMuon])
     triggerName = "HLT_mm"
 
 pt_thresholds = range(0,30,2)+range(30,50,5)+range(50,210,10)
