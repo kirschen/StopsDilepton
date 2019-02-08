@@ -141,7 +141,7 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
 
 def drawPlots(plots, mode, dataMCScale):
   for log in [False, True]:
-    plot_directory_ = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else ""), args.selection)
+    plot_directory_ = os.path.join(plot_directory, 'analysisPlots', str(args.year), args.plot_directory, mode + ("_log" if log else ""), args.selection)
     for plot in plots:
       if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
       if not args.noData: 
@@ -204,19 +204,11 @@ for index, mode in enumerate(allModes):
   data_sample.name           = "data"
   data_sample.read_variables = ["event/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
+  data_sample.scale          = 1.
   lumi_scale                 = data_sample.lumi/1000
 
   if args.noData: lumi_scale = 36.4
-  #Blinding policies for DM and T2tt analyses #FIXME
-  if not args.unblinded:
-    if args.signal == "DM":
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.event % 15 == 0) else 0)
-      lumi_scale = lumi_scale/15
-    else:
-      weight_    = lambda event, sample: event.weight if sample != data_sample else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-      lumi_scale = 17.3
-  else:
-    weight_ = lambda event, sample: event.weight
+  weight_ = lambda event, sample: event.weight
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 
@@ -258,7 +250,9 @@ for index, mode in enumerate(allModes):
 
   if args.small:
         for sample in stack.samples:
-            sample.reduceFiles( to = 1 )
+            sample.normalization = 1.
+            sample.reduceFiles( factor = 40 )
+            sample.scale /= sample.normalization
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
