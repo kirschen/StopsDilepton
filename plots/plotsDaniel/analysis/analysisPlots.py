@@ -274,13 +274,13 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     name = 'PV_npvsGood', texX = 'N_{PV} (good)', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "PV_npvsGood/I" ),
-    binning=[50,0,50],
+    binning=[100,0,100],
   ))
     
   plots.append(Plot(
     name = 'PV_npvs', texX = 'N_{PV} (total)', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "PV_npvs/I" ),
-    binning=[50,0,50],
+    binning=[100,0,100],
   ))
 
   plots.append(Plot(
