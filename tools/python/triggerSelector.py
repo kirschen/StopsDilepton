@@ -25,18 +25,19 @@ class triggerSelector:
             raise NotImplementedError("Trigger selection %r not implemented"%year)
 
         # define which triggers should be used for which dataset. could join several lists of triggers
-        self.DoubleMuon     = "(%s)"%"||".join(self.mm)
-        self.DoubleEG       = "(%s)"%"||".join(self.ee)
-        self.EGamma         = "(%s)"%"||".join(self.ee)
-        self.MuonEG         = "(%s)"%"||".join(self.em)
-        self.SingleMuon     = "(%s)"%"||".join(self.m)
-        self.SingleElectron = "(%s)"%"||".join(self.e)
+        self.DoubleMuon     = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.mm ] )
+        self.DoubleEG       = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.ee ] )
+        self.EGamma         = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.ee+self.e ] )
+        self.MuonEG         = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.em ] )
+        self.SingleMuon     = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.m ] )
+        self.SingleElectron = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.e ] )
 
         # define an arbitrary hierarchy
         if year == 2016 or year == 2017:
             self.PDHierarchy = [ "DoubleMuon", "DoubleEG", "MuonEG", "SingleMuon", "SingleElectron" ]
         else:
-            self.PDHierarchy = [ "DoubleMuon", "EGamma", "MuonEG", "SingleMuon", "SingleElectron" ]
+            # DoubleEG and SingleElectron PDs are merged into EGamma. No change necessary for MC though.
+            self.PDHierarchy = [ "DoubleMuon", "EGamma", "MuonEG", "SingleMuon" ]
 
     def __getVeto(self, cutString):
         return "!%s"%cutString

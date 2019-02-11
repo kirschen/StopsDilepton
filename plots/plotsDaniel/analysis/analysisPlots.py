@@ -72,7 +72,7 @@ elif args.year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     postProcessing_directory = "stops_2018_nano_v7/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    mc             = [ Top_pow_18, TTX_18, multiBoson_18, DY_LO_18]
+    mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
 
 
 
