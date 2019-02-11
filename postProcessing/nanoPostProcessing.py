@@ -628,6 +628,10 @@ def getMetCorrected(r, var, addPhoton = None):
     else:
         raise ValueError
 
+# using miniRelIso 0.2 as baseline 
+ele_selector = eleSelector( "tight", year = options.year )
+mu_selector = muonSelector( "tight", year = options.year )
+
 mothers = {"D":0, "B":0}
 grannies_D = {}
 grannies_B = {}
@@ -722,10 +726,7 @@ def filler( event ):
     bJets        = filter(lambda j:isBJet(j, tagger="CSVv2", year=options.year) and abs(j['eta'])<=2.4    , jets)
     nonBJets     = filter(lambda j:not ( isBJet(j, tagger="CSVv2", year=options.year) and abs(j['eta'])<=2.4 ), jets)
 
-    # using miniRelIso 0.2 as baseline 
-    ele_selector = eleSelector( "tight", year = options.year )
     electrons_pt10 = getGoodElectrons(r, ele_selector = ele_selector)
-    mu_selector = muonSelector( "tight", year = options.year )
     muons_pt10 = getGoodMuons(r, mu_selector = mu_selector )
 
     for e in electrons_pt10:
