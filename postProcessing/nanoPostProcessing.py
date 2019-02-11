@@ -572,9 +572,9 @@ if not options.skipNanoTools:
     modules = []
     if not sample.isData:
         modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True) ) #was Total
-    else:
-        # for MC this is already done in jetmetUncertaintyProducer
-        modules.append( jetRecalib(JEC) )
+    #else:
+    #    # for MC this is already done in jetmetUncertaintyProducer
+    #    modules.append( jetRecalib(JEC) )
 
     modules.append( METSigProducer(JER, metSigParams) )
 
