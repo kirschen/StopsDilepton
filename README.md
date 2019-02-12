@@ -15,7 +15,7 @@ VERY IMPORTANT: if you use the MVA, run `MVA/setPyMva.sh` or best, add it to you
 git remote add hephy https://github.com/HephyAnalysisSW/cmssw.git
 git fetch hephy
 git checkout -b ctpps_initial_proton_reconstruction_CMSSW_10_2_0 hephy/ctpps_initial_proton_reconstruction_CMSSW_10_2_0
-~                                                                                                                            ```
+```
 
 # Combine 7_4_7 used for limit setting right now
 
