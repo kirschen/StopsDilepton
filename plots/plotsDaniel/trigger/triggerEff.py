@@ -16,11 +16,20 @@ from RootTools.core.standard import *
 from StopsDilepton.tools.objectSelection import muonSelectorString, eleSelectorString
 from StopsDilepton.tools.triggerSelector import *
 
-tag_trigger = ['HLT_MET250', 'HLT_MET300', 'HLT_MET600', 'HLT_MET700']
+tag_trigger = {'MET':{}, 'JetHT':{}}
 
-HLT_MET_hadronic = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in tag_trigger ] )
+tag_trigger['MET'][2016]    = ['HLT_MET200','HLT_MET250', 'HLT_MET300', 'HLT_MET600', 'HLT_MET700','HLT_PFMET300','HLT_PFMET400','HLT_PFMET500','HLT_PFMET600','HLT_PFMET90_PFMHT90_IDTight','HLT_PFMET100_PFMHT100_IDTight','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight']
+tag_trigger['JetHT'][2016]  = ['HLT_HT200','HLT_HT275','HLT_HT325','HLT_HT425','HLT_HT575','HLT_HT410to430','HLT_HT430to450','HLT_HT450to470','HLT_HT470to500','HLT_HT500to550','HLT_HT550to650','HLT_HT650','HLT_PFHT300_PFMET100','HLT_PFHT300_PFMET110','HLT_DiPFJetAve15_HFJEC','HLT_DiPFJetAve25_HFJEC','HLT_DiPFJetAve35_HFJEC','HLT_PFJet40','HLT_PFJet60','HLT_PFJet80','HLT_PFJet140','HLT_PFJet200','HLT_PFJet260','HLT_PFJet320','HLT_PFJet400','HLT_PFJet450','HLT_PFJet500']
 
-print HLT_MET_hadronic
+tag_trigger['MET'][2017]    = ['HLT_PFMET200_NotCleaned','HLT_PFMET200_HBHECleaned','HLT_PFMET250_HBHECleaned','HLT_PFMET300_HBHECleaned','HLT_PFMET200_HBHE_BeamHaloCleaned','HLT_CaloMET100_HBHECleaned','HLT_CaloMET250_HBHECleaned','HLT_CaloMET300_HBHECleaned','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight']
+tag_trigger['JetHT'][2017]  = ['HLT_PFHT430', 'HLT_PFHT510', 'HLT_PFHT590', 'HLT_PFHT680', 'HLT_PFHT780', 'HLT_PFHT890', 'HLT_PFHT1050', 'HLT_PFJet40', 'HLT_PFJet60', 'HLT_PFJet80', 'HLT_PFJet140', 'HLT_PFJet200','HLT_PFJet260', 'HLT_PFJet320', 'HLT_PFJet400', 'HLT_PFJet450', 'HLT_PFJet500', 'HLT_PFJet550', 'HLT_DiPFJetAve15_HFJEC', 'HLT_DiPFJetAve25_HFJEC', 'HLT_DiPFJetAve35_HFJEC']
+#tag_trigger_both_2017 = ['HLT_PFHT500_PFMET100_PFMHT100_IDTight', 'HLT_PFHT500_PFMET110_PFMHT110_IDTight', 'HLT_PFHT700_PFMET85_PFMHT85_IDTight', 'HLT_PFHT700_PFMET95_PFMHT95_IDTight', 'HLT_PFHT800_PFMET75_PFMHT75_IDTight', 'HLT_PFHT800_PFMET85_PFMHT85_IDTight', 'HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight']
+
+tag_trigger['JetHT'][2018]   = ['HLT_PFJet15','HLT_PFJet25','HLT_PFJet40','HLT_PFJet60','HLT_PFJet80','HLT_PFJet140','HLT_PFJet200','HLT_PFJet260','HLT_PFJet320','HLT_PFJet400','HLT_PFJet450','HLT_PFJet500','HLT_PFJet550','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFHT180','HLT_PFHT250','HLT_PFHT370','HLT_PFHT430','HLT_PFHT510','HLT_PFHT590','HLT_PFHT680','HLT_PFHT780','HLT_PFHT890','HLT_PFHT1050']
+tag_trigger['MET'][2018]     = ['HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFMET200_NotCleaned','HLT_PFMET200_HBHECleaned','HLT_PFMET250_HBHECleaned','HLT_PFMET300_HBHECleaned','HLT_PFMET200_HBHE_BeamHaloCleaned','HLT_CaloMET250_HBHECleaned','HLT_CaloMET300_HBHECleaned','HLT_CaloMET350_HBHECleaned']
+
+#HLT_MET = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in tag_trigger_MET ] )
+#HLT_HT  = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in tag_trigger_HT ] )
 
 #HLT_MET_hadronic = "(HLT_HT350_MET100||HLT_HT350||HLT_HT475||HLT_HT600||HLT_dijet||HLT_jet||HLT_dijet70met120||HLT_dijet55met110||HLT_HT900||HLT_HT800||HLT_MET170_NotCleaned||HLT_MET170_HBHECleaned||HLT_MET170_BeamHaloCleaned||HLT_AllMET170||HLT_AllMET300||HLT_HT350_MET100)"
 #
@@ -32,14 +41,24 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',            action='store',             nargs='?',      choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],      default='INFO',      help="Log level for logging")
 argParser.add_argument('--small',               action='store_true',        help='Small?')   
 argParser.add_argument('--selection',           default='',                 type=str,    action='store')
-argParser.add_argument('--baseTrigger',         default=HLT_MET_hadronic,   type=str,    action='store')
+#argParser.add_argument('--baseTrigger',         default=HLT_MET,   type=str,    action='store')
 #argParser.add_argument('--dileptonTrigger',     default='HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL',          type=str,    action='store')
 argParser.add_argument('--sample',              default='MET',              type=str,    action='store')
 argParser.add_argument('--plot_directory',      default='pngEff',           type=str,    action='store')
 argParser.add_argument('--minLeadingLeptonPt',  default=0,                  type=int,    action='store')
 argParser.add_argument('--mode',                default='muEle',            action='store',    choices=['doubleMu', 'doubleEle',  'muEle'])
-argParser.add_argument('--year',                default=2016,               action='store',    choices=[2016, 2017, 2018])
+argParser.add_argument('--year',                default=2016,               action='store')
 args = argParser.parse_args()
+
+year = int(args.year)
+
+baseTrigger = "(%s)"%"||".join(tag_trigger[args.sample][year])
+
+
+#if args.baseTrigger == 'HLT_MET':
+#    baseTrigger = HLT_MET[year]
+#elif args.baseTrigger == 'HLT_HT':
+#    baseTrigger = HLT_HT[year]
 
 
 # Logging
@@ -48,9 +67,6 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
-maxN = 10 if args.small else -1 
-
-year = int(args.year)
 
 if year == 2016:
     from Samples.nanoAOD.Run2016_14Dec2018 import *
@@ -63,14 +79,19 @@ elif year == 2017:
     elif args.sample == "MET": data_samples = MET_Run2017
     else: raise(NotImplementedError, "Don't know what to do with sample %s"%args.sample)
 elif year == 2018:
-    from Samples.nanoAOD.Run2018_14Sep2018.py import * #MET and JetHT PDs still missing. 14Dec processing to come
-    if args.sample == "JetHT": data_samples = JetHT_Run2018
-    elif args.sample == "MET": data_samples = MET_Run2018
+    from Samples.nanoAOD.Run2018_17Sep2018_private import * #use private
+    if args.sample == "JetHT": data_samples = JetHT
+    elif args.sample == "MET": data_samples = MET
     else: raise(NotImplementedError, "Don't know what to do with sample %s"%args.sample)
-
 
 data=Sample.combine( "Run%s"%year, data_samples )
 preprefix = "Run%s"%year
+
+if args.small:
+    if year == 2018:
+        data.reduceFiles(to=100)
+    else:
+        data.reduceFiles(to=10)
 
 tr = triggerSelector(int(args.year))
 
@@ -152,15 +173,15 @@ def leptonSelectorString(index, ptCut):
 
 if args.mode == 'doubleMu':
     selString           = muonSelectorString
-    leadingString       = "MaxIf$(Muon_pt,%s)"%selString(index=None,ptCut=0)
-    subLeadingString    = "MinIf$(Muon_pt,%s)"%selString(index=None,ptCut=0)
+    leadingStringPt     = "MaxIf$(Muon_pt,%s)"%selString(index=None,ptCut=0)
+    subLeadingStringPt  = "MinIf$(Muon_pt,%s)"%selString(index=None,ptCut=0)
     leadingStringEta    = "Muon_eta"
     subLeadingStringEta = "Muon_eta"
 elif args.mode == 'doubleEle':
     selString           = eleSelectorString
     leadingStringPt     = "MaxIf$(Electron_pt,%s)"%selString(index=None,ptCut=0)
     subLeadingStringPt  = "MinIf$(Electron_pt,%s)"%selString(index=None,ptCut=0)
-    etaString           = "Electron_eta"
+    leadingStringEta    = "Electron_eta"
     subLeadingStringEta = "Electron_eta"
 elif args.mode == 'muEle':
     selString           = leptonSelectorString
@@ -175,12 +196,17 @@ else:
 selection_string    = "&&".join( str_ for str_ in [\
         'Sum$('+selString(ptCut=0,index=None)+')==2' if args.mode in ['doubleMu', 'doubleEle'] 
                 else 'Sum$('+muonSelectorString(ptCut=0,index=None)+')==1&&Sum$('+eleSelectorString(ptCut=0,index=None)+')==1',   
-        args.baseTrigger,
+        baseTrigger,
         args.selection
     ] if str_ )
 
 plot_string_pt1      = dileptonTrigger+":%s>>eff_pt1"%leadingStringPt
 plot_string_pt2      = dileptonTrigger+":%s>>eff_pt2"%subLeadingStringPt
+
+print
+print plot_string_pt1
+print
+print plot_string_pt2
 
 logger.info( "Plot string: %s" % plot_string_pt1 )
 logger.info( "Selection:   %s" % selection_string )
@@ -191,14 +217,27 @@ data.chain.Draw(plot_string_pt2, selection_string, 'goff')
 data.chain.Draw("Sum$(Jet_pt*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_jetId>0))>>ht", selection_string, 'goff')
 
 plot_string_eta1     = dileptonTrigger+":%s>>eff_eta1"%leadingStringEta
-data.chain.Draw(plot_string_eta1, selection_string+"&&(Muon_pt==%s||Electron_pt==%s)"%(leadingStringPt,leadingStringPt), 'goff') 
+selection_string_eta1 = selection_string+"&&(Muon_pt==%s||Electron_pt==%s)"%(leadingStringPt,leadingStringPt)
+print
+print selection_string_eta1
+data.chain.Draw(plot_string_eta1, selection_string_eta1, 'goff') 
 
 plot_string_eta2     = dileptonTrigger+":%s>>eff_eta2"%subLeadingStringEta
-data.chain.Draw(plot_string_eta2, selection_string+"&&(Muon_pt==%s||Electron_pt==%s)"%(subLeadingStringPt,subLeadingStringPt), 'goff') 
+if args.mode == 'doubleEle':
+    selection_string_eta2 = selection_string+"&&(Electron_pt==%s)"%(subLeadingStringPt)
+elif args.mode == 'doubleMu':
+    selection_string_eta2 = selection_string+"&&(Muon_pt==%s)"%(subLeadingStringPt)
+else:
+    selection_string_eta2 = selection_string+"&&(Muon_pt==%s||Electron_pt==%s)"%(subLeadingStringPt,subLeadingStringPt)
+print
+print selection_string_eta2
+data.chain.Draw(plot_string_eta2, selection_string_eta2, 'goff') 
 
-plot_string_pt1_pt2    = dileptonTrigger+":%s:%s)>>eff_pt1_pt2"%(subLeadingStringPt,subLeadingStringPt)
+#raise NotImplementedError
+
+plot_string_pt1_pt2    = dileptonTrigger+":%s:%s>>eff_pt1_pt2"%(subLeadingStringPt,leadingStringPt)
 data.chain.Draw(plot_string_pt1_pt2, selection_string, 'goff')
-plot_string_pt1_pt2_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_veryCoarse"%(subLeadingStringPt,subLeadingStringPt)
+plot_string_pt1_pt2_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_veryCoarse"%(subLeadingStringPt,leadingStringPt)
 data.chain.Draw(plot_string_pt1_pt2_veryCoarse, selection_string, 'goff')
 
 if args.mode=='muEle':
@@ -212,11 +251,18 @@ if args.mode=='muEle':
     data.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(Muon_eta)<=1.5&&"+selString(index=None,ptCut=0)+')==1', 'goff')
 else:
     # split high/low ETA wrt leading lepton
-    plot_string_pt1_pt2_highEta1_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_highEta1_veryCoarse"%(subLeadingStringPt,leadingStringPt)
-    data.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(Muon_eta)>1.5&&Muon_pt==%s + abs(Electron_eta)>1.5&&Electron_pt==%s)==1"%(leadingStringPt,leadingStringPt), 'goff')
-
-    plot_string_pt1_pt2_lowEta1_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_lowEta1_veryCoarse"%(subLeadingStringPt,leadingStringPt)
-    data.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(Muon_eta)<=1.5&&Muon_pt==%s + abs(Electron_eta)<=1.5&&Electron_pt==%s)==1"%(leadingStringPt,leadingStringPt), 'goff')
+    if args.mode == 'doubleMu':
+        plot_string_pt1_pt2_highEta1_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_highEta1_veryCoarse"%(subLeadingStringPt,leadingStringPt)
+        data.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(Muon_eta)>1.5&&Muon_pt==%s)==1"%(leadingStringPt), 'goff')
+    
+        plot_string_pt1_pt2_lowEta1_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_lowEta1_veryCoarse"%(subLeadingStringPt,leadingStringPt)
+        data.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(Muon_eta)<=1.5&&Muon_pt==%s)==1"%(leadingStringPt), 'goff')
+    elif args.mode == 'doubleEle':
+        plot_string_pt1_pt2_highEta1_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_highEta1_veryCoarse"%(subLeadingStringPt,leadingStringPt)
+        data.chain.Draw(plot_string_pt1_pt2_highEta1_veryCoarse, selection_string+"&&Sum$(abs(Electron_eta)>1.5&&Electron_pt==%s)==1"%(leadingStringPt), 'goff')
+    
+        plot_string_pt1_pt2_lowEta1_veryCoarse    = dileptonTrigger+":%s:%s>>eff_pt1_pt2_lowEta1_veryCoarse"%(subLeadingStringPt,leadingStringPt)
+        data.chain.Draw(plot_string_pt1_pt2_lowEta1_veryCoarse, selection_string+"&&Sum$(abs(Electron_eta)<=1.5&&Electron_pt==%s)==1"%(leadingStringPt), 'goff')
 
 plot_string_pt1_eta1   = dileptonTrigger+":%s:%s>>eff_pt1_eta1"%(leadingStringEta, leadingStringPt)
 data.chain.Draw(plot_string_pt1_eta1, selection_string+"&&(Muon_pt==%s||Electron_pt==%s)"%(leadingStringPt,leadingStringPt), 'goff')

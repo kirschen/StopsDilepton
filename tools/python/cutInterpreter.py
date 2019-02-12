@@ -17,6 +17,7 @@ special_cuts = {
 
     "OS":                "(l1_pdgId*l2_pdgId)<0",
     "lepSel":            "l1_pt>30&&l2_pt>20",
+    "lepSelEXO":         "l1_pt>25&&l2_pt>10",
 
     "allZ":              "(1)",
     "onZ":               "abs(dl_mass-91.1876)<15",
