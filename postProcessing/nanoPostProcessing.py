@@ -73,6 +73,7 @@ def get_parser():
     argParser.add_argument('--skim',        action='store',         nargs='?',  type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
     argParser.add_argument('--LHEHTCut',    action='store',         nargs='?',  type=int, default=-1,                                   help="LHE cut." )
     argParser.add_argument('--year',        action='store',                     type=int,                                               help="Which year?" )
+    argParser.add_argument('--overwriteJEC',action='store',                               default=None,                                 help="Which year?" )
     argParser.add_argument('--overwrite',   action='store_true',                                                                        help="Overwrite existing output files, bool flag set to True  if used" )
     argParser.add_argument('--keepAllJets', action='store_true',                                                                        help="Keep also forward jets?" )
     argParser.add_argument('--small',       action='store_true',                                                                        help="Run the file on a small sample (for test purpose), bool flag set to True if used" )
@@ -88,6 +89,7 @@ def get_parser():
     argParser.add_argument('--forceProxy',                  action='store_true',                                                        help="Don't check certificate")
     argParser.add_argument('--skipNanoTools',               action='store_true',                                                        help="Skipt the nanoAOD tools step for computing JEC/JER/MET etc uncertainties")
     argParser.add_argument('--keepNanoAOD',                 action='store_true',                                                        help="Keep nanoAOD output?")
+    argParser.add_argument('--reapplyJECS',                 action='store_true',                                                        help="Reapply JECs to data?")
 
     return argParser
 
@@ -557,27 +559,55 @@ if not options.skipNanoTools:
         metSigParamsData    = [1.743319492995906, 1.6882972548344242, 1.6551185757422577, 1.4185872885319166, 1.5923201986159454, -0.0002185734915505621, 0.6558819144933438]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
-        JEC                 = "Fall17_17Nov2017_V32_MC"     if not sample.isData else "Fall17_17Nov2017_V32_DATA"
+        if sample.isData:
+            if sample.name.count('Run2017B'):
+                JEC         = "Fall17_17Nov2017B_V32_DATA"
+            elif sample.name.count('Run2017C'):
+                JEC         = "Fall17_17Nov2017C_V32_DATA"
+            elif sample.name.count('Run2017D'):
+                JEC         = "Fall17_17Nov2017D_V32_DATA"
+            elif sample.name.count('Run2017E'):
+                JEC         = "Fall17_17Nov2017E_V32_DATA"
+            elif sample.name.count('Run2017F'):
+                JEC         = "Fall17_17Nov2017F_V32_DATA"
+            else:
+                raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
+        else:
+            JEC             = "Fall17_17Nov2017_V32_MC"
     elif options.year == 2018:
         metSigParamsMC      = [1.3889924894064565, 1.4100950862040742, 1.388614360360041, 1.2352876826748016, 1.0377595808114612, 0.004479319982990152, 0.6269386702181299]
         metSigParamsData    = [1.8901832149541773, 2.026001195551111, 1.7805585857080317, 1.5987158841135176, 1.4509516794588302, 0.0003365079273751142, 0.6697617770737838]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
-        JEC                 = "Autumn18_V1_MC"     if not sample.isData else "Fall17_17Nov2017_V32_DATA"
+        if sample.isData:
+            if sample.name.count("Run2018"):
+                JEC         = "Fall17_17Nov2017F_V32_DATA" # is this correct?!
+            else:
+                raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
+        else:
+            JEC             = "Autumn18_V1_MC"
 
     # set the params for MET Significance calculation
     metSigParams            = metSigParamsMC                if not sample.isData else metSigParamsData
+
+    if options.overwriteJEC is not None:
+        JEC = options.overwriteJEC
 
     logger.info("Using JERs: %s", JER)
     logger.info("Using JECs: %s", JEC)
 
     # define modules. JEC reapplication only works with MC right now, so just don't do it.
     modules = []
+    
     if not sample.isData:
         modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True) ) #was Total
-    #else:
-    #    # for MC this is already done in jetmetUncertaintyProducer
-    #    modules.append( jetRecalib(JEC) )
+    else:
+        # for MC this is already done in jetmetUncertaintyProducer
+        if options.reapplyJECS:
+            modules.append( jetRecalib(JEC) )
+            logger.info("JECs will be reapplied.")
+        else:
+            logger.info("JECs won't be reapplied. Choice of JECs has no effect.")
 
     modules.append( METSigProducer(JER, metSigParams) )
 
@@ -724,13 +754,11 @@ def filler( event ):
     
     allSlimmedJets      = getJets(r)
     allSlimmedPhotons   = getPhotons(r, year=options.year)
-    print "prefire rates:"
     if options.year == 2018:
         event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = 1., 1., 1.
     else:
         event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = L1PW.getWeight(allSlimmedPhotons, allSlimmedJets)
 
-    print "weights are:", event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown
 
     reallyAllJets= getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=99) # ... yeah, I know.
     allJets      = filter(lambda j:abs(j['eta'])<jetAbsEtaCut, reallyAllJets)

@@ -255,7 +255,7 @@ for index, mode in enumerate(allModes):
             sample.scale /= sample.normalization
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
+  Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper', histo_class=ROOT.TH1D)
   
   plots = []
 
