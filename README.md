@@ -14,6 +14,15 @@ VERY IMPORTANT: if you use the MVA, run `MVA/setPyMva.sh` or best, add it to you
 ```
 git remote add hephy https://github.com/HephyAnalysisSW/cmssw.git
 git fetch hephy
+git cms-addpkg \
+CondFormats/CTPPSOpticsObjects \
+DataFormats/ProtonReco \
+IOMC/EventVertexGenerators \
+IOMC/ParticleGuns \
+RecoCTPPS/ProtonReconstruction \
+RecoCTPPS/TotemRPLocal \
+SimCTPPS/OpticsParameterisation \
+Validation/CTPPS
 git checkout -b ctpps_initial_proton_reconstruction_CMSSW_10_2_0 hephy/ctpps_initial_proton_reconstruction_CMSSW_10_2_0
 ```
 
