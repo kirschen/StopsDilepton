@@ -29,17 +29,18 @@ import StopsDilepton.tools.user as user
 from StopsDilepton.tools.user import MVA_preprocessing_directory, MVA_model_directory
 
 # Tools for systematics
-from StopsDilepton.tools.mt2Calculator import mt2Calculator
+from StopsDilepton.tools.mt2Calculator      import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile
-from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
-from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
-from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
-from StopsDilepton.tools.polReweighting import getPolWeights
-from StopsDilepton.tools.puProfileCache import puProfile
+from StopsDilepton.tools.helpers            import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile
+from StopsDilepton.tools.addJERScaling      import addJERScaling
+from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons
+from StopsDilepton.tools.overlapRemovalTTG  import getTTGJetsEventType
+from StopsDilepton.tools.getGenBoson        import getGenZ, getGenPhoton
+from StopsDilepton.tools.polReweighting     import getPolWeights
+from StopsDilepton.tools.puProfileCache     import puProfile
+from StopsDilepton.tools.L1PrefireWeight    import L1PrefireWeight
+from StopsDilepton.tools.triggerEfficiency  import triggerEfficiency
 
-from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
 triggerEff            = triggerEfficiency(with_backup_triggers = False)
 
@@ -186,6 +187,8 @@ ts = triggerSelector(options.year)
 triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
 treeFormulas = {"triggerDecision": {'string':triggerCond} }
 
+L1PW = L1PrefireWeight(options.year)
+
 if sample.isData and options.triggerSelection:
     logger.info("Sample will have the following trigger skim: %s"%triggerCond)
     skimConds.append( triggerCond )
@@ -209,16 +212,16 @@ else:
 if isMC:
     from Analysis.Tools.puReweighting import getReweightingFunction
     if options.year == 2016:
-        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Summer16")
-        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc="Summer16")
-        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc="Summer16")
+        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_35920_XSecCentral", mc="Summer16")
+        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_35920_XSecDown",    mc="Summer16")
+        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_35920_XSecUp",      mc="Summer16")
     elif options.year == 2017:
         # keep the weight name for now. Should we update to a more general one?
         puProfiles = puProfile( source_sample = samples[0] )
         mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
-        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2017_42400_XSecCentral",  mc=mcHist)
-        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2017_42400_XSecDown",     mc=mcHist)
-        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_42400_XSecUp",       mc=mcHist)
+        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2017_41860_XSecCentral",  mc=mcHist)
+        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2017_41860_XSecDown",     mc=mcHist)
+        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_41860_XSecUp",       mc=mcHist)
     elif options.year == 2018:
         # keep the weight name for now. Should we update to a more general one?
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2018_58830_XSecCentral",  mc="Autumn18")
@@ -389,7 +392,7 @@ if isMC:
     read_variables.append( TreeVariable.fromString('genWeight/F') )
     read_variables.append( TreeVariable.fromString('nGenJet/I') )
     read_variables.append( VectorTreeVariable.fromString('GenJet[pt/F,eta/F,phi/F]' ) )
-    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F', 'reweightPU36fbVUp/F','reweightPU36fbVDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F', 'reweightPU36fbVUp/F','reweightPU36fbVDown/F', 'reweightL1Prefire/F', 'reweightL1PrefireUp/F', 'reweightL1PrefireDown/F'])
     if not options.skipGenLepMatching:
         TreeVariable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
@@ -718,7 +721,17 @@ def filler( event ):
 #
 #    print "Good"
 #    sys.exit(0)
-        
+    
+    allSlimmedJets      = getJets(r)
+    allSlimmedPhotons   = getPhotons(r, year=options.year)
+    print "prefire rates:"
+    if options.year == 2018:
+        event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = 1., 1., 1.
+    else:
+        event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = L1PW.getWeight(allSlimmedPhotons, allSlimmedJets)
+
+    print "weights are:", event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown
+
     reallyAllJets= getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=99) # ... yeah, I know.
     allJets      = filter(lambda j:abs(j['eta'])<jetAbsEtaCut, reallyAllJets)
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)

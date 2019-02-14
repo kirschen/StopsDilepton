@@ -8,7 +8,7 @@ def getJets(c, jetVars=jetVars, jetColl="Jet"):
     return [getObjDict(c, jetColl+'_', jetVars, i) for i in range(int(getVarValue(c, 'n'+jetColl)))]
 
 def jetId(j, ptCut=30, absEtaCut=2.4, ptVar='pt'):
-  return j[ptVar]>ptCut and abs(j['eta'])<absEtaCut and j['jetId']
+  return j[ptVar]>ptCut and abs(j['eta'])<absEtaCut and j['jetId'] > 0
 
 def getGoodJets(c, ptCut=30, absEtaCut=2.4, jetVars=jetVars, jetColl="Jet"):
     return filter(lambda j:jetId(j, ptCut=ptCut, absEtaCut=absEtaCut), getJets(c, jetVars, jetColl=jetColl))
@@ -208,7 +208,9 @@ idCutBased={'loose':0 ,'medium':1, 'tight':2}
 photonVars=['eta','pt','phi','mass','cutBased']
 photonVarsMC = photonVars + ['mcPt']
 
-def getPhotons(c, collVars=photonVars, idLevel='loose'):
+def getPhotons(c, collVars=None, idLevel='loose', year=2016):
+    if collVars is None:
+        collVars = ['eta','pt','phi','mass','cutBased'] if (not (year == 2017 or year == 2018)) else ['eta','pt','phi','mass','cutBasedBitmap']
     return [getObjDict(c, 'Photon_', collVars, i) for i in range(int(getVarValue(c, 'nPhoton')))]
 
 def getGoodPhotons(c, ptCut=50, idLevel="loose", isData=True, collVars=None, year=2016):
