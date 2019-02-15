@@ -2,7 +2,7 @@
 ##
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TTZToQQ #SPLIT5
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TTZToLLNuNu # SPLIT20
-#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TTZToLLNuNu_m1to10 # SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TTZToLLNuNu_m1to10 # SPLIT20
 #
 python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M50_LO DYJetsToLL_M50_LO_ext1 # SPLIT40
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M10to50_LO # SPLIT10
@@ -25,17 +25,17 @@ python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processin
 ##python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M4to50_HT400to600  # SPLIT20
 ##python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample DYJetsToLL_M4to50_HT600toInf  # SPLIT10
 ##
-#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TToLeptons_sch_amcatnlo #SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TToLeptons_sch_amcatnlo #SPLIT20
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample T_tch_pow #SPLIT20
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TBar_tch_pow #SPLIT20
-#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample T_tWch_ext #SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample T_tWch_ext #SPLIT20
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TBar_tWch_ext #SPLIT20
 ##
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TTHbb #SPLIT20
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TTHnobb_pow #SPLIT20
-#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample THQ #SPLIT20
-#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample THW #SPLIT20
-#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TGJets #SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample THQ #SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample THW #SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample TGJets #SPLIT20
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample tZq_ll #SPLIT20
 ##python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample tWll #SPLIT20
 ##python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v7   --skipSystematicVariations --skipGenLepMatching --sample tWnunu #SPLIT20

@@ -8,8 +8,8 @@ class triggerSelector:
             self.em     = ["HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL", "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL", "HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL"]
 
         elif year == 2017:
-            self.mm     = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ", "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8"] # "HLT_Mu37_TkMu27" not in nanoAOD
-            self.m      = ["HLT_IsoMu27", "HLT_Mu50"]
+            self.mm     = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ", "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8"]# + ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8"] # not there in B # "HLT_Mu37_TkMu27" not in nanoAOD
+            self.m      = ["HLT_IsoMu27", "HLT_Mu50"] + ["HLT_IsoMu24"]# + ["HLT_TkMu50"]
             self.ee     = ["HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL", "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ", "HLT_DoubleEle33_CaloIdL_MW"]
             self.e      = ["HLT_Ele35_WPTight_Gsf", "HLT_Ele32_WPTight_Gsf_L1DoubleEG"] # no non-isolated triggers in nanoAOD in 2017?HLT_Ele115_CaloIdVT_GsfTrkIdT missing, add single photon trigger? 
             self.em     = ["HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ", "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ"]
@@ -25,12 +25,12 @@ class triggerSelector:
             raise NotImplementedError("Trigger selection %r not implemented"%year)
 
         # define which triggers should be used for which dataset. could join several lists of triggers
-        self.DoubleMuon     = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.mm ] )
-        self.DoubleEG       = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.ee ] )
-        self.EGamma         = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.ee+self.e ] )
-        self.MuonEG         = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.em ] )
-        self.SingleMuon     = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.m ] )
-        self.SingleElectron = "(%s)"%"||".join( [ "Alt$(%s,0)"%trigger for trigger in self.e ] )
+        self.DoubleMuon     = "(%s)"%"||".join( [ "Alt$(%s,0)>0.9"%trigger for trigger in self.mm ] )
+        self.DoubleEG       = "(%s)"%"||".join( [ "Alt$(%s,0)>0.9"%trigger for trigger in self.ee ] )
+        self.EGamma         = "(%s)"%"||".join( [ "Alt$(%s,0)>0.9"%trigger for trigger in self.ee+self.e ] )
+        self.MuonEG         = "(%s)"%"||".join( [ "Alt$(%s,0)>0.9"%trigger for trigger in self.em ] )
+        self.SingleMuon     = "(%s)"%"||".join( [ "Alt$(%s,0)>0.9"%trigger for trigger in self.m ] )
+        self.SingleElectron = "(%s)"%"||".join( [ "Alt$(%s,0)>0.9"%trigger for trigger in self.e ] )
 
         # define an arbitrary hierarchy
         if year == 2016 or year == 2017:
