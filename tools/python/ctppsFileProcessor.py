@@ -15,9 +15,23 @@ from RootTools.core.standard import *
 import logging
 logger = logging.getLogger(__name__)
 
+#JEC
+from JetMET.tools.helpers import jetID
+from JetMET.JetCorrector.JetCorrector import JetCorrector 
+from JetMET.JetCorrector.JetCorrector import correction_levels_mc
+config_Fall17_17Nov17_V32_MC = [(1, 'Fall17_17Nov2017_V32_MC') ]
+jetCorrector_mc = JetCorrector.fromTarBalls( config_Fall17_17Nov17_V32_MC, correctionLevels = correction_levels_mc ) 
+
+from FWCore.PythonUtilities.LumiList import LumiList
+
+if __name__ == "__main__":
+    # Logging
+    import JetMET.tools.logger as logger
+    logger  = logger.get_logger('DEBUG', logFile = None)
+
 class ctppsFileProcessor:
 
-    def __init__( self, infiles, outfile, year, isMC = False, overwrite = False, maxEvents = -1):
+    def __init__( self, infiles, outfile, year, isMC = False, overwrite = False, maxEvents = -1, json = None):
         
         if type(infiles)==type(""): infiles = [infiles ]
 
@@ -25,12 +39,17 @@ class ctppsFileProcessor:
 
         if not year == 2017:
             raise NotImplementedError
+        if json is not None:
+            lumiList = LumiList(os.path.expandvars(json))
+            logger.info( "Loaded json %s", json )
+        else:
+            lumiList = None
 
         if not ( os.path.exists( outfile ) and helpers.checkRootFile( outfile) ) or overwrite:
 
             # Write EDM file
-            #tmpfile = "/tmp/b3068f86-3202-4aa7-9f3b-fc72c7d8112c.root"
-            tmpfile = "/tmp/"+str(uuid.uuid4())+'.root'
+            #tmpfile = "/tmp/"+str(uuid.uuid4())+'.root'
+            tmpfile = "./"+str(uuid.uuid4())+'.root'
             extra_args = ["maxEvents="+str(maxEvents)] if maxEvents>0 else []
             cfg = "data_ctpps_reco.py" if not isMC else "mc_ctpps_reco.py"
 
@@ -44,16 +63,19 @@ class ctppsFileProcessor:
 
             ctpps_edm  = FWLiteSample.fromFiles("ctpps", files = [ tmpfile ] ) 
             reader = ctpps_edm.fwliteReader( 
-                products = { 'ptracks':{'type':'vector<reco::ProtonTrack>', 'label': ( "ctppsProtonReconstructionOFDB" ) } }
+                products = { 'ptracks':{'type':'vector<reco::ProtonTrack>', 'label': ( "ctppsProtonReconstructionOFDB" ) }, 
+                             'jets':{'type':'vector<pat::Jet>', 'label': ( "slimmedJets" ) },
+#                             'rho': {'type':'double', 'label':("fixedGridRhoFastjetAll")},
+                        }
             )
 
-            proton_variables = [ "evt/l", "run/I", "lumi/I", "proton[xi/F,thx/F,thy/F,t/F,ismultirp/I,rpId/I]" ]
+            variables = [ "evt/l", "run/I", "lumi/I", "proton[xi/F,thx/F,thy/F,t/F,ismultirp/I,rpId/I]", "jet[pt/F,eta/F,phi/F,chHEF/F,neHEF/F,phEF/F,eEF/F,muEF/F,HFHEF/F,HFEMEF/F,chHMult/I,neHMult/I,phMult/I,eMult/I,muMult/I,HFHMult/I,HFEMMult/I]"  ]
 
             # Maker
             tmp_dir     = ROOT.gDirectory
             output_file = ROOT.TFile( outfile, 'recreate')
             output_file.cd()
-            maker =    TreeMaker( sequence = [], variables = map( TreeVariable.fromString, proton_variables ), treeName = "Events")
+            maker =    TreeMaker( sequence = [], variables = map( TreeVariable.fromString, variables ), treeName = "Events")
             tmp_dir.cd()
 
             reader.start()
@@ -65,6 +87,32 @@ class ctppsFileProcessor:
                 if counter_read%100==0: logger.info("Reading event %i.", counter_read)
 
                 maker.event.run, maker.event.lumi, maker.event.evt = reader.evt
+
+                if lumiList is not None and not lumiList.contains(maker.event.run, maker.event.lumi):
+                    continue
+
+                # jets
+                jets = filter( jetID, reader.products['jets'] )
+                maker.event.njet = len(jets)
+                for i_jet, jet in enumerate(jets):
+                    maker.event.jet_pt [i_jet]      = jet.pt() #*jetCorrector_mc.correction( jet.pt(), jet.eta(), jet.area(), reader.products['rho'][0], maker.event.run ) 
+
+                    maker.event.jet_eta[i_jet]      = jet.eta()
+                    maker.event.jet_phi[i_jet]      = jet.phi()
+                    maker.event.jet_chHEF[i_jet]    = jet.chargedHadronEnergyFraction()
+                    maker.event.jet_neHEF[i_jet]    = jet.neutralHadronEnergyFraction()
+                    maker.event.jet_phEF[i_jet]     = jet.photonEnergyFraction()
+                    maker.event.jet_eEF[i_jet]      = jet.electronEnergyFraction()
+                    maker.event.jet_muEF[i_jet]     = jet.muonEnergyFraction()
+                    maker.event.jet_HFHEF[i_jet]    = jet.HFHadronEnergyFraction()
+                    maker.event.jet_HFEMEF[i_jet]   = jet.HFEMEnergyFraction()
+                    maker.event.jet_chHMult[i_jet]      = jet.chargedHadronMultiplicity()
+                    maker.event.jet_neHMult[i_jet]      = jet.neutralHadronMultiplicity()
+                    maker.event.jet_phMult[i_jet]       = jet.photonMultiplicity()
+                    maker.event.jet_eMult[i_jet]        = jet.electronMultiplicity()
+                    maker.event.jet_muMult[i_jet]       = jet.muonMultiplicity()
+                    maker.event.jet_HFHMult[i_jet]      = jet.HFHadronMultiplicity()
+                    maker.event.jet_HFEMMult[i_jet]     = jet.HFEMMultiplicity()
 
                 reco_protons = []
                 for proton in reader.products['ptracks']:
@@ -129,8 +177,10 @@ class ctppsFileProcessor:
 if __name__ == "__main__":
     import StopsDilepton.tools.logger as logger
     import RootTools.core.logger as logger_rt
+    import JetMET.tools.logger as logger_jme
     logger    = logger.get_logger(   'INFO', logFile = None)
     logger_rt = logger_rt.get_logger('INFO', logFile = None)
+    logger_jme= logger_jme.get_logger('DEBUG', logFile = None)
 
     ctppsFileProcessor( 
         'root://cms-xrd-global.cern.ch//store/data/Run2017H/FSQJet1/MINIAOD/17Nov2017-v1/70000/E0A4F930-6E4D-E811-8EB8-90E2BACBAA90.root', 
