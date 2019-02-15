@@ -29,17 +29,18 @@ import StopsDilepton.tools.user as user
 from StopsDilepton.tools.user import MVA_preprocessing_directory, MVA_model_directory
 
 # Tools for systematics
-from StopsDilepton.tools.mt2Calculator import mt2Calculator
+from StopsDilepton.tools.mt2Calculator      import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile
-from StopsDilepton.tools.addJERScaling import addJERScaling
-from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll
-from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
-from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
-from StopsDilepton.tools.polReweighting import getPolWeights
-from StopsDilepton.tools.puProfileCache import puProfile
+from StopsDilepton.tools.helpers            import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile
+from StopsDilepton.tools.addJERScaling      import addJERScaling
+from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons
+from StopsDilepton.tools.overlapRemovalTTG  import getTTGJetsEventType
+from StopsDilepton.tools.getGenBoson        import getGenZ, getGenPhoton
+from StopsDilepton.tools.polReweighting     import getPolWeights
+from StopsDilepton.tools.puProfileCache     import puProfile
+from StopsDilepton.tools.L1PrefireWeight    import L1PrefireWeight
+from StopsDilepton.tools.triggerEfficiency  import triggerEfficiency
 
-from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
 triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
 triggerEff            = triggerEfficiency(with_backup_triggers = False)
 
@@ -72,6 +73,7 @@ def get_parser():
     argParser.add_argument('--skim',        action='store',         nargs='?',  type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
     argParser.add_argument('--LHEHTCut',    action='store',         nargs='?',  type=int, default=-1,                                   help="LHE cut." )
     argParser.add_argument('--year',        action='store',                     type=int,                                               help="Which year?" )
+    argParser.add_argument('--overwriteJEC',action='store',                               default=None,                                 help="Which year?" )
     argParser.add_argument('--overwrite',   action='store_true',                                                                        help="Overwrite existing output files, bool flag set to True  if used" )
     argParser.add_argument('--keepAllJets', action='store_true',                                                                        help="Keep also forward jets?" )
     argParser.add_argument('--small',       action='store_true',                                                                        help="Run the file on a small sample (for test purpose), bool flag set to True if used" )
@@ -87,6 +89,7 @@ def get_parser():
     argParser.add_argument('--forceProxy',                  action='store_true',                                                        help="Don't check certificate")
     argParser.add_argument('--skipNanoTools',               action='store_true',                                                        help="Skipt the nanoAOD tools step for computing JEC/JER/MET etc uncertainties")
     argParser.add_argument('--keepNanoAOD',                 action='store_true',                                                        help="Keep nanoAOD output?")
+    argParser.add_argument('--reapplyJECS',                 action='store_true',                                                        help="Reapply JECs to data?")
 
     return argParser
 
@@ -186,6 +189,8 @@ ts = triggerSelector(options.year)
 triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
 treeFormulas = {"triggerDecision": {'string':triggerCond} }
 
+L1PW = L1PrefireWeight(options.year)
+
 if sample.isData and options.triggerSelection:
     logger.info("Sample will have the following trigger skim: %s"%triggerCond)
     skimConds.append( triggerCond )
@@ -209,16 +214,16 @@ else:
 if isMC:
     from Analysis.Tools.puReweighting import getReweightingFunction
     if options.year == 2016:
-        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_36000_XSecCentral", mc="Summer16")
-        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_36000_XSecDown",    mc="Summer16")
-        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_36000_XSecUp",      mc="Summer16")
+        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_35920_XSecCentral", mc="Summer16")
+        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_35920_XSecDown",    mc="Summer16")
+        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_35920_XSecUp",      mc="Summer16")
     elif options.year == 2017:
         # keep the weight name for now. Should we update to a more general one?
         puProfiles = puProfile( source_sample = samples[0] )
         mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
-        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2017_42400_XSecCentral",  mc=mcHist)
-        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2017_42400_XSecDown",     mc=mcHist)
-        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_42400_XSecUp",       mc=mcHist)
+        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2017_41860_XSecCentral",  mc=mcHist)
+        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2017_41860_XSecDown",     mc=mcHist)
+        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_41860_XSecUp",       mc=mcHist)
     elif options.year == 2018:
         # keep the weight name for now. Should we update to a more general one?
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2018_58830_XSecCentral",  mc="Autumn18")
@@ -389,7 +394,7 @@ if isMC:
     read_variables.append( TreeVariable.fromString('genWeight/F') )
     read_variables.append( TreeVariable.fromString('nGenJet/I') )
     read_variables.append( VectorTreeVariable.fromString('GenJet[pt/F,eta/F,phi/F]' ) )
-    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F', 'reweightPU36fbVUp/F','reweightPU36fbVDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F', 'reweightPU36fbVUp/F','reweightPU36fbVDown/F', 'reweightL1Prefire/F', 'reweightL1PrefireUp/F', 'reweightL1PrefireDown/F'])
     if not options.skipGenLepMatching:
         TreeVariable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
@@ -554,27 +559,55 @@ if not options.skipNanoTools:
         metSigParamsData    = [1.743319492995906, 1.6882972548344242, 1.6551185757422577, 1.4185872885319166, 1.5923201986159454, -0.0002185734915505621, 0.6558819144933438]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
-        JEC                 = "Fall17_17Nov2017_V32_MC"     if not sample.isData else "Fall17_17Nov2017_V32_DATA"
+        if sample.isData:
+            if sample.name.count('Run2017B'):
+                JEC         = "Fall17_17Nov2017B_V32_DATA"
+            elif sample.name.count('Run2017C'):
+                JEC         = "Fall17_17Nov2017C_V32_DATA"
+            elif sample.name.count('Run2017D'):
+                JEC         = "Fall17_17Nov2017D_V32_DATA"
+            elif sample.name.count('Run2017E'):
+                JEC         = "Fall17_17Nov2017E_V32_DATA"
+            elif sample.name.count('Run2017F'):
+                JEC         = "Fall17_17Nov2017F_V32_DATA"
+            else:
+                raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
+        else:
+            JEC             = "Fall17_17Nov2017_V32_MC"
     elif options.year == 2018:
         metSigParamsMC      = [1.3889924894064565, 1.4100950862040742, 1.388614360360041, 1.2352876826748016, 1.0377595808114612, 0.004479319982990152, 0.6269386702181299]
         metSigParamsData    = [1.8901832149541773, 2.026001195551111, 1.7805585857080317, 1.5987158841135176, 1.4509516794588302, 0.0003365079273751142, 0.6697617770737838]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
-        JEC                 = "Autumn18_V1_MC"     if not sample.isData else "Fall17_17Nov2017_V32_DATA"
+        if sample.isData:
+            if sample.name.count("Run2018"):
+                JEC         = "Fall17_17Nov2017F_V32_DATA" # is this correct?!
+            else:
+                raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
+        else:
+            JEC             = "Autumn18_V1_MC"
 
     # set the params for MET Significance calculation
     metSigParams            = metSigParamsMC                if not sample.isData else metSigParamsData
+
+    if options.overwriteJEC is not None:
+        JEC = options.overwriteJEC
 
     logger.info("Using JERs: %s", JER)
     logger.info("Using JECs: %s", JEC)
 
     # define modules. JEC reapplication only works with MC right now, so just don't do it.
     modules = []
+    
     if not sample.isData:
         modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True) ) #was Total
     else:
         # for MC this is already done in jetmetUncertaintyProducer
-        modules.append( jetRecalib(JEC) )
+        if options.reapplyJECS:
+            modules.append( jetRecalib(JEC) )
+            logger.info("JECs will be reapplied.")
+        else:
+            logger.info("JECs won't be reapplied. Choice of JECs has no effect.")
 
     modules.append( METSigProducer(JER, metSigParams) )
 
@@ -718,7 +751,15 @@ def filler( event ):
 #
 #    print "Good"
 #    sys.exit(0)
-        
+    
+    allSlimmedJets      = getJets(r)
+    allSlimmedPhotons   = getPhotons(r, year=options.year)
+    if options.year == 2018:
+        event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = 1., 1., 1.
+    else:
+        event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = L1PW.getWeight(allSlimmedPhotons, allSlimmedJets)
+
+
     reallyAllJets= getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=99) # ... yeah, I know.
     allJets      = filter(lambda j:abs(j['eta'])<jetAbsEtaCut, reallyAllJets)
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)

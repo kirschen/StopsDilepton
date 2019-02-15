@@ -74,7 +74,8 @@ elif args.year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     postProcessing_directory = "stops_2018_nano_v7/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    mc             = [ Top_pow_18, TTX_18, multiBoson_18, DY_LO_18]
+    mc = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
+    #mc             = [ Top_pow_18, TTX_18, multiBoson_18, DY_LO_18]
 
 
 
@@ -343,6 +344,13 @@ for index, mode in enumerate(allModes):
       texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
       attribute = TreeVariable.fromString( "MET_pt/F" ),
       binning=[400/20,0,400],
+  ))
+
+  plots.append(Plot(
+      name = "MET_pt_EXObinning",
+      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
+      attribute = TreeVariable.fromString( "MET_pt/F" ),
+      binning=[50,0,500],
   ))
     
   plots.append(Plot(

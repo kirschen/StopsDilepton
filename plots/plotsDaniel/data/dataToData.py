@@ -16,7 +16,7 @@ from math                         import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard      import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaR, deltaPhi, getObjDict, getVarValue
-from StopsDilepton.tools.objectSelection import getFilterCut
+from Samples.Tools.metFilters import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 
 #
@@ -27,7 +27,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton_dataVsData_v1_lumiNorm')
-argParser.add_argument('--selection',          action='store',      default='lepSel-OS-looseLeptonVeto-njet2p-relIso0.12-mll20-badJetSrEVeto')
+argParser.add_argument('--selection',          action='store',      default='lepSel-OS-looseLeptonVeto-njet2p-btag0-relIso0.12-mll20')
 args = argParser.parse_args()
 
 #
@@ -43,16 +43,16 @@ if args.small:                        args.plot_directory += "_small"
 # Make samples, will be searched for in the postProcessing directory
 #
 
-data_directory           = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+data_directory           = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
 
 
-postProcessing_directory = "stops_2016_nano_v2/dilep/"
-from StopsDilepton.samples.nanoTuples_Run2016_05Feb2018_postProcessed import *
+postProcessing_directory = "stops_2016_nano_v7/dilep/"
+from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
 
-postProcessing_directory = "stops_2017_nano_v2/dilep/"
+postProcessing_directory = "stops_2017_nano_v7/dilep/"
 from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
 
-postProcessing_directory = "stops_2018_nano_v2/dilep/"
+postProcessing_directory = "stops_2018_nano_v7/dilep/"
 from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
 
 
@@ -201,10 +201,10 @@ def drawPlots(plots, mode, lumi_scale):
 
       l  = len(plot.histos)
       #scaling = {2*i+1:2*i for i in range(l/2)} 
-      scaling = {i:0 for i in range(1,5)}
+      scaling = {i:0 for i in range(1,3)}
       #scaling = {1:2, 2:2} #scale to 2018
       #ratio_histos = [ (2*i,2*i+1) for i in range(l/2) ] 
-      ratio_histos = [(i,1) for i in [0]+range(2,5) ] #ratio wrt 2016
+      ratio_histos = [(i,1) for i in [0]+range(2,3) ] #ratio wrt 2016
       #ratio_histps = [(1,0), (2,0)]
       plotting.draw(plot,
         plot_directory = plot_directory_,
@@ -238,20 +238,14 @@ for index, mode in enumerate(allModes):
         data_2016_sample.texName    = "data 2016 (2#mu)"
         data_2016_sample.setSelectionString(["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"])
 
-        data_2017B_sample            = DoubleMuon_Run2017B 
-        data_2017B_sample.setSelectionString(["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"])
-        data_2017B_sample.texName    = "data 2017 B (2#mu)"
-        data_2017CDE_sample            = DoubleMuon_Run2017CDE
-        data_2017CDE_sample.setSelectionString(["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"])
-        data_2017CDE_sample.texName    = "data 2017 CDE (2#mu)"
-        data_2017F_sample            = DoubleMuon_Run2017F
-        data_2017F_sample.setSelectionString(["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"])
-        data_2017F_sample.texName    = "data 2017 F (2#mu)"
+        data_2017_sample            = DoubleMuon_Run2017 
+        data_2017_sample.setSelectionString(["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"])
+        data_2017_sample.texName    = "data 2017 (2#mu)"
 
         data_2018_sample            = DoubleMuon_Run2018
         data_2018_sample.setSelectionString(["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"])
         data_2018_sample.texName    = "data 2018 (2#mu)"
-        data_2017_samples           = [data_2017B_sample, data_2017CDE_sample, data_2017F_sample ]
+        data_2017_samples           = [data_2017_sample ]
         data_2018_samples           = [copy.deepcopy(data_2018_sample) for x in data_2017_samples]
         data_2016_samples           = [copy.deepcopy(data_2016_sample) for x in data_2017_samples]
     elif mode == "ee":
@@ -259,21 +253,15 @@ for index, mode in enumerate(allModes):
         data_2016_sample.texName    = "data 2016 (2e)"
         data_2016_sample.setSelectionString(["HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ"])
 
-        data_2017B_sample            = DoubleEG_Run2017B 
-        data_2017B_sample.texName    = "data 2017 B (2e)"
-        data_2017B_sample.setSelectionString(["HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ"])
-        data_2017CDE_sample            = DoubleEG_Run2017CDE
-        data_2017CDE_sample.texName    = "data 2017 CDE (2e)"
-        data_2017CDE_sample.setSelectionString(["HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ"])
-        data_2017F_sample            = DoubleEG_Run2017F
-        data_2017F_sample.texName    = "data 2017 F (2e)"
-        data_2017F_sample.setSelectionString(["HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ"])
+        data_2017_sample            = DoubleEG_Run2017 
+        data_2017_sample.texName    = "data 2017 (2e)"
+        data_2017_sample.setSelectionString(["HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ"])
 
         data_2018_sample            = EGamma_Run2018
         data_2018_sample.texName    = "data 2018 (2e)"
         data_2018_sample.setSelectionString(["HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ"])
 
-        data_2017_samples           = [data_2017B_sample, data_2017CDE_sample, data_2017F_sample]#, data_2017D_sample, DoubleEG_Run2017EF]
+        data_2017_samples           = [data_2017_sample]#, data_2017D_sample, DoubleEG_Run2017EF]
         data_2018_samples           = [copy.deepcopy(data_2018_sample) for x in data_2017_samples]
         data_2016_samples           = [copy.deepcopy(data_2016_sample) for x in data_2017_samples]
     elif mode == 'mue':
@@ -281,20 +269,14 @@ for index, mode in enumerate(allModes):
         data_2016_sample.texName    = "data 2016 (1#mu, 1e)"
         data_2016_sample.setSelectionString(["HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL||HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL"])
 
-        data_2017B_sample            = MuonEG_Run2017B 
-        data_2017B_sample.texName    = "data 2017 B (1#mu, 1e)"
-        data_2017B_sample.setSelectionString(["HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ||HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ"])
-        data_2017CDE_sample            = MuonEG_Run2017CDE
-        data_2017CDE_sample.texName    = "data 2017 CDE (1#mu, 1e)"
-        data_2017CDE_sample.setSelectionString(["HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ||HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ"])
-        data_2017F_sample            = MuonEG_Run2017F
-        data_2017F_sample.texName    = "data 2017 F (1#mu, 1e)"
-        data_2017F_sample.setSelectionString(["HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ||HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ"])
+        data_2017_sample            = MuonEG_Run2017 
+        data_2017_sample.texName    = "data 2017 (1#mu, 1e)"
+        data_2017_sample.setSelectionString(["HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ||HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ"])
 
         data_2018_sample            = MuonEG_Run2018
         data_2018_sample.texName    = "data 2018 (1#mu, 1e)"
         data_2018_sample.setSelectionString(["HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ||HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ"])
-        data_2017_samples           = [data_2017B_sample, data_2017CDE_sample, data_2017F_sample]
+        data_2017_samples           = [data_2017_sample]
         data_2018_samples           = [copy.deepcopy(data_2018_sample) for x in data_2017_samples]
         data_2016_samples           = [copy.deepcopy(data_2016_sample) for x in data_2017_samples]
     else: raise ValueError    
@@ -333,7 +315,7 @@ for index, mode in enumerate(allModes):
 
     if args.small:
         for sample in stack.samples:
-            sample.reduceFiles( to = 3 )
+            sample.reduceFiles( to = 1 )
 
     print len(data_2018_samples), len(data_2016_samples)
 
@@ -486,6 +468,14 @@ for index, mode in enumerate(allModes):
       addOverFlowBin='upper',
     ))
     
+
+    plots.append(Plot(
+      texX = 'N_{jets} (all)', texY = 'Number of Events',
+      attribute = TreeVariable.fromString( "nJet/I" ),
+      binning=[20,-0.5,19.5],
+      addOverFlowBin='upper',
+    ))
+
     plots.append(Plot( name = 'nJetEtaM4',
       texX = 'N_{jets}, #eta#leq -4.0', texY = 'Number of Events',
       attribute = lambda event, sample: event.nJetEtaM4,
