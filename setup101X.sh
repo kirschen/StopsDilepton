@@ -13,7 +13,7 @@ git clone https://github.com/GhentAnalysis/PlotsSMS StopsDilepton/PlotsSMS.git
 cd $CMSSW_BASE/src
 
 # RootTools (for plotting, sample handling, processing)
-git clone https://github.com/danbarto/RootTools.git
+git clone https://github.com/HephyAnalysisSW/RootTools.git
 cd $CMSSW_BASE/src
 
 # Shared samples (miniAOD/nanoAOD)
