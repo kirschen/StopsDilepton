@@ -4,7 +4,7 @@ cmsrel CMSSW_10_2_9
 cd CMSSW_10_2_9/src
 cmsenv
 git cms-init
-git clone https://github.com/HephyAnlysisSW/StopsDilepton
+git clone https://github.com/HephyAnalysisSW/StopsDilepton
 ./StopsDilepton/setup101X.sh
 ```
 
