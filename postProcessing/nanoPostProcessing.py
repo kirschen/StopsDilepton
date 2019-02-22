@@ -70,6 +70,7 @@ def get_parser():
     argParser.add_argument('--dataDir',     action='store',         nargs='?',  type=str, default=user.cmg_directory,                   help="Name of the directory where the input data is stored (for samples read from Heppy)." )
     argParser.add_argument('--targetDir',   action='store',         nargs='?',  type=str, default=user.data_output_directory,           help="Name of the directory the post-processed files will be saved" )
     argParser.add_argument('--processingEra', action='store',       nargs='?',  type=str, default='postProcessed_80X_v22',              help="Name of the processing era" )
+     argParser.add_argument('--writeToDPM', action='store_true',                                                                        help="Write output to DPM?")
     argParser.add_argument('--skim',        action='store',         nargs='?',  type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
     argParser.add_argument('--LHEHTCut',    action='store',         nargs='?',  type=int, default=-1,                                   help="LHE cut." )
     argParser.add_argument('--year',        action='store',                     type=int,                                               help="Which year?" )
@@ -113,8 +114,6 @@ isSingleLep     = options.skim.lower().startswith('singlelep')
 isTiny          = options.skim.lower().count('tiny') 
 isSmall         = options.skim.lower().count('small')
 isInclusive     = options.skim.lower().count('inclusive') 
-
-writeToDPM      = options.targetDir == '/dpm/'
 
 fastSim = options.fastSim
 if options.susySignal: fastSim = True
@@ -230,6 +229,17 @@ if isMC:
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2018_58830_XSecDown",     mc="Autumn18")
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2018_58830_XSecUp",       mc="Autumn18")
 
+# output directory (store temporarily when running on dpm)
+if options.writeToDPM:
+    # overwrite function not implemented yet!
+    from StopsDilepton.Tools.user import dpm_directory as user_directory
+    # Allow parallel processing of N threads on one worker
+    directory = os.path.join( '/tmp/%s'%os.environ['USER'], str(uuid.uuid4()) )
+else:
+    # User specific
+    from StopsDilepton.tools.user import postprocessing_output_directory as user_directory
+    directory = os.path.join( user_directory, options.processingEra ) 
+
 
 options.skim = options.skim + '_small' if options.small else options.skim
 
@@ -239,7 +249,6 @@ if options.LHEHTCut>0:
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "LHE_HTIncoming<%f"%options.LHEHTCut )
 
-directory  = os.path.join(options.targetDir, options.processingEra)
 output_directory = os.path.join( directory, options.skim, sample.name )
 
 if options.susySignal:
@@ -1253,7 +1262,7 @@ else:
     os.remove(logFile)
     logger.info( "Removed temporary log file" )
 
-if writeToDPM:
+if options.writeToDPM:
     for dirname, subdirs, files in os.walk( directory ):
         logger.debug( 'Found directory: %s',  dirname )
         for fname in files:
