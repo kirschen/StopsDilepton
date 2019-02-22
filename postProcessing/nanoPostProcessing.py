@@ -37,7 +37,7 @@ from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonS
 from StopsDilepton.tools.overlapRemovalTTG  import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson        import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting     import getPolWeights
-from StopsDilepton.tools.puProfileCache     import puProfile
+from Analysis.Tools.puProfileCache          import *
 from StopsDilepton.tools.L1PrefireWeight    import L1PrefireWeight
 from StopsDilepton.tools.triggerEfficiency  import triggerEfficiency
 
@@ -98,12 +98,13 @@ options = get_parser().parse_args()
 # Logging
 import StopsDilepton.tools.logger as _logger
 logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job))
-logger  = _logger.get_logger(options.logLevel, logFile = logFile)
+#logger  = _logger.get_logger(options.logLevel, logFile = logFile)
+logger  = _logger.get_logger(options.logLevel, logFile = None)
 
 import RootTools.core.logger as _logger_rt
 logger_rt = _logger_rt.get_logger(options.logLevel, logFile = None )
 
-_logger.   add_fileHandler( user.data_output_directory + '/logs/%s_%s_debug.txt'%(options.samples[0], options.job), options.logLevel )
+#_logger.   add_fileHandler( user.data_output_directory + '/logs/%s_%s_debug.txt'%(options.samples[0], options.job), options.logLevel )
 
 # Flags 
 isDiLep         = options.skim.lower().startswith('dilep')
@@ -131,7 +132,7 @@ if isInclusive:
     skimConds = []
 
 #Samples: Load samples
-maxN = 2 if options.small else None
+maxN = 1 if options.small else None
 if options.small:
     options.job = 0
     options.nJobs = 10000 # set high to just run over 1 input file
@@ -201,13 +202,12 @@ sample_name_postFix = ""
 if len(samples)>1:
     sample_name =  samples[0].name+"_comb"
     logger.info( "Combining samples %s to %s.", ",".join(s.name for s in samples), sample_name )
-    sample = Sample.combine(sample_name, samples, maxN = maxN)
-    # Clean up
-    for s in samples:
-        sample.clear()
+    sample      = Sample.combine(sample_name, samples, maxN = maxN)
+    sampleForPU = Sample.combine(sample_name, samples, maxN = -1)
 elif len(samples)==1:
-    sample = samples[0]
+    sample      = samples[0]
     sample.name+=sample_name_postFix
+    sampleForPU = samples[0]
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
 
@@ -219,7 +219,7 @@ if isMC:
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_35920_XSecUp",      mc="Summer16")
     elif options.year == 2017:
         # keep the weight name for now. Should we update to a more general one?
-        puProfiles = puProfile( source_sample = samples[0] )
+        puProfiles = puProfile( source_sample = sampleForPU )
         mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2017_41860_XSecCentral",  mc=mcHist)
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2017_41860_XSecDown",     mc=mcHist)
@@ -508,7 +508,7 @@ if fastSim and (isTriLep or isDiLep):
 
 filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
 fileNumber = options.job if options.job is not None else 0
-outfilename = filename+'_'+str(fileNumber)+ext
+outfilename = filename+ext
 if os.path.isfile(outfilename):
     logger.info( "Output file %s found.", outfilename)
     if not checkRootFile(outfilename, checkForObjects=["Events"]):
@@ -585,7 +585,8 @@ if not options.skipNanoTools:
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
         else:
-            JEC             = "Autumn18_V1_MC"
+            #JEC             = "Autumn18_V1_MC"
+            JEC             = "Fall17_17Nov2017_V32_MC"
 
     # set the params for MET Significance calculation
     metSigParams            = metSigParamsMC                if not sample.isData else metSigParamsData
@@ -613,12 +614,12 @@ if not options.skipNanoTools:
 
     sample.files = [ f for f in sample.files if nonEmptyFile(f) ]
 
-    p = PostProcessor(output_directory,sample.files,cut=cut, modules=modules)
+    p = PostProcessor(output_directory,sample.files,cut=cut, modules=modules, postfix="_for_%s"%sample.name)
     logger.info("Starting nanoAOD postprocessing")
     p.run()
     logger.info("Done. Replacing input files for further processing.")
     
-    sample.files = [ output_directory + '/' + x.split('/')[-1].replace('.root', '_Skim.root') for x in sample.files ]
+    sample.files = [ output_directory + '/' + x.split('/')[-1].replace('.root', '_for_%s.root'%sample.name) for x in sample.files ]
 
 # Define a reader
 reader = sample.treeReader( \
@@ -1121,7 +1122,8 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 
     # Check whether file exists
     fileNumber = options.job if options.job is not None else 0
-    outfilename = filename+'_'+str(fileNumber)+ext
+    #outfilename = filename+'_'+str(fileNumber)+ext
+    outfilename = filename+ext
     
     _logger.   add_fileHandler( outfilename.replace('.root', '.log'), options.logLevel )
     _logger_rt.add_fileHandler( outfilename.replace('.root', '_rt.log'), options.logLevel )
@@ -1236,8 +1238,11 @@ if options.nJobs == 1:
 
 if not options.keepNanoAOD and not options.skipNanoTools:
     for f in sample.files:
-        os.remove(f)
-        logger.info("Removed nanoAOD file: %s", f)
+        try:
+            os.remove(f)
+            logger.info("Removed nanoAOD file: %s", f)
+        except OSError:
+            logger.info("nanoAOD file %s seems to be not there", f)
 
 logger.info("Copying log file to %s", output_directory )
 copyLog = subprocess.call(['cp', logFile, output_directory] )
