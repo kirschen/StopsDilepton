@@ -70,7 +70,7 @@ def get_parser():
     argParser.add_argument('--dataDir',     action='store',         nargs='?',  type=str, default=user.cmg_directory,                   help="Name of the directory where the input data is stored (for samples read from Heppy)." )
     argParser.add_argument('--targetDir',   action='store',         nargs='?',  type=str, default=user.data_output_directory,           help="Name of the directory the post-processed files will be saved" )
     argParser.add_argument('--processingEra', action='store',       nargs='?',  type=str, default='postProcessed_80X_v22',              help="Name of the processing era" )
-     argParser.add_argument('--writeToDPM', action='store_true',                                                                        help="Write output to DPM?")
+    argParser.add_argument('--writeToDPM', action='store_true',                                                                         help="Write output to DPM?")
     argParser.add_argument('--skim',        action='store',         nargs='?',  type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
     argParser.add_argument('--LHEHTCut',    action='store',         nargs='?',  type=int, default=-1,                                   help="LHE cut." )
     argParser.add_argument('--year',        action='store',                     type=int,                                               help="Which year?" )
