@@ -1,7 +1,7 @@
 # 
 # Recipe to continue the setup of our 80X analysis after the checkout of StopsDilepton package
 #
-eval `scram runtime -sh`
+eval `scram runtime -csh`
 cd $CMSSW_BASE/src
 
 # nanoAOD tools (for MET Significance, JEC/JER...)
@@ -19,7 +19,6 @@ cd $CMSSW_BASE/src
 # Shared analysis tools and data
 git clone https://github.com/HephyAnalysisSW/Analysis.git
 cd $CMSSW_BASE/src
-rm -rf Analysis/TopReco/
 
 scram b -j9
 
