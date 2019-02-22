@@ -1,6 +1,9 @@
 # 
 # Recipe to continue the setup of our 80X analysis after the checkout of StopsDilepton package
 #
+echo JetMETCorrections/Modules/ >> .git/info/sparse-checkout
+git checkout
+
 eval `scram runtime -csh`
 cd $CMSSW_BASE/src
 
