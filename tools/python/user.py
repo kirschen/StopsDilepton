@@ -41,6 +41,8 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    if 'cern' in os.getenv("HOSTNAME"):
+      postprocessing_output_directory = "/eos/home-d/dspitzba/nanoTuples/"
     # directory with veto lists
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
     MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'

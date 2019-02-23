@@ -12,7 +12,7 @@ git clone https://github.com/danbarto/nanoAOD-tools.git PhysicsTools/NanoAODTool
 cd $CMSSW_BASE/src
 
 # RootTools (for plotting, sample handling, processing)
-git clone https://github.com/danbarto/RootTools.git
+git clone https://github.com/HephyAnalysisSW/RootTools.git
 cd $CMSSW_BASE/src
 
 # Shared samples (miniAOD/nanoAOD)

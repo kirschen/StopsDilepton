@@ -76,6 +76,7 @@ def get_parser():
     argParser.add_argument('--year',        action='store',                     type=int,                                               help="Which year?" )
     argParser.add_argument('--overwriteJEC',action='store',                               default=None,                                 help="Which year?" )
     argParser.add_argument('--overwrite',   action='store_true',                                                                        help="Overwrite existing output files, bool flag set to True  if used" )
+    argParser.add_argument('--runOnLxPlus', action='store_true',                                                                        help="Change the global redirector of samples to run on lxplus")
     argParser.add_argument('--keepAllJets', action='store_true',                                                                        help="Keep also forward jets?" )
     argParser.add_argument('--small',       action='store_true',                                                                        help="Run the file on a small sample (for test purpose), bool flag set to True if used" )
     argParser.add_argument('--susySignal',  action='store_true',                                                                        help="Is SUSY signal?" )
@@ -136,7 +137,10 @@ if options.small:
     options.job = 0
     options.nJobs = 10000 # set high to just run over 1 input file
 
-#from nanoMET.samples.helpers import fromNanoSample
+if options.runOnLxPlus:
+    # Set the redirector in the samples repository to the global redirector
+    from Samples.Tools.config import redirector_global as redirector
+
 if options.year == 2016:
     from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as bkgSamples
     from Samples.nanoAOD.Spring16_private           import allSamples as signalSamples
@@ -620,6 +624,8 @@ if not options.skipNanoTools:
             logger.info("JECs won't be reapplied. Choice of JECs has no effect.")
 
     modules.append( METSigProducer(JER, metSigParams) )
+    
+    print sample.files
 
     sample.files = [ f for f in sample.files if nonEmptyFile(f) ]
 
