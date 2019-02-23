@@ -236,7 +236,7 @@ if isMC:
 # output directory (store temporarily when running on dpm)
 if options.writeToDPM:
     # overwrite function not implemented yet!
-    from StopsDilepton.Tools.user import dpm_directory as user_directory
+    from StopsDilepton.tools.user import dpm_directory as user_directory
     # Allow parallel processing of N threads on one worker
     directory = os.path.join( '/tmp/%s'%os.environ['USER'], str(uuid.uuid4()) )
 else:
