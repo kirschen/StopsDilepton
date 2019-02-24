@@ -1274,7 +1274,7 @@ if options.writeToDPM:
         for fname in files:
             source = os.path.abspath(os.path.join(dirname, fname))
             postfix = '_small' if options.small else ''
-            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_dpm_directory, 'postprocessed',  options.processingEra+postfix, options.skim, sample.name, fname ) ]
+            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_directory, 'postprocessed',  options.processingEra, options.skim+postfix, sample.name, fname ) ]
             logger.info( "Issue copy command: %s", " ".join( cmd ) )
             subprocess.call( cmd )
 
