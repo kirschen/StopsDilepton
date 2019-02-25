@@ -169,7 +169,7 @@ class ctppsFileProcessor:
             output_file.Close()
 
             logger.info( "Written file %s", outfile)
-            #os.remove( tmpfile )
+            os.remove( tmpfile )
             logger.info( "Deleted %s", tmpfile)
         else: 
             logger.info( "Found %s. Skip.", outfile ) 
