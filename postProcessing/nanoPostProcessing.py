@@ -253,6 +253,7 @@ if options.LHEHTCut>0:
     logger.info( "Adding upper LHE cut at %f", options.LHEHTCut )
     skimConds.append( "LHE_HTIncoming<%f"%options.LHEHTCut )
 
+sampleName = sample.name
 output_directory = os.path.join( directory, options.skim, sample.name )
 
 if options.susySignal:
@@ -1288,7 +1289,7 @@ if options.writeToDPM:
         for fname in files:
             source = os.path.abspath(os.path.join(dirname, fname))
             postfix = '_small' if options.small else ''
-            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_directory, 'postprocessed',  options.processingEra, options.skim+postfix, sample.name, fname ) ]
+            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_directory, 'postprocessed',  options.processingEra, options.skim+postfix, sampleName, fname ) ]
             logger.info( "Issue copy command: %s", " ".join( cmd ) )
             subprocess.call( cmd )
 
