@@ -76,6 +76,7 @@ def get_parser():
     argParser.add_argument('--year',        action='store',                     type=int,                                               help="Which year?" )
     argParser.add_argument('--overwriteJEC',action='store',                               default=None,                                 help="Which year?" )
     argParser.add_argument('--overwrite',   action='store_true',                                                                        help="Overwrite existing output files, bool flag set to True  if used" )
+    argParser.add_argument('--runOnLxPlus', action='store_true',                                                                        help="Change the global redirector of samples to run on lxplus")
     argParser.add_argument('--keepAllJets', action='store_true',                                                                        help="Keep also forward jets?" )
     argParser.add_argument('--small',       action='store_true',                                                                        help="Run the file on a small sample (for test purpose), bool flag set to True if used" )
     argParser.add_argument('--susySignal',  action='store_true',                                                                        help="Is SUSY signal?" )
@@ -136,7 +137,10 @@ if options.small:
     options.job = 0
     options.nJobs = 10000 # set high to just run over 1 input file
 
-#from nanoMET.samples.helpers import fromNanoSample
+if options.runOnLxPlus:
+    # Set the redirector in the samples repository to the global redirector
+    from Samples.Tools.config import redirector_global as redirector
+
 if options.year == 2016:
     from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as bkgSamples
     from Samples.nanoAOD.Spring16_private           import allSamples as signalSamples
@@ -232,7 +236,7 @@ if isMC:
 # output directory (store temporarily when running on dpm)
 if options.writeToDPM:
     # overwrite function not implemented yet!
-    from StopsDilepton.Tools.user import dpm_directory as user_directory
+    from StopsDilepton.tools.user import dpm_directory as user_directory
     # Allow parallel processing of N threads on one worker
     directory = os.path.join( '/tmp/%s'%os.environ['USER'], str(uuid.uuid4()) )
 else:
@@ -620,6 +624,8 @@ if not options.skipNanoTools:
             logger.info("JECs won't be reapplied. Choice of JECs has no effect.")
 
     modules.append( METSigProducer(JER, metSigParams) )
+    
+    print sample.files
 
     sample.files = [ f for f in sample.files if nonEmptyFile(f) ]
 
@@ -1268,7 +1274,7 @@ if options.writeToDPM:
         for fname in files:
             source = os.path.abspath(os.path.join(dirname, fname))
             postfix = '_small' if options.small else ''
-            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_dpm_directory, 'postprocessed',  options.processingEra+postfix, options.skim, sample.name, fname ) ]
+            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_directory, 'postprocessed',  options.processingEra, options.skim+postfix, sample.name, fname ) ]
             logger.info( "Issue copy command: %s", " ".join( cmd ) )
             subprocess.call( cmd )
 
