@@ -383,6 +383,8 @@ else:
 
 
 jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F'] + jetCorrInfo
+if options.reapplyJECS:
+    jetVars     += ['pt_nom/F']
 if isMC:
     jetVars     += jetMCInfo
 jetVarNames     = [x.split('/')[0] for x in jetVars]
@@ -394,6 +396,8 @@ lepVarNames     = [x.split('/')[0] for x in lepVars]
 read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
 if options.year == 2017:
     read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'MET_phi/F'])
+if options.reapplyJECS:
+    read_variables += map(TreeVariable.fromString, [ 'MET_pt_nom/F'])
 
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
                     VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (options.year == 2016) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
@@ -423,8 +427,10 @@ read_variables += [\
 ]
 
 new_variables += [\
-    'JetGood[%s]'% ( ','.join(jetVars) + ',genPt/F' )
+    'JetGood[%s]'% ( ','.join(jetVars) + ',genPt/F' ),
+    'met_pt/F', 'met_phi/F'
 ]
+
 
 if sample.isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
 new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
@@ -594,12 +600,12 @@ if not options.skipNanoTools:
         JERera              = "Fall17_V3"
         if sample.isData:
             if sample.name.count("Run2018"):
-                JEC         = "Fall17_17Nov2017F_V32_DATA" # is this correct?!
+                JEC         = "Autumn18_V3_MC" #residuals are 1
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
         else:
-            #JEC             = "Autumn18_V1_MC"
-            JEC             = "Fall17_17Nov2017_V32_MC"
+            JEC             = "Autumn18_V3_MC"
+            #JEC             = "Fall17_17Nov2017_V32_MC"
 
     # set the params for MET Significance calculation
     metSigParams            = metSigParamsMC                if not sample.isData else metSigParamsData
@@ -776,7 +782,9 @@ def filler( event ):
         event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = L1PW.getWeight(allSlimmedPhotons, allSlimmedJets)
 
 
-    reallyAllJets= getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=99) # ... yeah, I know.
+    jetPtVar = 'pt_nom' if options.reapplyJECS else 'pt'
+
+    reallyAllJets= getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=99, ptVar = jetPtVar) # ... yeah, I know.
     allJets      = filter(lambda j:abs(j['eta'])<jetAbsEtaCut, reallyAllJets)
     jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)
     soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
@@ -797,17 +805,21 @@ def filler( event ):
     leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     leptons.sort(key = lambda p:-p['pt'])
     
-    if options.year == 2017 and False:
-        # v2 recipe. Not used yet. Could also use our own recipe
-        event.MET_pt    = r.METFixEE2017_pt
-        event.MET_phi   = r.METFixEE2017_phi
+    if options.year == 2017:
+        # v2 recipe. Could also use our own recipe
+        event.met_pt    = r.METFixEE2017_pt
+        event.met_phi   = r.METFixEE2017_phi
     else:
-        event.MET_pt    = r.MET_pt 
-        event.MET_phi   = r.MET_phi
+        if options.reapplyJECS:
+            event.met_pt    = r.MET_pt_nom 
+        else:
+            event.met_pt    = r.MET_pt
+
+        event.met_phi   = r.MET_phi
 
     # Filling jets
     store_jets = jets if not options.keepAllJets else soft_jets + jets
-    store_jets.sort( key = lambda j:-j['pt'])
+    store_jets.sort( key = lambda j:-j[jetPtVar])
     event.nJetGood   = len(store_jets)
     for iJet, jet in enumerate(store_jets):
         for b in jetVarNames:
@@ -815,13 +827,15 @@ def filler( event ):
         if isMC:
             if store_jets[iJet]['genJetIdx'] >= 0:
                 event.JetGood_genPt[iJet] = r.GenJet_pt[store_jets[iJet]['genJetIdx']]
+        if options.reapplyJECS:
+            getattr(event, "JetGood_pt")[iJet] = jet['pt_nom']
 
     if isSingleLep:
         # Compute M3 and the three indiced of the jets entering m3
         event.m3, event.m3_ind1, event.m3_ind2, event.m3_ind3 = m3( jets )
 
     event.ht         = sum([j['pt'] for j in jets])
-    event.metSig     = event.MET_pt/sqrt(event.ht) if event.ht>0 else float('nan')
+    event.metSig     = event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan')
     event.nBTag      = len(bJets)
 
     jets_sys      = {}
@@ -844,8 +858,8 @@ def filler( event ):
         event.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
         event.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
 
-      event.MET_pt_photonEstimated, event.MEt_phi_photonEstimated = getMetPhotonEstimated(event.MET_pt, event.MET_phi, photons[0])
-      event.metSig_photonEstimated = event.MET_pt_photonEstimated/sqrt(event.ht) if event.ht>0 else float('nan')
+      event.met_pt_photonEstimated, event.met_phi_photonEstimated = getMetPhotonEstimated(event.met_pt, event.met_phi, photons[0])
+      event.metSig_photonEstimated = event.met_pt_photonEstimated/sqrt(event.ht) if event.ht>0 else float('nan')
 
       event.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
       event.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
@@ -1025,7 +1039,7 @@ def filler( event ):
             #        setattr(event, "dl_mt2blbl_gen", mt2Calc.mt2blbl())
                 
             for i in metVariants:
-                mt2Calc.setMet(getattr(event, 'MET_pt'+i), getattr(event, 'MET_phi'+i))
+                mt2Calc.setMet(getattr(event, 'met_pt'+i), getattr(event, 'met_phi'+i))
                 setattr(event, "dl_mt2ll"+i, mt2Calc.mt2ll())
 
                 bj0, bj1 = None, None
