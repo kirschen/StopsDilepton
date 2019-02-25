@@ -28,5 +28,3 @@ python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processing
 # rare
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v8 --skipSystematicVariations --skipGenLepMatching --sample TTWZ # SPLIT5
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v8 --skipSystematicVariations --skipGenLepMatching --sample TTZZ # SPLIT5
-
-
