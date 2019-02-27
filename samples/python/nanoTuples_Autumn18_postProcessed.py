@@ -65,6 +65,8 @@ dirs['diBoson']          = ['VVTo2L2Nu']
 dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] 
 dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 
+dirs['allMC']            = dirs['DY_LO'] + dirs['Top_pow'] + dirs['TTZ'] + dirs['TTXNoZ'] + dirs['multiBoson']
+
 directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
 
 DY              = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=color.DY,              texName="DY",                                directory=directories['DY'])
@@ -73,6 +75,7 @@ Top_pow_18      = Sample.fromDirectory(name="Top_pow",          treeName="Events
 TTXNoZ_18       = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W, tZq",                  directory=directories['TTXNoZ'])
 TTZ_18          = Sample.fromDirectory(name="TTZ",              treeName="Events", isData=False, color=color.TTZ,             texName="t#bar{t}Z",                         directory=directories['TTZ'])
 multiBoson_18   = Sample.fromDirectory(name="multiBoson",       treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                       directory=directories['multiBoson'])
+allBkgs_18      = Sample.fromDirectory(name="allBkgs",          treeName="Events", isData=False, color=color.diBoson,         texName="everything",                        directory=directories['allMC'])
 
 #Top_gaussian         = copy.deepcopy(Top_pow)
 #Top_gaussian.name    = Top_pow.name + ' (gaussian)'

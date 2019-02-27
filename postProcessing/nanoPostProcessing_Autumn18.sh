@@ -19,11 +19,17 @@ python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processing
 
 
 ## di/multi boson
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p1 --reapplyJECS --skipSystematicVariations --skipGenLepMatching --sample VVTo2L2Nu # SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p1 --reapplyJECS --skipSystematicVariations --skipGenLepMatching --sample WZTo3LNu_amcatnlo # SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p1 --reapplyJECS --skipSystematicVariations --skipGenLepMatching --sample ZZTo4L # SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p1 --reapplyJECS --skipSystematicVariations --skipGenLepMatching --sample ZZTo2L2Q # SPLIT20
+
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p1 --reapplyJECS --skipSystematicVariations --skipGenLepMatching --sample WW # SPLIT5
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p1 --reapplyJECS --skipSystematicVariations --skipGenLepMatching --sample ZZ # SPLIT5
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p1 --reapplyJECS --skipSystematicVariations --skipGenLepMatching --sample WWZ # SPLIT5
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p1 --reapplyJECS --skipSystematicVariations --skipGenLepMatching --sample WZZ # SPLIT5
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p1 --reapplyJECS --skipSystematicVariations --skipGenLepMatching --sample ZZZ # SPLIT5
+
 
 # rare
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p1 --reapplyJECS --skipSystematicVariations --skipGenLepMatching --sample TTWZ # SPLIT5

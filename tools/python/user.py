@@ -52,6 +52,7 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     if 'cern' in os.getenv("HOSTNAME"):
       analysis_results        = '/afs/cern.ch/work/d/dspitzba/StopsDilepton/results/80X_v30'
       combineReleaseLocation = '/afs/cern.ch/work/d/dspitzba/CMS/stop/CMSSW_7_4_7/src'
+      plot_directory      = "/eos/home-d/dspitzba/plots/"
     runOnGentT2 = False
 
 if os.environ['USER'] in ['dfreisinger']:
