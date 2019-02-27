@@ -54,6 +54,8 @@ genSearch = GenSearch()
 # central configuration
 targetLumi = 1000 #pb-1 Which lumi to normalize to
 
+def extractEra(sampleName):
+    return sampleName[sampleName.find("Run"):sampleName.find("Run")+len('Run2000A')]
 
 def get_parser():
     ''' Argument parser for post-processing module.
@@ -189,7 +191,8 @@ else:
 
 # Trigger selection
 from StopsDilepton.tools.triggerSelector import triggerSelector
-ts = triggerSelector(options.year)
+era = extractEra(sample.name)[-1]
+ts = triggerSelector(options.year, era=era)
 triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
 treeFormulas = {"triggerDecision": {'string':triggerCond} }
 

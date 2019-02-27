@@ -1,5 +1,5 @@
 class triggerSelector:
-    def __init__(self, year):
+    def __init__(self, year, era=None):
         if year == 2016:
             self.mm     = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL", "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ", "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL", "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ", "HLT_Mu30_TkMu11"]
             self.m      = ["HLT_IsoMu24", "HLT_IsoTkMu24", "HLT_Mu50"] # "HLT_TkMu50"
@@ -8,8 +8,12 @@ class triggerSelector:
             self.em     = ["HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL", "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL", "HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL"]
 
         elif year == 2017:
-            self.mm     = [("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ", 0, -1), ("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8", 0, -1), ("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8", 299337, -1), ("HLT_Mu37_TkMu27", 302026, -1), ("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL", 0, -1), ("HLT_Mu19_TrkIsoVVL_Mu9_TrkIsoVVL", 302030, -1),  ("HLT_Mu19_TrkIsoVVL_Mu9_TrkIsoVVL_DZ", 302030, -1), ("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8", 302030, -1)]
-            self.m      = [("HLT_IsoMu24", 0, -1), ("HLT_IsoMu27", 0, -1), ("HLT_Mu50", 0, -1)]
+            self.mm     = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ", "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8"]
+            if era in ['C','D','E','F']:
+                self.mm     += ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8"]
+            if era in ['D','E','F']:
+                self.mm     += ["HLT_Mu37_TkMu27"]
+            self.m      = ["HLT_IsoMu24", "HLT_IsoMu27", "HLT_Mu50"]
             self.ee     = ["HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL", "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ", "HLT_DoubleEle33_CaloIdL_MW"]
             self.e      = ["HLT_Ele35_WPTight_Gsf", "HLT_Ele32_WPTight_Gsf_L1DoubleEG"] # no non-isolated triggers in nanoAOD in 2017?HLT_Ele115_CaloIdVT_GsfTrkIdT missing, add single photon trigger? 
             self.em     = ["HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ", "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ"]
@@ -25,11 +29,11 @@ class triggerSelector:
             raise NotImplementedError("Trigger selection %r not implemented"%year)
 
         # define which triggers should be used for which dataset. could join several lists of triggers
-        self.DoubleMuon     = "(%s)"%"||".join( [ "%s"%trigger[2] for trigger in self.mm ] )
+        self.DoubleMuon     = "(%s)"%"||".join( [ "%s"%trigger for trigger in self.mm ] )
         self.DoubleEG       = "(%s)"%"||".join( [ "%s"%trigger for trigger in self.ee ] )
         self.EGamma         = "(%s)"%"||".join( [ "%s"%trigger for trigger in self.ee+self.e ] )
         self.MuonEG         = "(%s)"%"||".join( [ "%s"%trigger for trigger in self.em ] )
-        self.SingleMuon     = "(%s)"%"||".join( [ "%s"%trigger[2] for trigger in self.m ] )
+        self.SingleMuon     = "(%s)"%"||".join( [ "%s"%trigger for trigger in self.m ] )
         self.SingleElectron = "(%s)"%"||".join( [ "%s"%trigger for trigger in self.e ] )
 
         # define an arbitrary hierarchy
@@ -56,3 +60,4 @@ class triggerSelector:
                     cutString = getattr(self, x)
 
             return "(%s)"%cutString
+

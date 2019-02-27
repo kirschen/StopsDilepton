@@ -32,6 +32,7 @@ argParser.add_argument('--splitBosons',        action='store_true', default=Fals
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--unblinded',          action='store_true', default=False)
+argParser.add_argument('--reweightPUVUp',      action='store_true', default=False)
 argParser.add_argument('--isr',                action='store_true', default=False)
 args = argParser.parse_args()
 
@@ -49,9 +50,11 @@ if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
 if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
 if args.signal == "DM":               args.plot_directory += "_DM"
 if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
+if args.reweightPUVUp:                args.plot_directory += "_PUVUp"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
+from Analysis.Tools.puReweighting import getReweightingFunction
 
 data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
 
@@ -73,7 +76,9 @@ elif args.year == 2018:
     postProcessing_directory = "stops_2018_nano_v7/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-
+    
+    nTrueInt36fb_puRWVUp = getReweightingFunction(data="PU_2018_58830_XSecVUp", mc="Autumn18")
+    if args.reweightPUVUp: nTrueInt_puRW = nTrueInt36fb_puRWVUp
 
 
 if args.signal == "T2tt":
@@ -175,7 +180,7 @@ def getLeptonSelection( mode ):
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
 
 ##For PU reweighting
-#from StopsDilepton.tools.puReweighting import getReweightingFunction
+#from Analysis.Tools.puReweighting import getReweightingFunction
 #nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
 #nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
 #nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
@@ -216,12 +221,15 @@ for index, mode in enumerate(allModes):
     sample.scale          = lumi_scale
    #sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
    #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
-    sample.read_variables = ['reweightPU36fb/F']
+    sample.read_variables = ['reweightPU36fb/F', 'Pileup_nTrueInt/F']
     #if (('ttjets' in sample.name) or ('ttlep' in sample.name)) and args.isr:
     #    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F', 'reweight_nISR/F']
     #    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF*event.reweight_nISR
     #else:
-    sample.weight         = lambda event, sample: event.reweightPU36fb
+    if args.reweightPUVUp:
+        sample.weight         = lambda event, sample: nTrueInt_puRW(event.Pileup_nTrueInt)
+    else:
+        sample.weight         = lambda event, sample: event.reweightPU36fb
     sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
 
   for sample in signals:
