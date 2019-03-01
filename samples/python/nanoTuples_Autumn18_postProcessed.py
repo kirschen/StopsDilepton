@@ -61,7 +61,7 @@ dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop_sch'] + dirs['sin
 dirs['TTZ']              = ['TTZToLLNuNu', 'TTZToLLNuNu_m1to10']
 dirs['TTXNoZ']           = ['TTWZ','TTZZ', 'TTWToLNu', 'TTWToQQ', 'tWll', 'tZq_ll']
 
-dirs['diBoson']          = ['VVTo2L2Nu', 'ZZTo2L2Q', 'WZTo3L1Nu_amcatnlo']
+dirs['diBoson']          = ['VVTo2L2Nu', 'ZZTo2L2Q', 'WZTo3LNu_amcatnlo']
 dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] 
 dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 

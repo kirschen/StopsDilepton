@@ -17,11 +17,17 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',            action='store',             nargs='?',      choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],      default='INFO',      help="Log level for logging")
 argParser.add_argument('--small',               action='store_true',        help='Small?')
+argParser.add_argument('--globalRedirector',               action='store_true',        help='Small?')
 argParser.add_argument('--plot_directory',      default='trigger_nanoAOD',  type=str,    action='store')
 argParser.add_argument('--mode',                default='doubleMu',            action='store',    choices=['doubleMu', 'doubleEle',  'muEle'])
 argParser.add_argument('--sample',              default='MET',              action='store',    choices=['MET', 'JetHT'])
 argParser.add_argument('--year',                default=2016,               action='store')
 args = argParser.parse_args()
+
+import StopsDilepton.tools.logger as logger
+logger = logger.get_logger(args.logLevel, logFile = None )
+import RootTools.core.logger as logger_rt
+logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 year = int(args.year)
 
@@ -175,6 +181,13 @@ class TriggerAnalysis(Module):
         self.addObject(self.eff)
 
 
+logger.info("Loading samples")
+
+from Samples.Tools.config import redirector_global, redirector
+
+if args.globalRedirector:
+    redirector = redirector_global
+
 if year == 2016:
 
     from Samples.nanoAOD.Run2016_14Dec2018 import *
@@ -205,8 +218,8 @@ elif year == 2017:
 
 elif year == 2018:
     
-    from Samples.nanoAOD.Run2018_17Sep2018_private import *
-    data_samples = MET if args.sample == 'MET' else JetHT
+    from Samples.nanoAOD.Run2018_14Dec2018 import *
+    data_samples = MET_Run2018 if args.sample == 'MET' else JetHT_Run2018
 
     tag_triggers   = ['HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFMET200_NotCleaned','HLT_PFMET200_HBHECleaned','HLT_PFMET250_HBHECleaned','HLT_PFMET300_HBHECleaned','HLT_PFMET200_HBHE_BeamHaloCleaned','HLT_CaloMET250_HBHECleaned','HLT_CaloMET300_HBHECleaned','HLT_CaloMET350_HBHECleaned']
     tag_triggers  += ['HLT_PFJet15','HLT_PFJet25','HLT_PFJet40','HLT_PFJet60','HLT_PFJet80','HLT_PFJet140','HLT_PFJet200','HLT_PFJet260','HLT_PFJet320','HLT_PFJet400','HLT_PFJet450','HLT_PFJet500','HLT_PFJet550','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFHT180','HLT_PFHT250','HLT_PFHT370','HLT_PFHT430','HLT_PFHT510','HLT_PFHT590','HLT_PFHT680','HLT_PFHT780','HLT_PFHT890','HLT_PFHT1050']
@@ -239,16 +252,27 @@ if year == 2017 and args.mode == "doubleMu":
 
 preselection += "&&(%s)"%'||'.join(tag_triggers) #+ "&&MET_pt<100"
 
+logger.info("Combining samples")
+
 data = Sample.combine( "Run%s"%year, data_samples )
+print data.files
 #data.files = [ 'root://hephyse.oeaw.ac.at///store' + f.split('store')[1] for f in data.files ]
 
 files = data.files[:2] if args.small else data.files
 
+logger.info("Starting post-processor")
+
 p=PostProcessor(".",files,cut=preselection,branchsel=None,modules=[TriggerAnalysis(dileptonTrigger)],noOut=True,histFileName="histOut.root",histDirName="plots")
+
+print "Run"
 
 p.run()
 
+print "Done"
+
 outFile = p.histFile
+
+logger.info("Plotting")
 
 TDir                = outFile.Get('plots')
 
@@ -304,6 +328,13 @@ eff_pt2_eta2 = ROOT.TEfficiency(h_pt2_eta2_pass, h_pt2_eta2_total)
 h_eff_pt2_eta2 = eff_pt2_eta2.CreateHistogram()
 h_eff_pt2_eta2 = fixUncertainties(eff_pt2_eta2, h_eff_pt2_eta2, pt_thresholds_coarse, eta_thresholds_coarse)
 
+eff_pt1_pt2_lowEta1 = ROOT.TEfficiency(h_pt1_pt2_lowEta1_pass, h_pt1_pt2_lowEta1_total)
+h_eff_pt1_pt2_lowEta1 = eff_pt1_pt2_lowEta1.CreateHistogram()
+h_eff_pt1_pt2_lowEta1 = fixUncertainties(eff_pt1_pt2_lowEta1, h_eff_pt1_pt2_lowEta1, pt_thresholds_veryCoarse, pt_thresholds_veryCoarse)
+
+eff_pt1_pt2_highEta1 = ROOT.TEfficiency(h_pt1_pt2_highEta1_pass, h_pt1_pt2_highEta1_total)
+h_eff_pt1_pt2_highEta1 = eff_pt1_pt2_highEta1.CreateHistogram()
+h_eff_pt1_pt2_highEta1 = fixUncertainties(eff_pt1_pt2_highEta1, h_eff_pt1_pt2_highEta1, pt_thresholds_veryCoarse, pt_thresholds_veryCoarse)
 
 preprefix   = "Run%s"%year
 prefix      = preprefix+"_%s_measuredIn%s" % ( triggerName, args.sample)
@@ -369,7 +400,32 @@ plotting.draw(
 ROOT.gStyle.SetPaintTextFormat("1.2f")
 
 ## 2D
+h_eff_pt1_pt2.GetXaxis().SetNdivisions(712)
+h_eff_pt1_pt2.GetXaxis().SetMoreLogLabels()
+h_eff_pt1_pt2.GetXaxis().SetNoExponent()
+h_eff_pt1_pt2.GetYaxis().SetNdivisions(712)
+h_eff_pt1_pt2.GetYaxis().SetMoreLogLabels()
+h_eff_pt1_pt2.GetYaxis().SetNoExponent()
+
 plot = Plot.fromHisto(name = 'pt1_pt2_'+triggerName, histos = [[ h_eff_pt1_pt2 ]], texX = "p_{T} of leading lepton", texY = "p_{T} of subleading lepton")
+plot.drawOption="colz texte"
+plotting.draw2D(
+    plot,
+    plot_directory = plot_path, #ratio = ratio, 
+    logX = True, logY = True, logZ=False,
+     zRange = (0,1.05),
+)
+
+plot = Plot.fromHisto(name = 'pt1_pt2_highEta1'+triggerName, histos = [[ h_eff_pt1_pt2_highEta1 ]], texX = "p_{T} of leading lepton", texY = "p_{T} of subleading lepton")
+plot.drawOption="colz texte"
+plotting.draw2D(
+    plot,
+    plot_directory = plot_path, #ratio = ratio, 
+    logX = True, logY = True, logZ=False,
+     zRange = (0,1.05),
+)
+
+plot = Plot.fromHisto(name = 'pt1_pt2_lowEta1'+triggerName, histos = [[ h_eff_pt1_pt2_lowEta1 ]], texX = "p_{T} of leading lepton", texY = "p_{T} of subleading lepton")
 plot.drawOption="colz texte"
 plotting.draw2D(
     plot,
@@ -396,5 +452,10 @@ plotting.draw2D(
      zRange = (0,1.05),
 )
 
-
-
+ofile = ROOT.TFile.Open(os.path.join(plot_path, prefix+'.root'), 'recreate')
+h_eff_pt1_pt2.Write()
+h_eff_pt1_pt2_highEta1.Write()
+h_eff_pt1_pt2_lowEta1.Write()
+h_eff_pt1_eta1.Write()
+h_eff_pt2_eta2.Write()
+ofile.Close()
