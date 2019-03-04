@@ -2,6 +2,7 @@
 import os, sys
 import ROOT
 import array
+import json
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
@@ -12,12 +13,14 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 from StopsDilepton.tools.triggerSelector import *
+from StopsDilepton.tools.helpers import checkRootFile, nonEmptyFile, deltaR, deltaR2
 
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',            action='store',             nargs='?',      choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],      default='INFO',      help="Log level for logging")
 argParser.add_argument('--small',               action='store_true',        help='Small?')
 argParser.add_argument('--globalRedirector',               action='store_true',        help='Small?')
+argParser.add_argument('--local',               action='store_true',        help='Use local files?')
 argParser.add_argument('--plot_directory',      default='trigger_nanoAOD',  type=str,    action='store')
 argParser.add_argument('--mode',                default='doubleMu',            action='store',    choices=['doubleMu', 'doubleEle',  'muEle'])
 argParser.add_argument('--sample',              default='MET',              action='store',    choices=['MET', 'JetHT'])
@@ -30,6 +33,21 @@ import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
 year = int(args.year)
+
+def _dasPopen(dbs):
+    #logger.info('DAS query\t: %s',  dbs)
+    return os.popen(dbs)
+
+def checkLocalityOfFile(f, locality="T2_AT_Vienna"):
+    fileNoRedirector ='/store' + f.split('store')[1]
+    dbs='dasgoclient -query="site file=%s" --json'%(fileNoRedirector)
+    jdata = json.load(_dasPopen(dbs))
+    found = False
+    for j in jdata:
+        if j['site'][0]['name'] == locality:
+            found = True
+    return found
+    
 
 def fixUncertainties(teff, heff, x_binning, y_binning):
     for x in x_binning:
@@ -107,6 +125,7 @@ class TriggerAnalysis(Module):
 
     def passTriggers(self, event):
         for trigger, lower, upper in self.probeTriggers:
+            #print "Trigger:", trigger
             if event.run >= lower and (event.run < upper or upper < 0):
                 if getattr(event, trigger) > 0: return True
 
@@ -120,7 +139,7 @@ class TriggerAnalysis(Module):
         goodMuons   = []
         for muon in muons:
             if self.muonSelector(muon):
-                goodMuons.append({'pt':muon.pt, 'eta':muon.eta})
+                goodMuons.append({'pt':muon.pt, 'eta':muon.eta, 'phi':muon.phi})
 
         # electrons
         goodElectrons = []
@@ -136,6 +155,10 @@ class TriggerAnalysis(Module):
         for jet in jets:
             if jet.pt>30 and abs(jet.eta)<2.4 and jet.jetId>0:
                 ht += jet.pt
+
+        #if len(goodMuons)>1:
+        #    if deltaR(goodMuons[0], goodMuons[1]) < 0.4:
+        #        return True
 
         if len(goodLeptons) > 1:
             leadingPt       = goodLeptons[0]['pt']
@@ -204,6 +227,7 @@ elif year == 2017:
 
     from Samples.nanoAOD.Run2017_14Dec2018 import *
     data_samples = MET_Run2017 if args.sample == 'MET' else JetHT_Run2017
+    data_samples = [MET_Run2017C_14Dec2018, MET_Run2017D_14Dec2018, MET_Run2017E_14Dec2018, MET_Run2017F_14Dec2018] if args.sample == 'MET' else []
     #data_samples = JetHT_Run2017
     
     tag_triggers  = ['HLT_PFHT500_PFMET100_PFMHT100_IDTight','HLT_PFHT500_PFMET110_PFMHT110_IDTight','HLT_PFHT700_PFMET85_PFMHT85_IDTight','HLT_PFHT700_PFMET95_PFMHT95_IDTight','HLT_PFHT800_PFMET75_PFMHT75_IDTight','HLT_PFHT800_PFMET85_PFMHT85_IDTight','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight']
@@ -218,13 +242,17 @@ elif year == 2017:
 
 elif year == 2018:
     
-    from Samples.nanoAOD.Run2018_14Dec2018 import *
-    data_samples = MET_Run2018 if args.sample == 'MET' else JetHT_Run2018
+    if args.local:
+        from Samples.nanoAOD.Run2018_17Sep2018_private import *
+        data_samples = MET if args.sample == 'MET' else JetHT
+    else:
+        from Samples.nanoAOD.Run2018_14Dec2018 import *
+        data_samples = MET_Run2018 if args.sample == 'MET' else JetHT_Run2018
 
     tag_triggers   = ['HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFMET200_NotCleaned','HLT_PFMET200_HBHECleaned','HLT_PFMET250_HBHECleaned','HLT_PFMET300_HBHECleaned','HLT_PFMET200_HBHE_BeamHaloCleaned','HLT_CaloMET250_HBHECleaned','HLT_CaloMET300_HBHECleaned','HLT_CaloMET350_HBHECleaned']
     tag_triggers  += ['HLT_PFJet15','HLT_PFJet25','HLT_PFJet40','HLT_PFJet60','HLT_PFJet80','HLT_PFJet140','HLT_PFJet200','HLT_PFJet260','HLT_PFJet320','HLT_PFJet400','HLT_PFJet450','HLT_PFJet500','HLT_PFJet550','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFHT180','HLT_PFHT250','HLT_PFHT370','HLT_PFHT430','HLT_PFHT510','HLT_PFHT590','HLT_PFHT680','HLT_PFHT780','HLT_PFHT890','HLT_PFHT1050']
     tag_triggers  += ['HLT_AK8PFJet360_TrimMass30','HLT_AK8PFJet380_TrimMass30','HLT_AK8PFJet400_TrimMass30','HLT_AK8PFJet420_TrimMass30','HLT_AK8PFHT750_TrimMass50','HLT_AK8PFHT800_TrimMass50','HLT_AK8PFHT850_TrimMass50','HLT_AK8PFHT900_TrimMass50','HLT_CaloJet500_NoJetID','HLT_CaloJet550_NoJetID','HLT_HT450_Beamspot','HLT_HT300_Beamspot','HLT_DiPFJetAve40','HLT_DiPFJetAve60']
-    tag_triggers  += ['HLT_DiPFJetAve80','HLT_DiPFJetAve140','HLT_DiPFJetAve200','HLT_DiPFJetAve260','HLT_DiPFJetAve320','HLT_DiPFJetAve400','HLT_DiPFJetAve500','HLT_DiPFJetAve15_HFJEC','HLT_DiPFJetAve25_HFJEC','HLT_DiPFJetAve60_HFJEC','HLT_DiPFJetAve80_HFJEC','HLT_DiPFJetAve100_HFJEC','HLT_DiPFJetAve160_HFJEC','HLT_DiPFJetAve220_HFJEC','HLT_DiPFJetAve300_HFJEC']
+    tag_triggers  += ['HLT_DiPFJetAve80','HLT_DiPFJetAve140','HLT_DiPFJetAve200','HLT_DiPFJetAve260','HLT_DiPFJetAve320','HLT_DiPFJetAve400','HLT_DiPFJetAve500']
     tag_triggers  += ['HLT_AK8PFJet15','HLT_AK8PFJet25','HLT_AK8PFJet40','HLT_AK8PFJet60','HLT_AK8PFJet80','HLT_AK8PFJet140','HLT_AK8PFJet200','HLT_AK8PFJet260','HLT_AK8PFJet320','HLT_AK8PFJet400','HLT_AK8PFJet450','HLT_AK8PFJet500','HLT_AK8PFJet550','HLT_PFJetFwd15','HLT_PFJetFwd25','HLT_PFJetFwd40','HLT_PFJetFwd60','HLT_PFJetFwd80','HLT_PFJetFwd140','HLT_PFJetFwd200','HLT_PFJetFwd260','HLT_PFJetFwd320','HLT_PFJetFwd400','HLT_PFJetFwd450','HLT_PFJetFwd500']
     tag_triggers  += ['HLT_AK8PFJetFwd15','HLT_AK8PFJetFwd25','HLT_AK8PFJetFwd40','HLT_AK8PFJetFwd60','HLT_AK8PFJetFwd80','HLT_AK8PFJetFwd140','HLT_AK8PFJetFwd200','HLT_AK8PFJetFwd260','HLT_AK8PFJetFwd320','HLT_AK8PFJetFwd400','HLT_AK8PFJetFwd450','HLT_AK8PFJetFwd500','HLT_PFHT500_PFMET100_PFMHT100_IDTight','HLT_PFHT500_PFMET110_PFMHT110_IDTight','HLT_PFHT700_PFMET85_PFMHT85_IDTight','HLT_PFHT700_PFMET95_PFMHT95_IDTight','HLT_PFHT800_PFMET75_PFMHT75_IDTight','HLT_PFHT800_PFMET85_PFMHT85_IDTight']
     tag_triggers  += ['HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFMET120_PFMHT120_IDTight_PFHT60']
@@ -250,15 +278,28 @@ dileptonTrigger = [(t, 0, -1) for t in dileptonTrigger]
 if year == 2017 and args.mode == "doubleMu":
     dileptonTrigger += [("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8", 299337, -1), ("HLT_Mu37_TkMu27", 302026, -1)]
 
+print "Dilepton triggers:"
+print dileptonTrigger
+
 preselection += "&&(%s)"%'||'.join(tag_triggers) #+ "&&MET_pt<100"
 
 logger.info("Combining samples")
 
 data = Sample.combine( "Run%s"%year, data_samples )
-print data.files
+
+# single files might be missing, need to avoid this
+localFiles = []
+for f in data.files:
+    if year == 2018 and args.local:
+        if nonEmptyFile(f):
+            localFiles.append(f)
+    else:
+        if checkLocalityOfFile(f):
+            localFiles.append(f)
+
 #data.files = [ 'root://hephyse.oeaw.ac.at///store' + f.split('store')[1] for f in data.files ]
 
-files = data.files[:2] if args.small else data.files
+files = localFiles[:2] if args.small else localFiles
 
 logger.info("Starting post-processor")
 
@@ -317,26 +358,31 @@ pt_thresholds_veryCoarse = [20,25,35] + range(50,200,50)+[250]
 eta_thresholds_coarse   = [x/10. for x in range(-25,26,5) ]
 
 eff_pt1_pt2 = ROOT.TEfficiency(h_pt1_pt2_pass, h_pt1_pt2_total)
-h_eff_pt1_pt2 = eff_pt1_pt2.CreateHistogram()
+h_eff_pt1_pt2 = eff_pt1_pt2.CreateHistogram('eff_pt1_pt2')
+h_eff_pt1_pt2.SetName('eff_pt1_pt2')
 h_eff_pt1_pt2 = fixUncertainties(eff_pt1_pt2, h_eff_pt1_pt2, pt_thresholds_veryCoarse, pt_thresholds_veryCoarse)
 
 eff_pt1_eta1 = ROOT.TEfficiency(h_pt1_eta1_pass, h_pt1_eta1_total)
-h_eff_pt1_eta1 = eff_pt1_eta1.CreateHistogram()
+h_eff_pt1_eta1 = eff_pt1_eta1.CreateHistogram('eff_pt1_eta1')
+h_eff_pt1_eta1.SetName('eff_pt1_eta1')
 h_eff_pt1_eta1 = fixUncertainties(eff_pt1_eta1, h_eff_pt1_eta1, pt_thresholds_coarse, eta_thresholds_coarse)
 
 eff_pt2_eta2 = ROOT.TEfficiency(h_pt2_eta2_pass, h_pt2_eta2_total)
-h_eff_pt2_eta2 = eff_pt2_eta2.CreateHistogram()
+h_eff_pt2_eta2 = eff_pt2_eta2.CreateHistogram('eff_pt2_eta2')
+h_eff_pt2_eta2.SetName('eff_pt2_eta2')
 h_eff_pt2_eta2 = fixUncertainties(eff_pt2_eta2, h_eff_pt2_eta2, pt_thresholds_coarse, eta_thresholds_coarse)
 
 eff_pt1_pt2_lowEta1 = ROOT.TEfficiency(h_pt1_pt2_lowEta1_pass, h_pt1_pt2_lowEta1_total)
-h_eff_pt1_pt2_lowEta1 = eff_pt1_pt2_lowEta1.CreateHistogram()
+h_eff_pt1_pt2_lowEta1 = eff_pt1_pt2_lowEta1.CreateHistogram('eff_pt1_pt2_lowEta1')
+h_eff_pt1_pt2_lowEta1.SetName('eff_pt1_pt2_lowEta1')
 h_eff_pt1_pt2_lowEta1 = fixUncertainties(eff_pt1_pt2_lowEta1, h_eff_pt1_pt2_lowEta1, pt_thresholds_veryCoarse, pt_thresholds_veryCoarse)
 
 eff_pt1_pt2_highEta1 = ROOT.TEfficiency(h_pt1_pt2_highEta1_pass, h_pt1_pt2_highEta1_total)
-h_eff_pt1_pt2_highEta1 = eff_pt1_pt2_highEta1.CreateHistogram()
+h_eff_pt1_pt2_highEta1 = eff_pt1_pt2_highEta1.CreateHistogram('eff_pt1_pt2_highEta1')
+h_eff_pt1_pt2_highEta1.SetName('eff_pt1_pt2_highEta1')
 h_eff_pt1_pt2_highEta1 = fixUncertainties(eff_pt1_pt2_highEta1, h_eff_pt1_pt2_highEta1, pt_thresholds_veryCoarse, pt_thresholds_veryCoarse)
 
-preprefix   = "Run%s"%year
+preprefix   = "Run%sCDEF"%year
 prefix      = preprefix+"_%s_measuredIn%s" % ( triggerName, args.sample)
 if args.small: prefix = "small_" + prefix
 

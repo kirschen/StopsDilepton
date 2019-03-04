@@ -1,19 +1,30 @@
+'''
+Material from https://twiki.cern.ch/twiki/bin/view/CMS/SUSLeptonSF#Scale_Factors_for_2018_Data
+- relIso SFs missing
+- muon SFs for 2018 missing
+- old muon SFs for 2016
+
+'''
+
 import ROOT
 from StopsDilepton.tools.helpers import getObjFromFile
 from StopsDilepton.analysis.u_float import u_float
 import os
 from math import sqrt
 
-keys_mu  = [("TnP_NUM_MediumID_DENOM_generalTracks_VAR_map_pt_eta.root", "SF"),
-            ("TnP_NUM_TightIP2D_DENOM_MediumID_VAR_map_pt_eta.root",     "SF"),
-            ("TnP_NUM_TightIP3D_DENOM_MediumID_VAR_map_pt_eta.root",     "SF"),
-            ("ratio_NUM_RelIsoVTight_DENOM_MediumID_VAR_map_pt_eta_v2.root","pt_abseta_ratio")]
-
-keys_ele = [("scaleFactors.root", "GsfElectronToCutBasedStopsDilepton"),
-            ("scaleFactors.root", "CutBasedStopsDileptonToRelIso012")]
 
 class leptonSF:
-    def __init__(self):
+    def __init__(self, year):
+        if year == 2016:
+            keys_mu  = [("MuonRun2016_MediumID.root", "SF")]
+            keys_ele = [("ElectronScaleFactors_Run2016.root", "Run2016_CutBasedTightNoIso94XV2")]
+        elif year == 2017:
+            keys_mu  = [("MuonRun2017BCDEF_SF_ID.root", "NUM_MediumID_DEN_genTracks_pt_abseta")]
+            keys_ele = [("ElectronScaleFactors_Run2017.root", "Run2017_CutBasedTightNoIso94XV2")]
+        elif year == 2018:
+            keys_mu  = [("MuonRun2017BCDEF_SF_ID.root", "NUM_MediumID_DEN_genTracks_pt_abseta")] # use 2017 for now
+            keys_ele = [("ElectronScaleFactors_Run2018.root", "Run2018_CutBasedTightNoIso94XV2")]
+        
         self.dataDir = "$CMSSW_BASE/src/StopsDilepton/tools/data/leptonSFData"
 
         self.mu  = [getObjFromFile(os.path.expandvars(os.path.join(self.dataDir, file)), key) for (file, key) in keys_mu]
@@ -31,13 +42,17 @@ class leptonSF:
         return res
 
     def getSF(self, pdgId, pt, eta, sigma=0):
+        # protection for the abs(eta)=2.4 case
+        if eta >= 2.4: eta = 2.39
+        if eta <= -2.4: eta = -2.39
+
         if abs(pdgId)==13:   
           if pt >= 120: pt = 119 # last bin is valid to infinity
           sf = self.mult([self.getPartialSF(effMap, pt, eta) for effMap in self.mu])
           sf.sigma = 0.03 # Recommendation for Moriond17
         elif abs(pdgId)==11:
-          if pt >= 200: pt = 199 # last bin is valid to infinity
-          sf = self.mult([self.getPartialSF(effMap, pt, eta) for effMap in self.ele])
+          if pt >= 500: pt = 499 # last bin is valid to infinity
+          sf = self.mult([self.getPartialSF(effMap, eta, pt) for effMap in self.ele]) # eta/pt are intentionally mixed up because the 2D hists are the other way around... don't even ask
         else: 
           raise Exception("Lepton SF for PdgId %i not known"%pdgId)
 

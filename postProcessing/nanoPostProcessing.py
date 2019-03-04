@@ -37,15 +37,13 @@ from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonS
 from StopsDilepton.tools.overlapRemovalTTG  import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson        import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting     import getPolWeights
-from Analysis.Tools.puProfileCache          import *
-from StopsDilepton.tools.L1PrefireWeight    import L1PrefireWeight
 from StopsDilepton.tools.triggerEfficiency  import triggerEfficiency
+from StopsDilepton.tools.leptonSF           import leptonSF as leptonSF_
+from StopsDilepton.tools.leptonFastSimSF    import leptonFastSimSF as leptonFastSimSF_
+from Analysis.Tools.puProfileCache          import *
+from Analysis.Tools.L1PrefireWeight         import L1PrefireWeight
+from Analysis.Tools.LeptonTrackingEfficiency import LeptonTrackingEfficiency
 
-triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
-triggerEff            = triggerEfficiency(with_backup_triggers = False)
-
-from StopsDilepton.tools.leptonTrackingEfficiency import leptonTrackingEfficiency
-leptonTrackingSF = leptonTrackingEfficiency()
 
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
@@ -204,6 +202,8 @@ if sample.isData and options.triggerSelection:
 
 sample_name_postFix = ""
 
+triggerEff            = triggerEfficiency(options.year)
+
 #Samples: combine if more than one
 if len(samples)>1:
     sample_name =  samples[0].name+"_comb"
@@ -235,6 +235,13 @@ if isMC:
         nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2018_58830_XSecCentral",  mc="Autumn18")
         nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2018_58830_XSecDown",     mc="Autumn18")
         nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2018_58830_XSecUp",       mc="Autumn18")
+
+## lepton SFs
+
+leptonTrackingSF    = LeptonTrackingEfficiency(options.year)
+leptonSF            = leptonSF_(options.year)
+if fastSim:
+   leptonFastSimSF  = leptonFastSimSF_(options.year)
 
 # output directory (store temporarily when running on dpm)
 if options.writeToDPM:
@@ -302,19 +309,11 @@ if isTT:
     isr = ISRweight()
     logger.info("Sample will have ISR reweighting called reweight_nISR.")
 
-if fastSim:
-   from StopsDilepton.tools.leptonFastSimSF import leptonFastSimSF as leptonFastSimSF_
-   leptonFastSimSF = leptonFastSimSF_()
-
-from StopsDilepton.tools.leptonSF import leptonSF as leptonSF_
-leptonSF = leptonSF_()
-
-
 # systematic variations
 addSystematicVariations = (not isData) and (not options.skipSystematicVariations)
 if addSystematicVariations:
     # B tagging SF
-    from StopsDilepton.tools.btagEfficiency import btagEfficiency
+    from Analysis.Tools.btagEfficiency import btagEfficiency
     btagEff = btagEfficiency( fastSim = fastSim )
 
 # Directory for individual signal files
@@ -556,6 +555,7 @@ if not options.skipNanoTools:
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties   import jetmetUncertaintiesProducer
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib            import jetRecalib
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METSigProducer        import METSigProducer 
+    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METminProducer        import METminProducer
     
     logger.info("Preparing nanoAOD postprocessing")
     logger.info("Will put files into directory %s", output_directory)
@@ -634,7 +634,9 @@ if not options.skipNanoTools:
             logger.info("JECs won't be reapplied. Choice of JECs has no effect.")
 
     modules.append( METSigProducer(JER, metSigParams) )
-    
+    if options.year == 2017:
+        modules.append(METminProducer(isData=isData, calcVariations=(not isData)))
+
     print sample.files
 
     sample.files = [ f for f in sample.files if nonEmptyFile(f) ]

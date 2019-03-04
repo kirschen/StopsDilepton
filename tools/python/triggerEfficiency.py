@@ -2,39 +2,33 @@ import ROOT
 from StopsDilepton.tools.helpers import getObjFromFile
 import os
 
-#ee_trigger_SF   = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/HLT_ee_DZ_None_measuredInMET_minLeadLepPt0.root'
-#mue_trigger_SF  = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/HLT_mue_None_measuredInMET_minLeadLepPt0.root'
-#mumu_trigger_SF = '$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/HLT_mumuIso_None_measuredInMET_minLeadLepPt0.root'
-
 basedir = "$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/"
 
 #OR of all backput triggers
-#FIXME new efficiencies are there, but use old ones for consistency
-ee_trigger_SF   = basedir+'Run2016BCDEFG_HLT_ee_DZ_None_measuredInMET_minLeadLepPt0.root'
-mue_trigger_SF  = basedir+'Run2016BCDEFG_HLT_mue_None_measuredInMET_minLeadLepPt0.root'
-mumu_trigger_SF = basedir+'Run2016BCDEFG_HLT_mumuIso_None_measuredInMET_minLeadLepPt0.root'
 
-ee_trigger_SF_with_backup   = basedir+'Run2016BCDEFGH_HLT_ee_DZ_OR_HLT_ee_33_OR_HLT_ee_33_MW_OR_HLT_SingleEle_noniso_None_measuredInMET_minLeadLepPt0.root'
-mue_trigger_SF_with_backup  = basedir+'Run2016BCDEFGH_HLT_mue_OR_HLT_mu30e30_OR_HLT_SingleEle_noniso_OR_HLT_SingleMu_noniso_None_measuredInMET_minLeadLepPt0.root'
-mumu_trigger_SF_with_backup = basedir+'Run2016BCDEFGH_HLT_mumuIso_OR_HLT_mumuNoiso_OR_HLT_SingleMu_noniso_None_measuredInMET_minLeadLepPt0.root'
 
 class triggerEfficiency:
-    def __init__(self, with_backup_triggers = False):
+    def __init__(self, year):
 
-        if not with_backup_triggers:
-            self.mumu_highEta   = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_highEta1_veryCoarse")
-            self.mumu_lowEta    = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_lowEta1_veryCoarse")
-            self.ee_highEta     = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "eff_pt1_pt2_highEta1_veryCoarse")
-            self.ee_lowEta      = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "eff_pt1_pt2_lowEta1_veryCoarse")
-            self.mue_highEta    = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_highEta1_veryCoarse")
-            self.mue_lowEta     = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_lowEta1_veryCoarse")
-        else:
-            self.mumu_highEta   = getObjFromFile(os.path.expandvars(mumu_trigger_SF_with_backup),   "eff_pt1_pt2_highEta1_veryCoarse")
-            self.mumu_lowEta    = getObjFromFile(os.path.expandvars(mumu_trigger_SF_with_backup),   "eff_pt1_pt2_lowEta1_veryCoarse")
-            self.ee_highEta     = getObjFromFile(os.path.expandvars(ee_trigger_SF_with_backup),     "eff_pt1_pt2_highEta1_veryCoarse")
-            self.ee_lowEta      = getObjFromFile(os.path.expandvars(ee_trigger_SF_with_backup),     "eff_pt1_pt2_lowEta1_veryCoarse")
-            self.mue_highEta    = getObjFromFile(os.path.expandvars(mue_trigger_SF_with_backup),    "eff_pt1_pt2_highEta1_veryCoarse")
-            self.mue_lowEta     = getObjFromFile(os.path.expandvars(mue_trigger_SF_with_backup),    "eff_pt1_pt2_lowEta1_veryCoarse")
+        if year == 2016:
+            ee_trigger_SF   = basedir+'Run2016_HLT_ee_measuredInMET_v1.root'
+            mue_trigger_SF  = basedir+'Run2016_HLT_muEle_measuredInMET_v1.root'
+            mumu_trigger_SF = basedir+'Run2016_HLT_mm_measuredInMET_v1.root'
+        elif year == 2017:
+            ee_trigger_SF   = basedir+'Run2017_HLT_ee_measuredInMET_v1.root'
+            mue_trigger_SF  = basedir+'Run2017_HLT_muEle_measuredInMET_v1.root'
+            mumu_trigger_SF = basedir+'Run2017_HLT_mm_measuredInMET_v1.root'
+        elif year == 2018:
+            ee_trigger_SF   = basedir+'Run2018_HLT_ee_measuredInMET_v1.root'
+            mue_trigger_SF  = basedir+'Run2018_HLT_muEle_measuredInMET_v1.root'
+            mumu_trigger_SF = basedir+'Run2018_HLT_mm_measuredInMET_v1.root'
+
+        self.mumu_highEta   = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "h_eff_pt1_pt2_highEta1")
+        self.mumu_lowEta    = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "h_eff_pt1_pt2_lowEta1")
+        self.ee_highEta     = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "h_eff_pt1_pt2_highEta1")
+        self.ee_lowEta      = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "h_eff_pt1_pt2_lowEta1")
+        self.mue_highEta    = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "h_eff_pt1_pt2_highEta1")
+        self.mue_lowEta     = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "h_eff_pt1_pt2_lowEta1")
 
         h_ = [self.mumu_highEta, self.mumu_lowEta, self.ee_highEta, self.ee_lowEta, self.mue_highEta, self.mue_lowEta]
         assert False not in [bool(x) for x in h_], "Could not load trigger SF: %r"%h_
@@ -72,7 +66,7 @@ class triggerEfficiency:
             else:
                 return self.__getSF(self.mue_highEta, pt1, pt2)
         elif abs(pdgId1)==11 and abs(pdgId2)==13:
-            if abs(eta2)<1.5: 
+            if abs(eta1)<1.5: 
                 return self.__getSF(self.mue_lowEta, pt1, pt2)
             else:
                 return self.__getSF(self.mue_highEta, pt1, pt2)

@@ -14,11 +14,11 @@ from StopsDilepton.tools.helpers import getObjFromFile, deltaR
 class L1PrefireWeight:
     def __init__(self, year, syst=0.2):
         if year == 2016:
-            self.phEff  = getObjFromFile(os.path.expandvars('$CMSSW_BASE/src/StopsDilepton/tools/data/triggerPrefiring/L1prefiring_photonpt_2016BtoH.root'), 'L1prefiring_photonpt_2016BtoH')
-            self.jetEff = getObjFromFile(os.path.expandvars('$CMSSW_BASE/src/StopsDilepton/tools/data/triggerPrefiring/L1prefiring_jetpt_2016BtoH.root'), 'L1prefiring_jetpt_2016BtoH')
+            self.phEff  = getObjFromFile(os.path.expandvars('$CMSSW_BASE/src/Analysis/Tools/data/L1Prefiring/L1prefiring_photonpt_2016BtoH.root'), 'L1prefiring_photonpt_2016BtoH')
+            self.jetEff = getObjFromFile(os.path.expandvars('$CMSSW_BASE/src/Analysis/Tools/data/L1Prefiring/L1prefiring_jetpt_2016BtoH.root'), 'L1prefiring_jetpt_2016BtoH')
         elif year == 2017:
-            self.phEff  = getObjFromFile(os.path.expandvars('$CMSSW_BASE/src/StopsDilepton/tools/data/triggerPrefiring/L1prefiring_photonpt_2017BtoF.root'), 'L1prefiring_photonpt_2017BtoF')
-            self.jetEff = getObjFromFile(os.path.expandvars('$CMSSW_BASE/src/StopsDilepton/tools/data/triggerPrefiring/L1prefiring_jetpt_2017BtoF.root'), 'L1prefiring_jetpt_2017BtoF')
+            self.phEff  = getObjFromFile(os.path.expandvars('$CMSSW_BASE/src/Analysis/Tools/data/L1Prefiring/L1prefiring_photonpt_2017BtoF.root'), 'L1prefiring_photonpt_2017BtoF')
+            self.jetEff = getObjFromFile(os.path.expandvars('$CMSSW_BASE/src/Analysis/Tools/data/L1Prefiring/L1prefiring_jetpt_2017BtoF.root'), 'L1prefiring_jetpt_2017BtoF')
         else:
             self.phEff  = None
             self.jetEff = None
