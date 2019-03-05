@@ -394,7 +394,7 @@ lepVarNames     = [x.split('/')[0] for x in lepVars]
 
 read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
 if options.year == 2017:
-    read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'MET_phi/F'])
+    read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F'])
 if options.reapplyJECS:
     read_variables += map(TreeVariable.fromString, [ 'MET_pt_nom/F'])
 
@@ -810,7 +810,7 @@ def filler( event ):
     if options.year == 2017 and not fastSim:
         # v2 recipe. Could also use our own recipe
         event.met_pt    = r.METFixEE2017_pt
-        event.met_phi   = r.METFixEE2017_phi
+        event.met_phi   = r.MET_phi
     else:
         if options.reapplyJECS:
             event.met_pt    = r.MET_pt_nom 

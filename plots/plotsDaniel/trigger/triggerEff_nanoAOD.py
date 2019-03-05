@@ -48,6 +48,8 @@ def checkLocalityOfFile(f, locality="T2_AT_Vienna"):
             found = True
     return found
     
+if 'cern' in os.environ['HOSTNAME']:
+  redirector = 'root://cms-xrd-global.cern.ch/'
 
 def fixUncertainties(teff, heff, x_binning, y_binning):
     for x in x_binning:
