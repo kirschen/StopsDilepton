@@ -25,6 +25,9 @@ args = argParser.parse_args()
 
 year = int(args.year)
 
+if 'cern' in os.environ['HOSTNAME']:
+  redirector = 'root://cms-xrd-global.cern.ch/'
+
 def fixUncertainties(teff, heff, x_binning, y_binning):
     for x in x_binning:
         for y in y_binning:
