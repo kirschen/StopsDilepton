@@ -3,9 +3,9 @@ logger = logging.getLogger(__name__)
 
 class xSecSusy:
     def __init__(self):
-        from StopsDilepton.tools.xSecSusyData.stops_13TeV import xsec as stop13TeV
+        from StopsDilepton.tools.xSecSusyData.stops_13TeV import xsecNNLL as stop13TeV
         self.xSec = {
-            'stop13TeV':stop13TeV_NNLL
+            'stop13TeV':stop13TeV
         }
 
     def getXSec(self, mass, sigma=0, channel='stop13TeV'):

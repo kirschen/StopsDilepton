@@ -41,10 +41,14 @@ zMassRange            = 15
 default_mllMin        = 20
 default_metMin        = 80
 default_metSigMin     = 5
+<<<<<<< HEAD
 default_zWindow       = "offZ"
 default_dPhi          = True
 default_triLep        = False
 default_dPhiInv       = False
+=======
+default_dPhiJetMet    = 0.25 # To fix: this only applies to the 2nd jet, the first jet is fixes see below
+>>>>>>> 91b230c6061836fc0b8d0465bb99d781d6f427ca
 default_nJets         = (2, -1)   # written as (min, max)
 default_nBTags        = (1, -1)
 default_leptonCharges = "isOS"
@@ -206,11 +210,18 @@ class Setup:
           res['cuts'].append('MET_pt'+sysStr+metStr+'>='+str(metMin))
           res['prefixes'].append('met'+str(metMin))
         if metSigMin and metSigMin>0:
+<<<<<<< HEAD
           res['cuts'].append('MET_significance'+sysStr+metStr+'>='+str(metSigMin))
           res['prefixes'].append('METsig'+str(metSigMin))
 
         if dPhi:
           res['cuts'].append('cos(MET_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(MET_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25)')
+=======
+          res['cuts'].append('metSig'+sysStr+'>='+str(metSigMin))
+          res['prefixes'].append('metSig'+str(metSigMin))
+        if dPhiJetMet>=0.:
+          res['cuts'].append('cos(met_phi'+sysStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+'-JetGood_phi[1])<cos('+str(dPhiJetMet)+')')
+>>>>>>> 91b230c6061836fc0b8d0465bb99d781d6f427ca
           res['prefixes'].append('dPhiJet0-dPhiJet')
         elif dPhiInv:
           res['cuts'].append('!(cos(MET_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(MET_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25))')
@@ -232,6 +243,24 @@ class Setup:
               res['cuts'].append('abs(mlmZ_mass-91.1876)<10')
 
             else:
+<<<<<<< HEAD
+=======
+                pMuMu = preselMuMu
+                pEE   = preselEE
+                pEMu  = preselEMu
+
+            if channel=="MuMu":  chStr = pMuMu
+            elif channel=="EE":  chStr = pEE
+            elif channel=="EMu": chStr = pEMu
+            elif channel=="all": chStr = "("+pMuMu+'||'+pEE+'||'+pEMu+')'
+            res['cuts'].append(chStr)
+
+        if dataMC=='Data': filterCut = filterCutData
+        else:              filterCut = filterCutMC
+        res['cuts'].append("l1_pt>25")
+        res['cuts'].append(filterCut)
+        res['cuts'].extend(self.externalCuts)
+>>>>>>> 91b230c6061836fc0b8d0465bb99d781d6f427ca
 
               preselMuMu = "isMuMu==1&&nGoodMuons==2&&nGoodElectrons==0"
               preselEE   = "isEE==1&&nGoodMuons==0&&nGoodElectrons==2"

@@ -100,8 +100,7 @@ options = get_parser().parse_args()
 # Logging
 import StopsDilepton.tools.logger as _logger
 logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job))
-#logger  = _logger.get_logger(options.logLevel, logFile = logFile)
-logger  = _logger.get_logger(options.logLevel, logFile = None)
+logger  = _logger.get_logger(options.logLevel, logFile = logFile)
 
 import RootTools.core.logger as _logger_rt
 logger_rt = _logger_rt.get_logger(options.logLevel, logFile = None )
@@ -122,7 +121,7 @@ if options.susySignal: fastSim = True
 # Skim condition
 skimConds = []
 if isDiLep:
-    skimConds.append( "Sum$(Electron_pt>20&&abs(Electron_eta)<2.5) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.5)>=2" )
+    skimConds.append( "Sum$(Electron_pt>20&&abs(Electron_eta)<2.4) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.4)>=2" )
 if isTriLep:
     skimConds.append( "Sum$(Electron_pt>20&&abs(Electron_eta)&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.5&&Muon_pfRelIso03_all<0.4)>=2 && Sum$(Electron_pt>10&&abs(Electron_eta)<2.5)+Sum$(Muon_pt>10&&abs(Muon_eta)<2.5)>=3" )
 elif isSingleLep:
@@ -240,8 +239,8 @@ if isMC:
 
 leptonTrackingSF    = LeptonTrackingEfficiency(options.year)
 leptonSF            = leptonSF_(options.year)
-if fastSim:
-   leptonFastSimSF  = leptonFastSimSF_(options.year)
+#if fastSim:
+#   leptonFastSimSF  = leptonFastSimSF_(options.year)
 
 # output directory (store temporarily when running on dpm)
 if options.writeToDPM:
@@ -271,13 +270,10 @@ if options.susySignal:
     logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
     # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
     assert len(samples)==1, "Can only process one SUSY sample at a time."
-    samples[0].files = samples[0].files[:maxN]
-    print len(samples[0].files), len(sample.files)
     logger.info( "Signal weights will be drawn from %s files. If that's not the whole sample, stuff will be wrong.", len(samples[0].files))
     logger.info( "Fetching signal weights..." )
     logger.info( "Weights will be stored in %s for future use.", output_directory)
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = output_directory) #Can use same x-sec/weight for T8bbllnunu as for T2tt
-    print sorted(signalWeight.keys())
     logger.info("Done fetching signal weights.")
 
 len_orig = len(sample.files)
@@ -311,10 +307,10 @@ if isTT:
 
 # systematic variations
 addSystematicVariations = (not isData) and (not options.skipSystematicVariations)
-if addSystematicVariations:
-    # B tagging SF
-    from Analysis.Tools.btagEfficiency import btagEfficiency
-    btagEff = btagEfficiency( fastSim = fastSim )
+
+# B tagging SF
+from Analysis.Tools.BTagEfficiency import BTagEfficiency
+btagEff = BTagEfficiency( fastSim = fastSim, year=options.year, tagger='DeepCSV' )
 
 # Directory for individual signal files
 if options.susySignal:
@@ -364,7 +360,7 @@ branchKeepStrings_DATA = [ ]
 
 # Jet variables to be read from chain
 jetCorrInfo = []
-jetMCInfo   = ['genJetIdx/I']
+jetMCInfo   = ['genJetIdx/I','hadronFlavour/I']
 
 #if not (isTiny or isSmall):
 #    branchKeepStrings_DATAMC+=[
@@ -455,15 +451,14 @@ if isTriLep or isDiLep:
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
     if isMC: new_variables.extend( \
         [   'zBoson_genPt/F', 'zBoson_genEta/F', 
-            'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F', 'reweightDilepTriggerBackup/F', 'reweightDilepTriggerBackupUp/F', 'reweightDilepTriggerBackupDown/F',
+            'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F',
             'reweightLeptonTrackingSF/F',
          ] )
     #if options.susySignal:
     #    new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
-new_variables.extend( ['MET_pt_photonEstimated/F','MET_phi_photonEstimated/F','metSig_photonEstimated/F'] )
-new_variables.extend( ['MET_pt_corr/F','MET_phi_corr/F'] )
+new_variables.extend( ['met_pt_photonEstimated/F','MET_phi_photonEstimated/F','metSig_photonEstimated/F'] )
 new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
 if isTriLep or isDiLep:
   new_variables.extend( ['dlg_mass/F','dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
@@ -475,16 +470,17 @@ if addSystematicVariations:
 
     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
         if 'Unclustered' not in var: new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
-        new_variables.extend( ['MET_pt_'+var+'/F', 'MET_phi_'+var+'/F', 'metSig_'+var+'/F'] )
+        new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
         if isTriLep or isDiLep:
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
-        new_variables.extend( ['MET_pt_photonEstimated_'+var+'/F', 'MET_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
+        new_variables.extend( ['met_pt_photonEstimated_'+var+'/F', 'met_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
         if isTriLep or isDiLep:
             new_variables.extend( ['dl_mt2ll_photonEstimated_'+var+'/F', 'dl_mt2bb_photonEstimated_'+var+'/F', 'dl_mt2blbl_photonEstimated_'+var+'/F'] )
-    # Btag weights Method 1a
-    for var in btagEff.btagWeightNames:
-        if var!='MC':
-            new_variables.append('reweightBTag_'+var+'/F')
+
+# Btag weights Method 1a
+for var in btagEff.btagWeightNames:
+    if var!='MC':
+        new_variables.append('reweightBTag_'+var+'/F')
 
 #if options.susySignal or options.TTDM:
 #    read_variables += map(TreeVariable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
@@ -555,7 +551,7 @@ if not options.skipNanoTools:
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties   import jetmetUncertaintiesProducer
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib            import jetRecalib
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METSigProducer        import METSigProducer 
-    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METminProducer        import METminProducer
+    from PhysicsTools.NanoAODTools.postprocessing.modules.private.METminProducer        import METminProducer
     
     logger.info("Preparing nanoAOD postprocessing")
     logger.info("Will put files into directory %s", output_directory)
@@ -811,7 +807,7 @@ def filler( event ):
     leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     leptons.sort(key = lambda p:-p['pt'])
     
-    if options.year == 2017:
+    if options.year == 2017 and not fastSim:
         # v2 recipe. Could also use our own recipe
         event.met_pt    = r.METFixEE2017_pt
         event.met_phi   = r.METFixEE2017_phi
@@ -925,30 +921,23 @@ def filler( event ):
 #            for i in metVariants:
 #              setattr(event, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(event, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(event, "met_phi"+i)))))
 
-        if fastSim:
-            ## To check whether PV_npvsGood is the correct replacement for nVert
-            event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt) for l in leptons], 1)
-            event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt, sigma = +1) for l in leptons], 1)
-            event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt, sigma = -1) for l in leptons], 1)
+        #if fastSim:
+        #    ## To check whether PV_npvsGood is the correct replacement for nVert
+        #    event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt) for l in leptons], 1)
+        #    event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt, sigma = +1) for l in leptons], 1)
+        #    event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt, sigma = -1) for l in leptons], 1)
 
         if isMC:
             event.reweightDilepTrigger       = 0 
             event.reweightDilepTriggerUp     = 0 
             event.reweightDilepTriggerDown   = 0 
-            event.reweightDilepTriggerBackup       = 0 
-            event.reweightDilepTriggerBackupUp     = 0 
-            event.reweightDilepTriggerBackupDown   = 0 
 
             leptonsForSF = (leptons[:2] if isDiLep else (leptons[:3] if isTriLep else leptons[:1]))
             event.reweightLeptonSF           = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta']) for l in leptonsForSF], 1)
             event.reweightLeptonSFUp         = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = +1) for l in leptonsForSF], 1)
             event.reweightLeptonSFDown       = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = -1) for l in leptonsForSF], 1)
 
-            event.reweightLeptonTrackingSF   = reduce(mul, [leptonTrackingSF.getSF( \
-                pdgId = l['pdgId'],
-                pt  =   l['pt'], 
-                eta =   ((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])
-                )[0]  for l in leptonsForSF], 1)
+            event.reweightLeptonTrackingSF   = reduce(mul, [leptonTrackingSF.getSF(pdgId = l['pdgId'], pt = l['pt'], eta = ((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta']))  for l in leptonsForSF], 1)
 
     if isTriLep or isDiLep:
         if len(leptons)>=2:
@@ -1020,10 +1009,6 @@ def filler( event ):
               event.reweightDilepTrigger       = trig_eff 
               event.reweightDilepTriggerUp     = trig_eff + trig_eff_err
               event.reweightDilepTriggerDown   = trig_eff - trig_eff_err
-              trig_eff, trig_eff_err =  triggerEff_withBackup.getSF(event.l1_pt, event.l1_eta, event.l1_pdgId, event.l2_pt, event.l2_eta, event.l2_pdgId)
-              event.reweightDilepTriggerBackup       = trig_eff 
-              event.reweightDilepTriggerBackupUp     = trig_eff + trig_eff_err
-              event.reweightDilepTriggerBackupDown   = trig_eff - trig_eff_err
 
               zBoson          = getGenZ(gPart)
               event.zBoson_genPt  = zBoson['pt']  if zBoson is not None else float('nan')
@@ -1057,7 +1042,7 @@ def filler( event ):
 
                 if addSystematicVariations:
                     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
-                        mt2Calc.setMet( getattr(event, "MET_pt"+i+"_"+var), getattr(event, "MET_phi"+i+"_"+var) )
+                        mt2Calc.setMet( getattr(event, "met_pt"+i+"_"+var), getattr(event, "MET_phi"+i+"_"+var) )
                         setattr(event, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
                         if not 'Unclustered' in var:
                             if len(jets_sys[var])>=2:
@@ -1071,13 +1056,13 @@ def filler( event ):
                             setattr(event, 'dl_mt2bb'  +i+'_'+var, mt2Calc.mt2bb())
                             setattr(event, 'dl_mt2blbl'+i+'_'+var, mt2Calc.mt2blbl())
 
-    if addSystematicVariations:
-        # B tagging weights method 1a
-        for j in jets:
-            btagEff.addBTagEffToJet(j)
-        for var in btagEff.btagWeightNames:
-            if var!='MC':
-                setattr(event, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, filter( lambda j: abs(j['eta'])<2.4, nonBJets ) ) )
+    #if addSystematicVariations:
+    # B tagging weights method 1a
+    for j in jets:
+        btagEff.addBTagEffToJet(j)
+    for var in btagEff.btagWeightNames:
+        if var!='MC':
+            setattr(event, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, filter( lambda j: abs(j['eta'])<2.4, nonBJets ) ) )
     # gen information on extra leptons
     if isMC and not options.skipGenLepMatching:
         genSearch.init( gPart )

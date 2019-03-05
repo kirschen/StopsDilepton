@@ -21,6 +21,10 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--overwrite',      action='store_true', default=True,        help='overwrite?')
 argParser.add_argument('--plot_directory', action='store',      default='TTZ')
+<<<<<<< HEAD
+=======
+argParser.add_argument('--pdType',         action='store',      default='doubleLep', choices=['singleLep','doubleLep'])
+>>>>>>> 91b230c6061836fc0b8d0465bb99d781d6f427ca
 argParser.add_argument('--selection',      action='store',      default=None)
 argParser.add_argument('--isChild',        action='store_true', default=False)
 argParser.add_argument('--runLocal',       action='store_true', default=False)
@@ -172,10 +176,16 @@ sequence = [makeDeltaR, calcBTag, calcInvMass]
 #
 # Make samples, will be searched for in the postProcessing directory
 #
+<<<<<<< HEAD
 postProcessing_directory = 'postProcessed_80X_v35/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Summer16_mAODv2_postProcessed import *
 postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
 from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
+=======
+#postProcessing_directory = "postProcessed_Fall15_mAODv2/dilepTiny_3jet"
+from StopsDilepton.samples.cmgTuples_Fall15_mAODv2_25ns_postProcessed import *
+from StopsDilepton.samples.cmgTuples_Data25ns_mAODv2_postProcessed import *
+>>>>>>> 91b230c6061836fc0b8d0465bb99d781d6f427ca
 
 
 #
@@ -215,7 +225,11 @@ for index, mode in enumerate(allModes):
   data_sample.style = styles.errorStyle( ROOT.kBlack )
   lumi_scale = data_sample.lumi/1000
 
+<<<<<<< HEAD
   mc = [ DY_HT_LO, Top_pow, multiBoson, TTXNoZ, TTZ_LO if args.LO else TTZ]
+=======
+  mc = [ DY_HT_LO, qcd_sample, singleTop, diBoson, triBoson, WJetsToLNu, TTLep_pow, TTXNoZ, TTZtoQQ, TTZtoLLNuNu]
+>>>>>>> 91b230c6061836fc0b8d0465bb99d781d6f427ca
   for sample in mc:
     sample.scale          = lumi_scale
     sample.style          = styles.fillStyle(sample.color, lineColor = sample.color)

@@ -227,8 +227,7 @@ elif year == 2017:
 
     from Samples.nanoAOD.Run2017_14Dec2018 import *
     data_samples = MET_Run2017 if args.sample == 'MET' else JetHT_Run2017
-    data_samples = [MET_Run2017C_14Dec2018, MET_Run2017D_14Dec2018, MET_Run2017E_14Dec2018, MET_Run2017F_14Dec2018] if args.sample == 'MET' else []
-    #data_samples = JetHT_Run2017
+    #data_samples = [MET_Run2017C_14Dec2018, MET_Run2017D_14Dec2018, MET_Run2017E_14Dec2018, MET_Run2017F_14Dec2018] if args.sample == 'MET' else []
     
     tag_triggers  = ['HLT_PFHT500_PFMET100_PFMHT100_IDTight','HLT_PFHT500_PFMET110_PFMHT110_IDTight','HLT_PFHT700_PFMET85_PFMHT85_IDTight','HLT_PFHT700_PFMET95_PFMHT95_IDTight','HLT_PFHT800_PFMET75_PFMHT75_IDTight','HLT_PFHT800_PFMET85_PFMHT85_IDTight','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight']
     tag_triggers += ['HLT_PFHT430', 'HLT_PFHT510', 'HLT_PFHT590', 'HLT_PFHT680', 'HLT_PFHT780', 'HLT_PFHT890', 'HLT_PFHT1050', 'HLT_PFJet40', 'HLT_PFJet60', 'HLT_PFJet80', 'HLT_PFJet140', 'HLT_PFJet200','HLT_PFJet260', 'HLT_PFJet320', 'HLT_PFJet400', 'HLT_PFJet450', 'HLT_PFJet500', 'HLT_PFJet550', 'HLT_DiPFJetAve15_HFJEC', 'HLT_DiPFJetAve25_HFJEC', 'HLT_DiPFJetAve35_HFJEC']
@@ -271,8 +270,10 @@ elif args.mode == "doubleEle":
     preselection = "Sum$(Electron_pt>5&&abs(Electron_eta)<2.4&&Electron_cutBased>=4)>1"
 elif args.mode == "doubleMu":
     dileptonTrigger = tr.m + tr.mm
-    triggerName = "HLT_mm"
-    preselection = "Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_mediumId>0)>1"
+    triggerName = "HLT_mm_tight"
+    #dileptonTrigger = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"]
+    #triggerName = "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"
+    preselection = "Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_mediumId>0&&Muon_pfRelIso03_all<0.15)>1"
 
 dileptonTrigger = [(t, 0, -1) for t in dileptonTrigger]
 if year == 2017 and args.mode == "doubleMu":
@@ -382,7 +383,7 @@ h_eff_pt1_pt2_highEta1 = eff_pt1_pt2_highEta1.CreateHistogram('eff_pt1_pt2_highE
 h_eff_pt1_pt2_highEta1.SetName('eff_pt1_pt2_highEta1')
 h_eff_pt1_pt2_highEta1 = fixUncertainties(eff_pt1_pt2_highEta1, h_eff_pt1_pt2_highEta1, pt_thresholds_veryCoarse, pt_thresholds_veryCoarse)
 
-preprefix   = "Run%sCDEF"%year
+preprefix   = "Run%s"%year
 prefix      = preprefix+"_%s_measuredIn%s" % ( triggerName, args.sample)
 if args.small: prefix = "small_" + prefix
 

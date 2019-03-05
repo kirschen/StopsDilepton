@@ -40,6 +40,7 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
+<<<<<<< HEAD
 selectionStrings = ["njet2p-relIso0.12-looseLeptonVeto-photon30",
                     "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ",
                     "njet2p-relIso0.12-looseLeptonVeto-photon30-llgNoZ-mll40",
@@ -60,6 +61,66 @@ selectionStrings = ["njet2p-relIso0.12-looseLeptonVeto-photon30",
 def launch(command, logfile):
   if args.runLocal: os.system(command + " --isChild &> " + logfile)
   else:             os.system("qsub -v command=\"" + command + " --isChild\" -q localgrid@cream02 -o " + logfile + " -e " + logfile + " -l walltime=10:00:00 runPlotsOnCream02.sh")
+=======
+#
+# Selections (two leptons with pt > 20 GeV, photon)
+#
+from StopsDilepton.tools.objectSelection import looseMuIDString,looseEleIDString
+def getLooseLeptonString(nMu, nE):
+  return looseMuIDString(ptCut=10) + "==" + str(nMu) + "&&" + looseEleIDString(ptCut=10, absEtaCut=2.5) + "==" + str(nE)
+
+def getLeptonString(nMu, nE):
+#  return getLooseLeptonString(nMu, nE)
+  return "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&l1_pt>25"
+
+
+jetSelection    = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id))>="
+bJetSelectionM  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.890))>="
+bJetSelectionL  = "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_id&&JetGood_btagCSV>0.605))>="
+dataFilterCut   = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&vetoPassed&&jsonPassed&&weight>0)"
+mcFilterCut     = "(Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_CSCTightHaloFilter&&Flag_goodVertices&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter)"
+
+#
+# Cuts to iterate over
+#
+cuts = [
+    ("njet2",             jetSelection+"2"),
+    ("photon30",          "(1)"),
+    ("llgNoZ",            "(1)"),			# Cut implemented in lepton selection
+    ("gJetdR",            "(1)"),			# Implenented in otherSelections() method
+    ("gLepdR",            "(1)"),			# Implemented in otherSelections() method
+    ("btagL",             bJetSelectionL+"1"),
+    ("btagM",             bJetSelectionM+"1"),
+    ("mll20",             "dl_mass>20"),
+    ("met80",             "met_pt_photonEstimated>80"),
+    ("metSig5",           "metSig_photonEstimated>5"),
+    ("dPhiJet0-dPhiJet1", "cos(met_phi_photonEstimated-JetGood_phi[0])<cos(0.25)&&cos(met_phi_photonEstimated-JetGood_phi[1])<cos(0.25)"),
+  ]
+
+
+#
+# Construct prefixes and selectionstring and filter on possible cut combinations
+#
+import itertools
+selectionStrings = {}
+for i_comb in reversed( range( len(cuts)+1 ) ):
+    for comb in itertools.combinations( cuts, i_comb ):
+        presel = [] 
+        presel.extend( comb )
+        selection = '-'.join([p[0] for p in presel])
+        if selection.count("btag") > 1:    continue
+        if selection.count("photon") != 1: continue
+        if selection.count("njet") != 1:   continue
+        if selection.count("dPhiJet0-dPhiJet1") and not selection.count("metSig5"):  continue
+        if selection.count("metSig5")           and not selection.count("met80"):    continue
+        if selection.count("met80")             and not selection.count("mll20"):    continue
+        if selection.count("mll20")             and not selection.count("btag"):     continue
+        if selection.count("mll20")             and not selection.count("llgNoZ"):   continue
+        if selection.count("mll20")             and not selection.count("gJetdR"):   continue
+        if selection.count("mll20")             and not selection.count("gLepdR"):   continue
+
+        selectionStrings[selection] = "&&".join( [p[1] for p in presel])
+>>>>>>> 91b230c6061836fc0b8d0465bb99d781d6f427ca
 
 #
 # If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
