@@ -394,7 +394,7 @@ lepVarNames     = [x.split('/')[0] for x in lepVars]
 
 read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
 if options.year == 2017:
-    read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F'])
+    read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'MET_pt_min/F'])
 if options.reapplyJECS:
     read_variables += map(TreeVariable.fromString, [ 'MET_pt_nom/F'])
 
@@ -427,7 +427,7 @@ read_variables += [\
 
 new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars) + ',genPt/F' ),
-    'met_pt/F', 'met_phi/F'
+    'met_pt/F', 'met_phi/F', 'met_pt_min/F'
 ]
 
 
@@ -811,6 +811,7 @@ def filler( event ):
         # v2 recipe. Could also use our own recipe
         event.met_pt    = r.METFixEE2017_pt
         event.met_phi   = r.MET_phi
+        event.met_pt_min = r.MET_pt_min
     else:
         if options.reapplyJECS:
             event.met_pt    = r.MET_pt_nom 
@@ -818,6 +819,7 @@ def filler( event ):
             event.met_pt    = r.MET_pt
 
         event.met_phi   = r.MET_phi
+        event.met_pt_min = 0
 
     # Filling jets
     store_jets = jets if not options.keepAllJets else soft_jets + jets

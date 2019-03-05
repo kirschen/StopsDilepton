@@ -211,7 +211,8 @@ logger.info("Loading samples")
 from Samples.Tools.config import redirector_global, redirector
 
 if args.globalRedirector:
-    redirector = redirector_global
+    #redirector = redirector_global
+    redirector = "root://xrootd-cms.infn.it/"
 
 if year == 2016:
 
@@ -292,13 +293,19 @@ data = Sample.combine( "Run%s"%year, data_samples )
 
 # single files might be missing, need to avoid this
 localFiles = []
+
+print "Checking files"
 for f in data.files:
     if year == 2018 and args.local:
         if nonEmptyFile(f):
             localFiles.append(f)
-    else:
+    elif not args.globalRedirector:
+        print "Checking if file %s is in Vienna"%sf
         if checkLocalityOfFile(f):
             localFiles.append(f)
+        print "done"
+    else:
+        localFiles.append(f)
 
 #data.files = [ 'root://hephyse.oeaw.ac.at///store' + f.split('store')[1] for f in data.files ]
 
