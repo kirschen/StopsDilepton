@@ -188,7 +188,8 @@ else:
 
 # Trigger selection
 from StopsDilepton.tools.triggerSelector import triggerSelector
-era = extractEra(sample.name)[-1]
+era = extractEra(samples[0].name)[-1]
+print "######### Era %s ########"%era
 ts = triggerSelector(options.year, era=era)
 triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
 treeFormulas = {"triggerDecision": {'string':triggerCond} }
@@ -1060,11 +1061,12 @@ def filler( event ):
 
     #if addSystematicVariations:
     # B tagging weights method 1a
-    for j in jets:
-        btagEff.addBTagEffToJet(j)
-    for var in btagEff.btagWeightNames:
-        if var!='MC':
-            setattr(event, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, filter( lambda j: abs(j['eta'])<2.4, nonBJets ) ) )
+    if isMC:
+        for j in jets:
+            btagEff.addBTagEffToJet(j)
+        for var in btagEff.btagWeightNames:
+            if var!='MC':
+                setattr(event, 'reweightBTag_'+var, btagEff.getBTagSF_1a( var, bJets, filter( lambda j: abs(j['eta'])<2.4, nonBJets ) ) )
     # gen information on extra leptons
     if isMC and not options.skipGenLepMatching:
         genSearch.init( gPart )

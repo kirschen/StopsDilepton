@@ -300,7 +300,7 @@ for f in data.files:
         if nonEmptyFile(f):
             localFiles.append(f)
     elif not args.globalRedirector:
-        print "Checking if file %s is in Vienna"%sf
+        print "Checking if file %s is in Vienna"%f
         if checkLocalityOfFile(f):
             localFiles.append(f)
         print "done"
