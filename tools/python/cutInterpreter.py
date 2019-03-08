@@ -27,12 +27,12 @@ special_cuts = {
     "gLepdR":            "(1)",
     "gJetdR":            "(1)",
    
-    "dPhiJet0":          "Sum$( ( cos(MET_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0",
-    "antiHEM":           "Sum$( ( cos(MET_phi-JetGood_phi)<-0.8 )*(Iteration$==1) )==0",
-    "antiHEMv2":         "Sum$( ( cos(MET_phi-JetGood_phi)<-0.8 )*(Iteration$<2) )==0",
-    "dPhiJet1":          "Sum$( ( cos(MET_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0",
-    "dPhiInv":           '(!(cos(MET_phi-JetGood_phi[0])<0.8&&cos(MET_phi-JetGood_phi[1])<cos(0.25)))', # here we want an njet requirement
-    "metInv":            "MET_pt<80",
+    "dPhiJet0":          "Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0",
+    "antiHEM":           "Sum$( ( cos(met_phi-JetGood_phi)<-0.8 )*(Iteration$==1) )==0",
+    "antiHEMv2":         "Sum$( ( cos(met_phi-JetGood_phi)<-0.8 )*(Iteration$<2) )==0",
+    "dPhiJet1":          "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )==0",
+    "dPhiInv":           '(!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)))', # here we want an njet requirement
+    "metInv":            "met_pt<80",
     "metSigInv":         "metSig<5",
     "badJetSrEVeto":     "Sum$(Jet_neEmEF*Jet_pt*cosh(Jet_eta)*(2.5<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt<50))<200",
 
@@ -42,7 +42,7 @@ special_cuts = {
 
   }
 
-continous_variables = [ ("POGMetSig", "MET_significance"), ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "MET_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"),("mt2bb", "dl_mt2bb"),("htCMG", "htJet40j"), ("photon","photon_pt") ]
+continous_variables = [ ("POGMetSig", "MET_significance"), ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"),("mt2bb", "dl_mt2bb"),("htCMG", "htJet40j"), ("photon","photon_pt") ]
 discrete_variables  = [ ("njet", "nJetGood"), ("btag", "nBTag") , ("nCMGjet", "nJet30")]
 
 class cutInterpreter:
@@ -116,7 +116,7 @@ class cutInterpreter:
         cutString = "&&".join( map( cutInterpreter.translate_cut_to_string, cuts ) )
 
         if photonEstimated:
-          for var in ['MET_pt','MET_phi','metSig','dl_mt2ll','dl_mt2bb']:
+          for var in ['met_pt','met_phi','metSig','dl_mt2ll','dl_mt2bb']:
             cutString = cutString.replace(var, var + '_photonEstimated')
 
         return cutString

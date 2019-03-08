@@ -232,10 +232,11 @@ elif year == 2017:
     data_samples = MET_Run2017 if args.sample == 'MET' else JetHT_Run2017
     #data_samples = [MET_Run2017C_14Dec2018, MET_Run2017D_14Dec2018, MET_Run2017E_14Dec2018, MET_Run2017F_14Dec2018] if args.sample == 'MET' else []
     
-    tag_triggers  = ['HLT_PFHT500_PFMET100_PFMHT100_IDTight','HLT_PFHT500_PFMET110_PFMHT110_IDTight','HLT_PFHT700_PFMET85_PFMHT85_IDTight','HLT_PFHT700_PFMET95_PFMHT95_IDTight','HLT_PFHT800_PFMET75_PFMHT75_IDTight','HLT_PFHT800_PFMET85_PFMHT85_IDTight','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight']
+    tag_triggers  = ['HLT_PFHT500_PFMET110_PFMHT110_IDTight', 'HLT_PFHT700_PFMET85_PFMHT85_IDTight', 'HLT_PFHT700_PFMET95_PFMHT95_IDTight', 'HLT_PFHT800_PFMET75_PFMHT75_IDTight', 'HLT_PFJet500', 'HLT_PFHT1050', 'HLT_AK8PFJet400']
+    #tag_triggers  = ['HLT_PFHT500_PFMET100_PFMHT100_IDTight','HLT_PFHT500_PFMET110_PFMHT110_IDTight','HLT_PFHT700_PFMET85_PFMHT85_IDTight','HLT_PFHT700_PFMET95_PFMHT95_IDTight','HLT_PFHT800_PFMET75_PFMHT75_IDTight','HLT_PFHT800_PFMET85_PFMHT85_IDTight','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight']
     tag_triggers += ['HLT_PFHT430', 'HLT_PFHT510', 'HLT_PFHT590', 'HLT_PFHT680', 'HLT_PFHT780', 'HLT_PFHT890', 'HLT_PFHT1050', 'HLT_PFJet40', 'HLT_PFJet60', 'HLT_PFJet80', 'HLT_PFJet140', 'HLT_PFJet200','HLT_PFJet260', 'HLT_PFJet320', 'HLT_PFJet400', 'HLT_PFJet450', 'HLT_PFJet500', 'HLT_PFJet550', 'HLT_DiPFJetAve15_HFJEC', 'HLT_DiPFJetAve25_HFJEC', 'HLT_DiPFJetAve35_HFJEC']
     tag_triggers += ['HLT_CaloJet500_NoJetID','HLT_CaloJet550_NoJetID','HLT_DiPFJet15_NoCaloMatched','HLT_DiPFJet25_NoCaloMatched','HLT_DiPFJet15_FBEta3_NoCaloMatched','HLT_DiPFJet25_FBEta3_NoCaloMatched','HLT_AK8PFJet40','HLT_AK8PFJet60','HLT_AK8PFJet80','HLT_AK8PFJet140','HLT_AK8PFJet200','HLT_AK8PFJet260','HLT_AK8PFJet320','HLT_AK8PFJet400','HLT_AK8PFJet450','HLT_AK8PFJet500','HLT_AK8PFJet550']
-    tag_triggers += ['HLT_PFHT180','HLT_PFHT250','HLT_PFHT370','HLT_PFMETTypeOne110_PFMHT110_IDTight','HLT_PFMETTypeOne120_PFMHT120_IDTight','HLT_PFMETTypeOne130_PFMHT130_IDTight','HLT_PFMETTypeOne140_PFMHT140_IDTight']
+    #tag_triggers += ['HLT_PFHT180','HLT_PFHT250','HLT_PFHT370','HLT_PFMETTypeOne110_PFMHT110_IDTight','HLT_PFMETTypeOne120_PFMHT120_IDTight','HLT_PFMETTypeOne130_PFMHT130_IDTight','HLT_PFMETTypeOne140_PFMHT140_IDTight']
     tag_triggers += ['HLT_AK4CaloJet30','HLT_AK4CaloJet40','HLT_AK4CaloJet50','HLT_AK4CaloJet80','HLT_AK4CaloJet100','HLT_AK4CaloJet120','HLT_AK4PFJet30','HLT_AK4PFJet50','HLT_AK4PFJet80','HLT_AK4PFJet100','HLT_AK4PFJet120']
 #    tag_triggers += ['HLT_PFMET200_HBHE_BeamHaloCleaned']
 
@@ -252,12 +253,11 @@ elif year == 2018:
         data_samples = MET_Run2018 if args.sample == 'MET' else JetHT_Run2018
 
     tag_triggers   = ['HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFMET200_NotCleaned','HLT_PFMET200_HBHECleaned','HLT_PFMET250_HBHECleaned','HLT_PFMET300_HBHECleaned','HLT_PFMET200_HBHE_BeamHaloCleaned','HLT_CaloMET250_HBHECleaned','HLT_CaloMET300_HBHECleaned','HLT_CaloMET350_HBHECleaned']
-    tag_triggers  += ['HLT_PFJet15','HLT_PFJet25','HLT_PFJet40','HLT_PFJet60','HLT_PFJet80','HLT_PFJet140','HLT_PFJet200','HLT_PFJet260','HLT_PFJet320','HLT_PFJet400','HLT_PFJet450','HLT_PFJet500','HLT_PFJet550','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFHT180','HLT_PFHT250','HLT_PFHT370','HLT_PFHT430','HLT_PFHT510','HLT_PFHT590','HLT_PFHT680','HLT_PFHT780','HLT_PFHT890','HLT_PFHT1050']
+    tag_triggers  += ['HLT_PFJet15','HLT_PFJet25','HLT_PFJet40','HLT_PFJet60','HLT_PFJet80','HLT_PFJet140','HLT_PFJet200','HLT_PFJet260','HLT_PFJet320','HLT_PFJet400','HLT_PFJet450','HLT_PFJet500','HLT_PFJet550','HLT_PFHT180','HLT_PFHT250','HLT_PFHT370','HLT_PFHT430','HLT_PFHT510','HLT_PFHT590','HLT_PFHT680','HLT_PFHT780','HLT_PFHT890','HLT_PFHT1050']
     tag_triggers  += ['HLT_AK8PFJet360_TrimMass30','HLT_AK8PFJet380_TrimMass30','HLT_AK8PFJet400_TrimMass30','HLT_AK8PFJet420_TrimMass30','HLT_AK8PFHT750_TrimMass50','HLT_AK8PFHT800_TrimMass50','HLT_AK8PFHT850_TrimMass50','HLT_AK8PFHT900_TrimMass50','HLT_CaloJet500_NoJetID','HLT_CaloJet550_NoJetID','HLT_HT450_Beamspot','HLT_HT300_Beamspot','HLT_DiPFJetAve40','HLT_DiPFJetAve60']
     tag_triggers  += ['HLT_DiPFJetAve80','HLT_DiPFJetAve140','HLT_DiPFJetAve200','HLT_DiPFJetAve260','HLT_DiPFJetAve320','HLT_DiPFJetAve400','HLT_DiPFJetAve500']
     tag_triggers  += ['HLT_AK8PFJet15','HLT_AK8PFJet25','HLT_AK8PFJet40','HLT_AK8PFJet60','HLT_AK8PFJet80','HLT_AK8PFJet140','HLT_AK8PFJet200','HLT_AK8PFJet260','HLT_AK8PFJet320','HLT_AK8PFJet400','HLT_AK8PFJet450','HLT_AK8PFJet500','HLT_AK8PFJet550','HLT_PFJetFwd15','HLT_PFJetFwd25','HLT_PFJetFwd40','HLT_PFJetFwd60','HLT_PFJetFwd80','HLT_PFJetFwd140','HLT_PFJetFwd200','HLT_PFJetFwd260','HLT_PFJetFwd320','HLT_PFJetFwd400','HLT_PFJetFwd450','HLT_PFJetFwd500']
     tag_triggers  += ['HLT_AK8PFJetFwd15','HLT_AK8PFJetFwd25','HLT_AK8PFJetFwd40','HLT_AK8PFJetFwd60','HLT_AK8PFJetFwd80','HLT_AK8PFJetFwd140','HLT_AK8PFJetFwd200','HLT_AK8PFJetFwd260','HLT_AK8PFJetFwd320','HLT_AK8PFJetFwd400','HLT_AK8PFJetFwd450','HLT_AK8PFJetFwd500','HLT_PFHT500_PFMET100_PFMHT100_IDTight','HLT_PFHT500_PFMET110_PFMHT110_IDTight','HLT_PFHT700_PFMET85_PFMHT85_IDTight','HLT_PFHT700_PFMET95_PFMHT95_IDTight','HLT_PFHT800_PFMET75_PFMHT75_IDTight','HLT_PFHT800_PFMET85_PFMHT85_IDTight']
-    tag_triggers  += ['HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFMET120_PFMHT120_IDTight_PFHT60']
     tag_triggers  += ['HLT_DiJet110_35_Mjj650_PFMET110','HLT_DiJet110_35_Mjj650_PFMET120','HLT_DiJet110_35_Mjj650_PFMET130','HLT_TripleJet110_35_35_Mjj650_PFMET110','HLT_TripleJet110_35_35_Mjj650_PFMET120','HLT_TripleJet110_35_35_Mjj650_PFMET130','HLT_PFHT330PT30_QuadPFJet_75_60_45_40_TriplePFBTagDeepCSV_4p5','HLT_PFHT330PT30_QuadPFJet_75_60_45_40']
     tag_triggers  += ['HLT_AK4CaloJet30','HLT_AK4CaloJet40','HLT_AK4CaloJet50','HLT_AK4CaloJet80','HLT_AK4CaloJet100','HLT_AK4CaloJet120','HLT_AK4PFJet30','HLT_AK4PFJet50','HLT_AK4PFJet80','HLT_AK4PFJet100','HLT_AK4PFJet120']
 
@@ -265,18 +265,18 @@ tr = triggerSelector(year, era='B') # era F to get all triggers
 
 if args.mode == "muEle":
     dileptonTrigger = tr.e + tr.m + tr.em
-    triggerName = "HLT_muEle"
-    preselection = "(Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_mediumId>0) + Sum$(Electron_pt>5&&abs(Electron_eta)<2.4&&Electron_cutBased>=4)) >1"
+    triggerName = "HLT_muEle_V2"
+    preselection = "(Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_mediumId>0&&Muon_pfRelIso03_all<0.25) + Sum$(Electron_pt>5&&abs(Electron_eta)<2.4&&Electron_cutBased>=4)) >1"
 elif args.mode == "doubleEle":
     dileptonTrigger = tr.e + tr.ee
     triggerName = "HLT_ee"
     preselection = "Sum$(Electron_pt>5&&abs(Electron_eta)<2.4&&Electron_cutBased>=4)>1"
 elif args.mode == "doubleMu":
     dileptonTrigger = tr.m + tr.mm
-    triggerName = "HLT_mm_tight"
+    triggerName = "HLT_mm_V2"
     #dileptonTrigger = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"]
     #triggerName = "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"
-    preselection = "Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_mediumId>0&&Muon_pfRelIso03_all<0.15)>1"
+    preselection = "Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_mediumId>0&&Muon_pfRelIso03_all<0.25)>1"
 
 dileptonTrigger = [(t, 0, -1) for t in dileptonTrigger]
 if year == 2017 and args.mode == "doubleMu":

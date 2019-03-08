@@ -24,16 +24,9 @@ import StopsDilepton.tools.user as user
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection
-from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 
-from StopsDilepton.tools.triggerEfficiency import triggerEfficiency
-triggerEff_withBackup = triggerEfficiency(with_backup_triggers = True)
-triggerEff            = triggerEfficiency(with_backup_triggers = False)
-
-from StopsDilepton.tools.leptonHIPEfficiency import leptonHIPEfficiency
-leptonHIPSF = leptonHIPEfficiency()
 
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
@@ -261,18 +254,20 @@ if isInclusive:
 
 #from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
-    from Samples.nanoAOD.Summer16          import allSamples as bkgSamples
-    from Samples.nanoAOD.Spring16_private  import allSamples as signalSamples
-    from Samples.nanoAOD.Run2016_05Feb2018 import allSamples as dataSamples
+    from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as bkgSamples
+    from Samples.nanoAOD.Spring16_private           import allSamples as signalSamples
+    from Samples.nanoAOD.Run2016_17Jul2018_private  import allSamples as dataSamples
     allSamples = bkgSamples + signalSamples + dataSamples
 elif options.year == 2017:
-    from Samples.nanoAOD.Fall17 import allSamples as bkgSamples
-    from Samples.nanoAOD.Run2017_31Mar2018 import allSamples as dataSamples
+    from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as bkgSamples
+    from Samples.nanoAOD.Run2017_31Mar2018_private  import allSamples as dataSamples
     allSamples = bkgSamples + dataSamples
 elif options.year == 2018:
-    from Samples.nanoAOD.Run2018_PromptReco    import allSamples as dataSamples
-    from Samples.nanoAOD.Spring18              import allSamples as HEMSamples
-    allSamples = dataSamples + HEMSamples
+    from Samples.nanoAOD.Spring18_private           import allSamples as HEMSamples
+    from Samples.nanoAOD.Run2018_26Sep2018_private  import allSamples as HEMDataSamples
+    from Samples.nanoAOD.Autumn18_private_legacy_v1 import allSamples as bkgSamples
+    from Samples.nanoAOD.Run2018_17Sep2018_private  import allSamples as dataSamples
+    allSamples = HEMSamples + HEMDataSamples + bkgSamples + dataSamples
 else:
     raise NotImplementedError
 

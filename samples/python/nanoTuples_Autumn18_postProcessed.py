@@ -53,13 +53,14 @@ dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 dirs['TTLep_pow']        = ["TTLep_pow"]
 
 dirs['singleTop_sch']    = ["TToLeptons_sch_amcatnlo"]
+dirs['singleTop_tch']    = ["TBar_tch_pow", "T_tch_pow"]
 dirs['singleTop_tW']     = ['T_tWch', 'TBar_tWch']
 
 
-dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop_sch'] + dirs['singleTop_tW']
+dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop_sch'] + dirs['singleTop_tW'] + dirs['singleTop_tch']
 
 dirs['TTZ']              = ['TTZToLLNuNu', 'TTZToLLNuNu_m1to10']
-dirs['TTXNoZ']           = ['TTWZ','TTZZ', 'TTWToLNu', 'TTWToQQ', 'tWll', 'tZq_ll']
+dirs['TTXNoZ']           = ['TTWZ','TTZZ', 'TTWToLNu', 'TTWToQQ', 'tWll', 'tZq_ll'] # ttH, tWnunu
 
 dirs['diBoson']          = ['VVTo2L2Nu', 'ZZTo2L2Q', 'WZTo3LNu_amcatnlo']
 dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] 
@@ -69,7 +70,7 @@ dirs['allMC']            = dirs['DY_LO'] + dirs['Top_pow'] + dirs['TTZ'] + dirs[
 
 directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
 
-DY              = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=color.DY,              texName="DY",                                directory=directories['DY'])
+#DY              = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=color.DY,              texName="DY",                                directory=directories['DY'])
 DY_LO_18        = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO'])
 Top_pow_18      = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
 TTXNoZ_18       = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W, tZq",                  directory=directories['TTXNoZ'])

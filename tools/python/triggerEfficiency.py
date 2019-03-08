@@ -23,12 +23,12 @@ class triggerEfficiency:
             mue_trigger_SF  = basedir+'Run2018_HLT_muEle_measuredInMET_v1.root'
             mumu_trigger_SF = basedir+'Run2018_HLT_mm_measuredInMET_v1.root'
 
-        self.mumu_highEta   = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "h_eff_pt1_pt2_highEta1")
-        self.mumu_lowEta    = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "h_eff_pt1_pt2_lowEta1")
-        self.ee_highEta     = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "h_eff_pt1_pt2_highEta1")
-        self.ee_lowEta      = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "h_eff_pt1_pt2_lowEta1")
-        self.mue_highEta    = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "h_eff_pt1_pt2_highEta1")
-        self.mue_lowEta     = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "h_eff_pt1_pt2_lowEta1")
+        self.mumu_highEta   = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_highEta1")
+        self.mumu_lowEta    = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_lowEta1")
+        self.ee_highEta     = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "eff_pt1_pt2_highEta1")
+        self.ee_lowEta      = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "eff_pt1_pt2_lowEta1")
+        self.mue_highEta    = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_highEta1")
+        self.mue_lowEta     = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_lowEta1")
 
         h_ = [self.mumu_highEta, self.mumu_lowEta, self.ee_highEta, self.ee_lowEta, self.mue_highEta, self.mue_lowEta]
         assert False not in [bool(x) for x in h_], "Could not load trigger SF: %r"%h_

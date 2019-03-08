@@ -33,7 +33,7 @@ from StopsDilepton.tools.mt2Calculator      import mt2Calculator
 mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers            import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile
 from StopsDilepton.tools.addJERScaling      import addJERScaling
-from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons
+from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets
 from StopsDilepton.tools.overlapRemovalTTG  import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson        import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting     import getPolWeights
@@ -188,7 +188,10 @@ else:
 
 # Trigger selection
 from StopsDilepton.tools.triggerSelector import triggerSelector
-era = extractEra(samples[0].name)[-1]
+if isData:
+    era = extractEra(samples[0].name)[-1]
+else:
+    era = None
 print "######### Era %s ########"%era
 ts = triggerSelector(options.year, era=era)
 triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
@@ -339,12 +342,13 @@ branchKeepStrings_DATAMC = [\
     "MET_*",
     "CaloMET_*",
     "RawMET_phi", "RawMET_pt", "RawMET_sumEt",
-    "Flag_*","HLT_*",
+    "Flag_*",
     "nJet", "Jet_*",
     "nElectron", "Electron_*",
     "nMuon", "Muon_*",
-    #"nTau", "Tau_*",
 ]
+if not fastSim:
+    branchKeepStrings_DATAMC += ["HLT_*"]
 
 if options.year == 2017:
     branchKeepStrings_DATAMC += [\
@@ -362,12 +366,6 @@ branchKeepStrings_DATA = [ ]
 # Jet variables to be read from chain
 jetCorrInfo = []
 jetMCInfo   = ['genJetIdx/I','hadronFlavour/I']
-
-#if not (isTiny or isSmall):
-#    branchKeepStrings_DATAMC+=[
-#        "nPhoton", "Photon_hoe", "Photon_r9", "Photon_sieie", "Photon_pfRelIso03_chg",
-#        "Photon_pt", "Photon_eta", "Photon_phi", "Photon_mass",]
-#    branchKeepStrings_DATAMC+= ["Photon_cutBased"] if (not options.year == 2017) else ["Photon_cutBasedBitmap"]
 
 if sample.isData:
     lumiScaleFactor=None
@@ -417,7 +415,6 @@ if isMC:
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
 
 read_variables += [\
-    # now we don't have all IDs etc for both muons and electrons
     TreeVariable.fromString('nElectron/I'),
     VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F]'),
     TreeVariable.fromString('nMuon/I'),
@@ -486,7 +483,6 @@ for var in btagEff.btagWeightNames:
 #if options.susySignal or options.TTDM:
 #    read_variables += map(TreeVariable.fromString, ['met_genPt/F', 'met_genPhi/F'] )
 if options.susySignal:
-    #read_variables += map(TreeVariable.fromString, ['GenSusyMStop/I', 'GenSusyMNeutralino/I'] )
     new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mStop/I', 'mNeu/I']
     if  'T8bbllnunu' in options.samples[0]:
         new_variables  += ['mCha/I', 'mSlep/I', 'sleptonPdg/I']
@@ -601,11 +597,11 @@ if not options.skipNanoTools:
         JERera              = "Fall17_V3"
         if sample.isData:
             if sample.name.count("Run2018"):
-                JEC         = "Autumn18_V3_MC" #residuals are 1
+                JEC         = "Autumn18_Run%s_V8_DATA"%era
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
         else:
-            JEC             = "Autumn18_V3_MC"
+            JEC             = "Autumn18_V8_MC"
             #JEC             = "Fall17_17Nov2017_V32_MC"
 
     # set the params for MET Significance calculation
@@ -764,18 +760,10 @@ def filler( event ):
     # top pt reweighting
     if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
 
-    # jet/met related quantities, also load the leptons already
     if options.keepAllJets:
         jetAbsEtaCut = 99.
     else:
         jetAbsEtaCut = 2.4
-#    print r.nJet
-#    if r.nJet == -1:
-#        print "Error"
-#        sys.exit(-1)
-#
-#    print "Good"
-#    sys.exit(0)
     
     allSlimmedJets      = getJets(r)
     allSlimmedPhotons   = getPhotons(r, year=options.year)
@@ -784,15 +772,7 @@ def filler( event ):
     else:
         event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = L1PW.getWeight(allSlimmedPhotons, allSlimmedJets)
 
-
-    jetPtVar = 'pt_nom' if options.reapplyJECS else 'pt'
-
-    reallyAllJets= getGoodJets(r, ptCut=0, jetVars = jetVarNames, absEtaCut=99, ptVar = jetPtVar) # ... yeah, I know.
-    allJets      = filter(lambda j:abs(j['eta'])<jetAbsEtaCut, reallyAllJets)
-    jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut), allJets)
-    soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
-    bJets        = filter(lambda j:isBJet(j, tagger="CSVv2", year=options.year) and abs(j['eta'])<=2.4    , jets)
-    nonBJets     = filter(lambda j:not ( isBJet(j, tagger="CSVv2", year=options.year) and abs(j['eta'])<=2.4 ), jets)
+    # get leptons before jets in order to clean jets
 
     electrons_pt10 = getGoodElectrons(r, ele_selector = ele_selector)
     muons_pt10 = getGoodMuons(r, mu_selector = mu_selector )
@@ -807,6 +787,19 @@ def filler( event ):
 
     leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     leptons.sort(key = lambda p:-p['pt'])
+
+    # now get jets, cleaned against good leptons
+
+    jetPtVar = 'pt_nom' if options.reapplyJECS else 'pt'
+
+    reallyAllJets= getAllJets(r, leptons, ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar='jetId') # keeping robert's comment: ... yeah, I know.
+    allJets      = filter(lambda j:abs(j['eta'])<jetAbsEtaCut, reallyAllJets)
+    jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_nom' if options.reapplyJECS else 'pt'), allJets)
+    soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
+    bJets        = filter(lambda j:isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4    , jets)
+    nonBJets     = filter(lambda j:not ( isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4 ), jets)
+
+    # store the correct MET (EE Fix for 2017, MET_min as backup in 2017)
     
     if options.year == 2017 and not fastSim:
         # v2 recipe. Could also use our own recipe

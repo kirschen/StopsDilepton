@@ -32,7 +32,7 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     data_output_directory      = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where you store the data
-    data_directory      = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    data_directory      = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/"
     #plot_directory      = "/afs/cern.ch/work/d/dspitzba/www/stopsDilepton/"
