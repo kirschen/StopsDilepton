@@ -632,6 +632,12 @@ if not options.skipNanoTools:
 
     print sample.files
 
+    # check if files are available (e.g. if dpm is broken this should result in an error)
+    for f in sample.files:
+        if not checkRootFile(f):
+            raise IOError ("File %s not available"%f)
+
+    # remove empty files. this is necessary in 2018 because empty miniAOD files exist.
     sample.files = [ f for f in sample.files if nonEmptyFile(f) ]
 
     p = PostProcessor(output_directory,sample.files,cut=cut, modules=modules, postfix="_for_%s"%sample.name)
