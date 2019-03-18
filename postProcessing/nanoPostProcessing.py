@@ -92,6 +92,7 @@ def get_parser():
     argParser.add_argument('--skipNanoTools',               action='store_true',                                                        help="Skipt the nanoAOD tools step for computing JEC/JER/MET etc uncertainties")
     argParser.add_argument('--keepNanoAOD',                 action='store_true',                                                        help="Keep nanoAOD output?")
     argParser.add_argument('--reapplyJECS',                 action='store_true',                                                        help="Reapply JECs to data?")
+    argParser.add_argument('--reduceSizeBy',                action='store',     type=int,                                               help="Reduce the size of the sample by a factor of...")
 
     return argParser
 
@@ -219,6 +220,19 @@ elif len(samples)==1:
     sampleForPU = samples[0]
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
+
+if options.reduceSizeBy > 1:
+    logger.info("Sample size will be reduced by a factor of %s", options.reduceSizeBy)
+    logger.info("Recalculating the normalization of the sample. Before: %s", sample.normalization)
+    if isData:
+        NotImplementedError ( "Data samples shouldn't be reduced in size!!" )
+    sample.reduceFiles( factor = options.reduceSizeBy )
+    # recompute the normalization
+    sample.clear()
+    sample.name += "_redBy%s"%options.reduceSizeBy
+    sample.normalization = sample.getYieldFromDraw(weightString="genWeight")['val']
+    logger.info("New normalization: %s", sample.normalization)
+
 
 if isMC:
     from Analysis.Tools.puReweighting import getReweightingFunction
@@ -779,9 +793,8 @@ def filler( event ):
         event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = L1PW.getWeight(allSlimmedPhotons, allSlimmedJets)
 
     # get leptons before jets in order to clean jets
-
-    electrons_pt10 = getGoodElectrons(r, ele_selector = ele_selector)
-    muons_pt10 = getGoodMuons(r, mu_selector = mu_selector )
+    electrons_pt10  = getGoodElectrons(r, ele_selector = ele_selector)
+    muons_pt10      = getGoodMuons(r, mu_selector = mu_selector )
 
     for e in electrons_pt10:
         e['pdgId'] = int( 11*e['charge'] )
@@ -800,7 +813,7 @@ def filler( event ):
 
     reallyAllJets= getAllJets(r, leptons, ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar='jetId') # keeping robert's comment: ... yeah, I know.
     allJets      = filter(lambda j:abs(j['eta'])<jetAbsEtaCut, reallyAllJets)
-    jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_nom' if options.reapplyJECS else 'pt'), allJets)
+    jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar=jetPtVar), allJets)
     soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
     bJets        = filter(lambda j:isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4    , jets)
     nonBJets     = filter(lambda j:not ( isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4 ), jets)
@@ -838,7 +851,7 @@ def filler( event ):
         # Compute M3 and the three indiced of the jets entering m3
         event.m3, event.m3_ind1, event.m3_ind2, event.m3_ind3 = m3( jets )
 
-    event.ht         = sum([j['pt'] for j in jets])
+    event.ht         = sum([j[jetPtVar] for j in jets])
     event.metSig     = event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan')
     event.nBTag      = len(bJets)
 

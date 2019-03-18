@@ -72,8 +72,8 @@ class TriggerAnalysis(Module):
 
         pt_thresholds           = range(0,30,2)+range(30,50,5)+range(50,210,10)
         eta_thresholds          = [x/10. for x in range(-25,26,1) ]
-        pt_thresholds_coarse    = range(5,25,10)+range(25,130,15)+range(130,330,50)
-        pt_thresholds_veryCoarse = [20,25,35] + range(50,200,50)+[250]
+        pt_thresholds_coarse    = range(10,30,10)+range(30,135,15)+range(135,335,50)
+        pt_thresholds_veryCoarse = [20,30,40] + range(50,200,50)+[250]
         eta_thresholds_coarse   = [x/10. for x in range(-25,26,5) ]
 
         # 1D hists
@@ -219,7 +219,7 @@ if year == 2016:
     from Samples.nanoAOD.Run2016_14Dec2018 import *
     data_samples = MET_Run2016 if args.sample == 'MET' else JetHT_Run2016
 
-    tag_triggers  = ['HLT_MET200','HLT_MET250', 'HLT_MET300', 'HLT_MET600', 'HLT_MET700','HLT_PFMET300','HLT_PFMET400','HLT_PFMET500','HLT_PFMET600','HLT_PFMET90_PFMHT90_IDTight','HLT_PFMET100_PFMHT100_IDTight','HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight']
+    tag_triggers  = ['HLT_MET200','HLT_MET250', 'HLT_MET300', 'HLT_MET600', 'HLT_MET700','HLT_PFMET300','HLT_PFMET400','HLT_PFMET500','HLT_PFMET600']
     tag_triggers += ['HLT_HT200','HLT_HT275','HLT_HT325','HLT_HT425','HLT_HT575','HLT_HT410to430','HLT_HT430to450','HLT_HT450to470','HLT_HT470to500','HLT_HT500to550','HLT_HT550to650','HLT_HT650','HLT_PFHT300_PFMET100','HLT_PFHT300_PFMET110','HLT_DiPFJetAve15_HFJEC','HLT_DiPFJetAve25_HFJEC','HLT_DiPFJetAve35_HFJEC','HLT_PFJet40','HLT_PFJet60','HLT_PFJet80','HLT_PFJet140','HLT_PFJet200','HLT_PFJet260','HLT_PFJet320','HLT_PFJet400','HLT_PFJet450','HLT_PFJet500']
     tag_triggers += ['HLT_AK8PFJet360_TrimMass30','HLT_AK8PFHT700_TrimR0p1PT0p03Mass50','HLT_AK8PFHT650_TrimR0p1PT0p03Mass50','HLT_AK8PFHT600_TrimR0p1PT0p03Mass50_BTagCSV_p20','HLT_PFHT550_4JetPt50','HLT_PFHT650_4JetPt50','HLT_PFHT750_4JetPt50','HLT_PFJet15_NoCaloMatched','HLT_PFJet25_NoCaloMatched','HLT_DiPFJet15_NoCaloMatched','HLT_DiPFJet25_NoCaloMatched','HLT_DiPFJet15_FBEta3_NoCaloMatched']
     tag_triggers += ['HLT_DiPFJet25_FBEta3_NoCaloMatched','HLT_DiPFJetAve40','HLT_DiPFJetAve60','HLT_DiPFJetAve80','HLT_DiPFJetAve140','HLT_DiPFJetAve200','HLT_DiPFJetAve260','HLT_DiPFJetAve320','HLT_DiPFJetAve400','HLT_DiPFJetAve500']
@@ -252,7 +252,7 @@ elif year == 2018:
         from Samples.nanoAOD.Run2018_14Dec2018 import *
         data_samples = MET_Run2018 if args.sample == 'MET' else JetHT_Run2018
 
-    tag_triggers   = ['HLT_PFMET110_PFMHT110_IDTight','HLT_PFMET120_PFMHT120_IDTight','HLT_PFMET130_PFMHT130_IDTight','HLT_PFMET140_PFMHT140_IDTight','HLT_PFMET200_NotCleaned','HLT_PFMET200_HBHECleaned','HLT_PFMET250_HBHECleaned','HLT_PFMET300_HBHECleaned','HLT_PFMET200_HBHE_BeamHaloCleaned','HLT_CaloMET250_HBHECleaned','HLT_CaloMET300_HBHECleaned','HLT_CaloMET350_HBHECleaned']
+    tag_triggers   = ['HLT_PFMET200_NotCleaned','HLT_PFMET200_HBHECleaned','HLT_PFMET250_HBHECleaned','HLT_PFMET300_HBHECleaned','HLT_PFMET200_HBHE_BeamHaloCleaned','HLT_CaloMET250_HBHECleaned','HLT_CaloMET300_HBHECleaned','HLT_CaloMET350_HBHECleaned']
     tag_triggers  += ['HLT_PFJet15','HLT_PFJet25','HLT_PFJet40','HLT_PFJet60','HLT_PFJet80','HLT_PFJet140','HLT_PFJet200','HLT_PFJet260','HLT_PFJet320','HLT_PFJet400','HLT_PFJet450','HLT_PFJet500','HLT_PFJet550','HLT_PFHT180','HLT_PFHT250','HLT_PFHT370','HLT_PFHT430','HLT_PFHT510','HLT_PFHT590','HLT_PFHT680','HLT_PFHT780','HLT_PFHT890','HLT_PFHT1050']
     tag_triggers  += ['HLT_AK8PFJet360_TrimMass30','HLT_AK8PFJet380_TrimMass30','HLT_AK8PFJet400_TrimMass30','HLT_AK8PFJet420_TrimMass30','HLT_AK8PFHT750_TrimMass50','HLT_AK8PFHT800_TrimMass50','HLT_AK8PFHT850_TrimMass50','HLT_AK8PFHT900_TrimMass50','HLT_CaloJet500_NoJetID','HLT_CaloJet550_NoJetID','HLT_HT450_Beamspot','HLT_HT300_Beamspot','HLT_DiPFJetAve40','HLT_DiPFJetAve60']
     tag_triggers  += ['HLT_DiPFJetAve80','HLT_DiPFJetAve140','HLT_DiPFJetAve200','HLT_DiPFJetAve260','HLT_DiPFJetAve320','HLT_DiPFJetAve400','HLT_DiPFJetAve500']
@@ -265,15 +265,15 @@ tr = triggerSelector(year, era='B') # era F to get all triggers
 
 if args.mode == "muEle":
     dileptonTrigger = tr.e + tr.m + tr.em
-    triggerName = "HLT_muEle_V2"
+    triggerName = "HLT_muEle_V3"
     preselection = "(Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_mediumId>0&&Muon_pfRelIso03_all<0.25) + Sum$(Electron_pt>5&&abs(Electron_eta)<2.4&&Electron_cutBased>=4)) >1"
 elif args.mode == "doubleEle":
     dileptonTrigger = tr.e + tr.ee
-    triggerName = "HLT_ee"
+    triggerName = "HLT_ee_V3"
     preselection = "Sum$(Electron_pt>5&&abs(Electron_eta)<2.4&&Electron_cutBased>=4)>1"
 elif args.mode == "doubleMu":
     dileptonTrigger = tr.m + tr.mm
-    triggerName = "HLT_mm_V2"
+    triggerName = "HLT_mm_V3"
     #dileptonTrigger = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"]
     #triggerName = "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ"
     preselection = "Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_mediumId>0&&Muon_pfRelIso03_all<0.25)>1"
@@ -363,8 +363,8 @@ h_pt1_pt2_highEta1_total = outFile.Get('pt1_pt2_highEta1_total')
 h_pt1_pt2_lowEta1_pass  = outFile.Get('pt1_pt2_lowEta1_pass')
 h_pt1_pt2_lowEta1_total = outFile.Get('pt1_pt2_lowEta1_total')
 
-pt_thresholds_coarse    = range(5,25,10)+range(25,130,15)+range(130,330,50)
-pt_thresholds_veryCoarse = [20,25,35] + range(50,200,50)+[250]
+pt_thresholds_coarse    = range(10,30,10)+range(30,135,15)+range(135,335,50)
+pt_thresholds_veryCoarse = [20,30,40] + range(50,200,50)+[250]
 eta_thresholds_coarse   = [x/10. for x in range(-25,26,5) ]
 
 eff_pt1_pt2 = ROOT.TEfficiency(h_pt1_pt2_pass, h_pt1_pt2_total)

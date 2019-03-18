@@ -11,17 +11,17 @@ class triggerEfficiency:
     def __init__(self, year):
 
         if year == 2016:
-            ee_trigger_SF   = basedir+'Run2016_HLT_ee_measuredInMET_v1.root'
-            mue_trigger_SF  = basedir+'Run2016_HLT_muEle_measuredInMET_v1.root'
-            mumu_trigger_SF = basedir+'Run2016_HLT_mm_measuredInMET_v1.root'
+            ee_trigger_SF   = basedir+'Run2016_HLT_ee_V3_measuredInMET.root'
+            mue_trigger_SF  = basedir+'Run2016_HLT_muEle_V3_measuredInMET.root'
+            mumu_trigger_SF = basedir+'Run2016_HLT_mm_V3_measuredInMET.root'
         elif year == 2017:
-            ee_trigger_SF   = basedir+'Run2017_HLT_ee_measuredInMET_v1.root'
-            mue_trigger_SF  = basedir+'Run2017_HLT_muEle_measuredInMET_v1.root'
-            mumu_trigger_SF = basedir+'Run2017_HLT_mm_measuredInMET_v1.root'
+            ee_trigger_SF   = basedir+'Run2017_HLT_ee_V3_measuredInMET.root'
+            mue_trigger_SF  = basedir+'Run2017_HLT_muEle_V3_measuredInMET.root'
+            mumu_trigger_SF = basedir+'Run2017_HLT_mm_V3_measuredInMET.root'
         elif year == 2018:
-            ee_trigger_SF   = basedir+'Run2018_HLT_ee_measuredInMET_v1.root'
-            mue_trigger_SF  = basedir+'Run2018_HLT_muEle_measuredInMET_v1.root'
-            mumu_trigger_SF = basedir+'Run2018_HLT_mm_measuredInMET_v1.root'
+            ee_trigger_SF   = basedir+'Run2018_HLT_ee_V3_measuredInMET.root'
+            mue_trigger_SF  = basedir+'Run2018_HLT_muEle_V3_measuredInMET.root'
+            mumu_trigger_SF = basedir+'Run2018_HLT_mm_V3_measuredInMET.root'
 
         self.mumu_highEta   = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_highEta1")
         self.mumu_lowEta    = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_lowEta1")
