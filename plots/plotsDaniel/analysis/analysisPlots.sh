@@ -1,3 +1,9 @@
+python analysisPlots.py --plot_directory test --year 2018 --small --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1
+python analysisPlots.py --plot_directory test --year 2018 --small --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0
+python analysisPlots.py --plot_directory test --year 2018 --small --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5
+python analysisPlots.py --plot_directory test --year 2018 --small --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80
+
+
 #python analysisPlots.py --plot_directory analysisPlots_2016_v2 --year 2016 --unblinded --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1
 #python analysisPlots.py --plot_directory analysisPlots_2016_v2 --year 2016 --unblinded --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20
 #python analysisPlots.py --plot_directory analysisPlots_2016_v2 --year 2016 --unblinded --selection njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20
@@ -21,9 +27,9 @@
 #python analysisPlots.py --plot_directory v0p2 --year 2018 --unblinded --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-dPhiJet0-dPhiJet1
 #python analysisPlots.py --plot_directory v0p2 --year 2018 --unblinded --selection njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-dPhiJet0-dPhiJet1-onZ
 #python analysisPlots.py --plot_directory v0p2 --year 2018 --unblinded --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-dPhiJet0-dPhiJet1-onZ
-python analysisPlots.py --plot_directory v0p2_redTest --year 2018 --unblinded --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1
-python analysisPlots.py --plot_directory v0p2_redTest --year 2018 --unblinded --selection njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
-python analysisPlots.py --plot_directory v0p2_redTest --year 2018 --unblinded --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
+#python analysisPlots.py --plot_directory v0p2_redTest --year 2018 --unblinded --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1
+#python analysisPlots.py --plot_directory v0p2_redTest --year 2018 --unblinded --selection njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
+#python analysisPlots.py --plot_directory v0p2_redTest --year 2018 --unblinded --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
 #python analysisPlots.py --plot_directory v0p2 --year 2018 --unblinded --selection njet2p-btag0-relIso0.12-mll20-dPhiJet0-dPhiJet1
 #python analysisPlots.py --plot_directory v0p2 --year 2018 --unblinded --selection njet2p-btag1p-relIso0.12-mll20-dPhiJet0-dPhiJet1-onZ
 #python analysisPlots.py --plot_directory v0p2 --year 2018 --unblinded --selection njet2p-btag0-relIso0.12-mll20-dPhiJet0-dPhiJet1-onZ

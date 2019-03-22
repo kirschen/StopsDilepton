@@ -597,9 +597,9 @@ if not options.skipNanoTools:
             elif sample.name.count('Run2017C'):
                 JEC         = "Fall17_17Nov2017C_V32_DATA"
             elif sample.name.count('Run2017D'):
-                JEC         = "Fall17_17Nov2017D_V32_DATA"
+                JEC         = "Fall17_17Nov2017DE_V32_DATA"
             elif sample.name.count('Run2017E'):
-                JEC         = "Fall17_17Nov2017E_V32_DATA"
+                JEC         = "Fall17_17Nov2017DE_V32_DATA"
             elif sample.name.count('Run2017F'):
                 JEC         = "Fall17_17Nov2017F_V32_DATA"
             else:

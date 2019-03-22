@@ -25,7 +25,7 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM", "T8bbllnunu", "compilation"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='v0p2')
+argParser.add_argument('--plot_directory',     action='store',      default='v0p3')
 argParser.add_argument('--year',               action='store', type=int,      default=2016)
 argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
@@ -74,9 +74,10 @@ if args.year == 2016:
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
 elif args.year == 2017:
-    postProcessing_directory = "stops_2017_nano_v7/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v7/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
 elif args.year == 2018:
@@ -93,8 +94,12 @@ elif args.year == 2018:
 
 
 if args.signal == "T2tt":
-    postProcessing_directory = "stops_2016_nano_v2/dilep/"
-    from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *
+    if args.year == 2016:
+        postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+        from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *
+    else:
+        postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
+        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import *
     T2tt                    = T2tt_650_0
     T2tt2                   = T2tt_500_250
     T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
@@ -255,8 +260,8 @@ for index, mode in enumerate(allModes):
   for sample in signals:
       if args.signal == "T2tt" or args.signal == "T8bbllnunu" or args.signal == "compilation":
         sample.scale          = lumi_scale
-        sample.read_variables = ['reweightPU36fb/F']
-        sample.weight         = lambda event, sample: event.reweightPU36fb
+        sample.read_variables = ['reweightPU36fb/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F']
+        sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
         sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
         #sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
         #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
