@@ -47,13 +47,13 @@ DY_M50_HT =[
 
 dirs = {}
 dirs['DY']               = ["DYJetsToLL_M50" ]
-dirs['DY_LO']            = ["DYJetsToLL_M50_LO", "DYJetsToLL_M10to50_LO"]
+dirs['DY_LO']            = ["DYJetsToLL_M50_LO_redBy2", "DYJetsToLL_M10to50_LO_redBy2"]
 dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 
-dirs['TTLep_pow']        = ["TTLep_pow"]
+dirs['TTLep_pow']        = ["TTLep_pow_redBy3"]
 
-dirs['singleTop_sch']    = ["TToLeptons_sch_amcatnlo"]
-dirs['singleTop_tch']    = ["TBar_tch_pow", "T_tch_pow"]
+dirs['singleTop_sch']    = ["TToLeptons_sch_amcatnlo_redBy5"]
+dirs['singleTop_tch']    = ["TBar_tch_pow_redBy15", "T_tch_pow_redBy15"]
 dirs['singleTop_tW']     = ['T_tWch', 'TBar_tWch']
 
 
@@ -62,7 +62,7 @@ dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop_sch'] + dirs['sin
 dirs['TTZ']              = ['TTZToLLNuNu', 'TTZToLLNuNu_m1to10']
 dirs['TTXNoZ']           = ['TTWZ','TTZZ', 'TTWToLNu', 'TTWToQQ', 'tWll', 'tZq_ll'] # ttH, tWnunu
 
-dirs['diBoson']          = ['VVTo2L2Nu', 'ZZTo2L2Q', 'WZTo3LNu_amcatnlo']
+dirs['diBoson']          = ['VVTo2L2Nu', 'ZZTo2L2Q_redBy5', 'WZTo3LNu_amcatnlo']
 dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] 
 dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 

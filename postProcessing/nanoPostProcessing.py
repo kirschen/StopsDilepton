@@ -43,7 +43,7 @@ from StopsDilepton.tools.leptonFastSimSF    import leptonFastSimSF as leptonFast
 from Analysis.Tools.puProfileCache          import *
 from Analysis.Tools.L1PrefireWeight         import L1PrefireWeight
 from Analysis.Tools.LeptonTrackingEfficiency import LeptonTrackingEfficiency
-
+# coming soon # from Analysis.Tools.overlapRemovalTTG       import photonFromTopDecay, hasMesonMother, getParentIds, isIsolatedPhoton, getPhotonCategory
 
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
@@ -92,6 +92,7 @@ def get_parser():
     argParser.add_argument('--skipNanoTools',               action='store_true',                                                        help="Skipt the nanoAOD tools step for computing JEC/JER/MET etc uncertainties")
     argParser.add_argument('--keepNanoAOD',                 action='store_true',                                                        help="Keep nanoAOD output?")
     argParser.add_argument('--reapplyJECS',                 action='store_true',                                                        help="Reapply JECs to data?")
+    argParser.add_argument('--reduceSizeBy',                action='store',     type=int,                                               help="Reduce the size of the sample by a factor of...")
 
     return argParser
 
@@ -219,6 +220,19 @@ elif len(samples)==1:
     sampleForPU = samples[0]
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
+
+if options.reduceSizeBy > 1:
+    logger.info("Sample size will be reduced by a factor of %s", options.reduceSizeBy)
+    logger.info("Recalculating the normalization of the sample. Before: %s", sample.normalization)
+    if isData:
+        NotImplementedError ( "Data samples shouldn't be reduced in size!!" )
+    sample.reduceFiles( factor = options.reduceSizeBy )
+    # recompute the normalization
+    sample.clear()
+    sample.name += "_redBy%s"%options.reduceSizeBy
+    sample.normalization = sample.getYieldFromDraw(weightString="genWeight")['val']
+    logger.info("New normalization: %s", sample.normalization)
+
 
 if isMC:
     from Analysis.Tools.puReweighting import getReweightingFunction
@@ -380,11 +394,10 @@ else:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
 
-jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F'] + jetCorrInfo
-if options.reapplyJECS:
-    jetVars     += ['pt_nom/F']
+jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F'] + jetCorrInfo
 if isMC:
     jetVars     += jetMCInfo
+    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jerUp/F', 'pt_jerDown/F']
 jetVarNames     = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
@@ -393,9 +406,12 @@ lepVarNames     = [x.split('/')[0] for x in lepVars]
 
 read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
 if options.year == 2017:
-    read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'MET_pt_min/F'])
-if options.reapplyJECS:
-    read_variables += map(TreeVariable.fromString, [ 'MET_pt_nom/F'])
+    read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'METFixEE2017_phi/F', 'METFixEE2017_pt_nom/F', 'METFixEE2017_phi_nom/F', 'MET_pt_min/F'])
+    if isMC:
+        read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt_jesTotalUp/F', 'METFixEE2017_pt_jesTotalDown/F', 'METFixEE2017_pt_jerUp/F', 'METFixEE2017_pt_jerDown/F', 'METFixEE2017_pt_unclustEnDown/F', 'METFixEE2017_pt_unclustEnUp/F', 'METFixEE2017_phi_jesTotalUp/F', 'METFixEE2017_phi_jesTotalDown/F', 'METFixEE2017_phi_jerUp/F', 'METFixEE2017_phi_jerDown/F', 'METFixEE2017_phi_unclustEnDown/F', 'METFixEE2017_phi_unclustEnUp/F'])
+read_variables += map(TreeVariable.fromString, [ 'MET_pt_nom/F', 'MET_phi_nom/F' ])
+if isMC:
+    read_variables += map(TreeVariable.fromString, [ 'MET_pt_jesTotalUp/F', 'MET_pt_jesTotalDown/F', 'MET_pt_jerUp/F', 'MET_pt_jerDown/F', 'MET_pt_unclustEnDown/F', 'MET_pt_unclustEnUp/F', 'MET_phi_jesTotalUp/F', 'MET_phi_jesTotalDown/F', 'MET_phi_jerUp/F', 'MET_phi_jerDown/F', 'MET_phi_unclustEnDown/F', 'MET_phi_unclustEnUp/F'])
 
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
                     VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (options.year == 2016) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
@@ -466,7 +482,7 @@ if options.checkTTGJetsOverlap:
 
 if addSystematicVariations:
 
-    for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
+    for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
         if 'Unclustered' not in var: new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
         if isTriLep or isDiLep:
@@ -571,8 +587,8 @@ if not options.skipNanoTools:
         else:
             JEC             = "Summer16_07Aug2017_V11_MC"
     elif options.year == 2017:
-        metSigParamsMC      = [0.7908154690397596, 0.8274420527567241, 0.8625204829478312, 0.9116933716967324, 1.1863207810108252, -0.0021905431583211926, 0.6620237657886061]
-        metSigParamsData    = [1.743319492995906, 1.6882972548344242, 1.6551185757422577, 1.4185872885319166, 1.5923201986159454, -0.0002185734915505621, 0.6558819144933438]
+        metSigParamsMC      = [1.1106319092645605, 1.1016751869920842, 1.0725643000703053, 1.0913641155398053, 1.8499497840145123, -0.0015646588275905911, 0.7397929625473758]
+        metSigParamsData    = [1.5622583144490318, 1.540194388842639, 1.566197393467264, 1.5132500586113067, 1.9398948489956538, -0.00028476818675941427, 0.7502485988002288]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
         if sample.isData:
@@ -591,10 +607,10 @@ if not options.skipNanoTools:
         else:
             JEC             = "Fall17_17Nov2017_V32_MC"
     elif options.year == 2018:
-        metSigParamsMC      = [1.3889924894064565, 1.4100950862040742, 1.388614360360041, 1.2352876826748016, 1.0377595808114612, 0.004479319982990152, 0.6269386702181299]
-        metSigParamsData    = [1.8901832149541773, 2.026001195551111, 1.7805585857080317, 1.5987158841135176, 1.4509516794588302, 0.0003365079273751142, 0.6697617770737838]
-        JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
-        JERera              = "Fall17_V3"
+        metSigParamsMC      = [1.0117455874431338, 1.2986232760320007, 1.1414800394963855, 0.9209396460085367, 1.312067503147174, 0.0012299929784571964, 0.681951027334837]
+        metSigParamsData    = [1.4416589250258958, 1.592549070456071, 1.400707548171599, 1.4213958262324593, 2.0868635081187348, -0.0007745499117034968, 0.7261267509272097]
+        JER                 = "Autumn18_V1_MC"                if not sample.isData else "Autumn18_V1_DATA"
+        JERera              = "Autumn18_V1"
         if sample.isData:
             if sample.name.count("Run2018"):
                 JEC         = "Autumn18_Run%s_V8_DATA"%era
@@ -617,16 +633,22 @@ if not options.skipNanoTools:
     modules = []
     
     if not sample.isData:
-        modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True) ) #was Total
+        modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
+        if options.year == 2017:
+            modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') ) #was Total
     else:
-        # for MC this is already done in jetmetUncertaintyProducer
-        if options.reapplyJECS:
-            modules.append( jetRecalib(JEC) )
-            logger.info("JECs will be reapplied.")
-        else:
-            logger.info("JECs won't be reapplied. Choice of JECs has no effect.")
+        modules.append( jetRecalib(JEC) )
+        if options.year == 2017:
+            modules.append( jetRecalib(JEC, METBranchName='METFixEE2017') )
+        logger.info("JECs will be reapplied.")
 
-    modules.append( METSigProducer(JER, metSigParams) )
+    if options.year == 2016:
+        modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, jetPtVar="pt_nom", jetThreshold=15.) )
+    elif options.year == 2017:
+        modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, jetPtVar="pt_nom", jetThreshold=25.) )
+    elif options.year == 2018:
+        modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, jetPtVar="pt_nom", jetThreshold=25.) )
+
     if options.year == 2017:
         modules.append(METminProducer(isData=isData, calcVariations=(not isData)))
 
@@ -664,24 +686,22 @@ def getMetPhotonEstimated(met_pt, met_phi, photon):
 
 
 ## Calculate corrected met pt/phi using systematics for jets
-def getMetJetCorrected(met_pt, met_phi, jets, var):
-  met_corr_px  = met_pt*cos(met_phi) + sum([(j['pt']-j['pt_'+var])*cos(j['phi']) for j in jets])
-  met_corr_py  = met_pt*sin(met_phi) + sum([(j['pt']-j['pt_'+var])*sin(j['phi']) for j in jets])
+def getMetJetCorrected(met_pt, met_phi, jets, var, ptVar='pt'):
+  met_corr_px  = met_pt*cos(met_phi) + sum([(j[ptVar]-j['pt_'+var])*cos(j['phi']) if j[ptVar]>15 else 0 for j in jets])
+  met_corr_py  = met_pt*sin(met_phi) + sum([(j[ptVar]-j['pt_'+var])*sin(j['phi']) if j[ptVar]>15 else 0 for j in jets])
   met_corr_pt  = sqrt(met_corr_px**2 + met_corr_py**2)
   met_corr_phi = atan2(met_corr_py, met_corr_px)
   return (met_corr_pt, met_corr_phi)
 
 def getMetCorrected(r, var, addPhoton = None):
-    if var == "":
-      if addPhoton is not None: return getMetPhotonEstimated(r.MET_pt, r.MET_phi, addPhoton)
-      else:                     return (r.MET_pt, r.MET_phi)
+    if var == "": # why is this here??
+      if addPhoton is not None: return getMetPhotonEstimated(r.MET_pt_nom, r.MET_phi_nom, addPhoton)
+      else:                     return (r.MET_pt_nom, r.MET_phi_nom)
 
-    elif var in [ "JECUp", "JECDown", "UnclusteredEnUp", "UnclusteredEnDown" ]:
+    elif var in [ "unclustEnUp", "unclustEnDown" ]:
       var_ = var
-      var_ = var_.replace("JEC", "JetEn")
-      var_ = var_.replace("JER", "JetRes")
-      MET_pt  = getattr(r, "met_" + var_ + "_Pt")
-      MET_phi = getattr(r, "met_" + var_ + "_Phi")
+      MET_pt  = getattr(r, "MET_pt_"+var_)
+      MET_phi = getattr(r, "MET_phi_"+var_)
       if addPhoton is not None: return getMetPhotonEstimated(MET_pt, MET_phi, addPhoton)
       else:                     return (MET_pt, MET_phi)
 
@@ -779,9 +799,8 @@ def filler( event ):
         event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = L1PW.getWeight(allSlimmedPhotons, allSlimmedJets)
 
     # get leptons before jets in order to clean jets
-
-    electrons_pt10 = getGoodElectrons(r, ele_selector = ele_selector)
-    muons_pt10 = getGoodMuons(r, mu_selector = mu_selector )
+    electrons_pt10  = getGoodElectrons(r, ele_selector = ele_selector)
+    muons_pt10      = getGoodMuons(r, mu_selector = mu_selector )
 
     for e in electrons_pt10:
         e['pdgId'] = int( 11*e['charge'] )
@@ -796,11 +815,12 @@ def filler( event ):
 
     # now get jets, cleaned against good leptons
 
-    jetPtVar = 'pt_nom' if options.reapplyJECS else 'pt'
+    jetPtVar = 'pt_nom'# if options.reapplyJECS else 'pt'  ## always use pt_nom
 
+    allJetsNotClean = getAllJets(r, [], ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar=None)
     reallyAllJets= getAllJets(r, leptons, ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar='jetId') # keeping robert's comment: ... yeah, I know.
     allJets      = filter(lambda j:abs(j['eta'])<jetAbsEtaCut, reallyAllJets)
-    jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_nom' if options.reapplyJECS else 'pt'), allJets)
+    jets         = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar=jetPtVar), allJets)
     soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
     bJets        = filter(lambda j:isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4    , jets)
     nonBJets     = filter(lambda j:not ( isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4 ), jets)
@@ -810,15 +830,12 @@ def filler( event ):
     if options.year == 2017 and not fastSim:
         # v2 recipe. Could also use our own recipe
         event.met_pt    = r.METFixEE2017_pt
-        event.met_phi   = r.MET_phi
+        event.met_phi   = r.METFixEE2017_phi
         event.met_pt_min = r.MET_pt_min
     else:
-        if options.reapplyJECS:
-            event.met_pt    = r.MET_pt_nom 
-        else:
-            event.met_pt    = r.MET_pt
+        event.met_pt    = r.MET_pt_nom 
+        event.met_phi   = r.MET_phi_nom
 
-        event.met_phi   = r.MET_phi
         event.met_pt_min = 0
 
     # Filling jets
@@ -831,17 +848,17 @@ def filler( event ):
         if isMC:
             if store_jets[iJet]['genJetIdx'] >= 0:
                 event.JetGood_genPt[iJet] = r.GenJet_pt[store_jets[iJet]['genJetIdx']]
-        if options.reapplyJECS:
-            getattr(event, "JetGood_pt")[iJet] = jet['pt_nom']
+        getattr(event, "JetGood_pt")[iJet] = jet['pt_nom']
 
     if isSingleLep:
         # Compute M3 and the three indiced of the jets entering m3
         event.m3, event.m3_ind1, event.m3_ind2, event.m3_ind3 = m3( jets )
 
-    event.ht         = sum([j['pt'] for j in jets])
+    event.ht         = sum([j[jetPtVar] for j in jets])
     event.metSig     = event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan')
     event.nBTag      = len(bJets)
 
+    alljets_sys   = {}
     jets_sys      = {}
     bjets_sys     = {}
     nonBjets_sys  = {}
@@ -849,7 +866,7 @@ def filler( event ):
     metVariants = [''] # default
 
     # Keep photons and estimate met including (leading pt) photon
-    photons = getGoodPhotons(r, ptCut=20, idLevel="loose", isData=isData, year=options.year)
+    photons = getGoodPhotons(r, ptCut=20, idLevel="tight", isData=isData, year=options.year)
     event.nPhotonGood = len(photons)
     if event.nPhotonGood > 0:
       metVariants += ['_photonEstimated']  # do all met calculations also for the photonEstimated variant
@@ -872,13 +889,10 @@ def filler( event ):
        event.TTGJetsEventType = getTTGJetsEventType(r)
 
     if addSystematicVariations:
-        for j in allJets:
-            j['pt_JECUp']   =j['pt']/j['corr']*j['corr_JECUp']
-            j['pt_JECDown'] =j['pt']/j['corr']*j['corr_JECDown']
-            # JERUp, JERDown, JER
-            addJERScaling(j)
-        for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown']:
-            jets_sys[var]       = filter(lambda j:jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_'+var), allJets)
+        for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown']:
+            setattr(event, 'met_pt_'+var, getattr(r, 'METFixEE2017_pt_'+var) if options.year == 2017 else getattr(r, 'MET_pt_'+var) )
+            alljets_sys[var]    = allJetsNotClean
+            jets_sys[var]       = filter(lambda j: jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_'+var), allJets)
             bjets_sys[var]      = filter(lambda j: isBJet(j) and abs(j['eta'])<2.4, jets_sys[var])
             nonBjets_sys[var]   = filter(lambda j: not ( isBJet(j) and abs(j['eta'])<2.4), jets_sys[var])
 
@@ -886,18 +900,18 @@ def filler( event ):
             setattr(event, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
             setattr(event, "nBTag_"+var,    len(bjets_sys[var]))
 
-        for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
+        for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
             for i in metVariants:
                 # use cmg MET correction values ecept for JER where it is zero. There, propagate jet variations.
-                if 'JER' in var or 'JECV' in var:
-                  (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(event, "MET_pt" + i), getattr(event,"MET_phi" + i), jets_sys[var], var)
+                if 'jer' in var or 'jes' in var:
+                  (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(event, "met_pt" + i), getattr(event,"met_phi" + i), alljets_sys[var], var, ptVar='pt_nom')
                 else:
                   (met_corr_pt, met_corr_phi) = getMetCorrected(r, var, photons[0] if i.count("photonEstimated") else None)
 
-                setattr(event, "MET_pt" +i+"_"+var, met_corr_pt)
-                setattr(event, "MET_phi"+i+"_"+var, met_corr_phi)
-                ht = getattr(event, "ht_"+var) if 'Unclustered' not in var else event.ht 
-                setattr(event, "metSig" +i+"_"+var, getattr(event, "MET_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
+                setattr(event, "met_pt" +i+"_"+var, met_corr_pt)
+                setattr(event, "met_phi"+i+"_"+var, met_corr_phi)
+                ht = getattr(event, "ht_"+var) if 'unclust' not in var else event.ht 
+                setattr(event, "metSig" +i+"_"+var, getattr(event, "met_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
 
     if isSingleLep or isTriLep or isDiLep:
         event.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
@@ -924,7 +938,6 @@ def filler( event ):
 #              setattr(event, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(event, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(event, "met_phi"+i)))))
 
         #if fastSim:
-        #    ## To check whether PV_npvsGood is the correct replacement for nVert
         #    event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt) for l in leptons], 1)
         #    event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt, sigma = +1) for l in leptons], 1)
         #    event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt, sigma = -1) for l in leptons], 1)
@@ -1043,10 +1056,10 @@ def filler( event ):
                     setattr(event, "dl_mt2blbl"+i, mt2Calc.mt2blbl())
 
                 if addSystematicVariations:
-                    for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
-                        mt2Calc.setMet( getattr(event, "met_pt"+i+"_"+var), getattr(event, "MET_phi"+i+"_"+var) )
+                    for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
+                        mt2Calc.setMet( getattr(event, "met_pt"+i+"_"+var), getattr(event, "met_phi"+i+"_"+var) )
                         setattr(event, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
-                        if not 'Unclustered' in var:
+                        if not 'unclust' in var:
                             if len(jets_sys[var])>=2:
                                 bj0_, bj1_ = (bjets_sys[var]+nonBjets_sys[var])[:2]
                             else: 

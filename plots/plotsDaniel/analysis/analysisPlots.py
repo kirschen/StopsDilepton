@@ -25,17 +25,20 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM", "T8bbllnunu", "compilation"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='v0p1')
+argParser.add_argument('--plot_directory',     action='store',      default='v0p2')
 argParser.add_argument('--year',               action='store', type=int,      default=2016)
-argParser.add_argument('--selection',          action='store',      default='njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
 argParser.add_argument('--unblinded',          action='store_true', default=False)
+argParser.add_argument('--blinded',          action='store_true', default=False)
 argParser.add_argument('--reweightPUVUp',      action='store_true', default=False)
 argParser.add_argument('--isr',                action='store_true', default=False)
+argParser.add_argument('--preHEM',             action='store_true', default=False)
+argParser.add_argument('--postHEM',            action='store_true', default=False)
 args = argParser.parse_args()
 
 #
@@ -55,6 +58,8 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 if args.reweightPUVUp:                args.plot_directory += "_PUVUp"
 if args.noBadPFMuonFilter:            args.plot_directory += "_noBadPFMuonFilter"
 if args.noBadChargedCandidateFilter:  args.plot_directory += "_noBadChargedCandidateFilter"
+if args.preHEM:                       args.plot_directory += "_preHEM"
+if args.postHEM:                      args.plot_directory += "_postHEM"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
@@ -75,9 +80,11 @@ elif args.year == 2017:
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
 elif args.year == 2018:
-    postProcessing_directory = "stops_2018_nano_v0p1/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p2/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p1/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p2/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     
@@ -210,13 +217,22 @@ for index, mode in enumerate(allModes):
   
 
   data_sample.setSelectionString([getFilterCut(isData=True, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
+  if args.preHEM:
+    data_sample.addSelectionString("run<319077")
+  if args.postHEM:
+    data_sample.addSelectionString("run>=319077")
   data_sample.name           = "data"
   data_sample.read_variables = ["event/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   data_sample.scale          = 1.
   lumi_scale                 = data_sample.lumi/1000
+  if args.preHEM:   lumi_scale *= 0.37
+  if args.postHEM:  lumi_scale *= 0.63
 
-  if args.noData: lumi_scale = 36.4
+  if args.noData:
+    if args.year == 2016: lumi_scale = 35.9
+    elif args.year == 2017: lumi_scale = 41.9
+    elif args.year == 2018: lumi_scale = 60.0
   weight_ = lambda event, sample: event.weight
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
@@ -319,11 +335,12 @@ for index, mode in enumerate(allModes):
   #  binning= [80,20,100] if args.selection.count('metSig20') else ([25,5,30] if args.selection.count('metSig') else [30,0,30]),
   #))
 
-  plots.append(Plot(
-    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-    binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
-  ))
+  if not args.blinded:
+    plots.append(Plot(
+      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+      attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+      binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
+    ))
 
   plots.append(Plot(
     texX = 'number of jets', texY = 'Number of Events',
@@ -515,23 +532,24 @@ for index, mode in enumerate(allModes):
       binning = [10,-1,1],
     ))
 
-    plots.append(Plot(
-      texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 30 GeV',
-      attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
-      binning=[420/30,70,470],
-    ))
+    if not args.blinded:
+        plots.append(Plot(
+          texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 30 GeV',
+          attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
+          binning=[420/30,70,470],
+        ))
 
-    plots.append(Plot(
-      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
-      attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-      binning=[420/30,0,400],
-    ))
+        plots.append(Plot(
+          texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
+          attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+          binning=[420/30,0,400],
+        ))
 
-    plots.append(Plot( name = "dl_mt2blbl_coarse",       # SR binning of MT2ll
-      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
-      attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-      binning=[400/100, 0, 400],
-    ))
+        plots.append(Plot( name = "dl_mt2blbl_coarse",       # SR binning of MT2ll
+          texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
+          attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+          binning=[400/100, 0, 400],
+        ))
     
     #plots.append(Plot( name = "MVA_T2tt_default",
     #  texX = 'MVA_{T2tt} (default)', texY = 'Number of Events',
