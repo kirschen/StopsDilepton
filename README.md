@@ -1,18 +1,5 @@
-<<<<<<< HEAD
 # Stops-dilepton. No CMG needed anymore.
-=======
-# Stops-dilepton + CMG in 80X
-```
-cmsrel CMSSW_8_0_10_patch2
-cd CMSSW_8_0_10_patch2/src
-cmsenv
-git cms-init
-git clone https://github.com/GhentAnalysis/StopsDilepton
-./StopsDilepton/setup80X.sh
-```
 
-# Stops-dilepton in 76X 
->>>>>>> 91b230c6061836fc0b8d0465bb99d781d6f427ca
 ```
 cmsrel CMSSW_10_2_9
 cd CMSSW_10_2_9/src
@@ -22,13 +9,7 @@ git clone https://github.com/HephyAnalysisSW/StopsDilepton
 ./StopsDilepton/setup101X.sh
 ```
 
-<<<<<<< HEAD
 VERY IMPORTANT: if you use the MVA, run `MVA/setPyMva.sh` or best, add it to your bash profile.
-=======
-# for CMG in 76X
-see here:
-https://twiki.cern.ch/twiki/bin/viewauth/CMS/CMGToolsReleasesExperimental#Git_MiniAOD_release_for_Summer_2
->>>>>>> 91b230c6061836fc0b8d0465bb99d781d6f427ca
 
 # for CTPPS reconstruction
 ```
