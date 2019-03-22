@@ -27,13 +27,14 @@ argParser.add_argument('--noData',             action='store_true', default=Fals
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='v0p2')
 argParser.add_argument('--year',               action='store', type=int,      default=2016)
-argParser.add_argument('--selection',          action='store',      default='njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
 argParser.add_argument('--unblinded',          action='store_true', default=False)
+argParser.add_argument('--blinded',          action='store_true', default=False)
 argParser.add_argument('--reweightPUVUp',      action='store_true', default=False)
 argParser.add_argument('--isr',                action='store_true', default=False)
 argParser.add_argument('--preHEM',             action='store_true', default=False)
@@ -248,7 +249,7 @@ for index, mode in enumerate(allModes):
     if args.reweightPUVUp:
         sample.weight         = lambda event, sample: nTrueInt_puRW(event.Pileup_nTrueInt)
     else:
-        sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
 
   for sample in signals:
@@ -334,11 +335,12 @@ for index, mode in enumerate(allModes):
   #  binning= [80,20,100] if args.selection.count('metSig20') else ([25,5,30] if args.selection.count('metSig') else [30,0,30]),
   #))
 
-  plots.append(Plot(
-    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-    binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
-  ))
+  if not args.blinded:
+    plots.append(Plot(
+      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+      attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+      binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
+    ))
 
   plots.append(Plot(
     texX = 'number of jets', texY = 'Number of Events',
@@ -530,23 +532,24 @@ for index, mode in enumerate(allModes):
       binning = [10,-1,1],
     ))
 
-    plots.append(Plot(
-      texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 30 GeV',
-      attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
-      binning=[420/30,70,470],
-    ))
+    if not args.blinded:
+        plots.append(Plot(
+          texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 30 GeV',
+          attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
+          binning=[420/30,70,470],
+        ))
 
-    plots.append(Plot(
-      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
-      attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-      binning=[420/30,0,400],
-    ))
+        plots.append(Plot(
+          texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
+          attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+          binning=[420/30,0,400],
+        ))
 
-    plots.append(Plot( name = "dl_mt2blbl_coarse",       # SR binning of MT2ll
-      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
-      attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-      binning=[400/100, 0, 400],
-    ))
+        plots.append(Plot( name = "dl_mt2blbl_coarse",       # SR binning of MT2ll
+          texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
+          attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+          binning=[400/100, 0, 400],
+        ))
     
     #plots.append(Plot( name = "MVA_T2tt_default",
     #  texX = 'MVA_{T2tt} (default)', texY = 'Number of Events',
