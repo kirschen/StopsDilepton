@@ -65,12 +65,12 @@ if args.postHEM:                      args.plot_directory += "_postHEM"
 #
 from Analysis.Tools.puReweighting import getReweightingFunction
 
-data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
 
 if args.year == 2016:
-    postProcessing_directory = "stops_2016_nano_v7/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    postProcessing_directory = "stops_2016_nano_v7/dilep/"
+    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
 elif args.year == 2017:
@@ -82,17 +82,16 @@ elif args.year == 2017:
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
 elif args.year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p2/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p2/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     
     nTrueInt36fb_puRWVUp = getReweightingFunction(data="PU_2018_58830_XSecVUp", mc="Autumn18")
     if args.reweightPUVUp: nTrueInt_puRW = nTrueInt36fb_puRWVUp
 
-
+data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
 if args.signal == "T2tt":
     if args.year == 2016:
         postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
