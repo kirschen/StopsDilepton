@@ -78,22 +78,26 @@ preSelection = "Sum$(Muon_pt>10&&Muon_mediumPromptId)>=4"
 #
 read_variables = ["weight/F" , 
                   #"met_phi/F", 
-                  "nMuon/I", "Muon[pt/F,eta/F,phi/F,mediumPromptId/O]", 
+                  "nMuon/I", "Muon[pt/F,eta/F,phi/F,mediumPromptId/O,pdgId/I,pfRelIso03_all/F]", 
 ]
-muVars = ["pt", "eta", "phi", "mediumPromptId"]
+muVars = ["pt", "eta", "phi", "mediumPromptId", 'pdgId', "pfRelIso03_all"]
 
 def makeM4l(event, sample):
 
     # Get muons
-    muons      = getGoodMuons(event, collVars = muVars, mu_selector = lambda m:m['pt']>10 and m['mediumPromptId'] )
+    muons      = getGoodMuons(event, collVars = muVars, mu_selector = lambda m:m['pt']>10 and m['mediumPromptId'] and m["pfRelIso03_all"]<0.3 )
 
     event.m4l = float('nan')
     m4l2 = 0
-    if len( muons ) >=4:
-        for i in range(1,4):
-            for j in range( i ):
-                # do something
-                m4l2 += 1.
+    if len( muons ) ==4:
+
+        # select 2 positiove and 2 negative charges
+        pdgIds = [ p['pdgId'] for p in muons ]
+        if pdgIds.count(+13) == 2 and pdgIds.count(-13)==2:
+            for i in range(1,4):
+                for j in range( i ):
+                    #do something
+                    m4l2 += 27.
 
     event.m4l = sqrt( m4l2 )
     #print event.m4l
@@ -126,7 +130,7 @@ plots = []
 plots.append(Plot(name = "m4l",
   texX = 'm(4l)', texY = 'Number of Events / 3 GeV',
   attribute = lambda event, sample: event.m4l,
-  binning=[100,0,300],
+  binning=[100,20,320],
 ))
 
 plotting.fill(plots, read_variables = read_variables, sequence=sequence)
