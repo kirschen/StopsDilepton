@@ -584,6 +584,8 @@ if not options.skipNanoTools:
                 JEC         = "Summer16_07Aug2017GH_V11_DATA"
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
+        elif fastSim:
+            JEC             = "Spring16_25nsFastSimV1_MC"
         else:
             JEC             = "Summer16_07Aug2017_V11_MC"
     elif options.year == 2017:
@@ -604,6 +606,8 @@ if not options.skipNanoTools:
                 JEC         = "Fall17_17Nov2017F_V32_DATA"
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
+        elif fastSim:
+            JEC             = "Fall17_FastsimV1_MC"
         else:
             JEC             = "Fall17_17Nov2017_V32_MC"
     elif options.year == 2018:
@@ -616,6 +620,8 @@ if not options.skipNanoTools:
                 JEC         = "Autumn18_Run%s_V8_DATA"%era
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
+        elif fastSim:
+            JEC             = "Fall17_FastsimV1_MC"
         else:
             JEC             = "Autumn18_V8_MC"
             #JEC             = "Fall17_17Nov2017_V32_MC"

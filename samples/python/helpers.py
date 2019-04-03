@@ -119,6 +119,9 @@ def getT2ttSignalWeight(sample, lumi, cacheDir):
     bStr = str(mMax)+','+str(mMax)
     #sample.chain.Draw("GenSusyMNeutralino:GenSusyMStop>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
 
+
+    if not os.path.isdir(cacheDir):
+        os.makedirs(cacheDir)
     cacheFile = os.path.join(cacheDir, "%s_signalCounts.root"%sample.name)
     if os.path.isfile(cacheFile):
         logger.info("Loading signal weights from %s", cacheFile)
