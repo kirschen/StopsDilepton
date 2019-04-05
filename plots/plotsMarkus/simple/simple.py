@@ -96,8 +96,7 @@ def makeM4l(event, sample):
         if pdgIds.count(+13) == 2 and pdgIds.count(-13)==2:
             for i in range(1,4):
                 for j in range( i ):
-                    #do something
-                    m4l2 += 27.
+                    m4l2 += 2*muons[i]['pt']*muons[j]['pt']*(cosh(muons[i]['eta'] - muons[j]['eta']) - cos(muons[i]['phi'] - muons[j]['phi']) )
 
     event.m4l = sqrt( m4l2 )
     #print event.m4l
