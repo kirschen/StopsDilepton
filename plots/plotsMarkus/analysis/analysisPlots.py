@@ -99,8 +99,8 @@ if args.signal == "T2tt":
     else:
         postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import *
-    T2tt                    = T2tt_650_0
-    T2tt2                   = T2tt_500_250
+    T2tt                    = T2tt_750_0
+    T2tt2                   = T2tt_600_300
     T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T2tt, T2tt2]
@@ -436,7 +436,7 @@ for index, mode in enumerate(allModes):
     name = "JZB",
     texX = 'JZB (GeV)', texY = 'Number of Events / 32 GeV',
     attribute = lambda event, sample: sqrt( (event.met_pt*cos(event.met_phi)+event.dl_pt*cos(event.dl_phi))**2 + (event.met_pt*sin(event.met_phi)+event.dl_pt*sin(event.dl_phi))**2) - event.dl_pt, 
-	read_variables = ["met_phi/F", "dl_phi/F", "met_pt/F", "dl_pt/F"],
+  	read_variables = ["met_phi/F", "dl_phi/F", "met_pt/F", "dl_pt/F"],
     binning=[25,-200,600],
   ))
 
@@ -444,24 +444,40 @@ for index, mode in enumerate(allModes):
   if args.selection.count('njet2') or args.selection.count('njet1'):
     plots.append(Plot(
       texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
-      name = 'jet1_pt', attribute = lambda event, sample: event.JetGood_pt[0],
+      name = 'jet0_pt', attribute = lambda event, sample: event.JetGood_pt[0],
       binning=[600/30,0,600],
     ))
 
     plots.append(Plot(
       texX = '#eta(leading jet) (GeV)', texY = 'Number of Events',
-      name = 'jet1_eta', attribute = lambda event, sample: abs(event.JetGood_eta[0]),
+      name = 'jet0_eta', attribute = lambda event, sample: abs(event.JetGood_eta[0]),
       binning=[10,0,3],
     ))
 
     plots.append(Plot(
       texX = '#phi(leading jet) (GeV)', texY = 'Number of Events',
-      name = 'jet1_phi', attribute = lambda event, sample: event.JetGood_phi[0],
+      name = 'jet0_phi', attribute = lambda event, sample: event.JetGood_phi[0],
       binning=[10,-pi,pi],
     ))
 
     plots.append(Plot(
-      name = 'cosMetJet1phi',
+      name = 'cosMetJet0phi',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
+      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0]), 
+      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      binning = [10,-1,1],
+    ))
+
+    plots.append(Plot(
+      name = 'cosMetJet0phi',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
+      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0]), 
+      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      binning = [10,-1,1],
+    ))
+
+    plots.append(Plot(
+      name = 'cosMetJet0phi',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0]), 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
@@ -469,7 +485,7 @@ for index, mode in enumerate(allModes):
     ))
     
     plots.append(Plot(
-      name = 'cosMetJet1phi_smallBinning',
+      name = 'cosMetJet0phi_smallBinning',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
@@ -477,7 +493,15 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      name = 'cosZJet1phi',
+      name = 'cosMetJet0phi_extraSmallBinning',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
+      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0]), 
+      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      binning = [50,-1,1],
+    ))
+
+    plots.append(Plot(
+      name = 'cosZJet0phi',
       texX = 'Cos(#Delta#phi(Z, leading jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.dl_phi - event.JetGood_phi[0] ) ,
       read_variables =  ["dl_phi/F", "JetGood[phi/F]"],
@@ -488,24 +512,44 @@ for index, mode in enumerate(allModes):
   if args.selection.count('njet2'):
     plots.append(Plot(
       texX = 'p_{T}(2nd leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
-      name = 'jet2_pt', attribute = lambda event, sample: event.JetGood_pt[1],
+      name = 'jet1_pt', attribute = lambda event, sample: event.JetGood_pt[1],
       binning=[600/30,0,600],
     ))
 
     plots.append(Plot(
       texX = '#eta(2nd leading jet) (GeV)', texY = 'Number of Events',
-      name = 'jet2_eta', attribute = lambda event, sample: abs(event.JetGood_eta[1]),
+      name = 'jet1_eta', attribute = lambda event, sample: abs(event.JetGood_eta[1]),
       binning=[10,0,3],
     ))
 
     plots.append(Plot(
       texX = '#phi(2nd leading jet) (GeV)', texY = 'Number of Events',
-      name = 'jet2_phi', attribute = lambda event, sample: event.JetGood_phi[1],
+      name = 'jet1_phi', attribute = lambda event, sample: event.JetGood_phi[1],
       binning=[10,-pi,pi],
     ))
 
+    # 3rd jet plots
     plots.append(Plot(
-      name = 'cosMetJet2phi',
+      texX = 'p_{T}(3rd leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
+      name = 'jet2_pt', attribute = lambda event, sample: event.JetGood_pt[2],
+      binning=[600/30,0,600],
+    ))
+
+    plots.append(Plot(
+      texX = '#eta(3rd leading jet) (GeV)', texY = 'Number of Events',
+      name = 'jet2_eta', attribute = lambda event, sample: abs(event.JetGood_eta[2]),
+      binning=[10,0,3],
+    ))
+
+    plots.append(Plot(
+      texX = '#phi(3rd leading jet) (GeV)', texY = 'Number of Events',
+      name = 'jet2_phi', attribute = lambda event, sample: event.JetGood_phi[2],
+      binning=[10,-pi,pi],
+    ))
+    #
+
+    plots.append(Plot(
+      name = 'cosMetJet1phi',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
@@ -513,7 +557,7 @@ for index, mode in enumerate(allModes):
     ))
     
     plots.append(Plot(
-      name = 'cosMetJet2phi_smallBinning',
+      name = 'cosMetJet1phi_smallBinning',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
@@ -521,7 +565,7 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      name = 'cosZJet2phi',
+      name = 'cosZJet1phi',
       texX = 'Cos(#Delta#phi(Z, 2nd leading jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.dl_phi - event.JetGood_phi[0] ),
       read_variables = ["dl_phi/F", "JetGood[phi/F]"],
@@ -529,7 +573,7 @@ for index, mode in enumerate(allModes):
     ))
 
     plots.append(Plot(
-      name = 'cosJet1Jet2phi',
+      name = 'cosJet0Jet1phi',
       texX = 'Cos(#Delta#phi(leading jet, 2nd leading jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.JetGood_phi[1] - event.JetGood_phi[0] ) ,
       read_variables =  ["JetGood[phi/F]"],

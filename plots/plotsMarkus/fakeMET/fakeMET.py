@@ -7,6 +7,7 @@
 import ROOT, os
 ROOT.gROOT.SetBatch(True)
 import itertools
+import copy
 
 from math                                import sqrt, cos, sin, pi
 from RootTools.core.standard             import *
@@ -37,8 +38,6 @@ argParser.add_argument('--unblinded',          action='store_true', default=Fals
 argParser.add_argument('--blinded',          action='store_true', default=False)
 argParser.add_argument('--reweightPUVUp',      action='store_true', default=False)
 argParser.add_argument('--isr',                action='store_true', default=False)
-argParser.add_argument('--preHEM',             action='store_true', default=False)
-argParser.add_argument('--postHEM',            action='store_true', default=False)
 args = argParser.parse_args()
 
 #
@@ -58,8 +57,6 @@ if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+
 if args.reweightPUVUp:                args.plot_directory += "_PUVUp"
 if args.noBadPFMuonFilter:            args.plot_directory += "_noBadPFMuonFilter"
 if args.noBadChargedCandidateFilter:  args.plot_directory += "_noBadChargedCandidateFilter"
-if args.preHEM:                       args.plot_directory += "_preHEM"
-if args.postHEM:                      args.plot_directory += "_postHEM"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
@@ -90,6 +87,25 @@ elif args.year == 2018:
     
     nTrueInt36fb_puRWVUp = getReweightingFunction(data="PU_2018_58830_XSecVUp", mc="Autumn18")
     if args.reweightPUVUp: nTrueInt_puRW = nTrueInt36fb_puRWVUp
+
+# three DY's with MET
+DYs = [copy.deepcopy(mc[-1]) for i in range(3)]
+DYs[0].texName = "DY (E_{T, fake}^{miss} < 50)"
+DYs[0].setSelectionString('(met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2 < 50')
+DYs[0].color = ROOT.kGreen + 1
+
+DYs[1].texName = "DY (50 < E_{T, fake}^{miss} < 100)"
+DYs[1].setSelectionString('(met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2 < 100&&(met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2 > 50')
+DYs[1].color = ROOT.kGreen + 2
+
+DYs[2].texName = "DY (E_{T, fake}^{miss} > 100)"
+DYs[2].setSelectionString('(met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2 > 100')
+DYs[2].color = ROOT.kGreen + 3
+mc = mc[:-1]+DYs
+
+#assert False, "Is it working up to now?"
+
+
 
 data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
 if args.signal == "T2tt":
@@ -221,17 +237,11 @@ for index, mode in enumerate(allModes):
   
 
   data_sample.setSelectionString([getFilterCut(isData=True, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
-  if args.preHEM:
-    data_sample.addSelectionString("run<319077")
-  if args.postHEM:
-    data_sample.addSelectionString("run>=319077")
   data_sample.name           = "data"
   data_sample.read_variables = ["event/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   data_sample.scale          = 1.
   lumi_scale                 = data_sample.lumi/1000
-  if args.preHEM:   lumi_scale *= 0.37
-  if args.postHEM:  lumi_scale *= 0.63
 
   if args.noData:
     if args.year == 2016: lumi_scale = 35.9
