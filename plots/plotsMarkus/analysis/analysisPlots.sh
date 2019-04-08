@@ -50,6 +50,9 @@
 #python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-POGMetSig12-dPhiJet0-dPhiJet1
 
 # 2016-2018: Pileup < 25
-python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-dPhiJet0-dPhiJet1-PUto25
-
+python analysisPlots.py --plot_directory v0 --year 2016 --signal T2tt --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-dPhiJet0-dPhiJet1-nPV0to25
+python analysisPlots.py --plot_directory v0 --year 2017 --signal T2tt --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-dPhiJet0-dPhiJet1-nPV0to25
+python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-dPhiJet0-dPhiJet1-nPV0to25
+python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-dPhiJet0-dPhiJet1-nPV0to25 --preHEM
+python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --selection njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-met80-dPhiJet0-dPhiJet1-nPV0to25 --postHEM
 
