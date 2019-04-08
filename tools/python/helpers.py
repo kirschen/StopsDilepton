@@ -13,6 +13,12 @@ ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.setTDRStyle()
 mZ=91.1876
 
+def map_level(f, item, level):
+    if level == 0:
+        return f(item)
+    else:
+        return [map_level(f, i, level - 1) for i in item]
+
 def deltaPhi(phi1, phi2):
     dphi = phi2-phi1
     if  dphi > pi:

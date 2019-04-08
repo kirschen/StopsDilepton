@@ -99,9 +99,10 @@ def makeM4l(event, sample):
             for i in range(1,4):
                 for j in range( i ):
                     # adding the contribution to the invariant mass btw i'th and j'th muon
-                    m4l2summand = 2.*event.Muon_pt[i]*event.Muon_pt[j]*(cosh(event.Muon_eta[i]-event.Muon_eta[j]) - cos(event.Muon_phi[i]-event.Muon_phi[j]))
-                    m4l2 += m4l2summand
-                    print "indices i=%i,j=%i: adding %d to m4l2 => yiels %d" % (i,j,m4l2summand,m4l2)
+                    #m4l2summand = 2.*event.Muon_pt[i]*event.Muon_pt[j]*(cosh(event.Muon_eta[i]-event.Muon_eta[j]) - cos(event.Muon_phi[i]-event.Muon_phi[j]))
+                    #m4l2 += m4l2summand
+                    #print "indices i=%i,j=%i: adding %d to m4l2 => yiels %d" % (i,j,m4l2summand,m4l2)
+                    m4l2 += 2*muons[i]['pt']*muons[j]['pt']*(cosh(muons[i]['eta'] - muons[j]['eta']) - cos(muons[i]['phi'] - muons[j]['phi']) )
 
     event.m4l = sqrt( m4l2 )
     print "%d = invariant mass of 4 muons (2 pos, 2 neg)" % event.m4l
