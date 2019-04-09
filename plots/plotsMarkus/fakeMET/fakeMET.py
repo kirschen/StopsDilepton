@@ -91,15 +91,15 @@ elif args.year == 2018:
 # three DY's with MET
 DYs = [copy.deepcopy(mc[-1]) for i in range(3)]
 DYs[0].texName = "DY (E_{T, fake}^{miss} < 50)"
-DYs[0].setSelectionString('(met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2 < 50')
+DYs[0].setSelectionString('sqrt((met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2) < 50')
 DYs[0].color = ROOT.kGreen + 1
 
 DYs[1].texName = "DY (50 < E_{T, fake}^{miss} < 100)"
-DYs[1].setSelectionString('(met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2 < 100&&(met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2 > 50')
+DYs[1].setSelectionString('sqrt((met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2) < 100&&sqrt((met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2) > 50')
 DYs[1].color = ROOT.kGreen + 2
 
 DYs[2].texName = "DY (E_{T, fake}^{miss} > 100)"
-DYs[2].setSelectionString('(met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2 > 100')
+DYs[2].setSelectionString('sqrt((met_pt*cos(met_phi)-GenMET_pt*cos(GenMET_phi))**2 + (met_pt*sin(met_phi)-GenMET_pt*sin(GenMET_phi))**2) > 100')
 DYs[2].color = ROOT.kGreen + 3
 mc = mc[:-1]+DYs
 
