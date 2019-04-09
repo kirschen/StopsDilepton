@@ -19,7 +19,7 @@ for i in range(1000):
 #    if not db.contains({"names":i}):
 #        db.add({"names":i}, float(i), overwrite=overwrite)
     if not db.contains(i):
-        db.add(i, float(i), overwrite=overwrite)
+        db.add(float(i)+0.1, float(i), overwrite=overwrite)
 
 end = time.time()
 print("time:", end - start)
