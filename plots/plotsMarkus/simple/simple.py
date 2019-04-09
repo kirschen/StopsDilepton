@@ -19,7 +19,7 @@ from StopsDilepton.tools.objectSelection import getGoodMuons, alwaysTrue
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',      default='INFO',      nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--plot_directory', action='store',      default='StopsDilepton')
+argParser.add_argument('--plot_directory', action='store',      default='FourMuonInvariantMass')
 argParser.add_argument('--small',       action='store_true',                                                                        help="Run the file on a small sample (for test purpose), bool flag set to True if used" )
 args = argParser.parse_args()
 
@@ -63,6 +63,7 @@ from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
 
 # add all data
 DoubleMuon  = Sample.combine( "DoubleMuon", [DoubleMuon_Run2016, DoubleMuon_Run2017, DoubleMuon_Run2018] )
+#     DoubleElectron  = Sample.combine( "DoubleElectron", [DoubleElectron_Run2016, DoubleElectron_Run2017, DoubleElectron_Run2018] )
 
 data_sample = DoubleMuon
 
@@ -71,7 +72,8 @@ if args.small:
     data_sample.reduceFiles( to = 1 )
 
 ## 4 muon selection
-preSelection = "Sum$(Muon_pt>10&&Muon_mediumPromptId)>=4"
+#preSelection = "Sum$(Muon_pt>20&&Muon_mediumPromptId)>=4"
+preSelection = "Sum$(Muon_pt>5&&Muon_mediumPromptId)>=4"
 
 #
 # Read variables and sequences
@@ -91,15 +93,19 @@ def makeM4l(event, sample):
     m4l2 = 0
     if len( muons ) ==4:
 
-        # select 2 positiove and 2 negative charges
+        # select 2 positive and 2 negative charges
         pdgIds = [ p['pdgId'] for p in muons ]
         if pdgIds.count(+13) == 2 and pdgIds.count(-13)==2:
             for i in range(1,4):
                 for j in range( i ):
+                    # adding the contribution to the invariant mass btw i'th and j'th muon
+                    #m4l2summand = 2.*event.Muon_pt[i]*event.Muon_pt[j]*(cosh(event.Muon_eta[i]-event.Muon_eta[j]) - cos(event.Muon_phi[i]-event.Muon_phi[j]))
+                    #m4l2 += m4l2summand
+                    #print "indices i=%i,j=%i: adding %d to m4l2 => yiels %d" % (i,j,m4l2summand,m4l2)
                     m4l2 += 2*muons[i]['pt']*muons[j]['pt']*(cosh(muons[i]['eta'] - muons[j]['eta']) - cos(muons[i]['phi'] - muons[j]['phi']) )
 
     event.m4l = sqrt( m4l2 )
-    #print event.m4l
+    print "%d = invariant mass of 4 muons (2 pos, 2 neg)" % event.m4l
 
 sequence = [makeM4l]
 
@@ -126,10 +132,11 @@ Plot.setDefaults(stack = stack)
 
 plots = []
 
-plots.append(Plot(name = "m4l",
+plots.append(Plot(name = "m4l_105_135_100",
   texX = 'm(4l)', texY = 'Number of Events / 3 GeV',
   attribute = lambda event, sample: event.m4l,
-  binning=[100,20,320],
+  binning=[100,105,135],
+#  binning=[100,20,320],
 ))
 
 plotting.fill(plots, read_variables = read_variables, sequence=sequence)
