@@ -140,7 +140,7 @@ elif args.signal == "DM":
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
     #DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10_ext1
     DM                      = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
-OA    #DM2                     = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50_ext1
+    #DM2                     = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50_ext1
     #DM2_alt                 = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_50
     DM2                     = TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
     DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
