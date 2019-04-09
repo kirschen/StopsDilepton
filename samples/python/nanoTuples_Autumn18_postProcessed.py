@@ -20,7 +20,7 @@ try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "stops_2018_nano_v7/dilep/"
+  postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
 
 logger.info("Loading MC samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 
@@ -46,27 +46,31 @@ DY_M50_HT =[
 
 
 dirs = {}
-dirs['DY']               = ["DYJetsToLL_M50" ]
-dirs['DY_LO']            = ["DYJetsToLL_M50_LO_redBy2", "DYJetsToLL_M10to50_LO_redBy2"]
-dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
+dirs['DY']              = ["DYJetsToLL_M50" ]
+dirs['DY_LO']           = ["DYJetsToLL_M50_LO_redBy2", "DYJetsToLL_M10to50_LO_redBy2"]
+dirs['DY_HT_LO']        =  DY_M50_HT + DY_M5to50_HT
 
-dirs['TTLep_pow']        = ["TTLep_pow_redBy3"]
+dirs['TTLep_pow']       = ["TTLep_pow_redBy3"]
 
-dirs['singleTop_sch']    = ["TToLeptons_sch_amcatnlo_redBy5"]
-dirs['singleTop_tch']    = ["TBar_tch_pow_redBy15", "T_tch_pow_redBy15"]
-dirs['singleTop_tW']     = ['T_tWch', 'TBar_tWch']
+dirs['singleTop_sch']   = ["TToLeptons_sch_amcatnlo_redBy5"]
+dirs['singleTop_tch']   = ["TBar_tch_pow_redBy15", "T_tch_pow_redBy15"]
+dirs['singleTop_tW']    = ['T_tWch', 'TBar_tWch']
 
 
-dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop_sch'] + dirs['singleTop_tW'] + dirs['singleTop_tch']
+dirs['Top_pow']         = dirs['TTLep_pow'] + dirs['singleTop_sch'] + dirs['singleTop_tW'] + dirs['singleTop_tch']
 
-dirs['TTZ']              = ['TTZToLLNuNu', 'TTZToLLNuNu_m1to10']
-dirs['TTXNoZ']           = ['TTWZ','TTZZ', 'TTWToLNu', 'TTWToQQ', 'tWll', 'tZq_ll'] # ttH, tWnunu
+dirs['TTZ']             = ['TTZToLLNuNu', 'TTZToLLNuNu_m1to10']
+dirs['TTXNoZ']          = ['TTWZ','TTZZ', 'TTWToLNu', 'TTWToQQ', 'tWll', 'tZq_ll'] # ttH, tWnunu
 
-dirs['diBoson']          = ['VVTo2L2Nu', 'ZZTo2L2Q_redBy5', 'WZTo3LNu_amcatnlo']
-dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] 
-dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
+dirs['VVTo2L2Nu']       = ['VVTo2L2Nu']
+dirs['ZZTo2L2Q']        = ['ZZTo2L2Q_redBy5']
+dirs['WZTo3LNu']        = ['WZTo3LNu_amcatnlo']
 
-dirs['allMC']            = dirs['DY_LO'] + dirs['Top_pow'] + dirs['TTZ'] + dirs['TTXNoZ'] + dirs['multiBoson']
+dirs['diBoson']         = dirs['VVTo2L2Nu'] + dirs['ZZTo2L2Q'] + dirs['WZTo3LNu']
+dirs['triBoson']        = ["WWZ","WZZ","ZZZ"] 
+dirs['multiBoson']      = dirs['diBoson'] + dirs['triBoson']
+
+dirs['allMC']           = dirs['DY_LO'] + dirs['Top_pow'] + dirs['TTZ'] + dirs['TTXNoZ'] + dirs['multiBoson']
 
 directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
 
@@ -75,6 +79,11 @@ DY_LO_18        = Sample.fromDirectory(name="DY_LO",            treeName="Events
 Top_pow_18      = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
 TTXNoZ_18       = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W, tZq",                  directory=directories['TTXNoZ'])
 TTZ_18          = Sample.fromDirectory(name="TTZ",              treeName="Events", isData=False, color=color.TTZ,             texName="t#bar{t}Z",                         directory=directories['TTZ'])
+VVTo2L2Nu_18    = Sample.fromDirectory(name="VVTo2L2Nu",        treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",                    directory=directories['VVTo2L2Nu'])
+# WW missing
+WZ_18           = Sample.fromDirectory(name="WZ",               treeName="Events", isData=False, color=color.WZ,              texName="WZ w/o ll#nu#nu",                   directory=directories['WZTo3LNu'])
+ZZ_18           = Sample.fromDirectory(name="ZZ",               treeName="Events", isData=False, color=color.ZZ,              texName="ZZ w/o ll#nu#nu",                   directory=directories['ZZTo2L2Q'])
+triboson_18     = Sample.fromDirectory(name="triBoson",         treeName="Events", isData=False, color=color.triBoson,        texName="triboson",                          directory=directories['triBoson'])
 multiBoson_18   = Sample.fromDirectory(name="multiBoson",       treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                       directory=directories['multiBoson'])
 allBkgs_18      = Sample.fromDirectory(name="allBkgs",          treeName="Events", isData=False, color=color.diBoson,         texName="everything",                        directory=directories['allMC'])
 
