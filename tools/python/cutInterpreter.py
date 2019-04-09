@@ -40,9 +40,16 @@ special_cuts = {
     "HEMJetVetoWide":    "Sum$(Jet_eta<-1.0&&Jet_eta>-3.2&&Jet_phi<-0.5&&Jet_phi>-2.0)==0",
     "extraLepVeto":      "Sum$(abs(LepGood_pdgId)==13&&LepGood_pt>20&&( abs(LepGood_dz)>0.2 || abs(LepGood_dxy)>0.2 ) ) + Sum$(abs(LepOther_pdgId)==13&&LepOther_pt>20&&( abs(LepOther_dz)>0.2 || abs(LepOther_dxy)>0.2 ) )==0",
 
+    #"ZEtaMinus":            "dl_eta>-3&&dl_eta<-1",
+    #"ZEtaBarrel":           "dl_eta>-1&&dl_eta<1",
+    #"ZEtaPlus":             "dl_eta>1&&dl_eta<3",
+    "ZPhiHEM":              "dl_phi>-2+pi&&dl_phi<-0.5+pi",
+    "ZPhiNoHEM":            "(!(dl_phi>-2+pi&&dl_phi<-0.5+pi))"
+
   }
 
 continous_variables = [ ("POGMetSig", "MET_significance"), ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"),("mt2bb", "dl_mt2bb"),("htCMG", "htJet40j"), ("photon","photon_pt") ]
+#continous_variables += [ ('phill', 'dl_phi' ), ('etall', 'etall' )]
 discrete_variables  = [ ("njet", "nJetGood"), ("btag", "nBTag") , ("nCMGjet", "nJet30")]
 
 class cutInterpreter:
