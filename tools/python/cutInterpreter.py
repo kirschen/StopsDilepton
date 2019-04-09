@@ -42,7 +42,7 @@ special_cuts = {
 
   }
 
-continous_variables = [ ("POGMetSig", "MET_significance"), ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"),("mt2bb", "dl_mt2bb"),("htCMG", "htJet40j"), ("photon","photon_pt") ]
+continous_variables = [ ("POGMetSig", "MET_significance"), ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"),("mt2bb", "dl_mt2bb"),("htCMG", "htJet40j"), ("photon","photon_pt"), ("nPV", "PV_npvsGood") ]
 discrete_variables  = [ ("njet", "nJetGood"), ("btag", "nBTag") , ("nCMGjet", "nJet30")]
 
 class cutInterpreter:
