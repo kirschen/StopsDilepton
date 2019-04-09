@@ -318,8 +318,8 @@ else:
     topScaleF = 1
     logger.info( "Sample will NOT have top pt reweighting. topScaleF=%f",topScaleF )
 
-if isTT:
-    from StopsDilepton.analysis.daniel.isrWeight import *
+if fastSim:
+    from Analysis.Tools.isrWeight import *
     isr = ISRweight()
     logger.info("Sample will have ISR reweighting called reweight_nISR.")
 
