@@ -74,19 +74,25 @@ if args.year == 2016:
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
 elif args.year == 2017:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+    if args.splitBosons:
+        mc         = [ Top_pow_17, TTXNoZ_17, TTZ_17, VVTo2L2Nu_17, WW_17, WZ_17, ZZ_17, triBoson_17, DY_LO_17]
+    else:
+        mc         = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
 elif args.year == 2018:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
+    if args.splitBosons:
+        mc         = [ Top_pow_18, TTXNoZ_18, TTZ_18, VVTo2L2Nu_18, WZ_18, ZZ_18, triBoson_18, DY_LO_18]
+    else:
+        mc         = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     
     nTrueInt36fb_puRWVUp = getReweightingFunction(data="PU_2018_58830_XSecVUp", mc="Autumn18")
     if args.reweightPUVUp: nTrueInt_puRW = nTrueInt36fb_puRWVUp
@@ -134,7 +140,7 @@ elif args.signal == "DM":
     from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
     #DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10_ext1
     DM                      = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
-    #DM2                     = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50_ext1
+OA    #DM2                     = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50_ext1
     #DM2_alt                 = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_50
     DM2                     = TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
     DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
