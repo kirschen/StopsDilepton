@@ -280,7 +280,9 @@ for selectedSamples in options.samples:
 print [ s.name for s in samples ]
 
 directory  = os.path.join(options.targetDir, options.processingEra)
-output_directory = os.path.join( directory, options.skim, sample.name )
+output_directory = os.path.join( directory, options.skim, samples[0].name )
+
+print output_directory
 
 #Samples: Load samples
 maxN = 2 if options.small else None
@@ -389,7 +391,7 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
         signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
         #signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
         logger.debug("Ouput file will be %s", signalFile)
-        if not os.path.exists(signalFile) or options.overwrite:
+        if not (os.path.exists(signalFile) and checkRootFile(signalFile)) or options.overwrite:
             outF = ROOT.TFile.Open(signalFile, "RECREATE")
             t = output.chain.CopyTree(cut)
             nEvents = t.GetEntries()

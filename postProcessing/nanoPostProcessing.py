@@ -589,8 +589,10 @@ if not options.skipNanoTools:
         else:
             JEC             = "Summer16_07Aug2017_V11_MC"
     elif options.year == 2017:
-        metSigParamsMC      = [1.1106319092645605, 1.1016751869920842, 1.0725643000703053, 1.0913641155398053, 1.8499497840145123, -0.0015646588275905911, 0.7397929625473758]
-        metSigParamsData    = [1.5622583144490318, 1.540194388842639, 1.566197393467264, 1.5132500586113067, 1.9398948489956538, -0.00028476818675941427, 0.7502485988002288]
+        metSigParamsMC      = [1.7760438537732681, 1.720421230892687, 1.6034765551361112, 1.5336832981702226, 2.0928447254019757, 0.0011228025809342157, 0.7287313412909979]
+        metSigParamsData    = [1.518621014453362, 1.611898248687222, 1.5136936762143423, 1.4878342676980971, 1.9192499533282406, -0.0005835026352392627, 0.749718704693196]
+        #metSigParamsMC      = [1.1106319092645605, 1.1016751869920842, 1.0725643000703053, 1.0913641155398053, 1.8499497840145123, -0.0015646588275905911, 0.7397929625473758]
+        #metSigParamsData    = [1.5622583144490318, 1.540194388842639, 1.566197393467264, 1.5132500586113067, 1.9398948489956538, -0.00028476818675941427, 0.7502485988002288]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
         if sample.isData:
@@ -611,8 +613,8 @@ if not options.skipNanoTools:
         else:
             JEC             = "Fall17_17Nov2017_V32_MC"
     elif options.year == 2018:
-        metSigParamsMC      = [1.0117455874431338, 1.2986232760320007, 1.1414800394963855, 0.9209396460085367, 1.312067503147174, 0.0012299929784571964, 0.681951027334837]
-        metSigParamsData    = [1.4416589250258958, 1.592549070456071, 1.400707548171599, 1.4213958262324593, 2.0868635081187348, -0.0007745499117034968, 0.7261267509272097]
+        metSigParamsMC      = [1.8430848616315363, 1.8572853766660877, 1.613083160233781, 1.3966398718198898, 1.4831008506492056, 0.0011310724285762122, 0.6929410058142578]
+        metSigParamsData    = [1.6231076732985186, 1.615595174619551, 1.4731794897915416, 1.5183631493937553, 2.145670387603659, -0.0001524158603362826, 0.7510574688006575]
         JER                 = "Autumn18_V1_MC"                if not sample.isData else "Autumn18_V1_DATA"
         JERera              = "Autumn18_V1"
         if sample.isData:
@@ -641,7 +643,7 @@ if not options.skipNanoTools:
     if not sample.isData:
         modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
         if options.year == 2017:
-            modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') ) #was Total
+            modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') )
     else:
         modules.append( jetRecalib(JEC) )
         if options.year == 2017:
@@ -649,11 +651,11 @@ if not options.skipNanoTools:
         logger.info("JECs will be reapplied.")
 
     if options.year == 2016:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, jetPtVar="pt_nom", jetThreshold=15.) )
+        modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
     elif options.year == 2017:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, jetPtVar="pt_nom", jetThreshold=25.) )
+        modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=25.) )
     elif options.year == 2018:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, jetPtVar="pt_nom", jetThreshold=25.) )
+        modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=25.) )
 
     if options.year == 2017:
         modules.append(METminProducer(isData=isData, calcVariations=(not isData)))
