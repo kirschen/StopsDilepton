@@ -21,11 +21,6 @@ args = argParser.parse_args()
 
 
 if args.small:                        args.plot_directory += "_small"
-#
-# Make samples, will be searched for in the postProcessing directory
-#
-from Analysis.Tools.puReweighting import getReweightingFunction
-
 
 data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
 postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
@@ -36,15 +31,18 @@ mySample=Top_pow_18
 pre_selection = cutInterpreter.cutString(args.selection)
 
 # lepton selection
-
 mySample.setSelectionString([pre_selection])
 
 if args.small:
     mySample.reduceFiles(to=1)
 
-r = mySample.treeReader( variables = map( TreeVariable.fromString, ["MET[pt/F,phi/F]", "GenMET[pt/F,phi/F]", 'event/I'] ) )
-r.start()
-while r.run():
-    print "event number: " + str(r.event.event)
-    #jets = getJets( r.event, jetColl="Jet", jetVars = ['mcPt', 'rawPt', 'mcEta', 'eta'] )
+reader = mySample.treeReader( variables = map( TreeVariable.fromString, ["MET[pt/F,phi/F]", "GenMET[pt/F,phi/F]", 'event/I'] ) )
+reader.start()
+histo = ROOT.TH1F("histo","",100,0,400)
 
+while reader.run():
+    #print "event number: " + str(reader.event.event) # second event is (sample).event
+    jets = getJets( reader.event, jetColl="Jet", jetVars = ['mcPt', 'rawPt', 'mcEta', 'eta'] )
+    
+    histo.
+    

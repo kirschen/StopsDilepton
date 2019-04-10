@@ -72,7 +72,10 @@ if args.year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+    if args.splitBosons:
+        mc         = [ Top_pow_16, TTXNoZ_16, TTZ_16, diBoson_16, triBoson_16, DY_LO_16]
+    else:
+        mc         = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
 elif args.year == 2017:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
@@ -90,7 +93,7 @@ elif args.year == 2018:
     postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     if args.splitBosons:
-        mc         = [ Top_pow_18, TTXNoZ_18, TTZ_18, VVTo2L2Nu_18, WZ_18, ZZ_18, triBoson_18, DY_LO_18]
+        mc         = [ Top_pow_18, TTXNoZ_18, TTZ_18, VVTo2L2Nu_18, WZ_18, ZZ_18, triboson_18, DY_LO_18]
     else:
         mc         = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     
