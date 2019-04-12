@@ -34,8 +34,8 @@ argParser.add_argument('--badMuonFilters',     action='store',      default="Sum
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
 argParser.add_argument('--unblinded',          action='store_true', default=False)
-argParser.add_argument('--blinded',          action='store_true', default=False)
-argParser.add_argument('--reweightPUVUp',      action='store_true', default=False)
+argParser.add_argument('--blinded',            action='store_true', default=False)
+argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp'])
 argParser.add_argument('--isr',                action='store_true', default=False)
 argParser.add_argument('--preHEM',             action='store_true', default=False)
 argParser.add_argument('--postHEM',            action='store_true', default=False)
@@ -55,7 +55,7 @@ if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
 if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
 if args.signal == "DM":               args.plot_directory += "_DM"
 if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
-if args.reweightPUVUp:                args.plot_directory += "_PUVUp"
+if args.reweightPU:                   args.plot_directory += "_%s"%args.reweightPU
 if args.noBadPFMuonFilter:            args.plot_directory += "_noBadPFMuonFilter"
 if args.noBadChargedCandidateFilter:  args.plot_directory += "_noBadChargedCandidateFilter"
 if args.preHEM:                       args.plot_directory += "_preHEM"
@@ -73,23 +73,27 @@ if args.year == 2016:
     postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+    if args.reweightPU:
+        nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
 elif args.year == 2017:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+    if args.reweightPU:
+        nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc="Fall17")
 elif args.year == 2018:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-    
-    nTrueInt36fb_puRWVUp = getReweightingFunction(data="PU_2018_58830_XSecVUp", mc="Autumn18")
-    if args.reweightPUVUp: nTrueInt_puRW = nTrueInt36fb_puRWVUp
+    #nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+    if args.reweightPU:
+        nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
 
 data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
 if args.signal == "T2tt":
@@ -250,8 +254,8 @@ for index, mode in enumerate(allModes):
     #    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F', 'reweight_nISR/F']
     #    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF*event.reweight_nISR
     #else:
-    if args.reweightPUVUp:
-        sample.weight         = lambda event, sample: nTrueInt_puRW(event.Pileup_nTrueInt)
+    if args.reweightPU:
+        sample.weight         = lambda event, sample: nTrueInt_puRW(event.Pileup_nTrueInt) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     else:
         sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
