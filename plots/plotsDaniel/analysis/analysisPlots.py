@@ -15,7 +15,7 @@ from StopsDilepton.tools.helpers         import deltaPhi
 from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.plots.pieChart        import makePieChart
-from Analysis.Tools.RecoilCorrector      import RecoilCorrector
+from StopsDilepton.tools.recoilCorrector import recoilCorrector
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
 
 #
@@ -67,7 +67,6 @@ if args.postHEM:                      args.plot_directory += "_postHEM"
 #
 from Analysis.Tools.puReweighting import getReweightingFunction
 
-
 if args.year == 2016:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
@@ -77,7 +76,6 @@ if args.year == 2016:
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
     if args.reweightPU:
         nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
-    recoilCorrector = None
 elif args.year == 2017:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
@@ -87,7 +85,6 @@ elif args.year == 2017:
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
     if args.reweightPU:
         nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc="Fall17")
-    recoilCorrector = None
 elif args.year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
@@ -98,8 +95,6 @@ elif args.year == 2018:
     #nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
     if args.reweightPU:
         nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
-
-    recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2018/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
 
 data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
 if args.signal == "T2tt":
@@ -221,10 +216,10 @@ def corr_recoil( event, sample ):
         fakeMET_perp = fakeMET*cos( fakeMET_phi - ( qt_phi - pi/2) ) 
         
         # FIXME: signs should be negative for v3 and positive for v2 
-        #fakeMET_para_corr = - recoilCorrector.predict_para( event.nJetGood, qt, -fakeMET_para ) 
-        #fakeMET_perp_corr = - recoilCorrector.predict_perp( event.nJetGood, qt, -fakeMET_perp )
-        fakeMET_para_corr = + recoilCorrector.predict_para( event.nJetGood, qt, +fakeMET_para ) 
-        fakeMET_perp_corr = + recoilCorrector.predict_perp( event.nJetGood, qt, +fakeMET_perp )
+        #fakeMET_para_corr = - recoilCorrector[args.year].predict_para( event.nJetGood, qt, -fakeMET_para ) 
+        #fakeMET_perp_corr = - recoilCorrector[args.year].predict_perp( event.nJetGood, qt, -fakeMET_perp )
+        fakeMET_para_corr = + recoilCorrector[args.year].predict_para( event.nJetGood, qt, +fakeMET_para ) 
+        fakeMET_perp_corr = + recoilCorrector[args.year].predict_perp( event.nJetGood, qt, +fakeMET_perp )
 
         # rebuild fake MET vector
         fakeMET_px_corr = fakeMET_para_corr*cos(qt_phi) + fakeMET_perp_corr*cos(qt_phi - pi/2) 
