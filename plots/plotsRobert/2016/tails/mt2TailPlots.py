@@ -8,7 +8,6 @@ from StopsDilepton.tools.user import plotDir
 from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue
 from StopsDilepton.tools.objectSelection import getGoodLeptons, default_muon_selector, default_ele_selector, getJets, leptonVars, jetVars
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator()
 from StopsDilepton.tools.user import *
 
 reduceStat = 1
@@ -86,7 +85,7 @@ for sample in samples:
     for ev in range(nEvents):
         if ev%10000==0:print "At %i/%i"%(ev,nEvents)
         chain.GetEntry(eList.GetEntry(ev))
-        mt2Calc.reset()
+        mt2Calculator.reset()
         weight = reduceStat*getVarValue(chain, "weight")*lumiScale
         met = getVarValue(chain, "met_pt")
         metPhi = getVarValue(chain, "met_phi")
@@ -101,25 +100,25 @@ for sample in samples:
         jets = filter(lambda j:j['pt']>30 and abs(j['eta'])<2.4 and j['id'], getJets(chain, jetVars+['mcPt', 'mcMatchId', 'mcFlavour']))
     #  bjets = filter(lambda j:j['btagCSV']>0.890, jets)
     #  print len(leptons), len(bjets), mll
-        mt2Calc.setMet(met,metPhi)
-        mt2Calc.setLeptons(l0pt, l0eta, l0phi, l1pt, l1eta, l1phi)
-        mt2ll = mt2Calc.mt2ll()
+        mt2Calculator.setMet(met,metPhi)
+        mt2Calculator.setLeptons(l0pt, l0eta, l0phi, l1pt, l1eta, l1phi)
+        mt2ll = mt2Calculator.mt2ll()
         plots['mt2ll_reco']['histo'][sample["name"]].Fill(mt2ll, weight)
 
-        mt2Calc.setMet(puppiMet,puppiMetPhi)
-        mt2ll = mt2Calc.mt2ll()
+        mt2Calculator.setMet(puppiMet,puppiMetPhi)
+        mt2ll = mt2Calculator.mt2ll()
         plots['mt2ll_puppi']['histo'][sample["name"]].Fill(mt2ll, weight)
 
-        mt2Calc.setMet(genMet,metPhi)
-        mt2ll_genMetPt = mt2Calc.mt2ll()
+        mt2Calculator.setMet(genMet,metPhi)
+        mt2ll_genMetPt = mt2Calculator.mt2ll()
         plots['mt2ll_genMetPt']['histo'][sample["name"]].Fill(mt2ll_genMetPt, weight)
 
-        mt2Calc.setMet(met,genMetPhi)
-        mt2ll_genMetPhi = mt2Calc.mt2ll()
+        mt2Calculator.setMet(met,genMetPhi)
+        mt2ll_genMetPhi = mt2Calculator.mt2ll()
         plots['mt2ll_genMetPhi']['histo'][sample["name"]].Fill(mt2ll_genMetPhi, weight)
 
-        mt2Calc.setMet(genMet,genMetPhi)
-        mt2ll_genMet = mt2Calc.mt2ll()
+        mt2Calculator.setMet(genMet,genMetPhi)
+        mt2ll_genMet = mt2Calculator.mt2ll()
         plots['mt2ll_genMet']['histo'][sample["name"]].Fill(mt2ll_genMet, weight)
 
         sx, sy = 0., 0.
@@ -128,20 +127,20 @@ for sample in samples:
             sy+= sin(jet['phi'])*(-jet['pt']+jet['mcPt'])
         metCorrPt  = sqrt((met*cos(metPhi)-sx)**2 + (met*sin(metPhi)-sy)**2)
         metCorrPhi = atan2(met*sin(metPhi)-sy, met*cos(metPhi)-sx)
-        mt2Calc.setMet(metCorrPt,metCorrPhi)
-        mt2ll_metJetCorr = mt2Calc.mt2ll()
+        mt2Calculator.setMet(metCorrPt,metCorrPhi)
+        mt2ll_metJetCorr = mt2Calculator.mt2ll()
         plots['mt2ll_metJetCorr']['histo'][sample["name"]].Fill(mt2ll_metJetCorr, weight)
 
         if l0HasMatch and l1HasMatch:
             plots['mt2ll_LepGenMatch']['histo'][sample["name"]].Fill(mt2ll, weight)
 
-            mt2Calc.setMet(met,metPhi)
-            mt2Calc.setLeptons(l0GenPt, l0eta, l0phi, l1GenPt, l1eta, l1phi)
-            mt2ll_LepGenPt = mt2Calc.mt2ll()
+            mt2Calculator.setMet(met,metPhi)
+            mt2Calculator.setLeptons(l0GenPt, l0eta, l0phi, l1GenPt, l1eta, l1phi)
+            mt2ll_LepGenPt = mt2Calculator.mt2ll()
             plots['mt2ll_LepGenPt']['histo'][sample["name"]].Fill(mt2ll_LepGenPt, weight)
 
-            mt2Calc.setMet(genMet,genMetPhi)
-            mt2ll_LepGenPt_genMet = mt2Calc.mt2ll()
+            mt2Calculator.setMet(genMet,genMetPhi)
+            mt2ll_LepGenPt_genMet = mt2Calculator.mt2ll()
             plots['mt2ll_LepGenPt_genMet']['histo'][sample["name"]].Fill(mt2ll_LepGenPt_genMet, weight)
 
     del eList

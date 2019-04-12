@@ -8,8 +8,6 @@ import array
 from StopsDilepton.tools.mtautau import mtautau as mtautau_
 from StopsDilepton.tools.helpers import getChain, getObjDict, getEList, getVarValue, getPlotFromChain
 from StopsDilepton.tools.objectSelection import getLeptons, default_muon_selector, default_ele_selector, getJets
-from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator()
 from StopsDilepton.tools.user import *
 
 #preselection = 'met_pt>40&&Sum$((Jet_pt)*(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id))>100&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id&&Jet_btagCSV>0.814)==2&&Sum$(Jet_pt>30&&abs(Jet_eta)<2.4&&Jet_id)>=2&&Sum$(LepGood_pt>20)>=2'

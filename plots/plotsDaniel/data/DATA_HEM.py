@@ -38,10 +38,6 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-# for mt2ll
-from StopsDilepton.tools.mt2Calculator              import mt2Calculator
-mt2Calc = mt2Calculator()
-
 if args.small:                        args.plot_directory += "_small"
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -192,24 +188,6 @@ def getMETs( event, sample ):
     #event.smearedMET_pt        =  (MET + smearVector).Pt() 
     #event.smearedJecCorrMET_pt =  (jecCorrMET + smearVector).Pt() 
     #event.smearedJetCorrMET_pt =  (jetCorrMET + smearVector).Pt() 
-
-#def getMT2ll( event, sample ):
-#    l1 = ROOT.TLorentzVector()
-#    l2 = ROOT.TLorentzVector()
-#    event.lep_pt[event.nonZ1_l1_index_4l]
-#    l1.SetPtEtaPhiM(event.lep_pt[event.nonZ1_l1_index_4l], event.lep_eta[event.nonZ1_l1_index_4l], event.lep_phi[event.nonZ1_l1_index_4l], 0 )
-#    l2.SetPtEtaPhiM(event.lep_pt[event.nonZ1_l2_index_4l], event.lep_eta[event.nonZ1_l2_index_4l], event.lep_phi[event.nonZ1_l2_index_4l], 0 )
-#    mt2Calc.setLeptons(l1.Pt(), l1.Eta(), l1.Phi(), l2.Pt(), l2.Eta(), l2.Phi())
-#
-#    met         = ROOT.TLorentzVector()
-#    met.SetPtEtaPhiM( event.met_pt, 0, event.met_phi, 0)
-#    met_shift   = ROOT.TLorentzVector()
-#    met_shift.SetPtEtaPhiM( 3, 0, -1.15, 0)
-#
-#    newMet = met - met_shift
-#
-#    mt2Calc.setMet(newMet.Pt(), newMet.Phi())
-#    event.dl_mt2ll_shifted = mt2Calc.mt2ll()
 
 sequence += [ getMETs ]
 

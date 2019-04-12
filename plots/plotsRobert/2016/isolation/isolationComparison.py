@@ -12,7 +12,6 @@ from RootTools.core.standard import *
 
 # Tools 
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import deltaR 
 
 # argParser
@@ -265,11 +264,11 @@ def makeWeights( event, sample ):
         event.l1, event.l2 = event.selected_leptons[:2]
         pdgIds = [abs(event.l1['pdgId']), abs(event.l2['pdgId'])]
         pdgIds.sort() 
-        mt2Calc.reset()
-        mt2Calc.setLeptons(event.l1['pt'], event.l1['eta'], event.l1['phi'], event.l2['pt'], event.l2['eta'], event.l2['phi'] )
-        mt2Calc.setMet( event.met_pt, event.met_phi )
+        mt2Calculator.reset()
+        mt2Calculator.setLeptons(event.l1['pt'], event.l1['eta'], event.l1['phi'], event.l2['pt'], event.l2['eta'], event.l2['phi'] )
+        mt2Calculator.setMet( event.met_pt, event.met_phi )
 
-        event.mt2ll = mt2Calc.mt2ll() 
+        event.mt2ll = mt2Calculator.mt2ll() 
         event.highMT2ll = event.mt2ll>140
         event.mll = sqrt(2.0*event.l1['pt']*event.l2['pt']*(cosh(event.l1['eta']-event.l2['eta']) - cos(event.l1['phi'] - event.l2['phi'])))
         event.OS = event.l1['pdgId']*event.l2['pdgId'] < 0

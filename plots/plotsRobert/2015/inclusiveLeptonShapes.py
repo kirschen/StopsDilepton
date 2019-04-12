@@ -10,8 +10,6 @@ import os
 from RootTools.core.standard import *
 
 # StopsDilepton
-from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.objectSelection import getLeptons, getOtherLeptons, getGoodLeptons, leptonVars, getGenPartsAll
 from StopsDilepton.tools.helpers import deltaR
 

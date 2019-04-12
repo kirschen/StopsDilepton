@@ -7,9 +7,6 @@ import os
 #StopsDilepton
 from StopsDilepton.tools.helpers import getObjDict, getEList, getVarValue, deltaR, getCollection, bestDRMatchInCollection
 from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getGoodJets, jetVars, getLeptons, default_muon_selector, default_ele_selector, getJets, leptonVars, jetVars, getGoodTaus, getGoodAndOtherLeptons, muonSelector, eleSelector
-# Calculate MT2
-from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator()
 
 import StopsDilepton.tools.user as user
 
