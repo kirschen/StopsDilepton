@@ -195,7 +195,7 @@ sequence = []
 def corr_recoil( event, sample ):
 
     mt2Calculator.reset()
-    if not sample.isData: 
+    if not sample.isData and recoilCorrector[args.year] is not None: 
 
         # Parametrisation vector - # define qt as GenMET + leptons
         qt_px = event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.GenMET_pt*cos(event.GenMET_phi)
