@@ -14,7 +14,6 @@ from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
 from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
-from StopsDilepton.plots.pieChart        import makePieChart
 from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
 
@@ -201,7 +200,10 @@ read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "
 
 sequence = []
 
-
+def recoil_weight( nJetGood_bin, qt_bin):
+    def _weight_( event, sample):
+        return event.weight*(event.nJetGood>nJetGood_bin[0])*(event.nJetGood<=nJetGood_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
+    return _weight_
 
 def corr_recoil( event, sample ):
 
@@ -306,6 +308,7 @@ for index, mode in enumerate(allModes):
     elif args.year == 2017: lumi_scale = 41.9
     elif args.year == 2018: lumi_scale = 60.0
   weight_ = lambda event, sample: event.weight
+
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 
@@ -628,12 +631,41 @@ for index, mode in enumerate(allModes):
           attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
           binning=[400/100, 0, 400],
         ))
-    
-    #plots.append(Plot( name = "MVA_T2tt_default",
-    #  texX = 'MVA_{T2tt} (default)', texY = 'Number of Events',
-    #  attribute = TreeVariable.fromString( "MVA_T2tt_default/F" ),
-    #  binning=[50, 0, 1],
-    #))
+   
+    # u_para u_perp closure plots
+    nJetGood_binning = [1, 2, 3, 4, 10 ]
+    qt_binning    = [0, 50, 100, 150, 200, 300 ]
+    u_para_binning   =  [ i*5 for i in range(-40, 41) ]
+    nJetGood_bins = [ (nJetGood_binning[i],nJetGood_binning[i+1]) for i in range(len(nJetGood_binning)-1) ]
+    qt_bins = [ (qt_binning[i],qt_binning[i+1]) for i in range(len(qt_binning)-1) ]
+    for nJetGood_bin in nJetGood_bins:
+        for qt_bin in qt_bins:
+            postfix = "qt_%i_%i_njet_%i_%i"%( qt_bin[0], qt_bin[1], nJetGood_bin[0], nJetGood_bin[1]) 
+            plots.append(Plot( name = "u_para_" + postfix, 
+              texX = "u_{#parallel} (GeV)", texY = 'Number of Events / 30 GeV',
+              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-event.dl_phi),
+              weight = recoil_weight(nJetGood_bin, qt_bin),
+              binning=[80, -200,200],
+            ))
+            plots.append(Plot( name = "u_perp_" + postfix, 
+              texX = "u_{#perp} (GeV)", texY = 'Number of Events / 30 GeV',
+              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-(event.dl_phi-pi/2)),
+              weight = recoil_weight(nJetGood_bin, qt_bin),
+              binning=[80, -200,200],
+            ))
+            plots.append(Plot( name = "u_para_corr_" + postfix, 
+              texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
+              weight = recoil_weight(nJetGood_bin, qt_bin),
+              binning=[80, -200,200],
+            ))
+            plots.append(Plot( name = "u_perp_corr" + postfix, 
+              texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
+              weight = recoil_weight(nJetGood_bin, qt_bin),
+              binning=[80, -200,200],
+            ))
+
 
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
@@ -653,8 +685,6 @@ for index, mode in enumerate(allModes):
   dataMCScale        = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
 
   drawPlots(plots, mode, dataMCScale)
-  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
-  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
   allPlots[mode] = plots
 
 # Add the different channels into SF and all
@@ -673,8 +703,6 @@ for mode in ["SF","all"]:
 	    j.Add(l)
 
   drawPlots(allPlots['mumu'], mode, dataMCScale)
-  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
-  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
 
 # Write to tex file
 columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM2.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
