@@ -53,6 +53,22 @@ def getFileList(dir, histname='histo', maxN=-1):
         filelist = filelist[:maxN]
     return filelist
 
+def getSortedZCandidates(leptons):
+    inds = range(len(leptons))
+    vecs = [ ROOT.TLorentzVector() for i in inds ]
+    for i, v in enumerate(vecs):
+        v.SetPtEtaPhiM(leptons[i]['pt'], leptons[i]['eta'], leptons[i]['phi'], 0.)
+    dlMasses = [((vecs[comb[0]] + vecs[comb[1]]).M(), comb[0], comb[1])  for comb in itertools.combinations(inds, 2) if leptons[comb[0]]['pdgId']*leptons[comb[1]]['pdgId'] < 0 and abs(leptons[comb[0]]['pdgId']) == abs(leptons[comb[1]]['pdgId']) ]
+    # sort the candidates, only keep the best ones
+    dlMasses = sorted(dlMasses, key=lambda (m,i1,i2):abs(m-mZ))
+    usedIndices = []
+    bestCandidates = []
+    for m in dlMasses:
+        if m[1] not in usedIndices and m[2] not in usedIndices:
+            usedIndices += m[1:3]
+            bestCandidates.append(m)
+    return bestCandidates
+
 # Returns (closest mass, index1, index2)
 def closestOSDLMassToMZ(leptons):
     inds = [i for i in range(len(leptons))]
