@@ -7,8 +7,6 @@ import array, operator
 from StopsDilepton.tools.helpers import getObjDict, getEList, getVarValue, deltaR, getObjFromFile
 from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, getLeptons, default_muon_selector, default_ele_selector, getJets, leptonVars, jetVars, getGoodTaus
 from StopsDilepton.tools.genParticleTools import getDaughters, descendDecay, decaysTo, printDecay
-from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator()
 from StopsDilepton.tools.user import *
 
 from RootTools.core.standard import *

@@ -77,6 +77,8 @@ Run2017F = Sample.combine("Run2017", [MuonEG_Run2017F, DoubleEG_Run2017F, Double
 
 Run2017.lumi = (41.9)*1000
 
+allSamples_Data25ns += [Run2017, Run2017B, Run2017CDE, Run2017F]
+
 for s in allSamples_Data25ns:
   s.color   = ROOT.kBlack
   s.isData  = True

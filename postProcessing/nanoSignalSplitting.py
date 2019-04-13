@@ -21,8 +21,6 @@ from RootTools.core.standard import *
 import StopsDilepton.tools.user as user
 
 # Tools for systematics
-from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton

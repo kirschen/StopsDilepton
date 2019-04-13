@@ -52,6 +52,8 @@ allSamples_Data25ns += [MuonEG_Run2018, EGamma_Run2018, DoubleMuon_Run2018, Sing
 Run2018 = Sample.combine("Run2018", [MuonEG_Run2018, EGamma_Run2018, DoubleMuon_Run2018, SingleMuon_Run2018], texName = "Data")
 Run2018.lumi = (59.97)*1000
 
+allSamples_Data25ns.append( Run2018 )
+
 for s in allSamples_Data25ns:
   s.color   = ROOT.kBlack
   s.isData  = True
