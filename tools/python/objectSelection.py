@@ -88,6 +88,20 @@ def alwaysTrue(*args, **kwargs):
 def alwaysFalse(*args, **kwargs):
   return False
 
+def mergeCollections( a, b ):
+    allKeys = []
+    for coll in [a[0], b[0]]:
+        keys = coll.keys()
+        for k in keys:
+            if k not in allKeys: allKeys += [k]
+
+    merged = a + b
+    for m in merged:
+        for key in allKeys:
+            if not m.has_key(key):
+                m[key] = float('nan')
+
+    return merged
 
 ## MUONS ##
 def muonSelector( lepton_selection, year ):

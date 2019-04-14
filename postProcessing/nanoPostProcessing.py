@@ -32,7 +32,7 @@ from StopsDilepton.tools.user import MVA_preprocessing_directory, MVA_model_dire
 from StopsDilepton.tools.mt2Calculator      import mt2Calculator
 from StopsDilepton.tools.helpers            import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile, getSortedZCandidates
 from StopsDilepton.tools.addJERScaling      import addJERScaling
-from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector
+from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector, mergeCollections
 from StopsDilepton.tools.overlapRemovalTTG  import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson        import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting     import getPolWeights
@@ -406,7 +406,8 @@ if isMC:
 jetVarNames     = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
-lepVars         = ['pt/F','eta/F','phi/F','pdgId/I','cutBased/I','miniPFRelIso_all/F','pfRelIso03_all/F','sip3d/F','lostHits/b','convVeto/O','dxy/F','dz/F','charge/I','deltaEtaSC/F','mediumId/O']
+# those are for writing leptons
+lepVars         = ['pt/F','eta/F','phi/F','pdgId/I','cutBased/I','miniPFRelIso_all/F','pfRelIso03_all/F','sip3d/F','lostHits/I','convVeto/I','dxy/F','dz/F','charge/I','deltaEtaSC/F','mediumId/I']
 lepVarNames     = [x.split('/')[0] for x in lepVars]
 
 read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
@@ -453,7 +454,8 @@ new_variables += [\
 
 if sample.isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
 new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
-#new_variables.append( 'Lep[%s]'% ( ','.join(lepVars) ) )
+
+new_variables.append( 'lep[%s]'% ( ','.join(lepVars) ) )
 
 if isSingleLep:
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
@@ -856,15 +858,31 @@ def filler( event ):
     muons_pt10      = getGoodMuons(r, mu_selector = mu_selector )
 
     for e in electrons_pt10:
-        e['pdgId'] = int( 11*e['charge'] )
+        e['pdgId'] = int( -11*e['charge'] )
     for m in muons_pt10:
-        m['pdgId'] = int( 13*m['charge'] )
+        m['pdgId'] = int( -13*m['charge'] )
 
-    leptons_pt10 = electrons_pt10+muons_pt10
+    #leptons_pt10 = electrons_pt10+muons_pt10
+    leptons_pt10 = mergeCollections(electrons_pt10, muons_pt10)
+
     leptons_pt10.sort(key = lambda p:-p['pt'])
+
+    for iLep, lep in enumerate(leptons_pt10):
+        lep['index'] = iLep
+        for b in lepVarNames:
+            print b
+            if b == 'lostHits' and abs(lep['pdgId'])==11:
+                getattr(event, "lep_"+b)[iLep] = int(ord(lep[b]))
+            else:
+                print type(getattr(event, "lep_"+b)[iLep]), lep[b], type(lep[b])
+                if type(getattr(event, "lep_"+b)[iLep]) == type(0) and type(lep[b]) == type(0.):#float('nan'):
+                    getattr(event, "lep_"+b)[iLep] = -1 # fucking dangerous, but int default is -1
+                else:
+                    getattr(event, "lep_"+b)[iLep] = lep[b]
 
     leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     leptons.sort(key = lambda p:-p['pt'])
+
 
     # now get jets, cleaned against good leptons
 
@@ -1093,7 +1111,7 @@ def filler( event ):
                             setattr(event, 'dl_mt2blbl'+i+'_'+var, mt2Calculator.mt2blbl())
 
             # for quadlep stuff
-            allZCands_4l = getSortedZCandidates(leptons)
+            allZCands_4l = getSortedZCandidates(leptons_pt10)
             #print len(allZCands_4l)
             Z_vectors = []
             for i in [0,1]:
@@ -1105,30 +1123,27 @@ def filler( event ):
                     setattr(event, "Z%s_l1_index_4l"%(i+1),   Z_l1_index_4l)
                     setattr(event, "Z%s_l2_index_4l"%(i+1),   Z_l2_index_4l)
                     Z_l1 = ROOT.TLorentzVector()
-                    Z_l1.SetPtEtaPhiM(leptons[Z_l1_index_4l]['pt'], leptons[Z_l1_index_4l]['eta'], leptons[Z_l1_index_4l]['phi'], 0 )
+                    Z_l1.SetPtEtaPhiM(leptons_pt10[Z_l1_index_4l]['pt'], leptons_pt10[Z_l1_index_4l]['eta'], leptons_pt10[Z_l1_index_4l]['phi'], 0 )
                     Z_l2 = ROOT.TLorentzVector()
-                    Z_l2.SetPtEtaPhiM(leptons[Z_l2_index_4l]['pt'], leptons[Z_l2_index_4l]['eta'], leptons[Z_l2_index_4l]['phi'], 0 )
+                    Z_l2.SetPtEtaPhiM(leptons_pt10[Z_l2_index_4l]['pt'], leptons_pt10[Z_l2_index_4l]['eta'], leptons_pt10[Z_l2_index_4l]['phi'], 0 )
                     Z = Z_l1 + Z_l2
                     setattr(event, "Z%s_pt_4l"%(i+1),         Z.Pt())
                     setattr(event, "Z%s_eta_4l"%(i+1),        Z.Eta())
                     setattr(event, "Z%s_phi_4l"%(i+1),        Z.Phi())
                     setattr(event, "Z%s_lldPhi_4l"%(i+1),     deltaPhi(Z_l1.Phi(), Z_l2.Phi()))
-                    #lm = Z_l1 if leptons[Z_l1_index_4l]['pdgId'] > 0 else Z_l2
-                    #setattr(event, "Z%s_cosThetaStar_4l"%(i+1),  cosThetaStar(Z_mass, Z.Pt(), Z.Eta(), Z.Phi(), lm.Pt(), lm.Eta(), lm.Phi() ))
                     Z_vectors.append(Z)
 
             # take the leptons that are not from the leading Z candidate and assign them as nonZ, ignorant about if they actually form a Z candidate
-
             # As a start, take the leading two leptons as non-Z. To be overwritten as soon as we have a Z candidate, otherwise one lepton can be both from Z and non-Z
-            if len(leptons)>0:
-                event.nonZ1_l1_index_4l = leptons[0]['index']
+            if len(leptons_pt10)>0:
+                event.nonZ1_l1_index_4l = leptons_pt10[0]['index']
             if len(leptons)>1:
-                event.nonZ1_l2_index_4l = leptons[1]['index']
+                event.nonZ1_l2_index_4l = leptons_pt10[1]['index']
             if len(allZCands_4l)>0:
                 # reset nonZ1_leptons
                 event.nonZ1_l1_index_4l = -1
                 event.nonZ1_l2_index_4l = -1
-                nonZ_tightLepton_indices_4l = [ i for i in range(len(leptons)) if i not in [allZCands_4l[0][1], allZCands_4l[0][2]] ]
+                nonZ_tightLepton_indices_4l = [ i for i in range(len(leptons_pt10)) if i not in [allZCands_4l[0][1], allZCands_4l[0][2]] ]
 
                 event.nonZ1_l1_index_4l = nonZ_tightLepton_indices_4l[0] if len(nonZ_tightLepton_indices_4l)>0 else -1
                 event.nonZ1_l2_index_4l = nonZ_tightLepton_indices_4l[1] if len(nonZ_tightLepton_indices_4l)>1 else -1
