@@ -9,12 +9,12 @@ ROOT.gROOT.SetBatch(True)
 
 from math                                import sqrt, cos, sin, pi
 from RootTools.core.standard             import *
-from RootTools.plot.helpers              import copyIndexPHP
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
-from StopsDilepton.tools.objectSelection import getFilterCut
+from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.plots.pieChart        import makePieChart
+from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
 
 import pickle, os, time
 import errno
@@ -24,24 +24,26 @@ import errno
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',            action='store',      default='T2tt',        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
+argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots_v2')
 #argParser.add_argument('--selection',         action='store',      default=None)
 argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
-argParser.add_argument('--normalizationSelection',  action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2llTo100')
+#argParser.add_argument('--normalizationSelection',  action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2llTo100')
 argParser.add_argument('--selectSys',         action='store',      default='all')
 #argParser.add_argument('--noMultiThreading',  action='store_true', default='False', help="noMultiThreading?") # Need no multithreading when doing batch-to-natch
 argParser.add_argument('--showOnly',          action='store',      default=None)
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--runLocal',             action='store_true',     help='Run local or submit?', )
-argParser.add_argument('--copyIndexPHP',      action='store_true',     help='copy index.php to directories?', )
 argParser.add_argument('--splitBosons',       action='store_true', default=False)
 argParser.add_argument('--splitTop',          action='store_true', default=False)
 argParser.add_argument('--powheg',            action='store_true', default=True)
 argParser.add_argument('--isChild',           action='store_true', default=False)
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
 argParser.add_argument('--dryRun',            action='store_true', default=False,       help='do not launch subjobs')
+argParser.add_argument("--year", action='store', type=int, default=2016, choices = [ 2016, 2017, 2018 ], help='Which year?')
+argParser.add_argument('--preHEM',             action='store_true', default=False)
+argParser.add_argument('--postHEM',            action='store_true', default=False)
 args = argParser.parse_args()
 
 #
@@ -72,18 +74,6 @@ def waitForLock(filename):
 def removeLock(filename):
     os.system("rm " + filename + "_lock")
 
-#
-# Selections (two leptons with pt > 20 GeV)
-#
-from StopsDilepton.tools.objectSelection import multiIsoLepString
-multiIsoWP = multiIsoLepString('VT','VT', ('l1_index','l2_index'))
-def getLeptonString(nMu, nE, multiIso=False):
-  leptonString = "nGoodMuons==" + str(nMu) + "&&nGoodElectrons==" + str(nE) + "&&l1_pt>25"
-  if multiIso: leptonString += "&&l1_mIsoWP>4&&l2_mIsoWP>4"
-  else:        leptonString += "&&l1_relIso03<0.12&&l2_relIso03<0.12"
-  return leptonString
-
-
 jetSelection    = "nJetGood"
 bJetSelectionM  = "nBTag"
 
@@ -91,27 +81,27 @@ bJetSelectionM  = "nBTag"
 #
 # Systematics to run over
 #
-jet_systematics    = ['JECUp','JECDown']# 'JERDown','JECVUp','JECVDown']
-met_systematics    = ['UnclusteredEnUp', 'UnclusteredEnDown']
+jet_systematics    = ['jesTotalUp','jesTotalDown']# 'JERDown','JECVUp','JECVDown']
+met_systematics    = ['unclustEnUp', 'unclustEnDown']
 jme_systematics    = jet_systematics + met_systematics
-weight_systematics = ['PU36fbUp', 'PU36fbDown', 'TopPt', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerBackupDown', 'DilepTriggerBackupUp', 'LeptonSFDown', 'LeptonSFUp']
+weight_systematics = ['PU36fbUp', 'PU36fbDown', 'TopPt', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
 
 
 if args.selectSys != "all" and args.selectSys != "combine": all_systematics = [args.selectSys if args.selectSys != 'None' else None]
-else:                                                       all_systematics = [None] + weight_systematics + jme_systematics
-#else:                                                       all_systematics = [None] + jet_systematics
+#else:                                                       all_systematics = [None] + weight_systematics + jme_systematics
+else:                                                       all_systematics = [None] + jet_systematics
 
 
 sys_pairs = [\
-    ('JEC',         'JECUp', 'JECDown'),
-    ('Unclustered', 'UnclusteredEnUp', 'UnclusteredEnDown'), 
-    ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
-    ('TopPt',       'TopPt', None),
-#   ('JER',         'JERUp', 'JERDown'),
-    ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
-    ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
-    ('trigger',     'DilepTriggerBackupDown', 'DilepTriggerBackupUp'),
-    ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
+    ('JEC',         'jesTotalUp', 'jesTotalDown'),
+#    ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
+#    ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
+#    ('TopPt',       'TopPt', None),
+##   ('JER',         'JERUp', 'JERDown'),
+#    ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
+#    ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
+#    ('trigger',     'DilepTriggerDown', 'DilepTriggerUp'),
+#    ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
 ]
 
 #
@@ -157,37 +147,61 @@ if args.signal == "DM":           args.plot_directory += "_DM"
 if args.signal == "T2tt":         args.plot_directory += "_T2tt"
 if args.small:                    args.plot_directory += "_small"
 
-try: os.makedirs(os.path.join(plot_directory, args.plot_directory, mode, args.selection))
-except: pass
+#plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, args.year, mode)
+#
+#try: os.makedirs(plot_directory_)
+#except: pass
 
-if args.copyIndexPHP:
-    copyIndexPHP( plot_directory )
-    copyIndexPHP( os.path.join( plot_directory, args.plot_directory ) )
 
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-postProcessing_directory = "postProcessed_80X_v23/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Spring16_mAODv2_postProcessed import *
-postProcessing_directory = "postProcessed_80X_v22/dilepTiny/"
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_23Sep_postProcessed import *
+from Analysis.Tools.puReweighting import getReweightingFunction
+
+if args.year == 2016:
+    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+    from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+    from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16
+    mc              = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+    data_sample     = Run2016
+    #if args.reweightPU:
+    #    Pileup_nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
+    recoilCorrector = RecoilCorrector( 2016 )
+elif args.year == 2017:
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
+    from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
+    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
+    from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
+    mc              = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+    data_sample     = Run2017
+    #if args.reweightPU:
+    #    Pileup_nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc="Fall17")
+    recoilCorrector = RecoilCorrector( 2017 )
+elif args.year == 2018:
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
+    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
+    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
+    mc              = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
+    data_sample     = Run2018
+    #Pileup_nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+    #if args.reweightPU:
+    #    Pileup_nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+    if args.preHEM:
+        recoilCorrector = RecoilCorrector( 2018, "preHEM")
+    elif args.postHEM:
+        recoilCorrector = RecoilCorrector( 2018, "postHEM")
+    else:
+        recoilCorrector = RecoilCorrector( 2018 )
 
 signals = []
-if   args.signal == "T2tt": 
-    postProcessing_directory = "postProcessed_80X_v28/dilepTiny/"
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-    T2tt                    = T2tt_650_1
-    T2tt2                   = T2tt_500_250
-    T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-    T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
-    signals = [T2tt, T2tt2]
-elif args.signal == "DM":   
-    #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-    #DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10
-    #DM2                     = TTbarDMJets_scalar_Mchi_1_Mphi_10
-    #DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
-    #DM2.style               = styles.lineStyle( 28,          width=3)
-    signals = [DM, DM2]
 
 #
 # Text on the plots
@@ -211,19 +225,20 @@ def addSys( selectionString , sys = None ):
 
 
 def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF")
-    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*getattr(event, "reweight"+sys)*event.reweightDilepTriggerBackup*event.reweightBTag_SF, "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweight"+sys+"*reweightBTag_SF")
-    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTriggerBackup*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb*reweight"+sys)
-    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight*reweightLeptonSF*reweightDilepTriggerBackup*reweightPU36fb*reweightBTag_SF*reweight"+sys)
+    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU36fb * reweightBTag_SF")
+    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*getattr(event, "reweight"+sys)*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweight"+sys+" * reweightBTag_SF")
+    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTrigger*getattr(event, "reweight"+sys), "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU36fb * reweight"+sys)
+    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightDilepTrigger*event.reweightPU36fb*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU36fb * reweightBTag_SF * reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
     else:                           raise ValueError( "Systematic %s not known"%sys )
     
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F,btagCSV/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", "LepGood[pt/F,eta/F,miniRelIso/F]", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
-                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","evt/l"]
+read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
+                  "met_pt/F", "met_phi/F", 
+                  #"LepGood[pt/F,eta/F,miniRelIso/F]", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
+                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","event/l"]
 
 sequence = []
 
@@ -235,6 +250,19 @@ def getLeptonSelection( mode ):
   elif mode=="all":  return "(" + "||".join([getLeptonSelection(m) for m in ["mumu","mue","ee"]]) + ")"
 
 
+if args.small:
+  for sample in mc:
+    sample.normalization = 1.
+    sample.reduceFiles( factor = 40 )
+    sample.scale = data_sample.lumi/1000
+    sample.scale /= sample.normalization
+
+  # data
+  data_sample.normalization = 1.
+  data_sample.scale = 1
+  data_sample.reduceFiles( factor = 40 )
+  data_sample.scale /= data_sample.normalization
+
 #
 # Loop over channels
 #
@@ -244,67 +272,42 @@ for index, mode in enumerate(allModes):
 
   logger.info('Working on mode ' + str(mode))
 
-  if mode=="mumu":
-    data_sample         = DoubleMuon_Run2016_backup
-    data_sample.texName = "data (2 #mu)"
-  elif mode=="ee":
-    data_sample         = DoubleEG_Run2016_backup
-    data_sample.texName = "data (2 e)"
-  elif mode=="mue":
-    data_sample         = MuonEG_Run2016_backup
-    data_sample.texName = "data (1 #mu, 1 e)"
-  elif mode=="all":
-    data_sample         = [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]
-    DoubleMuon_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mumu")])
-    DoubleEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("ee")])
-    MuonEG_Run2016_backup.setSelectionString([getFilterCut(isData=True), getLeptonSelection("mue")])
-    for d in data_sample:
-      d.texName = "data"
-      d.read_variables = ['weight/F']
-      d.style   = styles.errorStyle( ROOT.kBlack )
-    lumi_scale = sum(d.lumi for d in data_sample)/float(len(data_sample))/1000
+  if args.year == 2016:
+    data_sample = Run2016
+    data_sample.texName = "data (2016)"
+  elif args.year == 2017:
+    data_sample = Run2017
+    data_sample.texName = "data (2017)"
+  elif args.year == 2018:
+    data_sample = Run2018
+    data_sample.texName = "data (2018)"
 
-  if mode != "all":
-    data_sample.setSelectionString([getFilterCut(isData=True), getLeptonSelection(mode)])
-    data_sample.name  = "data"
-    data_sample.read_variables = ['weight/F']
-    data_sample.style = styles.errorStyle( ROOT.kBlack )
-    lumi_scale        = data_sample.lumi/1000
+  data_sample.setSelectionString([getFilterCut(isData=True, year=args.year), getLeptonSelection(mode)])
+  data_sample.name           = "data"
+  data_sample.read_variables = ["event/I","run/I"]
+  data_sample.style          = styles.errorStyle(ROOT.kBlack)
+  data_sample.scale          = 1.
 
-#  # Blinding policies for DM and T2tt analyses
-#  if "njet2-btagM-looseLeptonVeto-mll20-met80" in args.selection:
-#    pass # doesn't work
-#    #if args.signal == "DM":
-#    #  weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.evt % 15 == 0) else 0)
-#    #  data_weight_string = "weight*(evt%15==0)"
-#    #  lumi_scale    = lumi_scale/15.
-#    #else:
-#    #  weight_       = lambda event, sample: event.weight if (sample not in [DoubleMuon_Run2016_backup, DoubleEG_Run2016_backup, MuonEG_Run2016_backup]) else event.weight*(1 if (event.run <= 276811) or (event.run >= 278820 and event.run <= 279931) else 0)
-#    #  data_weight_string = "weight*(run<=276811||(run>=277820&&279931))"
-#    #  lumi_scale    = 17.3
-#  else:
+  lumi_scale                 = data_sample.lumi/1000
   data_weight = lambda event, sample: event.weight
   data_weight_string = "weight"
 
   logger.info('Lumi scale is ' + str(lumi_scale))
 
-  if args.splitBosons: mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
-  else:                mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
-  if args.small:
-    for sample in mc:# + ([data_sample] if type(data_sample)!=type([]) else data_sample):
-      sample.reduceFiles( to = 1 )
+  #if args.splitBosons: mc = [ Top_pow, TTZ_LO, TTXNoZ, WWNo2L2Nu, WZ, ZZNo2L2Nu, VVTo2L2Nu, triBoson, DY_HT_LO]
+  #else:                mc = [ Top_pow, TTZ_LO, TTXNoZ, multiBoson, DY_HT_LO]
 
   for sample in mc:
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables  = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
+    sample.read_variables  = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F']
     sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics]
     sample.read_variables += ["dl_mt2ll_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2bb_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2blbl_%s/F"%s for s in jme_systematics]
     sample.read_variables += ["nJetGood_%s/I"%s   for s in jet_systematics]
     sample.read_variables += ["nBTag_%s/I"%s      for s in jet_systematics]
-    sample.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+    sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
 
 #    # Apply scale factors in the mt2ll > 100 GeV signal region (except Top which will be already scaled anyway)
 #    if args.selection.count('njet2-btagM-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100') and False: # Turn on when scalefactors are rederived
@@ -316,15 +319,15 @@ for index, mode in enumerate(allModes):
   if args.signal == "T2tt":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
+      s.read_variables = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F']
       s.weight         = lambda event, sample: event.reweightLeptonFastSimSF
-      s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+      s.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
-      s.read_variables = ['reweightLeptonHIPSF/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','nTrueInt/F']
-      s.setSelectionString([getFilterCut(isData=False), getLeptonSelection(mode)])
+      s.read_variables = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F']
+      s.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
 
   # Use some defaults
   Plot.setDefaults( selectionString = cutInterpreter.cutString(args.selection) )
@@ -337,7 +340,6 @@ for index, mode in enumerate(allModes):
   sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
   plots = []
   
-
   dl_mt2ll_data  = Plot(
       name = "dl_mt2ll_data",
       texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
@@ -360,94 +362,29 @@ for index, mode in enumerate(allModes):
   plots.extend( dl_mt2ll_mc.values() )
 
   if args.selection.count('njet2'):
-    dl_mt2bb_data  = Plot( 
-  name            = "dl_mt2bb_data",
-  texX            = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-  stack           = stack_data,
-  attribute       = TreeVariable.fromString( "dl_mt2bb/F" ),
-  binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
-  weight = data_weight,
-  ) 
-    plots.append( dl_mt2bb_data )
-
-    dl_mt2bb_mc  = {sys: Plot(
-  name = "dl_mt2bb" if sys is None else "dl_mt2bb_mc_%s" % sys,
-  texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-  stack = sys_stacks[sys],
-  attribute = TreeVariable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2bb_%s/F" % sys ),
-  binning=Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450]),
-  selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-  weight = weightMC( sys = sys )[0],
-  ) for sys in all_systematics }
-    plots.extend( dl_mt2bb_mc.values() )
-
-    dl_mt2bb_data_2 = Plot( 
-  name            = "dl_mt2bb_data_2",
-  texX            = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-  stack           = stack_data,
-  attribute        = TreeVariable.fromString( "dl_mt2bb/F" ),
-  binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450,500,550,600,700,800,1000]),
-  weight = data_weight,
-  ) 
-    plots.append( dl_mt2bb_data_2 )
-
-    dl_mt2bb_mc_2  = {sys: Plot(
-  name = "dl_mt2bb_2" if sys is None else "dl_mt2bb_mc_2_%s" % sys,
-  texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-  stack = sys_stacks[sys],
-  attribute = TreeVariable.fromString( "dl_mt2bb/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2bb_%s/F" % sys ),
-  binning         = Binning.fromThresholds([70,90,110,130,150,170,190,210,230,250,300,350,400,450,500,550,600,700,800,1000]),
-  selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-  weight = weightMC( sys = sys )[0],
-  ) for sys in all_systematics }
-    plots.extend( dl_mt2bb_mc_2.values() )
-
-
 
     dl_mt2blbl_data  = Plot( 
-  name = "dl_mt2blbl_data",
-  texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-  stack = stack_data,
-  attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-  binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
-  weight = data_weight,
-  ) 
+        name = "dl_mt2blbl_data",
+        texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+        stack = stack_data,
+        attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+        binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
+        weight = data_weight,
+        ) 
     plots.append( dl_mt2blbl_data )
 
     dl_mt2blbl_mc  = {sys: Plot(
-  name = "dl_mt2blbl" if sys is None else "dl_mt2blbl_mc_%s" % sys,
-  texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-  stack = sys_stacks[sys],
-  attribute = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
-  binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
-  selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-  weight = weightMC( sys = sys )[0],
-  ) for sys in all_systematics }
+        name = "dl_mt2blbl" if sys is None else "dl_mt2blbl_mc_%s" % sys,
+        texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+        stack = sys_stacks[sys],
+        attribute = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
+        binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
+        selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+        weight = weightMC( sys = sys )[0],
+        ) for sys in all_systematics }
     plots.extend( dl_mt2blbl_mc.values() )
 
-
-    dl_mt2blbl_data_2  = Plot( 
-  name = "dl_mt2blbl_data_2",
-  texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-  stack = stack_data,
-  attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-  binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350,400,450,500,600,700]),
-  weight = data_weight,
-  ) 
-    plots.append( dl_mt2blbl_data_2 )
-
-    dl_mt2blbl_mc_2  = {sys: Plot(
-  name = "dl_mt2blbl_2" if sys is None else "dl_mt2blbl_mc_2_%s" % sys,
-  texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-  stack = sys_stacks[sys],
-  attribute = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
-  binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350,400,450,500,600,700]),
-  selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-  weight = weightMC( sys = sys )[0],
-  ) for sys in all_systematics }
-    plots.extend( dl_mt2blbl_mc_2.values() )
-
-  nBtagBinning = [5, 1, 6] if args.selection.count('btagM') else [1,0,1]
+  nBtagBinning = [5, 1, 6] if args.selection.count('btag1p') else [1,0,1]
 
   nbtags_data  = Plot( 
       name = "nbtags_data",
@@ -547,25 +484,21 @@ for index, mode in enumerate(allModes):
          [ met2_mc, met2_data, 20],
     ]
   if args.selection.count('njet2'):
-    plotConfigs.append([ dl_mt2bb_mc, dl_mt2bb_data, 20])
     plotConfigs.append([ dl_mt2blbl_mc, dl_mt2blbl_data, 20])
-    plotConfigs.append([ dl_mt2bb_mc_2, dl_mt2bb_data_2, 20])
-    plotConfigs.append([ dl_mt2blbl_mc_2, dl_mt2blbl_data_2, 20])
 
-
-  result_file = os.path.join(plot_directory, args.plot_directory, mode, args.selection, 'results.pkl')
-  try: os.makedirs(os.path.join(plot_directory, args.plot_directory, mode, args.selection))
+  plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, str(args.year), mode)
+  result_file = os.path.join(plot_directory_, 'results.pkl')
+  try: os.makedirs(plot_directory_)
   except: pass
-  if args.copyIndexPHP:
-    copyIndexPHP ( os.path.join(plot_directory, args.plot_directory, mode, args.selection) )
 
   if args.selectSys != "combine": 
-    normalization_selection_string = cutInterpreter.cutString(args.normalizationSelection)
+    normalization_selection_string = cutInterpreter.cutString(args.selection + '-mt2llTo100')
+    #normalization_selection_string = cutInterpreter.cutString(args.normalizationSelection)
     #normalization_selection_string = normalization_selection_string.replace('&&dl_mt2ll>100','')
     mc_weight_func, mc_weight_string = weightMC( sys = (args.selectSys if args.selectSys != 'None' else None) )
 
     yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(normalization_selection_string ), weightString = mc_weight_string)['val'] for s in mc}
-    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = normalization_selection_string, weightString = data_weight_string)['val'] for s in data_sample )
+    if mode == "all": yield_data = sum(s.getYieldFromDraw(       selectionString = normalization_selection_string, weightString = data_weight_string)['val'] for s in [data_sample] )
     else:             yield_data = data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
 
     plotting.fill(plots, read_variables = read_variables, sequence = sequence)
@@ -608,7 +541,7 @@ for index, mode in enumerate(allModes):
           addOverFlowBin1D(h, "upper")
           if h.Integral()==0: logger.warning( "Found empty histogram %s in results file %s", h.GetName(), result_file )
 
-    topName = Top_pow.name if args.powheg else Top.name
+    topName = Top_pow.name
     top_sf = {}
 
     dataMCScaling = True
@@ -660,7 +593,7 @@ for index, mode in enumerate(allModes):
         for s in plot_mc[k].histos:
       #    for h in s:
       #      h.Scale(lumi_scale)
-          pos_top = [i for i,x in enumerate(mc) if x == (Top_pow if args.powheg else Top)][0]
+          pos_top = [i for i,x in enumerate(mc) if x == Top_pow][0]
           pos_ttz = [i for i,x in enumerate(mc) if x == TTZ_LO][0]
           pos_ttx = [i for i,x in enumerate(mc) if x == TTXNoZ][0]
           pos_dy  = [i for i,x in enumerate(mc) if x == DY_HT_LO][0]
@@ -702,16 +635,16 @@ for index, mode in enumerate(allModes):
           for ib in range( 1 + h_rel_err.GetNbinsX() ):
             h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
-      # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
-      if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
-        for ib in range(1 + h_rel_err.GetNbinsX() ):
-          if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
-          topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
-          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
-          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
-          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
-          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
-          h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
+      ## When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
+      #if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
+      #  for ib in range(1 + h_rel_err.GetNbinsX() ):
+      #    if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
+      #    topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
+      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
+      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
+      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
+      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
+      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
 
       # take sqrt
       for ib in range( 1 + h_rel_err.GetNbinsX() ):
@@ -730,7 +663,7 @@ for index, mode in enumerate(allModes):
       data_histo.style = styles.errorStyle( ROOT.kBlack )
       plot.histos += [[ data_histo ]]
       for h in signal_histos: plot.histos += [h]
-      plot_data.stack[0][0].texName = data_sample.texName if mode != "all" else data_sample[0].texName 
+      plot_data.stack[0][0].texName = data_sample.texName
       plot.stack += [[ plot_data.stack[0][0] ]]
       for i, signal in enumerate(signals):
         plot_data.stack[i+1][0].texName = signal.texName
@@ -759,10 +692,8 @@ for index, mode in enumerate(allModes):
              
 
       for log in [False, True]:
-        plotDir = os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else "") + "_scaled", args.selection)
-        if args.copyIndexPHP:
-            copyIndexPHP( os.path.join(plot_directory, args.plot_directory, mode + ("_log" if log else "") + "_scaled") )
-            copyIndexPHP(plotDir)
+        plotDir = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, str(args.year), mode + ("_log" if log else "") + "_scaled")
+        #plotDir = os.path.join(plot_directory, args.plot_directory,  mode + ("_log" if log else "") + "_scaled", args.selection)
         if args.showOnly: plotDir = os.path.join(plotDir, "only_" + args.showOnly)
         plotting.draw(plot,
             plot_directory = plotDir,
@@ -771,5 +702,5 @@ for index, mode in enumerate(allModes):
             logX = False, logY = log, #sorting = True,
             yRange = (0.03, "auto"),
             drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes,
-            copyIndexPHP = args.copyIndexPHP
+            copyIndexPHP = True
         )
