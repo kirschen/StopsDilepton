@@ -36,6 +36,7 @@ argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', def
 argParser.add_argument('--unblinded',          action='store_true', default=False)
 argParser.add_argument('--blinded',          action='store_true', default=False)
 argParser.add_argument('--reweightPUVUp',      action='store_true', default=False)
+argParser.add_argument('--noReweightPU',      action='store_true', default=False)
 argParser.add_argument('--isr',                action='store_true', default=False)
 argParser.add_argument('--preHEM',             action='store_true', default=False)
 argParser.add_argument('--postHEM',            action='store_true', default=False)
@@ -56,6 +57,8 @@ if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
 if args.signal == "DM":               args.plot_directory += "_DM"
 if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
 if args.reweightPUVUp:                args.plot_directory += "_PUVUp"
+if args.reweightPUVUp:                args.plot_directory += "_PUVUp"
+if args.noReweightPU:                 args.plot_directory += "_noReweightPU"
 if args.noBadPFMuonFilter:            args.plot_directory += "_noBadPFMuonFilter"
 if args.noBadChargedCandidateFilter:  args.plot_directory += "_noBadChargedCandidateFilter"
 if args.preHEM:                       args.plot_directory += "_preHEM"
@@ -261,6 +264,8 @@ for index, mode in enumerate(allModes):
     #else:
     if args.reweightPUVUp:
         sample.weight         = lambda event, sample: nTrueInt_puRW(event.Pileup_nTrueInt)
+    elif args.noReweightPU:
+        sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     else:
         sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
@@ -269,14 +274,20 @@ for index, mode in enumerate(allModes):
       if args.signal == "T2tt" or args.signal == "T8bbllnunu" or args.signal == "compilation":
         sample.scale          = lumi_scale
         sample.read_variables = ['reweightPU36fb/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F']
-        sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        if args.noReweightPU:
+            sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        else:
+            sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
         sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
         #sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
         #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
       elif args.signal == "DM":
         sample.scale          = lumi_scale
         sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
-        sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF
+        if args.noReweightPU:
+            sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
+        else:
+            sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF
         sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
       else:
         raise NotImplementedError
