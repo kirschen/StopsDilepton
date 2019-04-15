@@ -84,8 +84,8 @@ bJetSelectionM  = "nBTag"
 jet_systematics    = ['jesTotalUp','jesTotalDown']# 'JERDown','JECVUp','JECVDown']
 met_systematics    = ['unclustEnUp', 'unclustEnDown']
 jme_systematics    = jet_systematics + met_systematics
-weight_systematics = ['PU36fbUp', 'PU36fbDown', 'TopPt', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
-
+weight_systematics = ['PU36fbUp', 'PU36fbDown', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
+# top pt missing
 
 if args.selectSys != "all" and args.selectSys != "combine": all_systematics = [args.selectSys if args.selectSys != 'None' else None]
 #else:                                                       all_systematics = [None] + weight_systematics + jme_systematics
@@ -94,14 +94,14 @@ else:                                                       all_systematics = [N
 
 sys_pairs = [\
     ('JEC',         'jesTotalUp', 'jesTotalDown'),
-#    ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
-#    ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
+    ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
+    ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
 #    ('TopPt',       'TopPt', None),
-##   ('JER',         'JERUp', 'JERDown'),
-#    ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
-#    ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
-#    ('trigger',     'DilepTriggerDown', 'DilepTriggerUp'),
-#    ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
+#    ('JER',         'JERUp', 'JERDown'),
+    ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
+    ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
+    ('trigger',     'DilepTriggerDown', 'DilepTriggerUp'),
+    ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
 ]
 
 #
