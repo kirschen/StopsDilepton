@@ -12,7 +12,6 @@ from RootTools.core.standard import *
 #StopsDilepton
 from StopsDilepton.tools.objectSelection import getGoodAndOtherLeptons, leptonVars, eleSelector, muonSelector, getLeptons, getOtherLeptons, getGoodLeptons
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator() 
 
 
 # argParser
@@ -171,12 +170,12 @@ def makeNonIsoLeptons( event ):
         if abs(tag['pdgId']) == abs(probe['pdgId']):return
         if not tag['pdgId']*probe['pdgId'] < 0: return 
 
-    mt2Calc.reset()
-    mt2Calc.setMet(event.met_pt, event.met_phi)
+    mt2Calculator.reset()
+    mt2Calculator.setMet(event.met_pt, event.met_phi)
 
-    mt2Calc.setLeptons(tag['pt'], tag['eta'], tag['phi'], probe['pt'], probe['eta'], probe['phi'])
+    mt2Calculator.setLeptons(tag['pt'], tag['eta'], tag['phi'], probe['pt'], probe['eta'], probe['phi'])
 
-    event.mt2ll                   = mt2Calc.mt2ll()
+    event.mt2ll                   = mt2Calculator.mt2ll()
     event.mll                     = mll
 
     event.tag_pt                  = tag["pt"]

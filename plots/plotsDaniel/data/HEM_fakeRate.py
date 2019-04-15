@@ -40,7 +40,6 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 # for mt2ll
 from StopsDilepton.tools.mt2Calculator              import mt2Calculator
-mt2Calc = mt2Calculator()
 
 if args.small:                        args.plot_directory += "_small"
 #
@@ -118,7 +117,7 @@ def getMT2ll( event, sample ):
     l2 = ROOT.TLorentzVector()
     l1.SetPtEtaPhiM(event.l1_pt, event.l1_eta, event.l1_phi, 0 )
     l2.SetPtEtaPhiM(event.l2_pt, event.l2_eta, event.l2_phi, 0 )
-    mt2Calc.setLeptons(l1.Pt(), l1.Eta(), l1.Phi(), l2.Pt(), l2.Eta(), l2.Phi())
+    mt2Calculator.setLeptons(l1.Pt(), l1.Eta(), l1.Phi(), l2.Pt(), l2.Eta(), l2.Phi())
 
     met         = ROOT.TLorentzVector()
     met.SetPtEtaPhiM( event.MET_pt, 0, event.MET_phi, 0)
@@ -129,8 +128,8 @@ def getMT2ll( event, sample ):
 
     newMet = met - met_shift
 
-    mt2Calc.setMet(newMet.Pt(), newMet.Phi())
-    event.dl_mt2ll_shifted = mt2Calc.mt2ll()
+    mt2Calculator.setMet(newMet.Pt(), newMet.Phi())
+    event.dl_mt2ll_shifted = mt2Calculator.mt2ll()
     event.MET_phi_corr = newMet.Phi()
 
 sequence += [ getMT2ll ]

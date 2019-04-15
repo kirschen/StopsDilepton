@@ -12,7 +12,6 @@ from StopsDilepton.tools.helpers import getCollection, deltaR
 from StopsDilepton.tools.objectSelection import getFilterCut
 from StopsDilepton.tools.objectSelection import getGoodAndOtherLeptons, leptonVars_data, default_ele_selector, default_muon_selector, getLeptons, getOtherLeptons, getGoodLeptons, eleSelector, muonSelector
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator() 
 
 # argParser
 import argparse
@@ -279,15 +278,14 @@ if args.isolation == "standard":
     sequence.append( initSwappedMT2ll )
 
     def makeSwappedMT2ll(event, l1, l2, nonIsoLep, verbose = False):
-        mt2Calc.reset()
-
+        mt2Calculator.reset()
 
         # swap l1
         final_hierarchy = "leadingLepNonIso" if nonIsoLep['pt']>l2['pt'] else "leadingLepIso"
         l1p, l2p = (nonIsoLep, l2) if nonIsoLep['pt']>l2['pt'] else (l2, nonIsoLep)
         finalState = "".join(fs(p['pdgId']) for p in [l1p, l2p])
         pfix = "_".join([final_hierarchy, "swapL1", finalState])
-        mt2Calc.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
+        mt2Calculator.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
         if args.removeLeptonsFromMET:
             d_met_x = l1['pt']*cos(l1['phi']) + l2['pt']*cos(l2['phi']) - l1p['pt']*cos(l1p['phi']) - l2p['pt']*cos(l2p['phi'])
             d_met_y = l1['pt']*sin(l1['phi']) + l2['pt']*sin(l2['phi']) - l1p['pt']*sin(l1p['phi']) - l2p['pt']*sin(l2p['phi'])
@@ -296,19 +294,19 @@ if args.isolation == "standard":
 
             met_corr = sqrt( met_corr_x**2 + met_corr_y**2 )
             met_phi_corr = atan2( met_corr_y, met_corr_x ) 
-            mt2Calc.setMet( met_corr, met_phi_corr )
+            mt2Calculator.setMet( met_corr, met_phi_corr )
         else:
-            mt2Calc.setMet(event.met_pt, event.met_phi)
-        setattr(event, "dl_mt2ll_"+pfix, mt2Calc.mt2ll() )
+            mt2Calculator.setMet(event.met_pt, event.met_phi)
+        setattr(event, "dl_mt2ll_"+pfix, mt2Calculator.mt2ll() )
 
-        if verbose: print "dl_mt2ll_"+pfix, mt2Calc.mt2ll()
+        if verbose: print "dl_mt2ll_"+pfix, mt2Calculator.mt2ll()
 
         # swap l2
         final_hierarchy = "leadingLepNonIso" if nonIsoLep['pt']>l1['pt'] else "leadingLepIso"
         l1p, l2p = (nonIsoLep, l1) if nonIsoLep['pt']>l1['pt'] else (l1, nonIsoLep)
         finalState = "".join(fs(p['pdgId']) for p in [l1p, l2p])
         pfix = "_".join([final_hierarchy, "swapL2", finalState])
-        mt2Calc.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
+        mt2Calculator.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
         if args.removeLeptonsFromMET:
             d_met_x = l1['pt']*cos(l1['phi']) + l2['pt']*cos(l2['phi']) - l1p['pt']*cos(l1p['phi']) - l2p['pt']*cos(l2p['phi'])
             d_met_y = l1['pt']*sin(l1['phi']) + l2['pt']*sin(l2['phi']) - l1p['pt']*sin(l1p['phi']) - l2p['pt']*sin(l2p['phi'])
@@ -317,13 +315,13 @@ if args.isolation == "standard":
 
             met_corr = sqrt( met_corr_x**2 + met_corr_y**2 )
             met_phi_corr = atan2( met_corr_y, met_corr_x ) 
-            mt2Calc.setMet( met_corr, met_phi_corr )
+            mt2Calculator.setMet( met_corr, met_phi_corr )
         else:
-            mt2Calc.setMet(event.met_pt, event.met_phi)
+            mt2Calculator.setMet(event.met_pt, event.met_phi)
 
-        setattr(event, "dl_mt2ll_"+pfix, mt2Calc.mt2ll() )
+        setattr(event, "dl_mt2ll_"+pfix, mt2Calculator.mt2ll() )
 
-        if verbose: print "dl_mt2ll_"+pfix, mt2Calc.mt2ll() 
+        if verbose: print "dl_mt2ll_"+pfix, mt2Calculator.mt2ll() 
 
     verbose = False
     def makeNonIsoLeptons( event, sample ):

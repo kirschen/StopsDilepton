@@ -11,7 +11,6 @@ from StopsDilepton.tools.objectSelection import getGenPartsAll, getGoodLeptons, 
 #localJetResponse = StopsDilepton.tools.localJetResponse.localJetResponse()
 # Calculate MT2
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator()
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
 genSearch = GenSearch()
@@ -420,13 +419,13 @@ for i_event, event in enumerate( intersec ):
     met_genPhi = reader.event.met_genPhi
     delta_met = sqrt( ( met_pt*cos(met_phi)-met_genPt*cos(met_genPhi) )**2 + ( met_pt*sin(met_phi)-met_genPt*sin(met_genPhi) )**2 )
 
-    mt2Calc.reset()
-    mt2Calc.setMet( met_pt, met_phi )
-    mt2Calc.setLeptons( reader.event.l1_pt, reader.event.l1_eta, reader.event.l1_phi, reader.event.l2_pt, reader.event.l2_eta, reader.event.l2_phi )
-    if not mt2Calc.mt2ll() != reader.event.dl_mt2ll:
+    mt2Calculator.reset()
+    mt2Calculator.setMet( met_pt, met_phi )
+    mt2Calculator.setLeptons( reader.event.l1_pt, reader.event.l1_eta, reader.event.l1_phi, reader.event.l2_pt, reader.event.l2_eta, reader.event.l2_phi )
+    if not mt2Calculator.mt2ll() != reader.event.dl_mt2ll:
         logger.warning( "MT2 inconsistency!" )
-    mt2Calc.setMet( met_genPt, met_genPhi )
-    mt2ll_genMet = mt2Calc.mt2ll()
+    mt2Calculator.setMet( met_genPt, met_genPhi )
+    mt2ll_genMet = mt2Calculator.mt2ll()
     if mt2ll_genMet<140:
         logger.info(bold("MET mismeasurement"))
 

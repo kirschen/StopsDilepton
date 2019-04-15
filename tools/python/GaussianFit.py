@@ -32,15 +32,17 @@ def GaussianFit( shape, isData, var_name, fit_plot_directory=None, fit_filename 
         data_histo.plotOn(frame,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2)) ;
 
     # create a simple gaussian pdf
-    gauss_mean  = ROOT.RooRealVar("mean","mean",0,-1.2,1.2)
-    gauss_sigma = ROOT.RooRealVar("sigma","sigma",0.1,0,2)
+    gauss_mean  = ROOT.RooRealVar("mean","mean",0,-50,50)
+    gauss_sigma = ROOT.RooRealVar("sigma","sigma",30,0,100)
     gauss       = ROOT.RooGaussian("gauss","gauss",variable,gauss_mean,gauss_sigma) 
-    
+   
     # now do the fit and extract the parameters with the correct error
     if isData: 
-        gauss.fitTo(data_histo,ROOT.RooFit.Save(),ROOT.RooFit.Range(data_histo.mean(variable)-2*data_histo.sigma(variable),data_histo.mean(variable)+2*data_histo.sigma(variable)))
+        #gauss.fitTo(data_histo,ROOT.RooFit.Save(),ROOT.RooFit.Range(data_histo.mean(variable)-2*data_histo.sigma(variable),data_histo.mean(variable)+2*data_histo.sigma(variable)))
+        gauss.fitTo(data_histo,ROOT.RooFit.Save(),ROOT.RooFit.Range(-70,70))
     else:
-        gauss.fitTo(data_histo,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(True),ROOT.RooFit.Range(data_histo.mean(variable)-2*data_histo.sigma(variable),data_histo.mean(variable)+2*data_histo.sigma(variable)))
+        gauss.fitTo(data_histo,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(True),ROOT.RooFit.Range(-70,70))
+        #gauss.fitTo(data_histo,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(True),ROOT.RooFit.Range(data_histo.mean(variable)-2*data_histo.sigma(variable),data_histo.mean(variable)+2*data_histo.sigma(variable)))
 
     gauss.plotOn(frame)
 
@@ -68,5 +70,7 @@ def GaussianFit( shape, isData, var_name, fit_plot_directory=None, fit_filename 
 
     mean_variable        = gauss_mean.getVal()
     mean_variable_error  = gauss_mean.getError()
+    sigma_variable        = gauss_sigma.getVal()
+    sigma_variable_error  = gauss_sigma.getError()
 
-    return mean_variable, mean_variable_error
+    return mean_variable, mean_variable_error, sigma_variable, sigma_variable_error

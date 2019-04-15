@@ -61,9 +61,13 @@ def getGenLeps(c):
 def getGenParts(c):
     return [getObjDict(c, 'GenPart_', ['eta','pt','phi','charge', 'pdgId', 'motherId', 'grandmotherId'], i) for i in range(int(getVarValue(c, 'nGenPart')))]
 
-genVars = ['eta','pt','phi','mass','charge', 'status', 'pdgId', 'genPartIdxMother', 'statusFlags'] 
-def getGenPartsAll(c):
+genVars = ['eta','pt','phi','mass','charge', 'status', 'pdgId', 'genPartIdxMother', 'statusFlags','index'] 
+def getGenPartsAll(c, genVars=genVars):
     return [getObjDict(c, 'GenPart_', genVars, i) for i in range(int(getVarValue(c, 'nGenPart')))]
+
+def filterGenPhotons( genParts, status=None ):
+    photons = list( filter( lambda l: abs(l['pdgId']) == 22 and l['status'] > 0, genParts ) )
+    return photons
 
 def get_index_str( index ):
     if isinstance(index, int):
@@ -84,6 +88,20 @@ def alwaysTrue(*args, **kwargs):
 def alwaysFalse(*args, **kwargs):
   return False
 
+def mergeCollections( a, b ):
+    allKeys = []
+    for coll in [a[0], b[0]]:
+        keys = coll.keys()
+        for k in keys:
+            if k not in allKeys: allKeys += [k]
+
+    merged = a + b
+    for m in merged:
+        for key in allKeys:
+            if not m.has_key(key):
+                m[key] = float('nan')
+
+    return merged
 
 ## MUONS ##
 def muonSelector( lepton_selection, year ):
@@ -237,3 +255,38 @@ def getGoodPhotons(c, ptCut=50, idLevel="loose", isData=True, collVars=None, yea
     #if collVars is None: collVars = photonVars if isData else photonVarsMC
     collVars = ['eta','pt','phi','mass','cutBased'] if (not (year == 2017 or year == 2018)) else ['eta','pt','phi','mass','cutBasedBitmap']
     return [p for p in getPhotons(c, collVars) if p[idVar] > idCutBased[idLevel] and p['pt'] > ptCut ] # > 2 is tight for 2016, 2017 and 2018
+
+
+def genPhotonSelector( photon_selection=None ):
+    # According to AN-2017/197
+    if photon_selection == 'overlapTTGamma':
+        # Remove events from ttbar sample, keep ttgamma events
+        def func(g):
+            if g["pt"]       <= 13:  return False
+            if abs(g["eta"]) >= 3.0: return False
+            return True
+        return func
+
+    elif photon_selection == 'overlapZWGamma':
+        # Remove events from DY and W+jets sample, keep Zgamma and Wgamma events
+        def func(g):
+            if g["pt"]       <= 15:  return False
+            if abs(g["eta"]) >= 2.6: return False
+            return True
+        return func
+
+    elif photon_selection == 'overlapSingleTopTch':
+        # Remove events from single top t-channel sample, keep single top + photon events
+        def func(g):
+            if g["pt"]       <= 10:  return False
+            if abs(g["eta"]) >= 2.6: return False
+            return True
+        return func
+
+    else:
+        # general gen-photon selection
+        def func(g):
+            if g["pt"]       <= 13:    return False
+            if abs(g["eta"]) >= 1.479: return False
+            return True
+        return func

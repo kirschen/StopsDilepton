@@ -2,7 +2,7 @@ import ROOT, array
 from math import pi, sqrt, cos, sin
 
 #wrapper class for MT2 variables
-class mt2Calculator:
+class MT2Calculator:
     def __init__(self):
         ROOT.gROOT.ProcessLine(".L $CMSSW_BASE/src/StopsDilepton/tools/scripts/mt2_bisect.cpp+")
         self.mt2 = ROOT.mt2()
@@ -81,3 +81,5 @@ class mt2Calculator:
         self.mt2.set_mn(self.mt2Mass_blbl)
         self.mt2.set_momenta(bl1, bl2, pmiss)
         return self.mt2.get_mt2()
+
+mt2Calculator = MT2Calculator()

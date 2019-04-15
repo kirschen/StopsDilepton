@@ -10,7 +10,6 @@ import itertools
 from RootTools.core.standard import *
 # StopsDilepton
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator() 
 
 # argParser
 import argparse
@@ -231,30 +230,30 @@ def mt2llSmeared( data ):
     l1['ptScaled'] = l1['pt'] + 0.1*(l1['pt'] - l1['mcPt']) if l1['mcPt']>0 and abs(l1['pdgId'])==11 else l1['pt']
     l2['ptScaled'] = l2['pt'] + 0.1*(l2['pt'] - l2['mcPt']) if l2['mcPt']>0 and abs(l2['pdgId'])==11 else l2['pt']
 
-    mt2Calc.reset()
+    mt2Calculator.reset()
     # Correcting MET
     met_px = event.met_pt*cos( event.met_phi ) + (l1['pt'] - l1['ptScaled'])*cos(l1['phi']) + (l2['pt'] - l2['ptScaled'])*cos(l2['phi'])
     met_py = event.met_pt*sin( event.met_phi ) + (l1['pt'] - l1['ptScaled'])*sin(l1['phi']) + (l2['pt'] - l2['ptScaled'])*sin(l2['phi'])
-    mt2Calc.setMet(sqrt( met_px**2 + met_py**2), atan2(met_py, met_px) )
+    mt2Calculator.setMet(sqrt( met_px**2 + met_py**2), atan2(met_py, met_px) )
     # leptons
-    mt2Calc.setLeptons(l1['ptScaled'], l1['eta'], l1['phi'], l2['ptScaled'], l2['eta'], l2['phi'] )
+    mt2Calculator.setLeptons(l1['ptScaled'], l1['eta'], l1['phi'], l2['ptScaled'], l2['eta'], l2['phi'] )
 
-    setattr(event, "dl_mt2ll_ele_smeared", mt2Calc.mt2ll() )
+    setattr(event, "dl_mt2ll_ele_smeared", mt2Calculator.mt2ll() )
 
     try:
         met_genPt, met_genPhi = event.met_genPt, event.met_genPhi
     except AttributeError:
         # Data
         met_genPt, met_genPhi = event.met_pt, event.met_phi
-    mt2Calc.reset()
+    mt2Calculator.reset()
     # Correcting MET
     met_px = event.met_pt*cos( event.met_phi ) + 0.1*(event.met_pt*cos(event.met_phi) - met_genPt*cos(met_genPhi)) 
     met_py = event.met_pt*sin( event.met_phi ) + 0.1*(event.met_pt*sin(event.met_phi) - met_genPt*sin(met_genPhi)) 
-    mt2Calc.setMet(sqrt( met_px**2 + met_py**2), atan2(met_py, met_px) )
+    mt2Calculator.setMet(sqrt( met_px**2 + met_py**2), atan2(met_py, met_px) )
     # leptons
-    mt2Calc.setLeptons(l1['pt'], l1['eta'], l1['phi'], l2['pt'], l2['eta'], l2['phi'] )
+    mt2Calculator.setLeptons(l1['pt'], l1['eta'], l1['phi'], l2['pt'], l2['eta'], l2['phi'] )
 
-    setattr(event, "dl_mt2ll_met_smeared", mt2Calc.mt2ll() )
+    setattr(event, "dl_mt2ll_met_smeared", mt2Calculator.mt2ll() )
 
     
 #    print

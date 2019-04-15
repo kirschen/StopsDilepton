@@ -22,7 +22,6 @@ import StopsDilepton.tools.user as user
 
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator()  #smth smarter possible?
 from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection
 from StopsDilepton.tools.addJERScaling import addJERScaling
 from StopsDilepton.tools.objectSelection import getMuons, getElectrons, muonSelector, eleSelector, getGoodLeptons, getGoodAndOtherLeptons,  getGoodBJets, getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, multiIsoWPInt
@@ -929,7 +928,7 @@ def filler( event ):
 
     if isTriLep or isDiLep:
         if len(leptons)>=2:
-            mt2Calc.reset()
+            mt2Calculator.reset()
             event.l2_pt     = leptons[1]['pt']
             event.l2_eta    = leptons[1]['eta']
             event.l2_phi    = leptons[1]['phi']
@@ -963,7 +962,7 @@ def filler( event ):
             event.dl_eta  = dl.Eta()
             event.dl_phi  = dl.Phi()
             event.dl_mass = dl.M()
-            mt2Calc.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+            mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
 
             # To check MC truth when looking at the TTZToLLNuNu sample
             if isMC:
@@ -987,29 +986,29 @@ def filler( event ):
               event.dlg_mass = dlg.M()
 
             if options.susySignal:
-                mt2Calc.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
-                setattr(event, "dl_mt2ll_gen", mt2Calc.mt2ll())
+                mt2Calculator.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
+                setattr(event, "dl_mt2ll_gen", mt2Calculator.mt2ll())
                 if len(jets)>=2:
                     bj0, bj1 = (bJets+nonBJets)[:2]
-                    mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                    setattr(event, "dl_mt2bb_gen",   mt2Calc.mt2bb())
-                    setattr(event, "dl_mt2blbl_gen", mt2Calc.mt2blbl())
+                    mt2Calculator.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                    setattr(event, "dl_mt2bb_gen",   mt2Calculator.mt2bb())
+                    setattr(event, "dl_mt2blbl_gen", mt2Calculator.mt2blbl())
                 
             for i in metVariants:
-                mt2Calc.setMet(getattr(event, 'met_pt'+i), getattr(event, 'met_phi'+i))
-                setattr(event, "dl_mt2ll"+i, mt2Calc.mt2ll())
+                mt2Calculator.setMet(getattr(event, 'met_pt'+i), getattr(event, 'met_phi'+i))
+                setattr(event, "dl_mt2ll"+i, mt2Calculator.mt2ll())
 
                 bj0, bj1 = None, None
                 if len(jets)>=2:
                     bj0, bj1 = (bJets+nonBJets)[:2]
-                    mt2Calc.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                    setattr(event, "dl_mt2bb"+i,   mt2Calc.mt2bb())
-                    setattr(event, "dl_mt2blbl"+i, mt2Calc.mt2blbl())
+                    mt2Calculator.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                    setattr(event, "dl_mt2bb"+i,   mt2Calculator.mt2bb())
+                    setattr(event, "dl_mt2blbl"+i, mt2Calculator.mt2blbl())
 
                 if addSystematicVariations:
                     for var in ['JECUp', 'JECDown', 'JERUp', 'JERDown', 'UnclusteredEnUp', 'UnclusteredEnDown']:
-                        mt2Calc.setMet( getattr(event, "met_pt"+i+"_"+var), getattr(event, "met_phi"+i+"_"+var) )
-                        setattr(event, "dl_mt2ll"+i+"_"+var,  mt2Calc.mt2ll())
+                        mt2Calculator.setMet( getattr(event, "met_pt"+i+"_"+var), getattr(event, "met_phi"+i+"_"+var) )
+                        setattr(event, "dl_mt2ll"+i+"_"+var,  mt2Calculator.mt2ll())
                         if not 'Unclustered' in var:
                             if len(jets_sys[var])>=2:
                                 bj0_, bj1_ = (bjets_sys[var]+nonBjets_sys[var])[:2]
@@ -1018,9 +1017,9 @@ def filler( event ):
                         else:
                             bj0_, bj1_ = bj0, bj1
                         if bj0_ and bj1_:
-                            mt2Calc.setBJets(bj0_['pt'], bj0_['eta'], bj0_['phi'], bj1_['pt'], bj1_['eta'], bj1_['phi'])
-                            setattr(event, 'dl_mt2bb'  +i+'_'+var, mt2Calc.mt2bb())
-                            setattr(event, 'dl_mt2blbl'+i+'_'+var, mt2Calc.mt2blbl())
+                            mt2Calculator.setBJets(bj0_['pt'], bj0_['eta'], bj0_['phi'], bj1_['pt'], bj1_['eta'], bj1_['phi'])
+                            setattr(event, 'dl_mt2bb'  +i+'_'+var, mt2Calculator.mt2bb())
+                            setattr(event, 'dl_mt2blbl'+i+'_'+var, mt2Calculator.mt2blbl())
 
     if addSystematicVariations:
         # B tagging weights method 1a

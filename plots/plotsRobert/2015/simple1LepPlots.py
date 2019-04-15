@@ -10,7 +10,6 @@ import itertools
 from RootTools.core.standard import *
 
 from StopsDilepton.tools.mt2Calculator import mt2Calculator
-mt2Calc = mt2Calculator()
 
 # argParser
 import argparse
@@ -211,14 +210,14 @@ for i_comb in [len(cuts)]:
             lj1 = subjets[1][1]
             lj2 = subjets[2][1]
             
-            mt2Calc.reset()
+            mt2Calculator.reset()
             # treat one jet as a lepton
-            mt2Calc.setLeptons( event.l1_pt, event.l1_eta, event.l1_phi, event.JetGood_pt[lj1], event.JetGood_eta[lj1], event.JetGood_phi[lj1] )
+            mt2Calculator.setLeptons( event.l1_pt, event.l1_eta, event.l1_phi, event.JetGood_pt[lj1], event.JetGood_eta[lj1], event.JetGood_phi[lj1] )
             # the other one as MET
             met_Pred_x = event.met_pt*cos(event.met_phi) - event.JetGood_pt[lj2]*cos(event.JetGood_phi[lj2])
             met_Pred_y = event.met_pt*sin(event.met_phi) - event.JetGood_pt[lj2]*sin(event.JetGood_phi[lj2])
-            mt2Calc.setMet( sqrt(met_Pred_x**2 + met_Pred_y**2), atan2( met_Pred_y, met_Pred_x ) )
-            return mt2Calc.mt2ll()
+            mt2Calculator.setMet( sqrt(met_Pred_x**2 + met_Pred_y**2), atan2( met_Pred_y, met_Pred_x ) )
+            return mt2Calculator.mt2ll()
 
         mt2ll_Pred  = Plot(
             name = "mt2ll_Pred",
