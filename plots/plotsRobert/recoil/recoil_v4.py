@@ -244,7 +244,6 @@ if not os.path.isfile( pickle_file ) or args.overwrite:
                     i_qt_min = h.GetYaxis().FindBin(qt_bin[0]) 
                     i_qt_max = h.GetYaxis().FindBin(qt_bin[1]) 
                     u_proj[h_name][dl_phi_bin][qt_bin] = h.ProjectionX("Proj_%s_%s_%i_%i_%i_%i"%( h_name, prefix, i_qt_min, i_qt_max-1, i_jet_min, i_jet_max-1), i_qt_min, i_qt_max-1, i_jet_min, i_jet_max-1) 
-
     pickle.dump( [u_para_proj, u_perp_proj], file( pickle_file, 'w' ) )
     logger.info( "Written pkl %s", pickle_file )
 else:
