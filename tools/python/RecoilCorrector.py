@@ -23,9 +23,11 @@ class RecoilCorrector:
                 self.corrector = _RecoilCorrector( os.path.join( recoilFitResultDir, "2018_recoil_fitResults_SF.pkl" ) )
 
     def predict_para(self, njet, qt, u_para ):
+        if njet<1: return u_para # in case of jesTotalUp/Down within systematics variation
         return self.corrector.predict_para( njet, qt, u_para )
 
     def predict_perp(self, njet, qt, u_perp ):
+        if njet<1: return u_perp # in case of jesTotalUp/Down witin systematics variation
         return self.corrector.predict_perp( njet, qt, u_perp )
 
             
