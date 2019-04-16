@@ -12,7 +12,7 @@ except: from StopsDilepton.tools.user import data_directory
 
 # Take post processing directory if defined in main module
 try:    postProcessing_directory = sys.modules['__main__'].postProcessing_directory
-except: postProcessing_directory = 'stops_2018_nano_v7/dilep'
+except: postProcessing_directory = 'stops_2018_nano_v0p3/dilep'
 
 logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 

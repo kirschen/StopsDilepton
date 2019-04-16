@@ -7,6 +7,7 @@
 import ROOT, os
 ROOT.gROOT.SetBatch(True)
 import itertools
+import copy
 
 from math                                import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard             import *
@@ -52,6 +53,7 @@ logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 if args.small:                        args.plot_directory += "_small"
+if args.splitMET:                     args.plot_directory += "_splitMET"
 if args.noData:                       args.plot_directory += "_noData"
 if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
 if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
@@ -111,9 +113,41 @@ elif args.year == 2018:
     else:
         recoilCorrector = RecoilCorrector( 2018 )
 
+def splitMetMC(mc):
+    dy = mc[-1]
+    dy_1 = copy.deepcopy( dy )
+    dy_1.name += "_1"
+    dy_1.addSelectionString( "met_pt<40" )
+    dy_1.texName += " (MET<40)"
+    dy_1.color   = ROOT.kGreen + 1 
+    dy_2 = copy.deepcopy( dy )
+    dy_2.name += "_2"
+    dy_2.addSelectionString( "met_pt>40&&met_pt<80" )
+    dy_2.texName += " (40<MET<80)"
+    dy_2.color   = ROOT.kGreen + 2
+    dy_3 = copy.deepcopy( dy )
+    dy_3.name += "_3"
+    dy_3.addSelectionString( "met_pt>80" )
+    dy_3.texName += " (80<MET)"
+    dy_3.color   = ROOT.kGreen + 3
+    tt = mc[0]
+    tt_1 = copy.deepcopy( tt )
+    tt_1.name += "_1"
+    tt_1.addSelectionString( "met_pt<40" )
+    tt_1.texName += " (MET<40)"
+    tt_1.color   = ROOT.kAzure + 1 
+    tt_2 = copy.deepcopy( tt )
+    tt_2.name += "_2"
+    tt_2.addSelectionString( "met_pt>40&&met_pt<80" )
+    tt_2.texName += " (40<MET<80)"
+    tt_2.color   = ROOT.kAzure + 2
+    tt_3 = copy.deepcopy( tt )
+    tt_3.name += "_3"
+    tt_3.addSelectionString( "met_pt>80" )
+    tt_3.texName += " (80<MET)"
+    tt_3.color   = ROOT.kAzure + 3
 
-if args.splitMET:
-    assert False, "" 
+    return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]
 
 data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
 if args.signal == "T2tt":
@@ -195,10 +229,10 @@ def drawPlots(plots, mode, dataMCScale):
       plotting.draw(plot,
 	    plot_directory = plot_directory_,
 	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-	    logX = False, logY = log, sorting = True,
+	    logX = False, logY = log, sorting = not args.splitMET,
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
 	    scaling = {},
-	    legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88) if not args.noData else (0.50,0.9-0.047*sum(map(len, plot.histos)),0.85,0.9),
+	    legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
 	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
         copyIndexPHP = True,
       )
@@ -321,7 +355,6 @@ for index, mode in enumerate(allModes):
   weight_ = lambda event, sample: event.weight
 
 
-  for sample in mc: sample.style = styles.fillStyle(sample.color)
 
   for sample in mc + signals:
     sample.scale          = lumi_scale
@@ -353,12 +386,15 @@ for index, mode in enumerate(allModes):
         sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
       else:
         raise NotImplementedError
-
   
+  mc_ = splitMetMC(mc) if args.splitMET else mc
+
+  for sample in mc_: sample.style = styles.fillStyle(sample.color)
+
   if not args.noData:
-    stack = Stack(mc, data_sample)
+    stack = Stack(mc_, data_sample)
   else:
-    stack = Stack(mc)
+    stack = Stack(mc_)
 
   stack.extend( [ [s] for s in signals ] )
 
@@ -433,6 +469,12 @@ for index, mode in enumerate(allModes):
     attribute = lambda event, sample: event.dl_mt2ll_corr,
     binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
   ))
+
+  plots.append(Plot( name = "qT",
+    texX = 'q_{T} (GeV)', texY = 'Number of Events / 50 GeV',
+    attribute = lambda event, sample: sqrt((event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.met_pt*cos(event.met_phi))**2 + (event.l1_pt*sin(event.l1_phi) + event.l2_pt*sin(event.l2_phi) + event.met_pt*sin(event.met_phi))**2),
+    binning= [1000/50,0,1000]),
+  )
 
   plots.append(Plot(
     texX = 'number of jets', texY = 'Number of Events',
@@ -564,6 +606,40 @@ for index, mode in enumerate(allModes):
       binning = [10,-1,1],
     ))
 
+#    # u_para u_perp closure plots
+#    nJetGood_binning = [1, 2, 3, 4, 10 ]
+#    qt_binning    = [0, 50, 100, 150, 200, 300 ]
+#    u_para_binning   =  [ i*5 for i in range(-40, 41) ]
+#    nJetGood_bins = [ (nJetGood_binning[i],nJetGood_binning[i+1]) for i in range(len(nJetGood_binning)-1) ]
+#    qt_bins = [ (qt_binning[i],qt_binning[i+1]) for i in range(len(qt_binning)-1) ]
+#    for nJetGood_bin in nJetGood_bins:
+#        for qt_bin in qt_bins:
+#            postfix = "qt_%i_%i_njet_%i_%i"%( qt_bin[0], qt_bin[1], nJetGood_bin[0], nJetGood_bin[1]) 
+#            plots.append(Plot( name = "u_para_" + postfix, 
+#              texX = "u_{#parallel} (GeV)", texY = 'Number of Events / 30 GeV',
+#              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-event.dl_phi),
+#              weight = recoil_weight(nJetGood_bin, qt_bin),
+#              binning=[80, -200,200],
+#            ))
+#            plots.append(Plot( name = "u_perp_" + postfix, 
+#              texX = "u_{#perp} (GeV)", texY = 'Number of Events / 30 GeV',
+#              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-(event.dl_phi-pi/2)),
+#              weight = recoil_weight(nJetGood_bin, qt_bin),
+#              binning=[80, -200,200],
+#            ))
+#            plots.append(Plot( name = "u_para_corr_" + postfix, 
+#              texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+#              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
+#              weight = recoil_weight(nJetGood_bin, qt_bin),
+#              binning=[80, -200,200],
+#            ))
+#            plots.append(Plot( name = "u_perp_corr" + postfix, 
+#              texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+#              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
+#              weight = recoil_weight(nJetGood_bin, qt_bin),
+#              binning=[80, -200,200],
+#            ))
+
   # Plots only when at least two jets:
   if args.selection.count('njet2'):
     plots.append(Plot(
@@ -635,42 +711,6 @@ for index, mode in enumerate(allModes):
           binning=[400/100, 0, 400],
         ))
    
-    # u_para u_perp closure plots
-    nJetGood_binning = [1, 2, 3, 4, 10 ]
-    qt_binning    = [0, 50, 100, 150, 200, 300 ]
-    u_para_binning   =  [ i*5 for i in range(-40, 41) ]
-    nJetGood_bins = [ (nJetGood_binning[i],nJetGood_binning[i+1]) for i in range(len(nJetGood_binning)-1) ]
-    qt_bins = [ (qt_binning[i],qt_binning[i+1]) for i in range(len(qt_binning)-1) ]
-    for nJetGood_bin in nJetGood_bins:
-        for qt_bin in qt_bins:
-            postfix = "qt_%i_%i_njet_%i_%i"%( qt_bin[0], qt_bin[1], nJetGood_bin[0], nJetGood_bin[1]) 
-            plots.append(Plot( name = "u_para_" + postfix, 
-              texX = "u_{#parallel} (GeV)", texY = 'Number of Events / 30 GeV',
-              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-event.dl_phi),
-              weight = recoil_weight(nJetGood_bin, qt_bin),
-              binning=[80, -200,200],
-            ))
-            plots.append(Plot( name = "u_perp_" + postfix, 
-              texX = "u_{#perp} (GeV)", texY = 'Number of Events / 30 GeV',
-              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-(event.dl_phi-pi/2)),
-              weight = recoil_weight(nJetGood_bin, qt_bin),
-              binning=[80, -200,200],
-            ))
-            plots.append(Plot( name = "u_para_corr_" + postfix, 
-              texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
-              weight = recoil_weight(nJetGood_bin, qt_bin),
-              binning=[80, -200,200],
-            ))
-            plots.append(Plot( name = "u_perp_corr" + postfix, 
-              texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
-              weight = recoil_weight(nJetGood_bin, qt_bin),
-              binning=[80, -200,200],
-            ))
-
-
-
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
   # Get normalization yields from yield histogram
@@ -684,7 +724,7 @@ for index, mode in enumerate(allModes):
           h.GetXaxis().SetBinLabel(3, "ee")
   if args.noData: yields[mode]["data"] = 0
 
-  yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc)
+  yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc_)
   dataMCScale        = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
 
   drawPlots(plots, mode, dataMCScale)
@@ -707,18 +747,6 @@ for mode in ["SF","all"]:
 
   drawPlots(allPlots['mumu'], mode, dataMCScale)
 
-# Write to tex file
-columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM2.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
-texdir = "tex"
-#if args.powheg: texdir += "_powheg"
-try:
-  os.makedirs("./" + texdir)
-except:
-  pass
-with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
-  f.write("&" + " & ".join(columns) + "\\\\ \n")
-  for mode in allModes + ["SF","all"]:
-    f.write(mode + " & " + " & ".join([ (" %12.0f" if i == "data" else " %12.2f") % yields[mode][i] for i in columns]) + "\\\\ \n")
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, cutInterpreter.cutString(args.selection) )
 

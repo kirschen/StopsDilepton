@@ -588,7 +588,7 @@ for index, mode in enumerate(allModes):
               weight = recoil_weight(nJetGood_bin, qt_bin),
               binning=[80, -200,200],
             ))
-            plots.append(Plot( name = "u_perp_corr" + postfix, 
+            plots.append(Plot( name = "u_perp_corr_" + postfix, 
               texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
               attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
               weight = recoil_weight(nJetGood_bin, qt_bin),
