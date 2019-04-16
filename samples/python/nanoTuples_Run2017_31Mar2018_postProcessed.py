@@ -73,13 +73,13 @@ SingleElectron_Run2017CDE       = getSample('SingleElectron',   'Run2017CDE',   
 SingleElectron_Run2017F         = getSample('SingleElectron',   'Run2017F',       (13.540)*1000)
 allSamples_Data25ns += [SingleElectron_Run2017, SingleElectron_Run2017B, SingleElectron_Run2017CDE, SingleElectron_Run2017F]
 
-Run2017 = Sample.combine("Run2017", [MuonEG_Run2017, DoubleEG_Run2017, DoubleMuon_Run2017, SingleMuon_Run2017, SingleMuon_Run2017], texName = "Data")
+Run2017 = Sample.combine("Run2017", [MuonEG_Run2017, DoubleEG_Run2017, DoubleMuon_Run2017, SingleMuon_Run2017, SingleMuon_Run2017], texName = "Run2017")
 Run2017.lumi  = (41.5)*1000
-Run2017B = Sample.combine("Run2017", [MuonEG_Run2017B, DoubleEG_Run2017B, DoubleMuon_Run2017B, SingleElectron_Run2017B, SingleMuon_Run2017B], texName = "Data")
+Run2017B = Sample.combine("Run2017B", [MuonEG_Run2017B, DoubleEG_Run2017B, DoubleMuon_Run2017B, SingleElectron_Run2017B, SingleMuon_Run2017B], texName = "Run2017B")
 Run2017B.lumi = (4.823)*1000
-Run2017CDE = Sample.combine("Run2017", [MuonEG_Run2017CDE, DoubleEG_Run2017CDE, DoubleMuon_Run2017CDE, SingleElectron_Run2017CDE, SingleMuon_Run2017CDE], texName = "Data")
+Run2017CDE = Sample.combine("Run2017CDE", [MuonEG_Run2017CDE, DoubleEG_Run2017CDE, DoubleMuon_Run2017CDE, SingleElectron_Run2017CDE, SingleMuon_Run2017CDE], texName = "Run2017CDE")
 Run2017CDE.lumi = (9.664+4.252+9.278)*1000
-Run2017F = Sample.combine("Run2017", [MuonEG_Run2017F, DoubleEG_Run2017F, DoubleMuon_Run2017F, SingleElectron_Run2017F, SingleMuon_Run2017F], texName = "Data")
+Run2017F = Sample.combine("Run2017F", [MuonEG_Run2017F, DoubleEG_Run2017F, DoubleMuon_Run2017F, SingleElectron_Run2017F, SingleMuon_Run2017F], texName = "Run2017F")
 Run2017F.lumi = (13.540)*1000
 
 allSamples_Data25ns += [Run2017, Run2017B, Run2017CDE, Run2017F]

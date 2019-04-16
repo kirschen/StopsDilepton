@@ -33,10 +33,8 @@ argParser.add_argument('--fine',                                    action='stor
 argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mumu", "ee", "SF"], help="Lepton flavor")
 argParser.add_argument('--overwrite',                               action='store_true',     help='Overwrite?', )
 argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v4')
-argParser.add_argument('--year',               action='store', type=int,      default=2016)
+argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ')
-argParser.add_argument('--preHEM',             action='store_true', default=False)
-argParser.add_argument('--postHEM',            action='store_true', default=False)
 args = argParser.parse_args()
 
 #
@@ -54,7 +52,16 @@ if args.fine:                        args.plot_directory += "_fine"
 #
 from Analysis.Tools.puReweighting import getReweightingFunction
 
-if args.year == 2016:
+if "2016" in args.era:
+    year = 2016
+elif "2017" in args.era:
+    year = 2017
+elif "2018" in args.era:
+    year = 2018
+
+logger.info( "Working in year %i", year )
+
+if year == 2016:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
@@ -62,7 +69,7 @@ if args.year == 2016:
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2016/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
-elif args.year == 2017:
+elif year == 2017:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
@@ -70,7 +77,7 @@ elif args.year == 2017:
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2017/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
-elif args.year == 2018:
+elif year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
@@ -78,21 +85,19 @@ elif args.year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2018/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
-    
+
+try:
+    data_sample = eval(args.era)
+except Exception as e:
+    logger.error( "Didn't find %s", args.era )
+    raise e
+
 #if args.small:
 #    mc = mc[-2:]
 
 for sample in mc: sample.style = styles.fillStyle(sample.color)
 
-# output directory
-postfix = ''
-if args.year==2018:
-    if args.preHEM:
-        postfix = '_preHEM'
-    elif args.postHEM:
-        postfix = '_postHEM'
-
-output_directory = os.path.join(plot_directory, args.plot_directory, str(args.year)+postfix, args.selection )
+output_directory = os.path.join(plot_directory, args.plot_directory, args.era, args.selection )
 
 # Text on the plots
 tex = ROOT.TLatex()
@@ -168,45 +173,24 @@ dl_phi_bins      = [ (dl_phi_binning[i],dl_phi_binning[i+1]) for i in range(len(
 # Loop over channels
 #
 
-# Selection & weights 
-if args.year == 2016:
-  data_sample = Run2016
-  data_sample.texName = "data (2016)"
-elif args.year == 2017:
-  data_sample = Run2017
-  data_sample.texName = "data (2017)"
-elif args.year == 2018:
-  data_sample = Run2018
-  data_sample.texName = "data (2018)"
-
 data_sample.name           = "data"
 data_sample.style          = styles.errorStyle(ROOT.kBlack)
 
 # Data weight & cut 
 weightString =  "weight"
-data_sample.setSelectionString([getFilterCut(isData=True, year=args.year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
+data_sample.setSelectionString([getFilterCut(isData=True, year=year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
 data_sample.setWeightString( weightString )
-
-# HEM flag
-if args.preHEM:
-    data_sample.addSelectionString("run<319077")
-if args.postHEM:
-    data_sample.addSelectionString("run>=319077")
 
 # MC weight & cut
 for sample in mc:
   weightString =  "weight*reweightPU36fb*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF"
-  sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
+  sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
   sample.setWeightString(weightString)
 
 stack = Stack(mc, data_sample)
 
 lumi_scale                 = data_sample.lumi/1000
-if args.preHEM:   lumi_scale *= 0.37
-if args.postHEM:  lumi_scale *= 0.63
-
 data_sample.scale          = 1.
-
 for sample in mc:
     sample.scale          = lumi_scale
 
