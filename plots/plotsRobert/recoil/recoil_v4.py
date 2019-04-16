@@ -9,6 +9,7 @@ ROOT.gROOT.SetBatch(True)
 import itertools
 import pickle
 from math                                import sqrt, cos, sin, pi
+import array
 
 # RootTools
 from RootTools.core.standard             import *
@@ -19,7 +20,7 @@ from StopsDilepton.tools.helpers         import deltaPhi, map_level
 from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.GaussianFit     import GaussianFit
-from StopsDilepton.plots.pieChart        import makePieChart
+from Analysis.Tools.QuantileMatcher      import QuantileMatcher
 
 #
 # Arguments
@@ -31,11 +32,9 @@ argParser.add_argument('--small',                                   action='stor
 argParser.add_argument('--fine',                                    action='store_true',     help='Fine binning?', )
 argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mumu", "ee", "SF"], help="Lepton flavor")
 argParser.add_argument('--overwrite',                               action='store_true',     help='Overwrite?', )
-argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v3')
-argParser.add_argument('--year',               action='store', type=int,      default=2016)
+argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v4')
+argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ')
-argParser.add_argument('--preHEM',             action='store_true', default=False)
-argParser.add_argument('--postHEM',            action='store_true', default=False)
 args = argParser.parse_args()
 
 #
@@ -53,7 +52,16 @@ if args.fine:                        args.plot_directory += "_fine"
 #
 from Analysis.Tools.puReweighting import getReweightingFunction
 
-if args.year == 2016:
+if "2016" in args.era:
+    year = 2016
+elif "2017" in args.era:
+    year = 2017
+elif "2018" in args.era:
+    year = 2018
+
+logger.info( "Working in year %i", year )
+
+if year == 2016:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
@@ -61,7 +69,7 @@ if args.year == 2016:
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2016/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
-elif args.year == 2017:
+elif year == 2017:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
@@ -69,7 +77,7 @@ elif args.year == 2017:
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2017/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
-elif args.year == 2018:
+elif year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
@@ -77,27 +85,36 @@ elif args.year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2018/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
-    
+
+try:
+    data_sample = eval(args.era)
+except Exception as e:
+    logger.error( "Didn't find %s", args.era )
+    raise e
+
 #if args.small:
 #    mc = mc[-2:]
 
 for sample in mc: sample.style = styles.fillStyle(sample.color)
 
-# output directory
-postfix = ''
-if args.year==2018:
-    if args.preHEM:
-        postfix = '_preHEM'
-    elif args.postHEM:
-        postfix = '_postHEM'
-
-output_directory = os.path.join(plot_directory, args.plot_directory, str(args.year)+postfix, args.selection )
+output_directory = os.path.join(plot_directory, args.plot_directory, args.era, args.selection )
 
 # Text on the plots
 tex = ROOT.TLatex()
 tex.SetNDC()
 tex.SetTextSize(0.04)
 tex.SetTextAlign(11) # align right
+
+# Text on the plots
+tex2 = ROOT.TLatex()
+tex2.SetNDC()
+tex2.SetTextSize(0.03)
+tex2.SetTextAlign(11) # align right
+
+def get_quantiles( histo, quantiles = [1-0.9545, 1-0.6826, 0.5, 0.6826, 0.9545]):
+    thresholds = array.array('d', [ROOT.Double()] * len(quantiles) )
+    histo.GetQuantiles( len(quantiles), thresholds, array.array('d', quantiles) )
+    return thresholds 
 
 def defDrawObjects( plotData, dataMCScale, lumi_scale ):
     lines = [
@@ -143,56 +160,37 @@ def getLeptonSelection( mode ):
 u_para = "-met_pt*cos(met_phi-dl_phi)"        # u_para is actually (u+qT)_para = -ET.n_para
 u_perp = "-met_pt*cos(met_phi-(dl_phi-pi/2.))"# u_perp = -ET.n_perp (where n_perp is n with phi->phi-pi/2) 
 
-nJetGood_binning = [1, 2, 3, 4, 10 ]
+#nJetGood_binning = [1, 10 ]
 qt_binning    = [0, 50, 100, 150, 200, 300 ]
+dl_phi_binning   = [ pi*(i-5)/5. for i in range(0,11) ]
 u_para_binning   = [ i for i in range(-200, 201) ] if args.fine else [ i*5 for i in range(-40, 41) ]
 
-nJetGood_bins = [ (nJetGood_binning[i],nJetGood_binning[i+1]) for i in range(len(nJetGood_binning)-1) ]
+#nJetGood_bins = [ (nJetGood_binning[i],nJetGood_binning[i+1]) for i in range(len(nJetGood_binning)-1) ]
 qt_bins = [ (qt_binning[i],qt_binning[i+1]) for i in range(len(qt_binning)-1) ]
+dl_phi_bins      = [ (dl_phi_binning[i],dl_phi_binning[i+1]) for i in range(len(dl_phi_binning)-1) ]
 
 #
 # Loop over channels
 #
-
-# Selection & weights 
-if args.year == 2016:
-  data_sample = Run2016
-  data_sample.texName = "data (2016)"
-elif args.year == 2017:
-  data_sample = Run2017
-  data_sample.texName = "data (2017)"
-elif args.year == 2018:
-  data_sample = Run2018
-  data_sample.texName = "data (2018)"
 
 data_sample.name           = "data"
 data_sample.style          = styles.errorStyle(ROOT.kBlack)
 
 # Data weight & cut 
 weightString =  "weight"
-data_sample.setSelectionString([getFilterCut(isData=True, year=args.year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
+data_sample.setSelectionString([getFilterCut(isData=True, year=year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
 data_sample.setWeightString( weightString )
-
-# HEM flag
-if args.preHEM:
-    data_sample.addSelectionString("run<319077")
-if args.postHEM:
-    data_sample.addSelectionString("run>=319077")
 
 # MC weight & cut
 for sample in mc:
   weightString =  "weight*reweightPU36fb*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF"
-  sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
+  sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
   sample.setWeightString(weightString)
 
 stack = Stack(mc, data_sample)
 
 lumi_scale                 = data_sample.lumi/1000
-if args.preHEM:   lumi_scale *= 0.37
-if args.postHEM:  lumi_scale *= 0.63
-
 data_sample.scale          = 1.
-
 for sample in mc:
     sample.scale          = lumi_scale
 
@@ -211,8 +209,8 @@ if not os.path.isfile( pickle_file ) or args.overwrite:
     h3D_u_para = {}
     h3D_u_perp = {}
     for sample in stack.samples:
-        h3D_u_para[sample.name] = sample.get3DHistoFromDraw("nJetGood:dl_pt:"+u_para, [u_para_binning,qt_binning,nJetGood_binning], binningIsExplicit=True)
-        h3D_u_perp[sample.name] = sample.get3DHistoFromDraw("nJetGood:dl_pt:"+u_perp, [u_para_binning,qt_binning,nJetGood_binning], binningIsExplicit=True)
+        h3D_u_para[sample.name] = sample.get3DHistoFromDraw("dl_phi:dl_pt:"+u_para, [u_para_binning,qt_binning,dl_phi_binning], binningIsExplicit=True)
+        h3D_u_perp[sample.name] = sample.get3DHistoFromDraw("dl_phi:dl_pt:"+u_perp, [u_para_binning,qt_binning,dl_phi_binning], binningIsExplicit=True)
         h3D_u_para[sample.name].Scale(sample.scale)
         h3D_u_perp[sample.name].Scale(sample.scale)
 
@@ -222,15 +220,14 @@ if not os.path.isfile( pickle_file ) or args.overwrite:
     for prefix, u_proj, h3D_u in  [ [ "para", u_para_proj, h3D_u_para], [ "perp", u_perp_proj, h3D_u_perp ] ]:
         for h_name, h in h3D_u.iteritems():
             u_proj[h_name] = {}
-            for nJetGood_bin in nJetGood_bins:
-                u_proj[h_name][nJetGood_bin] = {}
-                i_jet_min = h.GetZaxis().FindBin(nJetGood_bin[0]) 
-                i_jet_max = h.GetZaxis().FindBin(nJetGood_bin[1]) 
+            for dl_phi_bin in dl_phi_bins:
+                u_proj[h_name][dl_phi_bin] = {}
+                i_jet_min = h.GetZaxis().FindBin(dl_phi_bin[0]) 
+                i_jet_max = h.GetZaxis().FindBin(dl_phi_bin[1]) 
                 for qt_bin in qt_bins:
                     i_qt_min = h.GetYaxis().FindBin(qt_bin[0]) 
                     i_qt_max = h.GetYaxis().FindBin(qt_bin[1]) 
-                    u_proj[h_name][nJetGood_bin][qt_bin] = h.ProjectionX("Proj_%s_%s_%i_%i_%i_%i"%( h_name, prefix, i_qt_min, i_qt_max-1, i_jet_min, i_jet_max-1), i_qt_min, i_qt_max-1, i_jet_min, i_jet_max-1) 
-
+                    u_proj[h_name][dl_phi_bin][qt_bin] = h.ProjectionX("Proj_%s_%s_%i_%i_%i_%i"%( h_name, prefix, i_qt_min, i_qt_max-1, i_jet_min, i_jet_max-1), i_qt_min, i_qt_max-1, i_jet_min, i_jet_max-1) 
     pickle.dump( [u_para_proj, u_perp_proj], file( pickle_file, 'w' ) )
     logger.info( "Written pkl %s", pickle_file )
 else:
@@ -238,116 +235,46 @@ else:
     u_para_proj, u_perp_proj = pickle.load( file( pickle_file ) )
 
 fitResults = {}
-for nJetGood_bin in nJetGood_bins:
-    fitResults[nJetGood_bin] = {}
+for dl_phi_bin in dl_phi_bins:
+    fitResults[dl_phi_bin] = {}
     for qt_bin in qt_bins:
-        fitResults[nJetGood_bin][qt_bin] = {}
+        fitResults[dl_phi_bin][qt_bin] = {}
         for prefix, u_proj in  [ [ "para", u_para_proj], [ "perp", u_perp_proj ] ]:
-            fitResults[nJetGood_bin][qt_bin][prefix] = {'mc':{},'data':{}}
+            fitResults[dl_phi_bin][qt_bin][prefix] = {'mc':{},'data':{}}
             # Get histos
-            histos =  map_level( lambda s: u_proj[s.name][nJetGood_bin][qt_bin], stack, 2 )
+            histos =  map_level( lambda s: u_proj[s.name][dl_phi_bin][qt_bin], stack, 2 )
             # Transfer styles & text
             for i_l, l in enumerate(stack):
                 for i_s, s in enumerate(l):
                     histos[i_l][i_s].style      = s.style
                     histos[i_l][i_s].legendText = s.texName
 
-#            name = "u_%s_nJet_%i_%i_qt_%i_%i"%( prefix, nJetGood_bin[0], nJetGood_bin[1], qt_bin[0], qt_bin[1] )
+#            name = "u_%s_nJet_%i_%i_qt_%i_%i"%( prefix, dl_phi_bin[0], dl_phi_bin[1], qt_bin[0], qt_bin[1] )
 #            if name!="u_para_nJet_0_1_qt_150_200":continue
 
             # make plot
-            name = "u_%s_nJet_%i_%i_qt_%i_%i"%( prefix, nJetGood_bin[0], nJetGood_bin[1], qt_bin[0], qt_bin[1] )
+            name = "u_%s_phill_%3.2f_%3.2f_qt_%i_%i"%( prefix, dl_phi_bin[0], dl_phi_bin[1], qt_bin[0], qt_bin[1] )
             plot =  Plot.fromHisto( name = name, 
                     histos = histos, 
                     texX = "u_{#parallel}" if prefix == "para" else "u_{#perp}" ) 
-            # fit
+            ## fit
             h_mc   = plot.histos_added[0][0].Clone()
             h_data = plot.histos_added[1][0].Clone()
             h_mc.Scale(h_data.Integral()/h_mc.Integral())
 
-            drawObjects = []
-            f_mc = ROOT.TF1(name+'_mc', "[3]+[0]*exp(-0.5*((x-[1])/[2])**2)")
-            f_mc.SetParameter(0, 1)
-            f_mc.SetParameter(1, 0)
-            #f_mc.SetParLimits(1,-20,20)
-            f_mc.SetParameter(2, 20)
-            #f_mc.SetParLimits(2,10,50)
-            f_mc.SetParameter(3, 0)
 
-            ##f_mc = ROOT.TF1(name+'_mc', "[3]+[0]*((1+(x-[1])**2/((2+6/[4])*[2]**2))**(-2.5-3/[4])*ROOT::Math::tgamma(2.5+3/[4]))/-(sqrt(pi)*sqrt(2+6/[4])*[2]*ROOT::Math::tgamma(2+3/[4]))" )
-            ##f_mc = ROOT.TF1(name+'_mc', "[3]+[0]*((1+(x-[1])**2/((2.+6./[4])*[2]**2))**(-2.5-3./[4])*ROOT::Math::tgamma(2.5+3./[4]))/(sqrt(pi)*sqrt(2.+6./[4])*[2]*ROOT::Math::tgamma(2.+3./[4]))",-70,70)
-            #f_mc = ROOT.TF1(name+'_mc', "[3]+[0]*((1+(x-[1])**2/((2+6*[4])*[2]**2))**(-2.5-3*[4])*ROOT::Math::tgamma(2.5+3*[4]))/(sqrt(pi)*sqrt(2+6*[4])*[2]*ROOT::Math::tgamma(2+3*[4]))")
-            ##f_mc = ROOT.TF1(name+'_mc', "[3]+[0]*exp(-0.5*((x-[1])/[2])**2)")
-            #f_mc.SetParameter(0, 100)
-            #f_mc.SetParameter(1, 0)
-            ##f_mc.SetParLimits(1,-20,20)
-            #f_mc.SetParameter(2, 20)
-            ##f_mc.SetParLimits(2,10,50)
-            #f_mc.SetParameter(3, 0)
-            #f_mc.SetParameter(4, 20)
-            #f_mc.SetParLimits(4,1,20)
-
-            if h_mc.Integral()>0:
-                fitResult = h_mc.Fit(f_mc,"S")
-                if fitResult:
-                    fr = fitResult.Get()
-                    fitResults[nJetGood_bin][qt_bin][prefix]['mc'] = {'mean':fr.GetParams()[1], 'sigma':fr.GetParams()[2], 'mean_error':fr.GetErrors()[1], 'sigma_error':fr.GetErrors()[2]} 
-                h_mc_fit = h_mc.Clone()
-                h_mc_fit.Reset()
-                for i in range(1, 1+h_mc_fit.GetNbinsX()):
-                    h_mc_fit.SetBinContent( i, f_mc.Eval(h_mc_fit.GetBinCenter(i)) )
-                h_mc_fit.style = styles.lineStyle( ROOT.kRed )
-                h_mc_fit.legendText = "fit (MC)"
-                plot.histos.append( [h_mc_fit] )
-                fitResults[nJetGood_bin][qt_bin][prefix]['mc']['TF1']      = f_mc 
-                fitResults[nJetGood_bin][qt_bin][prefix]['mc']['TH1F']     = h_mc 
-                fitResults[nJetGood_bin][qt_bin][prefix]['mc']['TH1F_fit'] = h_mc_fit 
-
-            f_data = ROOT.TF1(name+'_data', "[3]+[0]*exp(-0.5*((x-[1])/[2])**2)")
-            f_data.SetParameter(0, 1)
-            f_data.SetParameter(1, 0)
-            #f_data.SetParLimits(1,-20,20)
-            f_data.SetParameter(2, 20)
-            #f_data.SetParLimits(2,10,50)
-            f_data.SetParameter(3, 0)
-            #f_data = ROOT.TF1(name+'_data', "[3]+[0]*((1+(x-[1])**2/((2+6*[4])*[2]**2))**(-2.5-3*[4])*ROOT::Math::tgamma(2.5+3*[4]))/(sqrt(pi)*sqrt(2+6*[4])*[2]*ROOT::Math::tgamma(2+3*[4]))")
-            ##f_data = ROOT.TF1(name+'_data', "[3]+[0]*exp(-0.5*((x-[1])/[2])**2)")
-            #f_data.SetParameter(0, 100)
-            #f_data.SetParameter(1, 0)
-            ##f_data.SetParLimits(1,-20,20)
-            #f_data.SetParameter(2, 20)
-            ##f_data.SetParLimits(2,10,50)
-            #f_data.SetParameter(3, 0)
-            #f_data.SetParameter(4, 20)
-            #f_data.SetParLimits(4,1,30)
-            if h_data.Integral()>0:
-                fitResult = h_data.Fit(f_data,"S")
-                if fitResult:
-                    fr = fitResult.Get()
-                    fitResults[nJetGood_bin][qt_bin][prefix]['data'] = {'mean':fr.GetParams()[1], 'sigma':fr.GetParams()[2], 'mean_error':fr.GetErrors()[1], 'sigma_error':fr.GetErrors()[2]} 
-                h_data_fit = h_data.Clone()
-                h_data_fit.Reset()
-                for i in range(1, 1+h_data_fit.GetNbinsX()):
-                    h_data_fit.SetBinContent( i, f_data.Eval(h_data_fit.GetBinCenter(i)) )
-                h_data_fit.style = styles.lineStyle( ROOT.kBlue )
-                h_data_fit.legendText = "fit (Data)"
-                plot.histos.append( [h_data_fit] )
-                fitResults[nJetGood_bin][qt_bin][prefix]['data']['TF1']      = f_data 
-                fitResults[nJetGood_bin][qt_bin][prefix]['data']['TH1F']     = h_data 
-                fitResults[nJetGood_bin][qt_bin][prefix]['data']['TH1F_fit'] = h_data_fit 
+            fitResults[dl_phi_bin][qt_bin][prefix]['mc']['TH1F']   = h_mc 
+            fitResults[dl_phi_bin][qt_bin][prefix]['data']['TH1F'] = h_data 
  
-                #mean_data, mean_error_data, sigma_data, sigma_error_data, pdf = GaussianFit( h_data, isData = True, var_name = "u_%s"%prefix )
-                #f_data = ROOT.TF1("gauss","gaus(0)",u_para_binning[0],u_para_binning[-1])
-                #f_data.SetParameter(0, h_data.Integral() ) 
-                #f_data.SetParameter(1, mean_data ) 
-                #f_data.SetParameter(2, sigma_data ) 
-                #extraDrawObjects.append( f_data )
+            q_mc   = tuple(get_quantiles( h_mc ))
+            q_data = tuple(get_quantiles( h_data ))
+            median_shift = q_data[2]-q_mc[2]
+            sigma1_ratio = (q_data[3]-q_data[1])/(q_mc[3]-q_mc[1])
+            sigma2_ratio = (q_data[4]-q_data[0])/(q_mc[4]-q_mc[0])
 
-            drawObjects.append( tex.DrawLatex(0.5, 0.85, 'data: #mu=% 3.2f #sigma=% 3.2f'%( f_data.GetParameter(1), f_data.GetParameter(2)) ) )
-            drawObjects.append( tex.DrawLatex(0.5, 0.80, 'MC:  #mu=% 3.2f #sigma=% 3.2f'%( f_mc.GetParameter(1), f_mc.GetParameter(2)) ) )
+            drawObjects = []
+            drawObjects.append( tex2.DrawLatex(0.5, 0.86, '#Delta(med): %+3.1f   1#sigma: %4.3f  2#sigma  %4.3f' % ( median_shift, sigma1_ratio, sigma2_ratio) ) )
 
-            #drawObjects.append( tex.DrawLatex(0.5, 0.85, 'data: #mu=% 3.2f #sigma=% 3.2f'%( mean_data, sigma_data) ) )
-            #drawObjects.append( tex.DrawLatex(0.5, 0.80, 'MC:  #mu=% 3.2f #sigma=% 3.2f'%( mean_mc, sigma_mc) ) )
             # draw
             drawPlots( [ plot ],  mode = args.mode, dataMCScale = -1, drawObjects = drawObjects )
 

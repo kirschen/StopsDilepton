@@ -88,9 +88,9 @@ elif args.year == 2017:
     recoilCorrector = RecoilCorrector( 2017 )
 elif args.year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     #nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
@@ -561,6 +561,41 @@ for index, mode in enumerate(allModes):
       binning = [10,-1,1],
     ))
 
+    # u_para u_perp closure plots
+    nJetGood_binning = [1, 2, 3, 4, 10 ]
+    qt_binning    = [0, 50, 100, 150, 200, 300 ]
+    u_para_binning   =  [ i*5 for i in range(-40, 41) ]
+    nJetGood_bins = [ (nJetGood_binning[i],nJetGood_binning[i+1]) for i in range(len(nJetGood_binning)-1) ]
+    qt_bins = [ (qt_binning[i],qt_binning[i+1]) for i in range(len(qt_binning)-1) ]
+    for nJetGood_bin in nJetGood_bins:
+        for qt_bin in qt_bins:
+            postfix = "qt_%i_%i_njet_%i_%i"%( qt_bin[0], qt_bin[1], nJetGood_bin[0], nJetGood_bin[1]) 
+            plots.append(Plot( name = "u_para_" + postfix, 
+              texX = "u_{#parallel} (GeV)", texY = 'Number of Events / 30 GeV',
+              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-event.dl_phi),
+              weight = recoil_weight(nJetGood_bin, qt_bin),
+              binning=[80, -200,200],
+            ))
+            plots.append(Plot( name = "u_perp_" + postfix, 
+              texX = "u_{#perp} (GeV)", texY = 'Number of Events / 30 GeV',
+              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-(event.dl_phi-pi/2)),
+              weight = recoil_weight(nJetGood_bin, qt_bin),
+              binning=[80, -200,200],
+            ))
+            plots.append(Plot( name = "u_para_corr_" + postfix, 
+              texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
+              weight = recoil_weight(nJetGood_bin, qt_bin),
+              binning=[80, -200,200],
+            ))
+            plots.append(Plot( name = "u_perp_corr_" + postfix, 
+              texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
+              weight = recoil_weight(nJetGood_bin, qt_bin),
+              binning=[80, -200,200],
+            ))
+
+
   # Plots only when at least two jets:
   if args.selection.count('njet2'):
     plots.append(Plot(
@@ -632,40 +667,6 @@ for index, mode in enumerate(allModes):
           binning=[400/100, 0, 400],
         ))
    
-    # u_para u_perp closure plots
-    nJetGood_binning = [1, 2, 3, 4, 10 ]
-    qt_binning    = [0, 50, 100, 150, 200, 300 ]
-    u_para_binning   =  [ i*5 for i in range(-40, 41) ]
-    nJetGood_bins = [ (nJetGood_binning[i],nJetGood_binning[i+1]) for i in range(len(nJetGood_binning)-1) ]
-    qt_bins = [ (qt_binning[i],qt_binning[i+1]) for i in range(len(qt_binning)-1) ]
-    for nJetGood_bin in nJetGood_bins:
-        for qt_bin in qt_bins:
-            postfix = "qt_%i_%i_njet_%i_%i"%( qt_bin[0], qt_bin[1], nJetGood_bin[0], nJetGood_bin[1]) 
-            plots.append(Plot( name = "u_para_" + postfix, 
-              texX = "u_{#parallel} (GeV)", texY = 'Number of Events / 30 GeV',
-              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-event.dl_phi),
-              weight = recoil_weight(nJetGood_bin, qt_bin),
-              binning=[80, -200,200],
-            ))
-            plots.append(Plot( name = "u_perp_" + postfix, 
-              texX = "u_{#perp} (GeV)", texY = 'Number of Events / 30 GeV',
-              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-(event.dl_phi-pi/2)),
-              weight = recoil_weight(nJetGood_bin, qt_bin),
-              binning=[80, -200,200],
-            ))
-            plots.append(Plot( name = "u_para_corr_" + postfix, 
-              texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
-              weight = recoil_weight(nJetGood_bin, qt_bin),
-              binning=[80, -200,200],
-            ))
-            plots.append(Plot( name = "u_perp_corr" + postfix, 
-              texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
-              weight = recoil_weight(nJetGood_bin, qt_bin),
-              binning=[80, -200,200],
-            ))
-
 
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
