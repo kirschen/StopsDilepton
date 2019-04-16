@@ -40,18 +40,55 @@ def getSample(pd, runName, lumi):
     sample.lumi = lumi
     return sample
 
-EGamma_Run2018                  = getSample('EGamma',           'Run2018',       ((59.97)*1000))
-DoubleMuon_Run2018              = getSample('DoubleMuon',       'Run2018',       ((59.97)*1000))
-MuonEG_Run2018                  = getSample('MuonEG',           'Run2018',       ((59.97)*1000))
-SingleMuon_Run2018              = getSample('SingleMuon',       'Run2018',       ((59.97)*1000))
-
-
 allSamples_Data25ns = []
+EGamma_Run2018A                  = getSample('EGamma',           'Run2018A',       ((14.00)*1000))
+DoubleMuon_Run2018A              = getSample('DoubleMuon',       'Run2018A',       ((14.00)*1000))
+MuonEG_Run2018A                  = getSample('MuonEG',           'Run2018A',       ((14.00)*1000))
+SingleMuon_Run2018A              = getSample('SingleMuon',       'Run2018A',       ((14.00)*1000))
+allSamples_Data25ns += [MuonEG_Run2018A, EGamma_Run2018A, DoubleMuon_Run2018A, SingleMuon_Run2018A]
+
+EGamma_Run2018B                  = getSample('EGamma',           'Run2018B',       ((7.10)*1000))
+DoubleMuon_Run2018B              = getSample('DoubleMuon',       'Run2018B',       ((7.10)*1000))
+MuonEG_Run2018B                  = getSample('MuonEG',           'Run2018B',       ((7.10)*1000))
+SingleMuon_Run2018B              = getSample('SingleMuon',       'Run2018B',       ((7.10)*1000))
+allSamples_Data25ns += [MuonEG_Run2018B, EGamma_Run2018B, DoubleMuon_Run2018B, SingleMuon_Run2018B]
+
+EGamma_Run2018C                  = getSample('EGamma',           'Run2018C',       ((6.94)*1000))
+DoubleMuon_Run2018C              = getSample('DoubleMuon',       'Run2018C',       ((6.94)*1000))
+MuonEG_Run2018C                  = getSample('MuonEG',           'Run2018C',       ((6.94)*1000))
+SingleMuon_Run2018C              = getSample('SingleMuon',       'Run2018C',       ((6.94)*1000))
+allSamples_Data25ns += [MuonEG_Run2018C, EGamma_Run2018C, DoubleMuon_Run2018C, SingleMuon_Run2018C]
+
+EGamma_Run2018D                  = getSample('EGamma',           'Run2018D',       ((31.93)*1000))
+DoubleMuon_Run2018D              = getSample('DoubleMuon',       'Run2018D',       ((31.93)*1000))
+MuonEG_Run2018D                  = getSample('MuonEG',           'Run2018D',       ((31.93)*1000))
+SingleMuon_Run2018D              = getSample('SingleMuon',       'Run2018D',       ((31.93)*1000))
+allSamples_Data25ns += [MuonEG_Run2018D, EGamma_Run2018D, DoubleMuon_Run2018D, SingleMuon_Run2018D]
+
+EGamma_Run2018                   = getSample('EGamma',           'Run2018',        ((59.97)*1000))
+DoubleMuon_Run2018               = getSample('DoubleMuon',       'Run2018',        ((59.97)*1000))
+MuonEG_Run2018                   = getSample('MuonEG',           'Run2018',        ((59.97)*1000))
+SingleMuon_Run2018               = getSample('SingleMuon',       'Run2018',        ((59.97)*1000))
 allSamples_Data25ns += [MuonEG_Run2018, EGamma_Run2018, DoubleMuon_Run2018, SingleMuon_Run2018]
+
+Run2018A = Sample.combine("Run2018A", [MuonEG_Run2018A, EGamma_Run2018A, DoubleMuon_Run2018A, SingleMuon_Run2018A], texName = "Data")
+Run2018A.lumi = (14.00)*1000
+allSamples_Data25ns.append( Run2018A )
+
+Run2018B = Sample.combine("Run2018B", [MuonEG_Run2018B, EGamma_Run2018B, DoubleMuon_Run2018B, SingleMuon_Run2018B], texName = "Data")
+Run2018B.lumi = (7.10)*1000
+allSamples_Data25ns.append( Run2018B )
+
+Run2018C = Sample.combine("Run2018C", [MuonEG_Run2018C, EGamma_Run2018C, DoubleMuon_Run2018C, SingleMuon_Run2018C], texName = "Data")
+Run2018C.lumi = (6.94)*1000
+allSamples_Data25ns.append( Run2018C )
+
+Run2018D = Sample.combine("Run2018D", [MuonEG_Run2018D, EGamma_Run2018D, DoubleMuon_Run2018D, SingleMuon_Run2018D], texName = "Data")
+Run2018D.lumi = (31.93)*1000
+allSamples_Data25ns.append( Run2018D )
 
 Run2018 = Sample.combine("Run2018", [MuonEG_Run2018, EGamma_Run2018, DoubleMuon_Run2018, SingleMuon_Run2018], texName = "Data")
 Run2018.lumi = (59.97)*1000
-
 allSamples_Data25ns.append( Run2018 )
 
 for s in allSamples_Data25ns:
