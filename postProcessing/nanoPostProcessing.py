@@ -108,6 +108,18 @@ logger  = _logger.get_logger(options.logLevel, logFile = logFile)
 import RootTools.core.logger as _logger_rt
 logger_rt = _logger_rt.get_logger(options.logLevel, logFile = None )
 
+def fill_vector_collection( event, collection_name, collection_varnames, objects):
+    setattr( event, "n"+collection_name, len(objects) )
+    for i_obj, obj in enumerate(objects):
+        for var in collection_varnames:
+            if var in obj.keys():
+                if type(obj[var]) == type("string"):
+                    obj[var] = int(ord(obj[var]))
+                if type(obj[var]) == type(True):
+                    obj[var] = int(obj[var])
+                getattr(event, collection_name+"_"+var)[i_obj] = obj[var]
+
+
 #_logger.   add_fileHandler( user.data_output_directory + '/logs/%s_%s_debug.txt'%(options.samples[0], options.job), options.logLevel )
 
 # Flags 
@@ -862,23 +874,15 @@ def filler( event ):
     for m in muons_pt10:
         m['pdgId'] = int( -13*m['charge'] )
 
-    #leptons_pt10 = electrons_pt10+muons_pt10
-    leptons_pt10 = mergeCollections(electrons_pt10, muons_pt10)
+    leptons_pt10 = electrons_pt10+muons_pt10
+    #leptons_pt10 = mergeCollections(electrons_pt10, muons_pt10) # not needed, can just add
 
     leptons_pt10.sort(key = lambda p:-p['pt'])
 
     for iLep, lep in enumerate(leptons_pt10):
         lep['index'] = iLep
-        for b in lepVarNames:
-            print b
-            if b == 'lostHits' and abs(lep['pdgId'])==11:
-                getattr(event, "lep_"+b)[iLep] = int(ord(lep[b]))
-            else:
-                print type(getattr(event, "lep_"+b)[iLep]), lep[b], type(lep[b])
-                if type(getattr(event, "lep_"+b)[iLep]) == type(0) and type(lep[b]) == type(0.):#float('nan'):
-                    getattr(event, "lep_"+b)[iLep] = -1 # fucking dangerous, but int default is -1
-                else:
-                    getattr(event, "lep_"+b)[iLep] = lep[b]
+
+    fill_vector_collection( event, "lep", lepVarNames, leptons_pt10)
 
     leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     leptons.sort(key = lambda p:-p['pt'])

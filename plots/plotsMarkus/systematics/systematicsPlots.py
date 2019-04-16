@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' Analysis script for standard plots
+''' Analysis script for standard plots with systematic errors
 '''
 #
 # Standard imports and batch mode
@@ -7,7 +7,7 @@
 import ROOT
 ROOT.gROOT.SetBatch(True)
 
-from math                                import sqrt, cos, sin, pi
+from math                                import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
@@ -15,6 +15,7 @@ from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.plots.pieChart        import makePieChart
 from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
+from StopsDilepton.tools.mt2Calculator   import mt2Calculator
 
 import pickle, os, time
 import errno
@@ -26,7 +27,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
-argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots_v2')
+argParser.add_argument('--plot_directory',    action='store',      default='v1')
 #argParser.add_argument('--selection',         action='store',      default=None)
 argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 #argParser.add_argument('--normalizationSelection',  action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2llTo100')
@@ -94,14 +95,14 @@ else:                                                       all_systematics = [N
 
 sys_pairs = [\
     ('JEC',         'jesTotalUp', 'jesTotalDown'),
-    ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
-    ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
+    # ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
+    # ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
 #    ('TopPt',       'TopPt', None),
 #    ('JER',         'JERUp', 'JERDown'),
-    ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
-    ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
-    ('trigger',     'DilepTriggerDown', 'DilepTriggerUp'),
-    ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
+    # ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
+    # ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
+    # ('trigger',     'DilepTriggerDown', 'DilepTriggerUp'),
+    # ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
 ]
 
 #
@@ -219,8 +220,8 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
 
 
 def addSys( selectionString , sys = None ):
-    if   sys in jet_systematics: return selectionString.replace('nJetGood', 'nJetGood_' + sys).replace('nBTag', 'nBTag_' + sys).replace('dl_mt2ll', 'dl_mt2ll_' + sys).replace('dl_mt2bb', 'dl_mt2bb_' + sys).replace('dl_mt2blbl', 'dl_mt2blbl_' + sys)
-    elif sys in met_systematics: return selectionString.replace('met_pt', 'met_pt_' + sys).replace('metSig', 'metSig_' + sys).replace('dl_mt2ll', 'dl_mt2ll_' + sys).replace('dl_mt2bb', 'dl_mt2bb_' + sys).replace('dl_mt2blbl', 'dl_mt2blbl_' + sys)
+    if   sys in jet_systematics: return selectionString.replace('nJetGood', 'nJetGood_' + sys).replace('nBTag', 'nBTag_' + sys).replace('dl_mt2ll', 'dl_mt2ll_' + sys).replace('dl_mt2bb', 'dl_mt2bb_' + sys).replace('dl_mt2blbl', 'dl_mt2blbl_' + sys).replace('MET_Significance', 'MET_Significance_' + sys)
+    elif sys in met_systematics: return selectionString.replace('met_pt', 'met_pt_' + sys).replace('metSig', 'metSig_' + sys).replace('dl_mt2ll', 'dl_mt2ll_' + sys).replace('dl_mt2bb', 'dl_mt2bb_' + sys).replace('dl_mt2blbl', 'dl_mt2blbl_' + sys).replace('MET_Significance', 'MET_Significance_' + sys)
     else:                        return selectionString
 
 
@@ -241,6 +242,68 @@ read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2
                   "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","event/l"]
 
 sequence = []
+
+## begin MT2(ll) corr
+def recoil_weight( nJetGood_bin, qt_bin):
+    def _weight_( event, sample):
+        return event.weight*(event.nJetGood>nJetGood_bin[0])*(event.nJetGood<=nJetGood_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
+    return _weight_
+
+def corr_recoil( event, sample ):
+
+    mt2Calculator.reset()
+    if not sample.isData: 
+
+        # Parametrisation vector - # define qt as GenMET + leptons
+        qt_px = event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.GenMET_pt*cos(event.GenMET_phi)
+        qt_py = event.l1_pt*sin(event.l1_phi) + event.l2_pt*sin(event.l2_phi) + event.GenMET_pt*sin(event.GenMET_phi)
+
+        qt = sqrt( qt_px**2 + qt_py**2 )
+        qt_phi = atan2( qt_py, qt_px )
+
+        # compute fake MET 
+        fakeMET_x = event.met_pt*cos(event.met_phi) - event.GenMET_pt*cos(event.GenMET_phi)
+        fakeMET_y = event.met_pt*sin(event.met_phi) - event.GenMET_pt*sin(event.GenMET_phi)
+
+        fakeMET = sqrt( fakeMET_x**2 + fakeMET_y**2 )
+        fakeMET_phi = atan2( fakeMET_y, fakeMET_x )
+
+        # project fake MET on qT
+        fakeMET_para = fakeMET*cos( fakeMET_phi - qt_phi ) 
+        fakeMET_perp = fakeMET*cos( fakeMET_phi - ( qt_phi - pi/2) ) 
+        
+        # FIXME: signs should be negative for v3 and positive for v2 
+#        print "nJetGood: ", event.nJetGood, " qt: ", qt, " fakeMET_para: ", fakeMET_para
+        fakeMET_para_corr = - recoilCorrector.predict_para( event.nJetGood, qt, -fakeMET_para ) 
+        fakeMET_perp_corr = - recoilCorrector.predict_perp( event.nJetGood, qt, -fakeMET_perp )
+#        print fakeMET_para_corr
+
+        # rebuild fake MET vector
+        fakeMET_px_corr = fakeMET_para_corr*cos(qt_phi) + fakeMET_perp_corr*cos(qt_phi - pi/2) 
+        fakeMET_py_corr = fakeMET_para_corr*sin(qt_phi) + fakeMET_perp_corr*sin(qt_phi - pi/2) 
+
+        #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
+   
+        met_px_corr = event.met_pt*cos(event.met_phi) - fakeMET_x + fakeMET_px_corr 
+        met_py_corr = event.met_pt*sin(event.met_phi) - fakeMET_y + fakeMET_py_corr
+    
+        event.met_pt_corr  = sqrt( met_px_corr**2 + met_py_corr**2 ) 
+        event.met_phi_corr = atan2( met_py_corr, met_px_corr ) 
+
+    else:
+        event.met_pt_corr  = event.met_pt 
+        event.met_phi_corr = event.met_phi
+
+    mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+    mt2Calculator.setMet(event.met_pt_corr, event.met_phi_corr)
+    event.dl_mt2ll_corr =  mt2Calculator.mt2ll()
+
+    #print event.dl_mt2ll, event.dl_mt2ll_corr
+
+sequence.append( corr_recoil )
+
+## end MT2(ll) corr
+
 
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
 def getLeptonSelection( mode ):
@@ -300,7 +363,7 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables  = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F']
+    sample.read_variables  = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F', 'GenMET_pt/F', 'GenMET_phi/F']
     sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics]
     sample.read_variables += ["dl_mt2ll_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2bb_%s/F"%s   for s in jme_systematics]
@@ -434,7 +497,7 @@ for index, mode in enumerate(allModes):
 
   met_data  = Plot( 
       name = "met_data",
-      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Event",
+      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Events",
       stack = stack_data, 
       attribute = TreeVariable.fromString( "met_pt/F" ),
       binning=Binning.fromThresholds( metBinning ),
@@ -444,7 +507,7 @@ for index, mode in enumerate(allModes):
 
   met_mc  = {sys: Plot(
       name = "met_pt" if sys is None else "met_pt_mc_%s" % sys,
-      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Event",
+      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Events",
       stack = sys_stacks[sys],
       attribute = TreeVariable.fromString('met_pt/F') if sys not in met_systematics else TreeVariable.fromString( "met_pt_%s/F" % sys ),
       binning=Binning.fromThresholds( metBinning ),
@@ -453,11 +516,39 @@ for index, mode in enumerate(allModes):
       ) for sys in all_systematics }
   plots.extend( met_mc.values() )
 
+# --------------------------------------------
+  metSigBinning = [0,2,4,6,8,10,12,14] if args.selection.count('POGMetSig0To12') else [10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100] if args.selection.count('POGMetSig12') else [0,2,4,6,8,10,12,14,16,18,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+
+# if sys:     TreeVariable.fromString( "MET_significance_%s/F" % sys )
+# if not sys: TreeVariable.fromString( "MET_significance/F" )
+
+  metSig_data  = Plot( 
+      name = "metSig_data",
+      texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+      stack = stack_data, 
+      attribute = TreeVariable.fromString( "MET_significance/F" ),
+      binning=Binning.fromThresholds( metSigBinning ),
+      weight = data_weight,
+      )
+  plots.append( metSig_data )
+
+  metSig_mc  = {sys: Plot(
+      name = "metSig" if sys is None else "metSig_mc_%s" % sys,
+      texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+      stack = sys_stacks[sys],
+      attribute = TreeVariable.fromString('MET_significance/F') if sys not in jme_systematics else TreeVariable.fromString( "MET_significance_%s/F" % sys ),
+      binning=Binning.fromThresholds( metSigBinning ),
+      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+      weight = weightMC( sys = sys )[0],
+      ) for sys in all_systematics }
+  plots.extend( metSig_mc.values() )
+# --------------------------------------------
+
   metBinning2 = [0,20,40,60,80] if args.selection.count('metInv') else [80,100,120,140,160,200,500] if args.selection.count('met80') else [0,80,100,120,140,160,200,500]
 
   met2_data  = Plot(
       name = "met2_data",
-      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
       stack = stack_data,
       attribute = TreeVariable.fromString( "met_pt/F" ),
       binning=Binning.fromThresholds( metBinning2 ),
@@ -467,7 +558,7 @@ for index, mode in enumerate(allModes):
 
   met2_mc  = {sys: Plot(
       name = "met2_pt" if sys is None else "met2_pt_mc_%s" % sys,
-      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Event",
+      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
       stack = sys_stacks[sys],
       attribute = TreeVariable.fromString('met_pt/F') if sys not in met_systematics else TreeVariable.fromString( "met_pt_%s/F" % sys ),
       binning=Binning.fromThresholds( metBinning2 ),
@@ -482,6 +573,7 @@ for index, mode in enumerate(allModes):
          [ njets_mc, njets_data, -1],
          [ met_mc, met_data, 50],
          [ met2_mc, met2_data, 20],
+         [ metSig_mc, metSig_data, 5],
     ]
   if args.selection.count('njet2'):
     plotConfigs.append([ dl_mt2blbl_mc, dl_mt2blbl_data, 20])
