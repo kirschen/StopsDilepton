@@ -66,6 +66,8 @@ dirs['VVTo2L2Nu']       = ['VVTo2L2Nu']
 dirs['ZZTo2L2Q']        = ['ZZTo2L2Q_redBy5']
 dirs['WZTo3LNu']        = ['WZTo3LNu_amcatnlo']
 
+dirs['ZZ4l']            = ['ZZTo4L']
+
 dirs['diBoson']         = dirs['VVTo2L2Nu'] + dirs['ZZTo2L2Q'] + dirs['WZTo3LNu']
 dirs['triBoson']        = ["WWZ","WZZ","ZZZ"] 
 dirs['multiBoson']      = dirs['diBoson'] + dirs['triBoson']
@@ -80,6 +82,7 @@ Top_pow_18      = Sample.fromDirectory(name="Top_pow",          treeName="Events
 TTXNoZ_18       = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W, tZq",                  directory=directories['TTXNoZ'])
 TTZ_18          = Sample.fromDirectory(name="TTZ",              treeName="Events", isData=False, color=color.TTZ,             texName="t#bar{t}Z",                         directory=directories['TTZ'])
 VVTo2L2Nu_18    = Sample.fromDirectory(name="VVTo2L2Nu",        treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",                    directory=directories['VVTo2L2Nu'])
+ZZ4l_18         = Sample.fromDirectory(name="ZZ4l",             treeName="Events", isData=False, color=color.ZZ,              texName="ZZ(4l)",                            directory=directories['ZZ4l'])
 # WW missing
 WZ_18           = Sample.fromDirectory(name="WZ",               treeName="Events", isData=False, color=color.WZ,              texName="WZ w/o ll#nu#nu",                   directory=directories['WZTo3LNu'])
 ZZ_18           = Sample.fromDirectory(name="ZZ",               treeName="Events", isData=False, color=color.ZZ,              texName="ZZ w/o ll#nu#nu",                   directory=directories['ZZTo2L2Q'])
