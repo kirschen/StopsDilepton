@@ -7,7 +7,7 @@
 import ROOT
 ROOT.gROOT.SetBatch(True)
 
-from math                                import sqrt, cos, sin, pi
+from math                                import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
@@ -15,6 +15,7 @@ from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.plots.pieChart        import makePieChart
 from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
+from StopsDilepton.tools.mt2Calculator   import mt2Calculator
 
 import pickle, os, time
 import errno
@@ -26,7 +27,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
-argParser.add_argument('--plot_directory',    action='store',      default='systematicsPlots_v2')
+argParser.add_argument('--plot_directory',    action='store',      default='v1')
 #argParser.add_argument('--selection',         action='store',      default=None)
 argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 #argParser.add_argument('--normalizationSelection',  action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2llTo100')
@@ -94,14 +95,14 @@ else:                                                       all_systematics = [N
 
 sys_pairs = [\
     ('JEC',         'jesTotalUp', 'jesTotalDown'),
-    ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
-    ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
+    # ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
+    # ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
 #    ('TopPt',       'TopPt', None),
 #    ('JER',         'JERUp', 'JERDown'),
-    ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
-    ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
-    ('trigger',     'DilepTriggerDown', 'DilepTriggerUp'),
-    ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
+    # ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
+    # ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
+    # ('trigger',     'DilepTriggerDown', 'DilepTriggerUp'),
+    # ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
 ]
 
 #
@@ -242,6 +243,66 @@ read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2
 
 sequence = []
 
+## begin MT2(ll) corr
+# def recoil_weight( nJetGood_bin, qt_bin):
+#     def _weight_( event, sample):
+#         return event.weight*(event.nJetGood>nJetGood_bin[0])*(event.nJetGood<=nJetGood_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
+#     return _weight_
+
+# def corr_recoil( event, sample ):
+
+#     mt2Calculator.reset()
+#     if not sample.isData: 
+
+#         # Parametrisation vector - # define qt as GenMET + leptons
+#         qt_px = event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.GenMET_pt*cos(event.GenMET_phi)
+#         qt_py = event.l1_pt*sin(event.l1_phi) + event.l2_pt*sin(event.l2_phi) + event.GenMET_pt*sin(event.GenMET_phi)
+
+#         qt = sqrt( qt_px**2 + qt_py**2 )
+#         qt_phi = atan2( qt_py, qt_px )
+
+#         # compute fake MET 
+#         fakeMET_x = event.met_pt*cos(event.met_phi) - event.GenMET_pt*cos(event.GenMET_phi)
+#         fakeMET_y = event.met_pt*sin(event.met_phi) - event.GenMET_pt*sin(event.GenMET_phi)
+
+#         fakeMET = sqrt( fakeMET_x**2 + fakeMET_y**2 )
+#         fakeMET_phi = atan2( fakeMET_y, fakeMET_x )
+
+#         # project fake MET on qT
+#         fakeMET_para = fakeMET*cos( fakeMET_phi - qt_phi ) 
+#         fakeMET_perp = fakeMET*cos( fakeMET_phi - ( qt_phi - pi/2) ) 
+        
+#         # FIXME: signs should be negative for v3 and positive for v2 
+#         fakeMET_para_corr = - recoilCorrector.predict_para( event.nJetGood, qt, -fakeMET_para ) 
+#         fakeMET_perp_corr = - recoilCorrector.predict_perp( event.nJetGood, qt, -fakeMET_perp )
+
+#         # rebuild fake MET vector
+#         fakeMET_px_corr = fakeMET_para_corr*cos(qt_phi) + fakeMET_perp_corr*cos(qt_phi - pi/2) 
+#         fakeMET_py_corr = fakeMET_para_corr*sin(qt_phi) + fakeMET_perp_corr*sin(qt_phi - pi/2) 
+
+#         #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
+   
+#         met_px_corr = event.met_pt*cos(event.met_phi) - fakeMET_x + fakeMET_px_corr 
+#         met_py_corr = event.met_pt*sin(event.met_phi) - fakeMET_y + fakeMET_py_corr
+    
+#         event.met_pt_corr  = sqrt( met_px_corr**2 + met_py_corr**2 ) 
+#         event.met_phi_corr = atan2( met_py_corr, met_px_corr ) 
+
+#     else:
+#         event.met_pt_corr  = event.met_pt 
+#         event.met_phi_corr = event.met_phi
+
+#     mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+#     mt2Calculator.setMet(event.met_pt_corr, event.met_phi_corr)
+#     event.dl_mt2ll_corr =  mt2Calculator.mt2ll()
+
+#     #print event.dl_mt2ll, event.dl_mt2ll_corr
+
+# sequence.append( corr_recoil )
+
+## end MT2(ll) corr
+
+
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
 def getLeptonSelection( mode ):
   if   mode=="mumu": return "nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ
@@ -300,7 +361,7 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables  = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F']
+    sample.read_variables  = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F', 'GenMET_pt/F', 'GenMET_phi/F']
     sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics]
     sample.read_variables += ["dl_mt2ll_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2bb_%s/F"%s   for s in jme_systematics]
