@@ -32,7 +32,7 @@ argParser.add_argument('--small',                                   action='stor
 argParser.add_argument('--fine',                                    action='store_true',     help='Fine binning?', )
 argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mumu", "ee", "SF"], help="Lepton flavor")
 argParser.add_argument('--overwrite',                               action='store_true',     help='Overwrite?', )
-argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v4')
+argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v4.2/')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ')
 args = argParser.parse_args()
@@ -63,25 +63,25 @@ logger.info( "Working in year %i", year )
 
 if year == 2016:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2016_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2016_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2016/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
 elif year == 2017:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2017/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
 elif year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2018/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
@@ -136,7 +136,7 @@ def drawPlots(plots, mode, dataMCScale, drawObjects = None):
 	    ratio = {'yRange':(0.1,1.9)},
 	    logX = False, logY = log, sorting = True,
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
-	    scaling = {},
+	    scaling = {0:1},
 	    legend = (0.15,0.88-0.04*sum(map(len, plot.histos)),0.65,0.88),
 	    drawObjects = defDrawObjects( True, dataMCScale , lumi_scale ) + ( drawObjects if drawObjects is not None else [] ) ,
         copyIndexPHP = True,
@@ -161,7 +161,7 @@ u_para = "-met_pt*cos(met_phi-dl_phi)"        # u_para is actually (u+qT)_para =
 u_perp = "-met_pt*cos(met_phi-(dl_phi-pi/2.))"# u_perp = -ET.n_perp (where n_perp is n with phi->phi-pi/2) 
 
 #nJetGood_binning = [1, 10 ]
-qt_binning    = [0, 50, 100, 150, 200, 300 ]
+qt_binning    = [0, 50, 100, 150, 200, 300, 400 ]
 dl_phi_binning   = [ pi*(i-5)/5. for i in range(0,11) ]
 u_para_binning   = [ i for i in range(-200, 201) ] if args.fine else [ i*5 for i in range(-40, 41) ]
 
@@ -200,6 +200,8 @@ if args.small:
         sample.normalization = 1.
         sample.reduceFiles( factor = 40 )
         sample.scale /= sample.normalization
+
+assert "",False
 
 pickle_file = os.path.join(output_directory, 'recoil_%s.pkl'%args.mode )
 if not os.path.exists( output_directory ): 
@@ -260,7 +262,8 @@ for dl_phi_bin in dl_phi_bins:
             ## fit
             h_mc   = plot.histos_added[0][0].Clone()
             h_data = plot.histos_added[1][0].Clone()
-            h_mc.Scale(h_data.Integral()/h_mc.Integral())
+            if h_mc.Integral()>0:
+                h_mc.Scale(h_data.Integral()/h_mc.Integral())
 
 
             fitResults[dl_phi_bin][qt_bin][prefix]['mc']['TH1F']   = h_mc 
@@ -269,8 +272,8 @@ for dl_phi_bin in dl_phi_bins:
             q_mc   = tuple(get_quantiles( h_mc ))
             q_data = tuple(get_quantiles( h_data ))
             median_shift = q_data[2]-q_mc[2]
-            sigma1_ratio = (q_data[3]-q_data[1])/(q_mc[3]-q_mc[1])
-            sigma2_ratio = (q_data[4]-q_data[0])/(q_mc[4]-q_mc[0])
+            sigma1_ratio = (q_data[3]-q_data[1])/(q_mc[3]-q_mc[1]) if q_mc[3]-q_mc[1]!=0 else 0
+            sigma2_ratio = (q_data[4]-q_data[0])/(q_mc[4]-q_mc[0]) if q_mc[4]-q_mc[0]!=0 else 0
 
             drawObjects = []
             drawObjects.append( tex2.DrawLatex(0.5, 0.86, '#Delta(med): %+3.1f   1#sigma: %4.3f  2#sigma  %4.3f' % ( median_shift, sigma1_ratio, sigma2_ratio) ) )
