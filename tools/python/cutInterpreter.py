@@ -18,10 +18,16 @@ special_cuts = {
     "OS":                "(l1_pdgId*l2_pdgId)<0",
     "lepSel":            "l1_pt>30&&l2_pt>20",
     "lepSelEXO":         "l1_pt>25&&l2_pt>10",
+    "quadlep":           "Sum$(lep_pt>10&&abs(lep_eta)<2.4&&lep_pfRelIso03_all<0.12)>3",
 
     "allZ":              "(1)",
     "onZ":               "abs(dl_mass-91.1876)<15",
     "offZ":              "abs(dl_mass-91.1876)>15",
+    "onZZ" :             "abs(Z1_mass-91.1876)<20&&abs(Z2_mass-91.1876)<20",
+    "onZ1" :             "abs(Z1_mass-91.1876)<20",
+    "offZ1" :            "abs(Z1_mass-91.1876)>20",
+    "offZ2":             "(1)",# taken care off in plot script. Think of something better! "abs(Z2_mass_4l-91.1876)>20",
+    "minZ2mass12":       "(1)",# taken care off in plot script.
     "llgNoZ":            "(abs(dlg_mass-91.1876)>15||isEMu)",
 
     "gLepdR":            "(1)",
@@ -48,7 +54,7 @@ special_cuts = {
 
   }
 
-continous_variables = [ ("POGMetSig", "MET_significance"), ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"),("mt2bb", "dl_mt2bb"),("htCMG", "htJet40j"), ("photon","photon_pt"), ("nPV", "PV_npvsGood") ]
+continous_variables = [ ("POGMetSig", "MET_significance"), ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"),("mt2bb", "dl_mt2bb"),("htCMG", "htJet40j"), ("photon","photon_pt"), ("nPV", "PV_npvsGood"), ("Z2mass", "Z2_mass"), ("Z1mass", "Z1_mass") ]
 discrete_variables  = [ ("njet", "nJetGood"), ("btag", "nBTag") , ("nCMGjet", "nJet30")]
 
 class cutInterpreter:

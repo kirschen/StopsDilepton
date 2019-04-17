@@ -30,7 +30,7 @@ from StopsDilepton.tools.user import MVA_preprocessing_directory, MVA_model_dire
 
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator      import mt2Calculator
-from StopsDilepton.tools.helpers            import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile, getSortedZCandidates
+from StopsDilepton.tools.helpers            import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile, getSortedZCandidates, getMinDLMass
 from StopsDilepton.tools.addJERScaling      import addJERScaling
 from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector, mergeCollections
 from StopsDilepton.tools.overlapRemovalTTG  import getTTGJetsEventType
@@ -43,6 +43,7 @@ from Analysis.Tools.overlapRemovalTTG       import photonFromTopDecay, hasMesonM
 from Analysis.Tools.puProfileCache          import *
 from Analysis.Tools.L1PrefireWeight         import L1PrefireWeight
 from Analysis.Tools.LeptonTrackingEfficiency import LeptonTrackingEfficiency
+from Analysis.Tools.isrWeight               import ISRweight
 
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
@@ -201,26 +202,37 @@ else:
 
     xSection = samples[0].xSection if isMC else None
 
-# Trigger selection
-from StopsDilepton.tools.triggerSelector import triggerSelector
-if isData:
-    era = extractEra(samples[0].name)[-1]
-else:
-    era = None
-print "######### Era %s ########"%era
-ts = triggerSelector(options.year, era=era)
-triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
-treeFormulas = {"triggerDecision": {'string':triggerCond} }
+## Trigger selection
+#from StopsDilepton.tools.triggerSelector import triggerSelector
+#if isData:
+#    era = extractEra(samples[0].name)[-1]
+#else:
+#    era = None
+#print "######### Era %s ########"%era
+#ts = triggerSelector(options.year, era=era)
+#triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
+#treeFormulas = {"triggerDecision": {'string':triggerCond} }
 
 L1PW = L1PrefireWeight(options.year)
 
 if sample.isData and options.triggerSelection:
+    from StopsDilepton.tools.triggerSelector import triggerSelector
+    if isData:
+        era = extractEra(samples[0].name)[-1]
+    else:
+        era = None
+    print "######### Era %s ########"%era
+    ts = triggerSelector(options.year, era=era)
+    triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
+    treeFormulas = {"triggerDecision": {'string':triggerCond} }
+
     logger.info("Sample will have the following trigger skim: %s"%triggerCond)
     skimConds.append( triggerCond )
 
 sample_name_postFix = ""
 
-triggerEff            = triggerEfficiency(options.year)
+triggerEff          = triggerEfficiency(options.year)
+isr                 = ISRweight()
 
 #Samples: combine if more than one
 if len(samples)>1:
@@ -388,7 +400,7 @@ if options.year == 2017:
 
 #branches to be kept for MC samples only
 branchKeepStrings_MC = [\
-    "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_pt","GenMET_phi"
+    "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_pt","GenMET_phi", "nISR",
 ]
 
 #branches to be kept for data only
@@ -439,6 +451,7 @@ if isMC:
     read_variables += [ TreeVariable.fromString('Pileup_nTrueInt/F') ]
     # reading gen particles for top pt reweighting
     read_variables.append( TreeVariable.fromString('nGenPart/I') )
+    read_variables.append( TreeVariable.fromString('nISR/I') )
     read_variables.append( VectorTreeVariable.fromString('GenPart[pt/F,mass/F,phi/F,eta/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]', nMax=200 )) # default nMax is 100, which would lead to corrupt values in this case
     read_variables.append( TreeVariable.fromString('genWeight/F') )
     read_variables.append( TreeVariable.fromString('nGenJet/I') )
@@ -458,7 +471,7 @@ read_variables += [\
 ]
 
 new_variables += [\
-    'overlapRemoval/I',
+    'overlapRemoval/I','nlep/I', "min_dl_mass/F",
     'JetGood[%s]'% ( ','.join(jetVars) + ',genPt/F' ),
     'met_pt/F', 'met_phi/F', 'met_pt_min/F'
 ]
@@ -497,10 +510,10 @@ new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
 if isTriLep or isDiLep:
   new_variables.extend( ['dlg_mass/F','dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
 
-## 4l related variables
-new_variables.extend( ['Z1_l1_index_4l/I', 'Z1_l2_index_4l/I', 'Z2_l1_index_4l/I', 'Z2_l2_index_4l/I', 'nonZ1_l1_index_4l/I', 'nonZ1_l2_index_4l/I'] )
+## ttZ related variables
+new_variables.extend( ['Z1_l1_index/I', 'Z1_l2_index/I', 'Z2_l1_index/I', 'Z2_l2_index/I', 'nonZ1_l1_index/I', 'nonZ1_l2_index/I'] )
 for i in [1,2]:
-    new_variables.extend( ['Z%i_pt_4l/F'%i, 'Z%i_eta_4l/F'%i, 'Z%i_phi_4l/F'%i, 'Z%i_lldPhi_4l/F'%i, 'Z%i_lldR_4l/F'%i,  'Z%i_mass_4l/F'%i] )
+    new_variables.extend( ['Z%i_pt/F'%i, 'Z%i_eta/F'%i, 'Z%i_phi/F'%i, 'Z%i_lldPhi/F'%i, 'Z%i_lldR/F'%i,  'Z%i_mass/F'%i] )
 
 
 if options.checkTTGJetsOverlap:
@@ -591,6 +604,7 @@ if not options.skipNanoTools:
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib            import jetRecalib
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METSigProducer        import METSigProducer 
     from PhysicsTools.NanoAODTools.postprocessing.modules.private.METminProducer        import METminProducer
+    from PhysicsTools.NanoAODTools.postprocessing.modules.private.ISRcounter        import ISRcounter
     
     logger.info("Preparing nanoAOD postprocessing")
     logger.info("Will put files into directory %s", output_directory)
@@ -667,6 +681,7 @@ if not options.skipNanoTools:
     modules = []
     
     if not sample.isData:
+        modules.append( ISRcounter() )
         modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
         if options.year == 2017:
             modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') )
@@ -851,7 +866,11 @@ def filler( event ):
         event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.Pileup_nTrueInt )
 
     # top pt reweighting
-    if isMC: event.reweightTopPt = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
+    if isMC:
+        event.reweightTopPt     = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
+        event.reweight_nISR     = isr.getWeight(r)              if options.susySignal else 1
+        event.reweight_nISRUp   = isr.getWeight(r, sigma=1)     if options.susySignal else 1
+        event.reweight_nISRDown = isr.getWeight(r, sigma=-1)    if options.susySignal else 1
 
     if options.keepAllJets:
         jetAbsEtaCut = 99.
@@ -883,6 +902,8 @@ def filler( event ):
         lep['index'] = iLep
 
     fill_vector_collection( event, "lep", lepVarNames, leptons_pt10)
+    event.nlep = len(leptons_pt10)
+
 
     leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
     leptons.sort(key = lambda p:-p['pt'])
@@ -1115,45 +1136,44 @@ def filler( event ):
                             setattr(event, 'dl_mt2blbl'+i+'_'+var, mt2Calculator.mt2blbl())
 
             # for quadlep stuff
-            allZCands_4l = getSortedZCandidates(leptons_pt10)
-            #print len(allZCands_4l)
+            allZCands = getSortedZCandidates(leptons_pt10)
             Z_vectors = []
             for i in [0,1]:
-                if len(allZCands_4l) > i:
-                    (Z_mass, Z_l1_tightLepton_index, Z_l2_tightLepton_index) = allZCands_4l[i]
-                    Z_l1_index_4l = Z_l1_tightLepton_index if Z_l1_tightLepton_index>=0 else -1
-                    Z_l2_index_4l = Z_l2_tightLepton_index if Z_l2_tightLepton_index>=0 else -1
-                    setattr(event, "Z%s_mass_4l"%(i+1),       Z_mass)
-                    setattr(event, "Z%s_l1_index_4l"%(i+1),   Z_l1_index_4l)
-                    setattr(event, "Z%s_l2_index_4l"%(i+1),   Z_l2_index_4l)
+                if len(allZCands) > i:
+                    (Z_mass, Z_l1_tightLepton_index, Z_l2_tightLepton_index) = allZCands[i]
+                    Z_l1_index = Z_l1_tightLepton_index if Z_l1_tightLepton_index>=0 else -1
+                    Z_l2_index = Z_l2_tightLepton_index if Z_l2_tightLepton_index>=0 else -1
+                    setattr(event, "Z%s_mass"%(i+1),       Z_mass)
+                    setattr(event, "Z%s_l1_index"%(i+1),   Z_l1_index)
+                    setattr(event, "Z%s_l2_index"%(i+1),   Z_l2_index)
                     Z_l1 = ROOT.TLorentzVector()
-                    Z_l1.SetPtEtaPhiM(leptons_pt10[Z_l1_index_4l]['pt'], leptons_pt10[Z_l1_index_4l]['eta'], leptons_pt10[Z_l1_index_4l]['phi'], 0 )
+                    Z_l1.SetPtEtaPhiM(leptons_pt10[Z_l1_index]['pt'], leptons_pt10[Z_l1_index]['eta'], leptons_pt10[Z_l1_index]['phi'], 0 )
                     Z_l2 = ROOT.TLorentzVector()
-                    Z_l2.SetPtEtaPhiM(leptons_pt10[Z_l2_index_4l]['pt'], leptons_pt10[Z_l2_index_4l]['eta'], leptons_pt10[Z_l2_index_4l]['phi'], 0 )
+                    Z_l2.SetPtEtaPhiM(leptons_pt10[Z_l2_index]['pt'], leptons_pt10[Z_l2_index]['eta'], leptons_pt10[Z_l2_index]['phi'], 0 )
                     Z = Z_l1 + Z_l2
-                    setattr(event, "Z%s_pt_4l"%(i+1),         Z.Pt())
-                    setattr(event, "Z%s_eta_4l"%(i+1),        Z.Eta())
-                    setattr(event, "Z%s_phi_4l"%(i+1),        Z.Phi())
-                    setattr(event, "Z%s_lldPhi_4l"%(i+1),     deltaPhi(Z_l1.Phi(), Z_l2.Phi()))
+                    setattr(event, "Z%s_pt"%(i+1),         Z.Pt())
+                    setattr(event, "Z%s_eta"%(i+1),        Z.Eta())
+                    setattr(event, "Z%s_phi"%(i+1),        Z.Phi())
+                    setattr(event, "Z%s_lldPhi"%(i+1),     deltaPhi(Z_l1.Phi(), Z_l2.Phi()))
                     Z_vectors.append(Z)
 
             # take the leptons that are not from the leading Z candidate and assign them as nonZ, ignorant about if they actually form a Z candidate
             # As a start, take the leading two leptons as non-Z. To be overwritten as soon as we have a Z candidate, otherwise one lepton can be both from Z and non-Z
             if len(leptons_pt10)>0:
-                event.nonZ1_l1_index_4l = leptons_pt10[0]['index']
+                event.nonZ1_l1_index = leptons_pt10[0]['index']
             if len(leptons)>1:
-                event.nonZ1_l2_index_4l = leptons_pt10[1]['index']
-            if len(allZCands_4l)>0:
+                event.nonZ1_l2_index = leptons_pt10[1]['index']
+            if len(allZCands)>0:
                 # reset nonZ1_leptons
-                event.nonZ1_l1_index_4l = -1
-                event.nonZ1_l2_index_4l = -1
-                nonZ_tightLepton_indices_4l = [ i for i in range(len(leptons_pt10)) if i not in [allZCands_4l[0][1], allZCands_4l[0][2]] ]
+                event.nonZ1_l1_index = -1
+                event.nonZ1_l2_index = -1
+                nonZ_tightLepton_indices = [ i for i in range(len(leptons_pt10)) if i not in [allZCands[0][1], allZCands[0][2]] ]
 
-                event.nonZ1_l1_index_4l = nonZ_tightLepton_indices_4l[0] if len(nonZ_tightLepton_indices_4l)>0 else -1
-                event.nonZ1_l2_index_4l = nonZ_tightLepton_indices_4l[1] if len(nonZ_tightLepton_indices_4l)>1 else -1
+                event.nonZ1_l1_index = nonZ_tightLepton_indices[0] if len(nonZ_tightLepton_indices)>0 else -1
+                event.nonZ1_l2_index = nonZ_tightLepton_indices[1] if len(nonZ_tightLepton_indices)>1 else -1
 
 
-            # FIXME need to store all leptons!!
+            event.min_dl_mass = getMinDLMass(leptons_pt10)[0][0]
 
 
     #if addSystematicVariations:

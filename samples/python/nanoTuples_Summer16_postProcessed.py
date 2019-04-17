@@ -82,6 +82,7 @@ dirs['WW']               = []#["WWToLNuQQ_comb"]
 dirs['VVTo2L2Nu']        = ["VVTo2L2Nu_comb"]
 dirs['WZ']               = ["WZTo1L1Nu2Q",  "WZTo3LNu_ext"] # "WZTo1L3Nu" "WZTo2L2Q",missing
 dirs['ZZ']               = ["ZZTo2L2Q", "ZZTo2Q2Nu"]
+dirs['ZZ4l']             = ["ZZTo4L"]
 #dirs['ZZTo2L2Nu']        = ["ZZTo2L2Nu"]
 #dirs['ZZ_']              = ["ZZTo2L2Q", "ZZTo2Q2Nu","ZZTo2L2Nu"]
 dirs['diBoson']          = dirs['WW'] + dirs['WZ'] + dirs['ZZ']+ dirs['VVTo2L2Nu']
@@ -137,6 +138,7 @@ diBoson_16        = Sample.fromDirectory(name="diBoson",          treeName="Even
 #VVTo2L2Nu_16      = Sample.fromDirectory(name="VVTo2L2Nu",               treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",             directory=directories['VVTo2L2Nu'])
 triBoson_16       = Sample.fromDirectory(name="triBoson",         treeName="Events", isData=False, color=color.triBoson,        texName="WWZ,WZZ,ZZZ",                       directory=directories['triBoson'])
 multiBoson_16     = Sample.fromDirectory(name="multiBoson",       treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                       directory=directories['multiBoson'])
+ZZ4l_16           = Sample.fromDirectory(name="ZZ4l",             treeName="Events", isData=False, color=color.ZZ,              texName="ZZ(4l)",                            directory=directories['ZZ4l'])
 #QCD_HT         = Sample.fromDirectory(name="QCD_HT",           treeName="Events", isData=False, color=color.QCD,             texName="QCD (HT)",                          directory=directories['QCD_HT'])
 ##QCD_Mu5        = Sample.fromDirectory(name="QCD_Mu5",          treeName="Events", isData=False, color=color.QCD,             texName="QCD (Mu5)",                         directory=directories['QCD_Mu5'])
 ##QCD_EMbcToE    = Sample.fromDirectory(name="QCD_EM+bcToE",     treeName="Events", isData=False, color=color.QCD,             texName="QCD (Em+bcToE)",                    directory=directories['QCD_EM+bcToE'])
