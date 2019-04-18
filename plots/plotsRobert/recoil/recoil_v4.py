@@ -32,7 +32,7 @@ argParser.add_argument('--small',                                   action='stor
 argParser.add_argument('--fine',                                    action='store_true',     help='Fine binning?', )
 argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mumu", "ee", "SF"], help="Lepton flavor")
 argParser.add_argument('--overwrite',                               action='store_true',     help='Overwrite?', )
-argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v4.2/')
+argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v4.3/')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ')
 args = argParser.parse_args()
@@ -45,8 +45,8 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-if args.small:                        args.plot_directory += "_small"
-if args.fine:                        args.plot_directory += "_fine"
+if args.small: args.plot_directory += "_small"
+if args.fine:  args.plot_directory += "_fine"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
@@ -63,14 +63,14 @@ logger.info( "Working in year %i", year )
 
 if year == 2016:
     data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    postProcessing_directory = "stops_2016_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2016/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
 elif year == 2017:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
@@ -78,10 +78,10 @@ elif year == 2017:
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2017/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
 elif year == 2018:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2018/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
@@ -201,8 +201,6 @@ if args.small:
         sample.reduceFiles( factor = 40 )
         sample.scale /= sample.normalization
 
-assert "",False
-
 pickle_file = os.path.join(output_directory, 'recoil_%s.pkl'%args.mode )
 if not os.path.exists( output_directory ): 
     os.makedirs( output_directory )
@@ -212,6 +210,7 @@ if not os.path.isfile( pickle_file ) or args.overwrite:
     h3D_u_perp = {}
     for sample in stack.samples:
         h3D_u_para[sample.name] = sample.get3DHistoFromDraw("dl_phi:dl_pt:"+u_para, [u_para_binning,qt_binning,dl_phi_binning], binningIsExplicit=True)
+        #h3D_u_para[sample.name] = sample.get3DHistoFromDraw("dl_phi:dl_pt:"+u_para+( "+10" if not sample.isData else ""), [u_para_binning,qt_binning,dl_phi_binning], binningIsExplicit=True)
         h3D_u_perp[sample.name] = sample.get3DHistoFromDraw("dl_phi:dl_pt:"+u_perp, [u_para_binning,qt_binning,dl_phi_binning], binningIsExplicit=True)
         h3D_u_para[sample.name].Scale(sample.scale)
         h3D_u_perp[sample.name].Scale(sample.scale)
@@ -264,7 +263,6 @@ for dl_phi_bin in dl_phi_bins:
             h_data = plot.histos_added[1][0].Clone()
             if h_mc.Integral()>0:
                 h_mc.Scale(h_data.Integral()/h_mc.Integral())
-
 
             fitResults[dl_phi_bin][qt_bin][prefix]['mc']['TH1F']   = h_mc 
             fitResults[dl_phi_bin][qt_bin][prefix]['data']['TH1F'] = h_data 
