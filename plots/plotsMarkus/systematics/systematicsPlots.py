@@ -88,9 +88,12 @@ jet_systematics    = ['jesTotalUp','jesTotalDown']# 'JERDown','JECVUp','JECVDown
 met_systematics    = ['unclustEnUp', 'unclustEnDown']
 jme_systematics    = jet_systematics + met_systematics
 if args.year==2018:
-    weight_systematics = ['PU36fbVVUp', 'PU36fbUp', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
+    weight_systematics = ['BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
+    weight_systematics += ['PU36fbVVUp', 'PU36fbUp']
 else:
-    weight_systematics = ['PU36fbUp', 'PU36fbDown', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
+    weight_systematics = ['BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
+    weight_systematics += ['PU36fbUp', 'PU36fbDown'] 
+
 # top pt missing
 
 if args.selectSys != "all" and args.selectSys != "combine": all_systematics = [args.selectSys if args.selectSys != 'None' else None]
@@ -101,7 +104,7 @@ else:                                                       all_systematics = [N
 sys_pairs = [\
     ('JEC',         'jesTotalUp', 'jesTotalDown'),
     ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
-    ('PU36fb',      'PU36fbUp', 'PU36fbDown') if not args.year==2018 else ('PU36fb', 'PU36fbVVUp', 'PU36fb'),
+    ('PU36fb',      'PU36fbUp', 'PU36fbDown') if not args.year==2018 else ('PU36fb', 'PU36fbVVUp', 'PU36fbUp'),
     # ('TopPt',       'TopPt', None),
     # ('JER',         'JERUp', 'JERDown'),
     ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
@@ -168,28 +171,28 @@ if args.postHEM:                  args.plot_directory += "_postHEM"
 from Analysis.Tools.puReweighting import getReweightingFunction
 
 if args.year == 2016:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16
     mc              = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
     data_sample     = Run2016
-    Pileup_nTrueInt_puRWVUp = getReweightingFunction(data="PU_2016_35920_XSecVUp", mc="Summer16")
-#    Pileup_nTrueInt_puRWVVUp = getReweightingFunction(data="PU_2016_35920_XSecVVUp", mc="Summer16")
+    Pileup_nTrueInt_puRWDown = getReweightingFunction(data="PU_2016_35920_XSecDown", mc="Summer16")
+    Pileup_nTrueInt_puRWUp = getReweightingFunction(data="PU_2016_35920_XSecUp", mc="Summer16")
     recoilCorrector = RecoilCorrector( 2016 )
 elif args.year == 2017:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
     mc              = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
     data_sample     = Run2017
-    Pileup_nTrueInt_puRWVUp = getReweightingFunction(data="PU_2017_41860_XSecVUp", mc="Fall17")
-#    Pileup_nTrueInt_puRWVVUp = getReweightingFunction(data="PU_2017_41860_XSecVVUp", mc="Fall17")
+    Pileup_nTrueInt_puRWDown = getReweightingFunction(data="PU_2017_41860_XSecDown", mc="Fall17")
+    Pileup_nTrueInt_puRWUp = getReweightingFunction(data="PU_2017_41860_XSecUp", mc="Fall17")
     recoilCorrector = RecoilCorrector( 2017 )
 elif args.year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
@@ -322,9 +325,13 @@ sequence.append( corr_recoil )
 def pu_reweight( event, sample ):
 
     if not sample.isData:
-        event.reweightPU36fbVUp = Pileup_nTrueInt_puRWVUp(event.Pileup_nTrueInt)
-        event.reweightPU36fbVVUp = Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
+        if args.year == 2018:
+            event.reweightPU36fbVUp = Pileup_nTrueInt_puRWVUp(event.Pileup_nTrueInt)
+            event.reweightPU36fbVVUp = Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
 #        print "Pileup_nTrueInt_puRWVVUp: ", Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
+        else:
+            event.reweightPU36fbDown = Pileup_nTrueInt_puRWDown(event.Pileup_nTrueInt)
+            event.reweightPU36fbUp = Pileup_nTrueInt_puRWUp(event.Pileup_nTrueInt)
 
 sequence.append( pu_reweight )
 
@@ -624,7 +631,7 @@ for index, mode in enumerate(allModes):
       ) for sys in all_systematics }
   plots.extend( met2_mc.values() )
 
-  metSigBinning = [0,2,4,6,8,10,12] if args.selection.count('POGMetSig0To12') else [10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100] if args.selection.count('POGMetSig12') else [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+  metSigBinning = [0,2,4,6,8,10,12] if args.selection.count('POGMetSig0To12') else [12,16,20,24,28,32,36,40,45,50,55,60,65,70,75,80,85,90,95,100] if args.selection.count('POGMetSig12') else [0,4,8,12,16,20,24,28,32,36,40,45,50,55,60,65,70,75,80,85,90,95,100]
 
   metSig_data  = Plot( 
       name = "MET_significance_data",
@@ -808,16 +815,16 @@ for index, mode in enumerate(allModes):
           for ib in range( 1 + h_rel_err.GetNbinsX() ):
             h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
-      ## When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
-      #if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
-      #  for ib in range(1 + h_rel_err.GetNbinsX() ):
-      #    if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
-      #    topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
-      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
-      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
-      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
-      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
-      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
+      # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
+      if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
+       for ib in range(1 + h_rel_err.GetNbinsX() ):
+         if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
+         topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
+         h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
+         h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttzHist.GetBinContent(ib))**2 )
+         h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
+         h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
+         h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
 
       # take sqrt
       for ib in range( 1 + h_rel_err.GetNbinsX() ):
