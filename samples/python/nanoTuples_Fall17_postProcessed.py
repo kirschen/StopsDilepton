@@ -77,6 +77,7 @@ dirs['WW']               = ["WWToLNuQQ"]
 dirs['VVTo2L2Nu']        = ["VVTo2L2Nu"]
 dirs['WZ']               = ["WZTo1L1Nu2Q", "WZTo2L2Q", "WZTo1L3Nu", "WZTo3LNu_amcatnlo"]
 dirs['ZZ']               = ["ZZTo2L2Q"] # "ZZTo2Q2Nu"
+dirs['ZZ4l']             = ["ZZTo4L"] # "ZZTo2Q2Nu"
 #dirs['ZZTo2L2Nu']        = ["ZZTo2L2Nu"]
 #dirs['ZZ_']              = ["ZZTo2L2Q", "ZZTo2Q2Nu","ZZTo2L2Nu"]
 dirs['diBoson']          = dirs['WW'] + dirs['WZ'] + dirs['ZZ'] + dirs['VVTo2L2Nu']
@@ -125,6 +126,7 @@ VVTo2L2Nu_17       = Sample.fromDirectory(name="VVTo2L2Nu",        treeName="Eve
 WW_17              = Sample.fromDirectory(name="WW",               treeName="Events", isData=False, color=color.WW,              texName="WW w/o ll#nu#nu",                   directory=directories['WW'])
 WZ_17              = Sample.fromDirectory(name="WZ",               treeName="Events", isData=False, color=color.WZ,              texName="WZ w/o ll#nu#nu",                   directory=directories['WZ'])
 ZZ_17              = Sample.fromDirectory(name="ZZ",               treeName="Events", isData=False, color=color.ZZ,              texName="ZZ w/o ll#nu#nu",                   directory=directories['ZZ'])
+ZZ4l_17            = Sample.fromDirectory(name="ZZ4l",             treeName="Events", isData=False, color=color.ZZ,              texName="ZZ(4l)",                            directory=directories['ZZ4l'])
 triBoson_17        = Sample.fromDirectory(name="triBoson",         treeName="Events", isData=False, color=color.triBoson,        texName="WWW,WWZ,WZZ,ZZZ",                   directory=directories['triBoson'])
 multiBoson_17      = Sample.fromDirectory(name="multiBoson",       treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                       directory=directories['multiBoson'])
 #QCD_HT         = Sample.fromDirectory(name="QCD_HT",           treeName="Events", isData=False, color=color.QCD,             texName="QCD (HT)",                          directory=directories['QCD_HT'])
