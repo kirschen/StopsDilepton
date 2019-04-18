@@ -26,7 +26,7 @@ cd $CMSSW_BASE/src
 
 scram b -j9
 
-cd $CMSSW_BASE/src
+cd $CMSSW_BASE/src/StopsDilepton
 git fetch origin
 git checkout -b 101X origin/101X
 

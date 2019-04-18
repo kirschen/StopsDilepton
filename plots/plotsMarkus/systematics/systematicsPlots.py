@@ -16,6 +16,7 @@ from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.plots.pieChart        import makePieChart
 from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
+from Analysis.Tools.puReweighting        import getReweightingFunction
 
 import pickle, os, time
 import errno
@@ -43,6 +44,7 @@ argParser.add_argument('--isChild',           action='store_true', default=False
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
 argParser.add_argument('--dryRun',            action='store_true', default=False,       help='do not launch subjobs')
 argParser.add_argument("--year", action='store', type=int, default=2016, choices = [ 2016, 2017, 2018 ], help='Which year?')
+argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp'])
 argParser.add_argument('--preHEM',             action='store_true', default=False)
 argParser.add_argument('--postHEM',            action='store_true', default=False)
 args = argParser.parse_args()
@@ -85,24 +87,30 @@ bJetSelectionM  = "nBTag"
 jet_systematics    = ['jesTotalUp','jesTotalDown']# 'JERDown','JECVUp','JECVDown']
 met_systematics    = ['unclustEnUp', 'unclustEnDown']
 jme_systematics    = jet_systematics + met_systematics
-weight_systematics = ['PU36fbUp', 'PU36fbDown', 'BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
+if args.year==2018:
+    weight_systematics = ['BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
+    weight_systematics += ['PU36fbVVUp', 'PU36fbUp']
+else:
+    weight_systematics = ['BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
+    weight_systematics += ['PU36fbUp', 'PU36fbDown'] 
+
 # top pt missing
 
 if args.selectSys != "all" and args.selectSys != "combine": all_systematics = [args.selectSys if args.selectSys != 'None' else None]
-#else:                                                       all_systematics = [None] + weight_systematics + jme_systematics
-else:                                                       all_systematics = [None] + jet_systematics
+else:                                                       all_systematics = [None] + weight_systematics + jme_systematics
+#else:                                                       all_systematics = [None] + jet_systematics
 
 
 sys_pairs = [\
     ('JEC',         'jesTotalUp', 'jesTotalDown'),
-    # ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
-    # ('PU36fb',      'PU36fbUp', 'PU36fbDown'),
-#    ('TopPt',       'TopPt', None),
-#    ('JER',         'JERUp', 'JERDown'),
-    # ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
-    # ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
-    # ('trigger',     'DilepTriggerDown', 'DilepTriggerUp'),
-    # ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
+    ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
+    ('PU36fb',      'PU36fbUp', 'PU36fbDown') if not args.year==2018 else ('PU36fb', 'PU36fbVVUp', 'PU36fbUp'),
+    # ('TopPt',       'TopPt', None),
+    # ('JER',         'JERUp', 'JERDown'),
+    ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
+    ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
+    ('trigger',     'DilepTriggerDown', 'DilepTriggerUp'),
+    ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
 ]
 
 #
@@ -147,6 +155,9 @@ if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
 if args.signal == "T2tt":         args.plot_directory += "_T2tt"
 if args.small:                    args.plot_directory += "_small"
+if args.reweightPU:               args.plot_directory += "_%s"%args.reweightPU
+if args.preHEM:                   args.plot_directory += "_preHEM"
+if args.postHEM:                  args.plot_directory += "_postHEM"
 
 #plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, args.year, mode)
 #
@@ -160,28 +171,28 @@ if args.small:                    args.plot_directory += "_small"
 from Analysis.Tools.puReweighting import getReweightingFunction
 
 if args.year == 2016:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+    postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16
     mc              = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
     data_sample     = Run2016
-    #if args.reweightPU:
-    #    Pileup_nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
+    Pileup_nTrueInt_puRWDown = getReweightingFunction(data="PU_2016_35920_XSecDown", mc="Summer16")
+    Pileup_nTrueInt_puRWUp = getReweightingFunction(data="PU_2016_35920_XSecUp", mc="Summer16")
     recoilCorrector = RecoilCorrector( 2016 )
 elif args.year == 2017:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
     mc              = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
     data_sample     = Run2017
-    #if args.reweightPU:
-    #    Pileup_nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc="Fall17")
+    Pileup_nTrueInt_puRWDown = getReweightingFunction(data="PU_2017_41860_XSecDown", mc="Fall17")
+    Pileup_nTrueInt_puRWUp = getReweightingFunction(data="PU_2017_41860_XSecUp", mc="Fall17")
     recoilCorrector = RecoilCorrector( 2017 )
 elif args.year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
@@ -192,9 +203,8 @@ elif args.year == 2018:
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
     mc              = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     data_sample     = Run2018
-    #Pileup_nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
-    #if args.reweightPU:
-    #    Pileup_nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+    Pileup_nTrueInt_puRWVUp = getReweightingFunction(data="PU_2018_58830_XSecVUp", mc="Autumn18")
+    Pileup_nTrueInt_puRWVVUp = getReweightingFunction(data="PU_2018_58830_XSecVVUp", mc="Autumn18")
     if args.preHEM:
         recoilCorrector = RecoilCorrector( 2018, "preHEM")
     elif args.postHEM:
@@ -227,7 +237,7 @@ def addSys( selectionString , sys = None ):
 
 def weightMC( sys = None ):
     if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU36fb * reweightBTag_SF")
-    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*getattr(event, "reweight"+sys)*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweight"+sys+" * reweightBTag_SF")
+    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*getattr(event, "reweight"+sys)*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweight"+(sys if sys!='PU36fbVVUp' else 'PU36fbUp')+" * reweightBTag_SF")
     elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTrigger*getattr(event, "reweight"+sys), "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU36fb * reweight"+sys)
     elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightDilepTrigger*event.reweightPU36fb*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU36fb * reweightBTag_SF * reweight"+sys)
     elif sys in jme_systematics :   return weightMC( sys = None )
@@ -237,7 +247,7 @@ def weightMC( sys = None ):
 # Read variables and sequences
 #
 read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", 
+                  "met_pt/F", "met_phi/F",
                   #"LepGood[pt/F,eta/F,miniRelIso/F]", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
                   "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","event/l"]
 
@@ -284,25 +294,49 @@ def corr_recoil( event, sample ):
 
         #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
    
-        met_px_corr = event.met_pt*cos(event.met_phi) - fakeMET_x + fakeMET_px_corr 
-        met_py_corr = event.met_pt*sin(event.met_phi) - fakeMET_y + fakeMET_py_corr
+        for var in [""] + jme_systematics:
+            if var: var = "_"+var
+            met_px_corr = getattr(event, "met_pt"+var)*cos(getattr(event, "met_phi"+var)) - fakeMET_x + fakeMET_px_corr 
+            met_py_corr = getattr(event, "met_pt"+var)*sin(getattr(event, "met_phi"+var)) - fakeMET_y + fakeMET_py_corr
     
-        event.met_pt_corr  = sqrt( met_px_corr**2 + met_py_corr**2 ) 
-        event.met_phi_corr = atan2( met_py_corr, met_px_corr ) 
+            setattr(event, "met_pt_corr"+var, sqrt( met_px_corr**2 + met_py_corr**2 ) )
+            setattr(event, "met_phi_corr"+var, atan2( met_py_corr, met_px_corr ) )
+            
+            mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+            mt2Calculator.setMet(getattr(event,"met_pt_corr"+var), getattr(event,"met_phi_corr"+var))
+            setattr(event, "dl_mt2ll_corr"+var, mt2Calculator.mt2ll() )
 
     else:
         event.met_pt_corr  = event.met_pt 
         event.met_phi_corr = event.met_phi
 
-    mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
-    mt2Calculator.setMet(event.met_pt_corr, event.met_phi_corr)
-    event.dl_mt2ll_corr =  mt2Calculator.mt2ll()
+        mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+        mt2Calculator.setMet(event.met_pt_corr, event.met_phi_corr)
+        event.dl_mt2ll_corr =  mt2Calculator.mt2ll()
 
     #print event.dl_mt2ll, event.dl_mt2ll_corr
 
 sequence.append( corr_recoil )
 
 ## end MT2(ll) corr
+
+
+# Pileup reweighting
+def pu_reweight( event, sample ):
+
+    if not sample.isData:
+        if args.year == 2018:
+            event.reweightPU36fbVUp = Pileup_nTrueInt_puRWVUp(event.Pileup_nTrueInt)
+            event.reweightPU36fbVVUp = Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
+#        print "Pileup_nTrueInt_puRWVVUp: ", Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
+        else:
+            event.reweightPU36fbDown = Pileup_nTrueInt_puRWDown(event.Pileup_nTrueInt)
+            event.reweightPU36fbUp = Pileup_nTrueInt_puRWUp(event.Pileup_nTrueInt)
+
+sequence.append( pu_reweight )
+
+# end Pileup reweighting
+
 
 
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
@@ -346,12 +380,18 @@ for index, mode in enumerate(allModes):
     data_sample.texName = "data (2018)"
 
   data_sample.setSelectionString([getFilterCut(isData=True, year=args.year), getLeptonSelection(mode)])
+  if args.preHEM:
+    data_sample.addSelectionString("run<319077")
+  if args.postHEM:
+    data_sample.addSelectionString("run>=319077")
   data_sample.name           = "data"
   data_sample.read_variables = ["event/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   data_sample.scale          = 1.
-
   lumi_scale                 = data_sample.lumi/1000
+  if args.preHEM:   lumi_scale *= 0.37
+  if args.postHEM:  lumi_scale *= 0.63
+
   data_weight = lambda event, sample: event.weight
   data_weight_string = "weight"
 
@@ -364,12 +404,14 @@ for index, mode in enumerate(allModes):
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
     sample.read_variables  = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F', 'GenMET_pt/F', 'GenMET_phi/F']
-    sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics]
+    sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics if 'VUp' not in s]
     sample.read_variables += ["dl_mt2ll_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2bb_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2blbl_%s/F"%s for s in jme_systematics]
     sample.read_variables += ["nJetGood_%s/I"%s   for s in jet_systematics]
     sample.read_variables += ["nBTag_%s/I"%s      for s in jet_systematics]
+    sample.read_variables += ["met_pt_%s/F"%s      for s in jme_systematics]
+    sample.read_variables += ["met_phi_%s/F"%s      for s in jme_systematics]
     sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
 
 #    # Apply scale factors in the mt2ll > 100 GeV signal region (except Top which will be already scaled anyway)
@@ -402,11 +444,36 @@ for index, mode in enumerate(allModes):
   else:                       stack_data = Stack( data_sample )
   sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
   plots = []
+
+  # pvBinning = [0,20,40,60,80,100,140,240,340]
+  
+  # pvGood_data  = Plot(
+  #     name = "PVGood_data",
+  #     texX = 'N_{PV} (total)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+  #     binning=Binning.fromThresholds(mt2llBinning),
+  #     stack = stack_data,
+  #     attribute = TreeVariable.fromString( "PV_npvsGood/F" ),
+  #     weight = data_weight,
+  #     )
+  # plots.append( pvGood_data )
+
+  # pvGood_mc  = { sys:Plot(\
+  #     name            = "PVGood" if sys is None else "PVGood_mc_%s" % sys,
+  #     texX            = 'N_{PV} (total)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+  #     binning         = Binning.fromThresholds(mt2llBinning),
+  #     stack           = sys_stacks[sys],
+  #     attribute        = TreeVariable.fromString( "PV_npvsGood/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "PV_npvsGood_%s/F" % sys ),
+  #     selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+  #     weight          = weightMC( sys = sys )[0],
+  #     ) for sys in all_systematics }
+  # plots.extend( pvGood_mc.values() )
+
+  mt2llBinning = [0,20,40,60,80,100,140,240,340]
   
   dl_mt2ll_data  = Plot(
       name = "dl_mt2ll_data",
       texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-      binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
+      binning=Binning.fromThresholds(mt2llBinning),
       stack = stack_data,
       attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
       weight = data_weight,
@@ -416,13 +483,38 @@ for index, mode in enumerate(allModes):
   dl_mt2ll_mc  = { sys:Plot(\
       name            = "dl_mt2ll" if sys is None else "dl_mt2ll_mc_%s" % sys,
       texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-      binning         = Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
+      binning         = Binning.fromThresholds(mt2llBinning),
       stack           = sys_stacks[sys],
       attribute        = TreeVariable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2ll_%s/F" % sys ),
       selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
       weight          = weightMC( sys = sys )[0],
       ) for sys in all_systematics }
   plots.extend( dl_mt2ll_mc.values() )
+
+  mt2llCorrBinning = [0,20,40,60,80,100,140,240,340]
+  
+  dl_mt2llCorr_data  = Plot(
+      name = "dl_mt2ll_corr_data",
+      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+      binning=Binning.fromThresholds(mt2llBinning),
+      stack = stack_data,
+      attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+# ?     attribute = lambda event, sample: event.dl_mt2ll_corr,
+      weight = data_weight,
+      )
+  plots.append( dl_mt2llCorr_data )
+
+  dl_mt2llCorr_mc  = { sys:Plot(\
+      name            = "dl_mt2ll_corr" if sys is None else "dl_mt2ll_corr_mc_%s" % sys,
+      texX            = 'corrected M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+      binning         = Binning.fromThresholds(mt2llBinning),
+      stack           = sys_stacks[sys],
+      attribute       = lambda event, sample: event.dl_mt2ll_corr if sys is None or sys in weight_systematics else getattr(event, "dl_mt2ll_corr_"+sys) ,
+#      attribute        = TreeVariable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2ll_%s/F" % sys ),
+      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+      weight          = weightMC( sys = sys )[0],
+      ) for sys in all_systematics }
+  plots.extend( dl_mt2llCorr_mc.values() )
 
   if args.selection.count('njet2'):
 
@@ -516,34 +608,6 @@ for index, mode in enumerate(allModes):
       ) for sys in all_systematics }
   plots.extend( met_mc.values() )
 
-# --------------------------------------------
-  metSigBinning = [0,2,4,6,8,10,12,14] if args.selection.count('POGMetSig0To12') else [10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100] if args.selection.count('POGMetSig12') else [0,2,4,6,8,10,12,14,16,18,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
-
-# if sys:     TreeVariable.fromString( "MET_significance_%s/F" % sys )
-# if not sys: TreeVariable.fromString( "MET_significance/F" )
-
-  metSig_data  = Plot( 
-      name = "metSig_data",
-      texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
-      stack = stack_data, 
-      attribute = TreeVariable.fromString( "MET_significance/F" ),
-      binning=Binning.fromThresholds( metSigBinning ),
-      weight = data_weight,
-      )
-  plots.append( metSig_data )
-
-  metSig_mc  = {sys: Plot(
-      name = "metSig" if sys is None else "metSig_mc_%s" % sys,
-      texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
-      stack = sys_stacks[sys],
-      attribute = TreeVariable.fromString('MET_significance/F') if sys not in jme_systematics else TreeVariable.fromString( "MET_significance_%s/F" % sys ),
-      binning=Binning.fromThresholds( metSigBinning ),
-      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-      weight = weightMC( sys = sys )[0],
-      ) for sys in all_systematics }
-  plots.extend( metSig_mc.values() )
-# --------------------------------------------
-
   metBinning2 = [0,20,40,60,80] if args.selection.count('metInv') else [80,100,120,140,160,200,500] if args.selection.count('met80') else [0,80,100,120,140,160,200,500]
 
   met2_data  = Plot(
@@ -567,8 +631,32 @@ for index, mode in enumerate(allModes):
       ) for sys in all_systematics }
   plots.extend( met2_mc.values() )
 
+  metSigBinning = [0,2,4,6,8,10,12] if args.selection.count('POGMetSig0To12') else [12,16,20,24,28,32,36,40,45,50,55,60,65,70,75,80,85,90,95,100] if args.selection.count('POGMetSig12') else [0,4,8,12,16,20,24,28,32,36,40,45,50,55,60,65,70,75,80,85,90,95,100]
+
+  metSig_data  = Plot( 
+      name = "MET_significance_data",
+      texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+      stack = stack_data, 
+      attribute = TreeVariable.fromString( "MET_significance/F" ),
+      binning=Binning.fromThresholds( metSigBinning ),
+      weight = data_weight,
+      )
+  plots.append( metSig_data )
+
+  metSig_mc  = {sys: Plot(
+      name = "MET_Significance" if sys is None else "MET_significance_mc_%s" % sys,
+      texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+      stack = sys_stacks[sys],
+      attribute = TreeVariable.fromString('MET_significance/F') if sys not in jme_systematics else TreeVariable.fromString( "MET_significance_%s/F" % sys ),
+      binning=Binning.fromThresholds( metSigBinning ),
+      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+      weight = weightMC( sys = sys )[0],
+      ) for sys in all_systematics }
+  plots.extend( metSig_mc.values() )
+
   plotConfigs = [\
          [ dl_mt2ll_mc, dl_mt2ll_data, 20],
+         [ dl_mt2llCorr_mc, dl_mt2llCorr_data, 20],
          [ nbtags_mc, nbtags_data, -1],
          [ njets_mc, njets_data, -1],
          [ met_mc, met_data, 50],
@@ -727,16 +815,16 @@ for index, mode in enumerate(allModes):
           for ib in range( 1 + h_rel_err.GetNbinsX() ):
             h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
 
-      ## When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
-      #if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
-      #  for ib in range(1 + h_rel_err.GetNbinsX() ):
-      #    if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
-      #    topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
-      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
-      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttxHist.GetBinContent(ib))**2 )
-      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
-      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
-      #    h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
+      # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
+      if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
+       for ib in range(1 + h_rel_err.GetNbinsX() ):
+         if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
+         topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
+         h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
+         h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttzHist.GetBinContent(ib))**2 )
+         h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
+         h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
+         h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
 
       # take sqrt
       for ib in range( 1 + h_rel_err.GetNbinsX() ):
