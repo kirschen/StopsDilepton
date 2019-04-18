@@ -631,24 +631,24 @@ for index, mode in enumerate(allModes):
               weight = recoil_weight(dl_phi_bin, qt_bin),
               binning=[80, -200,200],
             ))
-#            plots.append(Plot( name = "u_perp_" + postfix, 
-#              texX = "u_{#perp} (GeV)", texY = 'Number of Events / 30 GeV',
-#              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-(event.dl_phi-pi/2)),
-#              weight = recoil_weight(dl_phi_bin, qt_bin),
-#              binning=[80, -200,200],
-#            ))
+            plots.append(Plot( name = "u_perp_" + postfix, 
+              texX = "u_{#perp} (GeV)", texY = 'Number of Events / 30 GeV',
+              attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-(event.dl_phi-pi/2)),
+              weight = recoil_weight(dl_phi_bin, qt_bin),
+              binning=[80, -200,200],
+            ))
             plots.append(Plot( name = "u_para_corr_" + postfix, 
               texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
               attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
               weight = recoil_weight(dl_phi_bin, qt_bin),
               binning=[80, -200,200],
             ))
-#            plots.append(Plot( name = "u_perp_corr_" + postfix, 
-#              texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-#              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
-#              weight = recoil_weight(dl_phi_bin, qt_bin),
-#              binning=[80, -200,200],
-#            ))
+            plots.append(Plot( name = "u_perp_corr_" + postfix, 
+              texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
+              weight = recoil_weight(dl_phi_bin, qt_bin),
+              binning=[80, -200,200],
+            ))
 
 #  # Plots only when at least two jets:
 #  if args.selection.count('njet2'):
