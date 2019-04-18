@@ -114,7 +114,7 @@ recoilCorrector = RecoilCorrector( args.era )
 
 from Analysis.Tools.RecoilCorrector import RecoilCorrector as _RecoilCorrector
 #FIXME
-recoilCorrector.corrector = _RecoilCorrector( "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v4.2/_small/Run2018A/lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_mumu.pkl" )
+recoilCorrector.corrector = _RecoilCorrector( "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v4.3/_small_fine/Run2018A/lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_mumu.pkl" )
 
 def get_quantiles( histo, quantiles = [1-0.9545, 1-0.6826, 0.5, 0.6826, 0.9545]):
     thresholds = array.array('d', [ROOT.Double()] * len(quantiles) )
@@ -617,8 +617,8 @@ for index, mode in enumerate(allModes):
 #    ))
 
     # u_para u_perp closure plots
-    dl_phi_binning   = [ pi*(i-5)/5. for i in range(0,11) ][:2]
-    qt_binning    = [0, 50, 100, 150, 200, 300 ][:2]
+    dl_phi_binning   = [ pi*(i-5)/5. for i in range(0,11) ]
+    qt_binning    = [0, 50, 100, 150, 200, 300 ]
     u_para_binning   =  [ i*5 for i in range(-40, 41) ]
     dl_phi_bins      = [ (dl_phi_binning[i],dl_phi_binning[i+1]) for i in range(len(dl_phi_binning)-1) ]
     qt_bins = [ (qt_binning[i],qt_binning[i+1]) for i in range(len(qt_binning)-1) ]
