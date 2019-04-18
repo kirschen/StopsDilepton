@@ -4,4 +4,4 @@ c.Add("/afs/hephy.at/data/rschoefbeck01/TTXPheno/skims/gen/RunII_v01/fwlite_tt_f
 c.SetScanField(1000)
 c.Scan("run:lumi:evt")
 
-#yes q|python test.py|sed "s/ *//g"|sed "s/^\*//g"| sed "s/[0-9]*\*\(.*\)/\1/g"|sed "s/\*$//g"|sed "s/\*/:/g" >& output.txt
+#yes q|python test.py|sed "s/ *//g"|sed "s/^\*//g"| sed "s/[0-9]*\*\(.*\)/\1/g"|sed "s/\*$//g"|sed "s/\*/:/g" | grep "^[0-9]">& output.txt
