@@ -32,7 +32,7 @@ argParser.add_argument('--small',                                   action='stor
 argParser.add_argument('--fine',                                    action='store_true',     help='Fine binning?', )
 argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mumu", "ee", "SF"], help="Lepton flavor")
 argParser.add_argument('--overwrite',                               action='store_true',     help='Overwrite?', )
-argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v5.2/')
+argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v5.3/')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ')
 args = argParser.parse_args()
@@ -62,29 +62,17 @@ elif "2018" in args.era:
 logger.info( "Working in year %i", year )
 
 if year == 2016:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-    #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2016/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
 elif year == 2017:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-    #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2017/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
 elif year == 2018:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-    #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2018/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
 
 try:
     data_sample = eval(args.era)
@@ -162,7 +150,7 @@ u_perp = "-met_pt*cos(met_phi-(dl_phi-pi/2.))"# u_perp = -ET.n_perp (where n_per
 
 #nJetGood_binning = [1, 10 ]
 qt_binning    = [0, 50, 100, 150, 200, 300, 400 ]
-nvtx_binning   = [ 0, 20, 30, 40, 50, 100 ]
+nvtx_binning   = [ 0, 20, 30, 40, 100 ]
 u_para_binning   = [ i for i in range(-200, 201) ] if args.fine else [ i*5 for i in range(-40, 41) ]
 
 #nJetGood_bins = [ (nJetGood_binning[i],nJetGood_binning[i+1]) for i in range(len(nJetGood_binning)-1) ]
