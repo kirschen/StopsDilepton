@@ -12,8 +12,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 # all the recoil correction data
-recoilFitResultDir = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/recoil_v4.1/"
-postfix = "recoil_v4.1"
+recoilFitResultDir = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/recoil_v4.3/"
+postfix = "recoil_v4.3"
 
 class RecoilCorrector:
 
