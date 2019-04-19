@@ -32,7 +32,7 @@ argParser.add_argument('--small',                                   action='stor
 argParser.add_argument('--fine',                                    action='store_true',     help='Fine binning?', )
 argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mumu", "ee", "SF"], help="Lepton flavor")
 argParser.add_argument('--overwrite',                               action='store_true',     help='Overwrite?', )
-argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v5.3/')
+argParser.add_argument('--plot_directory',     action='store',      default='recoil_v5.3/')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ')
 args = argParser.parse_args()
