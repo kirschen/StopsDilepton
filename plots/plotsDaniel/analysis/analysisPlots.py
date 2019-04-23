@@ -16,6 +16,7 @@ from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
+from Analysis.Tools.puProfileCache import *
 
 #
 # Arguments
@@ -78,13 +79,14 @@ if args.year == 2016:
     recoilCorrector = RecoilCorrector( 2016 )
 elif args.year == 2017:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
     if args.reweightPU:
-        nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc="Fall17")
+        # need sample based weights
+        pass
     recoilCorrector = RecoilCorrector( 2017 )
 elif args.year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
@@ -322,6 +324,13 @@ for index, mode in enumerate(allModes):
     #    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF*event.reweight_nISR
     #else:
     if args.reweightPU:
+        # Need individual pu reweighting functions for each sample in 2017, so nTrueInt_puRW is only defined here
+        if args.year == 2017:
+            logger.info("Getting PU profile and weight for sample %s", sample.name)
+            puProfiles = puProfile( source_sample = sample )
+            mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
+            nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc=mcHist)
+        # Use the nTrueInt_puRW function
         sample.weight         = lambda event, sample: nTrueInt_puRW(event.Pileup_nTrueInt) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     else:
         sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF

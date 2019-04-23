@@ -17,8 +17,11 @@ special_cuts = {
 
     "OS":                "(l1_pdgId*l2_pdgId)<0",
     "lepSel":            "l1_pt>30&&l2_pt>20",
+    "lepSelTight":       "l1_pt>40&&l2_pt>20",
     "lepSelEXO":         "l1_pt>25&&l2_pt>10",
     "quadlep":           "Sum$(lep_pt>10&&abs(lep_eta)<2.4&&lep_pfRelIso03_all<0.12)>3",
+    "trilep":            "Sum$(lep_pt>10&&abs(lep_eta)<2.4&&lep_pfRelIso03_all<0.12)>2",
+    "trilepTight":       "Sum$(lep_pt>20&&abs(lep_eta)<2.4&&lep_pfRelIso03_all<0.12)>2",
 
     "allZ":              "(1)",
     "onZ":               "abs(dl_mass-91.1876)<15",
@@ -50,7 +53,7 @@ special_cuts = {
     #"ZEtaBarrel":           "dl_eta>-1&&dl_eta<1",
     #"ZEtaPlus":             "dl_eta>1&&dl_eta<3",
     "ZPhiHEM":              "dl_phi>-2+pi&&dl_phi<-0.5+pi",
-    "ZPhiNoHEM":            "(!(dl_phi>-2+pi&&dl_phi<-0.5+pi))"
+    "ZPhiNoHEM":            "(!(dl_phi>-2+pi&&dl_phi<-0.5+pi))",
 
   }
 

@@ -12,15 +12,17 @@ from StopsDilepton.samples.color import color
 try:
     data_directory = sys.modules['__main__'].data_directory
 except:
-    from StopsDilepton.tools.user import data_directory as user_data_directory
-    data_directory = user_data_directory 
+    from StopsDilepton.samples.default_locations import default_locations
+    data_directory = default_locations.mc_2018_data_directory 
 
 # Take post processing directory if defined in main module
 try:
   import sys
   postProcessing_directory = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
+  from StopsDilepton.samples.default_locations import default_locations
+  postProcessing_directory = default_locations.mc_2018_postProcessing_directory 
+
 
 logger.info("Loading MC samples from directory %s", os.path.join(data_directory, postProcessing_directory))
 

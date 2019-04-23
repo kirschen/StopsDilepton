@@ -11,7 +11,7 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     # Where you store the data
     data_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where the plots go
-    plot_directory      = "/afs/hephy.at/user/r/rschoefbeck/www/"
+    plot_directory      = "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton"
     #plot_directory      = "/afs/cern.ch/work/s/schoef/www/"
     # Analysis result files
     analysis_results        =  '/afs/hephy.at/data/dspitzbart02/StopsDilepton/results/80X_v35/' #Path to analysis results

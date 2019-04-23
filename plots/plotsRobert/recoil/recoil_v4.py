@@ -10,6 +10,7 @@ import itertools
 import pickle
 from math                                import sqrt, cos, sin, pi
 import array
+import uuid
 
 # RootTools
 from RootTools.core.standard             import *
@@ -21,6 +22,8 @@ from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.GaussianFit     import GaussianFit
 from Analysis.Tools.QuantileMatcher      import QuantileMatcher
+from Analysis.Tools.puProfileCache       import *
+from Analysis.Tools.puReweighting        import getReweightingFunction
 
 #
 # Arguments
@@ -29,10 +32,12 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
+argParser.add_argument('--loop',                                    action='store_true',     help='Make a loop?', )
 argParser.add_argument('--fine',                                    action='store_true',     help='Fine binning?', )
+argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
 argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mumu", "ee", "SF"], help="Lepton flavor")
 argParser.add_argument('--overwrite',                               action='store_true',     help='Overwrite?', )
-argParser.add_argument('--plot_directory',     action='store',      default='StopsDilepton/recoil_v4')
+argParser.add_argument('--plot_directory',     action='store',      default='recoil_v4.3')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ')
 args = argParser.parse_args()
@@ -45,13 +50,11 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-if args.small:                        args.plot_directory += "_small"
-if args.fine:                        args.plot_directory += "_fine"
+if args.fine:  args.plot_directory += "_fine"
+if args.small: args.plot_directory += "_small"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
-from Analysis.Tools.puReweighting import getReweightingFunction
-
 if "2016" in args.era:
     year = 2016
 elif "2017" in args.era:
@@ -60,32 +63,25 @@ elif "2018" in args.era:
     year = 2018
 
 logger.info( "Working in year %i", year )
-
 if year == 2016:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-    #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2016/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
+    if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
+        nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
 elif year == 2017:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-    #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2017/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
+    if args.reweightPU:
+        # need sample based weights
+        pass
 elif year == 2018:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-    #recoilCorrector = RecoilCorrector( '/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v2/2018/lepSel-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl' )
-
+    if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
+        nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
 try:
     data_sample = eval(args.era)
 except Exception as e:
@@ -97,7 +93,18 @@ except Exception as e:
 
 for sample in mc: sample.style = styles.fillStyle(sample.color)
 
-output_directory = os.path.join(plot_directory, args.plot_directory, args.era, args.selection )
+postfix = ""
+if args.reweightPU:
+    postfix += "_"+args.reweightPU
+
+if args.reweightPU and args.reweightPU!="noPUReweighting" and not args.loop:
+    logger.warning( "PU reweightin: %s therefore need a event loop!", args.reweightPU )
+    args.loop = True
+
+if args.loop:
+    postfix += "_loop"
+
+output_directory = os.path.join(plot_directory, args.plot_directory+postfix, args.era, args.selection )
 
 # Text on the plots
 tex = ROOT.TLatex()
@@ -136,17 +143,11 @@ def drawPlots(plots, mode, dataMCScale, drawObjects = None):
 	    ratio = {'yRange':(0.1,1.9)},
 	    logX = False, logY = log, sorting = True,
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
-	    scaling = {},
+	    scaling = {0:1},
 	    legend = (0.15,0.88-0.04*sum(map(len, plot.histos)),0.65,0.88),
 	    drawObjects = defDrawObjects( True, dataMCScale , lumi_scale ) + ( drawObjects if drawObjects is not None else [] ) ,
-        copyIndexPHP = True,
+        copyIndexPHP = True, extensions = ["png"],
       )
-
-#
-# Read variables and sequences
-#
-read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
 
 # default offZ for SF
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
@@ -161,7 +162,7 @@ u_para = "-met_pt*cos(met_phi-dl_phi)"        # u_para is actually (u+qT)_para =
 u_perp = "-met_pt*cos(met_phi-(dl_phi-pi/2.))"# u_perp = -ET.n_perp (where n_perp is n with phi->phi-pi/2) 
 
 #nJetGood_binning = [1, 10 ]
-qt_binning    = [0, 50, 100, 150, 200, 300 ]
+qt_binning    = [0, 50, 100, 150, 200, 300, 400 ]
 dl_phi_binning   = [ pi*(i-5)/5. for i in range(0,11) ]
 u_para_binning   = [ i for i in range(-200, 201) ] if args.fine else [ i*5 for i in range(-40, 41) ]
 
@@ -169,23 +170,8 @@ u_para_binning   = [ i for i in range(-200, 201) ] if args.fine else [ i*5 for i
 qt_bins = [ (qt_binning[i],qt_binning[i+1]) for i in range(len(qt_binning)-1) ]
 dl_phi_bins      = [ (dl_phi_binning[i],dl_phi_binning[i+1]) for i in range(len(dl_phi_binning)-1) ]
 
-#
-# Loop over channels
-#
-
 data_sample.name           = "data"
 data_sample.style          = styles.errorStyle(ROOT.kBlack)
-
-# Data weight & cut 
-weightString =  "weight"
-data_sample.setSelectionString([getFilterCut(isData=True, year=year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
-data_sample.setWeightString( weightString )
-
-# MC weight & cut
-for sample in mc:
-  weightString =  "weight*reweightPU36fb*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF"
-  sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
-  sample.setWeightString(weightString)
 
 stack = Stack(mc, data_sample)
 
@@ -201,6 +187,58 @@ if args.small:
         sample.reduceFiles( factor = 40 )
         sample.scale /= sample.normalization
 
+# Selection 
+data_sample.setSelectionString([getFilterCut(isData=True, year=year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
+for sample in mc:
+    sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
+
+# get nvtx reweighting histo
+if args.reweightPU =='nvtx':
+    logger.info( "Now obtain nvtx reweighting histo" )
+    data_nvtx_histo = data_sample.get1DHistoFromDraw( "PV_npvsGood", [100/5, 0, 100], weightString = "weight" )
+    data_nvtx_histo.Scale(1./data_nvtx_histo.Integral()) 
+    mc_histos  = [ s.get1DHistoFromDraw( "PV_npvsGood", [100/5, 0, 100], weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF") for s in mc]
+    mc_nvtx_histo     = mc_histos[0]
+    for h in mc_histos[1:]:
+        mc_nvtx_histo.Add( h )
+    mc_nvtx_histo.Scale(1./mc_nvtx_histo.Integral())
+    def nvtx_puRW( nvtx ):
+        i_bin = mc_nvtx_histo.FindBin( nvtx )
+        mc_val = mc_nvtx_histo.GetBinContent( i_bin)
+        return data_nvtx_histo.GetBinContent( i_bin )/mc_val if mc_val>0 else 1
+
+# weights
+if args.loop:
+    data_sample.weight = lambda event, sample: event.weight
+    for sample in mc:
+        # Need individual pu reweighting functions for each sample in 2017, so nTrueInt_puRW is only defined here
+        if args.reweightPU and args.reweightPU not in ["noPUReweighting", "nvtx"]:
+            if year == 2017:
+                logger.info("Getting PU profile and weight for sample %s", sample.name)
+                puProfiles = puProfile( source_sample = sample )
+                mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
+                nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc=mcHist)
+
+        if args.reweightPU == "noPUReweighting":
+            sample.weight         = lambda event, sample: event.weight*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        elif args.reweightPU == "nvtx":
+            sample.weight         = lambda event, sample: event.weight*nvtx_puRW(event.PV_npvsGood) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        elif args.reweightPU:
+            sample.weight         = lambda event, sample: event.weight*nTrueInt_puRW(event.Pileup_nTrueInt) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        else: #default
+            sample.weight         = lambda event, sample: event.weight*event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+else:
+    weightString =  "weight"
+    data_sample.setWeightString( weightString )
+    for sample in mc:
+        if args.reweightPU != "noPUReweighting":
+            weightString =  "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF"
+        elif args.reweightPU is None:
+            weightString =  "weight*reweightPU36fb*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF"
+        else:
+            raise RuntimeError( "Check your PU reweighting!" )
+        sample.setWeightString(weightString)
+
 pickle_file = os.path.join(output_directory, 'recoil_%s.pkl'%args.mode )
 if not os.path.exists( output_directory ): 
     os.makedirs( output_directory )
@@ -209,8 +247,24 @@ if not os.path.isfile( pickle_file ) or args.overwrite:
     h3D_u_para = {}
     h3D_u_perp = {}
     for sample in stack.samples:
-        h3D_u_para[sample.name] = sample.get3DHistoFromDraw("dl_phi:dl_pt:"+u_para, [u_para_binning,qt_binning,dl_phi_binning], binningIsExplicit=True)
-        h3D_u_perp[sample.name] = sample.get3DHistoFromDraw("dl_phi:dl_pt:"+u_perp, [u_para_binning,qt_binning,dl_phi_binning], binningIsExplicit=True)
+        if args.loop:
+            name = str(uuid.uuid4())
+            h3D_u_para[sample.name] = ROOT.TH3D( name+'_para', name+'_para', len(u_para_binning)-1, array.array('d', u_para_binning), len(qt_binning)-1, array.array('d',qt_binning), len(dl_phi_binning)-1, array.array('d',dl_phi_binning))
+            h3D_u_perp[sample.name] = ROOT.TH3D( name+'_perp', name+'_perp', len(u_para_binning)-1, array.array('d', u_para_binning), len(qt_binning)-1, array.array('d',qt_binning), len(dl_phi_binning)-1, array.array('d',dl_phi_binning)) 
+            variables = ["met_pt/F", "met_phi/F", "dl_phi/F", "dl_pt/F", "weight/F", "PV_npvsGood/I"]
+            mc_variables = ["met_pt/F", "met_phi/F", "dl_phi/F", "dl_pt/F", "weight/F", "PV_npvsGood/I", "reweightPU36fb/F", "reweightDilepTrigger/F", "reweightLeptonSF/F", "reweightBTag_SF/F", "reweightLeptonTrackingSF/F", "Pileup_nTrueInt/F"]
+            r = sample.treeReader( variables = map( TreeVariable.fromString, variables if sample.isData else mc_variables) )
+            r.start()
+            while r.run():
+                u_para = - r.event.met_pt*cos(r.event.met_phi - r.event.dl_phi)
+                u_perp = - r.event.met_pt*cos(r.event.met_phi - (r.event.dl_phi-pi/2.))
+                h3D_u_para[sample.name].Fill( u_para, r.event.dl_pt, r.event.dl_phi, sample.weight( r.event, sample ) )
+                h3D_u_perp[sample.name].Fill( u_perp, r.event.dl_pt, r.event.dl_phi, sample.weight( r.event, sample ) )
+        else:
+            h3D_u_para[sample.name] = sample.get3DHistoFromDraw("dl_phi:dl_pt:"+u_para, [u_para_binning,qt_binning,dl_phi_binning], binningIsExplicit=True)
+            h3D_u_perp[sample.name] = sample.get3DHistoFromDraw("dl_phi:dl_pt:"+u_perp, [u_para_binning,qt_binning,dl_phi_binning], binningIsExplicit=True)
+
+
         h3D_u_para[sample.name].Scale(sample.scale)
         h3D_u_perp[sample.name].Scale(sample.scale)
 
@@ -260,8 +314,8 @@ for dl_phi_bin in dl_phi_bins:
             ## fit
             h_mc   = plot.histos_added[0][0].Clone()
             h_data = plot.histos_added[1][0].Clone()
-            h_mc.Scale(h_data.Integral()/h_mc.Integral())
-
+            if h_mc.Integral()>0:
+                h_mc.Scale(h_data.Integral()/h_mc.Integral())
 
             fitResults[dl_phi_bin][qt_bin][prefix]['mc']['TH1F']   = h_mc 
             fitResults[dl_phi_bin][qt_bin][prefix]['data']['TH1F'] = h_data 
@@ -269,8 +323,8 @@ for dl_phi_bin in dl_phi_bins:
             q_mc   = tuple(get_quantiles( h_mc ))
             q_data = tuple(get_quantiles( h_data ))
             median_shift = q_data[2]-q_mc[2]
-            sigma1_ratio = (q_data[3]-q_data[1])/(q_mc[3]-q_mc[1])
-            sigma2_ratio = (q_data[4]-q_data[0])/(q_mc[4]-q_mc[0])
+            sigma1_ratio = (q_data[3]-q_data[1])/(q_mc[3]-q_mc[1]) if q_mc[3]-q_mc[1]!=0 else 0
+            sigma2_ratio = (q_data[4]-q_data[0])/(q_mc[4]-q_mc[0]) if q_mc[4]-q_mc[0]!=0 else 0
 
             drawObjects = []
             drawObjects.append( tex2.DrawLatex(0.5, 0.86, '#Delta(med): %+3.1f   1#sigma: %4.3f  2#sigma  %4.3f' % ( median_shift, sigma1_ratio, sigma2_ratio) ) )
