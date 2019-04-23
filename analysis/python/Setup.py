@@ -9,38 +9,27 @@ import logging
 logger = logging.getLogger(__name__)
 
 #user specific
-from StopsDilepton.tools.user import analysis_results
-from StopsDilepton.tools.helpers import getObjFromFile
+from StopsDilepton.tools.user       import analysis_results
+from StopsDilepton.tools.helpers    import getObjFromFile
 
 #define samples
-from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
-from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+from StopsDilepton.samples.nanoTuples_Summer16_postProcessed            import *
+from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed   import *
+from StopsDilepton.samples.nanoTuples_Fall17_postProcessed              import *
+from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed   import *
+from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed            import *
+from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed  import *
 
-#Choices for specific samples
-#DYSample          = DY
-DYSample           = DY_HT_LO_16 #LO, HT binned including a low HT bin starting from zero from the inclusive sample
-#TTJetsSample      = TTJets #NLO
-#TTJetsSample       = Sample.combine("TTJets", [TTJets_Lep, singleTop], texName = "t#bar{t}/single-t") #LO, very large dilep + single lep samples
-TTJetsSample       = Top_pow_16
-otherEWKComponents = [TTXNoZ_16]#, WJetsToLNu]
-otherEWKBkgs       = Sample.combine("otherBkgs", otherEWKComponents, texName = "other bkgs.")
-
-from StopsDilepton.analysis.SystematicEstimator import jmeVariations, metVariations
-from StopsDilepton.analysis.SetupHelpers import getZCut, channels, allChannels, trilepChannels, allTrilepChannels
-from StopsDilepton.analysis.fastSimGenMetReplacements import fastSimGenMetReplacements
-from StopsDilepton.tools.objectSelection import getFilterCut
-
-#to run on data
-dataLumi = {'EMu': MuonEG_Run2016_backup.lumi, 'MuMu':DoubleMuon_Run2016_backup.lumi, 'EE':DoubleEG_Run2016_backup.lumi, '3mu':DoubleMuon_Run2016_backup.lumi, '3e':DoubleEG_Run2016_backup.lumi, '2mu1e':MuonEG_Run2016_backup.lumi, '2e1mu':MuonEG_Run2016_backup.lumi}
-#10/fb to run on MC
-#lumi = {c:10000 for c in channels}
-lumi = dataLumi
+from StopsDilepton.analysis.SystematicEstimator         import jmeVariations, metVariations
+from StopsDilepton.analysis.SetupHelpers                import getZCut, channels, allChannels, trilepChannels, allTrilepChannels
+from StopsDilepton.analysis.fastSimGenMetReplacements   import fastSimGenMetReplacements
+from Analysis.Tools.metFilters                          import getFilterCut
 
 #Define defaults here
 zMassRange            = 15
 default_mllMin        = 20
-default_metMin        = 80
-default_metSigMin     = 5
+default_metMin        = 0
+default_metSigMin     = 12
 default_zWindow       = "offZ"
 default_dPhi          = True
 default_triLep        = False
@@ -52,7 +41,7 @@ default_leptonCharges = "isOS"
 
 
 class Setup:
-    def __init__(self):
+    def __init__(self, year=2016):
         self.analysis_results = analysis_results
         self.zMassRange       = zMassRange
         self.prefixes         = []
@@ -72,29 +61,45 @@ class Setup:
             'triLep':        default_triLep,
         }
 
-        #self.sys = {'weight':'weight', 'reweight':['reweightPU36fb','reweightDilepTriggerBackup','reweightLeptonSF','reweightTopPt','reweightBTag_SF','reweightLeptonTrackingSF'], 'selectionModifier':None}
-        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb'], 'selectionModifier':None}
-        self.lumi     = lumi
-        self.dataLumi = dataLumi
+        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb', 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
+
+        if year == 2016:
+            top         = Top_pow_16
+            DY          = DY_LO_16
+            TTZ         = TTZ_16
+            multiBoson  = multiBoson_16
+            TTXNoZ      = TTXNoZ_16
+            data        = Run2016
+        elif year == 2017:
+            top         = Top_pow_17
+            DY          = DY_LO_17
+            TTZ         = TTZ_17
+            multiBoson  = multiBoson_17
+            TTXNoZ      = TTXNoZ_17
+            data        = Run2017
+        elif year == 2018:
+            top         = Top_pow_18
+            DY          = DY_HT_LO_18
+            TTZ         = TTZ_18
+            multiBoson  = multiBoson_18
+            TTXNoZ      = TTXNoZ_18
+            data        = Run2018
 
         self.samples = {
-        'Top_gaussian' :   {c:Top_gaussian for c in channels+trilepChannels},
-        'Top_nongaussian': {c:Top_nongaussian for c in channels+trilepChannels},
-        'Top_fakes' :      {c:Top_fakes for c in channels+trilepChannels},
-        'DY':         {c:DYSample     for c in channels+trilepChannels},
-        'TTJets' :    {c:TTJetsSample for c in channels+trilepChannels},
-        'TTZ' :       {c:TTZ_16       for c in channels+trilepChannels},
-        'multiBoson' :{c:multiBoson_16   for c in channels+trilepChannels},
-        'TTXNoZ' :    {c:TTXNoZ_16       for c in channels+trilepChannels},
-        'other'  :    {c:Sample.combine('other', [otherEWKBkgs]) for c in channels+trilepChannels},
-        'Data'   :    {'MuMu':  DoubleMuon_Run2016_backup,
-                       'EE':    DoubleEG_Run2016_backup,
-                       'EMu':   MuonEG_Run2016_backup,
-                       '3mu':   DoubleMuon_Run2016_backup,
-                       '3e':    DoubleEG_Run2016_backup,
-                       '2mu1e': MuonEG_Run2016_backup,
-                       '2e1mu': MuonEG_Run2016_backup},
+            'Top_gaussian' :    top,
+            'Top_nongaussian':  top,
+            'Top_fakes' :       top,
+            'DY':               DY,
+            'TTJets' :          top,
+            'TTZ' :             TTZ,
+            'multiBoson' :      multiBoson,
+            'TTXNoZ' :          TTXNoZ,
+            'other'  :          TTXNoZ,
+            'Data'   :          data,
         }
+
+        self.lumi     = data.lumi
+        self.dataLumi = data.lumi # get from data samples later
         
         dataPUHistForSignalPath = "$CMSSW_BASE/src/StopsDilepton/tools/data/puFastSimUncertainty/dataPU.root"
         self.dataPUHistForSignal = getObjFromFile(os.path.expandvars(dataPUHistForSignalPath), "data")

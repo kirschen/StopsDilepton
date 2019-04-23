@@ -61,4 +61,4 @@ class DataObservation():
 
             if hasattr(setup, 'blinding') and setup.blinding: weight = 'weight*' + setup.blinding
             else:                                             weight = 'weight'
-            return u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = weight) )
+            return u_float(**self.sample.getYieldFromDraw(selectionString = cut, weightString = weight) )
