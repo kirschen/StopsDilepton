@@ -29,7 +29,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mumu", "ee", "SF"], help="Lepton flavor")
-argParser.add_argument('--plot_directory',     action='store',      default='qT')
+argParser.add_argument('--plot_directory',     action='store',      default='qTLep')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 args = argParser.parse_args()
@@ -103,7 +103,8 @@ if args.small:
 u_para_fake = "-met_pt*cos(met_phi-dl_phi)+GenMET_pt*cos(GenMET_phi-dl_phi)" # u_para is actually (u+qT)_para = -ET.n_para
 u_perp_fake = "-met_pt*cos(met_phi-(dl_phi-pi/2.))+GenMET_pt*cos(GenMET_phi-(dl_phi-pi/2.))" # u_perp = -ET.n_perp (where n_perp is n with phi->phi-pi/2) 
 
-qT          = "sqrt((l1_pt*cos(l1_phi) + l2_pt*cos(l2_phi) + GenMET_pt*cos(GenMET_phi))**2+(l1_pt*sin(l1_phi) + l2_pt*sin(l2_phi) + GenMET_pt*sin(GenMET_phi))**2)"
+#qT          = "sqrt((l1_pt*cos(l1_phi) + l2_pt*cos(l2_phi) + GenMET_pt*cos(GenMET_phi))**2+(l1_pt*sin(l1_phi) + l2_pt*sin(l2_phi) + GenMET_pt*sin(GenMET_phi))**2)"
+qT          = "dl_pt"
 
 ##nJetGood_binning = [1, 10 ]
 qt_binning    = [0, 50, 100, 150, 200, 300, 400 ]

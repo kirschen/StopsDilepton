@@ -332,6 +332,9 @@ if args.recoil:
             qt = sqrt( qt_px**2 + qt_py**2 )
             qt_phi = atan2( qt_py, qt_px )
 
+            #ref_phi = qt_phi
+            ref_phi = event.dl_phi
+
             # compute fake MET 
             fakeMET_x = event.met_pt*cos(event.met_phi) - event.GenMET_pt*cos(event.GenMET_phi)
             fakeMET_y = event.met_pt*sin(event.met_phi) - event.GenMET_pt*sin(event.GenMET_phi)
@@ -340,20 +343,20 @@ if args.recoil:
             fakeMET_phi = atan2( fakeMET_y, fakeMET_x )
 
             # project fake MET on qT
-            fakeMET_para = fakeMET*cos( fakeMET_phi - qt_phi ) 
-            fakeMET_perp = fakeMET*cos( fakeMET_phi - ( qt_phi - pi/2) ) 
+            fakeMET_para = fakeMET*cos( fakeMET_phi - ref_phi ) 
+            fakeMET_perp = fakeMET*cos( fakeMET_phi - ( ref_phi - pi/2) ) 
             
             # FIXME: signs should be negative for v3 and positive for v2 
             #if args.recoil == "v4":
-            fakeMET_para_corr = - recoilCorrector.predict_para( event.dl_phi, qt, -fakeMET_para ) 
-            fakeMET_perp_corr = - recoilCorrector.predict_perp( event.dl_phi, qt, -fakeMET_perp )
+            fakeMET_para_corr = - recoilCorrector.predict_para( ref_phi, qt, -fakeMET_para ) 
+            fakeMET_perp_corr = - recoilCorrector.predict_perp( ref_phi, qt, -fakeMET_perp )
             #elif args.recoil == "v5":
             #    fakeMET_para_corr = - recoilCorrector.predict_para( event.PV_npvsGood, qt, -fakeMET_para ) 
             #    fakeMET_perp_corr = - recoilCorrector.predict_perp( event.PV_npvsGood, qt, -fakeMET_perp )
 
             # rebuild fake MET vector
-            fakeMET_px_corr = fakeMET_para_corr*cos(qt_phi) + fakeMET_perp_corr*cos(qt_phi - pi/2) 
-            fakeMET_py_corr = fakeMET_para_corr*sin(qt_phi) + fakeMET_perp_corr*sin(qt_phi - pi/2) 
+            fakeMET_px_corr = fakeMET_para_corr*cos(ref_phi) + fakeMET_perp_corr*cos(ref_phi - pi/2) 
+            fakeMET_py_corr = fakeMET_para_corr*sin(ref_phi) + fakeMET_perp_corr*sin(ref_phi - pi/2) 
 
             #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
        
