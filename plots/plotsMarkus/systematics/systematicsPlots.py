@@ -196,9 +196,9 @@ elif args.year == 2017:
     recoilCorrector = RecoilCorrector( 2017 )
 elif args.year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
     mc              = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
