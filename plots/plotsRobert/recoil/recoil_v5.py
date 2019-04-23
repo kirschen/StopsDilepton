@@ -30,6 +30,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--fine',                                    action='store_true',     help='Fine binning?', )
+argParser.add_argument('--noPUReweighting',                         action='store_true',     help='No PU reweighting?', )
 argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mumu", "ee", "SF"], help="Lepton flavor")
 argParser.add_argument('--overwrite',                               action='store_true',     help='Overwrite?', )
 argParser.add_argument('--plot_directory',     action='store',      default='recoil_v5.3/')
@@ -80,12 +81,13 @@ except Exception as e:
     logger.error( "Didn't find %s", args.era )
     raise e
 
-#if args.small:
-#    mc = mc[-2:]
-
 for sample in mc: sample.style = styles.fillStyle(sample.color)
 
-output_directory = os.path.join(plot_directory, args.plot_directory, args.era, args.selection )
+postfix = ""
+if args.noPUReweighting:
+    postfix = "_noPU"
+
+output_directory = os.path.join(plot_directory, args.plot_directory+postfix, args.era, args.selection )
 
 # Text on the plots
 tex = ROOT.TLatex()
@@ -171,9 +173,10 @@ data_sample.setWeightString( weightString )
 
 # MC weight & cut
 for sample in mc:
-  weightString =  "weight*reweightPU36fb*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF"
-  sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(args.mode), cutInterpreter.cutString(args.selection)])
-  sample.setWeightString(weightString)
+  if args.noPUReweighting:
+    weightString =  "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF"
+  else:
+    weightString =  "weight*reweightPU36fb*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF"
 
 stack = Stack(mc, data_sample)
 

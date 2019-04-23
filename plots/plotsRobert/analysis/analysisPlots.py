@@ -17,6 +17,7 @@ from StopsDilepton.tools.helpers         import deltaPhi
 from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
+from Analysis.Tools.puProfileCache import *
 
 #
 # Arguments
@@ -29,8 +30,9 @@ argParser.add_argument('--noData',             action='store_true', default=Fals
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='v0p3')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
-argParser.add_argument('--recoil',             action='store', type=str,      default="v4", choices = ["v4", "v5"])
+argParser.add_argument('--recoil',             action='store', type=str,      default=None, choices = ["nvtx", "VUp", None])
 argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--nvtxReweightSelection',          action='store',      default=None)
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
@@ -38,9 +40,10 @@ argParser.add_argument('--noBadPFMuonFilter',           action='store_true', def
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
 argParser.add_argument('--unblinded',          action='store_true', default=False)
 argParser.add_argument('--blinded',            action='store_true', default=False)
-argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting'])
+argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
 argParser.add_argument('--isr',                action='store_true', default=False)
-argParser.add_argument('--splitMET',                                action='store_true',     help='Split in MET bins?' )
+argParser.add_argument('--splitMET',           action='store_true',     help='Split in MET bins?' )
+argParser.add_argument('--splitMETSig',        action='store_true',     help='Split in METSig bins?' )
 args = argParser.parse_args()
 
 #
@@ -51,9 +54,10 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-args.plot_directory += '_recoil_'+args.recoil
+if args.recoil:                       args.plot_directory += '_recoil_'+args.recoil
 if args.small:                        args.plot_directory += "_small"
 if args.splitMET:                     args.plot_directory += "_splitMET"
+if args.splitMETSig:                  args.plot_directory += "_splitMETSig"
 if args.noData:                       args.plot_directory += "_noData"
 if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
 if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
@@ -80,44 +84,50 @@ if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-    if args.reweightPU and not args.reweightPU=="noPUReweighting":
+    if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
         nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
-    elif args.reweightPU=="noPUReweighting":
-        nTrueInt_puRW = lambda pu: 1
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-    if args.reweightPU and not args.reweightPU=="noPUReweighting":
-        nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc="Fall17")
-    elif args.reweightPU=="noPUReweighting":
-        nTrueInt_puRW = lambda pu: 1
+    if args.reweightPU:
+        # need sample based weights
+        pass
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-    if args.reweightPU and not args.reweightPU=="noPUReweighting":
+    if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
         nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
-    elif args.reweightPU=="noPUReweighting":
-        nTrueInt_puRW = lambda pu: 1
 
-if args.recoil == "v4":
-    from StopsDilepton.tools.RecoilCorrector_v4 import RecoilCorrector
-    recoilCorrector = RecoilCorrector( args.era )
-elif args.recoil == "v5":
-    from StopsDilepton.tools.RecoilCorrector_v5 import RecoilCorrector
-    recoilCorrector = RecoilCorrector( args.era )
+try:
+  data_sample = eval(args.era)
+except Exception as e:
+  logger.error( "Didn't find %s", args.era )
+  raise e
 
-#from Analysis.Tools.RecoilCorrector import RecoilCorrector as _RecoilCorrector
-#FIXME
-#recoilCorrector.corrector = _RecoilCorrector( "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v4.3/_small_fine/Run2018A/lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_mumu.pkl" )
-#recoilCorrector.corrector = _RecoilCorrector( "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/recoil_v4.3/_fine/Run2018A/lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ/recoil_fitResults_SF.pkl" )
+lumi_scale                 = data_sample.lumi/1000
+data_sample.scale          = 1.
+for sample in mc:
+    sample.scale          = lumi_scale
+
+if args.small:
+    for sample in mc + [data_sample]:
+        sample.normalization = 1.
+        sample.reduceFiles( factor = 40 )
+        sample.scale /= sample.normalization
+
+if args.recoil:
+    from Analysis.Tools.RecoilCorrector import RecoilCorrector
+    if args.recoil == "nvtx":
+        recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_nvtx_loop", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+    elif args.recoil == "VUp":
+        recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_VUp_loop", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
 
 def get_quantiles( histo, quantiles = [1-0.9545, 1-0.6826, 0.5, 0.6826, 0.9545]):
     thresholds = array.array('d', [ROOT.Double()] * len(quantiles) )
     histo.GetQuantiles( len(quantiles), thresholds, array.array('d', quantiles) )
     return thresholds 
-
 
 def splitMetMC(mc):
     dy = mc[-1]
@@ -151,6 +161,42 @@ def splitMetMC(mc):
     tt_3.name += "_3"
     tt_3.addSelectionString( "met_pt>80" )
     tt_3.texName += " (80<MET)"
+    tt_3.color   = ROOT.kAzure + 3
+
+    return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]
+
+def splitMetSigMC(mc):
+    dy = mc[-1]
+    dy_1 = copy.deepcopy( dy )
+    dy_1.name += "_1"
+    dy_1.addSelectionString( "MET_significance<6" )
+    dy_1.texName += " (S<6)"
+    dy_1.color   = ROOT.kGreen + 1 
+    dy_2 = copy.deepcopy( dy )
+    dy_2.name += "_2"
+    dy_2.addSelectionString( "MET_significance>6&&MET_significance<12" )
+    dy_2.texName += " (6<S<12)"
+    dy_2.color   = ROOT.kGreen + 2
+    dy_3 = copy.deepcopy( dy )
+    dy_3.name += "_3"
+    dy_3.addSelectionString( "MET_significance>12" )
+    dy_3.texName += " (12<S)"
+    dy_3.color   = ROOT.kGreen + 3
+    tt = mc[0]
+    tt_1 = copy.deepcopy( tt )
+    tt_1.name += "_1"
+    tt_1.addSelectionString( "MET_significance<6" )
+    tt_1.texName += " (S<6)"
+    tt_1.color   = ROOT.kAzure + 1 
+    tt_2 = copy.deepcopy( tt )
+    tt_2.name += "_2"
+    tt_2.addSelectionString( "MET_significance>6&&MET_significance<12" )
+    tt_2.texName += " (6<S<12)"
+    tt_2.color   = ROOT.kAzure + 2
+    tt_3 = copy.deepcopy( tt )
+    tt_3.name += "_3"
+    tt_3.addSelectionString( "MET_significance>12" )
+    tt_3.texName += " (12<S)"
     tt_3.color   = ROOT.kAzure + 3
 
     return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]
@@ -235,7 +281,7 @@ def drawPlots(plots, mode, dataMCScale):
 
       _drawObjects = []
 
-      if "u_para" in plot.name or "u_perp" in plot.name:
+      if ("u_para" in plot.name or "u_perp" in plot.name) and not args.noData:
           h_mc   = plot.histos_added[0][0].Clone()
           h_data = plot.histos_added[1][0].Clone()
           if h_mc.Integral()>0:
@@ -251,9 +297,9 @@ def drawPlots(plots, mode, dataMCScale):
       plotting.draw(plot,
 	    plot_directory = plot_directory_,
 	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-	    logX = False, logY = log, sorting = not args.splitMET,
+	    logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig),
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
-	    scaling = {0:1},
+	    #scaling = {0:1},
 	    legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
 	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ) + _drawObjects,
         copyIndexPHP = True, extensions = ["png"],
@@ -267,68 +313,67 @@ read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_e
 sequence = []
 
 def recoil_weight( var_bin, qt_bin):
-    if args.recoil == 'v4':
-        def _weight_( event, sample):
-            return event.weight*(event.dl_phi>var_bin[0])*(event.dl_phi<=var_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
-    elif args.recoil == 'v5':
-        def _weight_( event, sample):
-            return event.weight*(event.PV_npvsGood>var_bin[0])*(event.PV_npvsGood<=var_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
+    #if args.recoil == 'v4':
+    def _weight_( event, sample):
+        return event.weight*(event.dl_phi>var_bin[0])*(event.dl_phi<=var_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
+    #elif args.recoil == 'v5':
+    #    def _weight_( event, sample):
+    #        return event.weight*(event.PV_npvsGood>var_bin[0])*(event.PV_npvsGood<=var_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
     return _weight_
 
-def corr_recoil( event, sample ):
+if args.recoil:
+    def corr_recoil( event, sample ):
+        mt2Calculator.reset()
+        if not sample.isData: 
+            # Parametrisation vector - # define qt as GenMET + leptons
+            qt_px = event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.GenMET_pt*cos(event.GenMET_phi)
+            qt_py = event.l1_pt*sin(event.l1_phi) + event.l2_pt*sin(event.l2_phi) + event.GenMET_pt*sin(event.GenMET_phi)
 
-    mt2Calculator.reset()
-    if not sample.isData: 
+            qt = sqrt( qt_px**2 + qt_py**2 )
+            qt_phi = atan2( qt_py, qt_px )
 
-        # Parametrisation vector - # define qt as GenMET + leptons
-        qt_px = event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.GenMET_pt*cos(event.GenMET_phi)
-        qt_py = event.l1_pt*sin(event.l1_phi) + event.l2_pt*sin(event.l2_phi) + event.GenMET_pt*sin(event.GenMET_phi)
+            # compute fake MET 
+            fakeMET_x = event.met_pt*cos(event.met_phi) - event.GenMET_pt*cos(event.GenMET_phi)
+            fakeMET_y = event.met_pt*sin(event.met_phi) - event.GenMET_pt*sin(event.GenMET_phi)
 
-        qt = sqrt( qt_px**2 + qt_py**2 )
-        qt_phi = atan2( qt_py, qt_px )
+            fakeMET = sqrt( fakeMET_x**2 + fakeMET_y**2 )
+            fakeMET_phi = atan2( fakeMET_y, fakeMET_x )
 
-        # compute fake MET 
-        fakeMET_x = event.met_pt*cos(event.met_phi) - event.GenMET_pt*cos(event.GenMET_phi)
-        fakeMET_y = event.met_pt*sin(event.met_phi) - event.GenMET_pt*sin(event.GenMET_phi)
-
-        fakeMET = sqrt( fakeMET_x**2 + fakeMET_y**2 )
-        fakeMET_phi = atan2( fakeMET_y, fakeMET_x )
-
-        # project fake MET on qT
-        fakeMET_para = fakeMET*cos( fakeMET_phi - qt_phi ) 
-        fakeMET_perp = fakeMET*cos( fakeMET_phi - ( qt_phi - pi/2) ) 
-        
-        # FIXME: signs should be negative for v3 and positive for v2 
-        if args.recoil == "v4":
+            # project fake MET on qT
+            fakeMET_para = fakeMET*cos( fakeMET_phi - qt_phi ) 
+            fakeMET_perp = fakeMET*cos( fakeMET_phi - ( qt_phi - pi/2) ) 
+            
+            # FIXME: signs should be negative for v3 and positive for v2 
+            #if args.recoil == "v4":
             fakeMET_para_corr = - recoilCorrector.predict_para( event.dl_phi, qt, -fakeMET_para ) 
             fakeMET_perp_corr = - recoilCorrector.predict_perp( event.dl_phi, qt, -fakeMET_perp )
-        elif args.recoil == "v5":
-            fakeMET_para_corr = - recoilCorrector.predict_para( event.PV_npvsGood, qt, -fakeMET_para ) 
-            fakeMET_perp_corr = - recoilCorrector.predict_perp( event.PV_npvsGood, qt, -fakeMET_perp )
+            #elif args.recoil == "v5":
+            #    fakeMET_para_corr = - recoilCorrector.predict_para( event.PV_npvsGood, qt, -fakeMET_para ) 
+            #    fakeMET_perp_corr = - recoilCorrector.predict_perp( event.PV_npvsGood, qt, -fakeMET_perp )
 
-        # rebuild fake MET vector
-        fakeMET_px_corr = fakeMET_para_corr*cos(qt_phi) + fakeMET_perp_corr*cos(qt_phi - pi/2) 
-        fakeMET_py_corr = fakeMET_para_corr*sin(qt_phi) + fakeMET_perp_corr*sin(qt_phi - pi/2) 
+            # rebuild fake MET vector
+            fakeMET_px_corr = fakeMET_para_corr*cos(qt_phi) + fakeMET_perp_corr*cos(qt_phi - pi/2) 
+            fakeMET_py_corr = fakeMET_para_corr*sin(qt_phi) + fakeMET_perp_corr*sin(qt_phi - pi/2) 
 
-        #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
-   
-        met_px_corr = event.met_pt*cos(event.met_phi) - fakeMET_x + fakeMET_px_corr 
-        met_py_corr = event.met_pt*sin(event.met_phi) - fakeMET_y + fakeMET_py_corr
-    
-        event.met_pt_corr  = sqrt( met_px_corr**2 + met_py_corr**2 ) 
-        event.met_phi_corr = atan2( met_py_corr, met_px_corr ) 
+            #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
+       
+            met_px_corr = event.met_pt*cos(event.met_phi) - fakeMET_x + fakeMET_px_corr 
+            met_py_corr = event.met_pt*sin(event.met_phi) - fakeMET_y + fakeMET_py_corr
+        
+            event.met_pt_corr  = sqrt( met_px_corr**2 + met_py_corr**2 ) 
+            event.met_phi_corr = atan2( met_py_corr, met_px_corr ) 
 
-    else:
-        event.met_pt_corr  = event.met_pt 
-        event.met_phi_corr = event.met_phi
+        else:
+            event.met_pt_corr  = event.met_pt 
+            event.met_phi_corr = event.met_phi
 
-    mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
-    mt2Calculator.setMet(event.met_pt_corr, event.met_phi_corr)
-    event.dl_mt2ll_corr =  mt2Calculator.mt2ll()
+        mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+        mt2Calculator.setMet(event.met_pt_corr, event.met_phi_corr)
+        event.dl_mt2ll_corr =  mt2Calculator.mt2ll()
 
-    #print event.dl_mt2ll, event.dl_mt2ll_corr
+        #print event.dl_mt2ll, event.dl_mt2ll_corr
 
-sequence.append( corr_recoil )
+    sequence.append( corr_recoil )
   
 #
 #
@@ -338,13 +383,26 @@ def getLeptonSelection( mode ):
   if   mode=="mumu": return "nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ
   elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
+  elif mode=="SF":   return "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)" + offZ
+  elif mode=="all":   return "nGoodMuons+nGoodElectrons==2&&isOS&&(((isEE||isMuMu)&&" + offZ+")||isEMu)"
 
-##For PU reweighting
-#from Analysis.Tools.puReweighting import getReweightingFunction
-#nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
-#nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
-#nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
-#nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
+# get nvtx reweighting histo
+if args.reweightPU =='nvtx':
+    logger.info( "Now obtain nvtx reweighting histo" )
+    data_selectionString = "&&".join([getFilterCut(isData=True, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection("SF"), cutInterpreter.cutString(args.nvtxReweightSelection)])
+    data_nvtx_histo = data_sample.get1DHistoFromDraw( "PV_npvsGood", [100/5, 0, 100], selectionString=data_selectionString, weightString = "weight" )
+    data_nvtx_histo.Scale(1./data_nvtx_histo.Integral())
+
+    mc_selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection("SF"), cutInterpreter.cutString(args.nvtxReweightSelection)])
+    mc_histos  = [ s.get1DHistoFromDraw( "PV_npvsGood", [100/5, 0, 100], selectionString=mc_selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF") for s in mc]
+    mc_nvtx_histo     = mc_histos[0]
+    for h in mc_histos[1:]:
+        mc_nvtx_histo.Add( h )
+    mc_nvtx_histo.Scale(1./mc_nvtx_histo.Integral())
+    def nvtx_puRW( nvtx ):
+        i_bin = mc_nvtx_histo.FindBin( nvtx )
+        mc_val = mc_nvtx_histo.GetBinContent( i_bin)
+        return data_nvtx_histo.GetBinContent( i_bin )/mc_val if mc_val>0 else 1
 
 #
 # Loop over channels
@@ -355,38 +413,31 @@ allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
 
-  try:
-      data_sample = eval(args.era)
-  except Exception as e:
-      logger.error( "Didn't find %s", args.era )
-      raise e
-
   data_sample.setSelectionString([getFilterCut(isData=True, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["event/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
-  data_sample.scale          = 1.
-  lumi_scale                 = data_sample.lumi/1000
-
-  if args.noData:
-    if year == 2016: lumi_scale = 35.9
-    elif year == 2017: lumi_scale = 41.9
-    elif year == 2018: lumi_scale = 60.0
   weight_ = lambda event, sample: event.weight
 
   for sample in mc + signals:
-    sample.scale          = lumi_scale
-   #sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
-   #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
     sample.read_variables = ['reweightPU36fb/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F']
-    #if (('ttjets' in sample.name) or ('ttlep' in sample.name)) and args.isr:
-    #    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F', 'reweight_nISR/F']
-    #    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF*event.reweight_nISR
-    #else:
-    if args.reweightPU:
+    # Need individual pu reweighting functions for each sample in 2017, so nTrueInt_puRW is only defined here
+    if args.reweightPU and args.reweightPU not in ["noPUReweighting", "nvtx"]:
+        if year == 2017:
+            logger.info("Getting PU profile and weight for sample %s", sample.name)
+            puProfiles = puProfile( source_sample = sample )
+            mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
+            nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc=mcHist)
+
+    if args.reweightPU == "noPUReweighting":
+        sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+    elif args.reweightPU == "nvtx":
+        sample.weight         = lambda event, sample: nvtx_puRW(event.PV_npvsGood) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+    elif args.reweightPU:
         sample.weight         = lambda event, sample: nTrueInt_puRW(event.Pileup_nTrueInt) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
-    else:
+    else: #default
         sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+
     sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
 
   for sample in signals:
@@ -404,8 +455,13 @@ for index, mode in enumerate(allModes):
         sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
       else:
         raise NotImplementedError
-  
-  mc_ = splitMetMC(mc) if args.splitMET else mc
+ 
+  if args.splitMET:
+    mc_ = splitMetMC(mc)
+  elif args.splitMETSig:
+    mc_ = splitMetSigMC(mc)
+  else:
+    mc_ = mc 
 
   for sample in mc_: sample.style = styles.fillStyle(sample.color)
 
@@ -415,12 +471,6 @@ for index, mode in enumerate(allModes):
     stack = Stack(mc_)
 
   stack.extend( [ [s] for s in signals ] )
-
-  if args.small:
-        for sample in stack.samples:
-            sample.normalization = 1.
-            sample.reduceFiles( factor = 40 )
-            sample.scale /= sample.normalization
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper', histo_class=ROOT.TH1D)
@@ -451,12 +501,6 @@ for index, mode in enumerate(allModes):
       binning=[400/20,0,400],
   ))
 
-  plots.append(Plot( name = "met_pt_corr",
-      texX = 'corr E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
-      attribute = lambda event, sample: event.met_pt_corr,
-      binning=[400/20,0,400],
-  ))
-    
   plots.append(Plot(
       texX = 'E_{T}^{miss} significance', texY = 'Number of Events',
       attribute = TreeVariable.fromString( "MET_significance/F" ),
@@ -482,11 +526,18 @@ for index, mode in enumerate(allModes):
       binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
     ))
 
-  plots.append(Plot( name = "dl_mt2ll_corr",
-    texX = 'corr M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-    attribute = lambda event, sample: event.dl_mt2ll_corr,
-    binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
-  ))
+  if args.recoil:
+      plots.append(Plot( name = "met_pt_corr",
+          texX = 'corr E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
+          attribute = lambda event, sample: event.met_pt_corr,
+          binning=[400/20,0,400],
+      ))
+        
+      plots.append(Plot( name = "dl_mt2ll_corr",
+        texX = 'corr M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+        attribute = lambda event, sample: event.dl_mt2ll_corr,
+        binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
+      ))
 
   plots.append(Plot( name = "qT",
     texX = 'q_{T} (GeV)', texY = 'Number of Events / 50 GeV',
@@ -582,65 +633,65 @@ for index, mode in enumerate(allModes):
 
   # Plots only when at least one jet:
   if args.selection.count('njet2') or args.selection.count('njet1') or args.selection.count('njet01'):
-#    plots.append(Plot(
-#      texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
-#      name = 'jet1_pt', attribute = lambda event, sample: event.JetGood_pt[0],
-#      binning=[600/30,0,600],
-#    ))
-#
-#    plots.append(Plot(
-#      texX = '#eta(leading jet) (GeV)', texY = 'Number of Events',
-#      name = 'jet1_eta', attribute = lambda event, sample: abs(event.JetGood_eta[0]),
-#      binning=[10,0,3],
-#    ))
-#
-#    plots.append(Plot(
-#      texX = '#phi(leading jet) (GeV)', texY = 'Number of Events',
-#      name = 'jet1_phi', attribute = lambda event, sample: event.JetGood_phi[0],
-#      binning=[10,-pi,pi],
-#    ))
-#
-#    plots.append(Plot(
-#      name = 'cosMetJet1phi',
-#      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
-#      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0]), 
-#      read_variables = ["met_phi/F", "JetGood[phi/F]"],
-#      binning = [10,-1,1],
-#    ))
-#    
-#    plots.append(Plot(
-#      name = 'cosMetJet1phi_smallBinning',
-#      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
-#      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
-#      read_variables = ["met_phi/F", "JetGood[phi/F]"],
-#      binning = [20,-1,1],
-#    ))
-#
-#    plots.append(Plot(
-#      name = 'cosZJet1phi',
-#      texX = 'Cos(#Delta#phi(Z, leading jet))', texY = 'Number of Events',
-#      attribute = lambda event, sample: cos( event.dl_phi - event.JetGood_phi[0] ) ,
-#      read_variables =  ["dl_phi/F", "JetGood[phi/F]"],
-#      binning = [10,-1,1],
-#    ))
+    plots.append(Plot(
+      texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
+      name = 'jet1_pt', attribute = lambda event, sample: event.JetGood_pt[0],
+      binning=[600/30,0,600],
+    ))
+
+    plots.append(Plot(
+      texX = '#eta(leading jet) (GeV)', texY = 'Number of Events',
+      name = 'jet1_eta', attribute = lambda event, sample: abs(event.JetGood_eta[0]),
+      binning=[10,0,3],
+    ))
+
+    plots.append(Plot(
+      texX = '#phi(leading jet) (GeV)', texY = 'Number of Events',
+      name = 'jet1_phi', attribute = lambda event, sample: event.JetGood_phi[0],
+      binning=[10,-pi,pi],
+    ))
+
+    plots.append(Plot(
+      name = 'cosMetJet1phi',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
+      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0]), 
+      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      binning = [10,-1,1],
+    ))
+    
+    plots.append(Plot(
+      name = 'cosMetJet1phi_smallBinning',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
+      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
+      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      binning = [20,-1,1],
+    ))
+
+    plots.append(Plot(
+      name = 'cosZJet1phi',
+      texX = 'Cos(#Delta#phi(Z, leading jet))', texY = 'Number of Events',
+      attribute = lambda event, sample: cos( event.dl_phi - event.JetGood_phi[0] ) ,
+      read_variables =  ["dl_phi/F", "JetGood[phi/F]"],
+      binning = [10,-1,1],
+    ))
 
     # u_para u_perp closure plots
-    u_para_binning   =  [ i*5 for i in range(-40, 41) ]
+    u_para_binning   =  [ i*20 for i in range(-10, 11) ]
     qt_binning    = [0, 50, 100, 150, 200, 300 ]
     qt_bins = [ (qt_binning[i],qt_binning[i+1]) for i in range(len(qt_binning)-1) ]
-    if args.recoil == 'v4':
-        var_binning   = [ pi*(i-5)/5. for i in range(0,11) ]
-        var_bins      = [ (var_binning[i],var_binning[i+1]) for i in range(len(var_binning)-1) ]
-    elif args.recoil == 'v5':
-        var_binning   = [ 0, 20, 30, 40, 50, 100 ]
-        var_bins      = [ (var_binning[i],var_binning[i+1]) for i in range(len(var_binning)-1) ]
+    #if args.recoil == 'v4':
+    var_binning   = [ pi*(i-5)/5. for i in range(0,11) ]
+    var_bins      = [ (var_binning[i],var_binning[i+1]) for i in range(len(var_binning)-1) ]
+    #elif args.recoil == 'v5':
+    #    var_binning   = [ 0, 20, 30, 40, 50, 100 ]
+    #    var_bins      = [ (var_binning[i],var_binning[i+1]) for i in range(len(var_binning)-1) ]
 
     for var_bin in var_bins:
         for qt_bin in qt_bins:
-            if args.recoil=='v4':
-                postfix = "phill_%3.2f_%3.2f_qt_%i_%i"%( var_bin[0], var_bin[1], qt_bin[0], qt_bin[1] )
-            elif args.recoil=='v5':
-                postfix = "nvtx_%i_%i_qt_%i_%i"%( var_bin[0], var_bin[1], qt_bin[0], qt_bin[1] )
+            #if args.recoil=='v4':
+            postfix = "phill_%3.2f_%3.2f_qt_%i_%i"%( var_bin[0], var_bin[1], qt_bin[0], qt_bin[1] )
+            #elif args.recoil=='v5':
+            #    postfix = "nvtx_%i_%i_qt_%i_%i"%( var_bin[0], var_bin[1], qt_bin[0], qt_bin[1] )
             plots.append(Plot( name = "u_para_" + postfix, 
               texX = "u_{#parallel} (GeV)", texY = 'Number of Events / 30 GeV',
               attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-event.dl_phi),
@@ -653,71 +704,72 @@ for index, mode in enumerate(allModes):
               weight = recoil_weight(var_bin, qt_bin),
               binning=[80, -200,200],
             ))
-            plots.append(Plot( name = "u_para_corr_" + postfix, 
-              texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
-              weight = recoil_weight(var_bin, qt_bin),
-              binning=[80, -200,200],
-            ))
-            plots.append(Plot( name = "u_perp_corr_" + postfix, 
-              texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-              attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
-              weight = recoil_weight(var_bin, qt_bin),
-              binning=[80, -200,200],
-            ))
+            if args.recoil:
+                plots.append(Plot( name = "u_para_corr_" + postfix, 
+                  texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+                  attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
+                  weight = recoil_weight(var_bin, qt_bin),
+                  binning=[80, -200,200],
+                ))
+                plots.append(Plot( name = "u_perp_corr_" + postfix, 
+                  texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+                  attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
+                  weight = recoil_weight(var_bin, qt_bin),
+                  binning=[80, -200,200],
+                ))
 
 #  # Plots only when at least two jets:
   if args.selection.count('njet2'):
-#    plots.append(Plot(
-#      texX = 'p_{T}(2nd leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
-#      name = 'jet2_pt', attribute = lambda event, sample: event.JetGood_pt[1],
-#      binning=[600/30,0,600],
-#    ))
-#
-#    plots.append(Plot(
-#      texX = '#eta(2nd leading jet) (GeV)', texY = 'Number of Events',
-#      name = 'jet2_eta', attribute = lambda event, sample: abs(event.JetGood_eta[1]),
-#      binning=[10,0,3],
-#    ))
-#
-#    plots.append(Plot(
-#      texX = '#phi(2nd leading jet) (GeV)', texY = 'Number of Events',
-#      name = 'jet2_phi', attribute = lambda event, sample: event.JetGood_phi[1],
-#      binning=[10,-pi,pi],
-#    ))
-#
-#    plots.append(Plot(
-#      name = 'cosMetJet2phi',
-#      texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
-#      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
-#      read_variables = ["met_phi/F", "JetGood[phi/F]"],
-#      binning = [10,-1,1],
-#    ))
-#    
-#    plots.append(Plot(
-#      name = 'cosMetJet2phi_smallBinning',
-#      texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
-#      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
-#      read_variables = ["met_phi/F", "JetGood[phi/F]"],
-#      binning = [20,-1,1],
-#    ))
-#
-#    plots.append(Plot(
-#      name = 'cosZJet2phi',
-#      texX = 'Cos(#Delta#phi(Z, 2nd leading jet))', texY = 'Number of Events',
-#      attribute = lambda event, sample: cos( event.dl_phi - event.JetGood_phi[0] ),
-#      read_variables = ["dl_phi/F", "JetGood[phi/F]"],
-#      binning = [10,-1,1],
-#    ))
-#
-#    plots.append(Plot(
-#      name = 'cosJet1Jet2phi',
-#      texX = 'Cos(#Delta#phi(leading jet, 2nd leading jet))', texY = 'Number of Events',
-#      attribute = lambda event, sample: cos( event.JetGood_phi[1] - event.JetGood_phi[0] ) ,
-#      read_variables =  ["JetGood[phi/F]"],
-#      binning = [10,-1,1],
-#    ))
-#
+    plots.append(Plot(
+      texX = 'p_{T}(2nd leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
+      name = 'jet2_pt', attribute = lambda event, sample: event.JetGood_pt[1],
+      binning=[600/30,0,600],
+    ))
+
+    plots.append(Plot(
+      texX = '#eta(2nd leading jet) (GeV)', texY = 'Number of Events',
+      name = 'jet2_eta', attribute = lambda event, sample: abs(event.JetGood_eta[1]),
+      binning=[10,0,3],
+    ))
+
+    plots.append(Plot(
+      texX = '#phi(2nd leading jet) (GeV)', texY = 'Number of Events',
+      name = 'jet2_phi', attribute = lambda event, sample: event.JetGood_phi[1],
+      binning=[10,-pi,pi],
+    ))
+
+    plots.append(Plot(
+      name = 'cosMetJet2phi',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
+      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
+      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      binning = [10,-1,1],
+    ))
+    
+    plots.append(Plot(
+      name = 'cosMetJet2phi_smallBinning',
+      texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
+      attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
+      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+      binning = [20,-1,1],
+    ))
+
+    plots.append(Plot(
+      name = 'cosZJet2phi',
+      texX = 'Cos(#Delta#phi(Z, 2nd leading jet))', texY = 'Number of Events',
+      attribute = lambda event, sample: cos( event.dl_phi - event.JetGood_phi[0] ),
+      read_variables = ["dl_phi/F", "JetGood[phi/F]"],
+      binning = [10,-1,1],
+    ))
+
+    plots.append(Plot(
+      name = 'cosJet1Jet2phi',
+      texX = 'Cos(#Delta#phi(leading jet, 2nd leading jet))', texY = 'Number of Events',
+      attribute = lambda event, sample: cos( event.JetGood_phi[1] - event.JetGood_phi[0] ) ,
+      read_variables =  ["JetGood[phi/F]"],
+      binning = [10,-1,1],
+    ))
+
     plots.append(Plot(
       texX = 'M_{T2}(bb) (GeV)', texY = 'Number of Events / 30 GeV',
       attribute = TreeVariable.fromString( "dl_mt2bb/F" ),
