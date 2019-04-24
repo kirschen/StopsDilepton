@@ -104,7 +104,6 @@ elif args.reweightPU == 'Central':
 
 if args.selectSys != "all" and args.selectSys != "combine": all_systematics = [args.selectSys if args.selectSys != 'None' else None]
 else:                                                       all_systematics = [None] + weight_systematics + jme_systematics
-#else:                                                       all_systematics = [None] + jet_systematics
 
 
 sys_pairs = [\
@@ -206,7 +205,6 @@ read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2
 
 sequence = []
 
-## begin MT2(ll) corr
 def corr_recoil( event, sample ):
 
     mt2Calculator.reset()
@@ -263,20 +261,6 @@ def corr_recoil( event, sample ):
     #print event.dl_mt2ll, event.dl_mt2ll_corr
 
 sequence.append( corr_recoil )
-## end MT2(ll) corr
-
-# Pileup reweighting
-#def pu_reweight( event, sample ):
-#if not sample.isData:
-#        if args.puReweight == 'VUp':
-#            event.reweightPU36fbVUp = Pileup_nTrueInt_puRWVUp(event.Pileup_nTrueInt)
-#            event.reweightPU36fbVVUp = Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
-#        print "Pileup_nTrueInt_puRWVVUp: ", Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
-#        else:
-#            event.reweightPU36fbDown = Pileup_nTrueInt_puRWDown(event.Pileup_nTrueInt)
-#            event.reweightPU36fbUp = Pileup_nTrueInt_puRWUp(event.Pileup_nTrueInt)
-#
-#sequence.append( pu_reweight )
 
 # selection
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
@@ -379,29 +363,6 @@ for index, mode in enumerate(allModes):
   else:                       stack_data = Stack( data_sample )
   sys_stacks = {sys:copy.deepcopy(stack_mc) for sys in [None] + weight_systematics + jme_systematics }
   plots = []
-
-  # pvBinning = [0,20,40,60,80,100,140,240,340]
-  
-  # pvGood_data  = Plot(
-  #     name = "PVGood_data",
-  #     texX = 'N_{PV} (total)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-  #     binning=Binning.fromThresholds(mt2llBinning),
-  #     stack = stack_data,
-  #     attribute = TreeVariable.fromString( "PV_npvsGood/F" ),
-  #     weight = data_weight,
-  #     )
-  # plots.append( pvGood_data )
-
-  # pvGood_mc  = { sys:Plot(\
-  #     name            = "PVGood" if sys is None else "PVGood_mc_%s" % sys,
-  #     texX            = 'N_{PV} (total)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-  #     binning         = Binning.fromThresholds(mt2llBinning),
-  #     stack           = sys_stacks[sys],
-  #     attribute        = TreeVariable.fromString( "PV_npvsGood/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "PV_npvsGood_%s/F" % sys ),
-  #     selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-  #     weight          = weightMC( sys = sys )[0],
-  #     ) for sys in all_systematics }
-  # plots.extend( pvGood_mc.values() )
 
   mt2llBinning = [0,20,40,60,80,100,140,240,340]
   
