@@ -5,17 +5,17 @@ parser.add_option("--noMultiThreading",      dest="noMultiThreading",      defau
 parser.add_option("--selectEstimator",       dest="selectEstimator",       default=None,                action="store",      help="select estimator?")
 parser.add_option("--selectRegion",          dest="selectRegion",          default=None, type="int",    action="store",      help="select region?")
 parser.add_option("--year",                  dest="year",                  default=2016, type="int",    action="store",      help="Which year?")
+parser.add_option("--nThreads",              dest="nThreads",              default=8, type="int",       action="store",      help="How many threads?")
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option("--control",               dest="control",               default=None,                action='store',      choices=[None, "DY", "VV", "DYVV", "TTZ1", "TTZ2", "TTZ3", "TTZ4", "TTZ5"], help="For CR region?")
 parser.add_option("--useGenMet",             dest="useGenMet",             default=False,               action='store_true', help="use genMET instead of recoMET, used for signal studies")
 parser.add_option("--aggregate",             dest="aggregate",             default=False,               action='store_true', help="run over aggregated signal regions")
-parser.add_option("--DMsync",                dest="DMsync",                default=False,               action='store_true', help="run over DM sync signal regions")
 
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels, trilepChannels
 from StopsDilepton.analysis.estimators   import *
-from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsAgg, regionsDM4,regionsDM5, regionsDM6, regionsDM7
+from StopsDilepton.analysis.regions      import regionsLegacy
 
 from StopsDilepton.analysis.Setup import Setup
 
@@ -27,9 +27,8 @@ logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger('INFO', logFile = None )
 
-allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsO
+allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsLegacy
 if options.aggregate: allRegions = regionsAgg
-elif options.DMsync: allRegions = regionsDM7
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
 
@@ -93,7 +92,7 @@ if options.noMultiThreading:
     results = map(wrapper, jobs)
 else:
     from multiprocessing import Pool
-    pool = Pool(processes=8)
+    pool = Pool(processes=options.nThreads)
     results = pool.map(wrapper, jobs)
     pool.close()
     pool.join()

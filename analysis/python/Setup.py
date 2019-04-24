@@ -108,7 +108,9 @@ class Setup:
         return '_'.join(self.prefixes+[self.preselection('MC')['prefix']])
 
     def defaultCacheDir(self):
-        return os.path.join(self.analysis_results, self.prefix(), 'cacheFiles')
+        cacheDir = os.path.join(self.analysis_results, self.prefix(), 'cacheFiles')
+        logger.info('Default cache dir is: %s', cacheDir)
+        return cacheDir
 
     #Clone the setup and optinally modify the systematic variation
     def sysClone(self, sys=None, parameters=None):
