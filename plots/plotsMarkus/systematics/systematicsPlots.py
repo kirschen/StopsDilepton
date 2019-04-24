@@ -36,17 +36,14 @@ argParser.add_argument('--selectSys',         action='store',      default='all'
 #argParser.add_argument('--noMultiThreading',  action='store_true', default='False', help="noMultiThreading?") # Need no multithreading when doing batch-to-natch
 argParser.add_argument('--showOnly',          action='store',      default=None)
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--runLocal',             action='store_true',     help='Run local or submit?', )
 argParser.add_argument('--splitBosons',       action='store_true', default=False)
 argParser.add_argument('--splitTop',          action='store_true', default=False)
 argParser.add_argument('--powheg',            action='store_true', default=True)
-argParser.add_argument('--isChild',           action='store_true', default=False)
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
-argParser.add_argument('--dryRun',            action='store_true', default=False,       help='do not launch subjobs')
-argParser.add_argument("--year", action='store', type=int, default=2016, choices = [ 2016, 2017, 2018 ], help='Which year?')
 argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp'])
-argParser.add_argument('--preHEM',             action='store_true', default=False)
-argParser.add_argument('--postHEM',            action='store_true', default=False)
+argParser.add_argument('--recoil',             action='store', type=str,      default="VUp", choices = ["nvtx", "VUp", None])
+argParser.add_argument('--era',                action='store', type=str,      default="2016")
+
 args = argParser.parse_args()
 
 #
@@ -57,6 +54,15 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
+# Year
+if "2016" in args.era:
+    year = 2016
+elif "2017" in args.era:
+    year = 2017
+elif "2018" in args.era:
+    year = 2018
+
+logger.info( "Working in year %i", year )
 
 def waitForLock(filename):
     lockAcquired = False
@@ -87,7 +93,7 @@ bJetSelectionM  = "nBTag"
 jet_systematics    = ['jesTotalUp','jesTotalDown']# 'JERDown','JECVUp','JECVDown']
 met_systematics    = ['unclustEnUp', 'unclustEnDown']
 jme_systematics    = jet_systematics + met_systematics
-if args.year==2018:
+if year==2018:
     weight_systematics = ['BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
     weight_systematics += ['PU36fbVVUp', 'PU36fbUp']
 else:
@@ -104,7 +110,7 @@ else:                                                       all_systematics = [N
 sys_pairs = [\
     ('JEC',         'jesTotalUp', 'jesTotalDown'),
     ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
-    ('PU36fb',      'PU36fbUp', 'PU36fbDown') if not args.year==2018 else ('PU36fb', 'PU36fbVVUp', 'PU36fbUp'),
+    ('PU36fb',      'PU36fbUp', 'PU36fbDown') if not year==2018 else ('PU36fb', 'PU36fbVVUp', 'PU36fbUp'),
     # ('TopPt',       'TopPt', None),
     # ('JER',         'JERUp', 'JERDown'),
     ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
@@ -113,42 +119,6 @@ sys_pairs = [\
     ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
 ]
 
-#
-# If this is the mother process, launch the childs and exit (I know, this could potententially be dangereous if the --isChild and --selection commands are not given...)
-#
-
-def wrapper(com):
-  import os
-  os.system(com)
-
-#if not args.isChild and args.selection is None and (args.selectSys == "all" or args.selectSys == "combine"):
-if not args.isChild and (args.selectSys == "all" or args.selectSys == "combine"):
-  jobs = []
-  for sys in (all_systematics if args.selectSys == "all" else ["combine"]):
-    command = "python systematicsPlots_v2.py --selection=" + args.selection + (" --noData" if args.noData else "")\
-               + (" --isChild")\
-               + (" --small" if args.small else "")\
-               + (" --plot_directory=" + args.plot_directory)\
-               + (" --logLevel=" + args.logLevel)\
-               + (" --selectSys=" + str(sys))\
-               + (" --signal=" + args.signal)\
-               + (" --splitBosons" if args.splitBosons else "")\
-               + (" --splitTop" if args.splitTop else "")\
-               + (" --powheg" if args.powheg else "")\
-               + (" --normalizeBinWidth" if args.normalizeBinWidth else "")
-    if args.selectSys == 'combine':
-        jobs.append(command)
-    elif args.selectSys == 'all':
-        if args.runLocal:
-            jobs.append(command)
-        else:
-            jobs.append( "submitBatch.py --title='sys' '%s'"%command )
-
-#  if args.noMultiThreading: 
-  logger.info("Running/submitting all systematics.")
-  results = map(wrapper, jobs)
-  logger.info("Done with running/submitting systematics.")
-  exit(0)
 
 if args.noData:                   args.plot_directory += "_noData"
 if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
@@ -156,61 +126,47 @@ if args.signal == "DM":           args.plot_directory += "_DM"
 if args.signal == "T2tt":         args.plot_directory += "_T2tt"
 if args.small:                    args.plot_directory += "_small"
 if args.reweightPU:               args.plot_directory += "_%s"%args.reweightPU
-if args.preHEM:                   args.plot_directory += "_preHEM"
-if args.postHEM:                  args.plot_directory += "_postHEM"
-
-#plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, args.year, mode)
-#
-#try: os.makedirs(plot_directory_)
-#except: pass
-
+if args.recoil:                   args.plot_directory += '_recoil_'+args.recoil
 
 #
 # Make samples, will be searched for in the postProcessing directory
 #
 from Analysis.Tools.puReweighting import getReweightingFunction
 
-if args.year == 2016:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
+if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16
     mc              = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-    data_sample     = Run2016
     Pileup_nTrueInt_puRWDown = getReweightingFunction(data="PU_2016_35920_XSecDown", mc="Summer16")
     Pileup_nTrueInt_puRWUp = getReweightingFunction(data="PU_2016_35920_XSecUp", mc="Summer16")
-    recoilCorrector = RecoilCorrector( 2016 )
-elif args.year == 2017:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
+elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
     mc              = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-    data_sample     = Run2017
     Pileup_nTrueInt_puRWDown = getReweightingFunction(data="PU_2017_41860_XSecDown", mc="Fall17")
     Pileup_nTrueInt_puRWUp = getReweightingFunction(data="PU_2017_41860_XSecUp", mc="Fall17")
-    recoilCorrector = RecoilCorrector( 2017 )
-elif args.year == 2018:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
+elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p4/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
     mc              = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-    data_sample     = Run2018
     Pileup_nTrueInt_puRWVUp = getReweightingFunction(data="PU_2018_58830_XSecVUp", mc="Autumn18")
     Pileup_nTrueInt_puRWVVUp = getReweightingFunction(data="PU_2018_58830_XSecVVUp", mc="Autumn18")
-    if args.preHEM:
-        recoilCorrector = RecoilCorrector( 2018, "preHEM")
-    elif args.postHEM:
-        recoilCorrector = RecoilCorrector( 2018, "postHEM")
-    else:
-        recoilCorrector = RecoilCorrector( 2018 )
+
+try:
+  data_sample = eval(args.era)
+except Exception as e:
+  logger.error( "Didn't find %s", args.era )
+  raise e
+
+if args.recoil:
+    from Analysis.Tools.RecoilCorrector import RecoilCorrector
+    if args.recoil == "nvtx":
+        recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_nvtx_loop", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+    elif args.recoil == "VUp":
+        recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_VUp_loop", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
 
 signals = []
 
@@ -247,29 +203,26 @@ def weightMC( sys = None ):
 # Read variables and sequences
 #
 read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F",
+                  "met_pt/F", "met_phi/F", "dl_pt/F", "dl_phi/F",
                   #"LepGood[pt/F,eta/F,miniRelIso/F]", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
                   "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","event/l"]
 
 sequence = []
 
 ## begin MT2(ll) corr
-def recoil_weight( nJetGood_bin, qt_bin):
-    def _weight_( event, sample):
-        return event.weight*(event.nJetGood>nJetGood_bin[0])*(event.nJetGood<=nJetGood_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
-    return _weight_
-
 def corr_recoil( event, sample ):
 
     mt2Calculator.reset()
     if not sample.isData: 
-
         # Parametrisation vector - # define qt as GenMET + leptons
         qt_px = event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.GenMET_pt*cos(event.GenMET_phi)
         qt_py = event.l1_pt*sin(event.l1_phi) + event.l2_pt*sin(event.l2_phi) + event.GenMET_pt*sin(event.GenMET_phi)
 
         qt = sqrt( qt_px**2 + qt_py**2 )
         qt_phi = atan2( qt_py, qt_px )
+
+        #ref_phi = qt_phi
+        ref_phi = event.dl_phi
 
         # compute fake MET 
         fakeMET_x = event.met_pt*cos(event.met_phi) - event.GenMET_pt*cos(event.GenMET_phi)
@@ -279,19 +232,15 @@ def corr_recoil( event, sample ):
         fakeMET_phi = atan2( fakeMET_y, fakeMET_x )
 
         # project fake MET on qT
-        fakeMET_para = fakeMET*cos( fakeMET_phi - qt_phi ) 
-        fakeMET_perp = fakeMET*cos( fakeMET_phi - ( qt_phi - pi/2) ) 
-        
-        # FIXME: signs should be negative for v3 and positive for v2 
-#        print "nJetGood: ", event.nJetGood, " qt: ", qt, " fakeMET_para: ", fakeMET_para
-        fakeMET_para_corr = - recoilCorrector.predict_para( event.nJetGood, qt, -fakeMET_para ) 
-        fakeMET_perp_corr = - recoilCorrector.predict_perp( event.nJetGood, qt, -fakeMET_perp )
-#        print fakeMET_para_corr
+        fakeMET_para = fakeMET*cos( fakeMET_phi - ref_phi )
+        fakeMET_perp = fakeMET*cos( fakeMET_phi - ( ref_phi - pi/2) )
+
+        fakeMET_para_corr = - recoilCorrector.predict_para( ref_phi, qt, -fakeMET_para )
+        fakeMET_perp_corr = - recoilCorrector.predict_perp( ref_phi, qt, -fakeMET_perp )
 
         # rebuild fake MET vector
-        fakeMET_px_corr = fakeMET_para_corr*cos(qt_phi) + fakeMET_perp_corr*cos(qt_phi - pi/2) 
-        fakeMET_py_corr = fakeMET_para_corr*sin(qt_phi) + fakeMET_perp_corr*sin(qt_phi - pi/2) 
-
+        fakeMET_px_corr = fakeMET_para_corr*cos(ref_phi) + fakeMET_perp_corr*cos(ref_phi - pi/2)
+        fakeMET_py_corr = fakeMET_para_corr*sin(ref_phi) + fakeMET_perp_corr*sin(ref_phi - pi/2)
         #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
    
         for var in [""] + jme_systematics:
@@ -317,15 +266,12 @@ def corr_recoil( event, sample ):
     #print event.dl_mt2ll, event.dl_mt2ll_corr
 
 sequence.append( corr_recoil )
-
 ## end MT2(ll) corr
-
 
 # Pileup reweighting
 def pu_reweight( event, sample ):
-
     if not sample.isData:
-        if args.year == 2018:
+        if year == 2018:
             event.reweightPU36fbVUp = Pileup_nTrueInt_puRWVUp(event.Pileup_nTrueInt)
             event.reweightPU36fbVVUp = Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
 #        print "Pileup_nTrueInt_puRWVVUp: ", Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
@@ -335,10 +281,7 @@ def pu_reweight( event, sample ):
 
 sequence.append( pu_reweight )
 
-# end Pileup reweighting
-
-
-
+# selection
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
 def getLeptonSelection( mode ):
   if   mode=="mumu": return "nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ
@@ -369,28 +312,22 @@ for index, mode in enumerate(allModes):
 
   logger.info('Working on mode ' + str(mode))
 
-  if args.year == 2016:
+  if year == 2016:
     data_sample = Run2016
     data_sample.texName = "data (2016)"
-  elif args.year == 2017:
+  elif year == 2017:
     data_sample = Run2017
     data_sample.texName = "data (2017)"
-  elif args.year == 2018:
+  elif year == 2018:
     data_sample = Run2018
     data_sample.texName = "data (2018)"
 
-  data_sample.setSelectionString([getFilterCut(isData=True, year=args.year), getLeptonSelection(mode)])
-  if args.preHEM:
-    data_sample.addSelectionString("run<319077")
-  if args.postHEM:
-    data_sample.addSelectionString("run>=319077")
+  data_sample.setSelectionString([getFilterCut(isData=True, year=year), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["event/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   data_sample.scale          = 1.
   lumi_scale                 = data_sample.lumi/1000
-  if args.preHEM:   lumi_scale *= 0.37
-  if args.postHEM:  lumi_scale *= 0.63
 
   data_weight = lambda event, sample: event.weight
   data_weight_string = "weight"
@@ -412,7 +349,7 @@ for index, mode in enumerate(allModes):
     sample.read_variables += ["nBTag_%s/I"%s      for s in jet_systematics]
     sample.read_variables += ["met_pt_%s/F"%s      for s in jme_systematics]
     sample.read_variables += ["met_phi_%s/F"%s      for s in jme_systematics]
-    sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
+    sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(mode)])
 
 #    # Apply scale factors in the mt2ll > 100 GeV signal region (except Top which will be already scaled anyway)
 #    if args.selection.count('njet2-btagM-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100') and False: # Turn on when scalefactors are rederived
@@ -426,13 +363,13 @@ for index, mode in enumerate(allModes):
       s.scale          = lumi_scale
       s.read_variables = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F']
       s.weight         = lambda event, sample: event.reweightLeptonFastSimSF
-      s.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
+      s.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(mode)])
 
   if args.signal == "DM":
     for s in signals:
       s.scale          = lumi_scale
       s.read_variables = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F']
-      s.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
+      s.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(mode)])
 
   # Use some defaults
   Plot.setDefaults( selectionString = cutInterpreter.cutString(args.selection) )
@@ -666,15 +603,13 @@ for index, mode in enumerate(allModes):
   if args.selection.count('njet2'):
     plotConfigs.append([ dl_mt2blbl_mc, dl_mt2blbl_data, 20])
 
-  plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, str(args.year), mode)
+  plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, args.era, mode)
   result_file = os.path.join(plot_directory_, 'results.pkl')
   try: os.makedirs(plot_directory_)
   except: pass
 
   if args.selectSys != "combine": 
     normalization_selection_string = cutInterpreter.cutString(args.selection + '-mt2llTo100')
-    #normalization_selection_string = cutInterpreter.cutString(args.normalizationSelection)
-    #normalization_selection_string = normalization_selection_string.replace('&&dl_mt2ll>100','')
     mc_weight_func, mc_weight_string = weightMC( sys = (args.selectSys if args.selectSys != 'None' else None) )
 
     yield_mc = {s.name + (args.selectSys if sys else ""):s.scale*s.getYieldFromDraw( selectionString =  addSys(normalization_selection_string ), weightString = mc_weight_string)['val'] for s in mc}
@@ -737,7 +672,6 @@ for index, mode in enumerate(allModes):
       top_sf[None] = 1
       total        = sum(yield_mc.values())
 
-
     #Scaling systematic shapes to MT2ll<100 region
     for sys_pair in sys_pairs:
       for sys in sys_pair[1:]:
@@ -750,7 +684,6 @@ for index, mode in enumerate(allModes):
             if args.selection.count('njet01-btag0-looseLeptonVeto-mll20-metInv') and mode != "mue":
               top_sf[sys] = 1
               logger.info( "NOT scaling top for " + args.selection + " (mode " + mode + ")" )
-
 
     for plot_mc, plot_data, bin_width in plotConfigs:
       if args.normalizeBinWidth and bin_width>0:
@@ -872,7 +805,7 @@ for index, mode in enumerate(allModes):
              
 
       for log in [False, True]:
-        plotDir = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, str(args.year), mode + ("_log" if log else "") + "_scaled")
+        plotDir = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, str(year), mode + ("_log" if log else "") + "_scaled")
         #plotDir = os.path.join(plot_directory, args.plot_directory,  mode + ("_log" if log else "") + "_scaled", args.selection)
         if args.showOnly: plotDir = os.path.join(plotDir, "only_" + args.showOnly)
         plotting.draw(plot,
