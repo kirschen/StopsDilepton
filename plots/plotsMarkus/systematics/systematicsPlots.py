@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' Analysis script for standard plots with systematic errors
+''' analysis script for standard plots with systematic errors
 '''
 #
 # Standard imports and batch mode
@@ -40,9 +40,9 @@ argParser.add_argument('--splitBosons',       action='store_true', default=False
 argParser.add_argument('--splitTop',          action='store_true', default=False)
 argParser.add_argument('--powheg',            action='store_true', default=True)
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
-argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp'])
-argParser.add_argument('--recoil',             action='store', type=str,      default="VUp", choices = ["nvtx", "VUp", None])
-argParser.add_argument('--era',                action='store', type=str,      default="2016")
+argParser.add_argument('--reweightPU',         action='store', default='Central', choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp'])
+argParser.add_argument('--recoil',             action='store', type=str,      default="Central", choices = ["nvtx", "VUp", "Central"])
+argParser.add_argument('--era',                action='store', type=str,      default="Run2016")
 
 args = argParser.parse_args()
 
@@ -93,12 +93,12 @@ bJetSelectionM  = "nBTag"
 jet_systematics    = ['jesTotalUp','jesTotalDown']# 'JERDown','JECVUp','JECVDown']
 met_systematics    = ['unclustEnUp', 'unclustEnDown']
 jme_systematics    = jet_systematics + met_systematics
-if year==2018:
+if args.reweightPU == 'VUp':
     weight_systematics = ['BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
-    weight_systematics += ['PU36fbVVUp', 'PU36fbUp']
-else:
+    weight_systematics += ['PUVVUp', 'PUUp']
+elif args.reweightPU == 'Central':
     weight_systematics = ['BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
-    weight_systematics += ['PU36fbUp', 'PU36fbDown'] 
+    weight_systematics += ['PUUp', 'PUDown'] 
 
 # top pt missing
 
@@ -110,7 +110,7 @@ else:                                                       all_systematics = [N
 sys_pairs = [\
     ('JEC',         'jesTotalUp', 'jesTotalDown'),
     ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
-    ('PU36fb',      'PU36fbUp', 'PU36fbDown') if not year==2018 else ('PU36fb', 'PU36fbVVUp', 'PU36fbUp'),
+    ('PU',      'PUUp', 'PUDown') if args.reweightPU == 'Central' else ('PUVUp', 'PUVVUp', 'PUUp'),
     # ('TopPt',       'TopPt', None),
     # ('JER',         'JERUp', 'JERDown'),
     ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
@@ -125,35 +125,24 @@ if args.splitBosons:              args.plot_directory += "_splitMultiBoson"
 if args.signal == "DM":           args.plot_directory += "_DM"
 if args.signal == "T2tt":         args.plot_directory += "_T2tt"
 if args.small:                    args.plot_directory += "_small"
-if args.reweightPU:               args.plot_directory += "_%s"%args.reweightPU
+if args.reweightPU:               args.plot_directory += "_reweightPU%s"%args.reweightPU
 if args.recoil:                   args.plot_directory += '_recoil_'+args.recoil
-
-#
-# Make samples, will be searched for in the postProcessing directory
-#
-from Analysis.Tools.puReweighting import getReweightingFunction
 
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16
     mc              = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-    Pileup_nTrueInt_puRWDown = getReweightingFunction(data="PU_2016_35920_XSecDown", mc="Summer16")
-    Pileup_nTrueInt_puRWUp = getReweightingFunction(data="PU_2016_35920_XSecUp", mc="Summer16")
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
     mc              = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-    Pileup_nTrueInt_puRWDown = getReweightingFunction(data="PU_2017_41860_XSecDown", mc="Fall17")
-    Pileup_nTrueInt_puRWUp = getReweightingFunction(data="PU_2017_41860_XSecUp", mc="Fall17")
 elif year == 2018:
-    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
     mc              = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-    Pileup_nTrueInt_puRWVUp = getReweightingFunction(data="PU_2018_58830_XSecVUp", mc="Autumn18")
-    Pileup_nTrueInt_puRWVVUp = getReweightingFunction(data="PU_2018_58830_XSecVVUp", mc="Autumn18")
 
 try:
   data_sample = eval(args.era)
@@ -167,7 +156,8 @@ if args.recoil:
         recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_nvtx_loop", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
     elif args.recoil == "VUp":
         recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_VUp_loop", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
-
+    elif args.recoil is "Central":
+        recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
 signals = []
 
 #
@@ -190,15 +180,22 @@ def addSys( selectionString , sys = None ):
     elif sys in met_systematics: return selectionString.replace('met_pt', 'met_pt_' + sys).replace('metSig', 'metSig_' + sys).replace('dl_mt2ll', 'dl_mt2ll_' + sys).replace('dl_mt2bb', 'dl_mt2bb_' + sys).replace('dl_mt2blbl', 'dl_mt2blbl_' + sys).replace('MET_Significance', 'MET_Significance_' + sys)
     else:                        return selectionString
 
-
-def weightMC( sys = None ):
-    if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU36fb * reweightBTag_SF")
-    elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*getattr(event, "reweight"+sys)*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweight"+(sys if sys!='PU36fbVVUp' else 'PU36fbUp')+" * reweightBTag_SF")
-    elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU36fb*event.reweightDilepTrigger*getattr(event, "reweight"+sys), "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU36fb * reweight"+sys)
-    elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightDilepTrigger*event.reweightPU36fb*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU36fb * reweightBTag_SF * reweight"+sys)
-    elif sys in jme_systematics :   return weightMC( sys = None )
-    else:                           raise ValueError( "Systematic %s not known"%sys )
-    
+if args.reweightPU == 'Central':
+    def weightMC( sys = None ):
+        if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU * reweightBTag_SF")
+        elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*getattr(event, "reweight"+sys)*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweight"+sys+" * reweightBTag_SF")
+        elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPU*event.reweightDilepTrigger*getattr(event, "reweight"+sys), "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU * reweight"+sys)
+        elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightDilepTrigger*event.reweightPU*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight * reweightLeptonSF * reweightDilepTrigger * reweightPU * reweightBTag_SF * reweight"+sys)
+        elif sys in jme_systematics :   return weightMC( sys = None )
+        else:                           raise ValueError( "Systematic %s not known"%sys )
+elif args.reweightPU == 'VUp':    
+    def weightMC( sys = None ):
+        if sys is None:                 return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPUVUp*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweightPUVUp * reweightBTag_SF")
+        elif 'PU' in sys:               return (lambda event, sample:event.weight*event.reweightLeptonSF*getattr(event, "reweight"+sys)*event.reweightDilepTrigger*event.reweightBTag_SF, "weight * reweightLeptonSF * reweightDilepTrigger * reweight"+sys+" * reweightBTag_SF")
+        elif 'BTag' in sys:             return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightPUVUp*event.reweightDilepTrigger*getattr(event, "reweight"+sys), "weight * reweightLeptonSF * reweightDilepTrigger * reweightPUVUp * reweight"+sys)
+        elif sys in weight_systematics: return (lambda event, sample:event.weight*event.reweightLeptonSF*event.reweightDilepTrigger*event.reweightPUVUp*event.reweightBTag_SF*getattr(event, "reweight"+sys), "weight * reweightLeptonSF * reweightDilepTrigger * reweightPUVUp * reweightBTag_SF * reweight"+sys)
+        elif sys in jme_systematics :   return weightMC( sys = None )
+        else:                           raise ValueError( "Systematic %s not known"%sys )
 #
 # Read variables and sequences
 #
@@ -269,17 +266,17 @@ sequence.append( corr_recoil )
 ## end MT2(ll) corr
 
 # Pileup reweighting
-def pu_reweight( event, sample ):
-    if not sample.isData:
-        if year == 2018:
-            event.reweightPU36fbVUp = Pileup_nTrueInt_puRWVUp(event.Pileup_nTrueInt)
-            event.reweightPU36fbVVUp = Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
+#def pu_reweight( event, sample ):
+#if not sample.isData:
+#        if args.puReweight == 'VUp':
+#            event.reweightPU36fbVUp = Pileup_nTrueInt_puRWVUp(event.Pileup_nTrueInt)
+#            event.reweightPU36fbVVUp = Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
 #        print "Pileup_nTrueInt_puRWVVUp: ", Pileup_nTrueInt_puRWVVUp(event.Pileup_nTrueInt)
-        else:
-            event.reweightPU36fbDown = Pileup_nTrueInt_puRWDown(event.Pileup_nTrueInt)
-            event.reweightPU36fbUp = Pileup_nTrueInt_puRWUp(event.Pileup_nTrueInt)
-
-sequence.append( pu_reweight )
+#        else:
+#            event.reweightPU36fbDown = Pileup_nTrueInt_puRWDown(event.Pileup_nTrueInt)
+#            event.reweightPU36fbUp = Pileup_nTrueInt_puRWUp(event.Pileup_nTrueInt)
+#
+#sequence.append( pu_reweight )
 
 # selection
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
@@ -340,8 +337,9 @@ for index, mode in enumerate(allModes):
   for sample in mc:
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables  = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F', 'GenMET_pt/F', 'GenMET_phi/F']
-    sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics if 'VUp' not in s]
+    sample.read_variables  = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','Pileup_nTrueInt/F', 'GenMET_pt/F', 'GenMET_phi/F']
+    sample.read_variables += ['reweightPUVUp/F' if args.reweightPU == 'VUp' else 'reweightPU/F']
+    sample.read_variables += ["reweight%s/F"%s    for s in weight_systematics]
     sample.read_variables += ["dl_mt2ll_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2bb_%s/F"%s   for s in jme_systematics]
     sample.read_variables += ["dl_mt2blbl_%s/F"%s for s in jme_systematics]
