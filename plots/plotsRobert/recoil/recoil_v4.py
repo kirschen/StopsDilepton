@@ -34,8 +34,9 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--loop',                                    action='store_true',     help='Make a loop?', )
 argParser.add_argument('--fine',                                    action='store_true',     help='Fine binning?', )
+argParser.add_argument('--dlPhiInclusive',                          action='store_true',     help='Inclusive in DPhi?', )
 argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
-argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mumu", "ee", "SF"], help="Lepton flavor")
+argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mue", "mumu", "ee", "SF"], help="Lepton flavor")
 argParser.add_argument('--overwrite',                               action='store_true',     help='Overwrite?', )
 argParser.add_argument('--plot_directory',     action='store',      default='recoil_v4.3')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
@@ -51,6 +52,7 @@ logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 if args.fine:  args.plot_directory += "_fine"
+if args.dlPhiInclusive:  args.plot_directory += "_dlPhiInclusive"
 if args.small: args.plot_directory += "_small"
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -163,7 +165,7 @@ u_perp = "-met_pt*cos(met_phi-(dl_phi-pi/2.))"# u_perp = -ET.n_perp (where n_per
 
 #nJetGood_binning = [1, 10 ]
 qt_binning    = [0, 50, 100, 150, 200, 300, 400 ]
-dl_phi_binning   = [ pi*(i-5)/5. for i in range(0,11) ]
+dl_phi_binning   = [-pi,pi] if args.dlPhiInclusive else [ pi*(i-5)/5. for i in range(0,11) ]
 u_para_binning   = [ i for i in range(-200, 201) ] if args.fine else [ i*5 for i in range(-40, 41) ]
 
 #nJetGood_bins = [ (nJetGood_binning[i],nJetGood_binning[i+1]) for i in range(len(nJetGood_binning)-1) ]

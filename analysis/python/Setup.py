@@ -61,7 +61,7 @@ class Setup:
             'triLep':        default_triLep,
         }
 
-        self.sys = {'weight':'weight', 'reweight':['reweightPU36fb', 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
+        self.sys = {'weight':'weight', 'reweight':['reweightPU', 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
 
         if year == 2016:
             top         = Top_pow_16
@@ -79,7 +79,7 @@ class Setup:
             data        = Run2017
         elif year == 2018:
             top         = Top_pow_18
-            DY          = DY_HT_LO_18
+            DY          = DY_LO_18 ## update to HT binned samples
             TTZ         = TTZ_18
             multiBoson  = multiBoson_18
             TTXNoZ      = TTXNoZ_18
@@ -128,12 +128,12 @@ class Setup:
                 elif k=='reweight':
                     res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
                     for upOrDown in ['Up','Down']:
-                      if 'reweightPU36fb'+upOrDown             in res.sys[k]: res.sys[k].remove('reweightPU36fb')
-                      if 'reweightDilepTriggerBackup'+upOrDown in res.sys[k]: res.sys[k].remove('reweightDilepTriggerBackup')
-                      if 'reweightBTag_SF_b_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
-                      if 'reweightBTag_SF_l_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
-                      if 'reweightLeptonSF'+upOrDown           in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
-                      if 'reweightLeptonFastSimSF'+upOrDown    in res.sys[k]: res.sys[k].remove('reweightLeptonFastSimSF')
+                      if 'reweightPU'+upOrDown                  in res.sys[k]: res.sys[k].remove('reweightPU')
+                      if 'reweightDilepTrigger'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightDilepTrigger')
+                      if 'reweightBTag_SF_b_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
+                      if 'reweightBTag_SF_l_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
+                      if 'reweightLeptonSF'+upOrDown            in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
+                      if 'reweightLeptonFastSimSF'+upOrDown     in res.sys[k]: res.sys[k].remove('reweightLeptonFastSimSF')
                 else:
                     res.sys[k] = sys[k] # if sys[k] else res.sys[k]
 
