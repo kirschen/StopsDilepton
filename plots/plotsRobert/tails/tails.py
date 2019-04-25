@@ -6,9 +6,11 @@ import os
 import pickle
 import subprocess
 from distutils.spawn import find_executable
+import itertools
 
 # StopsDilepton/Analysis
 from StopsDilepton.tools.cutInterpreter import cutInterpreter
+from StopsDilepton.tools.helpers import deltaR
 from Samples.Tools.metFilters           import getFilterCut
 
 # RootTools
@@ -165,6 +167,7 @@ else:
     datasets = pickle.load(file( datasets_pkl ))
     logger.info( "Loaded miniAOD datasets from %s", datasets_pkl)
 
+fwlite_file = {}
 for dataset, events in datasets.iteritems():
     logger.info( "Look for %i events in %s", len(events), dataset)
     filename = os.path.join(directory, dataset[1:].replace('/','_'))
@@ -174,6 +177,8 @@ for dataset, events in datasets.iteritems():
         txt_file.write("\n")
     txt_file.close()
     logger.info( "Written %s", filename+'.txt' ) 
+
+    fwlite_file[dataset] = filename+'.root' 
 
     if not os.path.exists( filename +'.root' ):
         cmd = ["python", find_executable("edmPickEvents.py"), dataset, filename+'.txt', '--output=%s'%filename, '--maxEventsInteractive=%i'%len(events)]
@@ -185,3 +190,24 @@ for dataset, events in datasets.iteritems():
         subprocess.call( edmCopyPickMerge_cmd )
     else:
         logger.info( "Found tail root file %s. Skip.", filename +'.root' ) 
+
+for dataset, filename in fwlite_file.iteritems():
+    logger.info( "Analyzing %s", filename ) 
+    products = {
+        'muons':{'type':'vector<pat::Muon>', 'label':("slimmedMuons") },
+    }
+    fwlite_sample = FWLiteSample.fromFiles( "tail", [filename] )
+
+    r = fwlite_sample.fwliteReader( products = products )
+    r.start()
+    while r.run():
+        muons = filter( lambda m: m.pt()>10, r.event.muons )
+        if len(muons)==2:
+            logger.info( "%i:%i:%i nMuons>10 %i", r.event.run, r.event.lumi, r.event.evt, len(muons) )
+        elif len(muons)>=3:
+            logger.info( "%i:%i:%i nMuons>10 %i pt: %s eta: %s phi %s", r.event.run, r.event.lumi, r.event.evt, len(muons), "/".join(["%3.2f"%m.pt() for m in muons]),  "/".join(["%3.2f"%m.eta() for m in muons]),  "/".join(["%3.2f"%m.phi() for m in muons]) )
+        else:
+            logger.warning("Too few leptons: %i", len(muons) )
+        mindR = min( [ deltaR({'phi':m1.phi(),'eta':m1.eta()},{'phi':m2.phi(),'eta':m2.eta()}) for m1, m2 in itertools.combinations(muons, 2) ] +[99] )
+        if mindR<0.1: logger.warning( "Close!" )
+
