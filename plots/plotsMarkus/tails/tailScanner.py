@@ -1,3 +1,5 @@
+''' Tail Scanner
+'''
 import ROOT
 from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
@@ -10,13 +12,21 @@ argParser.add_argument('--mode',      action='store',           default='ee', ch
 args = argParser.parse_args()
 
 # import data sample
-if args.year == 2018:
+if args.year == 2016:
+    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+    from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
+    dataSample = Run2016
+elif args.year == 2017:
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
+    from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
+    dataSample = Run2017
+elif args.year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
-    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    dataSample=Run2018
+    dataSample = Run2018
 
 # mode selections
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""

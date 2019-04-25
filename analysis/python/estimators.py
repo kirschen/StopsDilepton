@@ -1,9 +1,6 @@
-from StopsDilepton.analysis.MCBasedEstimate              import MCBasedEstimate
-from StopsDilepton.analysis.DataDrivenDYEstimate         import DataDrivenDYEstimate
-from StopsDilepton.analysis.DataDrivenMultiBosonEstimate import DataDrivenMultiBosonEstimate
-#from StopsDilepton.analysis.DataDrivenTTZEstimate        import DataDrivenTTZEstimate
-from StopsDilepton.analysis.DataDrivenTTJetsEstimate     import DataDrivenTTJetsEstimate
-from StopsDilepton.analysis.Region                       import *
+from StopsDilepton.analysis.DataDrivenTTJetsEstimate    import DataDrivenTTJetsEstimate
+from StopsDilepton.analysis.MCBasedEstimate             import MCBasedEstimate
+from StopsDilepton.analysis.Region                      import *
 
 class estimatorList:
     def __init__(self, setup, samples=['DY','TTJets','TTZ','multiBoson','other','TTXNoZ','Top_gaussian','Top_nongaussian','Top_fakes', 'TTJets-DD']):

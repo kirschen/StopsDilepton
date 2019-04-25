@@ -10,20 +10,20 @@ from StopsDilepton.samples.color import color
 
 # Data directory
 try:
-    data_directory = sys.modules['__main__'].data_directory
+    data_directory_ = sys.modules['__main__'].data_directory
 except:
     from StopsDilepton.samples.default_locations import default_locations
-    data_directory = default_locations.mc_2016_data_directory 
+    data_directory_ = default_locations.mc_2016_data_directory 
 
 # Take post processing directory if defined in main module
 try:
   import sys
-  postProcessing_directory = sys.modules['__main__'].postProcessing_directory
+  postProcessing_directory_ = sys.modules['__main__'].postProcessing_directory
 except:
   from StopsDilepton.samples.default_locations import default_locations
-  postProcessing_directory = default_locations.mc_2016_postProcessing_directory 
+  postProcessing_directory_ = default_locations.mc_2016_postProcessing_directory 
 
-logger.info("Loading MC samples from directory %s", os.path.join(data_directory, postProcessing_directory))
+logger.info("Loading MC samples from directory %s", os.path.join(data_directory_, postProcessing_directory_))
 
 DY_M5to50_HT = [
                 "DYJetsToLL_M10to50_LO_lheHT70", 
@@ -51,7 +51,7 @@ dirs = {}
 #dirs['DY']               = ["DYJetsToLL_M50_ext2", "DYJetsToLL_M10to50" ]
 dirs['DY']               = ["DYJetsToLL_M50_ext2"]#, "DYJetsToLL_M10to50_LO" ]
 dirs['DY_LO']            = ["DYJetsToLL_M50_LO_ext1_comb", "DYJetsToLL_M10to50_LO"]
-#dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
+dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 
 dirs['TTLep_pow']        = ["TTLep_pow"]
 
@@ -113,12 +113,12 @@ dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 #dirs['T2tt_mStop_850_mLSP_100'] = ['T2tt_mStop_850_mLSP_100']
 #dirs['T2tt_mStop_500_mLSP_325'] = ['T2tt_mStop_500_mLSP_325']
 
-directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
+directories = { key : [ os.path.join( data_directory_, postProcessing_directory_, dir) for dir in dirs[key]] for key in dirs.keys()}
 
 #
-DY_16              = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=color.DY,              texName="DY",                                directory=directories['DY'])
-DY_LO_16           = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO'])
-#DY_HT_LO_16        = Sample.fromDirectory(name="DY_HT_LO",         treeName="Events", isData=False, color=color.DY,              texName="Drell-Yan",                         directory=directories['DY_HT_LO'])
+#DY_16              = Sample.fromDirectory(name="DY",               treeName="Events", isData=False, color=color.DY,              texName="DY",                                directory=directories['DY'])
+#DY_LO_16           = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO'])
+DY_HT_LO_16        = Sample.fromDirectory(name="DY_HT_LO",         treeName="Events", isData=False, color=color.DY,              texName="Drell-Yan",                         directory=directories['DY_HT_LO'])
 Top_pow_16         = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
 singleTop_16      = Sample.fromDirectory(name="singleTop",        treeName="Events", isData=False, color=color.singleTop,       texName="single top",                        directory=directories['singleTop'])
 singleTop_tch_16  = Sample.fromDirectory(name="singleTop_tch",    treeName="Events", isData=False, color=color.singleTop,       texName="single top tch",                    directory=directories['singleTop_tch'])

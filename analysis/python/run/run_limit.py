@@ -16,14 +16,10 @@ argParser.add_argument("--aggregate",      default = False, action = "store_true
 argParser.add_argument("--expected",       default = False, action = "store_true", help="Use sum of backgrounds instead of data.")
 argParser.add_argument("--DMsync",         default = False, action = "store_true", help="Use two regions for MET+X syncing")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
-argParser.add_argument("--removeSR",      default = False, action = "store", help="Remove one signal region?")
+argParser.add_argument("--removeSR",       default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
-argParser.add_argument("--showSyst",      default = '', action = "store", help="Print the systematic uncertainties?")
-argParser.add_argument("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices= [   'MVA_T2tt_dM350_smaller_TTLep_pow', 'MVA_T2tt_dM350_TTLep_pow', 'MVA_T2tt_dM350_TTZtoLLNuNu',
-                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow',
-                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow ', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow',
-                                                                                                                                                                                            'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow',])
-argParser.add_argument("--MVAcut",                dest="MVAcut",                default=0.0, type=float,   action='store',      help="Which value to cut at?")
+argParser.add_argument("--showSyst",       default = '', action = "store", help="Print the systematic uncertainties?")
+argParser.add_argument("--year",           default=2016, type="int",    action="store",      help="Which year?")
 
 args = argParser.parse_args()
 
@@ -55,11 +51,7 @@ data_directory = '/afs/hephy.at/data/rschoefbeck02/cmgTuples/'
 postProcessing_directory = 'stops_2016_nano_v3/dilep'
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
-setup = Setup()
-
-if args.MVAselection:
-    MVAcut = "%s>=%s"%(args.MVAselection, args.MVAcut)
-    setup = setup.sysClone({'selectionModifier':MVAcut})
+setup = Setup(year=args.year)
 
 
 # Define CR
@@ -145,8 +137,6 @@ elif args.controlDYVV:      subDir += 'controlDYVV'
 elif args.controlTTZ:       subDir += 'controlTTZ'
 elif args.significanceScan: subDir += 'significance'
 else:                       subDir += 'signalOnly'
-
-if args.MVAselection:   subDir += '_'+MVAcut.replace('>=','_')
 
 baseDir = os.path.join(setup.analysis_results, subDir)
 

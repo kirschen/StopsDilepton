@@ -263,21 +263,32 @@ if options.reduceSizeBy > 1:
 if isMC:
     from Analysis.Tools.puReweighting import getReweightingFunction
     if options.year == 2016:
-        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2016_35920_XSecCentral", mc="Summer16")
-        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2016_35920_XSecDown",    mc="Summer16")
-        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2016_35920_XSecUp",      mc="Summer16")
+        nTrueInt_puRW       = getReweightingFunction(data="PU_2016_35920_XSecCentral", mc="Summer16")
+        nTrueInt_puRWDown   = getReweightingFunction(data="PU_2016_35920_XSecDown",    mc="Summer16")
+        nTrueInt_puRWVDown  = getReweightingFunction(data="PU_2016_35920_XSecVDown",   mc="Summer16")
+        nTrueInt_puRWUp     = getReweightingFunction(data="PU_2016_35920_XSecUp",      mc="Summer16")
+        nTrueInt_puRWVUp    = getReweightingFunction(data="PU_2016_35920_XSecVUp",     mc="Summer16")
+        nTrueInt_puRWVVUp   = getReweightingFunction(data="PU_2016_35920_XSecVVUp",    mc="Summer16")
     elif options.year == 2017:
         # keep the weight name for now. Should we update to a more general one?
         puProfiles = puProfile( source_sample = sampleForPU )
         mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
-        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2017_41860_XSecCentral",  mc=mcHist)
-        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2017_41860_XSecDown",     mc=mcHist)
-        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2017_41860_XSecUp",       mc=mcHist)
+        print puProfiles
+        print sampleForPU, mcHist
+        nTrueInt_puRW       = getReweightingFunction(data="PU_2017_41860_XSecCentral",  mc=mcHist)
+        nTrueInt_puRWDown   = getReweightingFunction(data="PU_2017_41860_XSecDown",     mc=mcHist)
+        nTrueInt_puRWVDown  = getReweightingFunction(data="PU_2017_41860_XSecVDown",    mc=mcHist)
+        nTrueInt_puRWUp     = getReweightingFunction(data="PU_2017_41860_XSecUp",       mc=mcHist)
+        nTrueInt_puRWVUp    = getReweightingFunction(data="PU_2017_41860_XSecVUp",      mc=mcHist)
+        nTrueInt_puRWVVUp   = getReweightingFunction(data="PU_2017_41860_XSecVVUp",     mc=mcHist)
     elif options.year == 2018:
         # keep the weight name for now. Should we update to a more general one?
-        nTrueInt36fb_puRW       = getReweightingFunction(data="PU_2018_58830_XSecCentral",  mc="Autumn18")
-        nTrueInt36fb_puRWDown   = getReweightingFunction(data="PU_2018_58830_XSecDown",     mc="Autumn18")
-        nTrueInt36fb_puRWUp     = getReweightingFunction(data="PU_2018_58830_XSecUp",       mc="Autumn18")
+        nTrueInt_puRW       = getReweightingFunction(data="PU_2018_58830_XSecCentral",  mc="Autumn18")
+        nTrueInt_puRWDown   = getReweightingFunction(data="PU_2018_58830_XSecDown",     mc="Autumn18")
+        nTrueInt_puRWVDown  = getReweightingFunction(data="PU_2018_58830_XSecVDown",    mc="Autumn18")
+        nTrueInt_puRWUp     = getReweightingFunction(data="PU_2018_58830_XSecUp",       mc="Autumn18")
+        nTrueInt_puRWVUp    = getReweightingFunction(data="PU_2018_58830_XSecVUp",      mc="Autumn18")
+        nTrueInt_puRWVVUp   = getReweightingFunction(data="PU_2018_58830_XSecVVUp",     mc="Autumn18")
 
 ## lepton SFs
 
@@ -431,7 +442,7 @@ jetVarNames     = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
 # those are for writing leptons
-lepVars         = ['pt/F','eta/F','phi/F','pdgId/I','cutBased/I','miniPFRelIso_all/F','pfRelIso03_all/F','sip3d/F','lostHits/I','convVeto/I','dxy/F','dz/F','charge/I','deltaEtaSC/F','mediumId/I']
+lepVars         = ['pt/F','eta/F','phi/F','pdgId/I','cutBased/I','miniPFRelIso_all/F','pfRelIso03_all/F','sip3d/F','lostHits/I','convVeto/I','dxy/F','dz/F','charge/I','deltaEtaSC/F','mediumId/I','eleIndex/I','muIndex/I']
 lepVarNames     = [x.split('/')[0] for x in lepVars]
 
 read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
@@ -456,7 +467,7 @@ if isMC:
     read_variables.append( TreeVariable.fromString('genWeight/F') )
     read_variables.append( TreeVariable.fromString('nGenJet/I') )
     read_variables.append( VectorTreeVariable.fromString('GenJet[pt/F,eta/F,phi/F]' ) )
-    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweight_nISRUp/F', 'reweight_nISRDown/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPU36fb/F','reweightPU36fbUp/F','reweightPU36fbDown/F', 'reweightPU36fbVUp/F','reweightPU36fbVDown/F', 'reweightL1Prefire/F', 'reweightL1PrefireUp/F', 'reweightL1PrefireDown/F'])
+    new_variables.extend([ 'reweightTopPt/F', 'reweight_nISR/F', 'reweight_nISRUp/F', 'reweight_nISRDown/F', 'reweightPU/F','reweightPUUp/F','reweightPUDown/F', 'reweightPUVUp/F','reweightPUVVUp/F', 'reweightPUVDown/F', 'reweightL1Prefire/F', 'reweightL1PrefireUp/F', 'reweightL1PrefireDown/F'])
     if not options.skipGenLepMatching:
         TreeVariable.fromString( 'nGenLep/I' ),
         new_variables.append( 'GenLep[%s]'% ( ','.join(genLepVars) ) )
@@ -472,7 +483,7 @@ read_variables += [\
 
 new_variables += [\
     'overlapRemoval/I','nlep/I', "min_dl_mass/F",
-    'JetGood[%s]'% ( ','.join(jetVars) + ',genPt/F' ),
+    'JetGood[%s]'% ( ','.join(jetVars+['index/I']) + ',genPt/F' ),
     'met_pt/F', 'met_phi/F', 'met_pt_min/F'
 ]
 
@@ -486,13 +497,13 @@ if isSingleLep:
     new_variables.extend( ['m3/F', 'm3_ind1/I', 'm3_ind2/I', 'm3_ind3/I'] )
 if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I', 'nGoodLeptons/I' ] )
-    new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I' ] )
+    new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I', 'l1_eleIndex/I', 'l1_muIndex/I' ] )
     # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
     new_variables.extend( ['mlmZ_mass/F'] )
     new_variables.extend( ['mt_photonEstimated/F'])
     if isMC: new_variables.extend(['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F'])
 if isTriLep or isDiLep:
-    new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I' ] )
+    new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I', 'l2_eleIndex/I', 'l2_muIndex/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'])
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
@@ -861,9 +872,12 @@ def filler( event ):
         event.jsonPassed_ = event.jsonPassed
 
     if isMC and hasattr(r, "Pileup_nTrueInt"):
-        event.reweightPU36fb     = nTrueInt36fb_puRW       ( r.Pileup_nTrueInt ) # is this correct?
-        event.reweightPU36fbDown = nTrueInt36fb_puRWDown   ( r.Pileup_nTrueInt )
-        event.reweightPU36fbUp   = nTrueInt36fb_puRWUp     ( r.Pileup_nTrueInt )
+        event.reweightPU     = nTrueInt_puRW       ( r.Pileup_nTrueInt ) # is this correct?
+        event.reweightPUDown = nTrueInt_puRWDown   ( r.Pileup_nTrueInt )
+        event.reweightPUVDown= nTrueInt_puRWVDown  ( r.Pileup_nTrueInt )
+        event.reweightPUUp   = nTrueInt_puRWUp     ( r.Pileup_nTrueInt )
+        event.reweightPUVUp  = nTrueInt_puRWVUp    ( r.Pileup_nTrueInt )
+        event.reweightPUVVUp = nTrueInt_puRWVVUp   ( r.Pileup_nTrueInt )
 
     # top pt reweighting
     if isMC:
@@ -889,9 +903,13 @@ def filler( event ):
     muons_pt10      = getGoodMuons(r, mu_selector = mu_selector )
 
     for e in electrons_pt10:
-        e['pdgId'] = int( -11*e['charge'] )
+        e['pdgId']      = int( -11*e['charge'] )
+        e['eleIndex']   = e['index']
+        e['muIndex']    = -1
     for m in muons_pt10:
-        m['pdgId'] = int( -13*m['charge'] )
+        m['pdgId']      = int( -13*m['charge'] )
+        m['muIndex']    = m['index']
+        m['eleIndex']   = -1
 
     leptons_pt10 = electrons_pt10+muons_pt10
     #leptons_pt10 = mergeCollections(electrons_pt10, muons_pt10) # not needed, can just add
@@ -939,6 +957,7 @@ def filler( event ):
     store_jets.sort( key = lambda j:-j[jetPtVar])
     event.nJetGood   = len(store_jets)
     for iJet, jet in enumerate(store_jets):
+        event.JetGood_index[iJet] = jet['index']
         for b in jetVarNames:
             getattr(event, "JetGood_"+b)[iJet] = jet[b]
         if isMC:
@@ -1015,15 +1034,17 @@ def filler( event ):
         event.nGoodLeptons    = len(leptons)
 
         if len(leptons)>=1:
-            event.l1_pt     = leptons[0]['pt']
-            event.l1_eta    = leptons[0]['eta']
-            event.l1_phi    = leptons[0]['phi']
-            event.l1_pdgId  = leptons[0]['pdgId']
-            event.l1_index  = leptons[0]['index']
+            event.l1_pt         = leptons[0]['pt']
+            event.l1_eta        = leptons[0]['eta']
+            event.l1_phi        = leptons[0]['phi']
+            event.l1_pdgId      = leptons[0]['pdgId']
+            event.l1_index      = leptons[0]['index']
             event.l1_miniRelIso = leptons[0]['miniPFRelIso_all']
-            event.l1_relIso03 = leptons[0]['pfRelIso03_all']
-            event.l1_dxy = leptons[0]['dxy']
-            event.l1_dz = leptons[0]['dz']
+            event.l1_relIso03   = leptons[0]['pfRelIso03_all']
+            event.l1_dxy        = leptons[0]['dxy']
+            event.l1_dz         = leptons[0]['dz']
+            event.l1_eleIndex   = leptons[0]['eleIndex']
+            event.l1_muIndex    = leptons[0]['muIndex']
 
 
         # For TTZ studies: find Z boson candidate, and use third lepton to calculate mt
@@ -1053,15 +1074,17 @@ def filler( event ):
     if isTriLep or isDiLep:
         if len(leptons)>=2:
             mt2Calculator.reset()
-            event.l2_pt     = leptons[1]['pt']
-            event.l2_eta    = leptons[1]['eta']
-            event.l2_phi    = leptons[1]['phi']
-            event.l2_pdgId  = leptons[1]['pdgId']
-            event.l2_index  = leptons[1]['index']
+            event.l2_pt         = leptons[1]['pt']
+            event.l2_eta        = leptons[1]['eta']
+            event.l2_phi        = leptons[1]['phi']
+            event.l2_pdgId      = leptons[1]['pdgId']
+            event.l2_index      = leptons[1]['index']
             event.l2_miniRelIso = leptons[1]['miniPFRelIso_all']
-            event.l2_relIso03 = leptons[1]['pfRelIso03_all']
-            event.l2_dxy = leptons[1]['dxy']
-            event.l2_dz = leptons[1]['dz']
+            event.l2_relIso03   = leptons[1]['pfRelIso03_all']
+            event.l2_dxy        = leptons[1]['dxy']
+            event.l2_dz         = leptons[1]['dz']
+            event.l2_eleIndex   = leptons[1]['eleIndex']
+            event.l2_muIndex    = leptons[1]['muIndex']
             
 
             l_pdgs = [abs(leptons[0]['pdgId']), abs(leptons[1]['pdgId'])]

@@ -14,7 +14,9 @@ from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
 from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
-from StopsDilepton.plots.pieChart        import makePieChart
+# from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
+# from StopsDilepton.tools.mt2Calculator   import mt2Calculator
+# from Analysis.Tools.puProfileCache import *
 
 #
 # Arguments
@@ -70,15 +72,18 @@ from Analysis.Tools.puReweighting import getReweightingFunction
 
 
 if args.year == 2016:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
+    postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     if args.splitBosons:
         mc         = [ Top_pow_16, TTXNoZ_16, TTZ_16, diBoson_16, triBoson_16, DY_LO_16]
     else:
         mc         = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+    # if args.reweightPU:
+    #     nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
+    # recoilCorrector = RecoilCorrector( 2016 )
 elif args.year == 2017:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
@@ -89,6 +94,10 @@ elif args.year == 2017:
         mc         = [ Top_pow_17, TTXNoZ_17, TTZ_17, VVTo2L2Nu_17, WW_17, WZ_17, ZZ_17, triBoson_17, DY_LO_17]
     else:
         mc         = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+    # if args.reweightPU:
+    #     # need sample based weights
+    #     pass
+    # recoilCorrector = RecoilCorrector( 2017 )
 elif args.year == 2018:
     data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
@@ -98,10 +107,16 @@ elif args.year == 2018:
     if args.splitBosons:
         mc         = [ Top_pow_18, TTXNoZ_18, TTZ_18, VVTo2L2Nu_18, WZ_18, ZZ_18, triboson_18, DY_LO_18]
     else:
-        mc         = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-    
-    nTrueInt36fb_puRWVUp = getReweightingFunction(data="PU_2018_58830_XSecVUp", mc="Autumn18")
-    if args.reweightPUVUp: nTrueInt_puRW = nTrueInt36fb_puRWVUp
+        mc         = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]    
+    #nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+    # if args.reweightPU:
+    #     nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+    # if args.preHEM:
+    #     recoilCorrector = RecoilCorrector( 2018, "preHEM")
+    # elif args.postHEM:
+    #     recoilCorrector = RecoilCorrector( 2018, "postHEM")
+    # else:
+    #     recoilCorrector = RecoilCorrector( 2018 )
 
 data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
 if args.signal == "T2tt":

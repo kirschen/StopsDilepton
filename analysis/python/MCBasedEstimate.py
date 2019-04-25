@@ -14,7 +14,7 @@ class MCBasedEstimate(SystematicEstimator):
         self.sample=sample
 
         # FastSim and 76X only for the MCBasedEstimate. Dirty. Looks whether one of the samples is fastsim.
-        self.isFastSim = getattr(sample.values()[0], "isFastSim", False) 
+        self.isFastSim = getattr(sample, "isFastSim", False) 
         
     def _estimate(self, region, channel, setup):
 
@@ -37,4 +37,4 @@ class MCBasedEstimate(SystematicEstimator):
             weight = preSelection['weightStr']
 
             logger.debug( "Using cut %s and weight %s"%(cut, weight) )
-            return setup.lumi[channel]/1000.*u_float(**self.sample[channel].getYieldFromDraw(selectionString = cut, weightString = weight) )
+            return setup.lumi/1000.*u_float(**self.sample.getYieldFromDraw(selectionString = cut, weightString = weight) )
