@@ -95,7 +95,7 @@ met_systematics    = ['unclustEnUp', 'unclustEnDown']
 jme_systematics    = jet_systematics + met_systematics
 if args.reweightPU == 'VUp':
     weight_systematics = ['BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
-    weight_systematics += ['PUVVUp', 'PUUp']
+#    weight_systematics += ['PUVVUp', 'PUUp']
 elif args.reweightPU == 'Central':
     weight_systematics = ['BTag_SF_b_Down', 'BTag_SF_b_Up', 'BTag_SF_l_Down', 'BTag_SF_l_Up', 'DilepTriggerDown', 'DilepTriggerUp', 'LeptonSFDown', 'LeptonSFUp']
     weight_systematics += ['PUUp', 'PUDown'] 
@@ -109,7 +109,7 @@ else:                                                       all_systematics = [N
 sys_pairs = [\
     ('JEC',         'jesTotalUp', 'jesTotalDown'),
     ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
-    ('PU',      'PUUp', 'PUDown') if args.reweightPU == 'Central' else ('PUVUp', 'PUVVUp', 'PUUp'),
+#    ('PU',      'PUUp', 'PUDown') if args.reweightPU == 'Central' else ('PUVUp', 'PUVVUp', 'PUUp'),
     # ('TopPt',       'TopPt', None),
     # ('JER',         'JERUp', 'JERDown'),
     ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
@@ -288,7 +288,8 @@ if args.small:
 # Loop over channels
 #
 allPlots   = {}
-allModes   =['mue','ee','mumu','all']
+#allModes   =['mue','ee','mumu','all']
+allModes   =['mue']
 for index, mode in enumerate(allModes):
 
   logger.info('Working on mode ' + str(mode))
