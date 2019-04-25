@@ -43,6 +43,7 @@ argParser.add_argument('--normalizeBinWidth', action='store_true', default=False
 argParser.add_argument('--reweightPU',         action='store', default='Central', choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp'])
 argParser.add_argument('--recoil',             action='store', type=str,      default="Central", choices = ["nvtx", "VUp", "Central"])
 argParser.add_argument('--era',                action='store', type=str,      default="Run2016")
+argParser.add_argument('--continueMode',             action='store', type=str,      default="", choices = ["mue", "ee", "mumu", "all"])
 
 args = argParser.parse_args()
 
@@ -289,7 +290,10 @@ if args.small:
 #
 allPlots   = {}
 allModes   =['mue','ee','mumu','all']
-for index, mode in enumerate(allModes):
+continueModeIndex = allModes.index(args.continueMode)
+# print "arg %s with index %i"%(args.continueMode,continueModeIndex) 
+# print "enumerate, mode", enumerate(allModes[continueModeIndex:]), allModes[continueModeIndex:]
+for index, mode in enumerate(allModes[continueModeIndex:]):
 
   logger.info('Working on mode ' + str(mode))
 
@@ -567,7 +571,7 @@ for index, mode in enumerate(allModes):
   try: os.makedirs(plot_directory_)
   except: pass
 
-  if args.selectSys != "combine": 
+  if args.selectSys != "combine":
     normalization_selection_string = cutInterpreter.cutString(args.selection + '-mt2llTo100')
     mc_weight_func, mc_weight_string = weightMC( sys = (args.selectSys if args.selectSys != 'None' else None) )
 
@@ -596,6 +600,8 @@ for index, mode in enumerate(allModes):
 #    yields = yield_mc
 #    yields['data'] = yield_data
 #    pickle.dump( (allPlots, yields), file( result_file, 'w' ) )
+
+    
 
   else:
     (allPlots, yields) = pickle.load(file( result_file ))
