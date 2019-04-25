@@ -6,9 +6,11 @@ import os
 import pickle
 import subprocess
 from distutils.spawn import find_executable
+import itertools
 
 # StopsDilepton/Analysis
 from StopsDilepton.tools.cutInterpreter import cutInterpreter
+from StopsDilepton.tools.helpers import deltaR
 from Samples.Tools.metFilters           import getFilterCut
 
 # RootTools
@@ -76,20 +78,24 @@ def getLeptonSelection( mode ):
 selectionString = "&&".join( [ 'dl_mt2ll>%i'%args.mt2ll, cutInterpreter.cutString(args.selection), getLeptonSelection( args.mode ), getFilterCut(isData=True,year=args.year) ] )
 
 # postprocessed files
-file_pkl = os.path.join( directory, 'filenames_postprocessed.pkl')
-if not os.path.exists(file_pkl):
+postprocessed_files_pkl = os.path.join( directory, 'filenames_postprocessed.pkl')
+if not os.path.exists(postprocessed_files_pkl):
+    logger.info( "Obtain list of postprocessed files." )
     files = []
     for i_sub_sample, sub_sample in enumerate(data_sample.split( len( data_sample.files ) )):
         n = sub_sample.chain.GetEntries(selectionString)
         logger.info( "File %i/%i: Found %i events", i_sub_sample, len( data_sample.files ), n)
         if n>0:
             files.extend( sub_sample.files )
-    pickle.dump( files, file( file_pkl, 'w' ))
+    pickle.dump( files, file( postprocessed_files_pkl, 'w' ))
+    logger.info( "Written postprocessed files to %s", postprocessed_files_pkl)
 else:
-    files = pickle.load(file( file_pkl ))
+    files = pickle.load(file( postprocessed_files_pkl ))
+    logger.info( "Loaded postprocessed files from %s", postprocessed_files_pkl)
 
-small_sample = Sample.fromFiles( "tail", files )
-small_sample.setSelectionString( selectionString )
+#make small sample
+sample = Sample.fromFiles( "tail", files )
+sample.setSelectionString( selectionString )
 
 # retrieve miniAOD
 patterns_miniAOD = {
@@ -114,33 +120,56 @@ def _dasPopen(dbs):
     logger.info('DAS query\t: %s',  dbs)
     return os.popen(dbs)
 
-run_lumi_evt = []
-r = small_sample.treeReader( variables = map( TreeVariable.fromString, [ "event/l", "luminosityBlock/I", "run/I" ] ) )
-r.start()
-while r.run():
-    erl = ( r.event.run, r.event.luminosityBlock, r.event.event )
-    if erl not in run_lumi_evt:
-        run_lumi_evt.append( erl )
+# runlumievent files
+runlumievent_pkl = os.path.join( directory, 'filenames_runlumievent.pkl')
+if not os.path.exists(runlumievent_pkl):
+    logger.info( "Obtain run:lumi:event." )
+    run_lumi_evt = []
+    r = sample.treeReader( variables = map( TreeVariable.fromString, [ "event/l", "luminosityBlock/I", "run/I" ] ) )
+    r.start()
+    while r.run():
+        erl = ( r.event.run, r.event.luminosityBlock, r.event.event )
+        if erl not in run_lumi_evt:
+            run_lumi_evt.append( erl )
     logger.info( "Found %i:%i:%i", *erl) 
+    pickle.dump( run_lumi_evt, file( runlumievent_pkl, 'w' ))
+    logger.info( "Written run:lumi:evt to %s", runlumievent_pkl)
+else:
+    run_lumi_evt = pickle.load(file( runlumievent_pkl ))
+    logger.info( "Loaded run:lumi:evt from %s", runlumievent_pkl)
 
-datasets = {}
-for run, lumi, event in run_lumi_evt:
-    for pattern in patterns_miniAOD[args.year][args.mode]:
-        dbs='dasgoclient -query="dataset dataset=%s run=%i"'%(pattern, run)
-        dbsOut = _dasPopen(dbs).readlines()
-        if len(dbsOut)==1:
-            dataset = dbsOut[0].rstrip()
-            if datasets.has_key(dataset):
-                datasets[dataset].append((run, lumi, event))
-            else:
-                datasets[dataset] = [(run, lumi, event)]
-            break
-        elif len(dbsOut)>1:
-            logger.error( "Error in dasgoclient output: %r", dbsOut )
-        else:
-            continue
+# datasets
+datasets_pkl = os.path.join( directory, 'filenames_datasets.pkl')
+if not os.path.exists(datasets_pkl):
+    logger.info( "Search for miniAOD datasets")
+    datasets = {}
+    for run, lumi, event in run_lumi_evt:
+        found = False
+        for pattern in patterns_miniAOD[args.year][args.mode]:
+            dbs='dasgoclient -query="dataset dataset=%s run=%i"'%(pattern, run)
+            dbsOut = _dasPopen(dbs).readlines()
+            if len(dbsOut)==1:
+                dataset = dbsOut[0].rstrip()
+                if datasets.has_key(dataset):
+                    datasets[dataset].append((run, lumi, event))
+                else:
+                    datasets[dataset] = [(run, lumi, event)]
+                found = True
+                break
+            elif len(dbsOut)>1:
+                logger.error( "Error in dasgoclient output: %r", dbsOut )
+                raise RuntimeError
+        if not found:
+            logger.warning( "Didn't find %i:%i:%i in either of %s", run, lumi, event, ", ".join( patterns_miniAOD[args.year][args.mode] ) )
+    pickle.dump( datasets, file( datasets_pkl, 'w' ))
+    logger.info( "Written miniAOD datasets per event to: %s", datasets_pkl)
+else:
+    datasets = pickle.load(file( datasets_pkl ))
+    logger.info( "Loaded miniAOD datasets from %s", datasets_pkl)
 
+fwlite_file = {}
 for dataset, events in datasets.iteritems():
+    logger.info( "Look for %i events in %s", len(events), dataset)
     filename = os.path.join(directory, dataset[1:].replace('/','_'))
     txt_file = file( filename+'.txt', 'w')
     for event in events:
@@ -149,10 +178,36 @@ for dataset, events in datasets.iteritems():
     txt_file.close()
     logger.info( "Written %s", filename+'.txt' ) 
 
-    cmd = ["python", find_executable("edmPickEvents.py"), dataset, filename+'.txt', '--output=%s.root'%filename, '--maxEventsInteractive=%i'%len(events)]
-    logger.info( "Running: %s", " ".join( cmd ) )
-    edmCopyPickMerge = subprocess.check_output(cmd)
+    fwlite_file[dataset] = filename+'.root' 
 
-    edmCopyPickMerge_cmd = edmCopyPickMerge.rstrip().lstrip().replace('\\\n','').split()
-    logger.info( "Running %s", " ".join( edmCopyPickMerge_cmd ) )
-    subprocess.call( edmCopyPickMerge_cmd ) 
+    if not os.path.exists( filename +'.root' ):
+        cmd = ["python", find_executable("edmPickEvents.py"), dataset, filename+'.txt', '--output=%s'%filename, '--maxEventsInteractive=%i'%len(events)]
+        logger.info( "Running: %s", " ".join( cmd ) )
+        edmCopyPickMerge = subprocess.check_output(cmd)
+
+        edmCopyPickMerge_cmd = edmCopyPickMerge.rstrip().lstrip().replace('\\\n','').split()
+        logger.info( "Running %s", " ".join( edmCopyPickMerge_cmd ) )
+        subprocess.call( edmCopyPickMerge_cmd )
+    else:
+        logger.info( "Found tail root file %s. Skip.", filename +'.root' ) 
+
+for dataset, filename in fwlite_file.iteritems():
+    logger.info( "Analyzing %s", filename ) 
+    products = {
+        'muons':{'type':'vector<pat::Muon>', 'label':("slimmedMuons") },
+    }
+    fwlite_sample = FWLiteSample.fromFiles( "tail", [filename] )
+
+    r = fwlite_sample.fwliteReader( products = products )
+    r.start()
+    while r.run():
+        muons = filter( lambda m: m.pt()>10, r.event.muons )
+        if len(muons)==2:
+            logger.info( "%i:%i:%i nMuons>10 %i", r.event.run, r.event.lumi, r.event.evt, len(muons) )
+        elif len(muons)>=3:
+            logger.info( "%i:%i:%i nMuons>10 %i pt: %s eta: %s phi %s", r.event.run, r.event.lumi, r.event.evt, len(muons), "/".join(["%3.2f"%m.pt() for m in muons]),  "/".join(["%3.2f"%m.eta() for m in muons]),  "/".join(["%3.2f"%m.phi() for m in muons]) )
+        else:
+            logger.warning("Too few leptons: %i", len(muons) )
+        mindR = min( [ deltaR({'phi':m1.phi(),'eta':m1.eta()},{'phi':m2.phi(),'eta':m2.eta()}) for m1, m2 in itertools.combinations(muons, 2) ] +[99] )
+        if mindR<0.1: logger.warning( "Close!" )
+

@@ -9,6 +9,7 @@ ROOT.gROOT.SetBatch(True)
 import itertools
 import copy
 import array
+import operator
 
 from math                                import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard             import *
@@ -40,7 +41,7 @@ argParser.add_argument('--noBadPFMuonFilter',           action='store_true', def
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
 argParser.add_argument('--unblinded',          action='store_true', default=False)
 argParser.add_argument('--blinded',            action='store_true', default=False)
-argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
+argParser.add_argument('--reweightPU',         action='store', default='Central', choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
 argParser.add_argument('--isr',                action='store_true', default=False)
 argParser.add_argument('--splitMET',           action='store_true',     help='Split in MET bins?' )
 argParser.add_argument('--splitMETSig',        action='store_true',     help='Split in METSig bins?' )
@@ -84,21 +85,21 @@ if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-    if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
-        nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
+    #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
+    #    nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-    if args.reweightPU:
-        # need sample based weights
-        pass
+    #if args.reweightPU:
+    #    # need sample based weights
+    #    pass
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-    if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
-        nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+    mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
+    #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
+    #    nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
 
 try:
   data_sample = eval(args.era)
@@ -423,23 +424,25 @@ for index, mode in enumerate(allModes):
   weight_ = lambda event, sample: event.weight
 
   for sample in mc + signals:
-    sample.read_variables = ['reweightPU36fb/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F']
+    sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F']
     # Need individual pu reweighting functions for each sample in 2017, so nTrueInt_puRW is only defined here
     if args.reweightPU and args.reweightPU not in ["noPUReweighting", "nvtx"]:
-        if year == 2017:
-            logger.info("Getting PU profile and weight for sample %s", sample.name)
-            puProfiles = puProfile( source_sample = sample )
-            mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
-            nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc=mcHist)
+        sample.read_variables.append( 'reweightPU%s/F'%args.reweightPU )
+    #    if year == 2017:
+    #        logger.info("Getting PU profile and weight for sample %s", sample.name)
+    #        puProfiles = puProfile( source_sample = sample )
+    #        mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
+    #        nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc=mcHist)
 
     if args.reweightPU == "noPUReweighting":
         sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     elif args.reweightPU == "nvtx":
         sample.weight         = lambda event, sample: nvtx_puRW(event.PV_npvsGood) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     elif args.reweightPU:
-        sample.weight         = lambda event, sample: nTrueInt_puRW(event.Pileup_nTrueInt) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        pu_getter = operator.attrgetter("reweightPU%s"%args.reweightPU)
+        sample.weight         = lambda event, sample: pu_getter(event) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     else: #default
-        sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: event.reweightPUCentral*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
 
     sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
 
