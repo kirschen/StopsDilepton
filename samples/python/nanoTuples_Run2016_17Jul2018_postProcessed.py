@@ -8,21 +8,21 @@ logger = logging.getLogger(__name__)
 
 # Data directory
 try:
-    data_directory = sys.modules['__main__'].data_directory
+    data_directory_ = sys.modules['__main__'].data_directory
 except:
     from StopsDilepton.samples.default_locations import default_locations
-    data_directory = default_locations.data_2016_data_directory 
+    data_directory_ = default_locations.data_2016_data_directory 
 
 # Take post processing directory if defined in main module
 try:
   import sys
-  postProcessing_directory = sys.modules['__main__'].postProcessing_directory
+  postProcessing_directory_ = sys.modules['__main__'].postProcessing_directory
 except:
   from StopsDilepton.samples.default_locations import default_locations
-  postProcessing_directory = default_locations.data_2016_postProcessing_directory 
+  postProcessing_directory_ = default_locations.data_2016_postProcessing_directory 
 
 
-logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
+logger.info("Loading data samples from directory %s", os.path.join(data_directory_, postProcessing_directory_))
 
 dirs = {}
 for (run, version) in [('B','_ver2'),('C',''),('D',''),('E',''),('F',''),('G',''),('H','')]: # no event that passes json in B_ver1
@@ -45,7 +45,7 @@ for pd in ['MuonEG', 'DoubleMuon', 'DoubleEG', 'SingleElectron', 'SingleMuon']:
     merge(pd, 'Run2016',       ['Run2016BCDEFG', 'Run2016H'])
 
 for key in dirs:
-    dirs[key] = [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]]
+    dirs[key] = [ os.path.join( data_directory_, postProcessing_directory_, dir) for dir in dirs[key]]
 
 
 def getSample(pd, runName, lumi):

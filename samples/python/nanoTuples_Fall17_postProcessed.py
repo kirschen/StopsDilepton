@@ -10,20 +10,20 @@ from StopsDilepton.samples.color import color
 
 # Data directory
 try:
-    data_directory = sys.modules['__main__'].data_directory
+    data_directory_ = sys.modules['__main__'].data_directory
 except:
     from StopsDilepton.samples.default_locations import default_locations
-    data_directory = default_locations.mc_2017_data_directory 
+    data_directory_ = default_locations.mc_2017_data_directory 
 
 # Take post processing directory if defined in main module
 try:
   import sys
-  postProcessing_directory = sys.modules['__main__'].postProcessing_directory
+  postProcessing_directory_ = sys.modules['__main__'].postProcessing_directory
 except:
   from StopsDilepton.samples.default_locations import default_locations
-  postProcessing_directory = default_locations.mc_2017_postProcessing_directory 
+  postProcessing_directory_ = default_locations.mc_2017_postProcessing_directory 
 
-logger.info("Loading MC samples from directory %s", os.path.join(data_directory, postProcessing_directory))
+logger.info("Loading MC samples from directory %s", os.path.join(data_directory_, postProcessing_directory_))
 
 DY_M5to50_HT = [
                 "DYJetsToLL_M10to50_LO_lheHT100", 
@@ -103,7 +103,7 @@ dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 #dirs['ZGJets']       = ["ZGJets"]
 #dirs['ZG']           = dirs['ZGTo2LG'] + dirs['ZGJets']
 #
-directories = { key : [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]] for key in dirs.keys()}
+directories = { key : [ os.path.join( data_directory_, postProcessing_directory_, dir) for dir in dirs[key]] for key in dirs.keys()}
 
 #
 DY_LO_17           = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO'])
