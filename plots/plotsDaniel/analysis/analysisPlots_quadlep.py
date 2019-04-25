@@ -53,27 +53,30 @@ if args.normalize: args.plot_directory += "_normalize"
 #
 
 if args.year == 2016:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postProcessing_directory = "stops_2016_nano_v0p7/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc          = [ TTXNoZ_16, TTZ_16, multiBoson_16, ZZ4l_16]
     data_sample = Run2016
 
 elif args.year == 2017:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postProcessing_directory = "stops_2017_nano_v0p7/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc          = [ TTXNoZ_17, TTZ_17, multiBoson_17, ZZ4l_17]
     data_sample = Run2017
 
 elif args.year == 2018:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p7/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc          = [ TTXNoZ_18, TTZ_18, multiBoson_18, ZZ4l_18]
@@ -205,12 +208,12 @@ for index, mode in enumerate(allModes):
 
     for sample in mc + signals:
       sample.scale          = lumi_scale
-      sample.read_variables = ['reweightBTag_SF/F', 'reweightPU36fb/F', 'reweightDilepTrigger/F', 'reweightLeptonTrackingSF/F', 'reweightPU36fb/F', 'reweightLeptonSF/F']
+      sample.read_variables = ['reweightBTag_SF/F', 'reweightPU/F', 'reweightDilepTrigger/F', 'reweightLeptonTrackingSF/F', 'reweightPU/F', 'reweightLeptonSF/F']
       
       if args.year == 2016:
-          sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightDilepTrigger*event.reweightLeptonTrackingSF*event.reweightPU36fb*event.reweightLeptonSF
+          sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightDilepTrigger*event.reweightLeptonTrackingSF*event.reweightPU*event.reweightLeptonSF
       else:
-          sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightDilepTrigger*event.reweightPU36fb*event.reweightLeptonSF
+          sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightDilepTrigger*event.reweightPU*event.reweightLeptonSF
       sample.setSelectionString([getFilterCut(isData=False, year=args.year), getLeptonSelection(mode)])
 
     if not args.noData:
