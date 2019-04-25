@@ -34,6 +34,7 @@ if os.environ['USER'] in ['phussain']:
     data_directory      = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/p/phussain/www/stopsDilepton/"
+    private_results_directory     = "/afs/hephy.at/data/cms01/"
     #plot_directory      = "/afs/cern.ch/work/d/dspitzba/www/stopsDilepton/"
     # Analysis result files
     #analysis_results        = '/afs/hephy.at/data/dspitzbart02/StopsDileptonLegacy/results/v1/' #Path to analysis results
