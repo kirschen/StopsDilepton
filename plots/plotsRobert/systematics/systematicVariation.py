@@ -6,7 +6,7 @@
 import ROOT
 ROOT.gROOT.SetBatch(True)
 import operator
-import pickle, os, time
+import pickle, os, time, sys
 from math                                import sqrt, cos, sin, pi, atan2
 
 # RootTools
@@ -28,12 +28,9 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
-argParser.add_argument('--noData',            action='store_true', default=False,       help='also plot data?')
 argParser.add_argument('--plot_directory',    action='store',      default='v1')
 argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
-#argParser.add_argument('--normalizationSelection',  action='store',      default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2llTo100')
-argParser.add_argument('--variation',         action='store',      default='central', help="Which systematic variation to run.")
-argParser.add_argument('--showOnly',          action='store',      default=None)
+argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
 argParser.add_argument('--overwrite',         action='store_true',     help='Overwrite?')
 argParser.add_argument('--mode',              action='store',      default = 'all', choices = ['mumu', 'ee', 'mue', 'all'],   help='Which mode?')
@@ -131,10 +128,10 @@ variations = {
     'unclustEnDown'     : {'selectionModifier':metSelectionModifier('unclustEnDown'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('unclustEnDown','list')]},
     'PUUp'              : {'replaceWeight':(nominalPuWeight,upPUWeight),                         'read_variables' : [ '%s/F'%v for v in nominalMCWeights + [upPUWeight] ]},
     'PUDown'            : {'replaceWeight':(nominalPuWeight,downPUWeight),                       'read_variables' : [ '%s/F'%v for v in nominalMCWeights + [downPUWeight] ]},
-    'BTag_SF_b_Down'    : {'replaceWeight':('reweightBTag_SF','reweight_BTag_SF_b_Down'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweight_BTag_SF_b_Down']]},  
-    'BTag_SF_b_Up'      : {'replaceWeight':('reweightBTag_SF','reweight_BTag_SF_b_Up'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweight_BTag_SF_b_Up'] ]},
-    'BTag_SF_l_Down'    : {'replaceWeight':('reweightBTag_SF','reweight_BTag_SF_l_Down'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweight_BTag_SF_l_Down']]},
-    'BTag_SF_l_Up'      : {'replaceWeight':('reweightBTag_SF','reweight_BTag_SF_l_Up'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweight_BTag_SF_l_Up'] ]},
+    'BTag_SF_b_Down'    : {'replaceWeight':('reweightBTag_SF','reweightBTag_SF_b_Down'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightBTag_SF_b_Down']]},  
+    'BTag_SF_b_Up'      : {'replaceWeight':('reweightBTag_SF','reweightBTag_SF_b_Up'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightBTag_SF_b_Up'] ]},
+    'BTag_SF_l_Down'    : {'replaceWeight':('reweightBTag_SF','reweightBTag_SF_l_Down'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightBTag_SF_l_Down']]},
+    'BTag_SF_l_Up'      : {'replaceWeight':('reweightBTag_SF','reweightBTag_SF_l_Up'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightBTag_SF_l_Up'] ]},
     'DilepTriggerDown'  : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerDown'),  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerDown']]},
     'DilepTriggerUp'    : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerUp']]},
     'LeptonSFDown'      : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFDown'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFDown']]},
@@ -152,29 +149,16 @@ for key, variation in variations.iteritems():
         variation['read_variables'] = [] 
 
 # Check if we know the variation
-if args.variation not in variations.keys():
+if args.variation is not None and args.variation not in variations.keys():
     raise RuntimeError( "Variation %s not among the known: %s", args.variation, ",".join( variation.keys() ) )
 
-# Systematic pairs:( 'name', 'up', 'down' )
-systematics = [\
-    ('JEC',         'jesTotalUp', 'jesTotalDown'),
-    ('Unclustered', 'unclustEnUp', 'unclustEnDown'), 
-    ('PU',          'PUUp', 'PUDown'),
-    ('BTag_b',      'BTag_SF_b_Down', 'BTag_SF_b_Up' ),
-    ('BTag_l',      'BTag_SF_l_Down', 'BTag_SF_l_Up'),
-    ('trigger',     'DilepTriggerDown', 'DilepTriggerUp'),
-    ('leptonSF',    'LeptonSFDown', 'LeptonSFUp'),
-    # ('TopPt',       'TopPt', 'central'),
-    # ('JER',         'JERUp', 'JERDown'),
-]
-
 # arguments & directory
-if args.noData:                   args.plot_directory += "_noData"
-if args.signal == "DM":           args.plot_directory += "_DM"
-if args.signal == "T2tt":         args.plot_directory += "_T2tt"
-if args.small:                    args.plot_directory += "_small"
-if args.reweightPU:               args.plot_directory += "_reweightPU%s"%args.reweightPU
-#if args.recoil:                   args.plot_directory += '_recoil_'+args.recoil
+plot_subdirectory = args.plot_directory
+if args.signal == "DM":           plot_subdirectory += "_DM"
+if args.signal == "T2tt":         plot_subdirectory += "_T2tt"
+if args.small:                    plot_subdirectory += "_small"
+if args.reweightPU:               plot_subdirectory += "_reweightPU%s"%args.reweightPU
+#if args.recoil:                  plot_subdirectory  += '_recoil_'+args.recoil
     
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
@@ -318,7 +302,10 @@ logger.info('Lumi scale is ' + str(lumi_scale))
 for sample in mc:
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables  = ['Pileup_nTrueInt/F', 'GenMET_pt/F', 'GenMET_phi/F'] + list(set(variations[args.variation]['read_variables']))
+    sample.read_variables  = ['Pileup_nTrueInt/F', 'GenMET_pt/F', 'GenMET_phi/F']
+    # append variables for systematics
+    if args.variation is not None:
+        sample.read_variables+=list(set(variations[args.variation]['read_variables']))
 
 # reduce if small
 if args.small:
@@ -332,7 +319,7 @@ if args.small:
     sample.scale /= sample.normalization
 
 # Fire up the cache
-dirDB = DirDB(os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, 'cache'))
+dirDB = DirDB(os.path.join(plot_directory, 'systematicPlots', plot_subdirectory, args.selection, 'cache'))
 
 # loop over modes
 for mode in modes:
@@ -343,23 +330,16 @@ for mode in modes:
     for sample in mc:
         sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(mode)])
 
-  #if args.signal == "T2tt":
-  #  for s in signals:
-  #    s.scale          = lumi_scale
-  #    s.read_variables = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F']
-  #    s.weight         = lambda event, sample: event.reweightLeptonFastSimSF
-  #    s.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(args.mode)])
-
-  #if args.signal == "DM":
-  #  for s in signals:
-  #    s.scale          = lumi_scale
-  #    s.read_variables = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F']
-  #    s.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(args.mode)])
-
     # Use some defaults
     Plot.setDefaults( selectionString = cutInterpreter.cutString(args.selection) )
 
-    selectionModifier = variations[args.variation]['selectionModifier']
+    # if we're running a variation specify
+    if args.variation is not None:
+        selectionModifier = variations[args.variation]['selectionModifier']
+        mc_weight         = MC_WEIGHT( variation = variations[args.variation], returntype='func')
+    else:
+        selectionModifier = None 
+        mc_weight         = None 
 
     # Stack
     stack_mc   = Stack( mc )
@@ -384,9 +364,9 @@ for mode in modes:
         texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
         binning         = Binning.fromThresholds(mt2llBinning),
         stack           = stack_mc,
-        attribute       = TreeVariable.fromString( selectionModifier("dl_mt2ll/F")),
-        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)),
-        weight          = MC_WEIGHT( variation = variations[args.variation], returntype='func') )
+        attribute       = TreeVariable.fromString( selectionModifier("dl_mt2ll/F")) if selectionModifier is not None else None,
+        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
+        weight          = mc_weight )
     plots.append( dl_mt2ll_mc )
 
     #  #mt2llCorrBinning = [0,20,40,60,80,100,140,240,340]
@@ -559,37 +539,100 @@ for mode in modes:
     #except: 
     #    pass
 
-    key  = ( args.era, mode )
-
-    if dirDB.contains(key) and not args.overwrite:
-        normalisation_mc, normalisation_data, histos = dirDB.get( key )
-        for i_p, h_s in enumerate(histos):
-            plots[i_p].histos = h_s
-        logger.info( "Loaded normalisations and histograms for %s in mode %s from cache.", args.era, mode)
-    else:
-        logger.info( "Obtain normalisations and histograms for %s in mode %s.", args.era, mode)
-        # Calculate the normalisation yield for mt2ll<100
-        normalization_selection_string = selectionModifier(cutInterpreter.cutString(args.selection + '-mt2llTo100'))
-        mc_normalization_weight_string    = MC_WEIGHT(variations[args.variation], returntype='string')
-        normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
-
-        if args.variation == 'central':
-            normalisation_data = data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
+    if args.variation is not None:
+        key  = ( args.era, mode, args.variation)
+        if dirDB.contains(key) and not args.overwrite:
+            normalisation_mc, normalisation_data, histos = dirDB.get( key )
+            for i_p, h_s in enumerate(histos):
+                plots[i_p].histos = h_s
+            logger.info( "Loaded normalisations and histograms for %s in mode %s from cache.", args.era, mode)
         else:
-            normalisation_data = -1
+            logger.info( "Obtain normalisations and histograms for %s in mode %s.", args.era, mode)
+            # Calculate the normalisation yield for mt2ll<100
+            normalization_selection_string = selectionModifier(cutInterpreter.cutString(args.selection + '-mt2llTo100'))
+            mc_normalization_weight_string    = MC_WEIGHT(variations[args.variation], returntype='string')
+            normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
 
-        logger.info( "Making plots.")
-        plotting.fill(plots, read_variables = read_variables, sequence = sequence)
+            if args.variation == 'central':
+                normalisation_data = data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
+            else:
+                normalisation_data = -1
 
-        #    allPlots.update({p.name : p.histos for p in plots})
-        #    yields.update(yield_mc)
+            logger.info( "Making plots.")
+            plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
-        # Delete lambda because we can't serialize it
-        for plot in plots:
-            del plot.weight
-        dirDB.add( key, (normalisation_mc, normalisation_data, [plot.histos for plot in plots]), overwrite = args.overwrite)
+            # Delete lambda because we can't serialize it
+            for plot in plots:
+                del plot.weight
 
-        logger.info( "Done with %s in channel %s.", args.variation, mode)
+            # save
+            dirDB.add( key, (normalisation_mc, normalisation_data, [plot.histos for plot in plots]), overwrite = args.overwrite)
+
+            logger.info( "Done with %s in channel %s.", args.variation, mode)
+
+if args.variation is not None:
+    logger.info( "Done with modes %s and variation %s of selection %s. Quit now.", ",".join( modes ), args.variation, args.selection )
+    sys.exit(0)
+
+# Systematic pairs:( 'name', 'up', 'down' )
+systematics = [\
+    {'name':'JEC',         'pair':('jesTotalUp', 'jesTotalDown')},
+    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown') },
+    {'name':'PU',          'pair':('PUUp', 'PUDown')},
+    {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
+    {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
+    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
+    {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
+    #{'name': 'TopPt',     'pair':(  'TopPt', 'central'),},
+    #{'name': 'JER',       'pair':(  'JERUp', 'JERDown'),},
+]
+
+# FIXME: Add 'all' and 'SF'
+
+# loop over modes
+missing_cmds   = []
+variation_data = {}
+for mode in modes:
+    logger.info('Working on mode: %s', mode)
+    logger.info('Now attempting to load all variations from dirDB %s', dirDB.directory)
+   
+    for systematic in systematics:
+        for variation in systematic['pair']:
+            key  = ( args.era, mode, variation)
+            if dirDB.contains(key):
+                normalisation_mc, normalisation_data, histos = dirDB.get( key )
+                for i_p, h_s in enumerate(histos):
+                    variation_data[(mode, variation)] = {'histos':h_s, 'normalisation_mc':normalisation_mc, 'normalisation_data':normalisation_data}
+                logger.info( "Loaded normalisations and histograms for variation %s, era %s in mode %s from cache.", variation, args.era, mode)
+            else:
+                # prepare sub variation command
+                cmd = ['python', 'systematicVariation.py']
+                cmd.append('--logLevel=%s'%args.logLevel)
+                if args.signal is not None:
+                    cmd.append( '--signal=%s'%args.signal )
+                cmd.append('--plot_directory=%s'%args.plot_directory)
+                cmd.append('--selection=%s'%args.selection)
+                cmd.append('--variation=%s'%variation)
+                if args.small:
+                    cmd.append('--small')
+                cmd.append('--mode=%s'%args.mode)
+                if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
+                cmd.append('--reweightPU=%s'%args.reweightPU)
+                cmd.append('--era=%s'%args.era)
+
+                cmd_string = ' '.join( cmd )
+                missing_cmds.append( cmd_string )
+                logger.info("Missing variation %s, era %s in mode %s in cache. Need to run: \n%s", variation, args.era, mode, cmd_string)
+
+# write missing cmds
+if len(missing_cmds)>0:
+    with file( 'missing.sh', 'w' ) as f:
+        f.write("#!/bin/sh\n")
+        for cmd in missing_cmds:
+            f.write( cmd + '\n')
+    logger.info( "Written %i variation commands to ./missing.sh. Now I quit!", len(missing_cmds) )
+    sys.exit(0)
+    
 
 #plotConfigs = [\
 #       [ dl_mt2ll_mc, dl_mt2ll_data, 20],
