@@ -35,7 +35,8 @@ argParser.add_argument('--selection',         action='store',            default
 argParser.add_argument('--variation',         action='store',      default='central', help="Which systematic variation to run.")
 argParser.add_argument('--showOnly',          action='store',      default=None)
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
-argParser.add_argument('--mode',              action='store',       choices = ['mumu','ee','mue'],   help='Which mode?')
+argParser.add_argument('--overwrite',         action='store_true',     help='Overwrite?')
+argParser.add_argument('--mode',              action='store',      default = 'all', choices = ['mumu', 'ee', 'mue', 'all'],   help='Which mode?')
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
 argParser.add_argument('--reweightPU',         action='store', default='Central', choices=[ 'Central', 'VUp'] )
 #argParser.add_argument('--recoil',             action='store', type=str,      default="Central", choices = ["nvtx", "VUp", "Central"])
@@ -78,7 +79,7 @@ def jetSelectionModifier( sys, returntype = "func"):
     elif returntype == "list":
         return [ v+'_'+sys for v in variiedJetObservables ]
 
-def metSelectionModifier( sys ):
+def metSelectionModifier( sys, returntype = 'func'):
     #Need to make sure all MET variations of the following observables are in the ntuple
     variiedMetObservables = ['dl_mt2ll', 'dl_mt2blbl', 'MET_significance', 'met_pt', 'metSig']
     if returntype == "func":
@@ -89,11 +90,6 @@ def metSelectionModifier( sys ):
         return changeCut_
     elif returntype == "list":
         return [ v+'_'+sys for v in variiedMetObservables ]
-
-def metSelectionModifier( sys ):
-    def changeCut_( string ):
-        return string.replace('met_pt', 'met_pt_'+sys).replace('metSig', 'metSig_'+sys).replace('dl_mt2ll', 'dl_mt2ll_'+sys).replace('dl_mt2bb', 'dl_mt2bb_'+sys).replace('dl_mt2blbl', 'dl_mt2blbl_'+sys).replace('MET_significance', 'MET_significance_'+sys)
-    return changeCut_
 
 # these are the nominal MC weights we always apply
 nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF"]
@@ -129,12 +125,12 @@ data_weight_string = "weight"
 # Define all systematic variations
 variations = {
     'central'           : {},
-    'jesTotalUp'        : {'selectionModifier':jetSelectionModifier('jesTotalUp'),      'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jesTotalUp','list')]},
-    'jesTotalDown'      : {'selectionModifier':jetSelectionModifier('jesTotalDown'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jesTotalDown','list')]},
-    'unclustEnUp'       : {'selectionModifier':metSelectionModifier('unclustEnUp'),     'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('unclustEnUp','list')]},
-    'unclustEnDown'     : {'selectionModifier':metSelectionModifier('unclustEnDown'),   'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('unclustEnDown','list')]},
-    'PUUp'              : {'replaceWeight':(nominalPuWeight,upPUWeight),                'read_variables' : [ '%s/F'%v for v in nominalMCWeights + [upPUWeight] ]},
-    'PUDown'            : {'replaceWeight':(nominalPuWeight,downPUWeight),              'read_variables' : [ '%s/F'%v for v in nominalMCWeights + [downPUWeight] ]},
+    'jesTotalUp'        : {'selectionModifier':jetSelectionModifier('jesTotalUp'),               'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jesTotalUp','list')]},
+    'jesTotalDown'      : {'selectionModifier':jetSelectionModifier('jesTotalDown'),             'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jesTotalDown','list')]},
+    'unclustEnUp'       : {'selectionModifier':metSelectionModifier('unclustEnUp'),              'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('unclustEnUp','list')]},
+    'unclustEnDown'     : {'selectionModifier':metSelectionModifier('unclustEnDown'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('unclustEnDown','list')]},
+    'PUUp'              : {'replaceWeight':(nominalPuWeight,upPUWeight),                         'read_variables' : [ '%s/F'%v for v in nominalMCWeights + [upPUWeight] ]},
+    'PUDown'            : {'replaceWeight':(nominalPuWeight,downPUWeight),                       'read_variables' : [ '%s/F'%v for v in nominalMCWeights + [downPUWeight] ]},
     'BTag_SF_b_Down'    : {'replaceWeight':('reweightBTag_SF','reweight_BTag_SF_b_Down'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweight_BTag_SF_b_Down']]},  
     'BTag_SF_b_Up'      : {'replaceWeight':('reweightBTag_SF','reweight_BTag_SF_b_Up'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweight_BTag_SF_b_Up'] ]},
     'BTag_SF_l_Down'    : {'replaceWeight':('reweightBTag_SF','reweight_BTag_SF_l_Down'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweight_BTag_SF_l_Down']]},
@@ -172,9 +168,7 @@ systematics = [\
     # ('JER',         'JERUp', 'JERDown'),
 ]
 
-#if args.selectSys != "all" and args.selectSys != "combine": all_systematics = [args.selectSys if args.selectSys != 'None' else None]
-#else:                                                       all_systematics = [None] + weight_systematics + jme_systematics
-#
+# arguments & directory
 if args.noData:                   args.plot_directory += "_noData"
 if args.signal == "DM":           args.plot_directory += "_DM"
 if args.signal == "T2tt":         args.plot_directory += "_T2tt"
@@ -298,9 +292,11 @@ def getLeptonSelection( mode ):
   elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
 
+modes = ['mumu', 'mue', 'ee'] if args.mode=='all' else [ args.mode ]
+
 allPlots   = {}
 
-logger.info('Working on mode ' + str(args.mode))
+logger.info('Working on modes: %s', ','.join(modes))
 
 if year == 2016:
     data_sample = Run2016
@@ -312,38 +308,40 @@ elif year == 2018:
     data_sample = Run2018
     data_sample.texName = "data (2018)"
 
-data_sample.setSelectionString([getFilterCut(isData=True, year=year), getLeptonSelection(args.mode)])
+# Define samples
 data_sample.name           = "data"
 data_sample.read_variables = ["event/I","run/I"]
 data_sample.style          = styles.errorStyle(ROOT.kBlack)
 data_sample.scale          = 1.
 lumi_scale                 = data_sample.lumi/1000
-
 logger.info('Lumi scale is ' + str(lumi_scale))
-
 for sample in mc:
     sample.scale           = lumi_scale
     sample.style           = styles.fillStyle(sample.color, lineColor = sample.color)
-    sample.read_variables  = ['Pileup_nTrueInt/F', 'GenMET_pt/F', 'GenMET_phi/F'] + variations[args.variation]['read_variables']
-    sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(args.mode)])
+    sample.read_variables  = ['Pileup_nTrueInt/F', 'GenMET_pt/F', 'GenMET_phi/F'] + list(set(variations[args.variation]['read_variables']))
 
+# reduce if small
 if args.small:
+  data_sample.normalization = 1.
+  data_sample.reduceFiles( to = 1 )
+  data_sample.scale /= data_sample.normalization
   for sample in mc:
     sample.normalization = 1.
     #sample.reduceFiles( factor = 40 )
     sample.reduceFiles( to = 1 )
     sample.scale /= sample.normalization
 
-  # data
-  data_sample.normalization = 1.
-  data_sample.reduceFiles( to = 1 )
-  data_sample.scale /= data_sample.normalization
+# Fire up the cache
+dirDB = DirDB(os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, 'cache'))
 
-#    # Apply scale factors in the mt2ll > 100 GeV signal region (except Top which will be already scaled anyway)
-#    if args.selection.count('njet2-btagM-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1-mt2ll100') and False: # Turn on when scalefactors are rederived
-#      if sample == DY_HT_LO:   sample.scale = lumi_scale*1.30
-#      if sample == multiBoson: sample.scale = lumi_scale*1.45
-#      if sample == TTZ_LO:     sample.scale = lumi_scale*0.89
+# loop over modes
+for mode in modes:
+    logger.info('Working on mode: %s', mode)
+
+    # set selection
+    data_sample.setSelectionString([getFilterCut(isData=True, year=year), getLeptonSelection(mode)])
+    for sample in mc:
+        sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(mode)])
 
   #if args.signal == "T2tt":
   #  for s in signals:
@@ -358,243 +356,240 @@ if args.small:
   #    s.read_variables = ['reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F','Pileup_nTrueInt/F']
   #    s.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(args.mode)])
 
-# Use some defaults
-Plot.setDefaults( selectionString = cutInterpreter.cutString(args.selection) )
+    # Use some defaults
+    Plot.setDefaults( selectionString = cutInterpreter.cutString(args.selection) )
 
-selectionModifier = variations[args.variation]['selectionModifier']
+    selectionModifier = variations[args.variation]['selectionModifier']
 
-# Stack
-stack_mc   = Stack( mc )
-stack_data = Stack( data_sample )
+    # Stack
+    stack_mc   = Stack( mc )
+    stack_data = Stack( data_sample )
 
-plots = []
+    plots = []
 
-mt2llBinning = [0,20,40,60,80,100,140,240,340]
-
-if args.variation == 'central':
-    dl_mt2ll_data  = Plot(
-        name = "dl_mt2ll_data",
-        texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-        binning=Binning.fromThresholds(mt2llBinning),
-        stack = stack_data,
-        attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-        weight = data_weight )
-    plots.append( dl_mt2ll_data )
-
-dl_mt2ll_mc  = Plot(\
-    name            = "dl_mt2ll" if sys is None else "dl_mt2ll_mc_%s" % sys,
-    texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-    binning         = Binning.fromThresholds(mt2llBinning),
-    stack           = stack_mc,
-    attribute       = TreeVariable.fromString( selectionModifier("dl_mt2ll/F")),
-    selectionString = selectionModifier(cutInterpreter.cutString(args.selection)),
-    weight          = MC_WEIGHT( variation = variations[args.variation], returntype='func') )
-plots.append( dl_mt2ll_mc )
-
-#  #mt2llCorrBinning = [0,20,40,60,80,100,140,240,340]
-#  #
-#  #dl_mt2llCorr_data  = Plot(
-#  #    name = "dl_mt2ll_corr_data",
-#  #    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#  #    binning=Binning.fromThresholds(mt2llBinning),
-#  #    stack = stack_data,
-#  #    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-## #?     attribute = lambda event, sample: event.dl_mt2ll_corr,
-#  #    weight = data_weight,
-#  #    )
-#  #plots.append( dl_mt2llCorr_data )
-#
-#  #dl_mt2llCorr_mc  = { sys:Plot(\
-#  #    name            = "dl_mt2ll_corr" if sys is None else "dl_mt2ll_corr_mc_%s" % sys,
-#  #    texX            = 'corrected M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#  #    binning         = Binning.fromThresholds(mt2llBinning),
-#  #    stack           = sys_stacks[sys],
-#  #    attribute       = lambda event, sample: event.dl_mt2ll_corr if sys is None or sys in weight_systematics else getattr(event, "dl_mt2ll_corr_"+sys) ,
-## #     attribute        = TreeVariable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2ll_%s/F" % sys ),
-#  #    selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-#  #    weight          = MC_WEIGHT( sys = sys )[0],
-#  #    ) for sys in all_systematics }
-#  #plots.extend( dl_mt2llCorr_mc.values() )
-#
-#  if args.selection.count('njet2'):
-#
-#    dl_mt2blbl_data  = Plot( 
-#        name = "dl_mt2blbl_data",
-#        texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#        stack = stack_data,
-#        attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-#        binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
-#        weight = data_weight,
-#        ) 
-#    plots.append( dl_mt2blbl_data )
-#
-#    dl_mt2blbl_mc  = {sys: Plot(
-#        name = "dl_mt2blbl" if sys is None else "dl_mt2blbl_mc_%s" % sys,
-#        texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#        stack = sys_stacks[sys],
-#        attribute = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
-#        binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
-#        selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-#        weight = MC_WEIGHT( sys = sys )[0],
-#        ) for sys in all_systematics }
-#    plots.extend( dl_mt2blbl_mc.values() )
-#
-#  nBtagBinning = [5, 1, 6] if args.selection.count('btag1p') else [1,0,1]
-#
-#  nbtags_data  = Plot( 
-#      name = "nbtags_data",
-#      texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
-#      stack = stack_data,
-#      attribute = TreeVariable.fromString('nBTag/I'),
-#      binning=nBtagBinning,
-#      weight = data_weight,
-#      ) 
-#  plots.append( nbtags_data )
-#
-#  nbtags_mc  = {sys: Plot(
-#      name = "nbtags" if sys is None else "nbtags_mc_%s" % sys,
-#      texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
-#      stack = sys_stacks[sys],
-#      attribute = TreeVariable.fromString('nBTag/I') if sys is None or sys in weight_systematics or sys in met_systematics else TreeVariable.fromString( "nBTag_%s/I" % sys ),
-#      binning=nBtagBinning,
-#      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-#      weight = MC_WEIGHT( sys = sys )[0],
-#      ) for sys in all_systematics }
-#  plots.extend( nbtags_mc.values() )
-#
-#  jetBinning = [8,2,10] if args.selection.count('njet2') else [2,0,2]
-#
-#  njets_data  = Plot( 
-#      name = "njets_data",
-#      texX = 'number of jets', texY = 'Number of Events',
-#      stack = stack_data,
-#      attribute = TreeVariable.fromString('nJetGood/I'),
-#      binning=jetBinning,
-#      weight = data_weight,
-#      )
-#  plots.append( njets_data )
-#
-#  njets_mc  = {sys: Plot(
-#      name = "njets" if sys is None else "njets_mc_%s" % sys,
-#      texX = 'number of jets', texY = 'Number of Events',
-#      stack = sys_stacks[sys],
-#      attribute = TreeVariable.fromString('nJetGood/I') if sys is None or sys in weight_systematics or sys in met_systematics else TreeVariable.fromString( "nJetGood_%s/I" % sys ),
-#      binning= jetBinning,
-#      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-#      weight = MC_WEIGHT( sys = sys )[0],
-#      ) for sys in all_systematics }
-#  plots.extend( njets_mc.values() )
-#
-#  metBinning = [0,20,40,60,80] if args.selection.count('metInv') else [80,130,180,230,280,320,420,520,800] if args.selection.count('met80') else [0,80,130,180,230,280,320,420,520,800]
-#
-#  met_data  = Plot( 
-#      name = "met_data",
-#      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Events",
-#      stack = stack_data, 
-#      attribute = TreeVariable.fromString( "met_pt/F" ),
-#      binning=Binning.fromThresholds( metBinning ),
-#      weight = data_weight,
-#      )
-#  plots.append( met_data )
-#
-#  met_mc  = {sys: Plot(
-#      name = "met_pt" if sys is None else "met_pt_mc_%s" % sys,
-#      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Events",
-#      stack = sys_stacks[sys],
-#      attribute = TreeVariable.fromString('met_pt/F') if sys not in met_systematics else TreeVariable.fromString( "met_pt_%s/F" % sys ),
-#      binning=Binning.fromThresholds( metBinning ),
-#      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-#      weight = MC_WEIGHT( sys = sys )[0],
-#      ) for sys in all_systematics }
-#  plots.extend( met_mc.values() )
-#
-#  metBinning2 = [0,20,40,60,80] if args.selection.count('metInv') else [80,100,120,140,160,200,500] if args.selection.count('met80') else [0,80,100,120,140,160,200,500]
-#
-#  met2_data  = Plot(
-#      name = "met2_data",
-#      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#      stack = stack_data,
-#      attribute = TreeVariable.fromString( "met_pt/F" ),
-#      binning=Binning.fromThresholds( metBinning2 ),
-#      weight = data_weight,
-#      )
-#  plots.append( met2_data )
-#
-#  met2_mc  = {sys: Plot(
-#      name = "met2_pt" if sys is None else "met2_pt_mc_%s" % sys,
-#      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#      stack = sys_stacks[sys],
-#      attribute = TreeVariable.fromString('met_pt/F') if sys not in met_systematics else TreeVariable.fromString( "met_pt_%s/F" % sys ),
-#      binning=Binning.fromThresholds( metBinning2 ),
-#      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-#      weight = MC_WEIGHT( sys = sys )[0],
-#      ) for sys in all_systematics }
-#  plots.extend( met2_mc.values() )
-#
-#  metSigBinning = [0,2,4,6,8,10,12] if args.selection.count('POGMetSig0To12') else [12,16,20,24,28,32,36,40,45,50,55,60,65,70,75,80,85,90,95,100] if args.selection.count('POGMetSig12') else [0,4,8,12,16,20,24,28,32,36,40,45,50,55,60,65,70,75,80,85,90,95,100]
-#
-#  metSig_data  = Plot( 
-#      name = "MET_significance_data",
-#      texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
-#      stack = stack_data, 
-#      attribute = TreeVariable.fromString( "MET_significance/F" ),
-#      binning=Binning.fromThresholds( metSigBinning ),
-#      weight = data_weight,
-#      )
-#  plots.append( metSig_data )
-#
-#  metSig_mc  = {sys: Plot(
-#      name = "MET_Significance" if sys is None else "MET_significance_mc_%s" % sys,
-#      texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
-#      stack = sys_stacks[sys],
-#      attribute = TreeVariable.fromString('MET_significance/F') if sys not in jme_systematics else TreeVariable.fromString( "MET_significance_%s/F" % sys ),
-#      binning=Binning.fromThresholds( metSigBinning ),
-#      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-#      weight = MC_WEIGHT( sys = sys )[0],
-#      ) for sys in all_systematics }
-#  plots.extend( metSig_mc.values() )
-
-# Make plot directory
-plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, args.era, args.mode)
-result_file = os.path.join(plot_directory_, 'results.pkl')
-
-try: 
-    os.makedirs(plot_directory_)
-except: 
-    pass
-
-# Fire up the cache
-dirDB = DirDB(os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, 'cache'))
-
-key  = ( args.era, args. mode )
-
-if dirDB.contains(key):
-    normalisation_mc, normalisation_data, histos = dirDB.get( key )
-    for i_p, h_s in enumerate(histos):
-        plots[i_p].histos = h_s
-else:
-    logger.info( "Calculating normalisations.")
-    # Calculate the normalisation yield
-    normalization_selection_string = selectionModifier(cutInterpreter.cutString(args.selection + '-mt2llTo100'))
-    mc_normalization_weight_string    = MC_WEIGHT(variations[args.variation], returntype='string')
-    normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
+    mt2llBinning = [0,20,40,60,80,100,140,240,340]
 
     if args.variation == 'central':
-        normalisation_data = data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
+        dl_mt2ll_data  = Plot(
+            name = "dl_mt2ll_data",
+            texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+            binning=Binning.fromThresholds(mt2llBinning),
+            stack = stack_data,
+            attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+            weight = data_weight )
+        plots.append( dl_mt2ll_data )
+
+    dl_mt2ll_mc  = Plot(\
+        name            = "dl_mt2ll_mc",
+        texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+        binning         = Binning.fromThresholds(mt2llBinning),
+        stack           = stack_mc,
+        attribute       = TreeVariable.fromString( selectionModifier("dl_mt2ll/F")),
+        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)),
+        weight          = MC_WEIGHT( variation = variations[args.variation], returntype='func') )
+    plots.append( dl_mt2ll_mc )
+
+    #  #mt2llCorrBinning = [0,20,40,60,80,100,140,240,340]
+    #  #
+    #  #dl_mt2llCorr_data  = Plot(
+    #  #    name = "dl_mt2ll_corr_data",
+    #  #    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    #  #    binning=Binning.fromThresholds(mt2llBinning),
+    #  #    stack = stack_data,
+    #  #    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+    ## #?     attribute = lambda event, sample: event.dl_mt2ll_corr,
+    #  #    weight = data_weight,
+    #  #    )
+    #  #plots.append( dl_mt2llCorr_data )
+    #
+    #  #dl_mt2llCorr_mc  = { sys:Plot(\
+    #  #    name            = "dl_mt2ll_corr" if sys is None else "dl_mt2ll_corr_mc_%s" % sys,
+    #  #    texX            = 'corrected M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    #  #    binning         = Binning.fromThresholds(mt2llBinning),
+    #  #    stack           = sys_stacks[sys],
+    #  #    attribute       = lambda event, sample: event.dl_mt2ll_corr if sys is None or sys in weight_systematics else getattr(event, "dl_mt2ll_corr_"+sys) ,
+    ## #     attribute        = TreeVariable.fromString( "dl_mt2ll/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2ll_%s/F" % sys ),
+    #  #    selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+    #  #    weight          = MC_WEIGHT( sys = sys )[0],
+    #  #    ) for sys in all_systematics }
+    #  #plots.extend( dl_mt2llCorr_mc.values() )
+    #
+    #  if args.selection.count('njet2'):
+    #
+    #    dl_mt2blbl_data  = Plot( 
+    #        name = "dl_mt2blbl_data",
+    #        texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    #        stack = stack_data,
+    #        attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+    #        binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
+    #        weight = data_weight,
+    #        ) 
+    #    plots.append( dl_mt2blbl_data )
+    #
+    #    dl_mt2blbl_mc  = {sys: Plot(
+    #        name = "dl_mt2blbl" if sys is None else "dl_mt2blbl_mc_%s" % sys,
+    #        texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    #        stack = sys_stacks[sys],
+    #        attribute = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
+    #        binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
+    #        selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+    #        weight = MC_WEIGHT( sys = sys )[0],
+    #        ) for sys in all_systematics }
+    #    plots.extend( dl_mt2blbl_mc.values() )
+    #
+    #  nBtagBinning = [5, 1, 6] if args.selection.count('btag1p') else [1,0,1]
+    #
+    #  nbtags_data  = Plot( 
+    #      name = "nbtags_data",
+    #      texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
+    #      stack = stack_data,
+    #      attribute = TreeVariable.fromString('nBTag/I'),
+    #      binning=nBtagBinning,
+    #      weight = data_weight,
+    #      ) 
+    #  plots.append( nbtags_data )
+    #
+    #  nbtags_mc  = {sys: Plot(
+    #      name = "nbtags" if sys is None else "nbtags_mc_%s" % sys,
+    #      texX = 'number of b-tags (CSVM)', texY = 'Number of Events',
+    #      stack = sys_stacks[sys],
+    #      attribute = TreeVariable.fromString('nBTag/I') if sys is None or sys in weight_systematics or sys in met_systematics else TreeVariable.fromString( "nBTag_%s/I" % sys ),
+    #      binning=nBtagBinning,
+    #      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+    #      weight = MC_WEIGHT( sys = sys )[0],
+    #      ) for sys in all_systematics }
+    #  plots.extend( nbtags_mc.values() )
+    #
+    #  jetBinning = [8,2,10] if args.selection.count('njet2') else [2,0,2]
+    #
+    #  njets_data  = Plot( 
+    #      name = "njets_data",
+    #      texX = 'number of jets', texY = 'Number of Events',
+    #      stack = stack_data,
+    #      attribute = TreeVariable.fromString('nJetGood/I'),
+    #      binning=jetBinning,
+    #      weight = data_weight,
+    #      )
+    #  plots.append( njets_data )
+    #
+    #  njets_mc  = {sys: Plot(
+    #      name = "njets" if sys is None else "njets_mc_%s" % sys,
+    #      texX = 'number of jets', texY = 'Number of Events',
+    #      stack = sys_stacks[sys],
+    #      attribute = TreeVariable.fromString('nJetGood/I') if sys is None or sys in weight_systematics or sys in met_systematics else TreeVariable.fromString( "nJetGood_%s/I" % sys ),
+    #      binning= jetBinning,
+    #      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+    #      weight = MC_WEIGHT( sys = sys )[0],
+    #      ) for sys in all_systematics }
+    #  plots.extend( njets_mc.values() )
+    #
+    #  metBinning = [0,20,40,60,80] if args.selection.count('metInv') else [80,130,180,230,280,320,420,520,800] if args.selection.count('met80') else [0,80,130,180,230,280,320,420,520,800]
+    #
+    #  met_data  = Plot( 
+    #      name = "met_data",
+    #      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Events",
+    #      stack = stack_data, 
+    #      attribute = TreeVariable.fromString( "met_pt/F" ),
+    #      binning=Binning.fromThresholds( metBinning ),
+    #      weight = data_weight,
+    #      )
+    #  plots.append( met_data )
+    #
+    #  met_mc  = {sys: Plot(
+    #      name = "met_pt" if sys is None else "met_pt_mc_%s" % sys,
+    #      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV' if args.normalizeBinWidth else "Number of Events",
+    #      stack = sys_stacks[sys],
+    #      attribute = TreeVariable.fromString('met_pt/F') if sys not in met_systematics else TreeVariable.fromString( "met_pt_%s/F" % sys ),
+    #      binning=Binning.fromThresholds( metBinning ),
+    #      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+    #      weight = MC_WEIGHT( sys = sys )[0],
+    #      ) for sys in all_systematics }
+    #  plots.extend( met_mc.values() )
+    #
+    #  metBinning2 = [0,20,40,60,80] if args.selection.count('metInv') else [80,100,120,140,160,200,500] if args.selection.count('met80') else [0,80,100,120,140,160,200,500]
+    #
+    #  met2_data  = Plot(
+    #      name = "met2_data",
+    #      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    #      stack = stack_data,
+    #      attribute = TreeVariable.fromString( "met_pt/F" ),
+    #      binning=Binning.fromThresholds( metBinning2 ),
+    #      weight = data_weight,
+    #      )
+    #  plots.append( met2_data )
+    #
+    #  met2_mc  = {sys: Plot(
+    #      name = "met2_pt" if sys is None else "met2_pt_mc_%s" % sys,
+    #      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    #      stack = sys_stacks[sys],
+    #      attribute = TreeVariable.fromString('met_pt/F') if sys not in met_systematics else TreeVariable.fromString( "met_pt_%s/F" % sys ),
+    #      binning=Binning.fromThresholds( metBinning2 ),
+    #      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+    #      weight = MC_WEIGHT( sys = sys )[0],
+    #      ) for sys in all_systematics }
+    #  plots.extend( met2_mc.values() )
+    #
+    #  metSigBinning = [0,2,4,6,8,10,12] if args.selection.count('POGMetSig0To12') else [12,16,20,24,28,32,36,40,45,50,55,60,65,70,75,80,85,90,95,100] if args.selection.count('POGMetSig12') else [0,4,8,12,16,20,24,28,32,36,40,45,50,55,60,65,70,75,80,85,90,95,100]
+    #
+    #  metSig_data  = Plot( 
+    #      name = "MET_significance_data",
+    #      texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+    #      stack = stack_data, 
+    #      attribute = TreeVariable.fromString( "MET_significance/F" ),
+    #      binning=Binning.fromThresholds( metSigBinning ),
+    #      weight = data_weight,
+    #      )
+    #  plots.append( metSig_data )
+    #
+    #  metSig_mc  = {sys: Plot(
+    #      name = "MET_Significance" if sys is None else "MET_significance_mc_%s" % sys,
+    #      texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+    #      stack = sys_stacks[sys],
+    #      attribute = TreeVariable.fromString('MET_significance/F') if sys not in jme_systematics else TreeVariable.fromString( "MET_significance_%s/F" % sys ),
+    #      binning=Binning.fromThresholds( metSigBinning ),
+    #      selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
+    #      weight = MC_WEIGHT( sys = sys )[0],
+    #      ) for sys in all_systematics }
+    #  plots.extend( metSig_mc.values() )
+
+    ## Make plot directory
+    #plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, args.era, mode)
+    #try: 
+    #    os.makedirs(plot_directory_)
+    #except: 
+    #    pass
+
+    key  = ( args.era, mode )
+
+    if dirDB.contains(key) and not args.overwrite:
+        normalisation_mc, normalisation_data, histos = dirDB.get( key )
+        for i_p, h_s in enumerate(histos):
+            plots[i_p].histos = h_s
+        logger.info( "Loaded normalisations and histograms for %s in mode %s from cache.", args.era, mode)
     else:
-        normalisation_data = -1
+        logger.info( "Obtain normalisations and histograms for %s in mode %s.", args.era, mode)
+        # Calculate the normalisation yield for mt2ll<100
+        normalization_selection_string = selectionModifier(cutInterpreter.cutString(args.selection + '-mt2llTo100'))
+        mc_normalization_weight_string    = MC_WEIGHT(variations[args.variation], returntype='string')
+        normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
 
-    logger.info( "Making plots.")
-    plotting.fill(plots, read_variables = read_variables, sequence = sequence)
+        if args.variation == 'central':
+            normalisation_data = data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
+        else:
+            normalisation_data = -1
 
-    #    allPlots.update({p.name : p.histos for p in plots})
-    #    yields.update(yield_mc)
+        logger.info( "Making plots.")
+        plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
-    logger.info( "Done with %s in channel %s.", args.variation, args.mode)
-    # Delete lambda because we can't serialize it
-    for plot in plots:
-        del plot.weight
-    dirDB.add( key, (normalisation_mc, normalisation_data, [plot.histos for plot in plots]) )
+        #    allPlots.update({p.name : p.histos for p in plots})
+        #    yields.update(yield_mc)
+
+        # Delete lambda because we can't serialize it
+        for plot in plots:
+            del plot.weight
+        dirDB.add( key, (normalisation_mc, normalisation_data, [plot.histos for plot in plots]), overwrite = args.overwrite)
+
+        logger.info( "Done with %s in channel %s.", args.variation, mode)
 
 #plotConfigs = [\
 #       [ dl_mt2ll_mc, dl_mt2ll_data, 20],
@@ -607,8 +602,6 @@ else:
 #  ]
 #if args.selection.count('njet2'):
 #    plotConfigs.append([ dl_mt2blbl_mc, dl_mt2blbl_data, 20])
-#
-#
 
 #else:
 #  (allPlots, yields) = pickle.load(file( result_file ))
