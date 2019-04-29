@@ -9,6 +9,7 @@ parser.add_option("--nThreads",              dest="nThreads",              defau
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option("--control",               dest="control",               default=None,                action='store',      choices=[None, "DY", "VV", "DYVV", "TTZ1", "TTZ2", "TTZ3", "TTZ4", "TTZ5"], help="For CR region?")
 parser.add_option("--useGenMet",             dest="useGenMet",             default=False,               action='store_true', help="use genMET instead of recoMET, used for signal studies")
+parser.add_option("--overwrite",             dest="overwrite",             default=False,               action='store_true', help="overwrite existing results?")
 parser.add_option("--aggregate",             dest="aggregate",             default=False,               action='store_true', help="run over aggregated signal regions")
 
 (options, args) = parser.parse_args()
@@ -31,6 +32,7 @@ allRegions = noRegions if (options.control and options.control.count('TTZ')) els
 if options.aggregate: allRegions = regionsAgg
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
+from StopsDilepton.analysis.DataObservation import DataObservation
 
 # signals, so far only T2tt
 signals_T2tt = []
@@ -46,7 +48,14 @@ allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in
 
 
 # Select estimate
-estimate = next((e for e in allEstimators if e.name == options.selectEstimator), None)
+if not options.selectEstimator == 'Data':
+    estimate = next((e for e in allEstimators if e.name == options.selectEstimator), None)
+    estimate.isData = False
+else:
+    estimate = DataObservation(name='Data', sample=setup.samples['Data'], cacheDir=setup.defaultCacheDir())
+    estimate.isSignal = False
+    estimate.isData   = True
+
 if not estimate:
   logger.warn(options.selectEstimator + " not known")
   exit(0)
@@ -75,7 +84,7 @@ setup.verbose=True
 
 def wrapper(args):
         r,channel,setup = args
-        res = estimate.cachedEstimate(r, channel, setup, save=True)
+        res = estimate.cachedEstimate(r, channel, setup, save=True, overwrite=options.overwrite)
         return (estimate.uniqueKey(r, channel, setup), res )
 
 estimate.initCache(setup.defaultCacheDir())
@@ -85,8 +94,9 @@ for channel in (trilepChannels if (options.control and options.control.count('TT
     for (i, r) in enumerate(allRegions):
         if options.selectRegion is not None and options.selectRegion != i: continue
         jobs.append((r, channel, setup))
-        if estimate.isSignal: jobs.extend(estimate.getSigSysJobs(r, channel, setup, isFastSim))
-        else:                 jobs.extend(estimate.getBkgSysJobs(r, channel, setup))
+        if not estimate.isData:
+            if estimate.isSignal: jobs.extend(estimate.getSigSysJobs(r, channel, setup, isFastSim))
+            else:                 jobs.extend(estimate.getBkgSysJobs(r, channel, setup))
 
 if options.noMultiThreading: 
     results = map(wrapper, jobs)
@@ -101,6 +111,7 @@ for channel in (['all'] if ((options.control and options.control.count('TTZ')) o
     for (i, r) in enumerate(allRegions):
         if options.selectRegion is not None and options.selectRegion != i: continue
         if options.useGenMet: estimate.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'genMet'}), save=True)
-        else: estimate.cachedEstimate(r, channel, setup, save=True)
-        if estimate.isSignal: map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getSigSysJobs(r, channel, setup, isFastSim))
-        else:                 map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getBkgSysJobs(r, channel, setup))
+        else: estimate.cachedEstimate(r, channel, setup, save=True, overwrite=options.overwrite)
+        if not estimate.isData:
+            if estimate.isSignal: map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getSigSysJobs(r, channel, setup, isFastSim))
+            else:                 map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getBkgSysJobs(r, channel, setup))
