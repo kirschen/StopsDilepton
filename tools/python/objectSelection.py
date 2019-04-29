@@ -69,6 +69,12 @@ def filterGenPhotons( genParts, status=None ):
     photons = list( filter( lambda l: abs(l['pdgId']) == 22 and l['status'] > 0, genParts ) )
     return photons
 
+def genLepFromZ( genParts ):
+    ''' get all gen leptons (e,m,tau) from Z
+    '''
+    leptons = list( filter( lambda l: abs(l['pdgId']) in [11,13,15] and abs(genParts[l['genPartIdxMother']]['pdgId']) == 23, genParts ) )
+    return leptons
+
 def get_index_str( index ):
     if isinstance(index, int):
         index_str = "["+str(index)+"]"

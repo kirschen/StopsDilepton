@@ -8,7 +8,9 @@ class color():
 
 color.data           = ROOT.kBlack
 color.DY             = 8
+color.DY_HT_LO       = color.DY
 color.TTJets         = 7
+color.Top_pow        = color.TTJets
 color.singleTop      = 40
 color.TTX            = ROOT.kMagenta
 color.TTXNoZ         = ROOT.kRed
@@ -24,6 +26,7 @@ color.WJetsToLNu     = ROOT.kRed-10
 color.diBoson        = ROOT.kOrange
 color.multiBoson     = ROOT.kOrange
 color.ZZ             = ROOT.kOrange+1
+color.ZZ4l           = color.ZZ
 color.WZ             = ROOT.kOrange+7
 color.WW             = ROOT.kOrange-7
 color.VV             = 30

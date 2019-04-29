@@ -13,4 +13,4 @@ class default_locations:
     mc_2018_data_directory              = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
     mc_2018_postProcessing_directory    = "stops_2018_nano_v0p7/dilep/"
     data_2018_data_directory            = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    data_2018_postProcessing_directory  = "stops_2018_nano_v0p5/dilep/"
+    data_2018_postProcessing_directory  = "stops_2018_nano_v0p7/dilep/"

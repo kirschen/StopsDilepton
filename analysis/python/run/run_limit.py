@@ -15,14 +15,16 @@ argParser.add_argument("--fitAll",         default = False, action = "store_true
 argParser.add_argument("--aggregate",      default = False, action = "store_true", help="Use aggregated signal regions")
 argParser.add_argument("--expected",       default = False, action = "store_true", help="Use sum of backgrounds instead of data.")
 argParser.add_argument("--DMsync",         default = False, action = "store_true", help="Use two regions for MET+X syncing")
+argParser.add_argument("--noSignal",       default = False, action = "store_true", help="Don't use any signal (force signal yield to 0)?")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--removeSR",       default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 argParser.add_argument("--showSyst",       default = '', action = "store", help="Print the systematic uncertainties?")
-argParser.add_argument("--year",           default=2016, type="int",    action="store",      help="Which year?")
+argParser.add_argument("--year",           default=2016,     action="store",      help="Which year?")
 
 args = argParser.parse_args()
 
+year = int(args.year)
 
 # Logging
 import StopsDilepton.tools.logger as logger
@@ -34,7 +36,8 @@ from StopsDilepton.analysis.SetupHelpers    import channels, trilepChannels
 from StopsDilepton.analysis.estimators      import *
 from StopsDilepton.analysis.Setup           import Setup
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions         import regionsO, noRegions, regionsS, regionsAgg, regionsDM, regionsDM1, regionsDM2, regionsDM3, regionsDM4, regionsDM5, regionsDM6, regionsDM7
+from StopsDilepton.analysis.regions         import regionsLegacy, noRegions, regionsAgg
+#regionsLegacy, noRegions, regionsS, regionsAgg, regionsDM, regionsDM1, regionsDM2, regionsDM3, regionsDM4, regionsDM5, regionsDM6, regionsDM7
 from StopsDilepton.analysis.Cache           import Cache
 from copy import deepcopy
 
@@ -51,7 +54,7 @@ data_directory = '/afs/hephy.at/data/rschoefbeck02/cmgTuples/'
 postProcessing_directory = 'stops_2016_nano_v3/dilep'
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 
-setup = Setup(year=args.year)
+setup = Setup(year=year)
 
 
 # Define CR
@@ -84,19 +87,19 @@ if args.aggregate:
         setup.regions   = tmpRegion
     else:
         setup.regions     = regionsAgg[1:]
-    setupDYVV.regions = regionsO[1:]
+    setupDYVV.regions = regionsLegacy[1:]
 elif args.DMsync:
     setup.regions     = regionsDM[1:]
-    setupDYVV.regions = regionsO[1:]
+    setupDYVV.regions = regionsLegacy[1:]
 else:
     if args.removeSR:
-        tmpRegion = deepcopy(regionsO[1:])
+        tmpRegion = deepcopy(regionsLegacy[1:])
         tmpRegion.pop(int(args.removeSR))
         setup.regions   = tmpRegion
     else:
-        setup.regions   = regionsO[1:]
+        setup.regions   = regionsLegacy[1:]
         #setup.regions   = regionsDM7[1:]
-    setupDYVV.regions = regionsO[1:]
+    setupDYVV.regions = regionsLegacy[1:]
 setupTTZ1.regions = noRegions
 setupTTZ2.regions = noRegions
 setupTTZ3.regions = noRegions
@@ -166,8 +169,9 @@ elif args.signal == "ttHinv":                       fastSim = False
 
 if   args.signal == "T2tt":
     #postProcessing_directory = 'stops_2016_nano_v2/dilep'
-    postProcessing_directory = 'stops_2016_nano_v3/dilep'
-    from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import signals_T2tt as jobs
+    data_directory = '/afs/hephy.at/data/dspitzbart03/nanoTuples/'
+    postProcessing_directory = 'stops_2017_nano_v0p4/dilep'
+    from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
 #elif args.signal == "T2bt":
 #    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
 #    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bt as jobs
@@ -272,7 +276,7 @@ def wrapper(s):
             c.addUncertainty('PUFS',     'lnN')
 
         for setup in setups:
-          eSignal     = MCBasedEstimate(name=s.name, sample={channel:s for channel in channels+trilepChannels}, cacheDir=setup.defaultCacheDir())
+          eSignal     = MCBasedEstimate(name=s.name, sample=s, cacheDir=setup.defaultCacheDir()) # {channel:s for channel in channels+trilepChannels}
           observation = DataObservation(name='Data', sample=setup.samples['Data'], cacheDir=setup.defaultCacheDir())
           for e in setup.estimators: e.initCache(setup.defaultCacheDir())
 
@@ -291,12 +295,13 @@ def wrapper(s):
                 c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators][1:] + [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ], niceName)
 #                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators], niceName)
                 for e in setup.estimators:
+                  print channel, e.name, setup, r
                   name = e.name.split('-')[0]
                   expected = e.cachedEstimate(r, channel, setup)
                   total_exp_bkg += expected.val
                   if e.name.count('TTJets'):
-                    if len(setup.regions) == len(regionsO[1:]):     divider = 6
-                    elif len(setup.regions) == len(regionsO[1:])-1:
+                    if len(setup.regions) == len(regionsLegacy[1:]):     divider = 6
+                    elif len(setup.regions) == len(regionsLegacy[1:])-1:
                         if int(args.removeSR) < 6: divider = 5
                         else: divider = 6
                     elif len(setup.regions) == len(regionsAgg[1:]): divider = 1
@@ -392,8 +397,9 @@ def wrapper(s):
                     c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
                 #signal
-                e = eSignal
                 eSignal.isSignal = True
+                e = eSignal
+                #eSignal.isSignal = True
                 if fastSim:
                     #signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF', 'weight_pol_L'], 'remove':['reweightPU36fb']})
                     #signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
@@ -404,7 +410,14 @@ def wrapper(s):
                     signalSetup = setup.sysClone()
                     signal = e.cachedEstimate(r, channel, signalSetup)
 
+                #if args.noSignal:
+                #    signal.val = 0
+                #    signal.sigma = 1
+
+                signal.val, signal.sigma = 0.1, 1.0
+
                 c.specifyExpectation(binname, 'signal', args.scale*signal.val*xSecScale )
+
 
                 if signal.val>0:
                   if not fastSim:
