@@ -98,6 +98,9 @@ elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
+
+    from StopsDilepton.tools.vetoList import vetoList
+    Run2018D.vetoList = vetoList.fromDirectory('/afs/hephy.at/data/rschoefbeck02/StopsDilepton/splitMuonVeto/')
     #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
     #    nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
 
@@ -115,7 +118,8 @@ for sample in mc:
 if args.small:
     for sample in mc + [data_sample]:
         sample.normalization = 1.
-        sample.reduceFiles( factor = 40 )
+        #sample.reduceFiles( factor = 40 )
+        sample.reduceFiles( to=1)
         sample.scale /= sample.normalization
 
 if args.recoil:
@@ -297,10 +301,10 @@ def drawPlots(plots, mode, dataMCScale):
 
       plotting.draw(plot,
 	    plot_directory = plot_directory_,
-	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
+	    ratio = {'histos':[(1,0),(2,0)], 'yRange':(0.1,1.9)} if not args.noData else None,
 	    logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig),
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
-	    #scaling = {0:1},
+	    scaling = {0:1},
 	    legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
 	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ) + _drawObjects,
         copyIndexPHP = True, extensions = ["png"],
@@ -310,9 +314,19 @@ def drawPlots(plots, mode, dataMCScale):
 # Read variables and sequences
 #
 read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I"]
+read_variables += ["event/l", "luminosityBlock/I", "run/I"]
 
 sequence = []
 
+# veto list
+def make_veto( event, sample ):
+    if hasattr( sample, "vetoList" ):
+        event.passes_veto = sample.vetoList.passesVeto( event.run, event.luminosityBlock, event.event )
+        #event.passes_veto = event.event%2==0
+
+sequence.append( make_veto )
+
+# recoil
 def recoil_weight( var_bin, qt_bin):
     #if args.recoil == 'v4':
     def _weight_( event, sample):
@@ -388,7 +402,7 @@ def getLeptonSelection( mode ):
   elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
   elif mode=="SF":   return "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)" + offZ
-  elif mode=="all":   return "nGoodMuons+nGoodElectrons==2&&isOS&&(((isEE||isMuMu)&&" + offZ+")||isEMu)"
+  elif mode=="all":   return "nGoodMuons+nGoodElectrons==2&&isOS&&(((isEE||isMuMu)" + offZ+")||isEMu)"
 
 # get nvtx reweighting histo
 if args.reweightPU =='nvtx':
@@ -422,6 +436,12 @@ for index, mode in enumerate(allModes):
   data_sample.read_variables = ["event/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   weight_ = lambda event, sample: event.weight
+
+  data_sample_filtered = copy.deepcopy( data_sample )
+  data_sample_filtered.style = styles.errorStyle(ROOT.kRed)
+  data_sample_filtered.weight = lambda event, sample: event.weight*event.passes_veto
+  data_sample_filtered.name   += "_filtered"
+  data_sample_filtered.texName+= " (filtered)"
 
   for sample in mc + signals:
     sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F']
@@ -472,7 +492,7 @@ for index, mode in enumerate(allModes):
   for sample in mc_: sample.style = styles.fillStyle(sample.color)
 
   if not args.noData:
-    stack = Stack(mc_, data_sample)
+    stack = Stack(mc_, data_sample, data_sample_filtered)
   else:
     stack = Stack(mc_)
 
