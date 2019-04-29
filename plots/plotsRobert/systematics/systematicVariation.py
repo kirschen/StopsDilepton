@@ -545,7 +545,7 @@ for mode in modes:
             normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
 
             if args.variation == 'central':
-                normalisation_data = data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
+                normalisation_data = data_sample.scale*data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
             else:
                 normalisation_data = -1
 
@@ -587,7 +587,7 @@ for mode in modes:
    
     for variation in variations.keys():
         key  = (args.era, mode, variation)
-        if dirDB.contains(key):
+        if dirDB.contains(key) and not args.overwrite:
             normalisation_mc, normalisation_data, histos = dirDB.get(key)
             variation_data[(mode, variation)] = {'histos':histos, 'normalisation_mc':normalisation_mc, 'normalisation_data':normalisation_data}
             logger.info( "Loaded normalisations and histograms for variation %s, era %s in mode %s from cache.", variation, args.era, mode)
@@ -595,17 +595,16 @@ for mode in modes:
             # prepare sub variation command
             cmd = ['python', 'systematicVariation.py']
             cmd.append('--logLevel=%s'%args.logLevel)
-            if args.signal is not None:
-                cmd.append( '--signal=%s'%args.signal )
+            if args.signal is not None: cmd.append( '--signal=%s'%args.signal )
             cmd.append('--plot_directory=%s'%args.plot_directory)
             cmd.append('--selection=%s'%args.selection)
             cmd.append('--variation=%s'%variation)
-            if args.small:
-                cmd.append('--small')
+            if args.small: cmd.append('--small')
             cmd.append('--mode=%s'%args.mode)
             if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             cmd.append('--reweightPU=%s'%args.reweightPU)
             cmd.append('--era=%s'%args.era)
+            if args.overwrite: cmd.append('--overwrite')
 
             cmd_string = ' '.join( cmd )
             missing_cmds.append( cmd_string )
@@ -724,6 +723,7 @@ for mode in all_modes:
         mc_histo_list   = {'central': variation_data[(mode, 'central')]['histos'][2*i_plot+1] }
         # for the other variations, there is no data
         for variation in variations.keys():
+            if variation=='central': continue
             mc_histo_list[variation] = variation_data[(mode, variation)]['histos'][i_plot]
 
         # copy styles and tex
@@ -735,7 +735,6 @@ for mode in all_modes:
 
         # perform the scaling
         for variation in variations.keys():
-            if variation == 'central': continue
             for s in mc:
                 mc_histo_list[variation][0][position[s.name]].Scale( dataMC_SF[mode][variation][s.name] ) 
 
@@ -802,57 +801,8 @@ for mode in all_modes:
               ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
               logX = False, logY = log, sorting = False,
               yRange = (0.03, "auto") if log else (0.001, "auto"),
-              scaling = {0:1},
+              #scaling = {0:1},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
               drawObjects = drawObjects() + boxes,
               copyIndexPHP = True, extensions = ["png"],
             )         
-
-#for plot_mc, plot_data, bin_width in plotConfigs:
-#  if args.normalizeBinWidth and bin_width>0:
-#    for p in plot_mc.values() + [plot_data]:
-#      for histo in sum(p.histos, []): 
-#        for ib in range(histo.GetXaxis().GetNbins()+1):
-#          val = histo.GetBinContent( ib )
-#          err = histo.GetBinError( ib )
-#          width = histo.GetBinWidth( ib )
-#          histo.SetBinContent(ib, val / (width / bin_width)) 
-#          histo.SetBinError(ib, err / (width / bin_width)) 
-#  topHist = None
-#  ttzHist = None
-#  ttxHist = None
-#  mbHist  = None
-#  dyHist  = None
-#
-#  # Scaling Top
-#  for k in plot_mc.keys():
-#    for s in plot_mc[k].histos:
-#  #    for h in s:
-#  #      h.Scale(lumi_scale)
-#      pos_top = [i for i,x in enumerate(mc) if x == Top_pow][0]
-#      pos_ttz = [i for i,x in enumerate(mc) if x == TTZ_LO][0]
-#      pos_ttx = [i for i,x in enumerate(mc) if x == TTXNoZ][0]
-#      pos_dy  = [i for i,x in enumerate(mc) if x == DY_HT_LO][0]
-#      pos_mb  = [i for i,x in enumerate(mc) if x == multiBoson][0]
-#      plot_mc[k].histos[0][pos_top].Scale(top_sf[k])
-#      topHist = plot_mc[k].histos[0][pos_top]
-#      ttzHist = plot_mc[k].histos[0][pos_ttz]
-#      ttxHist = plot_mc[k].histos[0][pos_ttx]
-#      mbHist  = plot_mc[k].histos[0][pos_mb]
-#      dyHist  = plot_mc[k].histos[0][pos_dy]
-#      
-#         
-#
-#  for log in [False, True]:
-#    plotDir = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, str(year), mode + ("_log" if log else "") + "_scaled")
-#    #plotDir = os.path.join(plot_directory, args.plot_directory,  mode + ("_log" if log else "") + "_scaled", args.selection)
-#    if args.showOnly: plotDir = os.path.join(plotDir, "only_" + args.showOnly)
-#    plotting.draw(plot,
-#        plot_directory = plotDir,
-#        ratio = ratio,
-#        legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.95,0.88),
-#        logX = False, logY = log, #sorting = True,
-#        yRange = (0.03, "auto"),
-#        drawObjects = drawObjects( True, top_sf[None], lumi_scale ) + boxes,
-#        copyIndexPHP = True
-#    )
