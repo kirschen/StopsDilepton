@@ -14,7 +14,7 @@ from RootTools.core.standard             import *
 
 #Analysis / StopsDilepton / Samples
 from StopsDilepton.tools.user            import plot_directory
-from StopsDilepton.tools.helpers         import deltaPhi
+from StopsDilepton.tools.helpers         import deltaPhi, add_histos
 from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
@@ -32,7 +32,8 @@ argParser.add_argument('--plot_directory',    action='store',      default='v1')
 argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
-argParser.add_argument('--dataMCScaling',     action='store_true',     help='Scale sum of MC to data?')
+argParser.add_argument('--scaling',           action='store',      default=None, choices = [None, 'mc', 'top'],     help='Scale top to data in mt2ll<100?')
+argParser.add_argument('--variation_scaling', action='store_true', help='Scale the variations individually to mimick bkg estimation?')
 argParser.add_argument('--overwrite',         action='store_true',     help='Overwrite?')
 argParser.add_argument('--mode',              action='store',      default = 'all', choices = ['mumu', 'ee', 'mue', 'all'],   help='Which mode?')
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
@@ -183,6 +184,9 @@ except Exception as e:
   logger.error( "Didn't find %s", args.era )
   raise e
 
+# postions of MC components in list
+position = {s.name:i_s for i_s,s in enumerate(mc)}
+
 #if args.recoil:
 #    from Analysis.Tools.RecoilCorrector import RecoilCorrector
 #    if args.recoil == "nvtx":
@@ -192,18 +196,6 @@ except Exception as e:
 #    elif args.recoil is "Central":
 #        recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
 #
-
-# Text on the plots
-def drawObjects( plotData, dataMCScale, lumi_scale ):
-    tex = ROOT.TLatex()
-    tex.SetNDC()
-    tex.SetTextSize(0.04)
-    tex.SetTextAlign(11) # align right
-    lines = [
-      (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
-      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) ) if False else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)
-    ]
-    return [tex.DrawLatex(*l) for l in lines] 
 
 # Read variables and sequences
 read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
@@ -346,10 +338,9 @@ for mode in modes:
     stack_mc   = Stack( mc )
     stack_data = Stack( data_sample )
 
-    plots = []
+    plots      = []
 
     mt2llBinning = [0,20,40,60,80,100,140,240,340]
-
     if args.variation == 'central':
         dl_mt2ll_data   = Plot(
             name        = "dl_mt2ll_data",
@@ -395,29 +386,28 @@ for mode in modes:
     #  #    ) for sys in all_systematics }
     #  #plots.extend( dl_mt2llCorr_mc.values() )
     #
-    #  if args.selection.count('njet2'):
-    #
-    #    dl_mt2blbl_data  = Plot( 
-    #        name = "dl_mt2blbl_data",
-    #        texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-    #        stack = stack_data,
-    #        attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-    #        binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
-    #        weight = data_weight,
-    #        ) 
-    #    plots.append( dl_mt2blbl_data )
-    #
-    #    dl_mt2blbl_mc  = {sys: Plot(
-    #        name = "dl_mt2blbl" if sys is None else "dl_mt2blbl_mc_%s" % sys,
-    #        texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-    #        stack = sys_stacks[sys],
-    #        attribute = TreeVariable.fromString( "dl_mt2blbl/F" ) if sys is None or sys in weight_systematics else TreeVariable.fromString( "dl_mt2blbl_%s/F" % sys ),
-    #        binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
-    #        selectionString = addSys(cutInterpreter.cutString(args.selection), sys),
-    #        weight = MC_WEIGHT( sys = sys )[0],
-    #        ) for sys in all_systematics }
-    #    plots.extend( dl_mt2blbl_mc.values() )
-    #
+    if args.selection.count('njet2'):
+        if args.variation == 'central':
+            dl_mt2blbl_data  = Plot( 
+                name = "dl_mt2blbl_data",
+                texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+                binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
+                stack = stack_data,
+                attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+                weight = data_weight,
+                ) 
+            plots.append( dl_mt2blbl_data )
+    
+        dl_mt2blbl_mc  = Plot(
+            name = "dl_mt2blbl_mc",
+            texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+            binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
+            stack = stack_mc,
+            attribute = TreeVariable.fromString( selectionModifier("dl_mt2blbl/F") )      if selectionModifier is not None else None,
+            selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
+            weight          = mc_weight )
+        plots.append( dl_mt2blbl_mc )
+    
     #  nBtagBinning = [5, 1, 6] if args.selection.count('btag1p') else [1,0,1]
     #
     #  nbtags_data  = Plot( 
@@ -666,18 +656,6 @@ for variation in variations:
                     for i_h, h in enumerate(hs):
                         variation_data[new_key]['histos'][i_plot_histos][i_hs][i_h].Add(h)
                     
-#plotConfigs = [\
-#       [ dl_mt2ll_mc, dl_mt2ll_data, 20],
-#       [ dl_mt2llCorr_mc, dl_mt2llCorr_data, 20],
-#       [ nbtags_mc, nbtags_data, -1],
-#       [ njets_mc, njets_data, -1],
-#       [ met_mc, met_data, 50],
-#       [ met2_mc, met2_data, 20],
-#       [ metSig_mc, metSig_data, 5],
-#  ]
-#if args.selection.count('njet2'):
-#    plotConfigs.append([ dl_mt2blbl_mc, dl_mt2blbl_data, 20])
-
 #from RootTools.plot.Plot import addOverFlowBin1D
 #for p in plots:
 #  p.histos = allPlots[p.name]
@@ -688,33 +666,147 @@ for variation in variations:
 
 
 # SF for top central such that we get area normalisation 
-top_dataMC_SF = {}
-for mode in all_modes: 
-    yield_data    = variation_data[(mode,'central')]['normalisation_data'] 
-    yield_non_top = sum( val for name, val in variation_data[(mode,'central')]['normalisation_mc'].iteritems() if name != Top_pow.name)
-    yield_top     = variation_data[(mode,'central')]['normalisation_mc'][Top_pow.name]
-    if args.dataMCScaling:
-        top_dataMC_SF[mode] = (yield_data - yield_non_top)/yield_top
-    else:
-        top_dataMC_SF[mode] = 1. 
-    logger.info( "TopSF for scaling: Mode: %s data: %i MC TT %3.2f MC other %3.2f scale factor %3.2f", mode, yield_data, yield_top, yield_non_top, top_dataMC_SF[mode] )
-
-# Scaling of sum of MC for systematic shapes to MT2ll<100 region
-total_sf = {}
+dataMC_SF = {}
 for mode in all_modes:
-    # obtain total central
-    non_top_central       = sum( val for name, val in variation_data[(mode, 'central')]['normalisation_mc'].iteritems() if name != Top_pow.name) 
-    top_central           = top_dataMC_SF[mode]*variation_data[(mode, 'central')]['normalisation_mc'][Top_pow.name]
-    total_central         = top_central + non_top_central
-    for variation in variations.keys():
-        if variation == 'central': continue
-        # apply top data/MC SF and compute total
-        non_top       = sum( val for name, val in variation_data[(mode, variation)]['normalisation_mc'].iteritems() if name != Top_pow.name) 
-        top           = top_dataMC_SF[mode]*variation_data[(mode, variation)]['normalisation_mc'][Top_pow.name]
-        total         = top + non_top
+    # All SF to 1
+    dataMC_SF[mode] = {variation:{s.name:1 for s in mc} for variation in variations} 
+    yield_data = variation_data[(mode,'central')]['normalisation_data'] 
+    if args.scaling == 'top': 
+        # scale variations individually
+        if args.variation_scaling:
+            logger.info( "Scaling top yield to data for mt2ll<100 individually for all variations." )
+            for variation in variations.keys():
+                yield_non_top = sum( val for name, val in variation_data[(mode,variation)]['normalisation_mc'].iteritems() if name != Top_pow.name)
+                yield_top     = variation_data[(mode,variation)]['normalisation_mc'][Top_pow.name]
+                dataMC_SF[mode][variation][Top_pow.name] = (yield_data - yield_non_top)/yield_top
+        # scale all variations with the central factor
+        else:
+            logger.info( "Scaling top yield to data for mt2ll<100 ( all variations are scaled by central SF)" )
+            yield_non_top = sum( val for name, val in variation_data[(mode,'central')]['normalisation_mc'].iteritems() if name != Top_pow.name)
+            yield_top     = variation_data[(mode,'central')]['normalisation_mc'][Top_pow.name]
+            sf = (yield_data - yield_non_top)/yield_top
+            for variation in variations.keys():
+                dataMC_SF[mode][variation][Top_pow.name] = sf 
+    elif args.scaling == 'mc':
+        # scale variations individually
+        if args.variation_scaling:
+            logger.info( "Scaling MC yield to data for mt2ll<100 individually for all variations." )
+            for variation in variations.keys():
+                yield_mc = sum( val for name, val in variation_data[(mode,variation)]['normalisation_mc'].iteritems())
+                for s in mc:
+                    dataMC_SF[mode][variation][s.name] = yield_data/yield_mc
+        # scale all variations with the central factor
+        else:
+            logger.info( "Scaling MC yield to data for mt2ll<100 ( all variations are scaled by central SF)" )
+            yield_mc = sum( val for name, val in variation_data[(mode,'central')]['normalisation_mc'].iteritems())
+            sf = yield_data/yield_mc
+            for variation in variations.keys():
+                for s in mc:
+                    dataMC_SF[mode][variation][s.name] = sf 
 
-        total_sf[(mode, variation)]  = total_central/total 
-        logger.info( "Variation Total SF: Mode: %s variation %s total %3.2f total(central) %3.2f SF %3.2f", mode, variation, total, total_central, total_sf[(mode, variation)] )
+def drawObjects( ):
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.04)
+    tex.SetTextAlign(11) # align right
+    lines = [
+      (0.15, 0.95, 'CMS Preliminary'),
+      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale ) ),
+      ]
+    return [tex.DrawLatex(*l) for l in lines]
+
+# We plot now. 
+for mode in all_modes:
+    for i_plot, plot in enumerate(plots):
+        
+        # for central (=no variation), we store plot_data_1, plot_mc_1, plot_data_2, plot_mc_2, ...
+        data_histo_list = variation_data[(mode, 'central')]['histos'][2*i_plot]
+        mc_histo_list   = {'central': variation_data[(mode, 'central')]['histos'][2*i_plot+1] }
+        # for the other variations, there is no data
+        for variation in variations.keys():
+            mc_histo_list[variation] = variation_data[(mode, variation)]['histos'][i_plot]
+
+        # copy styles and tex
+        data_histo_list[0][0].style = data_sample.style
+        data_histo_list[0][0].legendText = data_sample.texName
+        for i_mc_hm, mc_h in enumerate( mc_histo_list['central'][0] ):
+            mc_h.style = stack_mc[0][i_mc_hm].style
+            mc_h.legendText = stack_mc[0][i_mc_hm].texName
+
+        # perform the scaling
+        for variation in variations.keys():
+            if variation == 'central': continue
+            for s in mc:
+                mc_histo_list[variation][0][position[s.name]].Scale( dataMC_SF[mode][variation][s.name] ) 
+
+        # Add histos, del the stack (which refers to MC only )
+        plot.histos =  mc_histo_list['central'] + data_histo_list
+        plot.stack  = Stack(  mc, [data_sample]) 
+        
+        # Make boxes and ratio boxes
+        boxes           = []
+        ratio_boxes     = []
+        # Compute all variied MC sums
+        total_mc_histo   = {variation:add_histos( mc_histo_list[variation][0]) for variation in variations.keys() }
+
+        # loop over bins & compute shaded uncertainty boxes
+        boxes   = []
+        r_boxes = []
+        for i_b in range(1, 1 + total_mc_histo['central'].GetNbinsX() ):
+            # Only positive yields
+            total_central_mc_yield = total_mc_histo['central'].GetBinContent(i_b)
+            if total_central_mc_yield<=0: continue
+            variance = 0.
+            for systematic in systematics:
+                # Use 'central-variation' (factor 1) and 0.5*(varUp-varDown)
+                if 'central' in systematic['pair']: 
+                    factor = 1
+                else:
+                    factor = 0.5
+                # sum in quadrature
+                variance += ( factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)) )**2
+
+            sigma     = sqrt(variance)
+            sigma_rel = sigma/total_central_mc_yield 
+
+            box = ROOT.TBox( 
+                    total_mc_histo['central'].GetXaxis().GetBinLowEdge(i_b),
+                    max([0.03, (1-sigma_rel)*total_central_mc_yield]),
+                    total_mc_histo['central'].GetXaxis().GetBinUpEdge(i_b), 
+                    max([0.03, (1+sigma_rel)*total_central_mc_yield]) )
+            box.SetLineColor(ROOT.kBlack)
+            box.SetFillStyle(3444)
+            box.SetFillColor(ROOT.kBlack)
+            boxes.append(box)
+
+            r_box = ROOT.TBox( 
+                total_mc_histo['central'].GetXaxis().GetBinLowEdge(i_b),  
+                max(0.1, 1-sigma_rel), 
+                total_mc_histo['central'].GetXaxis().GetBinUpEdge(i_b), 
+                min(1.9, 1+sigma_rel) )
+            r_box.SetLineColor(ROOT.kBlack)
+            r_box.SetFillStyle(3444)
+            r_box.SetFillColor(ROOT.kBlack)
+            ratio_boxes.append(r_box)
+
+        for log in [False, True]:
+            plot_directory_ = os.path.join(plot_directory, 'systematicPlots', plot_subdirectory, args.selection, args.era, mode + ("_log" if log else ""))
+            #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
+            if    mode == "all": plot.histos[1][0].legendText = "Data (%s)"%args.era
+            else:                plot.histos[1][0].legendText = "Data (%s, %s)"%(args.mode, args.era)
+
+            _drawObjects = []
+
+            plotting.draw(plot,
+              plot_directory = plot_directory_,
+              ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
+              logX = False, logY = log, sorting = False,
+              yRange = (0.03, "auto") if log else (0.001, "auto"),
+              scaling = {0:1},
+              legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
+              drawObjects = drawObjects() + boxes,
+              copyIndexPHP = True, extensions = ["png"],
+            )         
 
 #for plot_mc, plot_data, bin_width in plotConfigs:
 #  if args.normalizeBinWidth and bin_width>0:
@@ -749,90 +841,6 @@ for mode in all_modes:
 #      mbHist  = plot_mc[k].histos[0][pos_mb]
 #      dyHist  = plot_mc[k].histos[0][pos_dy]
 #      
-#  #Calculating systematics
-#  h_summed = {k: plot_mc[k].histos_added[0][0].Clone() for k in plot_mc.keys()}
-#
-#  ##Normalize systematic shapes
-#  #if args.sysScaling:
-#  #    for k in h_summed.keys():
-#  #        if k is None: continue
-#  #        h_summed[k].Scale( top_sf[ k ] )
-#
-#  h_rel_err = h_summed[None].Clone()
-#  h_rel_err.Reset()
-#
-#  #MC statistical error
-#  for ib in range( 1 + h_rel_err.GetNbinsX() ):
-#      h_rel_err.SetBinContent(ib, h_summed[None].GetBinError(ib)**2 )
-#
-#  h_sys = {}
-#  goOn = False
-#  for k, s1, s2 in ([s for s in sys_pairs if s[0] == args.showOnly] if args.showOnly else sys_pairs):
-#    goOn = True
-#    h_sys[k] = h_summed[s1].Clone()
-#    h_sys[k].Scale(-1)
-#    h_sys[k].Add(h_summed[s2])
-#  if not goOn: continue
-#
-#  # Adding in quadrature
-#  for k in h_sys.keys():
-#      for ib in range( 1 + h_rel_err.GetNbinsX() ):
-#        h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + h_sys[k].GetBinContent(ib)**2 )
-#
-#  # When making plots with mt2ll > 100 GeV, include also our background shape uncertainties
-#  if args.selection.count('mt2ll100') or plot_mc == dl_mt2ll_mc and False:
-#   for ib in range(1 + h_rel_err.GetNbinsX() ):
-#     if plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) < 100: continue
-#     topUnc = 1 if (plot_mc == dl_mt2ll_mc and h_rel_err.GetBinCenter(ib) > 240) else 0.5
-#     h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (topUnc*topHist.GetBinContent(ib))**2 )
-#     h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.2*ttzHist.GetBinContent(ib))**2 )
-#     h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*ttxHist.GetBinContent(ib))**2 )
-#     h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*dyHist.GetBinContent(ib))**2 )
-#     h_rel_err.SetBinContent(ib, h_rel_err.GetBinContent(ib) + (0.25*mbHist.GetBinContent(ib))**2 )
-#
-#  # take sqrt
-#  for ib in range( 1 + h_rel_err.GetNbinsX() ):
-#      h_rel_err.SetBinContent(ib, sqrt( h_rel_err.GetBinContent(ib) ) )
-#
-#  # Divide
-#  h_rel_err.Divide(h_summed[None])
-#
-#  plot = plot_mc[None]
-#  if args.normalizeBinWidth: plot.name += "_normalizeBinWidth"
-#  signal_histos = plot_data.histos[1:]
-#  data_histo    = plot_data.histos[0][0]
-#  for h in plot_data.histos[0][1:]:
-#    data_histo.Add(h)
-#
-#  data_histo.style = styles.errorStyle( ROOT.kBlack )
-#  plot.histos += [[ data_histo ]]
-#  for h in signal_histos: plot.histos += [h]
-#  plot_data.stack[0][0].texName = data_sample.texName
-#  plot.stack += [[ plot_data.stack[0][0] ]]
-#  for i, signal in enumerate(signals):
-#    plot_data.stack[i+1][0].texName = signal.texName
-#    plot_data.stack[i+1][0].style   = signal.style
-#    plot.stack += [[ plot_data.stack[i+1][0] ]]
-#
-#  boxes = []
-#  ratio_boxes = []
-#  for ib in range(1, 1 + h_rel_err.GetNbinsX() ):
-#      val = h_summed[None].GetBinContent(ib)
-#      if val<0: continue
-#      sys = h_rel_err.GetBinContent(ib)
-#      box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max([0.03, (1-sys)*val]), h_rel_err.GetXaxis().GetBinUpEdge(ib), max([0.03, (1+sys)*val]) )
-#      box.SetLineColor(ROOT.kBlack)
-#      box.SetFillStyle(3444)
-#      box.SetFillColor(ROOT.kBlack)
-#      r_box = ROOT.TBox( h_rel_err.GetXaxis().GetBinLowEdge(ib),  max(0.1, 1-sys), h_rel_err.GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys) )
-#      r_box.SetLineColor(ROOT.kBlack)
-#      r_box.SetFillStyle(3444)
-#      r_box.SetFillColor(ROOT.kBlack)
-#
-#      boxes.append( box )
-#      ratio_boxes.append( r_box )
-#
-#      ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes}
 #         
 #
 #  for log in [False, True]:

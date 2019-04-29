@@ -59,6 +59,6 @@ while r.run():
 
     if mindR<0.1: 
         logger.warning( "Close!" )
-        eventlist.append( r.event.evt )
+        eventlist.append( ( r.event.run, r.event.lumi, r.event.evt) )
 
 pickle.dump( eventlist, file( os.path.join( args.directory, 'vetolist_%i.pkl'%args.job ), 'w' ) )

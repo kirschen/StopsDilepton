@@ -13,6 +13,11 @@ ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.setTDRStyle()
 mZ=91.1876
 
+def add_histos( l ):
+    res = l[0].Clone()
+    for h in l[1:]: res.Add(h)
+    return res
+
 def map_level(f, item, level):
     if level == 0:
         return f(item)
