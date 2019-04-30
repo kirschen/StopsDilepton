@@ -63,3 +63,5 @@ regionsLegacy   = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) 
 
 noRegions = [Region("dl_mt2ll", (0, -1)) + Region("dl_mt2bb", (0, -1)) + Region("MET_pt", (0, -1))] # For TTZ CR 
 regionsNoMET = getRegionsMet(mt2llThresholds = [ 100, 140, 240], mt2blblThresholds = [0, 100, 200, -1], metThresholds = [0, -1])
+
+regionsAgg = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("MET_pt", (80, -1))] + [Region("dl_mt2ll", (100, 140)) + Region("dl_mt2blbl", (0, -1)) + Region("MET_pt", (200, -1))] + [Region("dl_mt2ll", (140, 240)) + Region("dl_mt2blbl", (0, -1)) + Region("MET_pt", (200, -1))]

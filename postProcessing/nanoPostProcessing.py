@@ -32,7 +32,7 @@ from StopsDilepton.tools.user import MVA_preprocessing_directory, MVA_model_dire
 from StopsDilepton.tools.mt2Calculator      import mt2Calculator
 from StopsDilepton.tools.helpers            import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile, getSortedZCandidates, getMinDLMass
 from StopsDilepton.tools.addJERScaling      import addJERScaling
-from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector, mergeCollections
+from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector, mergeCollections, genLepFromZ
 from StopsDilepton.tools.overlapRemovalTTG  import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson        import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting     import getPolWeights
@@ -144,7 +144,10 @@ elif isSingleLep:
     skimConds.append( "Sum$(Electron_pt>20&&abs(Electron_eta)<2.5) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.5)>=1" )
 
 if isInclusive:
-    skimConds = []
+    skimConds.append('(1)')
+    isSingleLep = True #otherwise no lepton variables?!
+    isDiLep     = True
+    isTriLep    = True
 
 #Samples: Load samples
 maxN = 1 if options.small else None
@@ -203,15 +206,6 @@ else:
     xSection = samples[0].xSection if isMC else None
 
 ## Trigger selection
-#from StopsDilepton.tools.triggerSelector import triggerSelector
-#if isData:
-#    era = extractEra(samples[0].name)[-1]
-#else:
-#    era = None
-#print "######### Era %s ########"%era
-#ts = triggerSelector(options.year, era=era)
-#triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
-#treeFormulas = {"triggerDecision": {'string':triggerCond} }
 
 L1PW = L1PrefireWeight(options.year)
 
@@ -515,7 +509,7 @@ if isTriLep or isDiLep:
     #if options.susySignal:
     #    new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
-if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F'] )
+if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F', 'genZ_mass/F', 'isOnShellTTZ/I'] )
 new_variables.extend( ['met_pt_photonEstimated/F','MET_phi_photonEstimated/F','metSig_photonEstimated/F'] )
 new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
 if isTriLep or isDiLep:
@@ -815,6 +809,13 @@ def filler( event ):
             event.overlapRemoval = event.isTTGamma #good TTgamma event
         elif options.flagTTBar:
             event.overlapRemoval = not event.isTTGamma #good TTbar event
+
+
+        genLepsFromZ    = genLepFromZ(gPart)
+        genZs           = getSortedZCandidates(genLepsFromZ)
+        if len(genZs)>0:
+            event.genZ_mass = genZs[0][0]
+            event.isOnShellTTZ = event.genZ_mass > 70
         
     # weight
     if options.susySignal:

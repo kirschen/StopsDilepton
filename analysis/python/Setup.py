@@ -46,6 +46,7 @@ class Setup:
         self.zMassRange       = zMassRange
         self.prefixes         = []
         self.externalCuts     = []
+        self.year = year
 
         #Default cuts and requirements. Those three things below are used to determine the key in the cache!
         self.parameters   = {
@@ -268,9 +269,9 @@ class Setup:
               res['prefixes'].append('relIso0.12')
               res['cuts'].append("l1_relIso03<0.12&&l2_relIso03<0.12")
 
-              res['cuts'].append("l1_pt>25")
+              res['cuts'].append("l1_pt>30")
 
-        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), year=2016, isFastSim=isFastSim))
+        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), year=self.year, isFastSim=isFastSim))
         #res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
  

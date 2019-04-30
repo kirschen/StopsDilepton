@@ -51,7 +51,7 @@ class Region:
             res.append(s1)
         if selectionModifier=='genMet':
             res = [fastSimGenMetReplacements(r) for r in res]
-        return "&&".join(res)
+        return "&&".join(sorted(res)) # apparently need sorting
 
     def texStringForVar(self, var = None, useRootLatex = True):
         if var not in self.variables(): return None
