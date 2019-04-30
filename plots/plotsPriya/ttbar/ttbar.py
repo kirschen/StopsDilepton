@@ -27,8 +27,8 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='v0')
-argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-priya')
+argParser.add_argument('--plot_directory',     action='store',      default='v0combined')
+argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag1p-relIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-priya')
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
@@ -90,7 +90,7 @@ def drawPlots(plots, mode):
 	    ratio = None,
 	    logX = False, logY = log, sorting = False,
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
-	    scaling = {1:0, 2:0},
+	    scaling = {},
 	    legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
 	    drawObjects = drawObjects( False ) + _drawObjects,
         copyIndexPHP = True, extensions = ["png"],
@@ -123,14 +123,26 @@ def make_lepton_selection( event, sample ):
 
     # 0 unmatched, 1 prompt (gamma*) , 15 tau, 22 prompt photon (conv), 5 b, 4 c, 3 light/unknown
     # remember: if type is /b use ord()
-    if event.l1_muIndex>=0 and  ord(event.Muon_genPartFlav[event.l1_muIndex])!=1:
-        print event.Muon_pt[event.l1_muIndex], event.l1_pt
-        print ord(event.Muon_genPartFlav[event.l1_muIndex])
+    #if event.l1_muIndex>=0 and  ord(event.Muon_genPartFlav[event.l1_muIndex])==1:
+       # print event.Muon_pt[event.l1_muIndex], event.l1_pt
+       # print ord(event.Muon_genPartFlav[event.l1_muIndex])
 #    if event.l2_muIndex>=0:
 #        print event.Muon_pt[event.l2_muIndex], event.l2_pt
-
-
+    event.PrPr = 0
+    event.tauX=0
+    event.unmatchX=0
+    if (ord(event.Muon_genPartFlav[event.l1_muIndex])==1 and ord(event.Muon_genPartFlav[event.l2_muIndex])==1) or (ord(event.Muon_genPartFlav[event.l2_muIndex])==1 and ord(event.Muon_genPartFlav[event.l1_muIndex])==1):
+        #if ord(event.Muon_genPartFlav[event.l2_muIndex])==1 and ord(event.Muon_genPartFlav[event.l1_muIndex])==1: 
+         print ord(event.Muon_genPartFlav[event.l1_muIndex])
+         event.PrPr = 1    
+    elif ord(event.Muon_genPartFlav[event.l1_muIndex])==15 or ord(event.Muon_genPartFlav[event.l2_muIndex])==15:
+        event.tauX = 1
+    elif ord(event.Muon_genPartFlav[event.l1_muIndex])==0 or ord(event.Muon_genPartFlav[event.l2_muIndex])==0:
+        event.unmatchX = 1
 sequence.append( make_lepton_selection )
+
+
+
 
 # default offZ for SF
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
@@ -175,8 +187,10 @@ for index, mode in enumerate(allModes):
   Top_pow_18.texName += " (2018)"
 
   #stack = Stack( *list([s] for s in samples) )
-  stack = Stack( Top_pow_16, Top_pow_17, Top_pow_18 )
-  # Use some defaults
+  stack = Stack( Top_pow_16,Top_pow_17, Top_pow_18 )
+ # stack = Stack(event.PrPr, event.onlyGoodJets  )
+
+ # Use some defaults
   Plot.setDefaults(stack = stack, selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper', histo_class=ROOT.TH1D)
   
   plots = []
@@ -189,11 +203,34 @@ for index, mode in enumerate(allModes):
   )
 
   plots.append(Plot( name = "dl_mt2ll_onlyGoodJets",
+     texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+     attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+     weight = lambda event, sample: event.onlyGoodJets, 
+     binning=[400/20, 0,400]),
+  )
+  plots.append(Plot( name = "dl_mt2ll_onlyPromptPair",
     texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
     attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-    weight = lambda event, sample: event.onlyGoodJets, 
+    weight = lambda event, sample: event.PrPr , 
     binning=[400/20, 0,400]),
-  )
+ 
+ )
+
+  plots.append(Plot( name = "dl_mt2ll_onetau",
+    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+    weight = lambda event, sample: event.tauX ,  
+    binning=[400/20, 0,400]),
+ 
+ )
+
+  plots.append(Plot( name = "dl_mt2ll_oneunmatched",
+    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+    weight = lambda event, sample:  event.unmatchX,  
+    binning=[400/20, 0,400]),
+ 
+ )
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
