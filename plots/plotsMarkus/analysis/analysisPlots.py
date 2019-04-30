@@ -99,9 +99,10 @@ elif args.year == 2017:
     #     pass
     # recoilCorrector = RecoilCorrector( 2017 )
 elif args.year == 2018:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
+    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p7/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     if args.splitBosons:
