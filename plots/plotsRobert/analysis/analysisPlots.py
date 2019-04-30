@@ -99,8 +99,8 @@ elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
 
-    from StopsDilepton.tools.vetoList import vetoList
-    Run2018D.vetoList = vetoList.fromDirectory('/afs/hephy.at/data/rschoefbeck02/StopsDilepton/splitMuonVeto/')
+    #from StopsDilepton.tools.vetoList import vetoList
+    #Run2018D.vetoList = vetoList.fromDirectory('/afs/hephy.at/data/rschoefbeck02/StopsDilepton/splitMuonVeto/')
     #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
     #    nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
 
@@ -318,13 +318,13 @@ read_variables += ["event/l", "luminosityBlock/I", "run/I"]
 
 sequence = []
 
-# veto list
-def make_veto( event, sample ):
-    if hasattr( sample, "vetoList" ):
-        event.passes_veto = sample.vetoList.passesVeto( event.run, event.luminosityBlock, event.event )
-        #event.passes_veto = event.event%2==0
-
-sequence.append( make_veto )
+## veto list
+#def make_veto( event, sample ):
+#    if hasattr( sample, "vetoList" ):
+#        event.passes_veto = sample.vetoList.passesVeto( event.run, event.luminosityBlock, event.event )
+#        #event.passes_veto = event.event%2==0
+#
+#sequence.append( make_veto )
 
 # recoil
 def recoil_weight( var_bin, qt_bin):
@@ -437,11 +437,11 @@ for index, mode in enumerate(allModes):
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   weight_ = lambda event, sample: event.weight
 
-  data_sample_filtered = copy.deepcopy( data_sample )
-  data_sample_filtered.style = styles.errorStyle(ROOT.kRed)
-  data_sample_filtered.weight = lambda event, sample: event.weight*event.passes_veto
-  data_sample_filtered.name   += "_filtered"
-  data_sample_filtered.texName+= " (filtered)"
+  #data_sample_filtered = copy.deepcopy( data_sample )
+  #data_sample_filtered.style = styles.errorStyle(ROOT.kRed)
+  #data_sample_filtered.weight = lambda event, sample: event.weight*event.passes_veto
+  #data_sample_filtered.name   += "_filtered"
+  #data_sample_filtered.texName+= " (filtered)"
 
   for sample in mc + signals:
     sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F']
@@ -492,7 +492,7 @@ for index, mode in enumerate(allModes):
   for sample in mc_: sample.style = styles.fillStyle(sample.color)
 
   if not args.noData:
-    stack = Stack(mc_, data_sample, data_sample_filtered)
+    stack = Stack(mc_, data_sample)#, data_sample_filtered)
   else:
     stack = Stack(mc_)
 

@@ -91,6 +91,10 @@ Run2018C = Sample.combine("Run2018C", [MuonEG_Run2018C, EGamma_Run2018C, DoubleM
 Run2018C.lumi = (6.94)*1000
 allSamples_Data25ns.append( Run2018C )
 
+Run2018ABC = Sample.combine("Run2018ABC", [Run2018A, Run2018B, Run2018C], texName = "Run2018ABC")
+Run2018ABC.lumi = (14.00+7.10+6.94)*1000
+allSamples_Data25ns.append( Run2018ABC )
+
 Run2018D = Sample.combine("Run2018D", [MuonEG_Run2018D, EGamma_Run2018D, DoubleMuon_Run2018D, SingleMuon_Run2018D], texName = "Run2018D")
 Run2018D.lumi = (31.93)*1000
 allSamples_Data25ns.append( Run2018D )
