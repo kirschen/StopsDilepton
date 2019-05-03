@@ -52,9 +52,9 @@ special_cuts = {
     #"ZEtaMinus":            "dl_eta>-3&&dl_eta<-1",
     #"ZEtaBarrel":           "dl_eta>-1&&dl_eta<1",
     #"ZEtaPlus":             "dl_eta>1&&dl_eta<3",
-    "ZPhiHEM":              "dl_phi>-2+pi&&dl_phi<-0.5+pi",
-    "ZPhiNoHEM":            "(!(dl_phi>-2+pi&&dl_phi<-0.5+pi))",
-    "priya":                "(1)",
+    "ZPhiHEM":          "dl_phi>-2+pi&&dl_phi<-0.5+pi",
+    "ZPhiNoHEM":        "(!(dl_phi>-2+pi&&dl_phi<-0.5+pi))",
+    "fwdJetVeto":       "Sum$(abs(Jet_eta)>4.53&&Jet_pt>30)==0",
 
   }
 

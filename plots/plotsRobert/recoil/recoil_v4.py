@@ -11,6 +11,7 @@ import pickle
 from math                                import sqrt, cos, sin, pi
 import array
 import uuid
+import operator
 
 # RootTools
 from RootTools.core.standard             import *
@@ -22,7 +23,6 @@ from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.GaussianFit     import GaussianFit
 from Analysis.Tools.QuantileMatcher      import QuantileMatcher
-from Analysis.Tools.puProfileCache       import *
 from Analysis.Tools.puReweighting        import getReweightingFunction
 
 #
@@ -34,6 +34,7 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--loop',                                    action='store_true',     help='Make a loop?', )
 argParser.add_argument('--fine',                                    action='store_true',     help='Fine binning?', )
+argParser.add_argument('--raw',                                     action='store_true',     help='Raw MET corrections?', )
 argParser.add_argument('--dlPhiInclusive',                          action='store_true',     help='Inclusive in DPhi?', )
 argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
 argParser.add_argument('--mode',               action='store',      default="mumu",          nargs='?', choices=["mue", "mumu", "ee", "SF"], help="Lepton flavor")
@@ -51,9 +52,10 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-if args.fine:  args.plot_directory += "_fine"
+if args.fine:            args.plot_directory += "_fine"
+if args.raw:             args.plot_directory += "_raw"
 if args.dlPhiInclusive:  args.plot_directory += "_dlPhiInclusive"
-if args.small: args.plot_directory += "_small"
+if args.small:           args.plot_directory += "_small"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
@@ -68,22 +70,15 @@ logger.info( "Working in year %i", year )
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-    if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
-        nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
+    mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-    if args.reweightPU:
-        # need sample based weights
-        pass
+    mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-    if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
-        nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+    mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
 try:
     data_sample = eval(args.era)
 except Exception as e:
@@ -99,7 +94,7 @@ postfix = ""
 if args.reweightPU:
     postfix += "_"+args.reweightPU
 
-if args.reweightPU and args.reweightPU!="noPUReweighting" and not args.loop:
+if args.reweightPU == 'nvtx':
     logger.warning( "PU reweightin: %s therefore need a event loop!", args.reweightPU )
     args.loop = True
 
@@ -160,8 +155,12 @@ def getLeptonSelection( mode ):
   elif mode=="SF":   return "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)" + offZ
 
 # qT + ETmiss + u = 0
-u_para = "-met_pt*cos(met_phi-dl_phi)"        # u_para is actually (u+qT)_para = -ET.n_para
-u_perp = "-met_pt*cos(met_phi-(dl_phi-pi/2.))"# u_perp = -ET.n_perp (where n_perp is n with phi->phi-pi/2) 
+if args.raw:
+    u_para = "-RawMET_pt*cos(RawMET_phi-dl_phi)"        # u_para is actually (u+qT)_para = -ET.n_para
+    u_perp = "-RawMET_pt*cos(RawMET_phi-(dl_phi-pi/2.))"# u_perp = -ET.n_perp (where n_perp is n with phi->phi-pi/2) 
+else:
+    u_para = "-met_pt*cos(met_phi-dl_phi)"        # u_para is actually (u+qT)_para = -ET.n_para
+    u_perp = "-met_pt*cos(met_phi-(dl_phi-pi/2.))"# u_perp = -ET.n_perp (where n_perp is n with phi->phi-pi/2) 
 
 #nJetGood_binning = [1, 10 ]
 qt_binning    = [0, 50, 100, 150, 200, 300, 400 ]
@@ -214,21 +213,15 @@ if args.loop:
     data_sample.weight = lambda event, sample: event.weight
     for sample in mc:
         # Need individual pu reweighting functions for each sample in 2017, so nTrueInt_puRW is only defined here
-        if args.reweightPU and args.reweightPU not in ["noPUReweighting", "nvtx"]:
-            if year == 2017:
-                logger.info("Getting PU profile and weight for sample %s", sample.name)
-                puProfiles = puProfile( source_sample = sample )
-                mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
-                nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc=mcHist)
-
         if args.reweightPU == "noPUReweighting":
             sample.weight         = lambda event, sample: event.weight*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
         elif args.reweightPU == "nvtx":
             sample.weight         = lambda event, sample: event.weight*nvtx_puRW(event.PV_npvsGood) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
         elif args.reweightPU:
-            sample.weight         = lambda event, sample: event.weight*nTrueInt_puRW(event.Pileup_nTrueInt) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+            pu_getter = operator.attrgetter(args.reweightPU)
+            sample.weight         = lambda event, sample: event.weight*pu_getter(event)*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
         else: #default
-            sample.weight         = lambda event, sample: event.weight*event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+            sample.weight         = lambda event, sample: event.weight*event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
 else:
     weightString =  "weight"
     data_sample.setWeightString( weightString )
@@ -236,7 +229,7 @@ else:
         if args.reweightPU != "noPUReweighting":
             weightString =  "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF"
         elif args.reweightPU is None:
-            weightString =  "weight*reweightPU36fb*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF"
+            weightString =  "weight*reweightPU%s*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF" % ('' if args.reweightPU=='Central' else args.reweightPU)
         else:
             raise RuntimeError( "Check your PU reweighting!" )
         sample.setWeightString(weightString)
@@ -253,13 +246,18 @@ if not os.path.isfile( pickle_file ) or args.overwrite:
             name = str(uuid.uuid4())
             h3D_u_para[sample.name] = ROOT.TH3D( name+'_para', name+'_para', len(u_para_binning)-1, array.array('d', u_para_binning), len(qt_binning)-1, array.array('d',qt_binning), len(dl_phi_binning)-1, array.array('d',dl_phi_binning))
             h3D_u_perp[sample.name] = ROOT.TH3D( name+'_perp', name+'_perp', len(u_para_binning)-1, array.array('d', u_para_binning), len(qt_binning)-1, array.array('d',qt_binning), len(dl_phi_binning)-1, array.array('d',dl_phi_binning)) 
-            variables = ["met_pt/F", "met_phi/F", "dl_phi/F", "dl_pt/F", "weight/F", "PV_npvsGood/I"]
-            mc_variables = ["met_pt/F", "met_phi/F", "dl_phi/F", "dl_pt/F", "weight/F", "PV_npvsGood/I", "reweightPU36fb/F", "reweightDilepTrigger/F", "reweightLeptonSF/F", "reweightBTag_SF/F", "reweightLeptonTrackingSF/F", "Pileup_nTrueInt/F"]
+            variables    = ["RawMET_pt/F", "RawMET_phi/F", "met_pt/F", "met_phi/F", "dl_phi/F", "dl_pt/F", "weight/F", "PV_npvsGood/I"]
+            mc_variables = ["RawMET_pt/F", "RawMET_phi/F", "met_pt/F", "met_phi/F", "dl_phi/F", "dl_pt/F", "weight/F", "PV_npvsGood/I", "reweightDilepTrigger/F", "reweightLeptonSF/F", "reweightBTag_SF/F", "reweightLeptonTrackingSF/F", "Pileup_nTrueInt/F"]
+            mc_variables.append( 'reweightPU%s'% ('' if args.reweightPU=='Central' else args.reweightPU) )
             r = sample.treeReader( variables = map( TreeVariable.fromString, variables if sample.isData else mc_variables) )
             r.start()
             while r.run():
-                u_para = - r.event.met_pt*cos(r.event.met_phi - r.event.dl_phi)
-                u_perp = - r.event.met_pt*cos(r.event.met_phi - (r.event.dl_phi-pi/2.))
+                if args.raw:
+                    u_para = - r.event.RawMET_pt*cos(r.event.RawMET_phi - r.event.dl_phi)
+                    u_perp = - r.event.RawMET_pt*cos(r.event.RawMET_phi - (r.event.dl_phi-pi/2.))
+                else:
+                    u_para = - r.event.met_pt*cos(r.event.met_phi - r.event.dl_phi)
+                    u_perp = - r.event.met_pt*cos(r.event.met_phi - (r.event.dl_phi-pi/2.))
                 h3D_u_para[sample.name].Fill( u_para, r.event.dl_pt, r.event.dl_phi, sample.weight( r.event, sample ) )
                 h3D_u_perp[sample.name].Fill( u_perp, r.event.dl_pt, r.event.dl_phi, sample.weight( r.event, sample ) )
         else:
