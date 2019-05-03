@@ -20,6 +20,8 @@ from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
 from Analysis.Tools.puProfileCache import *
 
+from StopsDilepton.tools.mt2Calculator      import mt2Calculator
+
 #
 # Arguments
 # 
@@ -27,7 +29,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='v0combined')
+argParser.add_argument('--plot_directory',     action='store',      default='v0dlphi')
 argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag1p-relIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-priya')
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
@@ -90,7 +92,7 @@ def drawPlots(plots, mode):
 	    ratio = None,
 	    logX = False, logY = log, sorting = False,
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
-	    scaling = {},
+	    scaling = {1:0,2:0},
 	    legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
 	    drawObjects = drawObjects( False ) + _drawObjects,
         copyIndexPHP = True, extensions = ["png"],
@@ -104,7 +106,8 @@ read_variables = [
             "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I"]
 read_variables += [
             "nMuon/I",
-            "Muon[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,pfRelIso04_all/F,phi/F,pt/F,ptErr/F,segmentComp/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,nStations/I,nTrackerLayers/I,pdgId/I,tightCharge/I,highPtId/b,inTimeMuon/O,isGlobal/O,isPFcand/O,isTracker/O,mediumId/O,mediumPromptId/O,miniIsoId/b,multiIsoId/b,mvaId/b,pfIsoId/b,softId/O,softMvaId/O,tightId/O,tkIsoId/b,triggerIdLoose/O,genPartIdx/I,genPartFlav/b,cleanmask/b]"
+            "Muon[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,pfRelIso04_all/F,phi/F,pt/F,ptErr/F,segmentComp/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,nStations/I,nTrackerLayers/I,pdgId/I,tightCharge/I,highPtId/b,inTimeMuon/O,isGlobal/O,isPFcand/O,isTracker/O,mediumId/O,mediumPromptId/O,miniIsoId/b,multiIsoId/b,mvaId/b,pfIsoId/b,softId/O,softMvaId/O,tightId/O,tkIsoId/b,triggerIdLoose/O,genPartIdx/I,genPartFlav/b,cleanmask/b]",
+            "GenPart[pt/F,eta/F,phi/F]"
             ]
 
 read_variables += ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F']
@@ -133,7 +136,7 @@ def make_lepton_selection( event, sample ):
     event.unmatchX=0
     if (ord(event.Muon_genPartFlav[event.l1_muIndex])==1 and ord(event.Muon_genPartFlav[event.l2_muIndex])==1) or (ord(event.Muon_genPartFlav[event.l2_muIndex])==1 and ord(event.Muon_genPartFlav[event.l1_muIndex])==1):
         #if ord(event.Muon_genPartFlav[event.l2_muIndex])==1 and ord(event.Muon_genPartFlav[event.l1_muIndex])==1: 
-         print ord(event.Muon_genPartFlav[event.l1_muIndex])
+        # print ord(event.Muon_genPartFlav[event.l1_muIndex])
          event.PrPr = 1    
     elif ord(event.Muon_genPartFlav[event.l1_muIndex])==15 or ord(event.Muon_genPartFlav[event.l2_muIndex])==15:
         event.tauX = 1
@@ -141,7 +144,57 @@ def make_lepton_selection( event, sample ):
         event.unmatchX = 1
 sequence.append( make_lepton_selection )
 
+def make_mt2ll_with_genMet( event, sample ):
 
+    mt2Calculator.reset()
+    mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+    #mt2Calculator.setMet(event.met_pt, event.met_phi)
+    mt2Calculator.setMet(event.GenMET_pt, event.GenMET_phi)
+    event.mt2ll_with_genMet = mt2Calculator.mt2ll()
+    #print event.GenMET_x
+     #print "reco:", event.dl_mt2ll, "with genMET", event.mt2ll_with_genMet
+
+sequence.append( make_mt2ll_with_genMet )
+
+def make_fake_MET (event, sample):
+
+    met_x= event.met_pt * cos(event.met_phi)
+    met_y= event.met_pt * sin(event.met_phi)
+    
+    Genmet_x= event.GenMET_pt * cos(event.GenMET_phi)
+    Genmet_y= event.GenMET_pt * sin(event.GenMET_phi)
+    #print "genMET is: " , GenMET, "and met is:  ", MET 
+    event.fakemet_x =  met_x - Genmet_x
+    event.fakemet_y =  met_y - Genmet_y
+    
+    event.fakemet = sqrt(event.fakemet_x*event.fakemet_x + event.fakemet_y*event.fakemet_y)
+    #print "fake met " , event.fakemet 
+    # print "fake met x is  :  ", fakemet_x
+    #event.dl_phi = event.dl_phi
+sequence.append( make_fake_MET )
+
+#def make_mt2ll_with_genLep( event, sample ):
+#
+#    mt2Calculator.reset()
+#    event.mt2ll_with_genLep = float ('nan')
+#    if( event.Muon_genPartIdx[ event.l1_muIndex] > 1 and  event.Muon_genPartIdx[ event.l2_muIndex] > 1) or (event.Muon_genPartIdx[ event.l1_muIndex] >= 0 and  event.Muon_genPartIdx[ event.l2_muIndex] >= 0) : 
+#   # print "l1_pt" , event.GenPart_pt[event.Muon_genPartIdx[event.l1_muIndex]] , "and eta" , event.GenPart_eta[event.Muon_genPartIdx[ event.l1_muIndex]] 
+#   # print "l2_pt" , event.GenPart_pt[event.Muon_genPartIdx[event.l2_muIndex]] , "and eta" , event.GenPart_eta[event.Muon_genPartIdx[ event.l2_muIndex]]
+#   # print event.l1_pt, event.l1_muIndex, event.l2_muIndex
+#   # print event.Muon_genPartIdx[event.l1_muIndex]
+#   # print event.GenPart_pt[15]
+#   # print event.GenPart_pt[event.Muon_genPartIdx[event.l1_muIndex]], event.GenPart_eta[event.Muon_genPartIdx[event.l1_muIndex]], event.GenPart_phi[event.Muon_genPartIdx[event.l1_muIndex]]
+#   # print event.GenPart_pt[event.Muon_genPartIdx[event.l2_muIndex]], event.GenPart_eta[event.Muon_genPartIdx[event.l2_muIndex]], event.GenPart_phi[event.Muon_genPartIdx[event.l2_muIndex]]
+#        mt2Calculator.setLeptons(event.GenPart_pt[event.Muon_genPartIdx[event.l1_muIndex]], event.GenPart_eta[event.Muon_genPartIdx[ event.l1_muIndex]], event.GenPart_phi[event.Muon_genPartIdx[event.l1_muIndex]], event.GenPart_pt[event.Muon_genPartIdx[event.l2_muIndex]], event.GenPart_eta[event.Muon_genPartIdx[event.l2_muIndex]], event.GenPart_phi[event.Muon_genPartIdx[event.l2_muIndex]])
+#        mt2Calculator.setMet(event.met_pt, event.met_phi)
+#        #mt2Calculator.setMet(event.GenMET_pt, event.GenMET_phi)
+#        event.mt2ll_with_genLep = mt2Calculator.mt2ll()
+#   # else:
+#   #     event.mt2ll_with_genLep= mt2Calculator.mt2ll()    
+#   #     event.mt2ll_with_genLep= float ('nan')
+#        print "reco:", event.dl_mt2ll, "with genLep", event.mt2ll_with_genLep
+#
+#sequence.append( make_mt2ll_with_genLep )
 
 
 # default offZ for SF
@@ -187,7 +240,7 @@ for index, mode in enumerate(allModes):
   Top_pow_18.texName += " (2018)"
 
   #stack = Stack( *list([s] for s in samples) )
-  stack = Stack( Top_pow_16,Top_pow_17, Top_pow_18 )
+  stack = Stack( Top_pow_17,Top_pow_16, Top_pow_18 )
  # stack = Stack(event.PrPr, event.onlyGoodJets  )
 
  # Use some defaults
@@ -201,6 +254,19 @@ for index, mode in enumerate(allModes):
     #attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
     binning=[400/20, 0,400]),
   )
+
+  plots.append(Plot(name = "dl_mt2ll_withGenMET",
+    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+    attribute = lambda event, sample: event.mt2ll_with_genMet,  
+    binning=[400/20, 0,400]),
+  )
+
+#  plots.append(Plot(name = "dl_mt2ll_withGenLep",
+#    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+#    attribute = lambda event, sample: event.mt2ll_with_genLep,
+#    binning=[400/20, 0,400]),
+#  )
+#
 
   plots.append(Plot( name = "dl_mt2ll_onlyGoodJets",
      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
@@ -231,6 +297,40 @@ for index, mode in enumerate(allModes):
     binning=[400/20, 0,400]),
  
  )
+  plots.append(Plot(name = "fake_met",
+    texX = 'Fake_E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
+    attribute = lambda event, sample: event.fakemet,
+    binning=[400/20, 0,400]),
+ )
+
+#  plots.append(Plot(
+#    texX = 'phi', texY = 'Events',
+#    attribute =  TreeVariable.fromString( "MET_phi/F" ),
+#    #attribute = lambda event, sample: event.dl_phi,
+#    binning=[10,-pi,pi]),
+#  )
+  plots.append(Plot(name = "dl_phi_disribution",
+    texX = 'phi', texY = 'Number of Events ',
+    #attribute = TreeVariable.fromString( "dl_phi/F" ),
+    attribute = lambda event, sample: event.dl_phi,
+    binning=[10,-pi,pi]),
+  )
+
+  plots.append(Plot(name = "Met_x_disribution",
+    texX = 'phi', texY = 'Number of Events ',
+    #attribute = TreeVariable.fromString( "dl_phi/F" ),
+    attribute = lambda event, sample: event.fakemet_x,
+    binning=[10,-pi,pi]),
+  )
+
+  plots.append(Plot(name = "Met_y_disribution",
+    texX = 'phi', texY = 'Number of Events ',
+    #attribute = TreeVariable.fromString( "dl_phi/F" ),
+    attribute = lambda event, sample: event.fakemet_y,
+    binning=[10,-pi,pi]),
+  )
+
+
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
