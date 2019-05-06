@@ -322,73 +322,6 @@ def make_muon_selection( event, sample ):
         event.l2_jetRelIsoRecorrHad = float('nan')
         event.l2_jetRelIsoNom = float('nan')
 
-#def make_lepton_selection( event, sample ):
-##    if "data" in sample.name:
-#    event.l1_muIndex = -1
-#    event.l2_muIndex = -1
-#    event.l1_eleIndex = -1
-#    event.l2_eleIndex = -1
-#    for i in range(event.nMuon):
-#        if event.l1_pt==event.Muon_pt[i]:
-#            event.l1_muIndex = i
-#        elif event.l1_pt==event.Electron_pt[i]:
-#            event.l1_eleIndex = i
-#        if event.l2_pt==event.Muon_pt[i]:
-#            event.l2_muIndex = i
-#        elif event.l2_pt==event.Electron_pt[i]:
-#            event.l2_eleIndex = i
-#
-#    if abs(event.l1_pdgId)!=13 and abs(event.l1_pdgId)!=11:
-#        print "~~~> ATTENTION: l1 %i l2 %i"%(event.l1_muIndex,event.l1_eleIndex)
-##    elif abs(event.l1_pdgId)==11 and abs(event.l2_pdgId)==11:
-##        print "~~~> mue l1 %i l2 %i"%(event.l1_muIndex,event.l2_eleIndex)
-##    elif abs(event.l1_pdgId)==11 and abs(event.l2_pdgId)==13:
-##        print "~~~> emu l1 %i l2 %i"%(event.l1_eleIndex,event.l2_muIndex)
-##    elif abs(event.l1_pdgId)==11 and abs(event.l2_pdgId)==11:
-##        print "~~~> ee l1 %i l2 %i"%(event.l1_eleIndex,event.l2_eleIndex)    
-#    event.l1_dxy = event.Muon_dxy[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_dxy[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_dxyErr = event.Muon_dxyErr[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_dxyErr[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_dz = event.Muon_dz[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_dz[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_dzErr = event.Muon_dzErr[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_dzErr[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_ip3d = event.Muon_ip3d[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_ip3d[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_jetRelIso = event.Muon_jetRelIso[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_jetRelIso[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_miniPFRelIso_all = event.Muon_miniPFRelIso_all[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_miniPFRelIso_all[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_pfRelIso03_all = event.Muon_pfRelIso03_all[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_pfRelIso03_all[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_pt = event.Muon_pt[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_pt[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_sip3d = event.Muon_sip3d[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_sip3d[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_mvaTTH = event.Muon_mvaTTH[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_mvaTTH[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_charge = event.Muon_charge[event.l1_muIndex] if abs(event.l1_pdgId)==13 else event.Electron_charge[event.l1_eleIndex] if abs(event.l1_pdgId)==11 else float('nan')
-#    event.l1_ptErr = event.Muon_ptErr[event.l1_muIndex] if abs(event.l1_pdgId)==13 else float('nan')
-#    event.l1_pfRelIso04_all = event.Muon_pfRelIso04_all[event.l1_muIndex] if abs(event.l1_pdgId)==13 else float('nan')
-#    event.l1_segmentComp = event.Muon_segmentComp[event.l1_muIndex] if abs(event.l1_pdgId)==13 else float('nan')
-#    event.l1_nStations = event.Muon_nStations[event.l1_muIndex] if abs(event.l1_pdgId)==13 else float('nan')
-#    event.l1_nTrackerLayers = event.Muon_nTrackerLayers[event.l1_muIndex] if abs(event.l1_pdgId)==13 else float('nan')
-#    event.l1_highPtId = ord(event.Muon_highPtId[event.l1_muIndex]) if abs(event.l1_pdgId)==13 else float('nan')
-#    event.l1_inTimeMuon = event.Muon_inTimeMuon[event.l1_muIndex] if abs(event.l1_pdgId)==13 else float('nan')
-#    event.l1_jetRelIsoCalc = (event.Jet_pt[event.Muon_jetIdx[event.l1_muIndex]]-event.l1_pt)/event.l1_pt if abs(event.l1_pdgId)==13 else float('nan') 
-#    event.l1_jetRelIsoCalcRaw = (event.Jet_pt[event.Muon_jetIdx[event.l1_muIndex]]*(1-event.Jet_rawFactor[event.Muon_jetIdx[event.l1_muIndex]])-event.l1_pt)/event.l1_pt if abs(event.l1_pdgId)==13 else float('nan') 
-#
-#    event.l2_dxy = event.Muon_dxy[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_dxy[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_dxyErr = event.Muon_dxyErr[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_dxyErr[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_dz = event.Muon_dz[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_dz[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_dzErr = event.Muon_dzErr[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_dzErr[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_ip3d = event.Muon_ip3d[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_ip3d[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_jetRelIso = event.Muon_jetRelIso[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_jetRelIso[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_miniPFRelIso_all = event.Muon_miniPFRelIso_all[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_miniPFRelIso_all[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_pfRelIso03_all = event.Muon_pfRelIso03_all[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_pfRelIso03_all[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_pt = event.Muon_pt[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_pt[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_sip3d = event.Muon_sip3d[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_sip3d[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_mvaTTH = event.Muon_mvaTTH[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_mvaTTH[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_charge = event.Muon_charge[event.l2_muIndex] if abs(event.l2_pdgId)==13 else event.Electron_charge[event.l2_eleIndex] if abs(event.l2_pdgId)==11 else float('nan')
-#    event.l2_ptErr = event.Muon_ptErr[event.l2_muIndex] if abs(event.l2_pdgId)==13 else float('nan')
-#    event.l2_pfRelIso04_all = event.Muon_pfRelIso04_all[event.l2_muIndex] if abs(event.l2_pdgId)==13 else float('nan')
-#    event.l2_segmentComp = event.Muon_segmentComp[event.l2_muIndex] if abs(event.l2_pdgId)==13 else float('nan')
-#    event.l2_nStations = event.Muon_nStations[event.l2_muIndex] if abs(event.l2_pdgId)==13 else float('nan')
-#    event.l2_nTrackerLayers = event.Muon_nTrackerLayers[event.l2_muIndex] if abs(event.l2_pdgId)==13 else float('nan')
-#    event.l2_highPtId = ord(event.Muon_highPtId[event.l2_muIndex]) if abs(event.l2_pdgId)==13 else float('nan')
-#    event.l2_inTimeMuon = event.Muon_inTimeMuon[event.l2_muIndex] if abs(event.l2_pdgId)==13 else float('nan')
-#    event.l2_jetRelIsoCalc = (event.Jet_pt[event.Muon_jetIdx[event.l2_muIndex]]-event.l2_pt)/event.l2_pt if abs(event.l2_pdgId)==13 else float('nan') 
-#    event.l2_jetRelIsoCalcRaw = (event.Jet_pt[event.Muon_jetIdx[event.l2_muIndex]]*(1-event.Jet_rawFactor[event.Muon_jetIdx[event.l2_muIndex]])-event.l2_pt)/event.l2_pt if abs(event.l2_pdgId)==13 else float('nan') 
 
 # Only valid for Muon study!!
 def make_minmax_selection( event, sample ):
@@ -419,7 +352,9 @@ def make_minmax_selection( event, sample ):
         else:
             jetPtHad = l2_jetRawPt - event.l2_pt
         l2_jetRelIsoRecorrHad = (jetPtHad)/event.l2_pt
-        # ---------------------------------------------------------------------------------------------------------------------------
+
+
+
         event.l1_dxy = max(event.Muon_dxy[event.l1_muIndex], event.Muon_dxy[event.l2_muIndex])
         event.l1_dxyErr = max(event.Muon_dxyErr[event.l1_muIndex], event.Muon_dxyErr[event.l2_muIndex])
         event.l1_dz = max(event.Muon_dz[event.l1_muIndex], event.Muon_dz[event.l2_muIndex])
@@ -442,6 +377,7 @@ def make_minmax_selection( event, sample ):
         event.l1_inTimeMuon = max(event.Muon_inTimeMuon[event.l1_muIndex], event.Muon_inTimeMuon[event.l2_muIndex])
         #event.l1_mediumId = max(event.Muon_mediumId[event.l1_muIndex], event.Muon_mediumId[event.l2_muIndex])
         #event.l1_mediumPromptId = max(event.Muon_mediumPromptId[event.l1_muIndex], event.Muon_mediumPromptId[event.l2_muIndex])
+
         event.l1_jetRelIsoCalc = max(l1_jetRelIsoCalc, l2_jetRelIsoCalc)
         event.l1_jetRawPt = max(l1_jetRawPt, l2_jetRawPt)
         event.l1_jetRelIsoCalcRaw = max(l1_jetRelIsoCalcRaw, l2_jetRelIsoCalcRaw)
@@ -508,6 +444,7 @@ def make_minmax_selection( event, sample ):
         event.l1_jetPtRecorrected = float('nan')
         event.l1_jetRelIsoRecorr = float('nan')
         event.l1_jetRelIsoRecorrHad = float('nan')
+
         event.l2_dxy = float('nan')
         event.l2_dxyErr = float('nan')
         event.l2_dz = float('nan')
@@ -536,7 +473,6 @@ def make_minmax_selection( event, sample ):
         event.l2_jetPtRecorrected = float('nan')
         event.l2_jetRelIsoRecorr = float('nan')
         event.l2_jetRelIsoRecorrHad = float('nan')
-
 
 print "~~~~> Studying %s"%args.study
 if args.study == "Muon":
