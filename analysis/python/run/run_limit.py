@@ -19,7 +19,6 @@ argParser.add_argument("--noSignal",       default = False, action = "store_true
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--removeSR",       default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
-argParser.add_argument("--showSyst",       default = '', action = "store", help="Print the systematic uncertainties?")
 argParser.add_argument("--year",           default=2016,     action="store",      help="Which year?")
 
 args = argParser.parse_args()
@@ -41,21 +40,7 @@ from StopsDilepton.analysis.regions         import regionsLegacy, noRegions, reg
 from StopsDilepton.analysis.Cache           import Cache
 from copy import deepcopy
 
-#define samples
-#data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
-#postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
-#from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
-#
-#data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
-#postProcessing_directory = 'stops_2016_nano_v2/dilep'
-#from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-
-data_directory = '/afs/hephy.at/data/rschoefbeck02/cmgTuples/'
-postProcessing_directory = 'stops_2016_nano_v3/dilep'
-from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-
 setup = Setup(year=year)
-
 
 # Define CR
 setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False,  'zWindow': 'onZ'})
@@ -167,32 +152,6 @@ elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": fastSim = True
 elif args.signal == "TTbarDM":                      fastSim = False
 elif args.signal == "ttHinv":                       fastSim = False
 
-if   args.signal == "T2tt":
-    #postProcessing_directory = 'stops_2016_nano_v2/dilep'
-    data_directory = '/afs/hephy.at/data/dspitzbart03/nanoTuples/'
-    postProcessing_directory = 'stops_2017_nano_v0p4/dilep'
-    from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
-#elif args.signal == "T2bt":
-#    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-#    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bt as jobs
-#elif args.signal == "T2bW":
-#    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-#    from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bW as jobs
-elif 'T8bb' in args.signal:
-    #postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-    postProcessing_directory = 'stops_2016_nano_v3/dilep'
-    if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
-    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
-    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
-    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
-#elif args.signal == "TTbarDM":
-#    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-#    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM as jobs
-#elif args.signal == "ttHinv":
-#    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-#    from StopsDilepton.samples.cmgTuples_Higgs_mAODv2_25ns_postProcessed import *
-#    jobs = [ttH_HToInvisible_M125]
-
 scaleUncCache = Cache(setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal, verbosity=2)
 isrUncCache   = Cache(setup.analysis_results+'/systematics/isr_%s.pkl'   % args.signal, verbosity=2)
 PDF = ['TTLep_pow', 'DY', 'multiboson', 'TTZ'] 
@@ -225,9 +184,6 @@ def getScaleUncBkg(name, r, channel, process):
 def getIsrUnc(name, r, channel):
   if isrUncCache.contains((name,r,channel)):    return abs(isrUncCache.get((name, r, channel)))
   else:                                         return 0.02
-
-systList = ["PU", "PDF", "xsec_QCD", "xsec_PDF", "JEC", "unclEn", "JER", "SFb", "SFl", "trigger", "leptonSF", "scale", "MCstat"]
-systematicUncertainties = {x:[] for x in systList}
 
 
 def wrapper(s):
@@ -298,6 +254,7 @@ def wrapper(s):
                   print channel, e.name, setup, r
                   name = e.name.split('-')[0]
                   expected = e.cachedEstimate(r, channel, setup)
+                  print e.name, expected
                   total_exp_bkg += expected.val
                   if e.name.count('TTJets'):
                     if len(setup.regions) == len(regionsLegacy[1:]):     divider = 6
@@ -414,7 +371,7 @@ def wrapper(s):
                 #    signal.val = 0
                 #    signal.sigma = 1
 
-                signal.val, signal.sigma = 0.1, 1.0
+                #signal.val, signal.sigma = 0.1, 1.0
 
                 c.specifyExpectation(binname, 'signal', args.scale*signal.val*xSecScale )
 
@@ -447,23 +404,6 @@ def wrapper(s):
                   c.addUncertainty(uname, 'lnN')
                   c.specifyUncertainty(uname, binname, 'signal', 1 + signal.sigma/signal.val )
             
-                  # add all signal uncertainties to print out max
-                  #if counter < 26:
-                  #  systematicUncertainties["PU"].append(e.PUSystematic(r, channel, signalSetup).val)
-                  #  systematicUncertainties["PDF"].append(getPDFUncSignal(s.name, r, channel))
-                  #  systematicUncertainties["xsec_QCD"].append(1.092)
-                  #  systematicUncertainties["xsec_PDF"].append(1.036)
-                  #  systematicUncertainties["JEC"].append(e.JECSystematic(        r, channel, signalSetup).val)
-                  #  systematicUncertainties["unclEn"].append(e.unclusteredSystematic(r, channel, signalSetup).val)
-                  #  systematicUncertainties["JER"].append(e.JERSystematic(        r, channel, signalSetup).val)
-                  #  systematicUncertainties["SFb"].append(e.btaggingSFbSystematic(r, channel, signalSetup).val)
-                  #  systematicUncertainties["SFl"].append(e.btaggingSFlSystematic(r, channel, signalSetup).val)
-                  #  systematicUncertainties["trigger"].append(e.triggerSystematic(    r, channel, signalSetup).val)
-                  #  systematicUncertainties["leptonSF"].append(e.leptonSFSystematic(   r, channel, signalSetup).val)
-                  #  systematicUncertainties["scale"].append(getScaleUnc(eSignal.name, r, channel))
-                  #  systematicUncertainties["MCstat"].append(signal.sigma/signal.val)
-                  #  #systematicUncertainties[""].append()
-                    
                 else:
                   uname = 'Stat_'+binname+'_signal'
                   c.addUncertainty(uname, 'lnN')
@@ -490,13 +430,6 @@ def wrapper(s):
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sConfig = s.mStop, s.mNeu
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
     elif args.signal == "ttHinv":                       sConfig = ("ttHinv", "2l")
-
-    ## Print the systematic uncertainties
-    #print
-    #print "Systematic uncertainties"
-    #print "{:10}{:10}{:10}".format("name", "min", "max")
-    #for syst in systematicUncertainties.keys():
-    #    print "{:10}{:10.2f}{:10.2f}".format(syst, min(systematicUncertainties[syst])*100, max(systematicUncertainties[syst])*100)
 
     if not args.significanceScan:
         if useCache and not overWrite and limitCache.contains(sConfig):
@@ -543,17 +476,20 @@ def wrapper(s):
             return None
 
 
-#postProcessing_directory = "postProcessed_80X_v40/dilepTiny"
-#if   args.signal == "T2tt":                         from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import signals_T2tt as jobs
-#elif args.signal == "T2bt":                         from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bt as jobs
-#elif args.signal == "T2bW":                         from StopsDilepton.samples.cmgTuples_FastSimT2bX_mAODv2_25ns_postProcessed import signals_T2bW as jobs
-#elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
-#elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
-#elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
-#elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
-#elif args.signal == "TTbarDM":
-#    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-#    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM as jobs
+######################################
+# Load the signals and run the code! #
+######################################
+
+if args.signal == "T2tt":
+    if year == 2016:
+        pass
+    else:
+        # no seperate 2018 signal yet
+        data_directory              = '/afs/hephy.at/data/dspitzbart03/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p7/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
+
+allJobs = [j.name for j in jobs]
 
 if args.only is not None:
     if args.only.isdigit():
@@ -565,6 +501,11 @@ if args.only is not None:
 
 results = map(wrapper, jobs)
 results = [r for r in results if r]
+
+
+#########################################################################################
+# Process the results. Make 2D hists for SUSY scans, or table for the DM interpretation #
+#########################################################################################
 
 # Make histograms for T2tt
 if "T2" in args.signal or  "T8bb" in args.signal:

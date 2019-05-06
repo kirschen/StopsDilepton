@@ -95,6 +95,7 @@ def get_parser():
     argParser.add_argument('--reuseNanoAOD',                action='store_true',                                                        help="Keep nanoAOD output?")
     argParser.add_argument('--reapplyJECS',                 action='store_true',                                                        help="Reapply JECs to data?")
     argParser.add_argument('--reduceSizeBy',                action='store',     type=int,                                               help="Reduce the size of the sample by a factor of...")
+    argParser.add_argument('--event',                       action='store',     type=int, default=-1,                                   help="Just process event no")
 
     return argParser
 
@@ -135,6 +136,10 @@ if options.susySignal: fastSim = True
 
 # Skim condition
 skimConds = []
+
+if options.event > 0:
+    skimConds.append( "event == %s"%options.event )
+
 if isDiLep:
     skimConds.append( "Sum$(Electron_pt>20&&abs(Electron_eta)<2.4) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.4)>=2" )
 if isTriLep:
@@ -681,15 +686,17 @@ if not options.skipNanoTools:
     
     if not sample.isData:
         modules.append( ISRcounter() )
+        # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.
+        modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
         if options.year == 2017:
+            # in 2017, also recorrect the MET calculated with the v2 recipe
             modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') )
-        else:
-            modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
     else:
+        # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.
+        modules.append( jetRecalib(JEC) )
         if options.year == 2017:
+            # in 2017, also recorrect the MET calculated with the v2 recipe
             modules.append( jetRecalib(JEC, METBranchName='METFixEE2017') )
-        else:
-            modules.append( jetRecalib(JEC) )
         logger.info("JECs will be reapplied.")
 
     if options.year == 2016:

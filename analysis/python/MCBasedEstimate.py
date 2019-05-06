@@ -29,6 +29,9 @@ class MCBasedEstimate(SystematicEstimator):
 
         elif channel=='SF':
             # 'all' is the total of all contributions
+            print "########## Summing up #############"
+            for c in ['MuMu', 'EE']:
+                print self.cachedEstimate(region, c, setup)
             return sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE']])
 
         else:

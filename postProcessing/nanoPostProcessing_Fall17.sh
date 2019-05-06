@@ -1,4 +1,4 @@
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p9   --skipGenLepMatching --noTopPtReweighting --sample TTLep_pow # SPLIT80
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p9   --skipGenLepMatching --noTopPtReweighting --flagTTBar --sample TTLep_pow # SPLIT80
 #
 python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p9   --skipGenLepMatching --sample TTZToQQ #SPLIT10
 python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p9   --skipGenLepMatching --sample TTZToLLNuNu # SPLIT20
