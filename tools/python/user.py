@@ -86,6 +86,7 @@ if os.environ['USER'] in ['mdoppler']:
     cmg_directory      = "/scratch/rschoefbeck/cmgTuples/80X_1l_9"
     # Where postprocessed data goes 
     data_output_directory      = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+    postprocessing_output_directory = "/afs/hephy.at/data/cms03/nanoTuples/"
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where you store the data
     data_directory      = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
