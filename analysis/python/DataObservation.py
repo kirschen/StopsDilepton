@@ -33,12 +33,10 @@ class DataObservation():
 
     # alias for cachedObservation to make it easier to call the same function as for the mc's
     def cachedEstimate(self, region, channel, setup, save=True, overwrite=False):
-        print "Overwrite est", overwrite
         return self.cachedObservation(region, channel, setup, overwrite=overwrite)
 
     def cachedObservation(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
-        print "Overwrite obs", overwrite
         if self.cache and self.cache.contains(key) and not overwrite:
             res = self.cache.get(key)
             logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
