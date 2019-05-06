@@ -1,3 +1,7 @@
+python analysisPlots.py --year 2018 --selection lepSel-POGMetSig12-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
+python analysisPlots.py --year 2018 --era ABC --selection lepSel-POGMetSig12-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
+python analysisPlots.py --year 2018 --era D --selection lepSel-POGMetSig12-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
+
 # without Met/MetSig cut
 #python analysisPlots.py --plot_directory v0 --year 2016 --signal T2tt --noReweightPU --splitBosons --selection lepSel-njet1-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1
 #python analysisPlots.py --plot_directory v0 --year 2016 --signal T2tt --noReweightPU --splitBosons --selection lepSel-njet1-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1
@@ -42,21 +46,21 @@
 #python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --noReweightPU --splitBosons --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig12 --postHEM
 
 
-python analysisPlots.py --plot_directory v0 --year 2017 --signal T2tt --splitBosons --selection lepSel-njet1-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
-python analysisPlots.py --plot_directory v0 --year 2017 --signal T2tt --splitBosons --selection lepSel-njet1-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
-python analysisPlots.py --plot_directory v0 --year 2017 --signal T2tt --splitBosons --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
-
-python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
-python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
-python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
-
-python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --preHEM
-python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --preHEM
-python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --preHEM
-
-python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --postHEM
-python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --postHEM
-python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --postHEM
+#python analysisPlots.py --plot_directory v0 --year 2017 --signal T2tt --splitBosons --selection lepSel-njet1-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
+#python analysisPlots.py --plot_directory v0 --year 2017 --signal T2tt --splitBosons --selection lepSel-njet1-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
+#python analysisPlots.py --plot_directory v0 --year 2017 --signal T2tt --splitBosons --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
+#
+#python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
+#python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
+#python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25
+#
+#python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --preHEM
+#python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --preHEM
+#python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --preHEM
+#
+#python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --postHEM
+#python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet1-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --postHEM
+#python analysisPlots.py --plot_directory v0 --year 2018 --signal T2tt --splitBosons --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-POGMetSig25 --postHEM
 
 
 ######################
