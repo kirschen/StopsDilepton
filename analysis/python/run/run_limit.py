@@ -351,6 +351,7 @@ def wrapper(s):
                 if args.expected:
                     c.specifyObservation(binname, int(round(total_exp_bkg,0)))
                 else:
+                    print "Data", r, channel
                     c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
                 #signal

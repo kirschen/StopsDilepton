@@ -37,13 +37,13 @@ class DataObservation():
 
     def cachedObservation(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
-        if self.cache and self.cache.contains(key) and not overwrite:
+        if self.cache and self.cache.contains(key) and not overwrite and not (channel == 'SF' or channel == 'all'):
             res = self.cache.get(key)
-            logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
+            logger.info( "Loading cached %s result for %r : %r"%(self.name, key, res) )
             return res
         elif self.cache:
             logger.info( "Adding cached %s result for %r"%(self.name, key) )
-            return self.cache.add( key, self.observation( region, channel, setup, overwrite), overwrite=overwrite)
+            return self.cache.add( key, self.observation( region, channel, setup, overwrite), overwrite=True)
         else:
             return self.observation( region, channel, setup, overwrite)
 

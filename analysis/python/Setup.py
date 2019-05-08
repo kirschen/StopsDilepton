@@ -62,7 +62,8 @@ class Setup:
             'triLep':        default_triLep,
         }
 
-        self.sys = {'weight':'weight', 'reweight':['reweightPU', 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
+        self.puWeight = 'reweightPUVUp' if self.year == 2018 else 'reweightPU'
+        self.sys = {'weight':'weight', 'reweight':[self.puWeight, 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
 
         if year == 2016:
             top         = Top_pow_16
@@ -128,8 +129,13 @@ class Setup:
                       res.sys['reweight'].remove(i)
                 elif k=='reweight':
                     res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
+                    
+                    # need to treat PU seperately
+                    puUpOrDown = ['VVUp','Up'] if self.year == 2018 else ['Up','Down']
+                    for upOrDown in puUpOrDown:
+                      if 'reweightPU'+upOrDown                  in res.sys[k]: res.sys[k].remove(self.puWeight)
+                    # all the other weight systematics
                     for upOrDown in ['Up','Down']:
-                      if 'reweightPU'+upOrDown                  in res.sys[k]: res.sys[k].remove('reweightPU')
                       if 'reweightDilepTrigger'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightDilepTrigger')
                       if 'reweightBTag_SF_b_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightBTag_SF_l_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
@@ -212,17 +218,17 @@ class Setup:
             res['prefixes'].append(prefix)
 
         if metMin and metMin>0:
-          res['cuts'].append('MET_pt'+sysStr+metStr+'>='+str(metMin))
+          res['cuts'].append('met_pt'+sysStr+metStr+'>='+str(metMin))
           res['prefixes'].append('met'+str(metMin))
         if metSigMin and metSigMin>0:
           res['cuts'].append('MET_significance'+sysStr+metStr+'>='+str(metSigMin))
           res['prefixes'].append('METsig'+str(metSigMin))
 
         if dPhi:
-          res['cuts'].append('cos(MET_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(MET_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25)')
+          res['cuts'].append('cos(met_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25)')
           res['prefixes'].append('dPhiJet0-dPhiJet')
         elif dPhiInv:
-          res['cuts'].append('!(cos(MET_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(MET_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25))')
+          res['cuts'].append('!(cos(met_phi'+sysStr+metStr+'-JetGood_phi[0])<0.8&&cos(met_phi'+sysStr+metStr+'-JetGood_phi[1])<cos(0.25))')
           res['prefixes'].append('dPhiInv')
 
         if not hadronicSelection:
@@ -269,10 +275,10 @@ class Setup:
               res['prefixes'].append('relIso0.12')
               res['cuts'].append("l1_relIso03<0.12&&l2_relIso03<0.12")
 
-              res['cuts'].append("l1_pt>30")
+              res['prefixes'].append('lepSel')
+              res['cuts'].append("l1_pt>30&&l2_pt>20")
 
         res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), year=self.year, isFastSim=isFastSim))
-        #res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
  
         # for SUSY PU uncertainty of 2016 samples
