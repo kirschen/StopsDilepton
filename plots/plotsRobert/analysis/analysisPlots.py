@@ -129,8 +129,8 @@ if args.recoil:
     if args.recoil == "nvtx":
         recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_nvtx_loop", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
     elif args.recoil == "VUp":
-        recoilCorrector     = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v0p9_fine_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
-        recoilCorrector_raw = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v0p9_fine_raw_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+        recoilCorrector     = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+        recoilCorrector_raw = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_raw_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
 
 def get_quantiles( histo, quantiles = [1-0.9545, 1-0.6826, 0.5, 0.6826, 0.9545]):
     thresholds = array.array('d', [ROOT.Double()] * len(quantiles) )
@@ -302,16 +302,41 @@ def drawPlots(plots, mode, dataMCScale):
 
           _drawObjects.append( tex.DrawLatex(0.22, 0.62, '#Delta(med): %+3.1f   1#sigma: %4.3f  2#sigma  %4.3f' % ( median_shift, sigma1_ratio, sigma2_ratio) ) )
 
-      plotting.draw(plot,
-	    plot_directory = plot_directory_,
-	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-	    logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig),
-	    yRange = (0.03, "auto") if log else (0.001, "auto"),
-	    scaling = {0:1} if args.dataMCScaling else {},
-	    legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
-	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ) + _drawObjects,
-        copyIndexPHP = True, extensions = ["png"],
-      )
+      if isinstance( plot, Plot):
+          plotting.draw(plot,
+            plot_directory = plot_directory_,
+            ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
+            logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig),
+            yRange = (0.03, "auto") if log else (0.001, "auto"),
+            scaling = {0:1} if args.dataMCScaling else {},
+            legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
+            drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ) + _drawObjects,
+            copyIndexPHP = True, extensions = ["png"],
+          )
+      elif isinstance( plot, Plot2D ):
+
+          p_mc = Plot2D.fromHisto( plot.name+'_mc', plot.histos[:1], texX = plot.texX, texY = plot.texY )
+          plotting.draw2D(p_mc,
+            plot_directory = plot_directory_,
+            #ratio = {'yRange':(0.1,1.9)},
+            logX = False, logY = False, logZ = log, #sorting = True,
+            #yRange = (0.03, "auto") if log else (0.001, "auto"),
+            #scaling = {},
+            #legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88),
+            drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
+            copyIndexPHP = True, extensions = ["png"], 
+          )
+          p_data = Plot2D.fromHisto( plot.name+'_data', plot.histos[1:], texX = plot.texX, texY = plot.texY )
+          plotting.draw2D(p_data,
+            plot_directory = plot_directory_,
+            #ratio = {'yRange':(0.1,1.9)},
+            logX = False, logY = False, logZ = log, #sorting = True,
+            #yRange = (0.03, "auto") if log else (0.001, "auto"),
+            #scaling = {},
+            #legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88),
+            drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
+            copyIndexPHP = True, extensions = ["png"], 
+          )
 
 #
 # Read variables and sequences
@@ -320,6 +345,37 @@ read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_e
 read_variables += ["event/l", "luminosityBlock/I", "run/I"]
 
 sequence = []
+
+#from StopsDilepton.tools.objectSelection    import muonSelector, eleSelector, getGoodMuons, getGoodElectrons, getGoodJets, getAllJets
+#ele_selector = eleSelector( "tight", year = year )
+#mu_selector = muonSelector( "tight", year = year )
+#
+#jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F'] 
+#read_variables += [\
+#    TreeVariable.fromString('nElectron/I'),
+#    VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F]'),
+#    TreeVariable.fromString('nMuon/I'),
+#    VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
+#    TreeVariable.fromString('nJet/I'),
+#    VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) ),
+#]
+#
+#def make_all_jets( event, sample ):
+#
+#    electrons_pt10  = getGoodElectrons(event, ele_selector = ele_selector)
+#    muons_pt10      = getGoodMuons(event, mu_selector = mu_selector )
+#    for e in electrons_pt10:
+#        e['pdgId']      = int( -11*e['charge'] )
+#    for m in muons_pt10:
+#        m['pdgId']      = int( -13*m['charge'] )
+#    leptons_pt10 = electrons_pt10+muons_pt10
+#    leptons_pt10.sort(key = lambda p:-p['pt'])
+#
+#    leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
+#    leptons.sort(key = lambda p:-p['pt'])
+#    reallyAllJets= getAllJets(event, leptons, ptCut=30, absEtaCut=99, jetVars=map( lambda s:s.split('/')[0], jetVars), jetCollections=["Jet"], idVar='jetId') # keeping robert's comment: ... yeah, I know.
+#
+#sequence.append( make_all_jets )
 
 ## veto list
 #def make_veto( event, sample ):
@@ -518,10 +574,11 @@ for index, mode in enumerate(allModes):
   stack.extend( [ [s] for s in signals ] )
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper', histo_class=ROOT.TH1D)
+  Plot  .setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper', histo_class=ROOT.TH1D)
+  Plot2D.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), histo_class=ROOT.TH2D)
   
-  plots = []
-
+  plots   = []
+  plots2D = []
   plots.append(Plot(
     name = 'yield', texX = 'yield', texY = 'Number of Events',
     attribute = lambda event, sample: 0.5 + index,
@@ -616,13 +673,13 @@ for index, mode in enumerate(allModes):
       plots.append(Plot( name = "dl_mt2ll_corr",
           texX = 'corr M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
           attribute = lambda event, sample: event.dl_mt2ll_corr,
-          binning=[400/20,0,400],
+          binning=[300/20,0,300],
       ))
 
       plots.append(Plot( name = "dl_mt2ll_raw_corr",
           texX = 'raw corr M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
           attribute = lambda event, sample: event.dl_mt2ll_raw_corr,
-          binning=[400/20,0,400],
+          binning=[300/20,0,300],
       ))
 
   plots.append(Plot( name = "qT",
@@ -719,6 +776,18 @@ for index, mode in enumerate(allModes):
 
   # Plots only when at least one jet:
   if args.selection.count('njet2') or args.selection.count('njet1') or args.selection.count('njet01'):
+
+    plots2D.append(Plot2D(
+      name = 'jet_occupancy',
+      stack = stack,
+      attribute = (
+        lambda event, sample: event.JetGood_eta[0],
+        lambda event, sample: event.JetGood_phi[0],
+      ),
+      texX = '#eta(leading jet) (GeV)', texY = '#phi(leading jet) (GeV)',
+      binning=[16, -3.0, 3.0, 10, -pi, pi],
+    ))
+
     plots.append(Plot(
       texX = 'p_{T}(leading jet) (GeV)', texY = 'Number of Events / 30 GeV',
       name = 'jet1_pt', attribute = lambda event, sample: event.JetGood_pt[0],
@@ -727,14 +796,14 @@ for index, mode in enumerate(allModes):
 
     plots.append(Plot(
       texX = '#eta(leading jet) (GeV)', texY = 'Number of Events',
-      name = 'jet1_eta', attribute = lambda event, sample: abs(event.JetGood_eta[0]),
-      binning=[10,0,3],
+      name = 'jet1_eta', attribute = lambda event, sample: event.JetGood_eta[0],
+      binning=[20,-3,3],
     ))
 
     plots.append(Plot(
       texX = '#phi(leading jet) (GeV)', texY = 'Number of Events',
       name = 'jet1_phi', attribute = lambda event, sample: event.JetGood_phi[0],
-      binning=[10,-pi,pi],
+      binning=[20,-pi,pi],
     ))
 
     plots.append(Plot(
@@ -856,14 +925,14 @@ for index, mode in enumerate(allModes):
 
     plots.append(Plot(
       texX = '#eta(2nd leading jet) (GeV)', texY = 'Number of Events',
-      name = 'jet2_eta', attribute = lambda event, sample: abs(event.JetGood_eta[1]),
-      binning=[10,0,3],
+      name = 'jet2_eta', attribute = lambda event, sample: event.JetGood_eta[1],
+      binning=[20,-3,3],
     ))
 
     plots.append(Plot(
       texX = '#phi(2nd leading jet) (GeV)', texY = 'Number of Events',
       name = 'jet2_phi', attribute = lambda event, sample: event.JetGood_phi[1],
-      binning=[10,-pi,pi],
+      binning=[20,-pi,pi],
     ))
 
     plots.append(Plot(
@@ -916,7 +985,7 @@ for index, mode in enumerate(allModes):
       binning=[400/100, 0, 400],
     ))
    
-  plotting.fill(plots, read_variables = read_variables, sequence = sequence)
+  plotting.fill(plots + plots2D, read_variables = read_variables, sequence = sequence)
 
   # Get normalization yields from yield histogram
   for plot in plots:
@@ -932,8 +1001,8 @@ for index, mode in enumerate(allModes):
   yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc_)
   dataMCScale        = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
 
-  drawPlots(plots, mode, dataMCScale)
-  allPlots[mode] = plots
+  drawPlots(plots + plots2D, mode, dataMCScale)
+  allPlots[mode] = plots + plots2D
 
 # Add the different channels into SF and all
 for mode in ["SF","all"]:

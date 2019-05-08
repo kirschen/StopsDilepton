@@ -183,9 +183,6 @@ for selectedSamples in options.samples:
         if selectedSamples == sample.name:
             samples.append(sample)
 
-if sample.isData:
-    json = sample.json # json already defined in sample repository
-
 if len(samples)==0:
     logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
     sys.exit(-1)
@@ -420,7 +417,6 @@ if sample.isData:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
-    sample.json = json
     lumiList = LumiList(os.path.expandvars(sample.json))
     logger.info( "Loaded json %s", sample.json )
 else:
