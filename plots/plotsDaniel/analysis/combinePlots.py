@@ -20,11 +20,12 @@ hists = {}
 
 #files = ['/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/analysisPlots/2016/v0p7/mumumu_log/trilepTight-lepSelTight-njet3p-btag1p-onZ1/Z1_pt.root', '/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/analysisPlots/2017/v0p7/mumumu_log/trilepTight-lepSelTight-njet3p-btag1p-onZ1/Z1_pt.root', '/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/analysisPlots/2018/v0p7/mumumu_log/trilepTight-lepSelTight-njet3p-btag1p-onZ1/Z1_pt.root']
 #tmpFile = '/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/analysisPlots/2016/v0p7/all_log/trilepTight-lepSelTight-njet3p-btag1p-onZ1/met_pt.root'
-tmpFile = '/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/analysisPlots/v0p7/lepSel-quadlep-njet1p-btag1p-onZ1-offZ2/all_log/2016/Z1_mass.root'
+#tmpFile = '/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/analysisPlots/v0p7/lepSel-quadlep-njet1p-btag1p-onZ1-offZ2/all_log/2016/Z1_mass.root'
 #tmpFile = '/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/analysisPlots/v2_noScaling_recoil_VUp_splitMultiBoson_VUp/Run2018/SF_log/lepSel-POGMetSig12-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ/dl_mt2ll.root'
+tmpFile = 'dl_mt2llraw.root'
 
-files = [tmpFile.replace('2016', year) for year in ['2016','2017','2018'] ]
-#files = [tmpFile.replace('2016', year) for year in ['2018']
+#files = [tmpFile.replace('2016', year) for year in ['2016','2017','2018'] ]
+files = [tmpFile.replace('2018', year) for year in ['2018']]
 
 for i,f in enumerate(files):
     print "Working on file:",f
@@ -73,7 +74,8 @@ def drawObjects( isData=False, lumi=36. ):
     return [tex.DrawLatex(*l) for l in lines]
 
 
-dO = drawObjects( isData=True, lumi=round(35.9+41.5+60.,0))
+#dO = drawObjects( isData=True, lumi=round(35.9+41.5+60.,0))
+dO = drawObjects( isData=True, lumi=round(60.,0))
 
 plots_CR = [ [hists[0][proc] for proc in processes], [hists[0]['data'] ] ]
 
@@ -84,12 +86,12 @@ plotting.draw(
     #            texY = "Events"
     #        ),
 
-    Plot.fromHisto("Z1_mass_4l",
+    Plot.fromHisto("dl_mt2ll_raw",
                 plots_CR,
-                texX = "M(ll) best Z candidate (GeV)",
+                texX = "M_{T2}(ll) (GeV)",
                 texY = "Events"
             ),
-    plot_directory = os.path.join(plot_directory, "propaganda"),
+    plot_directory = os.path.join(plot_directory, "Run2018D_norm"),
     logX = False, logY = True,
     sorting = True,
     yRange = (0.03, "auto"),

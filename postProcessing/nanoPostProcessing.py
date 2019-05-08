@@ -33,7 +33,6 @@ from StopsDilepton.tools.mt2Calculator      import mt2Calculator
 from StopsDilepton.tools.helpers            import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile, getSortedZCandidates, getMinDLMass
 from StopsDilepton.tools.addJERScaling      import addJERScaling
 from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector, mergeCollections, genLepFromZ
-from StopsDilepton.tools.overlapRemovalTTG  import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson        import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting     import getPolWeights
 from StopsDilepton.tools.triggerEfficiency  import triggerEfficiency
@@ -68,7 +67,7 @@ def get_parser():
     argParser.add_argument('--job',         action='store',                     type=int, default=0,                                    help="Run only jobs i" )
     argParser.add_argument('--minNJobs',    action='store',         nargs='?',  type=int, default=1,                                    help="Minimum number of simultaneous jobs." )
     argParser.add_argument('--dataDir',     action='store',         nargs='?',  type=str, default=user.cmg_directory,                   help="Name of the directory where the input data is stored (for samples read from Heppy)." )
-    argParser.add_argument('--targetDir',   action='store',         nargs='?',  type=str, default=user.data_output_directory,           help="Name of the directory the post-processed files will be saved" )
+    argParser.add_argument('--targetDir',   action='store',         nargs='?',  type=str, default=user.postprocessing_output_directory, help="Name of the directory the post-processed files will be saved" )
     argParser.add_argument('--processingEra', action='store',       nargs='?',  type=str, default='postProcessed_80X_v22',              help="Name of the processing era" )
     argParser.add_argument('--writeToDPM', action='store_true',                                                                         help="Write output to DPM?")
     argParser.add_argument('--skim',        action='store',         nargs='?',  type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
@@ -96,6 +95,7 @@ def get_parser():
     argParser.add_argument('--reuseNanoAOD',                action='store_true',                                                        help="Keep nanoAOD output?")
     argParser.add_argument('--reapplyJECS',                 action='store_true',                                                        help="Reapply JECs to data?")
     argParser.add_argument('--reduceSizeBy',                action='store',     type=int,                                               help="Reduce the size of the sample by a factor of...")
+    argParser.add_argument('--event',                       action='store',     type=int, default=-1,                                   help="Just process event no")
 
     return argParser
 
@@ -136,6 +136,10 @@ if options.susySignal: fastSim = True
 
 # Skim condition
 skimConds = []
+
+if options.event > 0:
+    skimConds.append( "event == %s"%options.event )
+
 if isDiLep:
     skimConds.append( "Sum$(Electron_pt>20&&abs(Electron_eta)<2.4) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.4)>=2" )
 if isTriLep:
@@ -297,7 +301,7 @@ if options.writeToDPM:
 else:
     # User specific
     from StopsDilepton.tools.user import postprocessing_output_directory as user_directory
-    directory = os.path.join( user_directory, options.processingEra ) 
+    directory = os.path.join( options.targetDir, options.processingEra ) 
 
 
 options.skim = options.skim + '_small' if options.small else options.skim
@@ -488,9 +492,7 @@ if isSingleLep:
 if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I', 'nGoodLeptons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I', 'l1_eleIndex/I', 'l1_muIndex/I' ] )
-    # new_variables.extend( ['mt/F', 'mlmZ_mass/F'] )
-    new_variables.extend( ['mlmZ_mass/F'] )
-    new_variables.extend( ['mt_photonEstimated/F'])
+    new_variables.extend( ['mlmZ_mass/F', 'mt_photonEstimated/F'])
     if isMC: new_variables.extend(['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F'])
 if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I', 'l2_eleIndex/I', 'l2_muIndex/I' ] )
@@ -632,8 +634,6 @@ if not options.skipNanoTools:
     elif options.year == 2017:
         metSigParamsMC      = [1.7760438537732681, 1.720421230892687, 1.6034765551361112, 1.5336832981702226, 2.0928447254019757, 0.0011228025809342157, 0.7287313412909979]
         metSigParamsData    = [1.518621014453362, 1.611898248687222, 1.5136936762143423, 1.4878342676980971, 1.9192499533282406, -0.0005835026352392627, 0.749718704693196]
-        #metSigParamsMC      = [1.1106319092645605, 1.1016751869920842, 1.0725643000703053, 1.0913641155398053, 1.8499497840145123, -0.0015646588275905911, 0.7397929625473758]
-        #metSigParamsData    = [1.5622583144490318, 1.540194388842639, 1.566197393467264, 1.5132500586113067, 1.9398948489956538, -0.00028476818675941427, 0.7502485988002288]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
         if sample.isData:
@@ -667,7 +667,6 @@ if not options.skipNanoTools:
             JEC             = "Fall17_FastsimV1_MC"
         else:
             JEC             = "Autumn18_V8_MC"
-            #JEC             = "Fall17_17Nov2017_V32_MC"
 
     # set the params for MET Significance calculation
     metSigParams            = metSigParamsMC                if not sample.isData else metSigParamsData
@@ -683,12 +682,16 @@ if not options.skipNanoTools:
     
     if not sample.isData:
         modules.append( ISRcounter() )
+        # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.
         modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
         if options.year == 2017:
+            # in 2017, also recorrect the MET calculated with the v2 recipe
             modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') )
     else:
+        # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.
         modules.append( jetRecalib(JEC) )
         if options.year == 2017:
+            # in 2017, also recorrect the MET calculated with the v2 recipe
             modules.append( jetRecalib(JEC, METBranchName='METFixEE2017') )
         logger.info("JECs will be reapplied.")
 
@@ -702,7 +705,7 @@ if not options.skipNanoTools:
     if options.year == 2017:
         modules.append(METminProducer(isData=isData, calcVariations=(not isData)))
 
-    print sample.files
+    #print sample.files
 
     # check if files are available (e.g. if dpm is broken this should result in an error)
     for f in sample.files:
@@ -909,7 +912,6 @@ def filler( event ):
         m['eleIndex']   = -1
 
     leptons_pt10 = electrons_pt10+muons_pt10
-    #leptons_pt10 = mergeCollections(electrons_pt10, muons_pt10) # not needed, can just add
 
     leptons_pt10.sort(key = lambda p:-p['pt'])
 
@@ -996,9 +998,6 @@ def filler( event ):
 
       event.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
       event.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
-
-    if options.checkTTGJetsOverlap and isMC:
-       event.TTGJetsEventType = getTTGJetsEventType(r)
 
     if addSystematicVariations:
         for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown']:
@@ -1283,7 +1282,6 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 
     # Check whether file exists
     fileNumber = options.job if options.job is not None else 0
-    #outfilename = filename+'_'+str(fileNumber)+ext
     outfilename = filename+ext
     
     _logger.   add_fileHandler( outfilename.replace('.root', '.log'), options.logLevel )
@@ -1356,7 +1354,6 @@ if options.nJobs == 1:
         print output.chain
         if options.small: output.reduceFiles( to = 1 )
         for s in signalWeight.keys():
-            #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
             logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
             cut = "Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))=="+str(s[0])+"&&Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022))=="+str(s[1])
             logger.debug("Using cut %s", cut)
