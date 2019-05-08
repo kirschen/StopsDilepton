@@ -40,7 +40,7 @@ class RecoilCorrector:
         if njet<1: return u_perp # in case of jesTotalUp/Down witin systematics variation
         return self.corrector.predict_perp( njet, qt, u_perp )
 
-if __name__=="__main__":
+#if __name__=="__main__":
 
 #    from RootTools.core.standard import *
 #    from StopsDilepton.tools.user import plot_directory
