@@ -67,7 +67,7 @@ def get_parser():
     argParser.add_argument('--job',         action='store',                     type=int, default=0,                                    help="Run only jobs i" )
     argParser.add_argument('--minNJobs',    action='store',         nargs='?',  type=int, default=1,                                    help="Minimum number of simultaneous jobs." )
     argParser.add_argument('--dataDir',     action='store',         nargs='?',  type=str, default=user.cmg_directory,                   help="Name of the directory where the input data is stored (for samples read from Heppy)." )
-    argParser.add_argument('--targetDir',   action='store',         nargs='?',  type=str, default=user.data_output_directory,           help="Name of the directory the post-processed files will be saved" )
+    argParser.add_argument('--targetDir',   action='store',         nargs='?',  type=str, default=user.postprocessing_output_directory, help="Name of the directory the post-processed files will be saved" )
     argParser.add_argument('--processingEra', action='store',       nargs='?',  type=str, default='postProcessed_80X_v22',              help="Name of the processing era" )
     argParser.add_argument('--writeToDPM', action='store_true',                                                                         help="Write output to DPM?")
     argParser.add_argument('--skim',        action='store',         nargs='?',  type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
@@ -304,7 +304,7 @@ if options.writeToDPM:
 else:
     # User specific
     from StopsDilepton.tools.user import postprocessing_output_directory as user_directory
-    directory = os.path.join( user_directory, options.processingEra ) 
+    directory = os.path.join( options.targetDir, options.processingEra ) 
 
 
 options.skim = options.skim + '_small' if options.small else options.skim
