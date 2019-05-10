@@ -474,16 +474,12 @@ def make_minmax_selection( event, sample ):
         event.l2_jetRelIsoRecorr = float('nan')
         event.l2_jetRelIsoRecorrHad = float('nan')
 
-print "~~~~> Studying %s"%args.study
+print "~~~~> Studying %s %s"%(args.study, args.minmax)
 if args.study == "Muon":
   sequence.append( make_muon_selection )
-elif args.study == "Electron":
-  sequence.append( make_electron_selection )
 else:
   if args.minmax:
     sequence.append( make_minmax_selection )
-  else:
-    sequence.append( make_lepton_selection )
 
 #
 #

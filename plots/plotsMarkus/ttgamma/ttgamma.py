@@ -157,12 +157,15 @@ read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_e
 sequence = []
 
 def make_ttg( event, sample ):
-    newmet_x = event.met_pt*cos(event.met_phi) + event.photon_pt*cos(event.photon_phi)
-    newmet_y = event.met_pt*sin(event.met_phi) + event.photon_pt*sin(event.photon_phi)
+    if event.overlapRemoval == 0:
+        print "~~~> event is TTbar, not TTGamma!"
+    else:
+        newmet_x = event.met_pt*cos(event.met_phi) + event.photon_pt*cos(event.photon_phi)
+        newmet_y = event.met_pt*sin(event.met_phi) + event.photon_pt*sin(event.photon_phi)
 
-    event.met_pt = sqrt(newmet_x**2 + newmet_y**2)
-    event.met_phi = atan2(newmet_x, newmet_y)
-    print "met_pt %f met_phi %f | photon_pt %f photon_phi %f | metTot_x %f metTot_y %f"%(event.met_pt, event.met_phi, event.photon_pt, event.photon_phi, newmet_x, newmet_y)
+        event.met_pt = sqrt(newmet_x**2 + newmet_y**2)
+        event.met_phi = atan2(newmet_x, newmet_y)
+        print "met_pt %f met_phi %f | photon_pt %f photon_phi %f | metTot_x %f metTot_y %f"%(event.met_pt, event.met_phi, event.photon_pt, event.photon_phi, newmet_x, newmet_y)
  
 sequence.append( make_ttg )
 
