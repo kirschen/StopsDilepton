@@ -48,6 +48,12 @@ from Analysis.Tools.isrWeight               import ISRweight
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
 genSearch = GenSearch()
 
+xSecModifications = {
+    'DYJetsToLL_M4to':     {'kFactor': 1.23, 'xsec':None},
+    'DYJetsToLL_M5to':     {'kFactor': 1.23, 'xsec':None},
+    'DYJetsToLL_M10to':    {'kFactor': 1.23, 'xsec':None},
+    }
+    
 # central configuration
 targetLumi = 1000 #pb-1 Which lumi to normalize to
 
@@ -432,6 +438,17 @@ if sample.isData:
     lumiList = LumiList(os.path.expandvars(sample.json))
     logger.info( "Loaded json %s", sample.json )
 else:
+    for x in xSecModifications.keys():
+        if sample.name.startswith(x):
+            xSectionOld = xSection
+            if xSecModifications[x]['xsec']:
+                xSection = xSecModifications[x]['xsec']
+            if xSecModifications[x]['kFactor']:
+                xSection = xSection * xSecModifications[x]['kFactor']
+            logger.info("CAREFUL! Sample x-sec will be modified. Old x-sec: %s. New x-sec: %s.", xSectionOld, xSection)
+    #if sample.name.startswith('DYJetsToLL_M10to') or sample.name.startswith('DYJetsToLL_M4to') or sample.name.startswith('DYJetsToLL_M5to'):
+    #    logger.info("CAREFUL! Detected low mass DY sample, will apply an additional k-factor of 1.23 to x-sec: %s!"%xSection)
+    #    lumiScaleFactor = lumiScaleFactor*1.23
     lumiScaleFactor = xSection*targetLumi/float(sample.normalization) if xSection is not None else None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 

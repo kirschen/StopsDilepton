@@ -110,7 +110,7 @@ class Setup:
         return '_'.join(self.prefixes+[self.preselection('MC')['prefix']])
 
     def defaultCacheDir(self):
-        cacheDir = os.path.join(self.analysis_results, self.prefix(), 'cacheFiles')
+        cacheDir = os.path.join(self.analysis_results, str(self.year), self.prefix(), 'cacheFiles')
         logger.info('Default cache dir is: %s', cacheDir)
         return cacheDir
 
