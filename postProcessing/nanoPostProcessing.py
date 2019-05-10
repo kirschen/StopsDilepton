@@ -346,8 +346,12 @@ if doTopPtReweighting:
     topPtReweightingFunc = getUnscaledTopPairPtReweightungFunction(selection = "dilep")
     # Compute x-sec scale factor on unweighted events
     selectionString = "&&".join(skimConds)
-    topScaleF = sample.getYieldFromDraw( selectionString = selectionString, weightString = getTopPtDrawString(selection = "dilep"))
-    topScaleF = topScaleF['val']/float(sample.chain.GetEntries(selectionString))
+    if hasattr(sample, "topScaleF"):
+        # If you don't want to get the SF for each subjob run the script and add the topScaleF to the sample
+        topScaleF = sample.topScaleF
+    else:
+        topScaleF = sample.getYieldFromDraw( selectionString = selectionString, weightString = getTopPtDrawString(selection = "dilep"))
+        topScaleF = topScaleF['val']/float(sample.chain.GetEntries(selectionString))
     logger.info( "Found topScaleF %f", topScaleF )
 else:
     topScaleF = 1

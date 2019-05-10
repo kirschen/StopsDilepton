@@ -9,7 +9,7 @@ git clone https://github.com/danbarto/nanoAOD-tools.git PhysicsTools/NanoAODTool
 cd $CMSSW_BASE/src
 
 # X-PAG code for limit
-git clone https://github.com/GhentAnalysis/PlotsSMS StopsDilepton/PlotsSMS.git
+git clone https://github.com/GhentAnalysis/PlotsSMS.git StopsDilepton/PlotsSMS
 cd $CMSSW_BASE/src
 
 # RootTools (for plotting, sample handling, processing)
