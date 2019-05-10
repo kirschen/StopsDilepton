@@ -26,7 +26,7 @@ from Analysis.Tools.puProfileCache import *
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM", "T8bbllnunu", "compilation"], help="Add signal to plot")
+argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--dataMCScaling',      action='store_true',     help='Data MC scaling?', )
@@ -57,6 +57,7 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
+ntuples = args.plot_directory
 if args.recoil:                       args.plot_directory += '_recoil_'+args.recoil
 if args.small:                        args.plot_directory += "_small"
 if args.splitMET:                     args.plot_directory += "_splitMET"
@@ -97,8 +98,28 @@ elif year == 2017:
     #    # need sample based weights
     #    pass
 elif year == 2018:
-    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    logger.info( "Using ntuples: %s", ntuples)
+    if ntuples == 'v5':
+        data_directory              = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+        postProcessing_directory    = "stops_2018_nano_v0p7/dilep/"
+        from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+        data_directory            = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+        postProcessing_directory  = "stops_2018_nano_v0p7/dilep/"
+        from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    elif ntuples == 'v0p9':
+        data_directory              = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+        postProcessing_directory    = "stops_2018_nano_v0p9/dilep/"
+        from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+        data_directory            = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+        postProcessing_directory  = "stops_2018_nano_v0p9/dilep/"
+        from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    elif ntuples == 'v0p10':
+        data_directory              = "/afs/hephy.at/data/cms01/nanoTuples/"
+        postProcessing_directory    = "stops_2018_nano_v0p10/dilep/"
+        from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+        data_directory            = "/afs/hephy.at/data/cms01/nanoTuples/"
+        postProcessing_directory  = "stops_2018_nano_v0p10/dilep/"
+        from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
 
     #from StopsDilepton.tools.vetoList import vetoList
@@ -129,8 +150,15 @@ if args.recoil:
     if args.recoil == "nvtx":
         recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_nvtx_loop", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
     elif args.recoil == "VUp":
-        recoilCorrector     = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
-        recoilCorrector_raw = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_raw_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+        if ntuples == 'v5':
+            recoilCorrector     = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+            recoilCorrector_raw = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v4.3_fine_raw_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+        elif ntuples == 'v0p9':
+            recoilCorrector     = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v0p9_fine_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+            recoilCorrector_raw = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v0p9_fine_raw_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+        elif ntuples == 'v0p10':
+            recoilCorrector     = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v0p10_fine_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+            recoilCorrector_raw = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v0p10_fine_raw_VUp", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
 
 def get_quantiles( histo, quantiles = [1-0.9545, 1-0.6826, 0.5, 0.6826, 0.9545]):
     thresholds = array.array('d', [ROOT.Double()] * len(quantiles) )
@@ -209,59 +237,17 @@ def splitMetSigMC(mc):
 
     return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]
 
-data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
+signals = []
 if args.signal == "T2tt":
-    if year == 2016:
-        postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
-        from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *
-    else:
-        postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
-        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import *
+    # Load 2017 signal
+    data_directory           = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postProcessing_directory = "stops_2017_nano_v0p7/dilep"
+    from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import *
     T2tt                    = T2tt_650_0
     T2tt2                   = T2tt_500_250
     T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T2tt, T2tt2]
-elif args.signal == "T8bbllnunu":
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p95_1300_1
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p95_1300_300
-    T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p95_1300_600
-    T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-    T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-    T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
-    signals = [ T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
-elif args.signal == "compilation":
-    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    T2tt                    = T2tt_800_1
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_800_1
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p5_800_1
-    T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p95_800_1
-    T2tt.style              = styles.lineStyle( ROOT.kGreen-3, width=3 )
-    T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
-    T8bbllnunu2.style        = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-    T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-    signals = [ T2tt, T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
-    
-elif args.signal == "DM":
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-    #DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10_ext1
-    DM                      = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
-    #DM2                     = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50_ext1
-    #DM2_alt                 = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_50
-    DM2                     = TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
-    DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
-    #DM_alt.style            = styles.lineStyle( ROOT.kBlack, width=3, dotted=True)
-    DM2.style               = styles.lineStyle( 28,          width=3)
-    #DM2_alt.style           = styles.lineStyle( 28,          width=3, dotted=True)
-    signals = [DM, DM2]
-else:
-    signals = []
 #
 # Text on the plots
 #
@@ -523,11 +509,6 @@ for index, mode in enumerate(allModes):
     # Need individual pu reweighting functions for each sample in 2017, so nTrueInt_puRW is only defined here
     if args.reweightPU and args.reweightPU not in ["noPUReweighting", "nvtx"]:
         sample.read_variables.append( 'reweightPU%s/F'%args.reweightPU )
-    #    if year == 2017:
-    #        logger.info("Getting PU profile and weight for sample %s", sample.name)
-    #        puProfiles = puProfile( source_sample = sample )
-    #        mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
-    #        nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc=mcHist)
 
     if args.reweightPU == "noPUReweighting":
         sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
@@ -541,22 +522,6 @@ for index, mode in enumerate(allModes):
 
     sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
 
-  for sample in signals:
-      if args.signal == "T2tt" or args.signal == "T8bbllnunu" or args.signal == "compilation":
-        sample.scale          = lumi_scale
-        sample.read_variables = ['reweightPU36fb/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F']
-        sample.weight         = lambda event, sample: event.reweightPU36fb*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
-        sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
-        #sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
-        #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
-      elif args.signal == "DM":
-        sample.scale          = lumi_scale
-        sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU36fb/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
-        sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU36fb*event.reweightLeptonTrackingSF
-        sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
-      else:
-        raise NotImplementedError
- 
   if args.splitMET:
     mc_ = splitMetMC(mc)
   elif args.splitMETSig:
@@ -879,16 +844,10 @@ for index, mode in enumerate(allModes):
         #if args.recoil == 'v4':
         var_binning   = [ pi*(i-5)/5. for i in range(0,11) ]
         var_bins      = [ (var_binning[i],var_binning[i+1]) for i in range(len(var_binning)-1) ]
-        #elif args.recoil == 'v5':
-        #    var_binning   = [ 0, 20, 30, 40, 50, 100 ]
-        #    var_bins      = [ (var_binning[i],var_binning[i+1]) for i in range(len(var_binning)-1) ]
-
         for var_bin in var_bins:
             for qt_bin in qt_bins:
                 #if args.recoil=='v4':
                 postfix = "phill_%3.2f_%3.2f_qt_%i_%i"%( var_bin[0], var_bin[1], qt_bin[0], qt_bin[1] )
-                #elif args.recoil=='v5':
-                #    postfix = "nvtx_%i_%i_qt_%i_%i"%( var_bin[0], var_bin[1], qt_bin[0], qt_bin[1] )
                 plots.append(Plot( name = "u_para_" + postfix, 
                   texX = "u_{#parallel} (GeV)", texY = 'Number of Events / 30 GeV',
                   attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-event.dl_phi),
