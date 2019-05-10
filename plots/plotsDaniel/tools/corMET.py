@@ -44,7 +44,8 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 #from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 from Configuration.AlCa.autoCond import autoCond
 if runOnData:
-  process.GlobalTag.globaltag = autoCond['run2_data']
+  print "Auto GT is", autoCond['run2_data']
+  process.GlobalTag.globaltag = '102X_dataRun2_Prompt_v13'
 else:
   process.GlobalTag.globaltag = autoCond['run2_mc']
 
@@ -82,7 +83,8 @@ if usePrivateSQlite:
 # Define the input source
 if runOnData:
   #fname = '/store/relval/CMSSW_8_0_20/MET/MINIAOD/80X_dataRun2_relval_Candidate_2016_09_02_10_27_40_RelVal_met2016B-v1/00000/2E6B9138-1C7A-E611-AE72-0025905A60DE.root' 
-  fname = 'file:/afs/hephy.at/data/dspitzbart01/event_0.root'
+  #fname = 'file:/afs/hephy.at/data/dspitzbart01/event_0.root'
+  fname = 'file:/afs/hephy.at/work/r/rschoefbeck/CMS/tmp/CMSSW_10_2_9/src/JetMET/diagnosis/python/type1MET/tail.root'
 else:
   fname = '/store/relval/CMSSW_8_0_20/RelValZMM_13/MINIAODSIM/80X_mcRun2_asymptotic_2016_TrancheIV_v4_Tr4GT_v4-v1/00000/64F9C946-C57A-E611-AA05-0CC47A74527A.root'
 
@@ -147,7 +149,8 @@ process.MINIAODSIMoutput = cms.OutputModule("PoolOutputModule",
     compressionLevel = cms.untracked.int32(4),
     compressionAlgorithm = cms.untracked.string('LZMA'),
     eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
-    outputCommands = cms.untracked.vstring( "keep *_slimmedMETs_*_*",
+    outputCommands = cms.untracked.vstring( #"keep *_*_*_*",
+                                            "keep *_slimmedMETs_*_*",
                                             "keep *_slimmedMETsNoHF_*_*",
                                             "keep *_patPFMet_*_*",
                                             "keep *_patPFMetT1_*_*",
