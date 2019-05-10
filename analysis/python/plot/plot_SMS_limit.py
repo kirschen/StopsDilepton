@@ -5,7 +5,7 @@ from StopsDilepton.tools.helpers                import getObjFromFile
 from StopsDilepton.tools.interpolate            import interpolate, rebin
 from StopsDilepton.tools.niceColorPalette       import niceColorPalette
 from StopsDilepton.tools.user                   import plot_directory, analysis_results
-from StopsDilepton.analysis.run.limitHelpers    import getContours, cleanContour
+from StopsDilepton.analysis.plot.limitHelpers   import getContours, cleanContour
 
 ROOT.gROOT.SetBatch(True)
 
@@ -13,8 +13,8 @@ ROOT.gROOT.SetBatch(True)
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p5'
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p09'
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p05'
-#signalString = 'T2tt'
-signalString = "T2bW"
+signalString = 'T2tt'
+#signalString = "T2bW"
 
 defFile= os.path.join(analysis_results, "fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
 

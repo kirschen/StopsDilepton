@@ -12,7 +12,6 @@ class MCBasedEstimate(SystematicEstimator):
     def __init__(self, name, sample, cacheDir=None):
         super(MCBasedEstimate, self).__init__(name, cacheDir=cacheDir)
         self.sample=sample
-        print self.sample
         # FastSim and 76X only for the MCBasedEstimate. Dirty. Looks whether one of the samples is fastsim.
         self.isFastSim = getattr(sample, "isFastSim", False) 
         
@@ -29,9 +28,6 @@ class MCBasedEstimate(SystematicEstimator):
 
         elif channel=='SF':
             # 'all' is the total of all contributions
-            print "########## Summing up #############"
-            for c in ['MuMu', 'EE']:
-                print self.cachedEstimate(region, c, setup)
             return sum([self.cachedEstimate(region, c, setup) for c in ['MuMu', 'EE']])
 
         else:

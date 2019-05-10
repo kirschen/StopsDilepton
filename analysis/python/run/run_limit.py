@@ -251,11 +251,10 @@ def wrapper(s):
                 c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators][1:] + [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ], niceName)
 #                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators], niceName)
                 for e in setup.estimators:
-                  print channel, e.name, setup, r
                   name = e.name.split('-')[0]
                   expected = e.cachedEstimate(r, channel, setup)
-                  print e.name, expected
                   total_exp_bkg += expected.val
+                  logger.info("Expectation for process %s: %s", e.name, expected.val)
                   if e.name.count('TTJets'):
                     if len(setup.regions) == len(regionsLegacy[1:]):     divider = 6
                     elif len(setup.regions) == len(regionsLegacy[1:])-1:
@@ -268,7 +267,7 @@ def wrapper(s):
                     elif len(setup.regions) == len(regionsDM1[1:]): divider = 3
                     elif len(setup.regions) == len(regionsDM5[1:]): divider = 2
                     else:                                           divider = 0 # Was 0, think about changing to 1 for ttZ sideband
-                    logger.info("Splitting SRs into ttbar and ttZ dominated regions at signal region %s",divider)
+                    #logger.info("Splitting SRs into ttbar and ttZ dominated regions at signal region %s",divider)
                     if (setup.regions != noRegions and (r in setup.regions[divider:])):
                         norm_G  = 0.25
                         norm_NG = 0.50
@@ -351,7 +350,6 @@ def wrapper(s):
                 if args.expected:
                     c.specifyObservation(binname, int(round(total_exp_bkg,0)))
                 else:
-                    print "Data", r, channel
                     c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
                 #signal
@@ -438,13 +436,13 @@ def wrapper(s):
         else:
           res = c.calcLimit(cardFileName)#, options="--run blind")
           c.calcNuisances(cardFileName)
-          limitCache.add(sConfig, res, save=True)
+          limitCache.add(sConfig, res)
     else:
         if useCache and not overWrite and signifCache.contains(sConfig):
             res = signifCache.get(sConfig)
         else:
             res = c.calcSignif(cardFileName)
-            signifCache.add(sConfig,res,save=True)
+            signifCache.add(sConfig,res)
     
     #print xSecScale
     if xSecScale != 1:
