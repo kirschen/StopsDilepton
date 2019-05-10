@@ -1,3 +1,35 @@
+# Get estimates
+
+Example command:
+```
+python run_estimates.py --selectEstimator TTJets --year 2018 --logLevel DEBUG
+```
+This will get you all the estimates for TTJets (which can take some time).
+You need to run over `TTJets, DY, TTZ, other, multiBoson, Data` to be prepared.
+Options that might be needed are to only run over the DYVV control region, in order to do so add the `--control DYVV` option.
+Only one region can be selected by using `--selectRegion 1`.
+For a quick check of the central values (omitting systematic uncertainties), use `--noSystematics`.
+If you want to submit jobs to the batch system you should also set `--nThreads 1` to not kill the batch system.
+
+# Run limits
+Example command:
+```
+python run_limit.py --year 2018 --only T2tt_800_0 --expected
+```
+To only run over the DYVV CR use the `--controlDYVV`.
+If you decide to just run in the CR you can also remove the `--expected` option.
+Using `--fitAll` will run the fit in signal and control regions.
+Be very careful to use `--expected` in this case.
+
+# Plot limits
+Run `run_limit.py` without the only option to get the limits on all points.
+You should get a root file with the 2D histogram in the result directory.
+The `plot_SMS_limit.py` script in the plot directory should make a nice plot out of it (not tested with new setup yet).
+
+----------------------
+Old MVA explaination below (outdated!)
+----------------------
+
 For MVA studies we only use MC, no Data (at least for now).
 
 Samples for SM backgrounds are defined in
