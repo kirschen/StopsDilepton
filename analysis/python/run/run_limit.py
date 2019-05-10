@@ -128,7 +128,7 @@ else:                       subDir += 'signalOnly'
 
 baseDir = os.path.join(setup.analysis_results, subDir)
 
-limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension)
+limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension, 'expected' if args.expected else 'observed')
 overWrite   = (args.only is not None) or args.overwrite
 if args.keepCard:
     overWrite = False
@@ -136,10 +136,10 @@ useCache    = True
 verbose     = True
 
 if not os.path.exists(limitDir): os.makedirs(limitDir)
-cacheFileName = os.path.join(limitDir, 'calculatedLimits.pkl')
+cacheFileName = os.path.join(limitDir, 'calculatedLimits')
 limitCache    = Cache(cacheFileName, verbosity=2)
 
-cacheFileNameS  = os.path.join(limitDir, 'calculatedSignifs.pkl')
+cacheFileNameS  = os.path.join(limitDir, 'calculatedSignifs')
 signifCache     = Cache(cacheFileNameS, verbosity=2)
 
 if   args.signal == "T2tt":                         fastSim = True
@@ -325,7 +325,7 @@ def wrapper(s):
                         if name == 'TTJetsF':
                             c.specifyUncertainty('topFakes', binname, name, 1.50)#1.5
 
-                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.5)
+                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.75)
 
                         if e.name.count('DY'):
                             c.specifyUncertainty('DY',         binname, name, 1/(1+0.5))#1.5
@@ -349,8 +349,10 @@ def wrapper(s):
 
                 if args.expected:
                     c.specifyObservation(binname, int(round(total_exp_bkg,0)))
+                    logger.info("Expected observation: %s", int(round(total_exp_bkg,0)))
                 else:
                     c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
+                    logger.info("Observation: %s", int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
                 #signal
                 eSignal.isSignal = True
