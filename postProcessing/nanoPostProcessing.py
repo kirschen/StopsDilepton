@@ -49,6 +49,7 @@ from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons
 genSearch = GenSearch()
 
 xSecModifications = {
+    # low mass DY k-factor. analysis specific modification, won't change the central sample file.
     'DYJetsToLL_M4to':     {'kFactor': 1.23, 'xsec':None},
     'DYJetsToLL_M5to':     {'kFactor': 1.23, 'xsec':None},
     'DYJetsToLL_M10to':    {'kFactor': 1.23, 'xsec':None},
