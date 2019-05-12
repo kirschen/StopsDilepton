@@ -126,7 +126,7 @@ elif args.controlTTZ:       subDir += 'controlTTZ'
 elif args.significanceScan: subDir += 'significance'
 else:                       subDir += 'signalOnly'
 
-baseDir = os.path.join(setup.analysis_results, subDir)
+baseDir = os.path.join(setup.analysis_results, str(year), subDir)
 
 limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension, 'expected' if args.expected else 'observed')
 overWrite   = (args.only is not None) or args.overwrite

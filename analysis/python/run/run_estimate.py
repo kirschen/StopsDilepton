@@ -17,7 +17,7 @@ parser.add_option("--aggregate",             dest="aggregate",             defau
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels, trilepChannels
 from StopsDilepton.analysis.estimators   import *
-from StopsDilepton.analysis.regions      import regionsLegacy
+from StopsDilepton.analysis.regions      import regionsLegacy, noRegions
 
 from StopsDilepton.analysis.Setup import Setup
 
