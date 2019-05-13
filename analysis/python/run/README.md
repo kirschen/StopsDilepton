@@ -6,7 +6,7 @@ python run_estimates.py --selectEstimator TTJets --year 2018 --logLevel DEBUG
 ```
 This will get you all the estimates for TTJets (which can take some time).
 You need to run over `TTJets, DY, TTZ, other, multiBoson, Data` to be prepared.
-Options that might be needed are to only run over the DYVV control region, in order to do so add the `--control DYVV` option.
+To also get the estimates for all the control regions you also need to run the estimates for `DYVV, TTZ1, TTZ2, TTZ3, TTZ4, TTZ5` by using the `--control` option.
 Only one region can be selected by using `--selectRegion 1`.
 For a quick check of the central values (omitting systematic uncertainties), use `--noSystematics`.
 If you want to submit jobs to the batch system you should also set `--nThreads 1` to not kill the batch system.
@@ -17,9 +17,9 @@ Example command:
 python run_limit.py --year 2018 --only T2tt_800_0 --expected
 ```
 To only run over the DYVV CR use the `--controlDYVV`.
-If you decide to just run in the CR you can also remove the `--expected` option.
+If you decide to just run in the CR you can also remove the `--expected` option which will then take the observed results from data.
 Using `--fitAll` will run the fit in signal and control regions.
-Be very careful to use `--expected` in this case.
+Be very careful to use `--expected` in this case in order to not unblind!
 
 # Plot limits
 Run `run_limit.py` without the only option to get the limits on all points.
