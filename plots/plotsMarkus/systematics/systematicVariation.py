@@ -184,7 +184,7 @@ elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
-    mc              = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
+    mc              = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
 
 try:
   data_sample = eval(args.era)
@@ -448,7 +448,7 @@ for mode in modes:
             weight          = mc_weight )
         plots.append( dl_mt2blbl_mc )
     
-    nBtagBinning = [5, 1, 6] if args.selection.count('btag1p') else [1,0,1]
+    nBtagBinning = [5, 0, 6] 
     if args.variation == 'central':
         nbtags_data   = Plot(
             name        = "nbtags_data",
@@ -858,7 +858,7 @@ for mode in all_modes:
             plotting.draw(plot,
               plot_directory = plot_directory_,
               ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
-              logX = False, logY = log, sorting = False,
+              logX = False, logY = log, sorting = True,
               yRange = (0.03, "auto") if log else (0.001, "auto"),
               #scaling = {0:1},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
