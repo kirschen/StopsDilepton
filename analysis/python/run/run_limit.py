@@ -126,9 +126,9 @@ elif args.controlTTZ:       subDir += 'controlTTZ'
 elif args.significanceScan: subDir += 'significance'
 else:                       subDir += 'signalOnly'
 
-baseDir = os.path.join(setup.analysis_results, subDir)
+baseDir = os.path.join(setup.analysis_results, str(year), subDir)
 
-limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension)
+limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension, 'expected' if args.expected else 'observed')
 overWrite   = (args.only is not None) or args.overwrite
 if args.keepCard:
     overWrite = False
@@ -136,10 +136,10 @@ useCache    = True
 verbose     = True
 
 if not os.path.exists(limitDir): os.makedirs(limitDir)
-cacheFileName = os.path.join(limitDir, 'calculatedLimits.pkl')
+cacheFileName = os.path.join(limitDir, 'calculatedLimits')
 limitCache    = Cache(cacheFileName, verbosity=2)
 
-cacheFileNameS  = os.path.join(limitDir, 'calculatedSignifs.pkl')
+cacheFileNameS  = os.path.join(limitDir, 'calculatedSignifs')
 signifCache     = Cache(cacheFileNameS, verbosity=2)
 
 if   args.signal == "T2tt":                         fastSim = True
@@ -251,11 +251,10 @@ def wrapper(s):
                 c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators][1:] + [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ], niceName)
 #                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators], niceName)
                 for e in setup.estimators:
-                  print channel, e.name, setup, r
                   name = e.name.split('-')[0]
                   expected = e.cachedEstimate(r, channel, setup)
-                  print e.name, expected
                   total_exp_bkg += expected.val
+                  logger.info("Expectation for process %s: %s", e.name, expected.val)
                   if e.name.count('TTJets'):
                     if len(setup.regions) == len(regionsLegacy[1:]):     divider = 6
                     elif len(setup.regions) == len(regionsLegacy[1:])-1:
@@ -268,7 +267,7 @@ def wrapper(s):
                     elif len(setup.regions) == len(regionsDM1[1:]): divider = 3
                     elif len(setup.regions) == len(regionsDM5[1:]): divider = 2
                     else:                                           divider = 0 # Was 0, think about changing to 1 for ttZ sideband
-                    logger.info("Splitting SRs into ttbar and ttZ dominated regions at signal region %s",divider)
+                    #logger.info("Splitting SRs into ttbar and ttZ dominated regions at signal region %s",divider)
                     if (setup.regions != noRegions and (r in setup.regions[divider:])):
                         norm_G  = 0.25
                         norm_NG = 0.50
@@ -302,7 +301,7 @@ def wrapper(s):
                         if 'TTJets' in name: uncScale = 1#./sqrt(norm_G**2 + norm_NG**2 + norm_F**2) # scaling of uncertainties to be used in the future
                         else: uncScale = 1
                         #print "Process", name, "uncertainty scale", uncScale
-                        c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('PU',       binname, name, 1 + 0.05 )#e.PUSystematic(         r, channel, setup).val * uncScale )
                         c.specifyUncertainty('JEC',      binname, name, 1 + 0.03 )#e.JECSystematic(        r, channel, setup).val * uncScale )
                         c.specifyUncertainty('unclEn',   binname, name, 1 + 0.05 )#e.unclusteredSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty('JER',      binname, name, 1 + 0.03 )#e.JERSystematic(        r, channel, setup).val * uncScale )
@@ -326,7 +325,7 @@ def wrapper(s):
                         if name == 'TTJetsF':
                             c.specifyUncertainty('topFakes', binname, name, 1.50)#1.5
 
-                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.5)
+                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.75)
 
                         if e.name.count('DY'):
                             c.specifyUncertainty('DY',         binname, name, 1/(1+0.5))#1.5
@@ -350,9 +349,10 @@ def wrapper(s):
 
                 if args.expected:
                     c.specifyObservation(binname, int(round(total_exp_bkg,0)))
+                    logger.info("Expected observation: %s", int(round(total_exp_bkg,0)))
                 else:
-                    print "Data", r, channel
                     c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
+                    logger.info("Observation: %s", int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
                 #signal
                 eSignal.isSignal = True
@@ -438,13 +438,13 @@ def wrapper(s):
         else:
           res = c.calcLimit(cardFileName)#, options="--run blind")
           c.calcNuisances(cardFileName)
-          limitCache.add(sConfig, res, save=True)
+          limitCache.add(sConfig, res)
     else:
         if useCache and not overWrite and signifCache.contains(sConfig):
             res = signifCache.get(sConfig)
         else:
             res = c.calcSignif(cardFileName)
-            signifCache.add(sConfig,res,save=True)
+            signifCache.add(sConfig,res)
     
     #print xSecScale
     if xSecScale != 1:

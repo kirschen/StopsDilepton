@@ -2,6 +2,7 @@
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
+parser.add_option("--noSystematics",         dest="noSystematics",         default = False,             action="store_true", help="no systematics?")
 parser.add_option("--selectEstimator",       dest="selectEstimator",       default=None,                action="store",      help="select estimator?")
 parser.add_option("--selectRegion",          dest="selectRegion",          default=None, type="int",    action="store",      help="select region?")
 parser.add_option("--year",                  dest="year",                  default=2016, type="int",    action="store",      help="Which year?")
@@ -16,7 +17,7 @@ parser.add_option("--aggregate",             dest="aggregate",             defau
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels, trilepChannels
 from StopsDilepton.analysis.estimators   import *
-from StopsDilepton.analysis.regions      import regionsLegacy
+from StopsDilepton.analysis.regions      import regionsLegacy, noRegions
 
 from StopsDilepton.analysis.Setup import Setup
 
@@ -72,7 +73,7 @@ if isFastSim:
 if options.control:
   if   options.control == "DY":   setup = setup.sysClone(parameters={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': True})
   elif options.control == "VV":   setup = setup.sysClone(parameters={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': True,  'dPhiInv': False})
-  elif options.control == "DYVV": setup = setup.sysClone(parameters={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': True, 'dPhiInv': False})
+  elif options.control == "DYVV": setup = setup.sysClone(parameters={'zWindow' : 'onZ', 'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False})
   elif options.control == "TTZ1": setup = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(2,2),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
   elif options.control == "TTZ2": setup = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(1,1),  'dPhi': False, 'dPhiInv': False})
   elif options.control == "TTZ3": setup = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
@@ -94,7 +95,7 @@ for channel in (trilepChannels if (options.control and options.control.count('TT
     for (i, r) in enumerate(allRegions):
         if options.selectRegion is not None and options.selectRegion != i: continue
         jobs.append((r, channel, setup))
-        if not estimate.isData:
+        if not estimate.isData and not options.noSystematics:
             if estimate.isSignal: jobs.extend(estimate.getSigSysJobs(r, channel, setup, isFastSim))
             else:                 jobs.extend(estimate.getBkgSysJobs(r, channel, setup))
 
@@ -112,6 +113,6 @@ for channel in (['all'] if ((options.control and options.control.count('TTZ')) o
         if options.selectRegion is not None and options.selectRegion != i: continue
         if options.useGenMet: estimate.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'genMet'}), save=True)
         else: estimate.cachedEstimate(r, channel, setup, save=True, overwrite=options.overwrite)
-        if not estimate.isData:
+        if not estimate.isData and not options.noSystematics:
             if estimate.isSignal: map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getSigSysJobs(r, channel, setup, isFastSim))
             else:                 map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getBkgSysJobs(r, channel, setup))

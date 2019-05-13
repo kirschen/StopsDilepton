@@ -67,21 +67,21 @@ class Setup:
 
         if year == 2016:
             top         = Top_pow_16
-            DY          = DY_LO_16
+            DY          = DY_HT_LO_16
             TTZ         = TTZ_16
             multiBoson  = multiBoson_16
             TTXNoZ      = TTXNoZ_16
             data        = Run2016
         elif year == 2017:
             top         = Top_pow_17
-            DY          = DY_LO_17
+            DY          = DY_HT_LO_17
             TTZ         = TTZ_17
             multiBoson  = multiBoson_17
             TTXNoZ      = TTXNoZ_17
             data        = Run2017
         elif year == 2018:
             top         = Top_pow_18
-            DY          = DY_LO_18 ## update to HT binned samples
+            DY          = DY_HT_LO_18
             TTZ         = TTZ_18
             multiBoson  = multiBoson_18
             TTXNoZ      = TTXNoZ_18
@@ -110,7 +110,7 @@ class Setup:
         return '_'.join(self.prefixes+[self.preselection('MC')['prefix']])
 
     def defaultCacheDir(self):
-        cacheDir = os.path.join(self.analysis_results, self.prefix(), 'cacheFiles')
+        cacheDir = os.path.join(self.analysis_results, str(self.year), self.prefix(), 'cacheFiles')
         logger.info('Default cache dir is: %s', cacheDir)
         return cacheDir
 
