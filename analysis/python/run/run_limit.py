@@ -253,6 +253,7 @@ def wrapper(s):
                 for e in setup.estimators:
                   name = e.name.split('-')[0]
                   expected = e.cachedEstimate(r, channel, setup)
+                  expected = expected * args.scale
                   total_exp_bkg += expected.val
                   logger.info("Expectation for process %s: %s", e.name, expected.val)
                   if e.name.count('TTJets'):
@@ -278,19 +279,19 @@ def wrapper(s):
                         norm_F  = 0.01
                     TT_SF = 1
                     if TT_SF != 1: logger.warning("Scaling ttbar background by %s", TT_SF)
-                    c.specifyExpectation(binname, 'TTJetsG',  norm_G  * expected.val*args.scale * TT_SF)
-                    c.specifyExpectation(binname, 'TTJetsNG', norm_NG * expected.val*args.scale * TT_SF)
-                    c.specifyExpectation(binname, 'TTJetsF',  norm_F  * expected.val*args.scale * TT_SF)
+                    c.specifyExpectation(binname, 'TTJetsG',  norm_G  * expected.val * TT_SF)
+                    c.specifyExpectation(binname, 'TTJetsNG', norm_NG * expected.val * TT_SF)
+                    c.specifyExpectation(binname, 'TTJetsF',  norm_F  * expected.val * TT_SF)
                   elif e.name.count("DY"):
                     DY_SF = 1#.31 + 0.19*(-1)
-                    c.specifyExpectation(binname, name, expected.val*args.scale*DY_SF)
+                    c.specifyExpectation(binname, name, expected.val*DY_SF)
                     if DY_SF != 1: logger.warning("Scaling DY background by %s", DY_SF)
                   elif e.name.count("TTZ"):
                     TTZ_SF = 1
-                    c.specifyExpectation(binname, name, expected.val*args.scale*TTZ_SF)
+                    c.specifyExpectation(binname, name, expected.val*TTZ_SF)
                     if TTZ_SF != 1: logger.warning("Scaling ttZ background by %s", TTZ_SF)
                   else:
-                    c.specifyExpectation(binname, name, expected.val*args.scale)
+                    c.specifyExpectation(binname, name, expected.val)
 
                   if expected.val>0:
                       if e.name.count('TTJets'):
@@ -368,13 +369,15 @@ def wrapper(s):
                     signalSetup = setup.sysClone()
                     signal = e.cachedEstimate(r, channel, signalSetup)
 
+                signal = signal * args.scale
+
                 #if args.noSignal:
                 #    signal.val = 0
                 #    signal.sigma = 1
 
                 #signal.val, signal.sigma = 0.1, 1.0
 
-                c.specifyExpectation(binname, 'signal', args.scale*signal.val*xSecScale )
+                c.specifyExpectation(binname, 'signal', signal.val*xSecScale )
 
 
                 if signal.val>0:
