@@ -27,7 +27,7 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='v0p3')
 argParser.add_argument('--year',               action='store', type=int,      default=2016)
-argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-relIso0.12-looseLeptonVeto-mll20')
+argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-relIso0.12-looseLeptonVeto-mll20-allZ')
 args = argParser.parse_args()
 
 # Logger
@@ -45,11 +45,12 @@ from Analysis.Tools.puReweighting import getReweightingFunction
 if args.year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    DY_NLO_16         = Sample.fromDirectory( "DY_NLO", "/afs/hephy.at/data/rschoefbeck02/nanoTuples/stops_2016_nano_v0p7/dilep/DYJetsToLL_M50_ext2" )
-    DY_NLO_M10to50_16 = Sample.fromDirectory( "DY_NLO", "/afs/hephy.at/data/rschoefbeck02/nanoTuples/stops_2016_nano_v0p7/dilep/DYJetsToLL_M10to50" )
+    DY_NLO_16         = Sample.fromDirectory( "DY_NLO_16", "/afs/hephy.at/data/rschoefbeck02/nanoTuples/stops_2016_nano_v0p7/dilep/DYJetsToLL_M50_ext2" )
+    DY_NLO_M10to50_16 = Sample.fromDirectory( "DY_NLO_M10to50_16", "/afs/hephy.at/data/rschoefbeck02/nanoTuples/stops_2016_nano_v0p7/dilep/DYJetsToLL_M10to50" )
 
+    DY_NLO, DY_NLO_lowM, DY_LO, DY_LO_lowM = DY_NLO_16, DY_NLO_M10to50_16, DY_HT_LO_M50_16, DY_HT_LO_M5to50_16
 
-samples = [ DY_HT_LO_M5to50_16,  DY_HT_LO_M50_16, DY_NLO_16, DY_NLO_M10to50_16 ]
+samples = [ DY_NLO, DY_NLO_lowM, DY_LO, DY_LO_lowM ]
 
 # Text on the plots
 tex = ROOT.TLatex()
@@ -123,11 +124,40 @@ def getLeptonSelection( mode ):
 
 
 for sample in samples:
-    sample.setSelectionString(  "&&".join([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection("SF"), cutInterpreter.cutString(args.selection)]) )
+    sample.setSelectionString(  "&&".join([getFilterCut(isData=False, year=args.year), getLeptonSelection("SF"), cutInterpreter.cutString(args.selection)]) )
     if args.small:
-        sample.normalization = 1.
-        #sample.reduceFiles( factor = 40 )
         sample.reduceFiles( to=1)
-        sample.scale /= sample.normalization
+
+samples = [ DY_NLO, DY_NLO_lowM, DY_LO, DY_LO_lowM ]
+
+h_DY_NLO            = DY_NLO.get1DHistoFromDraw("dl_mass", [50,10,150], "(1)", "weight")
+h_DY_NLO.style      = styles.lineStyle( ROOT.kOrange, dashed = True)
+h_DY_NLO.legendText = "NLO M50" 
+h_DY_NLO_lowM       = DY_NLO_lowM.get1DHistoFromDraw("dl_mass", [50,10,150], "(1)", "weight")
+h_DY_NLO_lowM.style = styles.lineStyle( ROOT.kRed, dashed = True)
+h_DY_NLO_lowM.legendText = "NLO M10to50" 
+
+h_DY_NLO_tot        = h_DY_NLO.Clone()
+h_DY_NLO_tot.Add( h_DY_NLO_lowM )
+h_DY_NLO_tot.style  = styles.lineStyle( ROOT.kRed)
+h_DY_NLO_tot.legendText = "NLO inc." 
+
+h_DY_LO             = DY_LO.get1DHistoFromDraw("dl_mass", [50,10,150], "(1)", "weight")
+h_DY_LO.style       = styles.lineStyle( ROOT.kGreen, dashed = True)
+h_DY_LO.legendText  = "LO M50" 
+h_DY_LO_lowM        = DY_LO_lowM.get1DHistoFromDraw("dl_mass", [50,10,150], "(1)", "weight")
+h_DY_LO_lowM.style  = styles.lineStyle( ROOT.kBlue, dashed = True)
+h_DY_LO_lowM.legendText = "LO M10to50" 
+
+h_DY_LO_tot         = h_DY_LO.Clone()
+h_DY_LO_tot.Add( h_DY_LO_lowM )
+h_DY_LO_tot.style   = styles.lineStyle( ROOT.kBlue)
+h_DY_LO_tot.legendText = "LO inc." 
 
 
+plot = Plot.fromHisto( args.selection+"_mll", [[h_DY_LO], [h_DY_LO_lowM], [h_DY_NLO_lowM], [h_DY_NLO], [h_DY_NLO_tot], [h_DY_LO_tot], ] )
+
+plotting.draw(plot, plot_directory = "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/DY/", logY = True, 
+    ratio = {'histos':[(4,5)], 'yRange':(0.5,2), 'texY':"NLO/LO"},
+    legend = ( [0.15, 0.6, 0.8, 0.9],2),
+    )

@@ -11,7 +11,7 @@ import copy
 import array
 import operator
 
-from math                                import sqrt, cos, sin, pi, atan2
+from math                                import sqrt, cos, sin, pi, atan2, cosh
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
@@ -296,41 +296,52 @@ def drawPlots(plots, mode, dataMCScale):
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I", "RawMET_pt/F", "RawMET_phi/F"]
+read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I", "RawMET_pt/F", "RawMET_phi/F", "MET_pt_min/F"]
 read_variables += ["event/l", "luminosityBlock/I", "run/I"]
 
 sequence = []
 
-#from StopsDilepton.tools.objectSelection    import muonSelector, eleSelector, getGoodMuons, getGoodElectrons, getGoodJets, getAllJets
-#ele_selector = eleSelector( "tight", year = year )
-#mu_selector = muonSelector( "tight", year = year )
-#
-#jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F'] 
-#read_variables += [\
-#    TreeVariable.fromString('nElectron/I'),
-#    VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F]'),
-#    TreeVariable.fromString('nMuon/I'),
-#    VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
-#    TreeVariable.fromString('nJet/I'),
-#    VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) ),
-#]
-#
-#def make_all_jets( event, sample ):
-#
-#    electrons_pt10  = getGoodElectrons(event, ele_selector = ele_selector)
-#    muons_pt10      = getGoodMuons(event, mu_selector = mu_selector )
-#    for e in electrons_pt10:
-#        e['pdgId']      = int( -11*e['charge'] )
-#    for m in muons_pt10:
-#        m['pdgId']      = int( -13*m['charge'] )
-#    leptons_pt10 = electrons_pt10+muons_pt10
-#    leptons_pt10.sort(key = lambda p:-p['pt'])
-#
-#    leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
-#    leptons.sort(key = lambda p:-p['pt'])
-#    reallyAllJets= getAllJets(event, leptons, ptCut=30, absEtaCut=99, jetVars=map( lambda s:s.split('/')[0], jetVars), jetCollections=["Jet"], idVar='jetId') # keeping robert's comment: ... yeah, I know.
-#
-#sequence.append( make_all_jets )
+if "2017" in args.era:
+    from StopsDilepton.tools.objectSelection    import muonSelector, eleSelector, getGoodMuons, getGoodElectrons, getGoodJets, getAllJets
+    ele_selector = eleSelector( "tight", year = year )
+    mu_selector = muonSelector( "tight", year = year )
+
+    jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F'] 
+    read_variables += [\
+        TreeVariable.fromString('nElectron/I'),
+        VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F]'),
+        TreeVariable.fromString('nMuon/I'),
+        VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
+        TreeVariable.fromString('nJet/I'),
+        VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) ),
+    ]
+
+    def make_all_jets( event, sample ):
+
+        electrons_pt10  = getGoodElectrons(event, ele_selector = ele_selector)
+        muons_pt10      = getGoodMuons(event, mu_selector = mu_selector )
+        for e in electrons_pt10:
+            e['pdgId']      = int( -11*e['charge'] )
+        for m in muons_pt10:
+            m['pdgId']      = int( -13*m['charge'] )
+        leptons_pt10 = electrons_pt10+muons_pt10
+        leptons_pt10.sort(key = lambda p:-p['pt'])
+
+        leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
+        leptons.sort(key = lambda p:-p['pt'])
+        reallyAllJets= getAllJets(event, leptons, ptCut=30, absEtaCut=99, jetVars=map( lambda s:s.split('/')[0], jetVars), jetCollections=["Jet"], idVar='jetId') # keeping robert's comment: ... yeah, I know.
+    
+        event.nJet_EE = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1, reallyAllJets))
+        event.nJet_EE_pt30To50 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>30 and j['pt']<50, reallyAllJets))
+        event.nJet_EE_ptTo50 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']<50, reallyAllJets))
+        event.nJet_EE_ptTo40 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']<40, reallyAllJets))
+        event.nJet_EE_ptTo30 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']<30, reallyAllJets))
+        event.nJet_EE_pt30 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>30, reallyAllJets))
+        event.nJet_EE_pt40 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>40, reallyAllJets))
+        event.nJet_EE_pt50 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>50, reallyAllJets))
+
+        event.badJetE = sum( [ j['pt']*j['neEmEF']*cosh(j['eta']) for j in reallyAllJets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
+    sequence.append( make_all_jets )
 
 ## veto list
 #def make_veto( event, sample ):
@@ -536,6 +547,20 @@ for index, mode in enumerate(allModes):
       binning=[400/20,0,400],
   ))
 
+  if "2017" in args.era:
+    plots.append(Plot(
+        texX = 'min E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
+        attribute = TreeVariable.fromString( "MET_pt_min/F" ),
+        binning=[400/20,0,400],
+    ))
+    plots.append(Plot(name = "MET_pt_min_delta",
+        texX = '#Delta min E_{T}^{miss} (GeV)', texY = 'Number of Events / 10 GeV',
+        attribute = lambda event, sample: event.met_pt - event.MET_pt_min,
+        binning=[200/10,0,200],
+    ))
+
+#Sum$(abs(Jet_eta)>2.6&&abs(Jet_eta)<3.1&&Jet_pt<50)==0
+
   #plots.append(Plot( name = "met_pt_raw",
   #    texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
   #    attribute = TreeVariable.fromString( "RawMET_pt/F" ),
@@ -625,6 +650,52 @@ for index, mode in enumerate(allModes):
     attribute = TreeVariable.fromString('nJetGood/I'),
     binning=[14,0,14],
   ))
+  if "2017" in args.era:  
+    plots.append(Plot( name = "nJet_EE",
+      texX = 'number of jets', texY = 'Number of Events',
+      attribute = lambda event, sample: event.nJet_EE,
+      binning=[14,0,14],
+    ))
+    plots.append(Plot( name = "nJet_EE_pt30To50",
+      texX = 'number of jets', texY = 'Number of Events',
+      attribute = lambda event, sample: event.nJet_EE_pt30To50,
+      binning=[14,0,14],
+    ))
+    plots.append(Plot( name = "nJet_EE_ptTo50",
+      texX = 'number of jets', texY = 'Number of Events',
+      attribute = lambda event, sample: event.nJet_EE_ptTo50,
+      binning=[14,0,14],
+    ))
+    plots.append(Plot( name = "nJet_EE_ptTo40",
+      texX = 'number of jets', texY = 'Number of Events',
+      attribute = lambda event, sample: event.nJet_EE_ptTo40,
+      binning=[14,0,14],
+    ))
+    plots.append(Plot( name = "nJet_EE_ptTo30",
+      texX = 'number of jets', texY = 'Number of Events',
+      attribute = lambda event, sample: event.nJet_EE_ptTo30,
+      binning=[14,0,14],
+    ))
+    plots.append(Plot( name = "nJet_EE_pt50",
+      texX = 'number of jets', texY = 'Number of Events',
+      attribute = lambda event, sample: event.nJet_EE_pt50,
+      binning=[14,0,14],
+    ))
+    plots.append(Plot( name = "nJet_EE_pt40",
+      texX = 'number of jets', texY = 'Number of Events',
+      attribute = lambda event, sample: event.nJet_EE_pt40,
+      binning=[14,0,14],
+    ))
+    plots.append(Plot( name = "nJet_EE_pt30",
+      texX = 'number of jets', texY = 'Number of Events',
+      attribute = lambda event, sample: event.nJet_EE_pt30,
+      binning=[14,0,14],
+    ))
+    plots.append(Plot( name = "badJetE",
+      texX = 'badEEJetEnergy', texY = 'Number of Events',
+      attribute = lambda event, sample: event.badJetE,
+      binning=[40,0,400],
+    ))
 
   plots.append(Plot(
     texX = 'number of medium b-tags (CSVM)', texY = 'Number of Events',

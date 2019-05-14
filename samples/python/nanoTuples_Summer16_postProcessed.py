@@ -53,7 +53,7 @@ dirs['DY']               = ["DYJetsToLL_M50_ext2"]#, "DYJetsToLL_M10to50_LO" ]
 dirs['DY_LO']            = ["DYJetsToLL_M50_LO_ext1_comb", "DYJetsToLL_M10to50_LO"]
 dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 dirs['DY_HT_M50_LO']     =  DY_M50_HT 
-dirs['DY_HT_M5to50_LO']  =  DY_M50_HT 
+dirs['DY_HT_M5to50_LO']  =  DY_M5to50_HT 
 
 dirs['TTLep_pow']        = ["TTLep_pow"]
 
