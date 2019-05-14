@@ -36,6 +36,8 @@ special_cuts = {
     "gLepdR":            "(1)",
     "gJetdR":            "(1)",
    
+    "photondR":          "photonJetdR>0.3&&photonLepdR>0.3",
+
     "dPhiJet0":          "Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0",
     "antiHEM":           "Sum$( ( cos(met_phi-JetGood_phi)<-0.8 )*(Iteration$==1) )==0",
     "antiHEMv2":         "Sum$( ( cos(met_phi-JetGood_phi)<-0.8 )*(Iteration$<2) )==0",
