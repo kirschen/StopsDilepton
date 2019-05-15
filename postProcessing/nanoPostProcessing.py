@@ -194,9 +194,6 @@ for selectedSamples in options.samples:
         if selectedSamples == sample.name:
             samples.append(sample)
 
-if sample.isData:
-    json = sample.json # json already defined in sample repository
-
 if len(samples)==0:
     logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
     sys.exit(-1)
@@ -435,7 +432,6 @@ if sample.isData:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
-    sample.json = json
     lumiList = LumiList(os.path.expandvars(sample.json))
     logger.info( "Loaded json %s", sample.json )
 else:
@@ -1253,23 +1249,6 @@ def filler( event ):
             else:
                 l["lepGoodMatchIndex"] = -1
                 l["matchesPromptGoodLepton"] = 0
-#            if      l["n_t"]>0 and l["n_W"]>0 and l["n_B"]==0 and l["n_D"]==0 and l["n_tau"]==0:
-#                print "t->W->l"
-#            elif    l["n_t"]>0 and l["n_W"]==0 and l["n_B"]>0 and l["n_D"]==0 and l["n_tau"]==0:
-#                print "t->b->B->l"
-#            elif    l["n_t"]>0 and l["n_W"]==0 and l["n_B"]>0 and l["n_D"]>0 and l["n_tau"]==0:
-#                print "t->b->B->D->l"
-#            elif    l["n_t"]>0 and l["n_W"]>0 and l["n_B"]==0 and l["n_D"]==0 and l["n_tau"]>0 :
-#                print "t->W->tau->l"
-#            elif    l["n_t"]>0 and l["n_W"]>0 and l["n_B"]==0 and l["n_D"]>0 and l["n_tau"]==0:
-#                print "t->W->c->D->l"
-#            elif    l["n_t"]==0 and l["n_W"]==0 and l["n_B"]>0 and l["n_D"]>=0 and l["n_tau"]==0:
-#                print l['pdgId'], l['pt'], l['phi'], l['eta'], ",".join(pdgToName( gPart[x]['pdgId']) for x in genSearch.ancestry(l) )
-#                for p in genSearch.ancestry(l):
-#                    print p, gPart[p]
-#            else:
-#                pass
-                # print l['pdgId'], l['pt'], l['phi'], l['eta'], ",".join(pdgToName(gPart[x]['pdgId']) for x in genSearch.ancestry(l))
         event.nGenLep   = len(gLep)
         for iLep, lep in enumerate(gLep):
             for b in genLepVarNames:

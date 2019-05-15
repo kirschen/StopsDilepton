@@ -20,10 +20,10 @@ from RootTools.core.standard import *
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
-argParser.add_argument('--selection',          action='store',      default='lepSel-njet01-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='lepSel-metPhiPeak-met140-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ-mt2ll100')
 argParser.add_argument('--mode',               action='store',      default='mumu', choices = ['mumu','mue','ee'])
-argParser.add_argument('--year',               action='store',      default=2018, type=int)
-argParser.add_argument('--mt2ll',              action='store',      default=140, type=int)
+#argParser.add_argument('--year',               action='store',      default=2018, type=int)
+argParser.add_argument('--era',                action='store', type=str,      default="Run2018D")
 args = argParser.parse_args()
 
 # Logger
@@ -33,36 +33,43 @@ logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 # Datasets
-if args.year == 2016:
+if "2016" in args.era:
+    year = 2016
+elif "2017" in args.era:
+    year = 2017
+elif "2018" in args.era:
+    year = 2018
+
+logger.info( "Working in year %i", year )
+
+if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    if args.mode=='mumu':
-        data_sample = DoubleMuon_Run2016
-    elif args.mode == 'mue':
-        data_sample = MuonEG_Run2016 
-    elif args.mode == 'ee':
-        data_sample = DoubleEG_Run2016
-elif args.year == 2017:
+    #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
+    #    nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
+elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    if args.mode=='mumu':
-        data_sample = DoubleMuon_Run2017
-    elif args.mode == 'mue':
-        data_sample = MuonEG_Run2017 
-    elif args.mode == 'ee':
-        data_sample = DoubleEG_Run2017
-elif args.year == 2018:
+    #if args.reweightPU:
+    #    # need sample based weights
+    #    pass
+elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    if args.mode=='mumu':
-        data_sample = DoubleMuon_Run2018
-    elif args.mode == 'mue':
-        data_sample = MuonEG_Run2018 
-    elif args.mode == 'ee':
-        data_sample = DoubleEG_Run2018
+
+    #from StopsDilepton.tools.vetoList import vetoList
+    #Run2018D.vetoList = vetoList.fromDirectory('/afs/hephy.at/data/rschoefbeck02/StopsDilepton/splitMuonVeto/')
+    #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
+    #    nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+
+try:
+  data_sample = eval(args.era)
+except Exception as e:
+  logger.error( "Didn't find %s", args.era )
+  raise e
 
 # work directory
-directory = "%i_%s_%s" % ( args.year, args.mode, args.selection )
+directory = "%s_%s_%s" % ( args.era, args.mode, args.selection )
 if not os.path.exists( directory):
     os.makedirs( directory )
 
@@ -75,7 +82,7 @@ def getLeptonSelection( mode ):
   elif mode=="SF":   return "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)" + offZ
   elif mode=="all":   return "nGoodMuons+nGoodElectrons==2&&isOS&&(((isEE||isMuMu)&&" + offZ+")||isEMu)"
 
-selectionString = "&&".join( [ 'dl_mt2ll>%i'%args.mt2ll, cutInterpreter.cutString(args.selection), getLeptonSelection( args.mode ), getFilterCut(isData=True,year=args.year) ] )
+selectionString = "&&".join( [ cutInterpreter.cutString(args.selection), getLeptonSelection( args.mode ), getFilterCut(isData=True,year=year) ] )
 
 # postprocessed files
 postprocessed_files_pkl = os.path.join( directory, 'filenames_postprocessed.pkl')
@@ -84,7 +91,7 @@ if not os.path.exists(postprocessed_files_pkl):
     files = []
     for i_sub_sample, sub_sample in enumerate(data_sample.split( len( data_sample.files ) )):
         n = sub_sample.chain.GetEntries(selectionString)
-        logger.info( "File %i/%i: Found %i events", i_sub_sample, len( data_sample.files ), n)
+        logger.info( "File %i/%i: Found %i events in %s", i_sub_sample, len( data_sample.files ), n, sub_sample.files[0])
         if n>0:
             files.extend( sub_sample.files )
     pickle.dump( files, file( postprocessed_files_pkl, 'w' ))
@@ -145,7 +152,7 @@ if not os.path.exists(datasets_pkl):
     datasets = {}
     for run, lumi, event in run_lumi_evt:
         found = False
-        for pattern in patterns_miniAOD[args.year][args.mode]:
+        for pattern in patterns_miniAOD[year][args.mode]:
             dbs='dasgoclient -query="dataset dataset=%s run=%i"'%(pattern, run)
             dbsOut = _dasPopen(dbs).readlines()
             if len(dbsOut)==1:
@@ -160,7 +167,7 @@ if not os.path.exists(datasets_pkl):
                 logger.error( "Error in dasgoclient output: %r", dbsOut )
                 raise RuntimeError
         if not found:
-            logger.warning( "Didn't find %i:%i:%i in either of %s", run, lumi, event, ", ".join( patterns_miniAOD[args.year][args.mode] ) )
+            logger.warning( "Didn't find %i:%i:%i in either of %s", run, lumi, event, ", ".join( patterns_miniAOD[year][args.mode] ) )
     pickle.dump( datasets, file( datasets_pkl, 'w' ))
     logger.info( "Written miniAOD datasets per event to: %s", datasets_pkl)
 else:
