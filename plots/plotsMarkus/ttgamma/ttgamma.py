@@ -111,7 +111,7 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
 
 def drawPlots(plots, mode, dataMCScale):
   for log in [False, True]:
-    plot_directory_ = os.path.join(plot_directory, 'analysisPlots', args.plot_directory, args.era, mode + ("_log" if log else ""), args.selection)
+    plot_directory_ = os.path.join(plot_directory, 'analysisPlots', args.era, args.plot_directory, mode + ("_log" if log else ""), args.selection)
     for plot in plots:
       if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
       if not args.noData: 
@@ -169,7 +169,7 @@ def make_mass_llg( event, sample ):
     event.mass_llg = sqrt(mass_llg2)
 
     # add offZ cut for mass_llg
-    if abs(event.mass_llg-91.1876)>15:
+    if not args.reweightBosonPt or abs(event.mass_llg-91.1876)>15:
         event.weight_llgOffZ = 1
     else:
         event.weight_llgOffZ = 0
@@ -210,20 +210,28 @@ if args.reweightBosonPt:
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     logger.info( "Now obtaining gamma -> Z reweighting histo" )
 
-    gamma_selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection("SF")])
+    leptonSelection = "nGoodMuons+nGoodElectrons==2&&isOS"
+    cutSelection = cutInterpreter.cutString("lepSel-njet2p-relIso0.12-looseLeptonVeto-mll40-dPhiJet0-dPhiJet1")
+#    leptonSelection = getLeptonSelection("SF") 
+
+    gamma_selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), leptonSelection, cutSelection])
     gamma_pt_histo = mc[1].get1DHistoFromDraw( "photon_pt", [100/5, 0, 100], selectionString=gamma_selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF" )
-    print "~~gamma histo integral %f"%gamma_pt_histo.Integral()
+    #print "~~gamma histo integral %f"%gamma_pt_histo.Integral()
     gamma_pt_histo.Scale(1./gamma_pt_histo.Integral() if gamma_pt_histo.Integral() != 0 else 1.)
 
-    Z_selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection("SF")])
-    Z_pt_histo  = mc[0].get1DHistoFromDraw( "Z_pt", [100/5, 0, 100], selectionString=Z_selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
-    print "~~Z histo integral %f"%gamma_pt_histo.Integral()
+    Z_selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), leptonSelection, cutSelection])
+    Z_pt_histo  = mc[0].get1DHistoFromDraw( "sqrt(2*l1_pt*l2_pt*(cosh(l1_eta-l2_eta)-cos(l1_phi-l2_phi)))", [100/5, 0, 100], selectionString=Z_selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
+    #print "~~Z histo integral %f"%Z_pt_histo.Integral()
     Z_pt_histo.Scale(1./Z_pt_histo.Integral() if Z_pt_histo.Integral() != 0 else 1.)
 
     def gammaToZRW( photon_pt ):
         i_bin = Z_pt_histo.FindBin( photon_pt )
         Z_val = Z_pt_histo.GetBinContent( i_bin )
-        return gamma_pt_histo.GetBinContent( i_bin )/Z_val if Z_val>0 else 1
+        gamma_val = gamma_pt_histo.GetBinContent( i_bin )
+        #print "photon_pt %f is in bin %i with Z_val %f: gamma_val %f ----(x %f)---> %f"%(photon_pt, i_bin, Z_val, gamma_val, Z_val/gamma_val if gamma_val>0 else 1., Z_val)
+        return Z_val/gamma_val if gamma_val>0 else 1
+        #return gamma_val/Z_val if Z_val>0 else 1
+        #return 1.
 
 
 #
@@ -290,12 +298,12 @@ for index, mode in enumerate(allModes):
     binning=[100/5,0,100], addOverFlowBin = 'upper',
   ))
 
-  plots.append(Plot(
-    name = "Z_pt",
-    texX = 'p_{T}(Z) (GeV)', texY = 'Number of Events / 5 GeV',
-    attribute = lambda event, sample: sqrt(2*event.l1_pt*event.l2_pt*(cosh(event.l1_eta-event.l2_eta)-cos(event.l1_phi-event.l2_phi))),
-    binning=[100/5,0,100], addOverFlowBin = 'upper',
-  ))
+#  plots.append(Plot(
+#    name = "Z_pt",
+#    texX = 'p_{T}(Z) (GeV)', texY = 'Number of Events / 5 GeV',
+#    attribute = lambda event, sample: sqrt(2*event.l1_pt*event.l2_pt*(cosh(event.l1_eta-event.l2_eta)-cos(event.l1_phi-event.l2_phi))),
+#    binning=[100/5,0,100], addOverFlowBin = 'upper',
+#  ))
 
   plots.append(Plot(
     texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events',
@@ -323,7 +331,7 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     name = 'dl_mt2ll_photonCalculated', 
-    texX = 'M_{T2}(ll) (#gamma included for t#bar{t}#gamma) (GeV)', texY = 'Number of Events / 20 GeV',
+    texX = 'M_{T2}(ll) (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
     attribute = lambda event, sample: event.dl_mt2llPlusPhoton,
     binning=[300/20, 0, 300]
   ))
@@ -342,6 +350,12 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+    texX = 'significance(E_{T}^{miss}) (GeV)', texY = 'Number of Events / 20 GeV',
+    attribute = TreeVariable.fromString( "MET_significance/F" ),
+    binning=[20,0,100]
+  ))
+
+  plots.append(Plot(
     texX = 'significance(E_{T}^{miss} + photon) (GeV)', texY = 'Number of Events / 20 GeV',
     attribute = TreeVariable.fromString( "metSig_photonEstimated/F" ),
     binning=[20,0,100]
@@ -351,6 +365,12 @@ for index, mode in enumerate(allModes):
     texX = 'm(ll#gamma) (GeV)', texY = 'Number of Events / 10 GeV',
     attribute = TreeVariable.fromString( "dlg_mass/F" ),
     binning=[310/10,50,360]
+  ))
+
+  plots.append(Plot(
+    texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 4 GeV',
+    attribute = TreeVariable.fromString( "dl_mass/F" ),
+    binning=[200/4,0,200],
   ))
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)

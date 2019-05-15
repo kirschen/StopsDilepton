@@ -42,9 +42,10 @@ argParser.add_argument('--variation_scaling', action='store_true', help='Scale t
 argParser.add_argument('--overwrite',         action='store_true',     help='Overwrite?')
 argParser.add_argument('--mode',              action='store',      default = 'all', choices = ['mumu', 'ee', 'mue', 'all'],   help='Which mode?')
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
-argParser.add_argument('--reweightPU',         action='store', default='Central', choices=[ 'Central', 'VUp'] )
+argParser.add_argument('--reweightPU',        action='store',      default='Central', choices=[ 'Central', 'VUp'] )
 #argParser.add_argument('--recoil',             action='store', type=str,      default="Central", choices = ["nvtx", "VUp", "Central"])
-argParser.add_argument('--era',                action='store', type=str,      default="Run2016")
+argParser.add_argument('--era',               action='store', type=str,      default="Run2016")
+argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional subdirectory for minor changes to the plots")
 
 args = argParser.parse_args()
 
@@ -134,6 +135,8 @@ variations = {
     'central'           : {'read_variables': [ '%s/F'%v for v in nominalMCWeights ]},
     'jesTotalUp'        : {'selectionModifier':jetSelectionModifier('jesTotalUp'),               'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jesTotalUp','list')]},
     'jesTotalDown'      : {'selectionModifier':jetSelectionModifier('jesTotalDown'),             'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jesTotalDown','list')]},
+    'jerUp'             : {'selectionModifier':jetSelectionModifier('jerUp'),                    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jerUp','list')]},
+    'jerDown'           : {'selectionModifier':jetSelectionModifier('jerDown'),                  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jerDown','list')]},
     'unclustEnUp'       : {'selectionModifier':metSelectionModifier('unclustEnUp'),              'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('unclustEnUp','list')]},
     'unclustEnDown'     : {'selectionModifier':metSelectionModifier('unclustEnDown'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('unclustEnDown','list')]},
     'PUUp'              : {'replaceWeight':(nominalPuWeight,upPUWeight),                         'read_variables' : [ '%s/F'%v for v in nominalMCWeights + [upPUWeight] ]},
@@ -355,7 +358,7 @@ if args.small:
     sample.scale /= sample.normalization
 
 # Fire up the cache
-dirDB = DirDB(os.path.join(plot_directory, 'systematicPlots', plot_subdirectory, args.selection, 'cache'))
+dirDB = DirDB(os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, 'cache'))
 
 # loop over modes
 for mode in modes:
@@ -448,12 +451,12 @@ for mode in modes:
             weight          = mc_weight )
         plots.append( dl_mt2blbl_mc )
     
-    nBtagBinning = [5, 0, 6] 
+    nBtagBinning = [6, 0, 6] 
     if args.variation == 'central':
         nbtags_data   = Plot(
             name        = "nbtags_data",
             texX        = 'number of b-tags (CSVM)', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
-            binning     = Binning.fromThresholds(nBtagBinning),
+            binning     = nBtagBinning,
             stack       = stack_data,
             attribute   = TreeVariable.fromString( "nBTag/I" ),
             weight      = data_weight )
@@ -462,7 +465,7 @@ for mode in modes:
     nbtags_mc  = Plot(\
         name            = "nbtags_mc",
         texX            = 'number of b-tags (CSVM)', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
-        binning         = Binning.fromThresholds(nBtagBinning),
+        binning         = nBtagBinning,
         stack           = stack_mc,
         attribute       = TreeVariable.fromString( selectionModifier("nBTag/I"))   if selectionModifier is not None else None,
         selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
@@ -627,14 +630,14 @@ if args.variation is not None:
 # Systematic pairs:( 'name', 'up', 'down' )
 systematics = [\
     {'name':'JEC',         'pair':('jesTotalUp', 'jesTotalDown')},
-    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown') },
+    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown')},
     {'name':'PU',          'pair':('PUUp', 'PUDown')},
     {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
     {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
     {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
-    #{'name': 'TopPt',     'pair':(  'TopPt', 'central'),},
-    #{'name': 'JER',       'pair':(  'JERUp', 'JERDown'),},
+    #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
+    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
 ]
 
 # loop over modes
@@ -848,7 +851,10 @@ for mode in all_modes:
             ratio_boxes.append(r_box)
 
         for log in [False, True]:
-            plot_directory_ = os.path.join(plot_directory, 'systematicPlots', plot_subdirectory, args.selection, args.era, mode + ("_log" if log else ""))
+            if args.beta is None:
+                plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, mode + ("_log" if log else ""))
+            else:
+                plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, args.beta, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             if    mode == "all": plot.histos[1][0].legendText = "Data (%s)"%args.era
             else:                plot.histos[1][0].legendText = "Data (%s, %s)"%(args.mode, args.era)
