@@ -540,7 +540,6 @@ new_variables.extend( ['Z1_l1_index/I', 'Z1_l2_index/I', 'Z2_l1_index/I', 'Z2_l2
 for i in [1,2]:
     new_variables.extend( ['Z%i_pt/F'%i, 'Z%i_eta/F'%i, 'Z%i_phi/F'%i, 'Z%i_lldPhi/F'%i, 'Z%i_lldR/F'%i,  'Z%i_mass/F'%i] )
 
-
 if options.checkTTGJetsOverlap:
     new_variables.extend( ['TTGJetsEventType/I'] )
 
@@ -572,6 +571,8 @@ if options.susySignal:
 if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
+if options.year == 2018:
+    new_variables += ["reweightHEM/F"]
 
 #if options.year == 2016:
 #    # For MVA discriminator
@@ -959,6 +960,13 @@ def filler( event ):
     soft_jets    = filter(lambda j:jetId(j, ptCut=0,  absEtaCut=jetAbsEtaCut) and j['pt']<30., allJets) if options.keepAllJets else []
     bJets        = filter(lambda j:isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4    , jets)
     nonBJets     = filter(lambda j:not ( isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4 ), jets)
+
+    nHEMJets = len(filter( lambda j:j['pt']>20 and j['eta']>-3.2 and j['eta']<-1.0 and j['phi']>-2.0 and j['phi']<-0.5, allJets ))
+
+    if isData:
+        event.reweightHEM = (r.run>=319077 and nHEMJets==0) or r.run<319077
+    else:
+        event.reweightHEM = 1 if nHEMJets==0 else 0.3518 # 0.2% of Run2018B are HEM affected. Ignore that piece. Thus, if there is a HEM jet, scale the MC to 35.2% which is AB/ABCD=(14.00+7.10)/59.97
 
     # store the correct MET (EE Fix for 2017, MET_min as backup in 2017)
     
