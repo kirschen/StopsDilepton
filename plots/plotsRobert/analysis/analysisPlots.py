@@ -30,12 +30,11 @@ argParser.add_argument('--signal',             action='store',      default=None
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--dataMCScaling',      action='store_true',     help='Data MC scaling?', )
+argParser.add_argument('--DYInc',              action='store_true',     help='Use Inclusive DY sample?', )
 argParser.add_argument('--plot_directory',     action='store',      default='v0p3')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--nvtxReweightSelection',          action='store',      default=None)
-argParser.add_argument('--splitBosons',        action='store_true', default=False)
-argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
@@ -59,9 +58,8 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 if args.small:                        args.plot_directory += "_small"
 if args.splitMET:                     args.plot_directory += "_splitMET"
 if args.splitMETSig:                  args.plot_directory += "_splitMETSig"
+if args.DYInc:                        args.plot_directory += "_DYInc"
 if args.noData:                       args.plot_directory += "_noData"
-if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
-if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
 if args.signal == "DM":               args.plot_directory += "_DM"
 if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
 if args.reweightPU:                   args.plot_directory += "_%s"%args.reweightPU
@@ -84,13 +82,19 @@ logger.info( "Working in year %i", year )
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
+    if args.DYInc:
+        mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_16]
+    else:
+        mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_16]
     #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
     #    nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
+    if args.DYInc:
+        mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+    else:
+        mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
     #if args.reweightPU:
     #    # need sample based weights
     #    pass
@@ -101,7 +105,10 @@ elif year == 2018:
     data_directory            = "/afs/hephy.at/data/cms01/nanoTuples/"
     postProcessing_directory  = "stops_2018_nano_v0p10/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
+    if args.DYInc:
+        mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
+    else:
+        mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
 
     #from StopsDilepton.tools.vetoList import vetoList
     #Run2018D.vetoList = vetoList.fromDirectory('/afs/hephy.at/data/rschoefbeck02/StopsDilepton/splitMuonVeto/')
