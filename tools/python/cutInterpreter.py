@@ -47,6 +47,7 @@ special_cuts = {
     "metInv":            "met_pt<80",
     "metSigInv":         "metSig<5",
     "badJetSrEVeto":     "Sum$(Jet_neEmEF*Jet_pt*cosh(Jet_eta)*(2.6<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt<50))<200",
+    "badEEJetVeto":      "Sum$((2.6<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt>30))==0",
 
     "HEMJetVeto":        "Sum$(Jet_pt>20&&Jet_eta<-1.3&&Jet_eta>-3.0&&Jet_phi<-0.87&&Jet_phi>-1.57)==0", # exact ranges: eta [-3.0, -1.3], phi [-1.57, -0.87]
     "HEMJetVetoWide":    "Sum$(Jet_pt>20&&Jet_eta<-1.0&&Jet_eta>-3.2&&Jet_phi<-0.5&&Jet_phi>-2.0)==0",

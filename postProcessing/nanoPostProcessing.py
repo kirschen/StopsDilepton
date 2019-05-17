@@ -80,7 +80,7 @@ def get_parser():
     argParser.add_argument('--skim',        action='store',         nargs='?',  type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
     argParser.add_argument('--LHEHTCut',    action='store',         nargs='?',  type=int, default=-1,                                   help="LHE cut." )
     argParser.add_argument('--year',        action='store',                     type=int,                                               help="Which year?" )
-    argParser.add_argument('--overwriteJEC',action='store',                               default=None,                                 help="Which year?" )
+    argParser.add_argument('--overwriteJEC',action='store',                               default=None,                                 help="Overwrite JEC?" )
     argParser.add_argument('--overwrite',   action='store_true',                                                                        help="Overwrite existing output files, bool flag set to True  if used" )
     argParser.add_argument('--runOnLxPlus', action='store_true',                                                                        help="Change the global redirector of samples to run on lxplus")
     argParser.add_argument('--keepAllJets', action='store_true',                                                                        help="Keep also forward jets?" )

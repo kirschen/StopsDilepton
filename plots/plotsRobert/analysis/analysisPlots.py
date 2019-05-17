@@ -296,17 +296,20 @@ def drawPlots(plots, mode, dataMCScale):
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I", "RawMET_pt/F", "RawMET_phi/F", "MET_pt_min/F"]
-read_variables += ["event/l", "luminosityBlock/I", "run/I"]
+read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I", "RawMET_pt/F", "RawMET_phi/F"]
+read_variables+= ["event/l", "luminosityBlock/I", "run/I"]
+if "2017" in args.era:
+    read_variables.append( "MET_pt_min/F" ) 
 
 sequence = []
 
-if "2017" in args.era:
+if True: #"2017" in args.era:
     from StopsDilepton.tools.objectSelection    import muonSelector, eleSelector, getGoodMuons, getGoodElectrons, getGoodJets, getAllJets
     ele_selector = eleSelector( "tight", year = year )
     mu_selector = muonSelector( "tight", year = year )
 
     jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F'] 
+    jetVarNames     = map( lambda s:s.split('/')[0], jetVars)
     read_variables += [\
         TreeVariable.fromString('nElectron/I'),
         VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F]'),
@@ -329,18 +332,17 @@ if "2017" in args.era:
 
         leptons      = filter(lambda l:l['pt']>20, leptons_pt10)
         leptons.sort(key = lambda p:-p['pt'])
-        reallyAllJets= getAllJets(event, leptons, ptCut=30, absEtaCut=99, jetVars=map( lambda s:s.split('/')[0], jetVars), jetCollections=["Jet"], idVar='jetId') # keeping robert's comment: ... yeah, I know.
-    
-        event.nJet_EE = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1, reallyAllJets))
-        event.nJet_EE_pt30To50 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>30 and j['pt']<50, reallyAllJets))
-        event.nJet_EE_ptTo50 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']<50, reallyAllJets))
-        event.nJet_EE_ptTo40 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']<40, reallyAllJets))
-        event.nJet_EE_ptTo30 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']<30, reallyAllJets))
-        event.nJet_EE_pt30 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>30, reallyAllJets))
-        event.nJet_EE_pt40 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>40, reallyAllJets))
-        event.nJet_EE_pt50 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>50, reallyAllJets))
+        event.jets  = getAllJets(event, leptons, ptCut=30, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar='jetId')     
+        event.nJet_EE = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1, event.jets))
+        event.nJet_EE_pt30To50 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>30 and j['pt']<50, event.jets))
+        event.nJet_EE_ptTo50 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']<50, event.jets))
+        event.nJet_EE_ptTo40 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']<40, event.jets))
+        event.nJet_EE_ptTo30 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']<30, event.jets))
+        event.nJet_EE_pt30 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>30, event.jets))
+        event.nJet_EE_pt40 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>40, event.jets))
+        event.nJet_EE_pt50 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>50, event.jets))
 
-        event.badJetE = sum( [ j['pt']*j['neEmEF']*cosh(j['eta']) for j in reallyAllJets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
+        event.badJetE = sum( [ j['pt']*j['neEmEF']*cosh(j['eta']) for j in event.jets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
     sequence.append( make_all_jets )
 
 ## veto list
@@ -545,6 +547,41 @@ for index, mode in enumerate(allModes):
       texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
       attribute = TreeVariable.fromString( "met_pt/F" ),
       binning=[400/20,0,400],
+  ))
+
+  plots2D.append(Plot2D(
+    name = 'allJets_occupancy_pt30',
+    stack = stack,
+    attribute = (
+      lambda event, sample: [ j['eta'] for j in event.jets if j['pt']>30 ],
+      lambda event, sample: [ j['phi'] for j in event.jets if j['pt']>30 ],
+    ),
+    texX = '#eta (all jets)', texY = '#phi',
+    binning=[52, -5.2, 5.2, 32, -pi, pi],
+  ))
+
+  plots.append(Plot(
+    name = 'allJets_eta_pt30',
+    stack = stack,
+    attribute = lambda event, sample: [ j['eta'] for j in event.jets if j['pt']>30 ],
+    texX = '#eta (all jets)', 
+    binning=[52, -5.2, 5.2],
+  ))
+
+  plots.append(Plot(
+    name = 'allJets_eta_pt50',
+    stack = stack,
+    attribute = lambda event, sample: [ j['eta'] for j in event.jets if j['pt']>50 ],
+    texX = '#eta (all jets)', 
+    binning=[52, -5.2, 5.2],
+  ))
+
+  plots.append(Plot(
+    name = 'allJets_eta_pt100',
+    stack = stack,
+    attribute =  lambda event, sample: [ j['eta'] for j in event.jets if j['pt']>100 ],
+    texX = '#eta (all jets)', 
+    binning=[52, -5.2, 5.2],
   ))
 
   if "2017" in args.era:
@@ -781,7 +818,7 @@ for index, mode in enumerate(allModes):
   if args.selection.count('njet2') or args.selection.count('njet1') or args.selection.count('njet01'):
 
     plots2D.append(Plot2D(
-      name = 'jet_occupancy',
+      name = 'leading_jet_occ',
       stack = stack,
       attribute = (
         lambda event, sample: event.JetGood_eta[0],
