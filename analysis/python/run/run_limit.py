@@ -395,6 +395,7 @@ def wrapper(s):
 
                 #signal.val, signal.sigma = 0.1, 1.0
 
+                if niceName.count('controlTTZ'): signal.val = 0.001 # to avoid failing of the fit
                 c.specifyExpectation(binname, 'signal', signal.val*xSecScale )
 
 
