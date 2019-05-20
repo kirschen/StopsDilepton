@@ -1,4 +1,5 @@
 import shutil
+import os
 
 # Logging
 import logging
@@ -7,7 +8,7 @@ logger = logging.getLogger(__name__)
 class cardFileWriter:
     def __init__(self):
         self.reset()
-        self.releaseLocation = "." #by default, use this releasee
+        self.releaseLocation = os.path.abspath('.')
 
     def reset(self):
         self.bins = []
@@ -240,7 +241,7 @@ class cardFileWriter:
             from StopsDilepton.tools.cardFileWriter.getNorms import getNorms
             filename += " > output.txt"
         
-        combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M AsymptoticLimits %s %s"%(options,filename)
+        combineCommand = "cd "+uniqueDirname+";combine --saveWorkspace -M AsymptoticLimits %s %s"%(options,filename)
         print combineCommand
         os.system(combineCommand)
 
@@ -280,7 +281,7 @@ class cardFileWriter:
 
         assert os.path.exists(filename), "File not found: %s"%filename
 
-        combineCommand  = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --forceRecreateNLL -M FitDiagnostics "+filename
+        combineCommand  = "cd "+uniqueDirname+";combine --forceRecreateNLL -M FitDiagnostics "+filename
         combineCommand +=";python diffNuisances.py  mlfit.root &> nuisances.txt"
         combineCommand +=";python diffNuisances.py -a mlfit.root &> nuisances_full.txt"
         if bonly:
@@ -317,7 +318,7 @@ class cardFileWriter:
         #    self.writeToFile(uniqueDirname+"/"+fname)
         #else:
         #    self.writeToFile(fname)
-        combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M ProfileLikelihood --uncapped 1 --significance --rMin -5 "+fname
+        combineCommand = "cd "+uniqueDirname+";combine --saveWorkspace -M ProfileLikelihood --uncapped 1 --significance --rMin -5 "+fname
         os.system(combineCommand)
         #os.system("pushd "+self.releaseLocation+";eval `scramv1 runtime -sh`;popd;cd "+uniqueDirname+";"+self.combineStr+" --saveWorkspace  -M ProfileLikelihood --significance "+fname+" -t -1 --expectSignal=1 ")
         try:

@@ -120,7 +120,6 @@ from math                                                                       
 #signals_T8bbllnunu_XCha0p5_XSlep0p5 = [s for s in signals_T8bbllnunu_XCha0p5_XSlep0p5 if not s.mStop==851]
 
 ##https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSYSignalSystematicsRun2
-from StopsDilepton.tools.user           import combineReleaseLocation
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
 if args.aggregate:          subDir = 'aggregated/'
@@ -200,7 +199,7 @@ def wrapper(s):
         if s.mStop<10:#810
                 xSecScale = 0.01
     c = cardFileWriter.cardFileWriter()
-    c.releaseLocation = combineReleaseLocation
+    c.releaseLocation = os.path.abspath('.') # now run directly in the run directory
 
     cardFileName = os.path.join(limitDir, s.name+'.txt')
     if not os.path.exists(cardFileName) or overWrite:
