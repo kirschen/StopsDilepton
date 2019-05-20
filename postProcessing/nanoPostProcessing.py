@@ -80,7 +80,7 @@ def get_parser():
     argParser.add_argument('--skim',        action='store',         nargs='?',  type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
     argParser.add_argument('--LHEHTCut',    action='store',         nargs='?',  type=int, default=-1,                                   help="LHE cut." )
     argParser.add_argument('--year',        action='store',                     type=int,                                               help="Which year?" )
-    argParser.add_argument('--overwriteJEC',action='store',                               default=None,                                 help="Which year?" )
+    argParser.add_argument('--overwriteJEC',action='store',                               default=None,                                 help="Overwrite JEC?" )
     argParser.add_argument('--overwrite',   action='store_true',                                                                        help="Overwrite existing output files, bool flag set to True  if used" )
     argParser.add_argument('--runOnLxPlus', action='store_true',                                                                        help="Change the global redirector of samples to run on lxplus")
     argParser.add_argument('--keepAllJets', action='store_true',                                                                        help="Keep also forward jets?" )
@@ -193,9 +193,6 @@ for selectedSamples in options.samples:
     for sample in allSamples:
         if selectedSamples == sample.name:
             samples.append(sample)
-
-if sample.isData:
-    json = sample.json # json already defined in sample repository
 
 if len(samples)==0:
     logger.info( "No samples found. Was looking for %s. Exiting" % options.samples )
@@ -435,7 +432,6 @@ if sample.isData:
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList
     # Apply golden JSON
-    sample.json = json
     lumiList = LumiList(os.path.expandvars(sample.json))
     logger.info( "Loaded json %s", sample.json )
 else:
@@ -544,7 +540,6 @@ new_variables.extend( ['Z1_l1_index/I', 'Z1_l2_index/I', 'Z2_l1_index/I', 'Z2_l2
 for i in [1,2]:
     new_variables.extend( ['Z%i_pt/F'%i, 'Z%i_eta/F'%i, 'Z%i_phi/F'%i, 'Z%i_lldPhi/F'%i, 'Z%i_lldR/F'%i,  'Z%i_mass/F'%i] )
 
-
 if options.checkTTGJetsOverlap:
     new_variables.extend( ['TTGJetsEventType/I'] )
 
@@ -576,6 +571,8 @@ if options.susySignal:
 if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
+if options.year == 2018:
+    new_variables += ["reweightHEM/F"]
 
 #if options.year == 2016:
 #    # For MVA discriminator
@@ -964,6 +961,13 @@ def filler( event ):
     bJets        = filter(lambda j:isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4    , jets)
     nonBJets     = filter(lambda j:not ( isBJet(j, tagger="DeepCSV", year=options.year) and abs(j['eta'])<=2.4 ), jets)
 
+    nHEMJets = len(filter( lambda j:j['pt']>20 and j['eta']>-3.2 and j['eta']<-1.0 and j['phi']>-2.0 and j['phi']<-0.5, allJets ))
+
+    if isData:
+        event.reweightHEM = (r.run>=319077 and nHEMJets==0) or r.run<319077
+    else:
+        event.reweightHEM = 1 if nHEMJets==0 else 0.3518 # 0.2% of Run2018B are HEM affected. Ignore that piece. Thus, if there is a HEM jet, scale the MC to 35.2% which is AB/ABCD=(14.00+7.10)/59.97
+
     # store the correct MET (EE Fix for 2017, MET_min as backup in 2017)
     
     if options.year == 2017 and not fastSim:
@@ -1253,23 +1257,6 @@ def filler( event ):
             else:
                 l["lepGoodMatchIndex"] = -1
                 l["matchesPromptGoodLepton"] = 0
-#            if      l["n_t"]>0 and l["n_W"]>0 and l["n_B"]==0 and l["n_D"]==0 and l["n_tau"]==0:
-#                print "t->W->l"
-#            elif    l["n_t"]>0 and l["n_W"]==0 and l["n_B"]>0 and l["n_D"]==0 and l["n_tau"]==0:
-#                print "t->b->B->l"
-#            elif    l["n_t"]>0 and l["n_W"]==0 and l["n_B"]>0 and l["n_D"]>0 and l["n_tau"]==0:
-#                print "t->b->B->D->l"
-#            elif    l["n_t"]>0 and l["n_W"]>0 and l["n_B"]==0 and l["n_D"]==0 and l["n_tau"]>0 :
-#                print "t->W->tau->l"
-#            elif    l["n_t"]>0 and l["n_W"]>0 and l["n_B"]==0 and l["n_D"]>0 and l["n_tau"]==0:
-#                print "t->W->c->D->l"
-#            elif    l["n_t"]==0 and l["n_W"]==0 and l["n_B"]>0 and l["n_D"]>=0 and l["n_tau"]==0:
-#                print l['pdgId'], l['pt'], l['phi'], l['eta'], ",".join(pdgToName( gPart[x]['pdgId']) for x in genSearch.ancestry(l) )
-#                for p in genSearch.ancestry(l):
-#                    print p, gPart[p]
-#            else:
-#                pass
-                # print l['pdgId'], l['pt'], l['phi'], l['eta'], ",".join(pdgToName(gPart[x]['pdgId']) for x in genSearch.ancestry(l))
         event.nGenLep   = len(gLep)
         for iLep, lep in enumerate(gLep):
             for b in genLepVarNames:

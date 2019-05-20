@@ -8,6 +8,7 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     # Where postprocessed data goes 
     data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
+    postprocessing_output_directory = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
     # Where you store the data
     data_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where the plots go
@@ -43,6 +44,7 @@ if os.environ['USER'] in ['phussain']:
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     # directory with veto lists
+    analysis_results        = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v1/'
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
     MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
     MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'
