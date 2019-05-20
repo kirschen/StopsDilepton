@@ -76,7 +76,7 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
     MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'
     # 715 release for limit calculation 
-    combineReleaseLocation = '/afs/hephy.at/work/d/dspitzbart/stops/CMSSW_7_4_7/src'
+    combineReleaseLocation = '/afs/hephy.at/work/d/dspitzbart/top/CMSSW_10_2_9/src/'
     if 'cern' in os.getenv("HOSTNAME"):
       analysis_results        = '/afs/cern.ch/work/d/dspitzba/StopsDilepton/results/80X_v30'
       combineReleaseLocation = '/afs/cern.ch/work/d/dspitzba/CMS/stop/CMSSW_7_4_7/src'

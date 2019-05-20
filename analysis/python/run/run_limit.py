@@ -11,6 +11,7 @@ argParser.add_argument("--overwrite",      default = False, action = "store_true
 argParser.add_argument("--keepCard",       default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--controlDYVV",    default = False, action = "store_true", help="Fits for DY/VV CR")
 argParser.add_argument("--controlTTZ",     default = False, action = "store_true", help="Fits for TTZ CR")
+argParser.add_argument("--controlTT",      default = False, action = "store_true", help="Fits for TT CR (MT2ll<100)")
 argParser.add_argument("--fitAll",         default = False, action = "store_true", help="Fits SR and CR together")
 argParser.add_argument("--aggregate",      default = False, action = "store_true", help="Use aggregated signal regions")
 argParser.add_argument("--expected",       default = False, action = "store_true", help="Use sum of backgrounds instead of data.")
@@ -49,6 +50,7 @@ setupTTZ2 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMi
 setupTTZ3 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
 setupTTZ4 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,-1), 'nBTags':(1,1),  'dPhi': False, 'dPhiInv': False})
 setupTTZ5 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(4,-1), 'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
+setupTT   = setup.sysClone()
 
 # Define channels for CR
 if args.aggregate:
@@ -63,6 +65,7 @@ setupTTZ2.channels = ['all']
 setupTTZ3.channels = ['all']
 setupTTZ4.channels = ['all']
 setupTTZ5.channels = ['all']
+setupTT.channels = ['SF','EMu']
 
 # Define regions for CR
 if args.aggregate:
@@ -91,6 +94,8 @@ setupTTZ3.regions = noRegions
 setupTTZ4.regions = noRegions
 setupTTZ5.regions = noRegions
 
+setupTT.regions = [regionsLegacy[0]]
+
 # Define estimators for CR
 estimators           = estimatorList(setup)
 #setup.estimators     = estimators.constructEstimatorList(["TTJets-DD","TTZ","DY", 'multiBoson', 'other'])
@@ -101,10 +106,12 @@ setupTTZ2.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", '
 setupTTZ3.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
 setupTTZ4.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
 setupTTZ5.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
+setupTT.estimators   = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
 
-if args.fitAll:        setups = [setup, setupDYVV, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
+if args.fitAll:        setups = [setup, setupDYVV, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupTT]
 elif args.controlDYVV: setups = [setupDYVV]
 elif args.controlTTZ:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
+elif args.controlTT:   setups = [setupTT]
 else:                  setups = [setup]
 
 from StopsDilepton.analysis.u_float                                              import u_float
@@ -123,6 +130,7 @@ else:                       subDir = ''
 if args.fitAll:             subDir += 'fitAll' 
 elif args.controlDYVV:      subDir += 'controlDYVV'
 elif args.controlTTZ:       subDir += 'controlTTZ'
+elif args.controlTT:        subDir += 'controlTT'
 elif args.significanceScan: subDir += 'significance'
 else:                       subDir += 'signalOnly'
 
@@ -245,6 +253,7 @@ def wrapper(s):
                 if setup == setupTTZ3: niceName += "_controlTTZ3"
                 if setup == setupTTZ4: niceName += "_controlTTZ4"
                 if setup == setupTTZ5: niceName += "_controlTTZ5"
+                if setup == setupTT:   niceName += "_controlTT"
                 binname = 'Bin'+str(counter)
                 counter += 1
                 total_exp_bkg = 0

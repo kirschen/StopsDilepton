@@ -240,11 +240,11 @@ class cardFileWriter:
             from StopsDilepton.tools.cardFileWriter.getNorms import getNorms
             filename += " > output.txt"
         
-        combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M Asymptotic %s %s"%(options,filename)
+        combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M AsymptoticLimits %s %s"%(options,filename)
         print combineCommand
         os.system(combineCommand)
 
-        tempResFile = uniqueDirname+"/higgsCombineTest.Asymptotic.mH120.root"
+        tempResFile = uniqueDirname+"/higgsCombineTest.AsymptoticLimits.mH120.root"
         try:
             res= self.readResFile(tempResFile)
         except:
@@ -280,7 +280,7 @@ class cardFileWriter:
 
         assert os.path.exists(filename), "File not found: %s"%filename
 
-        combineCommand  = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --forceRecreateNLL -M MaxLikelihoodFit "+filename
+        combineCommand  = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --forceRecreateNLL -M FitDiagnostics "+filename
         combineCommand +=";python diffNuisances.py  mlfit.root &> nuisances.txt"
         combineCommand +=";python diffNuisances.py -a mlfit.root &> nuisances_full.txt"
         if bonly:
