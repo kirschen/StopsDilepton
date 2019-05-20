@@ -225,7 +225,7 @@ def wrapper(s):
         c.addUncertainty('topGaus',    'lnN')
         c.addUncertainty('topNonGaus', 'lnN')
         c.addUncertainty('topFakes',   'lnN')
-#        c.addUncertainty('top',   'lnN') #REMOVE AGAIN
+        c.addUncertainty('topNorm',    'lnN')
         c.addUncertainty('multiBoson', 'lnN')
         c.addUncertainty('DY',         'lnN')
         c.addUncertainty('DY_SR',      'lnN')
@@ -252,7 +252,7 @@ def wrapper(s):
                 if setup == setupTTZ3: niceName += "_controlTTZ3"
                 if setup == setupTTZ4: niceName += "_controlTTZ4"
                 if setup == setupTTZ5: niceName += "_controlTTZ5"
-                if setup == setupTT:   niceName += "_controlTT"
+                if setup == setupTT:   niceName += "_controlTTBar"
                 binname = 'Bin'+str(counter)
                 counter += 1
                 total_exp_bkg = 0
@@ -277,7 +277,11 @@ def wrapper(s):
                     elif len(setup.regions) == len(regionsDM5[1:]): divider = 2
                     else:                                           divider = 0 # Was 0, think about changing to 1 for ttZ sideband
                     #logger.info("Splitting SRs into ttbar and ttZ dominated regions at signal region %s",divider)
-                    if (setup.regions != noRegions and (r in setup.regions[divider:])):
+                    if setup.regions == [regionsLegacy[0]]:
+                        norm_G  = 0.98
+                        norm_NG = 0.01
+                        norm_F  = 0.01
+                    elif (setup.regions != noRegions and (r in setup.regions[divider:])):
                         norm_G  = 0.25
                         norm_NG = 0.50
                         norm_F  = 0.25
@@ -307,7 +311,7 @@ def wrapper(s):
                       else:
                         names = [name]
                       for name in names:
-                        if 'TTJets' in name: uncScale = 1#./sqrt(norm_G**2 + norm_NG**2 + norm_F**2) # scaling of uncertainties to be used in the future
+                        if 'TTJets' in name: uncScale = 1./sqrt(norm_G**2 + norm_NG**2 + norm_F**2) # scaling of uncertainties for ttbar so that the total uncertainty remains unchanged
                         else: uncScale = 1
                         #print "Process", name, "uncertainty scale", uncScale
                         c.specifyUncertainty('PU',       binname, name, 1 + 0.05 )#e.PUSystematic(         r, channel, setup).val * uncScale )
@@ -326,18 +330,24 @@ def wrapper(s):
                             #c.specifyUncertainty('top', binname, name, 2 if (setup.regions != noRegions and r == setup.regions[-1]) else 1.5)
 
                         if name == 'TTJetsG':
-                            c.specifyUncertainty('topGaus',  binname, name, 1.15)#1.15
+                            if not niceName.count('controlTTBar'):
+                                c.specifyUncertainty('topGaus',  binname, name, 1.15) # avoid constraining of uncertainties in the ttbar CR
+                            c.specifyUncertainty('topNorm',  binname, name, 1.15)
 
                         if name == 'TTJetsNG':
-                            c.specifyUncertainty('topNonGaus', binname, name, 1.30)#1.3
+                            if not niceName.count('controlTTBar'):
+                                c.specifyUncertainty('topNonGaus', binname, name, 1.30) # avoid constraining of uncertainties in the ttbar CR
+                            c.specifyUncertainty('topNorm',  binname, name, 1.15)
 
                         if name == 'TTJetsF':
-                            c.specifyUncertainty('topFakes', binname, name, 1.50)#1.5
+                            if not niceName.count('controlTTBar'):
+                                c.specifyUncertainty('topFakes', binname, name, 1.50) # avoid constraining of uncertainties in the ttbar CR
+                            c.specifyUncertainty('topNorm',  binname, name, 1.15)
 
-                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.75)
+                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.50)
 
                         if e.name.count('DY'):
-                            c.specifyUncertainty('DY',         binname, name, 1/(1+0.5))#1.5
+                            c.specifyUncertainty('DY',         binname, name, 1.5)#1/(1+0.5))#1.5
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0:
                                 c.specifyUncertainty("DY_SR", binname, name, 1.25)
 

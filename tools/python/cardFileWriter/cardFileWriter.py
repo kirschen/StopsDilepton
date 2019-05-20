@@ -282,14 +282,14 @@ class cardFileWriter:
         assert os.path.exists(filename), "File not found: %s"%filename
 
         combineCommand  = "cd "+uniqueDirname+";combine --forceRecreateNLL -M FitDiagnostics "+filename
-        combineCommand +=";python diffNuisances.py  mlfit.root &> nuisances.txt"
-        combineCommand +=";python diffNuisances.py -a mlfit.root &> nuisances_full.txt"
+        combineCommand +=";python diffNuisances.py  fitDiagnostics.root &> nuisances.txt"
+        combineCommand +=";python diffNuisances.py -a fitDiagnostics.root &> nuisances_full.txt"
         if bonly:
-          combineCommand +=";python diffNuisances.py -bf latex mlfit.root &> nuisances.tex"
-          combineCommand +=";python diffNuisances.py -baf latex mlfit.root &> nuisances_full.tex"
+          combineCommand +=";python diffNuisances.py -bf latex fitDiagnostics.root &> nuisances.tex"
+          combineCommand +=";python diffNuisances.py -baf latex fitDiagnostics.root &> nuisances_full.tex"
         else:
-          combineCommand +=";python diffNuisances.py -f latex mlfit.root &> nuisances.tex"
-          combineCommand +=";python diffNuisances.py -af latex mlfit.root &> nuisances_full.tex"
+          combineCommand +=";python diffNuisances.py -f latex fitDiagnostics.root &> nuisances.tex"
+          combineCommand +=";python diffNuisances.py -af latex fitDiagnostics.root &> nuisances_full.tex"
         print combineCommand
         os.system(combineCommand)
 
