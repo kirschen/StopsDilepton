@@ -12,6 +12,7 @@ parser.add_option("--control",               dest="control",               defau
 parser.add_option("--useGenMet",             dest="useGenMet",             default=False,               action='store_true', help="use genMET instead of recoMET, used for signal studies")
 parser.add_option("--overwrite",             dest="overwrite",             default=False,               action='store_true', help="overwrite existing results?")
 parser.add_option("--aggregate",             dest="aggregate",             default=False,               action='store_true', help="run over aggregated signal regions")
+parser.add_option("--all",                   dest="all",                   default=False,               action='store_true', help="Run over all SR and CR?")
 
 (options, args) = parser.parse_args()
 
