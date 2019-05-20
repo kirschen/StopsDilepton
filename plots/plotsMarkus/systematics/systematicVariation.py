@@ -37,6 +37,7 @@ argParser.add_argument('--plot_directory',    action='store',      default='v1')
 argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
+argParser.add_argument('--noDYHT',            action='store_true',     help='run without HT-binned DY')
 argParser.add_argument('--scaling',           action='store',      default=None, choices = [None, 'mc', 'top'],     help='Scale top to data in mt2ll<100?')
 argParser.add_argument('--variation_scaling', action='store_true', help='Scale the variations individually to mimick bkg estimation?')
 argParser.add_argument('--overwrite',         action='store_true',     help='Overwrite?')
@@ -177,19 +178,27 @@ if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
-    mc              = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
+    if args.noDYHT:
+        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+        #print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
-    mc              = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+    if args.noDYHT:
+        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+        print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
-    if (args.selection.count("onZ") > 0:
+    if args.noDYHT:
         mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-        print "~~~~> using normal DY sample instead of HT binned one, since considering onZ"
+        #print "~~~~> using normal DY sample instead of HT binned one"
     else:
         mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
 
@@ -598,12 +607,20 @@ for mode in modes:
 
     if args.variation is not None:
         key  = (args.era, mode, args.variation)
+
+        success = False
         if dirDB.contains(key) and not args.overwrite:
             normalisation_mc, normalisation_data, histos = dirDB.get( key )
             for i_p, h_s in enumerate(histos):
                 plots[i_p].histos = h_s
             logger.info( "Loaded normalisations and histograms for %s in mode %s from cache.", args.era, mode)
-        else:
+            logger.debug("Loaded normalisation_mc: %r normalisation_data: %r", normalisation_mc, normalisation_data )
+            if normalisation_mc['Top_pow']<=0:
+                success = False
+                logger.info( "!!! Top_pow histo is zero !!!" )
+            else: 
+                success = True
+        if not success:
             logger.info( "Obtain normalisations and histograms for %s in mode %s.", args.era, mode)
             # Calculate the normalisation yield for mt2ll<100
             normalization_selection_string = selectionModifier(cutInterpreter.cutString(args.selection + '-mt2llTo100'))
@@ -653,11 +670,17 @@ for mode in modes:
    
     for variation in variations.keys():
         key  = (args.era, mode, variation)
+        success = False
         if dirDB.contains(key) and not args.overwrite:
             normalisation_mc, normalisation_data, histos = dirDB.get(key)
             variation_data[(mode, variation)] = {'histos':histos, 'normalisation_mc':normalisation_mc, 'normalisation_data':normalisation_data}
             logger.info( "Loaded normalisations and histograms for variation %s, era %s in mode %s from cache.", variation, args.era, mode)
-        else:
+            if normalisation_mc['Top_pow']<=0:
+                success = False
+                logger.info( "!!! Top_pow histo is zero !!!" )
+            else: 
+                success = True
+        if not success:
             # prepare sub variation command
             cmd = ['python', 'systematicVariation.py']
             cmd.append('--logLevel=%s'%args.logLevel)
@@ -671,6 +694,7 @@ for mode in modes:
             cmd.append('--reweightPU=%s'%args.reweightPU)
             cmd.append('--era=%s'%args.era)
             if args.overwrite: cmd.append('--overwrite')
+            if args.noDYHT: cmd.append('--noDYHT')
 
             cmd_string = ' '.join( cmd )
             missing_cmds.append( cmd_string )
