@@ -1,9 +1,27 @@
+import ROOT
+
 import shutil
 import os
+
+from StopsDilepton.tools.helpers import writeObjToFile
 
 # Logging
 import logging
 logger = logging.getLogger(__name__)
+
+import re
+def natural_sort(list, key=lambda s:s):
+    """
+    Sort the list into natural alphanumeric order.
+    http://stackoverflow.com/questions/4836710/does-python-have-a-built-in-function-for-string-natural-sort
+    """
+    def get_alphanum_key_func(key):
+        convert = lambda text: int(text) if text.isdigit() else text
+        return lambda s: [convert(c) for c in re.split('([0-9]+)', key(s))]
+    sort_key = get_alphanum_key_func(key)
+
+    lc = sorted(list, key=sort_key)
+    return lc
 
 class cardFileWriter:
     def __init__(self):
@@ -146,7 +164,7 @@ class cardFileWriter:
     def mfs(self, f):
         return str(round(float(f),self.precision))
 
-    def writeToFile(self, fname):
+    def writeToFile(self, fname, shapeFile=False):
         import datetime, os
         if not self.checkCompleteness():
             print "Incomplete specification."
@@ -181,6 +199,10 @@ class cardFileWriter:
                 outfile.write( '#Muted: '+b+': '+self.niceNames[b]+'\n')
         outfile.write( '\n')
 
+        if shapeFile:
+            outfile.write( 'shapes * * %s  $PROCESS $PROCESS_$SYSTEMATIC \n'%shapeFile)
+            outfile.write( '\n')
+
         outfile.write( 'bin'.ljust(lspace)              +(' '.join([b.rjust(self.defWidth) for b in unmutedBins] ) ) +'\n')
         outfile.write( 'observation'.ljust(lspace)      +(' '.join([str(self.observation[b]).rjust(self.defWidth) for b in unmutedBins]) )+'\n')
         if self.hasContamination:
@@ -202,9 +224,105 @@ class cardFileWriter:
                 outfile.write('%s_norm_%s rateParam %s %s (@0*1) %s_norm\n'%(p[0], b, b, p[0], p[0]))
             outfile.write('%s_norm extArg %s %s\n'%(p[0], str(p[1]), str(p[2])))
 
+        if shapeFile:
+            outfile.write('* autoMCStats 0 \n')
+
         outfile.close()
         print "[cardFileWrite] Written card file %s"%fname
         return fname
+
+    def makeHist(self, name):
+        return ROOT.TH1F(name, name, len(self.bins), 0, len(self.bins))
+
+    def writeToShapeFile(self, fname):
+        bins        = natural_sort(self.bins)
+        processes   = []
+        nuisances   = [ u for u in self.uncertainties if (not 'stat' in u.lower() and self.uncertaintyString[u] == 'shape')  ] # stat uncertainties are treated differently
+        logNormal   = [ u for u in self.uncertainties if (not 'stat' in u.lower() and self.uncertaintyString[u] == 'lnN')  ]
+        for b in bins:
+            for p in self.processes[b]:
+                if p not in processes: processes.append(p)
+        
+        # define a dict that stores which shape nuisances are relevant for each process
+        nuisForProc = {proc:[] for proc in processes}
+
+        # first, fill the observations. easy.
+        data_obs = self.makeHist('data_obs')
+        for i,b in enumerate(bins):
+            data_obs.SetBinContent(i+1, self.observation[b])
+
+        # predictions, using the correct stats
+        histos = {}
+        for process in processes:
+            histos[process] = self.makeHist(process)
+            
+            # create the histograms for all uncertainties that are relevant for the process
+            for unc in nuisances:
+                for i,b in enumerate(bins):
+                    if self.uncertaintyVal.has_key((unc, b, process)):
+                        if not (unc.lower().count('up') or unc.lower().count('down')):
+                            nuisForProc[process].append(unc)
+                            up      = '%s_%sUp'%(process, unc)
+                            down    = '%s_%sDown'%(process, unc)
+                            try:
+                                histos[up]
+                            except:
+                                histos[up]   = self.makeHist(up)
+                                histos[down] = self.makeHist(down)
+                        else:
+                            if not unc in nuisForProc[process]:
+                                nuisForProc[process].append(unc.replace('Up','').replace('Down',''))
+                            try:
+                                histos['%s_%s'%(process, unc)]
+                            except:
+                                histos['%s_%s'%(process, unc)] = self.makeHist('%s_%s'%(process, unc))
+
+            # fill the histograms of central values and uncertainties. if no uncertainty exists for a bin the up/down variations are set to the central values as well.
+            for i,b in enumerate(bins):
+                if self.expectation.has_key((b, process)):
+                    expect  = self.expectation[(b, process)]
+                    try:
+                        relUnc  = self.uncertaintyVal[('Stat_'+b+'_'+process, b, process)]
+                    except:
+                        relUnc  = 1
+                    unc     = (relUnc-1)*expect
+                    histos[process].SetBinContent(i+1, expect)
+                    histos[process].SetBinError(i+1, unc)
+                    for unc in nuisances:
+                        if self.uncertaintyVal.has_key((unc, b, process)):
+                            relUnc  = self.uncertaintyVal[(unc, b, process)]
+                        else:
+                            relUnc = 1.
+                        if unc in nuisForProc[process]:
+                            if not (unc.lower().count('up') or unc.lower().count('down')):
+                                histos['%s_%sUp'%(process, unc)].SetBinContent(i+1, relUnc*expect)
+                                histos['%s_%sDown'%(process, unc)].SetBinContent(i+1, (2-relUnc)*expect)
+                            else:
+                                histos['%s_%s'%(process, unc)].SetBinContent(i+1, relUnc*expect)
+        
+        # define the file names
+        rootFile = fname
+        txtFile  = fname.replace('.root', 'Card.txt')
+
+        # create the one-bin card-file
+        self.bins = [self.bins[0]]
+        self.niceNames[bins[0]] = 'inclusive bin'
+        for process in processes:
+            self.specifyExpectation(self.bins[0], process, histos[process].Integral())
+            # need to set the strength of the shape uncertainties defined by the histograms. If not turned on (meaning a value greater than 0), they have no effect.
+            for nuis in nuisForProc[process]:
+                self.specifyUncertainty(nuis, bins[0], process, 1)
+
+        self.specifyObservation(self.bins[0], int(data_obs.Integral()))
+        self.uncertainties = logNormal + nuisances # need to fix things if up/down are already provided
+        self.writeToFile(txtFile, shapeFile=rootFile)
+        
+        # write all the histograms to a root file
+        writeObjToFile(rootFile, data_obs)
+        for h in sorted(histos.keys()):
+            writeObjToFile(rootFile, histos[h], update=True)
+
+        return txtFile
 
     def readResFile(self, fname):
         import ROOT

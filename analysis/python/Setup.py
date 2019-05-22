@@ -245,7 +245,7 @@ class Setup:
               res['cuts'].append(chStr)
 
               assert zWindow == 'onZ', "zWindow must be onZ for trilep selection"
-              res['cuts'].append('abs(mlmZ_mass-91.1876)<10')
+              res['cuts'].append('abs(Z1_mass-91.1876)<10')
 
             else:
 

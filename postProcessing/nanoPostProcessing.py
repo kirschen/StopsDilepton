@@ -26,7 +26,6 @@ from RootTools.core.standard import *
 
 # User specific
 import StopsDilepton.tools.user as user
-from StopsDilepton.tools.user import MVA_preprocessing_directory, MVA_model_directory
 
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator      import mt2Calculator
@@ -73,7 +72,6 @@ def get_parser():
     argParser.add_argument('--nJobs',       action='store',         nargs='?',  type=int, default=1,                                    help="Maximum number of simultaneous jobs." )
     argParser.add_argument('--job',         action='store',                     type=int, default=0,                                    help="Run only jobs i" )
     argParser.add_argument('--minNJobs',    action='store',         nargs='?',  type=int, default=1,                                    help="Minimum number of simultaneous jobs." )
-    argParser.add_argument('--dataDir',     action='store',         nargs='?',  type=str, default=user.cmg_directory,                   help="Name of the directory where the input data is stored (for samples read from Heppy)." )
     argParser.add_argument('--targetDir',   action='store',         nargs='?',  type=str, default=user.postprocessing_output_directory, help="Name of the directory the post-processed files will be saved" )
     argParser.add_argument('--processingEra', action='store',       nargs='?',  type=str, default='postProcessed_80X_v22',              help="Name of the processing era" )
     argParser.add_argument('--writeToDPM', action='store_true',                                                                         help="Write output to DPM?")
@@ -172,9 +170,9 @@ if options.runOnLxPlus:
 
 if options.year == 2016:
     from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as bkgSamples
-    from Samples.nanoAOD.Spring16_private           import allSamples as signalSamples
+    from Samples.nanoAOD.Summer16_private_legacy_v1 import SUSY as signalSamples
     from Samples.nanoAOD.Run2016_17Jul2018_private  import allSamples as dataSamples
-    allSamples = bkgSamples + signalSamples + dataSamples
+    allSamples = bkgSamples + dataSamples + signalSamples
 elif options.year == 2017:
     from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as bkgSamples
     from Samples.nanoAOD.Run2017_31Mar2018_private  import allSamples as dataSamples
@@ -506,6 +504,7 @@ new_variables += [\
 
 if sample.isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
 new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
+new_variables += ["reweightHEM/F"]
 
 new_variables.append( 'lep[%s]'% ( ','.join(lepVars) ) )
 
@@ -571,34 +570,6 @@ if options.susySignal:
 if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
-if options.year == 2018:
-    new_variables += ["reweightHEM/F"]
-
-#if options.year == 2016:
-#    # For MVA discriminator
-#    from StopsDilepton.MVA.KerasReader import KerasReader
-#
-#    ## Initialize keras for different trainings
-#    if isTriLep or isDiLep:
-#        new_variables.extend( [ 'MVA_T2tt_dM350_smaller_TTLep_pow/F', 'MVA_T2tt_dM350_TTLep_pow/F', 'MVA_T2tt_dM350_TTZtoLLNuNu/F', 
-#                                'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow /F',
-#                                'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow/F', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow/F'])
-#
-#    logger.info("Initializing keras readers for different models.")
-#    from StopsDilepton.MVA.default_classifier import training_variables_list as training_variables_list
-#    from StopsDilepton.MVA.default_classifier_lep_pt import training_variables_list as training_variables_list_lep_pt
-#    from StopsDilepton.MVA.default_classifier_lep_pt_nobtag import training_variables_list as training_variables_list_lep_pt_nobtag
-#
-#    MVA_T2tt_dM350_smaller_TTLep_pow    = KerasReader( 'T2tt_dM350_smaller-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-30-1930', training_variables_list_lep_pt_nobtag)
-#    MVA_T2tt_dM350_TTLep_pow            = KerasReader( 'T2tt_dM350-TTLep_pow/v1_lep_pt_10/njet2p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-08-31-0318', training_variables_list_lep_pt_nobtag)
-#    MVA_T2tt_dM350_TTZtoLLNuNu          = KerasReader( 'T2tt_dM350-TTZtoLLNuNu/v1_lep_pt_10/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1134', training_variables_list_lep_pt)
-#    MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p05_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1639', training_variables_list_lep_pt)
-#    MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1511', training_variables_list_lep_pt)
-#    MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow         = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p5_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1555', training_variables_list_lep_pt)
-#    MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow= KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1631', training_variables_list_lep_pt)
-#    MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow        = KerasReader( 'T8bbllnunu_XCha0p5_XSlep0p95_dM350-TTLep_pow/v1_lep_pt/njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1/all/2018-09-13-1626', training_variables_list_lep_pt)
-#
-#    logger.info("Loaded MVA models.")
 
 ## Need to check existing root files before starting nanoAODs
 
@@ -966,7 +937,7 @@ def filler( event ):
     if isData:
         event.reweightHEM = (r.run>=319077 and nHEMJets==0) or r.run<319077
     else:
-        event.reweightHEM = 1 if nHEMJets==0 else 0.3518 # 0.2% of Run2018B are HEM affected. Ignore that piece. Thus, if there is a HEM jet, scale the MC to 35.2% which is AB/ABCD=(14.00+7.10)/59.97
+        event.reweightHEM = 1 if (nHEMJets==0 or options.year<2018 ) else 0.3518 # 0.2% of Run2018B are HEM affected. Ignore that piece. Thus, if there is a HEM jet, scale the MC to 35.2% which is AB/ABCD=(14.00+7.10)/59.97
 
     # store the correct MET (EE Fix for 2017, MET_min as backup in 2017)
     
