@@ -325,13 +325,13 @@ def wrapper(s):
                         #print "Process", name, "uncertainty scale", uncScale
                         c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
                         c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
                         c.specifyUncertainty('JER',      binname, name, 1 + 0.03 )#e.JERSystematic(        r, channel, setup).val * uncScale )
                         c.specifyUncertainty('topPt',    binname, name, 1 + 0.02 )#e.topPtSystematic(      r, channel, setup).val * uncScale )
                         c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('trigger',  binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('trigger',  binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
+                        c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
                         
                         if e.name.count('TTJets'):
                             c.specifyUncertainty('scaleTT', binname, name, 1 + 0.02)#getScaleUncBkg('TTLep_pow', r, channel,'TTLep_pow'))

@@ -22,7 +22,7 @@ class leptonSF:
             keys_mu  = [("MuonRun2017BCDEF_SF_ID.root", "NUM_MediumID_DEN_genTracks_pt_abseta")]
             keys_ele = [("ElectronScaleFactors_Run2017.root", "Run2017_CutBasedTightNoIso94XV2")]
         elif year == 2018:
-            keys_mu  = [("MuonRun2017BCDEF_SF_ID.root", "NUM_MediumID_DEN_genTracks_pt_abseta")] # use 2017 for now
+            keys_mu  = [("MuonRun2018_MediumID.root", "SF2D")]
             keys_ele = [("ElectronScaleFactors_Run2018.root", "Run2018_CutBasedTightNoIso94XV2")]
         
         self.dataDir = "$CMSSW_BASE/src/StopsDilepton/tools/data/leptonSFData"
