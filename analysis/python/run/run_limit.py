@@ -114,7 +114,7 @@ if args.fitAll:        setups = [setup, setupDYVV, setupTTZ1, setupTTZ2, setupTT
 elif args.controlDYVV: setups = [setupDYVV]
 elif args.controlTTZ:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 elif args.controlTT:   setups = [setupTT]
-elif args.controlAll:  setups = [setupTT, setupDYVV, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
+elif args.controlAll:  setups = [setupTT, setupDYVV, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 else:                  setups = [setup]
 
 from StopsDilepton.analysis.u_float                                              import u_float
@@ -368,7 +368,7 @@ def wrapper(s):
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                 c.specifyUncertainty("ttZ_SR", binname, name, 1.20)
 
-                        if e.name.count('other'):      c.specifyUncertainty('other',      binname, name, 1.25)
+                        if e.name.count('other'):      c.specifyUncertainty('other',      binname, name, 1.50)
 
                         #MC bkg stat (some condition to neglect the smaller ones?)
                         uname = 'Stat_'+binname+'_'+name
