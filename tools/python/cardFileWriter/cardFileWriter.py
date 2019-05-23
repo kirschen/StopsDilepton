@@ -399,7 +399,7 @@ class cardFileWriter:
 
         assert os.path.exists(filename), "File not found: %s"%filename
 
-        combineCommand  = "cd "+uniqueDirname+";combine --forceRecreateNLL -M FitDiagnostics "+filename
+        combineCommand  = "cd "+uniqueDirname+";combine --forceRecreateNLL -M FitDiagnostics --saveShapes --saveNormalizations --saveOverall --saveWithUncertainties "+filename
         combineCommand +=";python diffNuisances.py  fitDiagnostics.root &> nuisances.txt"
         combineCommand +=";python diffNuisances.py -a fitDiagnostics.root &> nuisances_full.txt"
         if bonly:
@@ -410,6 +410,8 @@ class cardFileWriter:
           combineCommand +=";python diffNuisances.py -af latex fitDiagnostics.root &> nuisances_full.tex"
         print combineCommand
         os.system(combineCommand)
+
+        shutil.copyfile(uniqueDirname+'/fitDiagnostics.root', fname.replace('.txt','_FD.root'))
 
         tempResFile      = uniqueDirname+"/nuisances.txt"
         tempResFileFull  = uniqueDirname+"/nuisances_full.txt"

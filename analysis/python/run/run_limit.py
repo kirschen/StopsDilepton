@@ -117,8 +117,8 @@ elif args.controlTT:   setups = [setupTT]
 elif args.controlAll:  setups = [setupTT, setupDYVV, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 else:                  setups = [setup]
 
-from StopsDilepton.analysis.u_float                                              import u_float
-from math                                                                        import sqrt
+from StopsDilepton.tools.u_float    import u_float
+from math                           import sqrt
 
 #signals_T8bbllnunu_XCha0p5_XSlep0p5 = [s for s in signals_T8bbllnunu_XCha0p5_XSlep0p5 if not s.mStop==851]
 
@@ -479,6 +479,39 @@ def wrapper(s):
             res = c.calcSignif(cardFileName)
             signifCache.add(sConfig,res)
     
+
+    ###################
+    # extract the SFs #
+    ###################
+    if not args.useTxt:
+        # Would be a bit more complicated with the classical txt files, so only automatically extract the SF when using shape based datacards
+        from StopsDilepton.tools.getPostFit import *
+        
+        print cardFileName
+        combineWorkspace = cardFileName.replace('shapeCard.txt','shapeCard_FD.root')
+        print "Extracting fit results from %s"%combineWorkspace
+        
+        postFitResults = getPrePostFitFromMLF(combineWorkspace)
+        
+        top_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['TTJetsF'] + postFitResults['results']['shapes_prefit']['Bin0']['TTJetsG'] + postFitResults['results']['shapes_prefit']['Bin0']['TTJetsNG']
+        top_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['TTJetsF'] + postFitResults['results']['shapes_fit_b']['Bin0']['TTJetsG'] + postFitResults['results']['shapes_fit_b']['Bin0']['TTJetsNG']
+        
+        ttZ_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['TTZ']
+        ttZ_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['TTZ']
+        
+        DY_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['DY']
+        DY_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['DY']
+        
+        MB_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['multiBoson']
+        MB_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['multiBoson']
+        
+        print
+        print "## Scale Factors for backgrounds: ##"
+        print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit/top_prefit).val, '+/-',  top_postfit.sigma/top_postfit.val)
+        print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit/ttZ_prefit).val, '+/-',  ttZ_postfit.sigma/ttZ_postfit.val)
+        print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit/DY_prefit).val,   '+/-',  DY_postfit.sigma/DY_postfit.val)
+        print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
+
     #print xSecScale
     if xSecScale != 1:
         for k in res:
