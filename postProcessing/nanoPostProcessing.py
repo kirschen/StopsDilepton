@@ -627,7 +627,8 @@ if not options.skipNanoTools:
             JEC             = "Summer16_07Aug2017_V11_MC"
     elif options.year == 2017:
         metSigParamsMC      = [1.7760438537732681, 1.720421230892687, 1.6034765551361112, 1.5336832981702226, 2.0928447254019757, 0.0011228025809342157, 0.7287313412909979]
-        metSigParamsData    = [1.518621014453362, 1.611898248687222, 1.5136936762143423, 1.4878342676980971, 1.9192499533282406, -0.0005835026352392627, 0.749718704693196]
+        #metSigParamsData    = [1.518621014453362, 1.611898248687222, 1.5136936762143423, 1.4878342676980971, 1.9192499533282406, -0.0005835026352392627, 0.749718704693196] ## inclusive tuning
+        metSigParamsData    = [1.5652051127525366, 1.5804471271338907, 1.4862753507081927, 1.5535827934024427, 2.024950815338281, 0.00041900662100602046, 0.7318170819391664] # BCDE tuning
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
         if sample.isData:
@@ -641,6 +642,7 @@ if not options.skipNanoTools:
                 JEC         = "Fall17_17Nov2017DE_V32_DATA"
             elif sample.name.count('Run2017F'):
                 JEC         = "Fall17_17Nov2017F_V32_DATA"
+                metSigParamsData    = [1.4903886050473685, 1.6552347847889408, 1.5375539513889926, 1.5191557344959805, 1.677028876500211, 0.00036790289207031587, 0.7904482365411786] # F tuning
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
         elif fastSim:

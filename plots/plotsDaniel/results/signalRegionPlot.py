@@ -25,7 +25,7 @@ import math
 
 # Analysis
 from StopsDilepton.tools.u_float           import u_float
-from StopsDilepton.tools.user              import plot_directory
+from StopsDilepton.tools.user              import plot_directory, analysis_results
 from StopsDilepton.samples.color           import color
 from StopsDilepton.tools.getPostFit        import *
 
@@ -46,8 +46,7 @@ lumiStr = setup.dataLumi/1000
 
 controlRegions = 'controlAll'
 cardName = "T2tt_700_0_shapeCard"
-cardDir = "/afs/hephy.at/data/dspitzbart02/StopsDileptonLegacy/results/v1/%s/%s/cardFiles/%s/%s/"%(options.year,controlRegions,options.signal,'expected' if options.expected else 'observed')
-#cardDir = "/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v1/%s/%s/cardFiles/%s/%s/"%(options.year,controlRegions,options.signal,'expected' if options.expected else 'observed')
+cardDir = analysis_results+"/%s/%s/cardFiles/%s/%s/"%(options.year,controlRegions,options.signal,'expected' if options.expected else 'observed')
 
 cardFile = "%s/%s.txt"%(cardDir, cardName)
 

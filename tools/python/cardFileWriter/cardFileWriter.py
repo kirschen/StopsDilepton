@@ -324,6 +324,31 @@ class cardFileWriter:
 
         return txtFile
 
+    def combineCards(self, cards):
+
+        import uuid, os
+        ustr          = str(uuid.uuid4())
+        uniqueDirname = os.path.join(self.releaseLocation, ustr)
+        logger.info("Creating %s", uniqueDirname)
+        os.makedirs(uniqueDirname)
+
+        years = cards.keys()
+        cmd = ''
+        for year in years:
+            cmd += " dc_%s=%s"%(year, cards[year])
+
+        combineCommand  = "cd "+uniqueDirname+";combineCards.py %s > combinedCard.txt"%cmd
+        os.system(combineCommand)
+        resFile = cards[years[0]].replace(str(years[0]), 'COMBINED')
+        f = resFile.split('/')[-1]
+        resPath = resFile.replace(f, '')
+        if not os.path.isdir(resPath):
+            os.makedirs(resPath)
+        logger.info("Putting combined card into dir %s", resPath)
+        shutil.copyfile(uniqueDirname+"/combinedCard.txt", resFile)
+
+        return resFile
+
     def readResFile(self, fname):
         import ROOT
         f = ROOT.TFile.Open(fname)
