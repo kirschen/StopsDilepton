@@ -485,7 +485,7 @@ def wrapper(s):
     ###################
     if not args.useTxt:
         # Would be a bit more complicated with the classical txt files, so only automatically extract the SF when using shape based datacards
-        from StopsDilepton.tools.getPostFit import *
+        from StopsDilepton.tools.getPostFit import getPrePostFitFromMLF
         
         print cardFileName
         combineWorkspace = cardFileName.replace('shapeCard.txt','shapeCard_FD.root')
