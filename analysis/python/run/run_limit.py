@@ -110,11 +110,11 @@ setupTTZ4.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", '
 setupTTZ5.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
 setupTT.estimators   = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
 
-if args.fitAll:        setups = [setup, setupDYVV, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupTT]
+if args.fitAll:        setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV, setup]
 elif args.controlDYVV: setups = [setupDYVV]
 elif args.controlTTZ:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 elif args.controlTT:   setups = [setupTT]
-elif args.controlAll:  setups = [setupTT, setupDYVV, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
+elif args.controlAll:  setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV]
 else:                  setups = [setup]
 
 from StopsDilepton.tools.u_float    import u_float

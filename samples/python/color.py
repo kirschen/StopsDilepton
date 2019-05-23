@@ -40,6 +40,9 @@ color.QCD_HT         = 46
 color.QCD_Mu5        = 46
 color.QCD_EMbcToE    = 46
 color.QCD_Mu5EMbcToE = 46
+color.TTJetsF        = 7
+color.TTJetsG        = 7
+color.TTJetsNG       = 7
 
 color.other          = 46
 
