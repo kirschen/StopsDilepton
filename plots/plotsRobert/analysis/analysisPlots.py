@@ -85,12 +85,15 @@ if year == 2016:
     if args.DYInc:
         mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_16]
     else:
-        mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_16]
+        mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
     #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
     #    nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
+    data_directory            = "/afs/hephy.at/data/rschoefbeck02/nanoTuples"
+    postProcessing_directory  = "stops_2017_nano_v0p9_JECV6/dilep"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
+
     if args.DYInc:
         mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
     else:

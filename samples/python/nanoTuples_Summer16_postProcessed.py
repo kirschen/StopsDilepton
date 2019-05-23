@@ -56,6 +56,7 @@ dirs['DY_HT_M50_LO']     =  DY_M50_HT
 dirs['DY_HT_M5to50_LO']  =  DY_M5to50_HT 
 
 dirs['TTLep_pow']        = ["TTLep_pow"]
+dirs['TTSingleLep_pow']  = ["TTSingleLep_pow"]
 
 dirs['singleTop']        = ["TBar_tWch_ext", "T_tWch_ext"]#, "TToLeptons_tch_powheg", "TBarToLeptons_tch_powheg"]
 dirs['singleTop_tch']    = ["T_tch_pow", "TBar_tch_pow"]
@@ -124,6 +125,7 @@ DY_HT_LO_16        = Sample.fromDirectory(name="DY_HT_LO",         treeName="Eve
 DY_HT_LO_M50_16    = Sample.fromDirectory(name="DY_HT_M50_LO",     treeName="Events", isData=False, color=color.DY,              texName="Drell-Yan (M>50, LO)",              directory=directories['DY_HT_M50_LO'])
 DY_HT_LO_M5to50_16=Sample.fromDirectory(name="DY_HT_M5to50_LO",  treeName="Events", isData=False, color=color.DY,              texName="Drell-Yan (10<M<50, LO)",           directory=directories['DY_HT_M5to50_LO'])
 Top_pow_16         = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
+Top_pow_1l_16      = Sample.fromDirectory(name="Top_1l_pow",       treeName="Events", isData=False, color=color.TTJets_1l,       texName="t#bar{t} (1l)",                 directory=directories['TTSingleLep_pow'])
 singleTop_16      = Sample.fromDirectory(name="singleTop",        treeName="Events", isData=False, color=color.singleTop,       texName="single top",                        directory=directories['singleTop'])
 singleTop_tch_16  = Sample.fromDirectory(name="singleTop_tch",    treeName="Events", isData=False, color=color.singleTop,       texName="single top tch",                    directory=directories['singleTop_tch'])
 #singleTop_sch_16  = Sample.fromDirectory(name="singleTop_sch",    treeName="Events", isData=False, color=color.singleTop,       texName="single top sch",                    directory=directories['singleTop_sch'])
