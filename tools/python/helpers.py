@@ -214,9 +214,12 @@ def getObjFromFile(fname, hname):
     f.Close()
     return res
 
-def writeObjToFile(fname, obj):
+def writeObjToFile(fname, obj, update=False):
     gDir = ROOT.gDirectory.GetName()
-    f = ROOT.TFile(fname, 'recreate')
+    if update:
+        f = ROOT.TFile(fname, 'UPDATE')
+    else:
+        f = ROOT.TFile(fname, 'recreate')
     objw = obj.Clone()
     objw.Write()
     f.Close()
