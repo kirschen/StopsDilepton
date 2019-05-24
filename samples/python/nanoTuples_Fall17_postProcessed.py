@@ -67,8 +67,12 @@ dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu", "TTZToLLNuNu_m1to10"]
 dirs['TTZtoQQ']          = ["TTZToQQ"]
 dirs['TTZ']              = dirs['TTZtoLLNuNu'] + dirs['TTZtoQQ']
 dirs['TTW']              = ['TTWToLNu', 'TTWToQQ']
+dirs['TTVV']             = ['TTWW', 'TTWZ', 'TTZZ']
+dirs['TWZ']              = ['tWll', 'tWnunu']
+dirs['TTTT']             = ['TTTT']
+dirs['THX']              = ['THQ', 'THW']
 
-dirs['TTXNoZ']           = dirs['TTH'] + dirs['TZQ'] +['THQ', 'THW', 'TTTT', 'TTWToLNu', 'TTWToQQ'] #tWll?
+dirs['TTXNoZ']           = dirs['TTVV'] + dirs['TTW'] + dirs['TWZ'] + dirs['TZQ'] + dirs['TTH'] + dirs['TTTT'] + dirs['THX']
 dirs['TTX']              = dirs['TTXNoZ'] + dirs['TTZ']
 
 dirs['diBosonInclusive'] = ["WW", "WZ", "ZZ"]

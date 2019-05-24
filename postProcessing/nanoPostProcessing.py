@@ -676,6 +676,8 @@ if not options.skipNanoTools:
     # define modules. JEC reapplication only works with MC right now, so just don't do it.
     modules = []
     
+    logger.info("Will use the following parameters for MET significance: %s", metSigParams)
+    
     if not sample.isData:
         modules.append( ISRcounter() )
         # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.

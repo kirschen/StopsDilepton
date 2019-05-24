@@ -301,7 +301,7 @@ class cardFileWriter:
                                 histos['%s_%s'%(process, unc)].SetBinContent(i+1, relUnc*expect)
         
         # define the file names
-        rootFile = fname
+        rootFile = fname.split('/')[-1]
         txtFile  = fname.replace('.root', 'Card.txt')
 
         # create the one-bin card-file
