@@ -13,6 +13,7 @@ from StopsDilepton.tools.helpers import getCollection, deltaR
 from StopsDilepton.tools.user import plot_directory
 from StopsDilepton.tools.objectSelection import muonSelector, eleSelector, getGoodMuons, getGoodElectrons, getGoodJets, getAllJets
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
+from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 
 # Samples
 from Samples.Tools.metFilters            import getFilterCut
@@ -140,34 +141,34 @@ def drawObjects( dataMCScale ):
 
 stack = Stack(mc, [data_sample] )
 
-def fromTau( gen_lepton ):
-    return gen_lepton['n_tau']>0
-def prompt( gen_lepton ):
-    return not fromTau( gen_lepton) and gen_lepton['n_B']==0 and gen_lepton['n_D']==0
-def nonPrompt( gen_lepton ):
-    return not fromTau( gen_lepton) and not ( gen_lepton['n_B']==0 and gen_lepton['n_D']==0 ) 
-
-gen_ttbar_sequence = []
-
-# Match l1 and l2
-def matchLeptons( event, sample ):
-    # Get Gen leptons
-    gen_leps = getCollection(event, "GenLep", ["pt", "eta", "phi", "n_t", "n_W", "n_B", "n_D", "n_tau", "pdgId"], "nGenLep" )
-    non_prompt = filter(lambda l: nonPrompt(l), gen_leps )
-    # Get selected leptons
-    l1 = {'pt':event.l1_pt, 'eta':event.l1_eta, 'phi':event.l1_phi, 'pdgId':event.l1_pdgId} 
-    l2 = {'pt':event.l2_pt, 'eta':event.l2_eta, 'phi':event.l2_phi, 'pdgId':event.l2_pdgId} 
-    # match l1 and l2 
-    event.l1_matched_nonPrompt = False 
-    event.l2_matched_nonPrompt = False 
-    for gl in non_prompt:
-        if gl['pdgId']==l1['pdgId'] and deltaR(gl, l1)<0.2 and abs(1-gl['pt']/l1['pt'])<0.5:
-            event.l1_matched_nonPrompt = True
-        if gl['pdgId']==l2['pdgId'] and deltaR(gl, l2)<0.2 and abs(1-gl['pt']/l2['pt'])<0.5:
-            event.l2_matched_nonPrompt = True
-    return
-
-gen_ttbar_sequence.append( matchLeptons )
+#def fromTau( gen_lepton ):
+#    return gen_lepton['n_tau']>0
+#def prompt( gen_lepton ):
+#    return not fromTau( gen_lepton) and gen_lepton['n_B']==0 and gen_lepton['n_D']==0
+#def nonPrompt( gen_lepton ):
+#    return not fromTau( gen_lepton) and not ( gen_lepton['n_B']==0 and gen_lepton['n_D']==0 ) 
+#
+#gen_ttbar_sequence = []
+#
+## Match l1 and l2
+#def matchLeptons( event, sample ):
+#    # Get Gen leptons
+#    gen_leps = getCollection(event, "GenLep", ["pt", "eta", "phi", "n_t", "n_W", "n_B", "n_D", "n_tau", "pdgId"], "nGenLep" )
+#    non_prompt = filter(lambda l: nonPrompt(l), gen_leps )
+#    # Get selected leptons
+#    l1 = {'pt':event.l1_pt, 'eta':event.l1_eta, 'phi':event.l1_phi, 'pdgId':event.l1_pdgId} 
+#    l2 = {'pt':event.l2_pt, 'eta':event.l2_eta, 'phi':event.l2_phi, 'pdgId':event.l2_pdgId} 
+#    # match l1 and l2 
+#    event.l1_matched_nonPrompt = False 
+#    event.l2_matched_nonPrompt = False 
+#    for gl in non_prompt:
+#        if gl['pdgId']==l1['pdgId'] and deltaR(gl, l1)<0.2 and abs(1-gl['pt']/l1['pt'])<0.5:
+#            event.l1_matched_nonPrompt = True
+#        if gl['pdgId']==l2['pdgId'] and deltaR(gl, l2)<0.2 and abs(1-gl['pt']/l2['pt'])<0.5:
+#            event.l2_matched_nonPrompt = True
+#    return
+#
+#gen_ttbar_sequence.append( matchLeptons )
 
 read_variables = [\
     "weight/F" , "JetGood[pt/F,eta/F,phi/F]", 
@@ -187,81 +188,92 @@ def fs(pdgId):
         return "m"
     else: raise ValueError
 
-ele_selector = eleSelector( "tight", year = year )
-mu_selector = muonSelector( "tight", year = year )
+ele_selector = eleSelector( "tightNoIso", year = year )
+mu_selector = muonSelector( "tightNoIso", year = year )
 
 sequence = []
 
-#def initSwappedMT2ll( event, sample ):
-#    # initial values
-#    for fh in ["leadingLepIso", "leadingLepNonIso"]:
-#        for swap in ["L1", "L2"]:
-#            for fs in ["mm","me","em","ee"]:
-#                setattr(event, "dl_mt2ll_%s_swap%s_%s"%(fh, swap, fs), float('nan') )
-#                # print "dl_mt2ll_%s_swap%s_%s"%(fh, swap, fs)
-#
-#sequence.append( initSwappedMT2ll )
-#
-#def makeSwappedMT2ll(event, l1, l2, nonIsoLep, verbose = False):
-#    mt2Calculator.reset()
-#
-#    # swap l1
-#    final_hierarchy = "leadingLepNonIso" if nonIsoLep['pt']>l2['pt'] else "leadingLepIso"
-#    l1p, l2p = (nonIsoLep, l2) if nonIsoLep['pt']>l2['pt'] else (l2, nonIsoLep)
-#    finalState = "".join(fs(p['pdgId']) for p in [l1p, l2p])
-#    pfix = "_".join([final_hierarchy, "swapL1", finalState])
-#    mt2Calculator.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
-#    mt2Calculator.setMet(event.met_pt, event.met_phi)
-#    setattr(event, "dl_mt2ll_"+pfix, mt2Calculator.mt2ll() )
-#
-#    if verbose: print "dl_mt2ll_"+pfix, mt2Calculator.mt2ll()
-#
-#    # swap l2
-#    final_hierarchy = "leadingLepNonIso" if nonIsoLep['pt']>l1['pt'] else "leadingLepIso"
-#    l1p, l2p = (nonIsoLep, l1) if nonIsoLep['pt']>l1['pt'] else (l1, nonIsoLep)
-#    finalState = "".join(fs(p['pdgId']) for p in [l1p, l2p])
-#    pfix = "_".join([final_hierarchy, "swapL2", finalState])
-#    mt2Calculator.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
-#    mt2Calculator.setMet(event.met_pt, event.met_phi)
-#
-#    setattr(event, "dl_mt2ll_"+pfix, mt2Calculator.mt2ll() )
-#
-#    if verbose: print "dl_mt2ll_"+pfix, mt2Calculator.mt2ll() 
-#
+def initSwappedMT2ll( event, sample ):
+    # initial values
+    for fh in ["leadingLepIso", "leadingLepNonIso"]:
+        for swap in ["L1", "L2"]:
+            for fs in ["mm","me","em","ee"]:
+                setattr(event, "dl_mt2ll_%s_swap%s_%s"%(fh, swap, fs), float('nan') )
+                # print "dl_mt2ll_%s_swap%s_%s"%(fh, swap, fs)
+
+sequence.append( initSwappedMT2ll )
+
+def makeSwappedMT2ll(event, l1, l2, nonIsoLep, verbose = False):
+    mt2Calculator.reset()
+
+    # swap l1
+    final_hierarchy = "leadingLepNonIso" if nonIsoLep['pt']>l2['pt'] else "leadingLepIso"
+    l1p, l2p = (nonIsoLep, l2) if nonIsoLep['pt']>l2['pt'] else (l2, nonIsoLep)
+    finalState = "".join(fs(p['pdgId']) for p in [l1p, l2p])
+    pfix = "_".join([final_hierarchy, "swapL1", finalState])
+    mt2Calculator.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
+    mt2Calculator.setMet(event.met_pt, event.met_phi)
+    setattr(event, "dl_mt2ll_"+pfix, mt2Calculator.mt2ll() )
+
+    if verbose: print "dl_mt2ll_"+pfix, mt2Calculator.mt2ll()
+
+    # swap l2
+    final_hierarchy = "leadingLepNonIso" if nonIsoLep['pt']>l1['pt'] else "leadingLepIso"
+    l1p, l2p = (nonIsoLep, l1) if nonIsoLep['pt']>l1['pt'] else (l1, nonIsoLep)
+    finalState = "".join(fs(p['pdgId']) for p in [l1p, l2p])
+    pfix = "_".join([final_hierarchy, "swapL2", finalState])
+    mt2Calculator.setLeptons(l1p['pt'], l1p['eta'], l1p['phi'], l2p['pt'], l2p['eta'], l2p['phi'])
+    mt2Calculator.setMet(event.met_pt, event.met_phi)
+
+    setattr(event, "dl_mt2ll_"+pfix, mt2Calculator.mt2ll() )
+
+    if verbose: print "dl_mt2ll_"+pfix, mt2Calculator.mt2ll() 
+
 #verbose = False
-#def makeNonIsoLeptons( event, sample ):
-#
-#    goodLeptons = getGoodLeptons( event, collVars = leptonVars_data , mu_selector = mu_selector, ele_selector = ele_selector)
-#    allExtraLeptons = sorted( \
-#        [l for l in getLeptons( event, collVars = leptonVars_data ) if l not in goodLeptons] + getOtherLeptons( event , collVars = leptonVars_data ), 
-#                    key=lambda l: -l['pt'] )
-#
-#    #for l in goodLeptons:
-#    #    print "good", l
-#    #for l in allExtraLeptons:
-#    #    print "extra", l
-#    #print len(goodLeptons), len(allExtraLeptons) 
-#    assert len(goodLeptons)==2, "Analysis leptons not found!"
-#    l1, l2 = goodLeptons
-#    #print l1['pt'] - event.l1_pt, l2['pt'] - event.l2_pt
-#    event.allExtraLeptons = allExtraLeptons
-#
-#    nonIsoMus  = filter(lambda l: abs(l['pdgId'])==13 and l['relIso03']>0.12 and l['pt']>5, allExtraLeptons )
-#    nonIsoEles = filter(lambda l: abs(l['pdgId'])==11 and l['relIso03']>0.12 and l['pt']>7, allExtraLeptons )
-#    #print nonIsoMus, nonIsoEles
-#
-#    event.nonIsoMu  = nonIsoMus[-1] if len(nonIsoMus)>0 else None 
-#    event.nonIsoEle = nonIsoEles[-1] if len(nonIsoEles)>0 else None 
-#
-#    # extra ele
-#    if event.nonIsoEle is not None:
-#        makeSwappedMT2ll( event, l1, l2, event.nonIsoEle, verbose = verbose)
-#    # extra mu
-#    if event.nonIsoMu is not None:
-#        makeSwappedMT2ll( event, l1, l2, event.nonIsoMu, verbose = verbose)
-#    if verbose: print
-#
-#sequence.append( makeNonIsoLeptons )
+def makeNonIsoLeptons( event, sample ):
+
+
+    electrons_pt10_noIso  = getGoodElectrons(event, ele_selector = ele_selector)
+    muons_pt10_noIso      = getGoodMuons(event, mu_selector = mu_selector )
+    
+    leptons_pt10_noIso = [ l for l in electrons_pt10_noIso if l['pt'] not in [ event.l1_pt, event.l2_pt] ]
+    leptons_pt10_noIso +=[ l for l in muons_pt10_noIso if l['pt'] not in [ event.l1_pt, event.l2_pt] ]
+    leptons_pt10_noIso.sort( key = lambda l:-l['pt'] )
+
+    assert len( electrons_pt10_noIso ) + len( muons_pt10_noIso ) - len( leptons_pt10_noIso ) !=2, "Analysis leptons not found!"
+
+
+    goodLeptons = getGoodLeptons( event, collVars = leptonVars_data , mu_selector = mu_selector, ele_selector = ele_selector)
+    allExtraLeptons = sorted( \
+        [l for l in getLeptons( event, collVars = leptonVars_data ) if l not in goodLeptons] + getOtherLeptons( event , collVars = leptonVars_data ), 
+                    key=lambda l: -l['pt'] )
+
+    #for l in goodLeptons:
+    #    print "good", l
+    #for l in allExtraLeptons:
+    #    print "extra", l
+    #print len(goodLeptons), len(allExtraLeptons) 
+    assert len(goodLeptons)==2, "Analysis leptons not found!"
+    l1, l2 = goodLeptons
+    #print l1['pt'] - event.l1_pt, l2['pt'] - event.l2_pt
+    event.allExtraLeptons = allExtraLeptons
+
+    nonIsoMus  = filter(lambda l: abs(l['pdgId'])==13 and l['relIso03']>0.12 and l['pt']>5, allExtraLeptons )
+    nonIsoEles = filter(lambda l: abs(l['pdgId'])==11 and l['relIso03']>0.12 and l['pt']>7, allExtraLeptons )
+    #print nonIsoMus, nonIsoEles
+
+    event.nonIsoMu  = nonIsoMus[-1] if len(nonIsoMus)>0 else None 
+    event.nonIsoEle = nonIsoEles[-1] if len(nonIsoEles)>0 else None 
+
+    # extra ele
+    if event.nonIsoEle is not None:
+        makeSwappedMT2ll( event, l1, l2, event.nonIsoEle, verbose = verbose)
+    # extra mu
+    if event.nonIsoMu is not None:
+        makeSwappedMT2ll( event, l1, l2, event.nonIsoMu, verbose = verbose)
+    if verbose: print
+
+sequence.append( makeNonIsoLeptons )
 
 for sample in [TTJets_l2_prompt, TTJets_l2_nonPrompt]:
     sample.sequence = gen_ttbar_sequence        
