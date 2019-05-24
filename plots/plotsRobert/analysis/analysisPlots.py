@@ -28,7 +28,8 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
-argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
+argParser.add_argument('--small',                                 action='store_true',     help='Run only on a small subset of the data?', )
+argParser.add_argument('--dpm',                                   action='store_true',     help='Use dpm?', )
 argParser.add_argument('--dataMCScaling',      action='store_true',     help='Data MC scaling?', )
 argParser.add_argument('--DYInc',              action='store_true',     help='Use Inclusive DY sample?', )
 argParser.add_argument('--plot_directory',     action='store',      default='v0p3')
@@ -79,6 +80,10 @@ elif "2018" in args.era:
 
 logger.info( "Working in year %i", year )
 
+/ Load from DPM?
+if args.dpm:
+    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
+
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
@@ -90,8 +95,6 @@ if year == 2016:
     #    nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    data_directory            = "/afs/hephy.at/data/rschoefbeck02/nanoTuples"
-    postProcessing_directory  = "stops_2017_nano_v0p9_JECV6/dilep"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
 
     if args.DYInc:
@@ -102,11 +105,7 @@ elif year == 2017:
     #    # need sample based weights
     #    pass
 elif year == 2018:
-    data_directory              = "/afs/hephy.at/data/cms01/nanoTuples/"
-    postProcessing_directory    = "stops_2018_nano_v0p10/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    data_directory            = "/afs/hephy.at/data/cms01/nanoTuples/"
-    postProcessing_directory  = "stops_2018_nano_v0p10/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     if args.DYInc:
         mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
