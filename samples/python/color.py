@@ -10,6 +10,7 @@ color.data           = ROOT.kBlack
 color.DY             = 8
 color.DY_HT_LO       = color.DY
 color.TTJets         = 7
+color.TTJets_1l      = 5
 color.Top_pow        = color.TTJets
 color.singleTop      = 40
 color.TTX            = ROOT.kMagenta

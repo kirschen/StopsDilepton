@@ -1,6 +1,7 @@
 ## v5 for new MVA classifiers
 
 #python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p7  --checkTTGJetsOverlap  --skipGenLepMatching --noTopPtReweighting --sample TTLep_pow # SPLIT50
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p7  --checkTTGJetsOverlap  --skipGenLepMatching --noTopPtReweighting --sample TTSingleLep_pow #SPLIT50
 #python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p7  --checkTTGJetsOverlap  --skipGenLepMatching --noTopPtReweighting --sample TTGJets,TTGJets_ext # SPLIT50
 #
 #python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p7   --skipGenLepMatching --sample TTZToQQ #SPLIT10
