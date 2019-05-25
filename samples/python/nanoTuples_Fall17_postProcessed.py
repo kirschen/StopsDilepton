@@ -53,6 +53,7 @@ dirs['DY_lowMass_LO']    = ["DYJetsToLL_M10to50_LO"]
 dirs['DY_HT_LO']         =  DY_M50_HT + DY_M5to50_HT
 
 dirs['TTLep_pow']        = ["TTLep_pow"]
+dirs['TTSingleLep_pow']  = ["TTSingleLep_pow"] 
 
 dirs['singleTop_tWch']   = ["TBar_tWch_ext", "T_tWch_ext"]
 dirs['singleTop_tch']    = ["T_tch_pow", "TBar_tch_pow"]
@@ -67,8 +68,12 @@ dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu", "TTZToLLNuNu_m1to10"]
 dirs['TTZtoQQ']          = ["TTZToQQ"]
 dirs['TTZ']              = dirs['TTZtoLLNuNu'] + dirs['TTZtoQQ']
 dirs['TTW']              = ['TTWToLNu', 'TTWToQQ']
+dirs['TTVV']             = ['TTWW', 'TTWZ', 'TTZZ']
+dirs['TWZ']              = ['tWll', 'tWnunu']
+dirs['TTTT']             = ['TTTT']
+dirs['THX']              = ['THQ', 'THW']
 
-dirs['TTXNoZ']           = dirs['TTH'] + dirs['TZQ'] +['THQ', 'THW', 'TTTT', 'TTWToLNu', 'TTWToQQ'] #tWll?
+dirs['TTXNoZ']           = dirs['TTVV'] + dirs['TTW'] + dirs['TWZ'] + dirs['TZQ'] + dirs['TTH'] + dirs['TTTT'] + dirs['THX']
 dirs['TTX']              = dirs['TTXNoZ'] + dirs['TTZ']
 
 dirs['diBosonInclusive'] = ["WW", "WZ", "ZZ"]
@@ -110,6 +115,7 @@ DY_LO_17           = Sample.fromDirectory(name="DY_LO",            treeName="Eve
 DY_lowMass_LO_17   = Sample.fromDirectory(name="DY_lowMass_LO",    treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_lowMass_LO'])
 DY_HT_LO_17        = Sample.fromDirectory(name="DY_HT_LO",         treeName="Events", isData=False, color=color.DY,              texName="Drell-Yan",                         directory=directories['DY_HT_LO'])
 Top_pow_17         = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
+Top_pow_1l_17      = Sample.fromDirectory(name="Top_1l_pow",       treeName="Events", isData=False, color=color.TTJets_1l,       texName="t#bar{t} (1l)",                     directory=directories['TTSingleLep_pow'])
 TTX_17             = Sample.fromDirectory(name="TTX",              treeName="Events", isData=False, color=color.TTX,             texName="t#bar{t}H/W/Z, tZq",                directory=directories['TTX'])
 TTXNoZ_17          = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W, tZq, tWZ",             directory=directories['TTXNoZ'])
 TTH_17             = Sample.fromDirectory(name="TTH",              treeName="Events", isData=False, color=color.TTH,             texName="t#bar{t}H",                         directory=directories['TTH'])

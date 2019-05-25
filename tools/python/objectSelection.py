@@ -122,6 +122,15 @@ def muonSelector( lepton_selection, year ):
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1 \
                 and l["mediumId"] 
+    elif lepton_selection == 'tightNoIso':
+        def func(l):
+            return \
+                l["pt"]                 >= 10 \
+                and abs(l["eta"])       < 2.4 \
+                and l["sip3d"]          < 4.0 \
+                and abs(l["dxy"])       < 0.05 \
+                and abs(l["dz"])        < 0.1 \
+                and l["mediumId"] 
 
 
     elif lepton_selection == 'loose':
@@ -164,6 +173,17 @@ def eleSelector( lepton_selection, year ):
                 and abs(l["eta"])       < 2.4 \
                 and l['cutBased']       >= 4 \
                 and l['pfRelIso03_all'] < 0.20 \
+                and l["convVeto"] \
+                and ord(l["lostHits"])  == 0 \
+                and l["sip3d"]          < 4.0 \
+                and abs(l["dxy"])       < 0.05 \
+                and abs(l["dz"])        < 0.1
+    elif lepton_selection == 'tightNoIso':
+        def func(l):
+            return \
+                l["pt"]                 >= 10 \
+                and abs(l["eta"])       < 2.4 \
+                and l['cutBased']       >= 4 \
                 and l["convVeto"] \
                 and ord(l["lostHits"])  == 0 \
                 and l["sip3d"]          < 4.0 \

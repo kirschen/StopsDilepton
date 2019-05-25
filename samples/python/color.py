@@ -10,6 +10,7 @@ color.data           = ROOT.kBlack
 color.DY             = 8
 color.DY_HT_LO       = color.DY
 color.TTJets         = 7
+color.TTJets_1l      = 5
 color.Top_pow        = color.TTJets
 color.singleTop      = 40
 color.TTX            = ROOT.kMagenta
@@ -40,6 +41,9 @@ color.QCD_HT         = 46
 color.QCD_Mu5        = 46
 color.QCD_EMbcToE    = 46
 color.QCD_Mu5EMbcToE = 46
+color.TTJetsF        = 7
+color.TTJetsG        = 7
+color.TTJetsNG       = 7
 
 color.other          = 46
 

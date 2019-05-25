@@ -28,8 +28,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
-argParser.add_argument('--small',                                 action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--dpm',                                   action='store_true',     help='Use dpm?', )
+argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--dataMCScaling',      action='store_true',     help='Data MC scaling?', )
 argParser.add_argument('--DYInc',              action='store_true',     help='Use Inclusive DY sample?', )
 argParser.add_argument('--plot_directory',     action='store',      default='v0p3')
@@ -39,13 +38,9 @@ argParser.add_argument('--nvtxReweightSelection',          action='store',      
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
-argParser.add_argument('--unblinded',          action='store_true', default=False)
-argParser.add_argument('--blinded',            action='store_true', default=False)
 argParser.add_argument('--reweightPU',         action='store', default='Central', choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
 argParser.add_argument('--isr',                action='store_true', default=False)
 argParser.add_argument('--plotUPara',          action='store_true',     help='Plot u_para?', )
-argParser.add_argument('--splitMET',           action='store_true',     help='Split in MET bins?' )
-argParser.add_argument('--splitMETSig',        action='store_true',     help='Split in METSig bins?' )
 args = argParser.parse_args()
 
 #
@@ -57,8 +52,6 @@ logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 if args.small:                        args.plot_directory += "_small"
-if args.splitMET:                     args.plot_directory += "_splitMET"
-if args.splitMETSig:                  args.plot_directory += "_splitMETSig"
 if args.DYInc:                        args.plot_directory += "_DYInc"
 if args.noData:                       args.plot_directory += "_noData"
 if args.signal == "DM":               args.plot_directory += "_DM"
@@ -80,19 +73,13 @@ elif "2018" in args.era:
 
 logger.info( "Working in year %i", year )
 
-/ Load from DPM?
-if args.dpm:
-    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
-
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     if args.DYInc:
         mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_16]
     else:
-        mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
-    #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
-    #    nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
+        mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_16]
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
@@ -101,9 +88,6 @@ elif year == 2017:
         mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
     else:
         mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
-    #if args.reweightPU:
-    #    # need sample based weights
-    #    pass
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
@@ -111,11 +95,6 @@ elif year == 2018:
         mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     else:
         mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
-
-    #from StopsDilepton.tools.vetoList import vetoList
-    #Run2018D.vetoList = vetoList.fromDirectory('/afs/hephy.at/data/rschoefbeck02/StopsDilepton/splitMuonVeto/')
-    #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
-    #    nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
 
 try:
   data_sample = eval(args.era)
@@ -142,78 +121,6 @@ def get_quantiles( histo, quantiles = [1-0.9545, 1-0.6826, 0.5, 0.6826, 0.9545])
     thresholds = array.array('d', [ROOT.Double()] * len(quantiles) )
     histo.GetQuantiles( len(quantiles), thresholds, array.array('d', quantiles) )
     return thresholds 
-
-def splitMetMC(mc):
-    dy = mc[-1]
-    dy_1 = copy.deepcopy( dy )
-    dy_1.name += "_1"
-    dy_1.addSelectionString( "met_pt<40" )
-    dy_1.texName += " (MET<40)"
-    dy_1.color   = ROOT.kGreen + 1 
-    dy_2 = copy.deepcopy( dy )
-    dy_2.name += "_2"
-    dy_2.addSelectionString( "met_pt>40&&met_pt<80" )
-    dy_2.texName += " (40<MET<80)"
-    dy_2.color   = ROOT.kGreen + 2
-    dy_3 = copy.deepcopy( dy )
-    dy_3.name += "_3"
-    dy_3.addSelectionString( "met_pt>80" )
-    dy_3.texName += " (80<MET)"
-    dy_3.color   = ROOT.kGreen + 3
-    tt = mc[0]
-    tt_1 = copy.deepcopy( tt )
-    tt_1.name += "_1"
-    tt_1.addSelectionString( "met_pt<40" )
-    tt_1.texName += " (MET<40)"
-    tt_1.color   = ROOT.kAzure + 1 
-    tt_2 = copy.deepcopy( tt )
-    tt_2.name += "_2"
-    tt_2.addSelectionString( "met_pt>40&&met_pt<80" )
-    tt_2.texName += " (40<MET<80)"
-    tt_2.color   = ROOT.kAzure + 2
-    tt_3 = copy.deepcopy( tt )
-    tt_3.name += "_3"
-    tt_3.addSelectionString( "met_pt>80" )
-    tt_3.texName += " (80<MET)"
-    tt_3.color   = ROOT.kAzure + 3
-
-    return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]
-
-def splitMetSigMC(mc):
-    dy = mc[-1]
-    dy_1 = copy.deepcopy( dy )
-    dy_1.name += "_1"
-    dy_1.addSelectionString( "MET_significance<6" )
-    dy_1.texName += " (S<6)"
-    dy_1.color   = ROOT.kGreen + 1 
-    dy_2 = copy.deepcopy( dy )
-    dy_2.name += "_2"
-    dy_2.addSelectionString( "MET_significance>6&&MET_significance<12" )
-    dy_2.texName += " (6<S<12)"
-    dy_2.color   = ROOT.kGreen + 2
-    dy_3 = copy.deepcopy( dy )
-    dy_3.name += "_3"
-    dy_3.addSelectionString( "MET_significance>12" )
-    dy_3.texName += " (12<S)"
-    dy_3.color   = ROOT.kGreen + 3
-    tt = mc[0]
-    tt_1 = copy.deepcopy( tt )
-    tt_1.name += "_1"
-    tt_1.addSelectionString( "MET_significance<6" )
-    tt_1.texName += " (S<6)"
-    tt_1.color   = ROOT.kAzure + 1 
-    tt_2 = copy.deepcopy( tt )
-    tt_2.name += "_2"
-    tt_2.addSelectionString( "MET_significance>6&&MET_significance<12" )
-    tt_2.texName += " (6<S<12)"
-    tt_2.color   = ROOT.kAzure + 2
-    tt_3 = copy.deepcopy( tt )
-    tt_3.name += "_3"
-    tt_3.addSelectionString( "MET_significance>12" )
-    tt_3.texName += " (12<S)"
-    tt_3.color   = ROOT.kAzure + 3
-
-    return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]
 
 signals = []
 if args.signal == "T2tt":
@@ -270,7 +177,7 @@ def drawPlots(plots, mode, dataMCScale):
           plotting.draw(plot,
             plot_directory = plot_directory_,
             ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-            logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig),
+            logX = False, logY = log, sorting = True,
             yRange = (0.03, "auto") if log else (0.001, "auto"),
             scaling = {0:1} if args.dataMCScaling else {},
             legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
@@ -512,12 +419,7 @@ for index, mode in enumerate(allModes):
 
     sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
 
-  if args.splitMET:
-    mc_ = splitMetMC(mc)
-  elif args.splitMETSig:
-    mc_ = splitMetSigMC(mc)
-  else:
-    mc_ = mc 
+  mc_ = mc 
 
   for sample in mc_: sample.style = styles.fillStyle(sample.color)
 
@@ -649,17 +551,16 @@ for index, mode in enumerate(allModes):
   #  binning= [80,20,100] if args.selection.count('metSig20') else ([25,5,30] if args.selection.count('metSig') else [30,0,30]),
   #))
 
-  if not args.blinded:
-    plots.append(Plot(
-      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-      attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-      binning=[300/20,0,300],
-    ))
-    #plots.append(Plot( name = "dl_mt2ll_raw",
-    #  texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-    #  attribute = lambda event, sample: event.dl_mt2ll_raw,
-    #  binning=[300/20,0,300],
-    #))
+  plots.append(Plot(
+    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+    binning=[300/20,0,300],
+  ))
+  #plots.append(Plot( name = "dl_mt2ll_raw",
+  #  texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+  #  attribute = lambda event, sample: event.dl_mt2ll_raw,
+  #  binning=[300/20,0,300],
+  #))
 
   plots.append(Plot( name = "met_pt_corr",
       texX = 'corr E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',

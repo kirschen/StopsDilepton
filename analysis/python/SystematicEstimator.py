@@ -142,8 +142,8 @@ class SystematicEstimator:
 
     def triggerSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupUp']}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerUp']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerDown']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def fastSimMETSystematic(self, region, channel, setup):
