@@ -125,29 +125,29 @@ read_variables += ["dl_mt2ll_photonEstimated/F", "met_pt_photonEstimated/F", "me
 #read_variables += ["photonJetdR/F", "photonLepdR/F"]
 read_variables += [
                 VectorTreeVariable.fromString("GenPart[pt/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]", nMax=200), 
-                "nGenPart/I"
+                "nGenPart/I", "zBoson_genPt/F", "nGoodLeptons/I"
                 ]
 
 sequence = []
 
 def make_newMET( event, sample ):
-    # add photon to missing energy
-    newmet_x = event.met_pt*cos(event.met_phi) + event.photon_pt*cos(event.photon_phi)
-    newmet_y = event.met_pt*sin(event.met_phi) + event.photon_pt*sin(event.photon_phi)
-    event.met_pt_photonCalculated = sqrt(newmet_x**2 + newmet_y**2)
-    event.met_phi_photonCalculated = atan2(newmet_y, newmet_x)
+    if "TTG" in sample.name:
+        # add photon to missing energy
+        newmet_x = event.met_pt*cos(event.met_phi) + event.photon_pt*cos(event.photon_phi)
+        newmet_y = event.met_pt*sin(event.met_phi) + event.photon_pt*sin(event.photon_phi)
+        event.met_pt = sqrt(newmet_x**2 + newmet_y**2)
+        event.met_phi = atan2(newmet_y, newmet_x)
 
-    # calculate mt2ll
-    mt2Calculator.reset()
-    mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
-    mt2Calculator.setMet(event.met_pt_photonCalculated, event.met_phi_photonCalculated)
-    event.dl_mt2llPlusPhoton = mt2Calculator.mt2ll()
+        # calculate mt2ll
+        mt2Calculator.reset()
+        mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+        mt2Calculator.setMet(event.met_pt, event.met_phi)
+        event.dl_mt2ll = mt2Calculator.mt2ll()
 
 sequence.append( make_newMET )
 
 def make_mass_llg( event, sample ):
     # calculate 3 particle invariant mass m(llgamma)
-    #event.mass_llg = float('nan')
     p_pt = [event.l1_pt, event.l2_pt, event.photon_pt]
     p_phi = [event.l1_phi, event.l2_phi, event.photon_phi]
     p_eta = [event.l1_eta, event.l2_eta, event.photon_eta]
@@ -156,31 +156,30 @@ def make_mass_llg( event, sample ):
         for i in range(j):
             mass_llg2 += 2*p_pt[i]*p_pt[j]*(cosh(p_eta[i]-p_eta[j]) - cos(p_phi[i]-p_phi[j]))
     event.mass_llg = sqrt(mass_llg2)
-
-    # add offZ cut for mass_llg
-    #if not args.reweightBosonPt or abs(event.mass_llg-91.1876)>15:
-    #    event.weight_llgOffZ = 1
-    #else:
-    #    event.weight_llgOffZ = 0
-    event.weight_llgOffZ = 1
+    #print event.mass_llg, abs(event.mass_llg-91.1876)>15
+    # add offZ cut for mass_llg via weight
+    if not args.reweightBosonPt or abs(event.mass_llg-91.1876)>15:
+        event.weight_llgOffZ = 1
+    else:
+        event.weight_llgOffZ = 0
 
 sequence.append( make_mass_llg )
 
 def make_genLevel( event, sample ):
-    # get p_T of Z boson 
-    event.Z_pt = float('nan')
+    if "TTZ" in sample.name:
+        # get p_T of Z boson 
 
-    #print event.nGenPart
-    for i in range(event.nGenPart):
-        if event.GenPart_pdgId[i]==23 and event.GenPart_status[i]==22:
-            #print "~~", i, event.GenPart_pdgId[i], event.GenPart_pt[i]
-            event.Z_pt = event.GenPart_pt[i]
-            event.photon_pt = event.GenPart_pt[i]
+        #print event.nGenPart
+        for i in range(event.nGenPart):
+            if event.GenPart_pdgId[i]==23 and event.GenPart_status[i]==62:
+                #print "~~", i, event.GenPart_pdgId[i], event.GenPart_pt[i]
+                event.Z_pt = event.GenPart_pt[i]
+                #event.photon_pt = event.GenPart_pt[i]
+        #if not (event.zBoson_genPt-event.Z_pt == 0): print event.zBoson_genPt, event.Z_pt
+        # should also work:
+        # if event.GenPart_pdgId[2]==23 and event.GenPart_status[2]==22: event.Z_pt = event.GenPart_pt[2] 
 
-    # should also work:
-    # if event.GenPart_pdgId[2]==23 and event.GenPart_status[2]==22: event.Z_pt = event.GenPart_pt[2] 
-
-sequence.append( make_genLevel )
+#sequence.append( make_genLevel )
 
 
 leptonSelection = "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)"
@@ -191,22 +190,25 @@ if args.reweightBosonPt:
     # leptonSelection = "nGoodMuons+nGoodElectrons==2&&isOS"
     cutSelection = cutInterpreter.cutString("lepSel-njet2p-relIso0.12-looseLeptonVeto-mll40-dPhiJet0-dPhiJet1")
     selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), leptonSelection, cutSelection])
+    # TTZ selection
+    ZSelectionString = selectionString #+ "zBoson_genPt>30"#+ "&&Sum$(GenPart_pt>30&&GenPart_pdgId==23&&GenPart_status==22)==1"
+    photonSelectionString = selectionString #+ "photon_pt>30"#+ "&&Sum$(GenPart_pt>30&&GenPart_pdgId==23&&GenPart_status==22)==1"
 
     # photon histogram
-    photon_pt_histo = mc[1].get1DHistoFromDraw( "photon_pt", [100/5, 0, 100], selectionString=selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF" )
+    photon_pt_histo = mc[1].get1DHistoFromDraw( "photon_pt", [400/5, 0, 400], selectionString=photonSelectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF" )
     photon_pt_histo.Scale(1./photon_pt_histo.Integral() if photon_pt_histo.Integral() != 0 else 1.)
 
     # Z boson histogram
-    #Z_pt_histo  = mc[0].get1DHistoFromDraw( lambda event, sample: event.Z_pt, [100/5, 0, 100], selectionString=selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
-    Z_pt_histo  = mc[0].get1DHistoFromDraw( "photon_pt", [100/5, 0, 100], selectionString=selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
+    Z_pt_histo = mc[0].get1DHistoFromDraw( "zBoson_genPt", [400/5, 0, 400], selectionString=ZSelectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
     Z_pt_histo.Scale(1./Z_pt_histo.Integral() if Z_pt_histo.Integral() != 0 else 1.)
 
     # reweight photon to Z boson
     def photonToZReweighting( photon_pt ):
         i_bin = photon_pt_histo.FindBin( photon_pt )
-        j_bin = Z_pt_histo.FindBin( photon_pt )
+        #j_bin = Z_pt_histo.FindBin( photon_pt )
         Z_val = Z_pt_histo.GetBinContent( i_bin )
         photon_val = photon_pt_histo.GetBinContent( i_bin )
+        #print "i(bin) %i #Z %f #g %f x %f"%(i_bin, Z_val, photon_val, Z_val/photon_val if photon_val>0 else 1.)
         return Z_val/photon_val if photon_val>0 else 1.
 
 
@@ -226,7 +228,9 @@ for sample in mc:
   sample.style = styles.errorStyle(sample.color)
 
 # TTZ selection
-mc[0].addSelectionString(["Sum$(GenPart_pt>30&&GenPart_pdgId==23&&GenPart_status==22)==1"])
+#mc[0].addSelectionString(["Sum$(GenPart_pt>30&&GenPart_pdgId==23&&GenPart_status==22)==1&&zBoson_genPt>20"])
+#mc[0].addSelectionString(["zBoson_genPt>30"])
+#mc[1].addSelectionString(["photon_pt>30&&photon_eta<2.5"])
 
 stack = Stack(mc[0], mc[1])
 
@@ -238,14 +242,30 @@ plots = []
 plots.append(Plot(
   name = "boson_pt",
   texX = 'p_{T}(boson) (GeV)', texY = 'Normalized units',
-  attribute = lambda event, sample: event.photon_pt if "TTG" in sample.name else event.Z_pt,
+  attribute = lambda event, sample: event.photon_pt if "TTG" in sample.name else event.zBoson_genPt,
   #attribute = "photon_pt",
   binning=[400/5,0,400], addOverFlowBin = None#'upper',
 ))
 
+#plots.append(Plot(
+#  name = "Z_pt",
+#  texX = 'p_{T}(Z boson) (GeV)', texY = 'Normalized units',
+#  attribute = lambda event, sample: event.Z_pt if "TTZ" in sample.name else event.photon_pt,
+#  binning=[400/5,0,400], addOverFlowBin = None#'upper',
+#))
+#
+#plots.append(Plot(
+#  name = "zBoson_genPt",
+#  texX = 'p_{T}(Z boson) (GeV)', texY = 'Normalized units',
+#  attribute = lambda event, sample: event.zBoson_genPt if "TTZ" in sample.name else event.photon_pt,
+#  #attribute = "zBoson_genPt",
+#  binning=[400/5,0,400], addOverFlowBin = None#'upper',
+#))
+
 plots.append(Plot(
-  name = 'met_pt_photonCalculated', texX = 'E_{T}^{miss} + photon (GeV)', texY = 'Normalized units',
-  attribute = lambda event, sample: event.met_pt_photonCalculated,
+  name = 'met_pt', texX = 'E_{T}^{miss} (including #gamma for t#bar{t}#gamma) (GeV)', texY = 'Normalized units',
+  #attribute = lambda event, sample: event.met_pt_photonCalculated if "TTG" in sample.name else event.met_pt,
+  attribute = lambda event, sample: event.met_pt,
   binning=[400/20, 0, 400],
 ))
 
@@ -256,9 +276,10 @@ plots.append(Plot(
 #))
 
 plots.append(Plot(
-  name = 'dl_mt2ll_photonCalculated', 
-  texX = 'M_{T2}(ll) (including #gamma) (GeV)', texY = 'Normalized units',
-  attribute = lambda event, sample: event.dl_mt2llPlusPhoton,
+  name = 'dl_mt2ll', 
+  texX = 'M_{T2}(ll) (MET including #gamma for t#bar{t}#gamma) (GeV)', texY = 'Normalized units',
+  #attribute = lambda event, sample: event.dl_mt2llPlusPhoton if "TTG" in sample.name else event.dl_mt2ll,
+  attribute = lambda event, sample: event.dl_mt2ll,
   binning=[300/15, 0, 300]
 ))
 

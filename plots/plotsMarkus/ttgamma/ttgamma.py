@@ -33,6 +33,7 @@ argParser.add_argument('--plot_directory',     action='store',      default='ttg
 argParser.add_argument('--era',                action='store', type=str,      default="Run2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-photon30-njet2p-relIso0.12-looseLeptonVeto-mll40-dPhiJet0-dPhiJet1-photonJetdR')
 argParser.add_argument('--reweightBosonPt',    action='store_true', default=False)
+argParser.add_argument('--offZForllg',    action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
@@ -46,8 +47,9 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
-if args.small:                        args.plot_directory += "_small"
 if args.reweightBosonPt:              args.plot_directory += "_photonToZ"
+if args.offZForllg:                   args.plot_directory += "_offZ"
+if args.small:                        args.plot_directory += "_small"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
@@ -138,31 +140,32 @@ read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_e
 read_variables += ["nPhotonGood/I", "overlapRemoval/I", "nGoodMuons/I", "nGoodElectrons/I", "photon_pt/F", "photon_eta/F", "photon_phi/F"]
 read_variables += ["dl_mt2ll_photonEstimated/F", "met_pt_photonEstimated/F", "metSig_photonEstimated/F", "dlg_mass/F"]
 #read_variables += ["photonJetdR/F", "photonLepdR/F"]
-read_variables += [ 
-                VectorTreeVariable.fromString("GenPart[pt/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]", nMax=200),  
-                "nGenPart/I" 
-                ] 
+#read_variables += [ 
+#                VectorTreeVariable.fromString("GenPart[pt/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]", nMax=200),  
+#                "nGenPart/I", "zBoson_genPt/F" 
+#                ] 
 
 sequence = []
 
 def make_newMET( event, sample ):
-    # add photon to missing energy
-    newmet_x = event.met_pt*cos(event.met_phi) + event.photon_pt*cos(event.photon_phi)
-    newmet_y = event.met_pt*sin(event.met_phi) + event.photon_pt*sin(event.photon_phi)
-    event.met_pt_photonCalculated = sqrt(newmet_x**2 + newmet_y**2)
-    event.met_phi_photonCalculated = atan2(newmet_y, newmet_x)
+    if "TTG" in sample.name:
+        # add photon to missing energy
+        newmet_x = event.met_pt*cos(event.met_phi) + event.photon_pt*cos(event.photon_phi)
+        newmet_y = event.met_pt*sin(event.met_phi) + event.photon_pt*sin(event.photon_phi)
+        event.met_pt = sqrt(newmet_x**2 + newmet_y**2)
+        event.met_phi = atan2(newmet_y, newmet_x)
 
-    # calculate mt2ll
-    mt2Calculator.reset()
-    mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
-    mt2Calculator.setMet(event.met_pt_photonCalculated, event.met_phi_photonCalculated)
-    event.dl_mt2llPlusPhoton = mt2Calculator.mt2ll()
+        # calculate mt2ll
+        mt2Calculator.reset()
+        mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+        mt2Calculator.setMet(event.met_pt, event.met_phi)
+        event.dl_mt2ll = mt2Calculator.mt2ll()
+
 
 sequence.append( make_newMET )
 
 def make_mass_llg( event, sample ):
     # calculate 3 particle invariant mass m(llgamma)
-    #event.mass_llg = float('nan')
     p_pt = [event.l1_pt, event.l2_pt, event.photon_pt]
     p_phi = [event.l1_phi, event.l2_phi, event.photon_phi]
     p_eta = [event.l1_eta, event.l2_eta, event.photon_eta]
@@ -177,8 +180,6 @@ def make_mass_llg( event, sample ):
         event.weight_llgOffZ = 1
     else:
         event.weight_llgOffZ = 0
-#    if event.photonJetdR < 0.3 or event.photonLepdR < 0.3:
-#        print "~~~~~> photonJetdR %f photonLepdR %f"%(event.photonJetdR,event.photonLepdR)
 
 sequence.append( make_mass_llg )
 
@@ -195,7 +196,7 @@ def make_genLevel( event, sample ):
     # should also work:
     # if event.GenPart_pdgId[2]==23 and event.GenPart_status[2]==22: event.Z_pt = event.GenPart_pt[2] 
 
-sequence.append( make_genLevel )
+#sequence.append( make_genLevel )
 
 
 #
@@ -214,24 +215,22 @@ if args.reweightBosonPt:
     logger.info( "Now obtaining photon to Z reweighting histograms" )
 
     leptonSelection = "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)"
-    cutSelection = cutInterpreter.cutString("lepSel-njet2p-relIso0.12-looseLeptonVeto-mll40-dPhiJet0-dPhiJet1")
+    cutSelection = cutInterpreter.cutString("lepSel-njet2p-relIso0.12-looseLeptonVeto-mll40-dPhiJet0-dPhiJet1-offZ")
     selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), leptonSelection, cutSelection])
-    # TTZ selection
-    ZselectionString = selectionString + "&&Sum$(GenPart_pt>30&&GenPart_pdgId==23&&GenPart_status==22)==1"
 
     # photon histogram
-    photon_pt_histo = mc[1].get1DHistoFromDraw( "photon_pt", [100/5, 0, 100], selectionString=selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF" )
+    photon_pt_histo = mc[1].get1DHistoFromDraw( "photon_pt", [800/5, 0, 800], selectionString=selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF" )
     photon_pt_histo.Scale(1./photon_pt_histo.Integral() if photon_pt_histo.Integral() != 0 else 1.) 
 
     # Z boson histogram
-    #Z_pt_histo  = mc[0].get1DHistoFromDraw( lambda event, sample: event.Z_pt, [100/5, 0, 100], selectionString=selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
-    Z_pt_histo  = mc[0].get1DHistoFromDraw( "photon_pt", [100/5, 0, 100], selectionString=ZselectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
+    #Z_pt_histo  = mc[0].get1DHistoFromDraw( lambda event, sample: event.Z_pt, [800/5, 0, 800], selectionString=selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
+    Z_pt_histo  = mc[0].get1DHistoFromDraw( "zBoson_genPt", [800/5, 0, 800], selectionString=selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
     Z_pt_histo.Scale(1./Z_pt_histo.Integral() if Z_pt_histo.Integral() != 0 else 1.) 
 
     # reweight photon to Z boson
     def photonToZReweighting( photon_pt ):
         i_bin = photon_pt_histo.FindBin( photon_pt )
-        j_bin = Z_pt_histo.FindBin( photon_pt )
+        #j_bin = Z_pt_histo.FindBin( photon_pt )
         Z_val = Z_pt_histo.GetBinContent( i_bin )
         photon_val = photon_pt_histo.GetBinContent( i_bin )
         return Z_val/photon_val if photon_val>0 else 1.
@@ -249,13 +248,13 @@ for index, mode in enumerate(allModes):
   data_sample.name           = "data"
   data_sample.read_variables = ["event/I","run/I"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
-  if args.reweightBosonPt:
+  if args.offZForllg:
     weight_ = lambda event, sample: event.weight*event.weight_llgOffZ
   else:
     weight_ = lambda event, sample: event.weight
 
   for sample in mc:
-    sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I"]
+    sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I", VectorTreeVariable.fromString("GenPart[pt/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]", nMax=200), "nGenPart/I", "zBoson_genPt/F"] 
     if "TTG" in sample.name and args.reweightBosonPt:
         sample.weight         = lambda event, sample: photonToZReweighting(event.photon_pt)*event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     else:
@@ -316,7 +315,7 @@ for index, mode in enumerate(allModes):
 
   plots.append(Plot(
     name = 'met_pt_photonCalculated', texX = 'E_{T}^{miss} + photon (GeV)', texY = 'Number of Events',
-    attribute = lambda event, sample: event.met_pt_photonCalculated,
+    attribute = lambda event, sample: event.met_pt,
     binning=[40, 0, 400],
   ))
 
@@ -335,7 +334,7 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
     name = 'dl_mt2ll_photonCalculated', 
     texX = 'M_{T2}(ll) (including #gamma) (GeV)', texY = 'Number of Events / 20 GeV',
-    attribute = lambda event, sample: event.dl_mt2llPlusPhoton,
+    attribute = lambda event, sample: event.dl_mt2ll,
     binning=[300/20, 0, 300]
   ))
 

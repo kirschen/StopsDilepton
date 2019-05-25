@@ -189,7 +189,7 @@ elif year == 2017:
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
     if args.noDYHT:
         mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-        print "~~~~> using normal DY sample instead of HT binned one"
+        #print "~~~~> using normal DY sample instead of HT binned one"
     else:
         mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
 elif year == 2018:
@@ -626,6 +626,7 @@ for mode in modes:
             normalization_selection_string = selectionModifier(cutInterpreter.cutString(args.selection + '-mt2llTo100'))
             mc_normalization_weight_string    = MC_WEIGHT(variations[args.variation], returntype='string')
             normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
+            print normalization_selection_string, mc_normalization_weight_string
 
             if args.variation == 'central':
                 normalisation_data = data_sample.scale*data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
@@ -640,6 +641,7 @@ for mode in modes:
                 del plot.weight
 
             # save
+            #print "normalisation_mc %f"%(normalisation_mc)
             dirDB.add( key, (normalisation_mc, normalisation_data, [plot.histos for plot in plots]), overwrite = args.overwrite)
 
             logger.info( "Done with %s in channel %s.", args.variation, mode)
@@ -765,9 +767,12 @@ for mode in all_modes:
         if args.variation_scaling:
             logger.info( "Scaling top yield to data for mt2ll<100 individually for all variations." )
             for variation in variations.keys():
+                #print ""%()
                 yield_non_top = sum( val for name, val in variation_data[(mode,variation)]['normalisation_mc'].iteritems() if name != Top_pow.name)
                 yield_top     = variation_data[(mode,variation)]['normalisation_mc'][Top_pow.name]
+                #print "mode %s yield_data %f yield_non_top %f yield_top %f"%(mode, yield_data, yield_non_top, yield_top)
                 dataMC_SF[mode][variation][Top_pow.name] = (yield_data - yield_non_top)/yield_top
+                #if mode=='mumu' and variation=='central': assert False, ''
         # scale all variations with the central factor
         else:
             logger.info( "Scaling top yield to data for mt2ll<100 ( all variations are scaled by central SF)" )
@@ -793,14 +798,14 @@ for mode in all_modes:
                 for s in mc:
                     dataMC_SF[mode][variation][s.name] = sf 
 
-def drawObjects( ):
+def drawObjects( scaling, scaleFactor ):
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'),
-      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale ) ),
+      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF=%3.2f'% ( lumi_scale, scaleFactor ) ) if scaling == 'mc' else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(top)=%3.2f'% ( lumi_scale, scaleFactor ) ) if scaling == 'top' else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) ),
       ]
     return [tex.DrawLatex(*l) for l in lines]
 
@@ -896,6 +901,6 @@ for mode in all_modes:
               yRange = (0.03, "auto") if log else (0.001, "auto"),
               #scaling = {0:1},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
-              drawObjects = drawObjects() + boxes,
+              drawObjects = drawObjects( args.scaling, dataMC_SF[mode]['central'][Top_pow.name] ) + boxes,
               copyIndexPHP = True, extensions = ["png"],
             )         
