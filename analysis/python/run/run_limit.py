@@ -23,7 +23,7 @@ argParser.add_argument("--significanceScan",         default = False, action = "
 argParser.add_argument("--removeSR",       default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 argParser.add_argument("--year",           default=2016,     action="store",      help="Which year?")
-
+argParser.add_argument("--dpm",            default= False,   action="store_true",help="Use dpm?",)
 args = argParser.parse_args()
 
 year = int(args.year)
@@ -33,6 +33,10 @@ import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
+
+# Load from DPM?
+if args.dpm:
+    data_directory      = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
 
 from StopsDilepton.analysis.SetupHelpers    import channels, trilepChannels
 from StopsDilepton.analysis.estimators      import *
@@ -505,14 +509,20 @@ def wrapper(s):
         MB_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['multiBoson']
         MB_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['multiBoson']
         
+        other_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['other']
+        other_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['other']
+
         print
         print "## Scale Factors for backgrounds: ##"
         print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit/top_prefit).val, '+/-',  top_postfit.sigma/top_postfit.val)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit/ttZ_prefit).val, '+/-',  ttZ_postfit.sigma/ttZ_postfit.val)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit/DY_prefit).val,   '+/-',  DY_postfit.sigma/DY_postfit.val)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
+        print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit/other_prefit).val, '+/-',  other_postfit.sigma/other_postfit.val)
+
 
     #print xSecScale
+
     if xSecScale != 1:
         for k in res:
             res[k] *= xSecScale
