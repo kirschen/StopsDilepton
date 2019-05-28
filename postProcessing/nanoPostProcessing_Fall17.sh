@@ -68,5 +68,5 @@ python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processin
 python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --sample ZZ #SPLIT5
 
 python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_400to1200 # SPLIT45
-python nanoPostProcessing.py  --forceProxy --skim inclusive  --year 2017 --processingEra stops_2017_nano_v0p12 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_400to1200 # SPLIT45
-python nanoPostProcessing.py  --forceProxy --skim inclusive  --year 2017 --processingEra stops_2017_nano_v0p12 --overwrite  --skipGenLepMatching --sample TTZToLLNuNu # SPLIT65
+##python nanoPostProcessing.py  --forceProxy --skim inclusive  --year 2017 --processingEra stops_2017_nano_v0p12 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_400to1200 # SPLIT45
+##python nanoPostProcessing.py  --forceProxy --skim inclusive  --year 2017 --processingEra stops_2017_nano_v0p12 --overwrite  --skipGenLepMatching --sample TTZToLLNuNu # SPLIT65

@@ -94,6 +94,8 @@ if year == 2016:
     #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
     #    nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
 elif year == 2017:
+    data_directory = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
+    postProcessing_directory = "stops_2017_nano_v0p12/dilep"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
 
