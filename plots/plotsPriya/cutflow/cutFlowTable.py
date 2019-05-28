@@ -22,7 +22,7 @@ argParser.add_argument('--overwrite',                               action='stor
 argParser.add_argument('--year',               action='store', type=int,      default=2016, choices = [2016, 2017, 2018])
 #argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 #argParser.add_argument('--plot_directory',     action='store',      default='v0p3')
-
+argParser.add_argument('--dpm', action='store_true', help='Use dpm?', )
 args = argParser.parse_args()
 
 # Logging
@@ -32,18 +32,22 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
 
+# Load from DPM?
+if args.dpm:
+    data_directory = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
+
 #Samples
 if args.year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    samples             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+    samples             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
     lumiFac = 35.9
 elif args.year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    samples             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+    samples             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
     lumiFac = 41.5
 elif args.year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    samples             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
+    samples             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
     lumiFac = 59.97
 
 logger.info( "Loaded data for year %i", args.year )
@@ -144,7 +148,7 @@ if args.small:
 #multiIsoWPMT = multiIsoLepString('M','T', ('l1_index','l2_index'))
 relIso04sm12Cut =   "&&".join(["LepGood_relIso04["+ist+"]<0.12" for ist in ('l1_index','l2_index')])
 
-weight_string = 'weight*reweightLeptonTrackingSF*reweightBTag_SF*reweightLeptonSF*reweightDilepTrigger*reweightPU36fb'
+weight_string = 'weight*reweightLeptonTrackingSF*reweightBTag_SF*reweightLeptonSF*reweightDilepTrigger*reweightPU'
 
 
 cuts=[

@@ -13,6 +13,7 @@ parser.add_option("--useGenMet",             dest="useGenMet",             defau
 parser.add_option("--overwrite",             dest="overwrite",             default=False,               action='store_true', help="overwrite existing results?")
 parser.add_option("--aggregate",             dest="aggregate",             default=False,               action='store_true', help="run over aggregated signal regions")
 parser.add_option("--all",                   dest="all",                   default=False,               action='store_true', help="Run over all SR and CR?")
+parser.add_option('--dpm',                   dest='dpm',                   default=False,               action='store_true', help='Use dpm?')
 
 (options, args) = parser.parse_args()
 
@@ -20,15 +21,18 @@ from StopsDilepton.analysis.SetupHelpers import channels, allChannels, trilepCha
 from StopsDilepton.analysis.estimators   import *
 from StopsDilepton.analysis.regions      import regionsLegacy, noRegions
 
-from StopsDilepton.analysis.Setup import Setup
-
-setup = Setup(year=options.year)
+if options.dpm:
+    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
 
 # Logging
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger('INFO', logFile = None )
+logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
+
+from StopsDilepton.analysis.Setup import Setup
+
+setup = Setup(year=options.year)
 
 allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsLegacy
 if options.aggregate: allRegions = regionsAgg
