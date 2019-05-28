@@ -26,7 +26,7 @@ except:
 logger.info("Loading MC samples from directory %s", os.path.join(data_directory_, postProcessing_directory_))
 
 DY_M5to50_HT = [
-                "DYJetsToLL_M10to50_LO_lheHT70", 
+#                "DYJetsToLL_M10to50_LO_lheHT70", ## This doesn't exist??!!
                 "DYJetsToLL_M5to50_HT70to100",
                 "DYJetsToLL_M5to50_HT100to200_comb",
                 "DYJetsToLL_M5to50_HT200to400_comb",
@@ -60,39 +60,41 @@ dirs['TTSingleLep_pow']  = ["TTSingleLep_pow"]
 
 dirs['singleTop']        = ["TBar_tWch_ext", "T_tWch_ext"]#, "TToLeptons_tch_powheg", "TBarToLeptons_tch_powheg"]
 dirs['singleTop_tch']    = ["T_tch_pow", "TBar_tch_pow"]
-#dirs['singleTop_sch']    = ["TToLeptons_sch_amcatnlo"]
+dirs['singleTop_sch']    = ["TToLeptons_sch_amcatnlo"]
 
-dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop'] + dirs['singleTop_tch']
+dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop'] + dirs['singleTop_tch'] + dirs['singleTop_sch']
 
-dirs['TZQ']              = ["tZq_ll_ext"]#, "tZq_nunu_reHLT"]
-dirs['TWZ']              = ["tWll", "tWnunu"]
-dirs['TTW']              = ["TTWToLNu_ext2"]#, "TTWToQQ"]
+dirs['TTZToLLNuNu']     = ['TTZToLLNuNu_ext2_comb', 'TTZToLLNuNu_m1to10']
+dirs['TTZToQQ']         = ['TTZToQQ']
+dirs['TTZ']             = ['TTZToLLNuNu_ext2_comb', 'TTZToLLNuNu_m1to10', "TTZToQQ"]
 
-dirs['TTH']              = ["TTHbb"]#, "TTHnobb_mWCutfix_ext"] FIXME got deleted, need to be re-added later
-dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu_ext2_comb"]
-dirs['TTZtoQQ']          = ["TTZToQQ"]
-dirs['TTZ']              = ["TTZToLLNuNu_ext2_comb", "TTZToQQ"]
+dirs['TTH']             = ['TTHbb', 'TTHnobb_pow']
+dirs['TWZ']             = ['tWnunu', 'tWll']
+dirs['TTW']             = ['TTWToLNu_ext2', 'TTWToQQ']
+dirs['TZQ']             = ['tZq_ll_ext']
+dirs['TTVV']            = ['TTWW', 'TTWZ','TTZZ']
+dirs['THX']             = ['THW', 'THQ']
+dirs['TTTT']            = ['TTTT']
 
-dirs['TTXNoZ']           = dirs['TTH'] + dirs['TTW'] + dirs['TWZ'] + dirs['TZQ']
-dirs['TTX']              = dirs['TTXNoZ'] + dirs['TTZ']
+dirs['TTXNoZ']          = dirs['TTVV'] + dirs['TTW'] + dirs['TWZ'] + dirs['TZQ'] + dirs['TTH'] + dirs['TTTT'] + dirs['THX']
+dirs['TTX']             = dirs['TTVV'] + dirs['TTW'] + dirs['TWZ'] + dirs['TZQ'] + dirs['TTH'] + dirs['TTTT'] + dirs['THX'] + dirs['TTZ']
 
 #dirs['WJetsToLNu']       = ["WJetsToLNu"]
 ##dirs['WJetsToLNu_LO']    = ["WJetsToLNu_LO"]
 ##dirs['WJetsToLNu_HT']    = ["WJetsToLNu_HT100to200_comb", "WJetsToLNu_HT200to400_comb", "WJetsToLNu_HT400to600", "WJetsToLNu_HT600to800", "WJetsToLNu_HT800to1200", "WJetsToLNu_HT1200to2500", "WJetsToLNu_HT2500toInf"]
 dirs['diBosonInclusive'] = ["WW", "WZ", "ZZ"]
-dirs['WW']               = []#["WWToLNuQQ_comb"]
+dirs['WW']               = ["WWToLNuQQ"]
 #dirs['WW_']              = ["WWToLNuQQ_comb","WWTo2L2Nu"]
 #dirs['WWTo2L2Nu']        = ["WWTo2L2Nu"]
 dirs['VVTo2L2Nu']        = ["VVTo2L2Nu_comb"]
-dirs['WZ']               = ["WZTo1L1Nu2Q",  "WZTo3LNu_ext"] # "WZTo1L3Nu" "WZTo2L2Q",missing
+dirs['WZ']               = ["WZTo1L1Nu2Q",  "WZTo1L3Nu", "WZTo2L2Q", "WZTo3LNu_ext"]
 dirs['ZZ']               = ["ZZTo2L2Q", "ZZTo2Q2Nu"]
 dirs['ZZ4l']             = ["ZZTo4L"]
-#dirs['ZZTo2L2Nu']        = ["ZZTo2L2Nu"]
+dirs['ZZTo2L2Nu']        = ["ZZTo2L2Nu"]
 #dirs['ZZ_']              = ["ZZTo2L2Q", "ZZTo2Q2Nu","ZZTo2L2Nu"]
 dirs['diBoson']          = dirs['WW'] + dirs['WZ'] + dirs['ZZ']+ dirs['VVTo2L2Nu']
 #dirs['diBoson_']         = dirs['WW_'] + dirs['WZ'] + dirs['ZZ_']
-dirs['triBoson']         = ["WZZ","ZZZ"] 
-#dirs['triBoson']         = ["WWZ","WZZ","ZZZ"] #FIXME... WWZ was deleted 
+dirs['triBoson']         = ["WWW_4F","WWZ","WZZ","ZZZ"]
 dirs['multiBoson']       = dirs['diBoson'] + dirs['triBoson']
 #dirs['EWK']              = dirs['diBoson'] + dirs['triBoson'] + dirs['TTX']
 #dirs['QCD_HT']           = ["QCD_HT300to500_comb", "QCD_HT500to700_ext", "QCD_HT700to1000_comb", "QCD_HT1000to1500_comb", "QCD_HT1500to2000_comb", "QCD_HT2000toInf_comb"]
@@ -134,8 +136,8 @@ TTXNoZ_16         = Sample.fromDirectory(name="TTXNoZ",           treeName="Even
 TTH_16            = Sample.fromDirectory(name="TTH",              treeName="Events", isData=False, color=color.TTH,             texName="t#bar{t}H",                         directory=directories['TTH'])
 TTW_16            = Sample.fromDirectory(name="TTW",              treeName="Events", isData=False, color=color.TTW,             texName="t#bar{t}W",                         directory=directories['TTW'])
 TTZ_16            = Sample.fromDirectory(name="TTZ",              treeName="Events", isData=False, color=color.TTZ,             texName="t#bar{t}Z",                         directory=directories['TTZ'])
-TTZtoLLNuNu_16    = Sample.fromDirectory(name="TTZtoNuNu",        treeName="Events", isData=False, color=color.TTZtoLLNuNu,     texName="t#bar{t}Z (l#bar{l}/#nu#bar{#nu})", directory=directories['TTZtoLLNuNu'])
-TTZtoQQ_16        = Sample.fromDirectory(name="TTZtoQQ",          treeName="Events", isData=False, color=color.TTZtoQQ,         texName="t#bar{t}Z (q#bar{q})",              directory=directories['TTZtoQQ'])
+TTZtoLLNuNu_16    = Sample.fromDirectory(name="TTZtoNuNu",        treeName="Events", isData=False, color=color.TTZtoLLNuNu,     texName="t#bar{t}Z (l#bar{l}/#nu#bar{#nu})", directory=directories['TTZToLLNuNu'])
+TTZToQQ_16        = Sample.fromDirectory(name="TTZtoQQ",          treeName="Events", isData=False, color=color.TTZtoQQ,         texName="t#bar{t}Z (q#bar{q})",              directory=directories['TTZToQQ'])
 TZQ_16            = Sample.fromDirectory(name="TZQ",              treeName="Events", isData=False, color=color.TZQ,             texName="tZq",                               directory=directories['TZQ'])
 TWZ_16            = Sample.fromDirectory(name="TWZ",              treeName="Events", isData=False, color=color.TWZ,             texName="tWZ",                               directory=directories['TWZ'])
 #WJetsToLNu     = Sample.fromDirectory(name="WJetsToLNu",       treeName="Events", isData=False, color=color.WJetsToLNu,      texName="W(l,#nu) + Jets",                   directory=directories['WJetsToLNu'])
