@@ -21,6 +21,7 @@ argParser.add_argument("--noSignal",       default = False, action = "store_true
 argParser.add_argument("--useTxt",         default = False, action = "store_true", help="Use txt based cardFiles instead of root/shape based ones?")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--removeSR",       default = False, action = "store", help="Remove one signal region?")
+argParser.add_argument("--skipFitDiagnostics", default = False, action = "store_true", help="Don't do the fitDiagnostics (this is necessary for pre/postfit plots, but not 2D scans)?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 argParser.add_argument("--year",           default=2016,     action="store",      help="Which year?")
 argParser.add_argument("--dpm",            default= False,   action="store_true",help="Use dpm?",)
@@ -474,7 +475,8 @@ def wrapper(s):
           res = limitCache.get(sConfig)
         else:
           res = c.calcLimit(cardFileName)#, options="--run blind")
-          c.calcNuisances(cardFileName)
+          if not args.skipFitDiagnostics:
+              c.calcNuisances(cardFileName)
           limitCache.add(sConfig, res)
     else:
         if useCache and not overWrite and signifCache.contains(sConfig):
@@ -487,7 +489,7 @@ def wrapper(s):
     ###################
     # extract the SFs #
     ###################
-    if not args.useTxt and args.only:
+    if not args.useTxt and args.only and not args.skipFitDiagnostics:
         # Would be a bit more complicated with the classical txt files, so only automatically extract the SF when using shape based datacards
         from StopsDilepton.tools.getPostFit import getPrePostFitFromMLF
         
