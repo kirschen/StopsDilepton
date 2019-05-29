@@ -487,7 +487,7 @@ def wrapper(s):
     ###################
     # extract the SFs #
     ###################
-    if not args.useTxt:
+    if not args.useTxt and args.only:
         # Would be a bit more complicated with the classical txt files, so only automatically extract the SF when using shape based datacards
         from StopsDilepton.tools.getPostFit import getPrePostFitFromMLF
         
@@ -565,8 +565,6 @@ if args.signal == "T2tt":
         data_directory              = '/afs/hephy.at/data/dspitzbart03/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p7/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
-
-allJobs = [j.name for j in jobs]
 
 if args.only is not None:
     if args.only.isdigit():
