@@ -245,6 +245,13 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+      name = 'met_pt_wide',
+      texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 50 GeV',
+      attribute = TreeVariable.fromString( "met_pt/F" ),
+      binning=[1050/50,0,1050],
+  ))
+    
+  plots.append(Plot(
       texX = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 25 GeV',
       attribute = TreeVariable.fromString( "met_pt/F" ),
       binning=[400/25,0,400],
