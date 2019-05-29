@@ -80,7 +80,7 @@ elif "2018" in args.era:
 
 logger.info( "Working in year %i", year )
 
-/ Load from DPM?
+# Load from DPM?
 if args.dpm:
     data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
 

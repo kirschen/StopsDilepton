@@ -299,9 +299,9 @@ class cardFileWriter:
                                 histos['%s_%sDown'%(process, unc)].SetBinContent(i+1, (2-relUnc)*expect)
                             else:
                                 histos['%s_%s'%(process, unc)].SetBinContent(i+1, relUnc*expect)
-        
         # define the file names
         rootFile = fname.split('/')[-1]
+        rootFileFull = fname
         txtFile  = fname.replace('.root', 'Card.txt')
 
         # create the one-bin card-file
@@ -309,6 +309,7 @@ class cardFileWriter:
         self.niceNames[bins[0]] = 'inclusive bin'
         for process in processes:
             self.specifyExpectation(self.bins[0], process, histos[process].Integral())
+            #print "setting expectation to shape file", self.bins[0], process,  histos[process].Integral()
             # need to set the strength of the shape uncertainties defined by the histograms. If not turned on (meaning a value greater than 0), they have no effect.
             for nuis in nuisForProc[process]:
                 self.specifyUncertainty(nuis, bins[0], process, 1)
@@ -318,10 +319,9 @@ class cardFileWriter:
         self.writeToFile(txtFile, shapeFile=rootFile)
         
         # write all the histograms to a root file
-        writeObjToFile(rootFile, data_obs)
+        writeObjToFile(rootFileFull, data_obs)
         for h in sorted(histos.keys()):
-            writeObjToFile(rootFile, histos[h], update=True)
-
+            writeObjToFile(rootFileFull, histos[h], update=True)
         return txtFile
 
     def combineCards(self, cards):

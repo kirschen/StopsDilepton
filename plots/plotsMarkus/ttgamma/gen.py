@@ -123,6 +123,8 @@ read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_e
 read_variables += ["nPhotonGood/I", "overlapRemoval/I", "nGoodMuons/I", "nGoodElectrons/I", "photon_pt/F", "photon_eta/F", "photon_phi/F"]
 read_variables += ["dl_mt2ll_photonEstimated/F", "met_pt_photonEstimated/F", "metSig_photonEstimated/F", "dlg_mass/F"]
 #read_variables += ["photonJetdR/F", "photonLepdR/F"]
+
+# TODO: full script
 read_variables += [
                 VectorTreeVariable.fromString("GenPart[pt/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]", nMax=200), 
                 "nGenPart/I", "photon_genPt/F", "zBoson_genPt/F", "Z1_pt/F", "nGoodLeptons/I"
@@ -165,7 +167,8 @@ def make_mass_llg( event, sample ):
 
 sequence.append( make_mass_llg )
 
-# not necessary
+# TODO: full script
+# remove, not necessary
 def make_genLevel( event, sample ):
     if "TTZ" in sample.name:
         # get p_T of Z boson 
@@ -188,6 +191,7 @@ leptonSelection = "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
 if args.reweightBosonPt:
     logger.info( "Now obtaining photon to Z reweighting histograms" )
 
+# TODO: full script
     #cutSelection = cutInterpreter.cutString("lepSel-njet2p-relIso0.12-looseLeptonVeto-mll40-dPhiJet0-dPhiJet1-offZ")
     cutSelection = cutInterpreter.cutString(args.selection) 
     selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), leptonSelection, cutSelection, "overlapRemoval==1"])
@@ -209,6 +213,7 @@ if args.reweightBosonPt:
         return Z_val/g_val if g_val>0 else 1.
 
 
+# TODO: full script
 # prepare plots
 #if args.reweightBosonPt:
 #  weight_ = lambda event, sample: event.weight#*event.weight_llgOffZ
@@ -224,6 +229,7 @@ for sample in mc:
   sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), leptonSelection, "overlapRemoval==1"])
   sample.style = styles.errorStyle(sample.color)
 
+# TODO: full script
 # TTZ selection
 #mc[0].addSelectionString(["Sum$(GenPart_pt>30&&GenPart_pdgId==23&&GenPart_status==22)==1&&zBoson_genPt>20"])
 #mc[0].addSelectionString(["zBoson_genPt>30"])
@@ -232,8 +238,10 @@ for sample in mc:
 stack = Stack(mc[0], mc[1])
 
 # Use some defaults
-#Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), histo_class=ROOT.TH1D)
 Plot.setDefaults(stack = stack, selectionString = cutInterpreter.cutString(args.selection), histo_class=ROOT.TH1D)
+
+# TODO: full script
+#Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), histo_class=ROOT.TH1D)
 
 plots = []
 

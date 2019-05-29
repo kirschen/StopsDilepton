@@ -82,13 +82,13 @@ elif args.year == 2018:
 # three DY's with MET
 DYs = [copy.deepcopy(mc[-1]) for i in range(3)]
 DYs[0].texName = "DY (E_{T, fake}^{miss} < 50)"
-DYs[0].color = ROOT.kGreen + 1
+DYs[0].color = ROOT.kGreen + 0
 
 DYs[1].texName = "DY (50 < E_{T, fake}^{miss} < 100)"
 DYs[1].color = ROOT.kGreen + 2
 
 DYs[2].texName = "DY (E_{T, fake}^{miss} > 100)"
-DYs[2].color = ROOT.kGreen + 3
+DYs[2].color = ROOT.kGreen + 4
 mc = DYs+mc[:-1]
 
 #

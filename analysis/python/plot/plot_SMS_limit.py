@@ -1,3 +1,7 @@
+'''
+/afs/hephy.at/data/dspitzbart02/StopsDileptonLegacy/results/v1/2017/signalOnly/limits/T2tt/T2tt/limitResults.root
+'''
+
 #!/usr/bin/env python
 import ROOT
 import sys, ctypes, os
@@ -14,9 +18,10 @@ ROOT.gROOT.SetBatch(True)
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p09'
 #signalString = 'T8bbllnunu_XCha0p5_XSlep0p05'
 signalString = 'T2tt'
+year = 2017
 #signalString = "T2bW"
 
-defFile= os.path.join(analysis_results, "fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
+defFile= os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(year,signalString,signalString))
 
 from optparse import OptionParser
 parser = OptionParser()

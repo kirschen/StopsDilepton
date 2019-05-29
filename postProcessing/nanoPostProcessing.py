@@ -745,15 +745,15 @@ def getMetJetCorrected(met_pt, met_phi, jets, var, ptVar='pt'):
   met_corr_phi = atan2(met_corr_py, met_corr_px)
   return (met_corr_pt, met_corr_phi)
 
-def getMetCorrected(r, var, addPhoton = None):
+def getMetCorrected(r, var, addPhoton = None, branch='MET'):
     if var == "": # why is this here??
       if addPhoton is not None: return getMetPhotonEstimated(r.MET_pt_nom, r.MET_phi_nom, addPhoton)
       else:                     return (r.MET_pt_nom, r.MET_phi_nom)
 
     elif var in [ "unclustEnUp", "unclustEnDown" ]:
       var_ = var
-      MET_pt  = getattr(r, "MET_pt_"+var_)
-      MET_phi = getattr(r, "MET_phi_"+var_)
+      MET_pt  = getattr(r, "%s_pt_"%branch+var_)
+      MET_phi = getattr(r, "%s_phi_"%branch+var_)
       if addPhoton is not None: return getMetPhotonEstimated(MET_pt, MET_phi, addPhoton)
       else:                     return (MET_pt, MET_phi)
 
@@ -1022,7 +1022,7 @@ def filler( event ):
                 if 'jer' in var or 'jes' in var:
                   (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(event, "met_pt" + i), getattr(event,"met_phi" + i), alljets_sys[var], var, ptVar='pt_nom')
                 else:
-                  (met_corr_pt, met_corr_phi) = getMetCorrected(r, var, photons[0] if i.count("photonEstimated") else None)
+                  (met_corr_pt, met_corr_phi) = getMetCorrected(r, var, photons[0] if i.count("photonEstimated") else None, branch="METFixEE2017" if options.year == 2017 else "MET")
 
                 setattr(event, "met_pt" +i+"_"+var, met_corr_pt)
                 setattr(event, "met_phi"+i+"_"+var, met_corr_phi)
