@@ -4,7 +4,7 @@ class default_locations:
     data_2016_data_directory            = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     data_2016_postProcessing_directory  = "stops_2016_nano_v0p5/dilep/"
 
-    mc_2017_data_directory              = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
+#    mc_2017_data_directory              = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
     mc_2017_data_directory              = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
     mc_2017_postProcessing_directory    = "stops_2017_nano_v0p12/dilep/"
 #    data_2017_data_directory            = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
