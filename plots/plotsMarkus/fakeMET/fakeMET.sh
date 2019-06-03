@@ -1,11 +1,11 @@
 # figure 12 in Analysis Note
-#python fakeMET.py --year 2016 --plot_directory v5s --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
-#python fakeMET.py --year 2017 --plot_directory v5s --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
-#python fakeMET.py --year 2018 --plot_directory v5s --reweightPUVUp --selection lepSel-njet2p-btag0-relIso0.12-HEMJetVetoWide-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
+python fakeMET.py --year 2016 --plot_directory v5sc --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
+python fakeMET.py --year 2017 --plot_directory v5sc --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
+python fakeMET.py --year 2018 --plot_directory v5sc --reweightPUVUp --selection lepSel-njet2p-btag0-relIso0.12-HEMJetVetoWide-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
 
-python fakeMET.py --year 2016 --plot_directory v5s --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ
-python fakeMET.py --year 2017 --plot_directory v5s --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ
-python fakeMET.py --year 2018 --plot_directory v5s --reweightPUVUp --selection lepSel-njet2p-btag0-relIso0.12-HEMJetVetoWide-looseLeptonVeto-mll20-onZ
+python fakeMET.py --year 2016 --plot_directory v5sc --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ
+python fakeMET.py --year 2017 --plot_directory v5sc --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ
+python fakeMET.py --year 2018 --plot_directory v5sc --reweightPUVUp --selection lepSel-njet2p-btag0-relIso0.12-HEMJetVetoWide-looseLeptonVeto-mll20-onZ
 
 #python fakeMET.py --year 2018 --plot_directory v5 --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ --preHEM
 #python fakeMET.py --year 2018 --plot_directory v5 --selection lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ --postHEM

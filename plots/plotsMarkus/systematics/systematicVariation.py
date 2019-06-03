@@ -536,7 +536,7 @@ for mode in modes:
         met2_data   = Plot(
             name        = "met2_data",
             texX        = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-            binning     = Binning.fromThresholds(mt2llBinning),
+            binning     = Binning.fromThresholds(metBinning2),
             stack       = stack_data,
             attribute   = TreeVariable.fromString( "met_pt/F" ),
             weight      = data_weight )
@@ -545,7 +545,7 @@ for mode in modes:
     met2_mc  = Plot(\
         name            = "met2_mc",
         texX            = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-        binning         = Binning.fromThresholds(mt2llBinning),
+        binning         = Binning.fromThresholds(metBinning2),
         stack           = stack_mc,
         attribute       = TreeVariable.fromString( selectionModifier("met_pt/F"))   if selectionModifier is not None else None,
         selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,

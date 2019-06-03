@@ -123,8 +123,6 @@ read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_e
 read_variables += ["nPhotonGood/I", "overlapRemoval/I", "nGoodMuons/I", "nGoodElectrons/I", "photon_pt/F", "photon_eta/F", "photon_phi/F"]
 read_variables += ["dl_mt2ll_photonEstimated/F", "met_pt_photonEstimated/F", "metSig_photonEstimated/F", "dlg_mass/F"]
 #read_variables += ["photonJetdR/F", "photonLepdR/F"]
-
-# TODO: full script
 read_variables += [
                 VectorTreeVariable.fromString("GenPart[pt/F,pdgId/I,genPartIdxMother/I,status/I,statusFlags/I]", nMax=200), 
                 "nGenPart/I", "photon_genPt/F", "zBoson_genPt/F", "Z1_pt/F", "nGoodLeptons/I"
@@ -167,32 +165,29 @@ def make_mass_llg( event, sample ):
 
 sequence.append( make_mass_llg )
 
-# TODO: full script
 # remove, not necessary
-def make_genLevel( event, sample ):
-    if "TTZ" in sample.name:
-        # get p_T of Z boson 
-
-        #print event.nGenPart
-        for i in range(event.nGenPart):
-            if event.GenPart_pdgId[i]==23 and event.GenPart_status[i]==62:
-                #print "~~", i, event.GenPart_pdgId[i], event.GenPart_pt[i]
-                event.Z_pt = event.GenPart_pt[i]
-                #event.photon_pt = event.GenPart_pt[i]
-        #if not (event.zBoson_genPt-event.Z_pt == 0): print event.zBoson_genPt, event.Z_pt
-        # should also work:
-        # if event.GenPart_pdgId[2]==23 and event.GenPart_status[2]==22: event.Z_pt = event.GenPart_pt[2] 
+#def make_genLevel( event, sample ):
+#    if "TTZ" in sample.name:
+#        # get p_T of Z boson 
+#
+#        #print event.nGenPart
+#        for i in range(event.nGenPart):
+#            if event.GenPart_pdgId[i]==23 and event.GenPart_status[i]==62:
+#                #print "~~", i, event.GenPart_pdgId[i], event.GenPart_pt[i]
+#                event.Z_pt = event.GenPart_pt[i]
+#                #event.photon_pt = event.GenPart_pt[i]
+#        #if not (event.zBoson_genPt-event.Z_pt == 0): print event.zBoson_genPt, event.Z_pt
+#        # should also work:
+#        # if event.GenPart_pdgId[2]==23 and event.GenPart_status[2]==22: event.Z_pt = event.GenPart_pt[2] 
 #sequence.append( make_genLevel )
 
 
-#leptonSelection = "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)"
-leptonSelection = "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
+leptonSelection = "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)"
+#leptonSelection = "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
 
 if args.reweightBosonPt:
     logger.info( "Now obtaining photon to Z reweighting histograms" )
 
-# TODO: full script
-    #cutSelection = cutInterpreter.cutString("lepSel-njet2p-relIso0.12-looseLeptonVeto-mll40-dPhiJet0-dPhiJet1-offZ")
     cutSelection = cutInterpreter.cutString(args.selection) 
     selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), leptonSelection, cutSelection, "overlapRemoval==1"])
     ZSelectionString = selectionString 
@@ -211,14 +206,6 @@ if args.reweightBosonPt:
         g_val = g_pt_histo.GetBinContent( i_bin )
 #        print "g_pt %f     i(bin) %i #Z %f #g %f x %f"%(g_pt, i_bin, Z_val, g_val, Z_val/g_val if g_val>0 else 1.)
         return Z_val/g_val if g_val>0 else 1.
-
-
-# TODO: full script
-# prepare plots
-#if args.reweightBosonPt:
-#  weight_ = lambda event, sample: event.weight#*event.weight_llgOffZ
-#else:
-#  weight_ = lambda event, sample: event.weight
 
 for sample in mc:
   sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F']
@@ -239,9 +226,6 @@ stack = Stack(mc[0], mc[1])
 
 # Use some defaults
 Plot.setDefaults(stack = stack, selectionString = cutInterpreter.cutString(args.selection), histo_class=ROOT.TH1D)
-
-# TODO: full script
-#Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), histo_class=ROOT.TH1D)
 
 plots = []
 
