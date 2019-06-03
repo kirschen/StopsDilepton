@@ -659,7 +659,7 @@ for index, mode in enumerate(allModes):
       binning=[300/20,0,300],
     ))
 
-    plots.append(Plot( name = "dl_mt2ll_coarse"
+    plots.append(Plot( name = "dl_mt2ll_coarse",
       texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
       attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
       binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
