@@ -76,8 +76,6 @@ elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
 elif year == 2018:
-    data_directory              = "/afs/hephy.at/data/cms01/nanoTuples/"
-    postProcessing_directory    = "stops_2018_nano_v0p10/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]

@@ -37,6 +37,7 @@ argParser.add_argument('--plot_directory',    action='store',      default='v1')
 argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
+argParser.add_argument('--dpm',               action='store_true',     help='Use dpm?', )
 argParser.add_argument('--noDYHT',            action='store_true',     help='run without HT-binned DY')
 argParser.add_argument('--scaling',           action='store',      default=None, choices = [None, 'mc', 'top'],     help='Scale top to data in mt2ll<100?')
 argParser.add_argument('--variation_scaling', action='store_true', help='Scale the variations individually to mimick bkg estimation?')
@@ -173,6 +174,10 @@ if args.signal == "T2tt":         plot_subdirectory += "_T2tt"
 if args.small:                    plot_subdirectory += "_small"
 if args.reweightPU:               plot_subdirectory += "_reweightPU%s"%args.reweightPU
 #if args.recoil:                  plot_subdirectory  += '_recoil_'+args.recoil
+
+# Load from DPM?
+if args.dpm:
+    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
     
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *

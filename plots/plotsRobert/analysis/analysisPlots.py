@@ -95,6 +95,8 @@ if year == 2016:
     #    nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
+    #data_directory           = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
+    #postProcessing_directory = "stops_2017_nano_v0p12_JECV6/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
 
     if args.DYInc:
@@ -351,7 +353,8 @@ if True: #"2017" in args.era:
         event.nJet_EE_pt40 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>40, event.jets))
         event.nJet_EE_pt50 = len(filter(lambda j:abs(j['eta'])>2.6 and abs(j['eta'])<3.1 and j['pt']>50, event.jets))
 
-        event.badJetE = sum( [ j['pt']*j['neEmEF']*cosh(j['eta']) for j in event.jets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
+        event.badJetE  = sum( [ j['pt']*j['neEmEF']*cosh(j['eta']) for j in event.jets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
+        event.badJetPt = sum( [ j['pt']*j['neEmEF'] for j in event.jets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
     sequence.append( make_all_jets )
 
 ## veto list
@@ -495,20 +498,20 @@ for index, mode in enumerate(allModes):
   #data_sample_filtered.texName+= " (filtered)"
 
   for sample in mc + signals:
-    sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F']
+    sample.read_variables = ['reweightPU/F', 'reweightL1Prefire/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F']
     # Need individual pu reweighting functions for each sample in 2017, so nTrueInt_puRW is only defined here
     if args.reweightPU and args.reweightPU not in ["noPUReweighting", "nvtx"]:
         sample.read_variables.append( 'reweightPU/F' if args.reweightPU=='Central' else 'reweightPU%s/F'%args.reweightPU )
 
     if args.reweightPU == "noPUReweighting":
-        sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
     elif args.reweightPU == "nvtx":
-        sample.weight         = lambda event, sample: nvtx_puRW(event.PV_npvsGood) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: nvtx_puRW(event.PV_npvsGood) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
     elif args.reweightPU:
         pu_getter = operator.attrgetter( 'reweightPU' if args.reweightPU=='Central' else 'reweightPU%s'%args.reweightPU )
-        sample.weight         = lambda event, sample: pu_getter(event) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: pu_getter(event) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
     else: #default
-        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
 
     sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
 
@@ -655,6 +658,12 @@ for index, mode in enumerate(allModes):
       attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
       binning=[300/20,0,300],
     ))
+
+    plots.append(Plot( name = "dl_mt2ll_coarse"
+      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+      attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+      binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340]),
+    ))
     #plots.append(Plot( name = "dl_mt2ll_raw",
     #  texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
     #  attribute = lambda event, sample: event.dl_mt2ll_raw,
@@ -741,6 +750,11 @@ for index, mode in enumerate(allModes):
       texX = 'badEEJetEnergy', texY = 'Number of Events',
       attribute = lambda event, sample: event.badJetE,
       binning=[40,0,400],
+    ))
+    plots.append(Plot( name = "badJetPt",
+      texX = 'badEEJetPt', texY = 'Number of Events',
+      attribute = lambda event, sample: event.badJetPt,
+      binning=[40,0,200],
     ))
 
   plots.append(Plot(
@@ -1018,12 +1032,13 @@ for index, mode in enumerate(allModes):
       texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
       attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
       binning=[420/30,0,400],
+
     ))
 
     plots.append(Plot( name = "dl_mt2blbl_coarse",       # SR binning of MT2ll
       texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
       attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-      binning=[400/100, 0, 400],
+      binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
     ))
    
   plotting.fill(plots + plots2D, read_variables = read_variables, sequence = sequence)
