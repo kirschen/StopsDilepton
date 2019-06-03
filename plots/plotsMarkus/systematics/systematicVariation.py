@@ -197,6 +197,7 @@ elif year == 2017:
         #print "~~~~> using normal DY sample instead of HT binned one"
     else:
         mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
+
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
@@ -206,12 +207,6 @@ elif year == 2018:
         #print "~~~~> using normal DY sample instead of HT binned one"
     else:
         mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
-
-try:
-  data_sample = eval(args.era)
-except Exception as e:
-  logger.error( "Didn't find %s", args.era )
-  raise e
 
 # postions of MC components in list
 position = {s.name:i_s for i_s,s in enumerate(mc)}
@@ -338,15 +333,11 @@ allPlots   = {}
 
 logger.info('Working on modes: %s', ','.join(modes))
 
-if year == 2016:
-    data_sample = Run2016
-    data_sample.texName = "data (2016)"
-elif year == 2017:
-    data_sample = Run2017
-    data_sample.texName = "data (2017)"
-elif year == 2018:
-    data_sample = Run2018
-    data_sample.texName = "data (2018)"
+try:
+  data_sample = eval(args.era)
+except Exception as e:
+  logger.error( "Didn't find %s", args.era )
+  raise e
 
 # Define samples
 data_sample.name           = "data"
