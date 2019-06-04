@@ -159,14 +159,16 @@ def wrapper(s):
             elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":   sString = "mStop %i mNeu %i" % sConfig
             elif args.signal == "ttHinv":                         sString = "ttH->inv"
 
-            print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
+            #print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
             limitCache.add(sConfig, res)
             logger.info("Adding results to database")
             logger.info("Results stored in %s", limitDir )
-    if res:
+    try:
+        print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
         return sConfig, res
-    else:
-        return False
+    except:
+        print "Problem with limit: %r"%str(res)
+        return None
 
 if args.signal == "T2tt":
     data_directory              = '/afs/hephy.at/data/dspitzbart03/nanoTuples/'
