@@ -100,9 +100,9 @@ def metSelectionModifier( sys, returntype = 'func'):
 
 # these are the nominal MC weights we always apply
 if args.reweightPU == 'Central': 
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightTrackingSF", "reweightL1Prefire"]
 if args.reweightPU == 'VUp':
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightTrackingSF", "reweightL1Prefire"]
 
 # weight the MC according to a variation
 def MC_WEIGHT( variation, returntype = "string"):
@@ -681,19 +681,24 @@ for mode in modes:
         if not success:
             # prepare sub variation command
             cmd = ['python', 'systematicVariation.py']
+            if args.dpm: cmd.append('--dpm')
             cmd.append('--logLevel=%s'%args.logLevel)
             if args.signal is not None: cmd.append( '--signal=%s'%args.signal )
+            cmd.append('--era=%s'%args.era)
             cmd.append('--plot_directory=%s'%args.plot_directory)
             cmd.append('--selection=%s'%args.selection)
             cmd.append('--variation=%s'%variation)
-            if args.small: cmd.append('--small')
             cmd.append('--mode=%s'%args.mode)
             if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             cmd.append('--reweightPU=%s'%args.reweightPU)
-            cmd.append('--era=%s'%args.era)
-            if args.overwrite: cmd.append('--overwrite')
             if args.noDYHT: cmd.append('--noDYHT')
+<<<<<<< HEAD
             if args.dpm: cmg.append('--dpm')
+=======
+            if args.overwrite: cmd.append('--overwrite')
+            if args.small: cmd.append('--small')
+
+>>>>>>> b3d155c8ff8ded6e44e70c9848150c100b845764
             cmd_string = ' '.join( cmd )
             missing_cmds.append( cmd_string )
             logger.info("Missing variation %s, era %s in mode %s in cache. Need to run: \n%s", variation, args.era, mode, cmd_string)

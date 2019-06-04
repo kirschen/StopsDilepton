@@ -175,6 +175,7 @@ if options.year == 2016:
     allSamples = bkgSamples + dataSamples + signalSamples
 elif options.year == 2017:
     from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as bkgSamples
+    from Samples.nanoAOD.Fall17_private_legacy_v1   import SUSY as signalSamples
     from Samples.nanoAOD.Run2017_31Mar2018_private  import allSamples as dataSamples
     allSamples = bkgSamples + dataSamples
 elif options.year == 2018:

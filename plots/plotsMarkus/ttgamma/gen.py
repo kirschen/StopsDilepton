@@ -162,6 +162,8 @@ def make_mass_llg( event, sample ):
         event.weight_llgOffZ = 1
     else:
         event.weight_llgOffZ = 0
+#    if "TTZ" in sample.name:
+#        print "Z: %f\tgenZ: %3.2f\tid(Z):%i\tstatus(Z):%i\tg: %f"%(event.zBoson_genPt, event.GenPart_pt[2], event.GenPart_pdgId[2], event.GenPart_status[2], event.photon_genPt)
 
 sequence.append( make_mass_llg )
 
@@ -188,13 +190,15 @@ leptonSelection = "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)"
 if args.reweightBosonPt:
     logger.info( "Now obtaining photon to Z reweighting histograms" )
 
+    #FIXME: reco level selection!?
     cutSelection = cutInterpreter.cutString(args.selection) 
     selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), leptonSelection, cutSelection, "overlapRemoval==1"])
-    ZSelectionString = selectionString 
-    gSelectionString = selectionString
+    ZSelectionString = selectionString + "&&Sum$( (abs(GenPart_pdgId)==12||abs(GenPart_pdgId)==14||abs(GenPart_pdgId)==16)&&GenPart_genPartIdxMother>=0&&GenPart_pdgId[GenPart_genPartIdxMother]==23)>0&&zBoson_genPt>30"
+    gSelectionString = selectionString + "&&photon_genPt>30&&photon_genEta<2.5"
+    print "\nreweighting selection string:\n\n", selectionString
 
-    Z_pt_histo = mc[0].get1DHistoFromDraw( "zBoson_genPt", [400/20, 0, 400], selectionString=ZSelectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
-    g_pt_histo = mc[1].get1DHistoFromDraw( "photon_genPt", [400/20, 0, 400], selectionString=gSelectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF" )
+    Z_pt_histo = mc[0].get1DHistoFromDraw( "zBoson_genPt", [400/10,0,400], selectionString=ZSelectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
+    g_pt_histo = mc[1].get1DHistoFromDraw( "photon_genPt", [400/10,0,400], selectionString=gSelectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF" )
 
     Z_pt_histo.Scale(1./Z_pt_histo.Integral() if Z_pt_histo.Integral() != 0 else 1.)
     g_pt_histo.Scale(1./g_pt_histo.Integral() if g_pt_histo.Integral() != 0 else 1.)
@@ -219,8 +223,12 @@ for sample in mc:
 # TODO: full script
 # TTZ selection
 #mc[0].addSelectionString(["Sum$(GenPart_pt>30&&GenPart_pdgId==23&&GenPart_status==22)==1&&zBoson_genPt>20"])
+mc[0].addSelectionString(["Sum$( (abs(GenPart_pdgId)==12||abs(GenPart_pdgId)==14||abs(GenPart_pdgId)==16)&&GenPart_genPartIdxMother>=0&&GenPart_pdgId[GenPart_genPartIdxMother]==23)>0&&zBoson_genPt>30"])
 #mc[0].addSelectionString(["zBoson_genPt>30"])
-#mc[1].addSelectionString(["photon_pt>30&&photon_eta<2.5"])
+mc[1].addSelectionString(["photon_genPt>30&&photon_genEta<2.5"])
+
+print "\nTTZ selection string:\n\n", mc[0].selectionString 
+print "\nTTG selection string:\n\n", mc[1].selectionString 
 
 stack = Stack(mc[0], mc[1])
 
@@ -234,18 +242,18 @@ plots.append(Plot(
   texX = 'p_{T}(boson) (GeV)', texY = 'Normalized units',
   attribute = lambda event, sample: event.photon_genPt if "TTG" in sample.name else event.zBoson_genPt,
   #attribute = "photon_pt",
-  binning=[400/20,0,400], addOverFlowBin = None#'upper',
+  binning=[400/10,0,400], addOverFlowBin = None#'upper',
   #binning=[800/20,0,800], addOverFlowBin = 'upper',
 ))
 
-plots.append(Plot(
-  name = "boson_pt",
-  texX = 'p_{T}(boson) (GeV)', texY = 'Normalized units',
-  attribute = lambda event, sample: event.photon_pt if "TTG" in sample.name else event.Z1_pt,
-  #attribute = "photon_pt",
-  binning=[400/20,0,400], addOverFlowBin = None#'upper',
-  #binning=[800/20,0,800], addOverFlowBin = 'upper',
-))
+#plots.append(Plot(
+#  name = "boson_pt",
+#  texX = 'p_{T}(boson) (GeV)', texY = 'Normalized units',
+#  attribute = lambda event, sample: event.photon_pt if "TTG" in sample.name else event.Z1_pt,
+#  #attribute = "photon_pt",
+#  binning=[400/10,0,400], addOverFlowBin = None#'upper',
+#  #binning=[800/20,0,800], addOverFlowBin = 'upper',
+#))
 
 #plots.append(Plot(
 #  name = "Z_pt",
