@@ -46,7 +46,7 @@ def wrapper( job ):
     subprocess.call(cmd)
 
 from multiprocessing import Pool
-pool = Pool(processes=10)
+pool = Pool(processes=2)
 results = pool.map(wrapper, jobs)
 pool.close()
 pool.join()

@@ -37,14 +37,17 @@ argParser.add_argument('--plot_directory',    action='store',      default='v1')
 argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
+argParser.add_argument('--dpm',               action='store_true',     help='Use dpm?', )
+argParser.add_argument('--noDYHT',            action='store_true',     help='run without HT-binned DY')
 argParser.add_argument('--scaling',           action='store',      default=None, choices = [None, 'mc', 'top'],     help='Scale top to data in mt2ll<100?')
 argParser.add_argument('--variation_scaling', action='store_true', help='Scale the variations individually to mimick bkg estimation?')
 argParser.add_argument('--overwrite',         action='store_true',     help='Overwrite?')
 argParser.add_argument('--mode',              action='store',      default = 'all', choices = ['mumu', 'ee', 'mue', 'all'],   help='Which mode?')
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
-argParser.add_argument('--reweightPU',         action='store', default='Central', choices=[ 'Central', 'VUp'] )
+argParser.add_argument('--reweightPU',        action='store',      default='Central', choices=[ 'Central', 'VUp'] )
 #argParser.add_argument('--recoil',             action='store', type=str,      default="Central", choices = ["nvtx", "VUp", "Central"])
-argParser.add_argument('--era',                action='store', type=str,      default="Run2016")
+argParser.add_argument('--era',               action='store', type=str,      default="Run2016")
+argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional subdirectory for minor changes to the plots")
 
 args = argParser.parse_args()
 
@@ -97,9 +100,9 @@ def metSelectionModifier( sys, returntype = 'func'):
 
 # these are the nominal MC weights we always apply
 if args.reweightPU == 'Central': 
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightTrackingSF", "reweightL1Prefire"]
 if args.reweightPU == 'VUp':
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightTrackingSF", "reweightL1Prefire"]
 
 # weight the MC according to a variation
 def MC_WEIGHT( variation, returntype = "string"):
@@ -134,6 +137,8 @@ variations = {
     'central'           : {'read_variables': [ '%s/F'%v for v in nominalMCWeights ]},
     'jesTotalUp'        : {'selectionModifier':jetSelectionModifier('jesTotalUp'),               'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jesTotalUp','list')]},
     'jesTotalDown'      : {'selectionModifier':jetSelectionModifier('jesTotalDown'),             'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jesTotalDown','list')]},
+    'jerUp'             : {'selectionModifier':jetSelectionModifier('jerUp'),                    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jerUp','list')]},
+    'jerDown'           : {'selectionModifier':jetSelectionModifier('jerDown'),                  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jerDown','list')]},
     'unclustEnUp'       : {'selectionModifier':metSelectionModifier('unclustEnUp'),              'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('unclustEnUp','list')]},
     'unclustEnDown'     : {'selectionModifier':metSelectionModifier('unclustEnDown'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('unclustEnDown','list')]},
     'PUUp'              : {'replaceWeight':(nominalPuWeight,upPUWeight),                         'read_variables' : [ '%s/F'%v for v in nominalMCWeights + [upPUWeight] ]},
@@ -169,22 +174,38 @@ if args.signal == "T2tt":         plot_subdirectory += "_T2tt"
 if args.small:                    plot_subdirectory += "_small"
 if args.reweightPU:               plot_subdirectory += "_reweightPU%s"%args.reweightPU
 #if args.recoil:                  plot_subdirectory  += '_recoil_'+args.recoil
+
+# Load from DPM?
+if args.dpm:
+    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
     
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
-    mc              = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
+    if args.noDYHT:
+        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+        #print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
-    mc              = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+    if args.noDYHT:
+        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+        #print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
-    mc              = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
+    if args.noDYHT:
+        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
+        #print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
 
 try:
   data_sample = eval(args.era)
@@ -317,16 +338,6 @@ allPlots   = {}
 
 logger.info('Working on modes: %s', ','.join(modes))
 
-if year == 2016:
-    data_sample = Run2016
-    data_sample.texName = "data (2016)"
-elif year == 2017:
-    data_sample = Run2017
-    data_sample.texName = "data (2017)"
-elif year == 2018:
-    data_sample = Run2018
-    data_sample.texName = "data (2018)"
-
 # Define samples
 data_sample.name           = "data"
 data_sample.read_variables = ["event/I","run/I"]
@@ -355,7 +366,7 @@ if args.small:
     sample.scale /= sample.normalization
 
 # Fire up the cache
-dirDB = DirDB(os.path.join(plot_directory, 'systematicPlots', plot_subdirectory, args.selection, 'cache'))
+dirDB = DirDB(os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, 'cache'))
 
 # loop over modes
 for mode in modes:
@@ -448,12 +459,12 @@ for mode in modes:
             weight          = mc_weight )
         plots.append( dl_mt2blbl_mc )
     
-    nBtagBinning = [5, 0, 6] 
+    nBtagBinning = [6, 0, 6] 
     if args.variation == 'central':
         nbtags_data   = Plot(
             name        = "nbtags_data",
             texX        = 'number of b-tags (CSVM)', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
-            binning     = Binning.fromThresholds(nBtagBinning),
+            binning     = nBtagBinning,
             stack       = stack_data,
             attribute   = TreeVariable.fromString( "nBTag/I" ),
             weight      = data_weight )
@@ -462,7 +473,7 @@ for mode in modes:
     nbtags_mc  = Plot(\
         name            = "nbtags_mc",
         texX            = 'number of b-tags (CSVM)', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
-        binning         = Binning.fromThresholds(nBtagBinning),
+        binning         = nBtagBinning,
         stack           = stack_mc,
         attribute       = TreeVariable.fromString( selectionModifier("nBTag/I"))   if selectionModifier is not None else None,
         selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
@@ -520,7 +531,7 @@ for mode in modes:
         met2_data   = Plot(
             name        = "met2_data",
             texX        = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-            binning     = Binning.fromThresholds(mt2llBinning),
+            binning     = Binning.fromThresholds(metBinning2),
             stack       = stack_data,
             attribute   = TreeVariable.fromString( "met_pt/F" ),
             weight      = data_weight )
@@ -529,7 +540,7 @@ for mode in modes:
     met2_mc  = Plot(\
         name            = "met2_mc",
         texX            = 'E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-        binning         = Binning.fromThresholds(mt2llBinning),
+        binning         = Binning.fromThresholds(metBinning2),
         stack           = stack_mc,
         attribute       = TreeVariable.fromString( selectionModifier("met_pt/F"))   if selectionModifier is not None else None,
         selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
@@ -591,17 +602,26 @@ for mode in modes:
 
     if args.variation is not None:
         key  = (args.era, mode, args.variation)
+
+        success = False
         if dirDB.contains(key) and not args.overwrite:
             normalisation_mc, normalisation_data, histos = dirDB.get( key )
             for i_p, h_s in enumerate(histos):
                 plots[i_p].histos = h_s
             logger.info( "Loaded normalisations and histograms for %s in mode %s from cache.", args.era, mode)
-        else:
+            logger.debug("Loaded normalisation_mc: %r normalisation_data: %r", normalisation_mc, normalisation_data )
+            if normalisation_mc['Top_pow']<=0:
+                success = False
+                logger.info( "!!! Top_pow histo is zero !!!" )
+            else: 
+                success = True
+        if not success:
             logger.info( "Obtain normalisations and histograms for %s in mode %s.", args.era, mode)
             # Calculate the normalisation yield for mt2ll<100
             normalization_selection_string = selectionModifier(cutInterpreter.cutString(args.selection + '-mt2llTo100'))
             mc_normalization_weight_string    = MC_WEIGHT(variations[args.variation], returntype='string')
             normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
+            print normalization_selection_string, mc_normalization_weight_string
 
             if args.variation == 'central':
                 normalisation_data = data_sample.scale*data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
@@ -616,6 +636,7 @@ for mode in modes:
                 del plot.weight
 
             # save
+            #print "normalisation_mc %f"%(normalisation_mc)
             dirDB.add( key, (normalisation_mc, normalisation_data, [plot.histos for plot in plots]), overwrite = args.overwrite)
 
             logger.info( "Done with %s in channel %s.", args.variation, mode)
@@ -627,14 +648,14 @@ if args.variation is not None:
 # Systematic pairs:( 'name', 'up', 'down' )
 systematics = [\
     {'name':'JEC',         'pair':('jesTotalUp', 'jesTotalDown')},
-    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown') },
+    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown')},
     {'name':'PU',          'pair':('PUUp', 'PUDown')},
     {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
     {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
     {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
-    #{'name': 'TopPt',     'pair':(  'TopPt', 'central'),},
-    #{'name': 'JER',       'pair':(  'JERUp', 'JERDown'),},
+    #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
+    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
 ]
 
 # loop over modes
@@ -646,24 +667,32 @@ for mode in modes:
    
     for variation in variations.keys():
         key  = (args.era, mode, variation)
+        success = False
         if dirDB.contains(key) and not args.overwrite:
             normalisation_mc, normalisation_data, histos = dirDB.get(key)
             variation_data[(mode, variation)] = {'histos':histos, 'normalisation_mc':normalisation_mc, 'normalisation_data':normalisation_data}
             logger.info( "Loaded normalisations and histograms for variation %s, era %s in mode %s from cache.", variation, args.era, mode)
-        else:
+            if normalisation_mc['Top_pow']<=0:
+                success = False
+                logger.info( "!!! Top_pow histo is zero !!!" )
+            else: 
+                success = True
+        if not success:
             # prepare sub variation command
             cmd = ['python', 'systematicVariation.py']
+            if args.dpm: cmd.append('--dpm')
             cmd.append('--logLevel=%s'%args.logLevel)
             if args.signal is not None: cmd.append( '--signal=%s'%args.signal )
+            cmd.append('--era=%s'%args.era)
             cmd.append('--plot_directory=%s'%args.plot_directory)
             cmd.append('--selection=%s'%args.selection)
             cmd.append('--variation=%s'%variation)
-            if args.small: cmd.append('--small')
             cmd.append('--mode=%s'%args.mode)
             if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             cmd.append('--reweightPU=%s'%args.reweightPU)
-            cmd.append('--era=%s'%args.era)
+            if args.noDYHT: cmd.append('--noDYHT')
             if args.overwrite: cmd.append('--overwrite')
+            if args.small: cmd.append('--small')
 
             cmd_string = ' '.join( cmd )
             missing_cmds.append( cmd_string )
@@ -734,9 +763,12 @@ for mode in all_modes:
         if args.variation_scaling:
             logger.info( "Scaling top yield to data for mt2ll<100 individually for all variations." )
             for variation in variations.keys():
+                #print ""%()
                 yield_non_top = sum( val for name, val in variation_data[(mode,variation)]['normalisation_mc'].iteritems() if name != Top_pow.name)
                 yield_top     = variation_data[(mode,variation)]['normalisation_mc'][Top_pow.name]
+                #print "mode %s yield_data %f yield_non_top %f yield_top %f"%(mode, yield_data, yield_non_top, yield_top)
                 dataMC_SF[mode][variation][Top_pow.name] = (yield_data - yield_non_top)/yield_top
+                #if mode=='mumu' and variation=='central': assert False, ''
         # scale all variations with the central factor
         else:
             logger.info( "Scaling top yield to data for mt2ll<100 ( all variations are scaled by central SF)" )
@@ -762,14 +794,14 @@ for mode in all_modes:
                 for s in mc:
                     dataMC_SF[mode][variation][s.name] = sf 
 
-def drawObjects( ):
+def drawObjects( scaling, scaleFactor ):
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'),
-      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale ) ),
+      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF=%3.2f'% ( lumi_scale, scaleFactor ) ) if scaling == 'mc' else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(top)=%3.2f'% ( lumi_scale, scaleFactor ) ) if scaling == 'top' else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) ),
       ]
     return [tex.DrawLatex(*l) for l in lines]
 
@@ -848,7 +880,10 @@ for mode in all_modes:
             ratio_boxes.append(r_box)
 
         for log in [False, True]:
-            plot_directory_ = os.path.join(plot_directory, 'systematicPlots', plot_subdirectory, args.selection, args.era, mode + ("_log" if log else ""))
+            if args.beta is None:
+                plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, mode + ("_log" if log else ""))
+            else:
+                plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, args.beta, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             if    mode == "all": plot.histos[1][0].legendText = "Data (%s)"%args.era
             else:                plot.histos[1][0].legendText = "Data (%s, %s)"%(args.mode, args.era)
@@ -862,6 +897,6 @@ for mode in all_modes:
               yRange = (0.03, "auto") if log else (0.001, "auto"),
               #scaling = {0:1},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
-              drawObjects = drawObjects() + boxes,
+              drawObjects = drawObjects( args.scaling, dataMC_SF[mode]['central'][Top_pow.name] ) + boxes,
               copyIndexPHP = True, extensions = ["png"],
             )         
