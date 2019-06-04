@@ -197,6 +197,7 @@ elif year == 2017:
         #print "~~~~> using normal DY sample instead of HT binned one"
     else:
         mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
+
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
@@ -206,12 +207,6 @@ elif year == 2018:
         #print "~~~~> using normal DY sample instead of HT binned one"
     else:
         mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
-
-try:
-  data_sample = eval(args.era)
-except Exception as e:
-  logger.error( "Didn't find %s", args.era )
-  raise e
 
 # postions of MC components in list
 position = {s.name:i_s for i_s,s in enumerate(mc)}
@@ -337,6 +332,12 @@ modes = ['mumu', 'mue', 'ee'] if args.mode=='all' else [ args.mode ]
 allPlots   = {}
 
 logger.info('Working on modes: %s', ','.join(modes))
+
+try:
+  data_sample = eval(args.era)
+except Exception as e:
+  logger.error( "Didn't find %s", args.era )
+  raise e
 
 # Define samples
 data_sample.name           = "data"
@@ -691,18 +692,29 @@ for mode in modes:
             if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             cmd.append('--reweightPU=%s'%args.reweightPU)
             if args.noDYHT: cmd.append('--noDYHT')
+<<<<<<< HEAD
+            if args.dpm: cmg.append('--dpm')
+=======
             if args.overwrite: cmd.append('--overwrite')
             if args.small: cmd.append('--small')
 
+>>>>>>> b3d155c8ff8ded6e44e70c9848150c100b845764
             cmd_string = ' '.join( cmd )
             missing_cmds.append( cmd_string )
             logger.info("Missing variation %s, era %s in mode %s in cache. Need to run: \n%s", variation, args.era, mode, cmd_string)
 
 # write missing cmds
+filename = 'missing.sh'
+if os.path.exists(filename):
+    append_write = 'a' # append if already exists
+else:
+    append_write = 'w' # make a new file if not
 missing_cmds = list(set(missing_cmds))
 if len(missing_cmds)>0:
-    with file( 'missing.sh', 'w' ) as f:
-        f.write("#!/bin/sh\n")
+    with file( filename, append_write ) as f:
+        # if we start the file:
+        if append_write == 'w':
+            f.write("#!/bin/sh\n")
         for cmd in missing_cmds:
             f.write( cmd + '\n')
     logger.info( "Written %i variation commands to ./missing.sh. Now I quit!", len(missing_cmds) )
