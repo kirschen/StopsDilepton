@@ -1,5 +1,7 @@
 '''
 /afs/hephy.at/data/dspitzbart02/StopsDileptonLegacy/results/v1/2017/signalOnly/limits/T2tt/T2tt/limitResults.root
+
+/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v1//comb/signalOnly/limits/T2tt/T2tt/limitResults.root
 '''
 
 #!/usr/bin/env python
@@ -32,9 +34,10 @@ parser.add_option("--year",             dest="year",        default=2016,   type
 (options, args) = parser.parse_args()
 #year = int(options.year)
 signalString = options.signal
-defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
+#defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
+defFile = os.path.join(analysis_results, "comb/signalOnly/limits/%s/%s/limitResults.root"%(signalString,signalString))
 
-
+print defFile
 if options.year == 2016:
     lumi    = 36.9
     #eraText =  "(2016)"
@@ -62,7 +65,9 @@ def toGraph2D(name,title,length,x,y,z):
 
 
 ifs = defFile.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_FR_%i'%options.year)
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_FR_combined')
+
+#plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_FR_%i'%options.year)
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 
@@ -238,13 +243,13 @@ temp = ROOT.TFile("tmp.root","update")
 xsecPlot.c.Write("cCONT_XSEC")
 temp.Close()
 
-## only lines
-#contPlot = smsPlotCONT(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
-#contPlot.Draw()
-#contPlot.Save("%sCONT" %outputname)
-#
-## brazilian flag (show only 1 sigma)
-#brazilPlot = smsPlotBrazil(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
-#brazilPlot.Draw()
-#brazilPlot.Save("%sBAND" %outputname)
+# only lines
+contPlot = smsPlotCONT(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
+contPlot.Draw()
+contPlot.Save("%sCONT" %outputname)
+
+# brazilian flag (show only 1 sigma)
+brazilPlot = smsPlotBrazil(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "")
+brazilPlot.Draw()
+brazilPlot.Save("%sBAND" %outputname)
 
