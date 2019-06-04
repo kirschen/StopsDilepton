@@ -693,16 +693,23 @@ for mode in modes:
             cmd.append('--era=%s'%args.era)
             if args.overwrite: cmd.append('--overwrite')
             if args.noDYHT: cmd.append('--noDYHT')
-
+            if args.dpm: cmg.append('--dpm')
             cmd_string = ' '.join( cmd )
             missing_cmds.append( cmd_string )
             logger.info("Missing variation %s, era %s in mode %s in cache. Need to run: \n%s", variation, args.era, mode, cmd_string)
 
 # write missing cmds
+filename = 'missing.sh'
+if os.path.exists(filename):
+    append_write = 'a' # append if already exists
+else:
+    append_write = 'w' # make a new file if not
 missing_cmds = list(set(missing_cmds))
 if len(missing_cmds)>0:
-    with file( 'missing.sh', 'w' ) as f:
-        f.write("#!/bin/sh\n")
+    with file( filename, append_write ) as f:
+        # if we start the file:
+        if append_write == 'w':
+            f.write("#!/bin/sh\n")
         for cmd in missing_cmds:
             f.write( cmd + '\n')
     logger.info( "Written %i variation commands to ./missing.sh. Now I quit!", len(missing_cmds) )
