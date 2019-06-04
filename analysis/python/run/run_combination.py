@@ -183,7 +183,7 @@ if args.only is not None:
         wrapper(jobs[jobNames.index(args.only)])
     exit(0)
 
-results = map(wrapper, jobs[:8])
+results = map(wrapper, jobs)
 results = [r for r in results if r]
 
 #########################################################################################
