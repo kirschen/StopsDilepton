@@ -148,21 +148,24 @@ def wrapper(s):
 
 
 
-        if res:
-            if   args.signal == "TTbarDM":                        sString = "mChi %i mPhi %i type %s" % sConfig
-            elif args.signal == "T2tt":                           sString = "mStop %i mNeu %i" % sConfig
-            elif args.signal == "T2bt":                           sString = "mStop %i mNeu %i" % sConfig
-            elif args.signal == "T2bW":                           sString = "mStop %i mNeu %i" % sConfig
-            elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":   sString = "mStop %i mNeu %i" % sConfig
-            elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09":   sString = "mStop %i mNeu %i" % sConfig
-            elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":    sString = "mStop %i mNeu %i" % sConfig
-            elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":   sString = "mStop %i mNeu %i" % sConfig
-            elif args.signal == "ttHinv":                         sString = "ttH->inv"
 
             #print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
             limitCache.add(sConfig, res)
             logger.info("Adding results to database")
             logger.info("Results stored in %s", limitDir )
+
+
+    if res:
+        if   args.signal == "TTbarDM":                        sString = "mChi %i mPhi %i type %s" % sConfig
+        elif args.signal == "T2tt":                           sString = "mStop %i mNeu %i" % sConfig
+        elif args.signal == "T2bt":                           sString = "mStop %i mNeu %i" % sConfig
+        elif args.signal == "T2bW":                           sString = "mStop %i mNeu %i" % sConfig
+        elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":   sString = "mStop %i mNeu %i" % sConfig
+        elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09":   sString = "mStop %i mNeu %i" % sConfig
+        elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":    sString = "mStop %i mNeu %i" % sConfig
+        elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":   sString = "mStop %i mNeu %i" % sConfig
+        elif args.signal == "ttHinv":                         sString = "ttH->inv"
+    print sString, res
     try:
         print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
         return sConfig, res
@@ -185,7 +188,7 @@ if args.only is not None:
         wrapper(jobs[jobNames.index(args.only)])
     exit(0)
 
-results = map(wrapper, jobs)
+results = map(wrapper, jobs[:4])
 results = [r for r in results if r]
 
 #########################################################################################
