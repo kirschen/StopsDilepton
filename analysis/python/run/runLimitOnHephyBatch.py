@@ -10,9 +10,9 @@ signalEstimators = [s.name for s in signals_T2tt]
 
 import time
 
-#cmd = "submitBatch.py --title='Limit'"
-cmd = "echo"
+cmd = "submitBatch.py --title='Limit'"
+#cmd = "echo"
 
 for i, estimator in enumerate(signalEstimators):
-    os.system(cmd+" 'python run_limit.py --signal T2tt --expected --year 2017 --skipFitDiagnostics --only=%s'"%str(i))
+    os.system(cmd+" 'python run_limit.py --signal T2tt --expected --year 2018 --skipFitDiagnostics --only=%s'"%str(i))
 

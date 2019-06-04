@@ -39,7 +39,7 @@ from StopsDilepton.tools.cardFileWriter        import cardFileWriter
 # some fake setup
 setup = Setup(2016)
 
-years = [2017,2018]
+years = [2016,2017,2018]
 
 def wrapper(s):
 
@@ -52,7 +52,8 @@ def wrapper(s):
     # get the seperated cards
     for year in years:
         
-        controlRegions = 'controlAll'
+        #controlRegions = 'controlAll'
+        controlRegions = 'signalOnly'
         limitDir = analysis_results+"/%s/%s/cardFiles/%s/%s/"%(year,controlRegions,args.signal,'expected' if args.expected else 'observed')
         cardFileName = os.path.join(limitDir, s.name+'_shapeCard.txt')
 
@@ -87,7 +88,7 @@ def wrapper(s):
             # extract the SFs #
             ###################
             #if not args.useTxt 
-            if True:
+            if False:
                 # Would be a bit more complicated with the classical txt files, so only automatically extract the SF when using shape based datacards
                 from StopsDilepton.tools.getPostFit import getPrePostFitFromMLF
 
