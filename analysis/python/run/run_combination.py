@@ -29,17 +29,21 @@ from math                               import sqrt
 from copy                               import deepcopy
 
 
-from StopsDilepton.analysis.Setup              import Setup
+from StopsDilepton.analysis.Setup               import Setup
 
 #from StopsDilepton.tools.resultsDB             import resultsDB
-from StopsDilepton.tools.u_float               import u_float
-from StopsDilepton.tools.user                  import analysis_results,  plot_directory
-from StopsDilepton.tools.cardFileWriter        import cardFileWriter
+from StopsDilepton.tools.u_float                import u_float
+from StopsDilepton.tools.user                   import analysis_results,  plot_directory
+from StopsDilepton.tools.cardFileWriter         import cardFileWriter
+from StopsDilepton.analysis.Cache               import Cache
 
 # some fake setup
 setup = Setup(2016)
 
 years = [2016,2017,2018]
+
+#controlRegions = 'controlAll'
+controlRegions = 'signalOnly'
 
 def wrapper(s):
 
@@ -52,9 +56,8 @@ def wrapper(s):
     # get the seperated cards
     for year in years:
         
-        #controlRegions = 'controlAll'
-        controlRegions = 'signalOnly'
-        limitDir = analysis_results+"/%s/%s/cardFiles/%s/%s/"%(year,controlRegions,args.signal,'expected' if args.expected else 'observed')
+        baseDir  = analysis_results+"/%s/%s/"%(year,controlRegions)
+        limitDir = baseDir+"/cardFiles/%s/%s/"%(args.signal,'expected' if args.expected else 'observed')
         cardFileName = os.path.join(limitDir, s.name+'_shapeCard.txt')
 
         if not os.path.isfile(cardFileName):
@@ -62,18 +65,32 @@ def wrapper(s):
 
         cards[year] = cardFileName
     
+    baseDir  = baseDir.replace('2018','comb')
     limitDir = limitDir.replace('2018','comb')
     
+    cacheFileName = os.path.join(limitDir, 'calculatedLimits')
+    limitCache    = Cache(cacheFileName, verbosity=2)
+
     # run combine and store results in sqlite database
     if not os.path.isdir(limitDir):
         os.makedirs(limitDir)
     #resDB = resultsDB(limitDir+'/results.sq', "results", setup.resultsColumns)
-    res = {"signal":s.name}
 
-    overWrite = True
+    if   args.signal == "TTbarDM":                      sConfig = s.mChi, s.mPhi, s.type
+    elif args.signal == "T2tt":                         sConfig = s.mStop, s.mNeu
+    elif args.signal == "T2bt":                         sConfig = s.mStop, s.mNeu
+    elif args.signal == "T2bW":                         sConfig = s.mStop, s.mNeu
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sConfig = s.mStop, s.mNeu
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": sConfig = s.mStop, s.mNeu
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sConfig = s.mStop, s.mNeu
+    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
+    elif args.signal == "ttHinv":                       sConfig = ("ttHinv", "2l")
 
-    if not overWrite and res.DB.contains(key):
-        res = resDB.getDicts(key)[0]
+    overWrite = False
+
+    if not overWrite and limitCache.contains(sConfig):
+        
+        res = limitCache.get(sConfig)
         logger.info("Found result for %s, reusing", s.name)
 
     else:
@@ -129,16 +146,6 @@ def wrapper(s):
                 print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit/DY_prefit).val,   '+/-',  DY_postfit.sigma/DY_postfit.val)
                 print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
 
-        if   args.signal == "TTbarDM":                      sConfig = s.mChi, s.mPhi, s.type
-        elif args.signal == "T2tt":                         sConfig = s.mStop, s.mNeu
-        elif args.signal == "T2bt":                         sConfig = s.mStop, s.mNeu
-        elif args.signal == "T2bW":                         sConfig = s.mStop, s.mNeu
-        elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sConfig = s.mStop, s.mNeu
-        elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": sConfig = s.mStop, s.mNeu
-        elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sConfig = s.mStop, s.mNeu
-        elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
-        elif args.signal == "ttHinv":                       sConfig = ("ttHinv", "2l")
-
 
 
         if res:
@@ -153,12 +160,13 @@ def wrapper(s):
             elif args.signal == "ttHinv":                         sString = "ttH->inv"
 
             print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
-        #    return sConfig, res
-
-        logger.info("Adding results to database")
-
-    logger.info("Results stored in %s", limitDir)
-
+            limitCache.add(sConfig, res)
+            logger.info("Adding results to database")
+            logger.info("Results stored in %s", limitDir )
+    if res:
+        return sConfig, res
+    else:
+        return False
 
 if args.signal == "T2tt":
     data_directory              = '/afs/hephy.at/data/dspitzbart03/nanoTuples/'
@@ -175,5 +183,49 @@ if args.only is not None:
         wrapper(jobs[jobNames.index(args.only)])
     exit(0)
 
+results = map(wrapper, jobs[:8])
+results = [r for r in results if r]
 
+#########################################################################################
+# Process the results. Make 2D hists for SUSY scans, or table for the DM interpretation #
+#########################################################################################
+
+# Make histograms for T2tt
+baseDir  = analysis_results+"/comb/%s/"%(controlRegions)
+if "T2" in args.signal or  "T8bb" in args.signal:
+    binSize = 25
+    shift = binSize/2.*(-1)
+    exp      = ROOT.TH2F("exp", "exp", 1600/25, shift, 1600+shift, 1500/25, shift, 1500+shift)
+    exp_down = exp.Clone("exp_down")
+    exp_up   = exp.Clone("exp_up")
+    obs      = exp.Clone("obs")
+    limitPrefix = args.signal
+    for r in results:
+        s, res = r
+        mStop, mNeu = s
+        resultList = [(exp, '0.500'), (exp_up, '0.160'), (exp_down, '0.840'), (obs, '-1.000')]
+
+        for hist, qE in resultList:
+            #print hist, qE, res[qE]
+            if qE=='0.500':
+              print "Masspoint m_gl %5.3f m_neu %5.3f, expected limit %5.3f"%(mStop,mNeu,res[qE])
+            if qE=='-1.000':
+              print "Observed limit %5.3f"%(res[qE])
+            hist.GetXaxis().FindBin(mStop)
+            hist.GetYaxis().FindBin(mNeu)
+            #print hist.GetName(), mStop, mNeu, res[qE]
+            hist.Fill(mStop, mNeu, res[qE])
+
+    limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
+
+    if not os.path.exists(os.path.dirname(limitResultsFilename)):
+        os.makedirs(os.path.dirname(limitResultsFilename))
+
+    outfile = ROOT.TFile(limitResultsFilename, "recreate")
+    exp      .Write()
+    exp_down .Write()
+    exp_up   .Write()
+    obs      .Write()
+    outfile.Close()
+    print "Written %s"%limitResultsFilename
 
