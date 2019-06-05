@@ -1,13 +1,32 @@
+import ROOT
+
 import shutil
+import os
+
+from StopsDilepton.tools.helpers import writeObjToFile
 
 # Logging
 import logging
 logger = logging.getLogger(__name__)
 
+import re
+def natural_sort(list, key=lambda s:s):
+    """
+    Sort the list into natural alphanumeric order.
+    http://stackoverflow.com/questions/4836710/does-python-have-a-built-in-function-for-string-natural-sort
+    """
+    def get_alphanum_key_func(key):
+        convert = lambda text: int(text) if text.isdigit() else text
+        return lambda s: [convert(c) for c in re.split('([0-9]+)', key(s))]
+    sort_key = get_alphanum_key_func(key)
+
+    lc = sorted(list, key=sort_key)
+    return lc
+
 class cardFileWriter:
     def __init__(self):
         self.reset()
-        self.releaseLocation = "." #by default, use this releasee
+        self.releaseLocation = os.path.abspath('.')
 
     def reset(self):
         self.bins = []
@@ -145,7 +164,7 @@ class cardFileWriter:
     def mfs(self, f):
         return str(round(float(f),self.precision))
 
-    def writeToFile(self, fname):
+    def writeToFile(self, fname, shapeFile=False):
         import datetime, os
         if not self.checkCompleteness():
             print "Incomplete specification."
@@ -180,6 +199,10 @@ class cardFileWriter:
                 outfile.write( '#Muted: '+b+': '+self.niceNames[b]+'\n')
         outfile.write( '\n')
 
+        if shapeFile:
+            outfile.write( 'shapes * * %s  $PROCESS $PROCESS_$SYSTEMATIC \n'%shapeFile)
+            outfile.write( '\n')
+
         outfile.write( 'bin'.ljust(lspace)              +(' '.join([b.rjust(self.defWidth) for b in unmutedBins] ) ) +'\n')
         outfile.write( 'observation'.ljust(lspace)      +(' '.join([str(self.observation[b]).rjust(self.defWidth) for b in unmutedBins]) )+'\n')
         if self.hasContamination:
@@ -201,9 +224,130 @@ class cardFileWriter:
                 outfile.write('%s_norm_%s rateParam %s %s (@0*1) %s_norm\n'%(p[0], b, b, p[0], p[0]))
             outfile.write('%s_norm extArg %s %s\n'%(p[0], str(p[1]), str(p[2])))
 
+        if shapeFile:
+            outfile.write('* autoMCStats 0 \n')
+
         outfile.close()
         print "[cardFileWrite] Written card file %s"%fname
         return fname
+
+    def makeHist(self, name):
+        return ROOT.TH1F(name, name, len(self.bins), 0, len(self.bins))
+
+    def writeToShapeFile(self, fname):
+        bins        = natural_sort(self.bins)
+        processes   = []
+        nuisances   = [ u for u in self.uncertainties if (not 'stat' in u.lower() and self.uncertaintyString[u] == 'shape')  ] # stat uncertainties are treated differently
+        logNormal   = [ u for u in self.uncertainties if (not 'stat' in u.lower() and self.uncertaintyString[u] == 'lnN')  ]
+        for b in bins:
+            for p in self.processes[b]:
+                if p not in processes: processes.append(p)
+        
+        # define a dict that stores which shape nuisances are relevant for each process
+        nuisForProc = {proc:[] for proc in processes}
+
+        # first, fill the observations. easy.
+        data_obs = self.makeHist('data_obs')
+        for i,b in enumerate(bins):
+            data_obs.SetBinContent(i+1, self.observation[b])
+
+        # predictions, using the correct stats
+        histos = {}
+        for process in processes:
+            histos[process] = self.makeHist(process)
+            
+            # create the histograms for all uncertainties that are relevant for the process
+            for unc in nuisances:
+                for i,b in enumerate(bins):
+                    if self.uncertaintyVal.has_key((unc, b, process)):
+                        if not (unc.lower().count('up') or unc.lower().count('down')):
+                            nuisForProc[process].append(unc)
+                            up      = '%s_%sUp'%(process, unc)
+                            down    = '%s_%sDown'%(process, unc)
+                            try:
+                                histos[up]
+                            except:
+                                histos[up]   = self.makeHist(up)
+                                histos[down] = self.makeHist(down)
+                        else:
+                            if not unc in nuisForProc[process]:
+                                nuisForProc[process].append(unc.replace('Up','').replace('Down',''))
+                            try:
+                                histos['%s_%s'%(process, unc)]
+                            except:
+                                histos['%s_%s'%(process, unc)] = self.makeHist('%s_%s'%(process, unc))
+
+            # fill the histograms of central values and uncertainties. if no uncertainty exists for a bin the up/down variations are set to the central values as well.
+            for i,b in enumerate(bins):
+                if self.expectation.has_key((b, process)):
+                    expect  = self.expectation[(b, process)]
+                    try:
+                        relUnc  = self.uncertaintyVal[('Stat_'+b+'_'+process, b, process)]
+                    except:
+                        relUnc  = 1
+                    unc     = (relUnc-1)*expect
+                    histos[process].SetBinContent(i+1, expect)
+                    histos[process].SetBinError(i+1, unc)
+                    for unc in nuisances:
+                        if self.uncertaintyVal.has_key((unc, b, process)):
+                            relUnc  = self.uncertaintyVal[(unc, b, process)]
+                        else:
+                            relUnc = 1.
+                        if unc in nuisForProc[process]:
+                            if not (unc.lower().count('up') or unc.lower().count('down')):
+                                histos['%s_%sUp'%(process, unc)].SetBinContent(i+1, relUnc*expect)
+                                histos['%s_%sDown'%(process, unc)].SetBinContent(i+1, (2-relUnc)*expect)
+                            else:
+                                histos['%s_%s'%(process, unc)].SetBinContent(i+1, relUnc*expect)
+        # define the file names
+        rootFile = fname.split('/')[-1]
+        rootFileFull = fname
+        txtFile  = fname.replace('.root', 'Card.txt')
+
+        # create the one-bin card-file
+        self.bins = [self.bins[0]]
+        self.niceNames[bins[0]] = 'inclusive bin'
+        for process in processes:
+            self.specifyExpectation(self.bins[0], process, histos[process].Integral())
+            #print "setting expectation to shape file", self.bins[0], process,  histos[process].Integral()
+            # need to set the strength of the shape uncertainties defined by the histograms. If not turned on (meaning a value greater than 0), they have no effect.
+            for nuis in nuisForProc[process]:
+                self.specifyUncertainty(nuis, bins[0], process, 1)
+
+        self.specifyObservation(self.bins[0], int(data_obs.Integral()))
+        self.uncertainties = logNormal + nuisances # need to fix things if up/down are already provided
+        self.writeToFile(txtFile, shapeFile=rootFile)
+        
+        # write all the histograms to a root file
+        writeObjToFile(rootFileFull, data_obs)
+        for h in sorted(histos.keys()):
+            writeObjToFile(rootFileFull, histos[h], update=True)
+        return txtFile
+
+    def combineCards(self, cards):
+
+        import uuid, os
+        ustr          = str(uuid.uuid4())
+        uniqueDirname = os.path.join(self.releaseLocation, ustr)
+        logger.info("Creating %s", uniqueDirname)
+        os.makedirs(uniqueDirname)
+
+        years = cards.keys()
+        cmd = ''
+        for year in years:
+            cmd += " dc_%s=%s"%(year, cards[year])
+
+        combineCommand  = "cd "+uniqueDirname+";combineCards.py %s > combinedCard.txt"%cmd
+        os.system(combineCommand)
+        resFile = cards[years[0]].replace(str(years[0]), 'COMBINED')
+        f = resFile.split('/')[-1]
+        resPath = resFile.replace(f, '')
+        if not os.path.isdir(resPath):
+            os.makedirs(resPath)
+        logger.info("Putting combined card into dir %s", resPath)
+        shutil.copyfile(uniqueDirname+"/combinedCard.txt", resFile)
+
+        return resFile
 
     def readResFile(self, fname):
         import ROOT
@@ -240,11 +384,11 @@ class cardFileWriter:
             from StopsDilepton.tools.cardFileWriter.getNorms import getNorms
             filename += " > output.txt"
         
-        combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M Asymptotic %s %s"%(options,filename)
+        combineCommand = "cd "+uniqueDirname+";combine --saveWorkspace -M AsymptoticLimits %s %s"%(options,filename)
         print combineCommand
         os.system(combineCommand)
 
-        tempResFile = uniqueDirname+"/higgsCombineTest.Asymptotic.mH120.root"
+        tempResFile = uniqueDirname+"/higgsCombineTest.AsymptoticLimits.mH120.root"
         try:
             res= self.readResFile(tempResFile)
         except:
@@ -280,17 +424,19 @@ class cardFileWriter:
 
         assert os.path.exists(filename), "File not found: %s"%filename
 
-        combineCommand  = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --forceRecreateNLL -M MaxLikelihoodFit "+filename
-        combineCommand +=";python diffNuisances.py  mlfit.root &> nuisances.txt"
-        combineCommand +=";python diffNuisances.py -a mlfit.root &> nuisances_full.txt"
+        combineCommand  = "cd "+uniqueDirname+";combine --forceRecreateNLL -M FitDiagnostics --saveShapes --saveNormalizations --saveOverall --saveWithUncertainties "+filename
+        combineCommand +=";python diffNuisances.py  fitDiagnostics.root &> nuisances.txt"
+        combineCommand +=";python diffNuisances.py -a fitDiagnostics.root &> nuisances_full.txt"
         if bonly:
-          combineCommand +=";python diffNuisances.py -bf latex mlfit.root &> nuisances.tex"
-          combineCommand +=";python diffNuisances.py -baf latex mlfit.root &> nuisances_full.tex"
+          combineCommand +=";python diffNuisances.py -bf latex fitDiagnostics.root &> nuisances.tex"
+          combineCommand +=";python diffNuisances.py -baf latex fitDiagnostics.root &> nuisances_full.tex"
         else:
-          combineCommand +=";python diffNuisances.py -f latex mlfit.root &> nuisances.tex"
-          combineCommand +=";python diffNuisances.py -af latex mlfit.root &> nuisances_full.tex"
+          combineCommand +=";python diffNuisances.py -f latex fitDiagnostics.root &> nuisances.tex"
+          combineCommand +=";python diffNuisances.py -af latex fitDiagnostics.root &> nuisances_full.tex"
         print combineCommand
         os.system(combineCommand)
+
+        shutil.copyfile(uniqueDirname+'/fitDiagnostics.root', fname.replace('.txt','_FD.root'))
 
         tempResFile      = uniqueDirname+"/nuisances.txt"
         tempResFileFull  = uniqueDirname+"/nuisances_full.txt"
@@ -317,7 +463,7 @@ class cardFileWriter:
         #    self.writeToFile(uniqueDirname+"/"+fname)
         #else:
         #    self.writeToFile(fname)
-        combineCommand = "cd "+uniqueDirname+";eval `scramv1 runtime -sh`;combine --saveWorkspace -M ProfileLikelihood --uncapped 1 --significance --rMin -5 "+fname
+        combineCommand = "cd "+uniqueDirname+";combine --saveWorkspace -M ProfileLikelihood --uncapped 1 --significance --rMin -5 "+fname
         os.system(combineCommand)
         #os.system("pushd "+self.releaseLocation+";eval `scramv1 runtime -sh`;popd;cd "+uniqueDirname+";"+self.combineStr+" --saveWorkspace  -M ProfileLikelihood --significance "+fname+" -t -1 --expectSignal=1 ")
         try:

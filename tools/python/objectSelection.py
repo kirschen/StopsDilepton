@@ -69,6 +69,12 @@ def filterGenPhotons( genParts, status=None ):
     photons = list( filter( lambda l: abs(l['pdgId']) == 22 and l['status'] > 0, genParts ) )
     return photons
 
+def genLepFromZ( genParts ):
+    ''' get all gen leptons (e,m,tau) from Z
+    '''
+    leptons = list( filter( lambda l: abs(l['pdgId']) in [11,13,15] and abs(genParts[l['genPartIdxMother']]['pdgId']) == 23, genParts ) )
+    return leptons
+
 def get_index_str( index ):
     if isinstance(index, int):
         index_str = "["+str(index)+"]"
@@ -104,31 +110,36 @@ def mergeCollections( a, b ):
     return merged
 
 ## MUONS ##
-def muonSelector( lepton_selection, year ):
+def muonSelector( lepton_selection, year, ptCut = 10):
     # tigher isolation applied on analysis level
     if lepton_selection == 'tight':
         def func(l):
             return \
-                l["pt"]                 >= 10 \
+                l["pt"]                 >= ptCut \
                 and abs(l["eta"])       < 2.4 \
                 and l['pfRelIso03_all'] < 0.20 \
                 and l["sip3d"]          < 4.0 \
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1 \
                 and l["mediumId"] 
-
-
+    elif lepton_selection == 'tightNoIso':
+        def func(l):
+            return \
+                l["pt"]                 >= ptCut \
+                and abs(l["eta"])       < 2.4 \
+                and l["sip3d"]          < 4.0 \
+                and abs(l["dxy"])       < 0.05 \
+                and abs(l["dz"])        < 0.1 \
+                and l["mediumId"] 
     elif lepton_selection == 'loose':
         def func(l):
             return \
-                l["pt"]                 >= 10 \
+                l["pt"]                 >= ptCut \
                 and abs(l["eta"])       < 2.4 \
                 and l['pfRelIso03_all'] < 0.20 \
                 and l["sip3d"]          < 4.0 \
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1
-
-
     return func
 
 def muonSelectorString(relIso03 = 0.2, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum"):
@@ -149,12 +160,12 @@ def muonSelectorString(relIso03 = 0.2, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, 
         return '&&'.join(string)
 
 ## ELECTRONS ##
-def eleSelector( lepton_selection, year ):
+def eleSelector( lepton_selection, year, ptCut = 10):
     # tigher isolation applied on analysis level. cutBased corresponds to Fall17V2 ID for all 2016-2018.
     if lepton_selection == 'tight':
         def func(l):
             return \
-                l["pt"]                 >= 10 \
+                l["pt"]                 >= ptCut \
                 and abs(l["eta"])       < 2.4 \
                 and l['cutBased']       >= 4 \
                 and l['pfRelIso03_all'] < 0.20 \
@@ -163,11 +174,33 @@ def eleSelector( lepton_selection, year ):
                 and l["sip3d"]          < 4.0 \
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1
-
+    elif lepton_selection == 'tightNoIso':
+        def func(l):
+            return \
+                l["pt"]                 >= ptCut \
+                and abs(l["eta"])       < 2.4 \
+                and ( l['cutBased']       >= 4 or l['mvaFall17V2noIso_WP80'] )\
+                and l["convVeto"] \
+                and ord(l["lostHits"])  == 0 \
+                and l["sip3d"]          < 4.0 \
+                and abs(l["dxy"])       < 0.05 \
+                and abs(l["dz"])        < 0.1
+    elif lepton_selection == 'medium':
+        def func(l):
+            return \
+                l["pt"]                 >= ptCut \
+                and abs(l["eta"])       < 2.4 \
+                and l['cutBased']       >= 3 \
+                and l['pfRelIso03_all'] < 0.20 \
+                and l["convVeto"] \
+                and ord(l["lostHits"])  == 0 \
+                and l["sip3d"]          < 4.0 \
+                and abs(l["dxy"])       < 0.05 \
+                and abs(l["dz"])        < 0.1
     elif lepton_selection == 'loose':
         def func(l):
             return \
-                l["pt"]                 >= 10 \
+                l["pt"]                 >= ptCut \
                 and abs(l["eta"])       < 2.4 \
                 and l['cutBased']       >= 1 \
                 and l['pfRelIso03_all'] < 0.20 \
@@ -176,7 +209,6 @@ def eleSelector( lepton_selection, year ):
                 and l["sip3d"]          < 4.0 \
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1
-
     return func
 
 def eleSelectorString(relIso03 = 0.2, eleId = 4, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, dz = 0.1, index = "Sum", noMissingHits=True):
@@ -203,7 +235,7 @@ def eleSelectorString(relIso03 = 0.2, eleId = 4, ptCut = 20, absEtaCut = 2.4, dx
 leptonVars_data = ['eta','etaSc', 'pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'relIso03', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2', 'eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz']
 leptonVars = leptonVars_data + ['mcMatchId','mcMatchAny']
 
-electronVars_data = ['pt','eta','phi','pdgId','cutBased','miniPFRelIso_all','pfRelIso03_all','sip3d','lostHits','convVeto','dxy','dz','charge','deltaEtaSC']
+electronVars_data = ['pt','eta','phi','pdgId','cutBased','miniPFRelIso_all','pfRelIso03_all','sip3d','lostHits','convVeto','dxy','dz','charge','deltaEtaSC','mvaFall17V2noIso_WP80']
 electronVars = electronVars_data + []
 
 muonVars_data = ['pt','eta','phi','pdgId','mediumId','miniPFRelIso_all','pfRelIso03_all','sip3d','dxy','dz','charge']

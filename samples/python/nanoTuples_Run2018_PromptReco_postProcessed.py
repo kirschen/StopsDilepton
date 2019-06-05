@@ -7,14 +7,22 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Data directory
-try:    data_directory = sys.modules['__main__'].data_directory
-except: from StopsDilepton.tools.user import data_directory
+
+try:
+    data_directory_ = sys.modules['__main__'].data_directory
+except:
+    from StopsDilepton.samples.default_locations import default_locations
+    data_directory_ = default_locations.data_2018_data_directory 
 
 # Take post processing directory if defined in main module
-try:    postProcessing_directory = sys.modules['__main__'].postProcessing_directory
-except: postProcessing_directory = 'stops_2018_nano_v0p3/dilep'
+try:
+  import sys
+  postProcessing_directory_ = sys.modules['__main__'].postProcessing_directory
+except:
+  from StopsDilepton.samples.default_locations import default_locations
+  postProcessing_directory_ = default_locations.data_2018_postProcessing_directory 
 
-logger.info("Loading data samples from directory %s", os.path.join(data_directory, postProcessing_directory))
+logger.info("Loading data samples from directory %s", os.path.join(data_directory_, postProcessing_directory_))
 
 dirs = {}
 for (run, version) in [('A',''), ('B',''), ('C',''), ('D','')]:
@@ -32,7 +40,7 @@ for pd in ['MuonEG', 'DoubleMuon', 'EGamma', 'SingleMuon']:
     merge(pd, 'Run2018',    ['Run2018A', 'Run2018B', 'Run2018C', 'Run2018D'])
 
 for key in dirs:
-    dirs[key] = [ os.path.join( data_directory, postProcessing_directory, dir) for dir in dirs[key]]
+    dirs[key] = [ os.path.join( data_directory_, postProcessing_directory_, dir) for dir in dirs[key]]
 
 
 def getSample(pd, runName, lumi):
@@ -82,6 +90,10 @@ allSamples_Data25ns.append( Run2018B )
 Run2018C = Sample.combine("Run2018C", [MuonEG_Run2018C, EGamma_Run2018C, DoubleMuon_Run2018C, SingleMuon_Run2018C], texName = "Run2018C")
 Run2018C.lumi = (6.94)*1000
 allSamples_Data25ns.append( Run2018C )
+
+Run2018ABC = Sample.combine("Run2018ABC", [Run2018A, Run2018B, Run2018C], texName = "Run2018ABC")
+Run2018ABC.lumi = (14.00+7.10+6.94)*1000
+allSamples_Data25ns.append( Run2018ABC )
 
 Run2018D = Sample.combine("Run2018D", [MuonEG_Run2018D, EGamma_Run2018D, DoubleMuon_Run2018D, SingleMuon_Run2018D], texName = "Run2018D")
 Run2018D.lumi = (31.93)*1000

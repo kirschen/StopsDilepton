@@ -17,16 +17,28 @@ special_cuts = {
 
     "OS":                "(l1_pdgId*l2_pdgId)<0",
     "lepSel":            "l1_pt>30&&l2_pt>20",
+    "lepSelTight":       "l1_pt>40&&l2_pt>20",
     "lepSelEXO":         "l1_pt>25&&l2_pt>10",
+    "quadlep":           "Sum$(lep_pt>10&&abs(lep_eta)<2.4&&lep_pfRelIso03_all<0.12)>3",
+    "trilep":            "Sum$(lep_pt>10&&abs(lep_eta)<2.4&&lep_pfRelIso03_all<0.12)>2",
+    "trilepTight":       "Sum$(lep_pt>20&&abs(lep_eta)<2.4&&lep_pfRelIso03_all<0.12)>2",
 
     "allZ":              "(1)",
     "onZ":               "abs(dl_mass-91.1876)<15",
     "offZ":              "abs(dl_mass-91.1876)>15",
+    "onZZ" :             "abs(Z1_mass-91.1876)<20&&abs(Z2_mass-91.1876)<20",
+    "onZ1" :             "abs(Z1_mass-91.1876)<20",
+    "offZ1" :            "abs(Z1_mass-91.1876)>20",
+    "offZ2":             "(1)",# taken care off in plot script. Think of something better! "abs(Z2_mass_4l-91.1876)>20",
+    "minZ2mass12":       "(1)",# taken care off in plot script.
     "llgNoZ":            "(abs(dlg_mass-91.1876)>15||isEMu)",
 
     "gLepdR":            "(1)",
     "gJetdR":            "(1)",
    
+    "photondR":          "photonJetdR>0.3&&photonLepdR>0.3",
+    "photonEta":         "abs(photon_eta)<2.5",
+
     "dPhiJet0":          "Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0",
     "antiHEM":           "Sum$( ( cos(met_phi-JetGood_phi)<-0.8 )*(Iteration$==1) )==0",
     "antiHEMv2":         "Sum$( ( cos(met_phi-JetGood_phi)<-0.8 )*(Iteration$<2) )==0",
@@ -34,21 +46,25 @@ special_cuts = {
     "dPhiInv":           '(!(cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)))', # here we want an njet requirement
     "metInv":            "met_pt<80",
     "metSigInv":         "metSig<5",
-    "badJetSrEVeto":     "Sum$(Jet_neEmEF*Jet_pt*cosh(Jet_eta)*(2.5<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt<50))<200",
+    "badJetSrEVeto":     "Sum$(Jet_neEmEF*Jet_pt*cosh(Jet_eta)*(2.6<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt<50))<200",
+    "badEEJetVeto":      "Sum$((2.6<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt>30))==0",
 
-    "HEMJetVeto":        "Sum$(Jet_eta<-1.3&&Jet_eta>-3.0&&Jet_phi<-0.87&&Jet_phi>-1.57)==0", # exact ranges: eta [-3.0, -1.3], phi [-1.57, -0.87]
-    "HEMJetVetoWide":    "Sum$(Jet_eta<-1.0&&Jet_eta>-3.2&&Jet_phi<-0.5&&Jet_phi>-2.0)==0",
+    "HEMJetVeto":        "Sum$(Jet_pt>20&&Jet_eta<-1.3&&Jet_eta>-3.0&&Jet_phi<-0.87&&Jet_phi>-1.57)==0", # exact ranges: eta [-3.0, -1.3], phi [-1.57, -0.87]
+    "HEMJetVetoWide":    "Sum$(Jet_pt>20&&Jet_eta<-1.0&&Jet_eta>-3.2&&Jet_phi<-0.5&&Jet_phi>-2.0)==0",
     "extraLepVeto":      "Sum$(abs(LepGood_pdgId)==13&&LepGood_pt>20&&( abs(LepGood_dz)>0.2 || abs(LepGood_dxy)>0.2 ) ) + Sum$(abs(LepOther_pdgId)==13&&LepOther_pt>20&&( abs(LepOther_dz)>0.2 || abs(LepOther_dxy)>0.2 ) )==0",
 
     #"ZEtaMinus":            "dl_eta>-3&&dl_eta<-1",
     #"ZEtaBarrel":           "dl_eta>-1&&dl_eta<1",
     #"ZEtaPlus":             "dl_eta>1&&dl_eta<3",
-    "ZPhiHEM":              "dl_phi>-2+pi&&dl_phi<-0.5+pi",
-    "ZPhiNoHEM":            "(!(dl_phi>-2+pi&&dl_phi<-0.5+pi))"
+    "ZPhiHEM":          "dl_phi>-2+pi&&dl_phi<-0.5+pi",
+    "ZPhiNoHEM":        "(!(dl_phi>-2+pi&&dl_phi<-0.5+pi))",
+    "fwdJetVeto":       "Sum$(abs(Jet_eta)>4.53&&Jet_pt>30)==0",
+    "metPhiPeak":       "met_phi>-1.2&&met_phi<-0.6",
+    "metVetoPhiPeak":       "(!(met_phi>-1.2&&met_phi<-0.6))",
 
   }
 
-continous_variables = [ ("POGMetSig", "MET_significance"), ("metSig", "metSig"), ("mll", "dl_mass"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"),("mt2bb", "dl_mt2bb"),("htCMG", "htJet40j"), ("photon","photon_pt"), ("nPV", "PV_npvsGood") ]
+continous_variables = [ ("POGMetSig", "MET_significance"), ("metSig", "metSig"), ("mll", "dl_mass"), ("metPhi", "met_phi"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"),("mt2bb", "dl_mt2bb"),("htCMG", "htJet40j"), ("photon","photon_pt"), ("nPV", "PV_npvsGood"), ("Z2mass", "Z2_mass"), ("Z1mass", "Z1_mass") ]
 discrete_variables  = [ ("njet", "nJetGood"), ("btag", "nBTag") , ("nCMGjet", "nJet30")]
 
 class cutInterpreter:

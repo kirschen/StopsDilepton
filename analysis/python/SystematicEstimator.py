@@ -1,5 +1,5 @@
-jmeVariations = ["JER", "JERUp", "JERDown", "JECUp", "JECDown"]
-metVariations = ['UnclusteredEnUp', 'UnclusteredEnDown']
+jmeVariations = ["JER", "JERUp", "JERDown", "jesTotalUp", "jesTotalDown"]
+metVariations = ['unclustEnUp', 'unclustEnDown']
 
 # Standard imports
 import os
@@ -30,8 +30,8 @@ class SystematicEstimator:
             try:    os.makedirs(cacheDir)
             except: pass
 
-            cacheFileName       = os.path.join(cacheDir, self.name+'.sql')
-            helperCacheFileName = os.path.join(cacheDir, self.name+'_helper.sql')
+            cacheFileName       = os.path.join(cacheDir, self.name)
+            helperCacheFileName = os.path.join(cacheDir, self.name+'_helper')
 
             self.cache       = Cache(cacheFileName,       verbosity=1)
             self.helperCache = Cache(helperCacheFileName, verbosity=1) if self.name.count('DD') else None
@@ -54,6 +54,7 @@ class SystematicEstimator:
         sysForKey['reweight'] = 'TEMP'
         reweightKey ='["' + '", "'.join(sorted([i for i in setup.sys['reweight']])) + '"]' # little hack to preserve order of list when being dumped into json
         return region, channel, json.dumps(sysForKey, sort_keys=True).replace('"TEMP"',reweightKey), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)
+        #return '_'.join([str(region), channel, json.dumps(sysForKey, sort_keys=True).replace('"TEMP"',reweightKey), json.dumps(setup.parameters, sort_keys=True), json.dumps(setup.lumi, sort_keys=True)]) # this should give one string
 
     def replace(self, i, r):
         try:
@@ -63,14 +64,14 @@ class SystematicEstimator:
 
     def cachedEstimate(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
-        if (self.cache and self.cache.contains(key)) and not overwrite:
+        if (self.cache and self.cache.contains(key)) and not overwrite and not (channel == 'SF' or channel == 'all') :
             res = self.cache.get(key)
             logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
         elif self.cache:
-            logger.info( "Calculating %s result for %r"%(self.name, key) )
-            estimate = self._estimate( region, channel, setup)
-            res = self.cache.add( key, estimate, overwrite=overwrite)
-            logger.debug( "Adding cached %s result for %r : %r" %(self.name, key, estimate) )
+            logger.debug( "Calculating %s result for %r"%(self.name, key) )
+            res = self._estimate( region, channel, setup)
+            _res = self.cache.add( key, res, overwrite=True)
+            logger.debug( "Adding cached %s result for %r : %r" %(self.name, key, res) )
         else:
             res = self._estimate( region, channel, setup)
         return res if res > 0 else u_float(0,0)
@@ -82,8 +83,8 @@ class SystematicEstimator:
 
     def PUSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU36fbUp']}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU36fbDown']}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUUp']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUDown']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up,down)
 
     def topPtSystematic(self, region, channel, setup):
@@ -99,14 +100,14 @@ class SystematicEstimator:
 
     def JECSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECUp'}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JECDown'}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jesTotalUp'}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jesTotalDown'}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def unclusteredSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnUp'}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnDown'}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'unclustEnUp'}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'unclustEnDown'}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def leptonFSSystematic(self, region, channel, setup):
@@ -141,8 +142,8 @@ class SystematicEstimator:
 
     def triggerSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupUp']}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']}))
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerUp']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerDown']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def fastSimMETSystematic(self, region, channel, setup):
@@ -196,30 +197,30 @@ class SystematicEstimator:
 
     def getBkgSysJobs(self, region, channel, setup):
         l = [
-            (region, channel, setup.sysClone({'reweight':['reweightPU36fbUp']})),
-            (region, channel, setup.sysClone({'reweight':['reweightPU36fbDown']})),
+            (region, channel, setup.sysClone({'reweight':['reweightPUUp']})),
+            (region, channel, setup.sysClone({'reweight':['reweightPUDown']})),
 
             #(region, channel, setup.sysClone({'remove':['reweightTopPt']})),
 
             #(region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
             #(region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
 
-            #(region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
-            #(region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
+            (region, channel, setup.sysClone({'selectionModifier':'jesTotalUp'})),
+            (region, channel, setup.sysClone({'selectionModifier':'jesTotalDown'})),
 
-            #(region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnUp'})),
-            #(region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnDown'})),
+            (region, channel, setup.sysClone({'selectionModifier':'unclustEnUp'})),
+            (region, channel, setup.sysClone({'selectionModifier':'unclustEnDown'})),
 
-            #(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
-            #(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
-            #(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']})),
-            #(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']})),
+            (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']})),
 
-            #(region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']})),
-            #(region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']})),
+            (region, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']})),
+            (region, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']})),
 
-            #(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupDown']})),
-            #(region, channel, setup.sysClone({'reweight':['reweightDilepTriggerBackupUp']})),
+            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerDown']})),
+            (region, channel, setup.sysClone({'reweight':['reweightDilepTriggerUp']})),
         ]
         return l
 
@@ -231,11 +232,11 @@ class SystematicEstimator:
                 (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
                 (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
 
-                (region, channel, setup.sysClone({'selectionModifier':'JECUp'})),
-                (region, channel, setup.sysClone({'selectionModifier':'JECDown'})),
+                (region, channel, setup.sysClone({'selectionModifier':'jesTotalUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'jesTotalDown'})),
 
-                (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnUp'})),
-                (region, channel, setup.sysClone({'selectionModifier':'UnclusteredEnDown'})),
+                (region, channel, setup.sysClone({'selectionModifier':'unclustEnUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'unclustEnDown'})),
 
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']})),
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']})),

@@ -13,6 +13,11 @@ ROOT.gROOT.LoadMacro("$CMSSW_BASE/src/StopsDilepton/tools/scripts/tdrstyle.C")
 ROOT.setTDRStyle()
 mZ=91.1876
 
+def add_histos( l ):
+    res = l[0].Clone()
+    for h in l[1:]: res.Add(h)
+    return res
+
 def map_level(f, item, level):
     if level == 0:
         return f(item)
@@ -68,6 +73,14 @@ def getSortedZCandidates(leptons):
             usedIndices += m[1:3]
             bestCandidates.append(m)
     return bestCandidates
+
+def getMinDLMass(leptons):
+    inds = range(len(leptons))
+    vecs = [ ROOT.TLorentzVector() for i in inds ]
+    for i, v in enumerate(vecs):
+        v.SetPtEtaPhiM(leptons[i]['pt'], leptons[i]['eta'], leptons[i]['phi'], 0.)
+    dlMasses = [((vecs[comb[0]] + vecs[comb[1]]).M(), comb[0], comb[1])  for comb in itertools.combinations(inds, 2) ]
+    return min(dlMasses), dlMasses
 
 # Returns (closest mass, index1, index2)
 def closestOSDLMassToMZ(leptons):
@@ -201,9 +214,12 @@ def getObjFromFile(fname, hname):
     f.Close()
     return res
 
-def writeObjToFile(fname, obj):
+def writeObjToFile(fname, obj, update=False):
     gDir = ROOT.gDirectory.GetName()
-    f = ROOT.TFile(fname, 'recreate')
+    if update:
+        f = ROOT.TFile(fname, 'UPDATE')
+    else:
+        f = ROOT.TFile(fname, 'recreate')
     objw = obj.Clone()
     objw.Write()
     f.Close()

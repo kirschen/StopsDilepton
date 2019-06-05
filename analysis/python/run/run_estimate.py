@@ -2,61 +2,48 @@
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--noMultiThreading",      dest="noMultiThreading",      default = False,             action="store_true", help="noMultiThreading?")
+parser.add_option("--noSystematics",         dest="noSystematics",         default = False,             action="store_true", help="no systematics?")
 parser.add_option("--selectEstimator",       dest="selectEstimator",       default=None,                action="store",      help="select estimator?")
 parser.add_option("--selectRegion",          dest="selectRegion",          default=None, type="int",    action="store",      help="select region?")
+parser.add_option("--year",                  dest="year",                  default=2016, type="int",    action="store",      help="Which year?")
+parser.add_option("--nThreads",              dest="nThreads",              default=8, type="int",       action="store",      help="How many threads?")
 parser.add_option('--logLevel',              dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option("--control",               dest="control",               default=None,                action='store',      choices=[None, "DY", "VV", "DYVV", "TTZ1", "TTZ2", "TTZ3", "TTZ4", "TTZ5"], help="For CR region?")
 parser.add_option("--useGenMet",             dest="useGenMet",             default=False,               action='store_true', help="use genMET instead of recoMET, used for signal studies")
+parser.add_option("--overwrite",             dest="overwrite",             default=False,               action='store_true', help="overwrite existing results?")
 parser.add_option("--aggregate",             dest="aggregate",             default=False,               action='store_true', help="run over aggregated signal regions")
-parser.add_option("--DMsync",                dest="DMsync",                default=False,               action='store_true', help="run over DM sync signal regions")
-parser.add_option("--MVAselection",          dest="MVAselection",          default=None,                action='store',      help="Use a MVA classifier, and which one?", choices= [ 'MVA_T2tt_dM350_smaller_TTLep_pow', 'MVA_T2tt_dM350_TTLep_pow', 'MVA_T2tt_dM350_TTZtoLLNuNu',
-                                                                                                                                                                                     'MVA_T8bbllnunu_XCha0p5_XSlep0p05_dM350_TTLep_pow', 'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_smaller_TTLep_pow',
-                                                                                                                                                                                     'MVA_T8bbllnunu_XCha0p5_XSlep0p5_dM350_TTLep_pow ', 'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_smaller_TTLep_pow',
-                                                                                                                                                                                     'MVA_T8bbllnunu_XCha0p5_XSlep0p95_dM350_TTLep_pow',])
-parser.add_option("--MVAcut",                dest="MVAcut",                default=0.0, type="float",   action='store',      help="Which value to cut at?")
+parser.add_option("--all",                   dest="all",                   default=False,               action='store_true', help="Run over all SR and CR?")
+parser.add_option('--dpm',                   dest='dpm',                   default=False,               action='store_true', help='Use dpm?')
 
 (options, args) = parser.parse_args()
 
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels, trilepChannels
 from StopsDilepton.analysis.estimators   import *
-from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsAgg, regionsDM4,regionsDM5, regionsDM6, regionsDM7
+from StopsDilepton.analysis.regions      import regionsLegacy, noRegions
 
-from StopsDilepton.analysis.Setup import Setup
-
-#old samples
-#data_directory = '/afs/hephy.at/data/dspitzbart02/cmgTuples/'
-#postProcessing_directory = 'postProcessed_80X_v31/dilepTiny'
-#from StopsDilepton.samples.cmgTuples_Data25ns_80X_03Feb_postProcessed import *
-
-#data_directory = '/afs/hephy.at/data/dspitzbart01/nanoTuples/'
-#postProcessing_directory = 'stops_2016_nano_v2/dilep'
-#from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-
-#define samples
-#Background
-data_directory = '/afs/hephy.at/data/dspitzbart01/cmgTuples/'
-postProcessing_directory = 'stops_2016_nano_v2/dilep'
-from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-
-setup = Setup()
-
-if options.MVAselection:
-    MVAcut = "%s>=%s"%(options.MVAselection, options.MVAcut)
-    setup = setup.sysClone({'selectionModifier':MVAcut})
+if options.dpm:
+    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
 
 # Logging
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger('INFO', logFile = None )
+logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
 
-allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsO
+from StopsDilepton.analysis.Setup import Setup
+
+setup = Setup(year=options.year)
+
+allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsLegacy
 if options.aggregate: allRegions = regionsAgg
-elif options.DMsync: allRegions = regionsDM7
 
 from StopsDilepton.analysis.MCBasedEstimate import MCBasedEstimate
+from StopsDilepton.analysis.DataObservation import DataObservation
+
 # signals, so far only T2tt
-from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed    import signals_T2tt
+signals_T2tt = []
+#postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+#from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed    import signals_T2tt
 #from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed    import signals_T8bbllnunu_XCha0p5_XSlep0p05, signals_T8bbllnunu_XCha0p5_XSlep0p5, signals_T8bbllnunu_XCha0p5_XSlep0p95
 #from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import signals_TTbarDM
 #allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in channels + trilepChannels}) for s in signals_TTbarDM + signals_T2tt + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p05 + signals_T8bbllnunu_XCha0p5_XSlep0p95]
@@ -67,7 +54,14 @@ allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in
 
 
 # Select estimate
-estimate = next((e for e in allEstimators if e.name == options.selectEstimator), None)
+if not options.selectEstimator == 'Data':
+    estimate = next((e for e in allEstimators if e.name == options.selectEstimator), None)
+    estimate.isData = False
+else:
+    estimate = DataObservation(name='Data', sample=setup.samples['Data'], cacheDir=setup.defaultCacheDir())
+    estimate.isSignal = False
+    estimate.isData   = True
+
 if not estimate:
   logger.warn(options.selectEstimator + " not known")
   exit(0)
@@ -96,7 +90,7 @@ setup.verbose=True
 
 def wrapper(args):
         r,channel,setup = args
-        res = estimate.cachedEstimate(r, channel, setup, save=True)
+        res = estimate.cachedEstimate(r, channel, setup, save=True, overwrite=options.overwrite)
         return (estimate.uniqueKey(r, channel, setup), res )
 
 estimate.initCache(setup.defaultCacheDir())
@@ -106,14 +100,15 @@ for channel in (trilepChannels if (options.control and options.control.count('TT
     for (i, r) in enumerate(allRegions):
         if options.selectRegion is not None and options.selectRegion != i: continue
         jobs.append((r, channel, setup))
-        if estimate.isSignal: jobs.extend(estimate.getSigSysJobs(r, channel, setup, isFastSim))
-        else:                 jobs.extend(estimate.getBkgSysJobs(r, channel, setup))
+        if not estimate.isData and not options.noSystematics:
+            if estimate.isSignal: jobs.extend(estimate.getSigSysJobs(r, channel, setup, isFastSim))
+            else:                 jobs.extend(estimate.getBkgSysJobs(r, channel, setup))
 
 if options.noMultiThreading: 
     results = map(wrapper, jobs)
 else:
     from multiprocessing import Pool
-    pool = Pool(processes=8)
+    pool = Pool(processes=options.nThreads)
     results = pool.map(wrapper, jobs)
     pool.close()
     pool.join()
@@ -122,6 +117,7 @@ for channel in (['all'] if ((options.control and options.control.count('TTZ')) o
     for (i, r) in enumerate(allRegions):
         if options.selectRegion is not None and options.selectRegion != i: continue
         if options.useGenMet: estimate.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'genMet'}), save=True)
-        else: estimate.cachedEstimate(r, channel, setup, save=True)
-        if estimate.isSignal: map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getSigSysJobs(r, channel, setup, isFastSim))
-        else:                 map(lambda args:estimate.cachedEstimate(*args, save=True), estimate.getBkgSysJobs(r, channel, setup))
+        else: estimate.cachedEstimate(r, channel, setup, save=True, overwrite=options.overwrite)
+        if not estimate.isData and not options.noSystematics:
+            if estimate.isSignal: map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getSigSysJobs(r, channel, setup, isFastSim))
+            else:                 map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getBkgSysJobs(r, channel, setup))

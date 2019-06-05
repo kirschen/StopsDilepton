@@ -15,31 +15,31 @@ signals_T8bbllnunu_XCha0p5_XSlep0p09 = []
 signals_T8bbllnunu_XCha0p5_XSlep0p5  = []
 signals_T8bbllnunu_XCha0p5_XSlep0p95 = []
 
+# Data directory
+try:
+    data_directory_ = sys.modules['__main__'].data_directory
+except:
+    from StopsDilepton.samples.default_locations import default_locations
+    data_directory_ = default_locations.mc_2017_data_directory 
+
 # Take post processing directory if defined in main module
 try:
   import sys
-  postProcessing_directory = sys.modules['__main__'].postProcessing_directory
+  postProcessing_directory_ = sys.modules['__main__'].postProcessing_directory
 except:
-  postProcessing_directory = "stops_2017_nano_v0p1/dilep"
+  from StopsDilepton.samples.default_locations import default_locations
+  postProcessing_directory_ = default_locations.mc_2017_postProcessing_directory 
 
-try:
-    import sys
-    data_directory = sys.modules['__main__'].data_directory
-except:
-    #user specific
-    import StopsDilepton.tools.user as user
-    data_directory = user.data_directory
+logger.info("Loading Signal samples from directory %s", os.path.join(data_directory_, postProcessing_directory_))
 
-logger.info("Loading T2tt samples from directory %s", os.path.join(data_directory, postProcessing_directory))
-
-for f in os.listdir(os.path.join(data_directory, postProcessing_directory, 'T2tt')):
+for f in os.listdir(os.path.join(data_directory_, postProcessing_directory_, 'T2tt')):
     if f.endswith('.root') and f.startswith('T2tt_'):
         name = f.replace('.root','')
         mStop, mNeu = name.replace('T2tt_','').split('_')
 
         tmp = Sample.fromFiles(\
             name = name,
-            files = [os.path.join(os.path.join(data_directory, postProcessing_directory,'T2tt',f))],
+            files = [os.path.join(os.path.join(data_directory_, postProcessing_directory_,'T2tt',f))],
             treeName = "Events",
             isData = False,
             color = 8 ,
