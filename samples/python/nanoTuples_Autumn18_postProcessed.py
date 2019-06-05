@@ -62,13 +62,13 @@ dirs['singleTop_tW']    = ['T_tWch', 'TBar_tWch']
 
 dirs['Top_pow']         = dirs['TTLep_pow'] + dirs['singleTop_sch'] + dirs['singleTop_tW'] + dirs['singleTop_tch']
 
-dirs['TTZ']             = ['TTZToLLNuNu', 'TTZToLLNuNu_m1to10']
+dirs['TTZ']             = ['TTZToLLNuNu', 'TTZToLLNuNu_m1to10'] # no nanoAOD of TTZToQQ yet
 
 dirs['TTH']             = ['TTHbbLep', 'TTHnobb_pow']
 dirs['TWZ']             = ['tWnunu', 'tWll']
 dirs['TTW']             = ['TTWToLNu', 'TTWToQQ']
-dirs['TZQ']             = ['tZq_ll']
-dirs['TTVV']            = ['TTWZ','TTZZ']
+dirs['TZQ']             = ['tZq_ll'] # tZq_nunu not there yet as miniAOD?
+dirs['TTVV']            = ['TTWW', 'TTWZ','TTZZ']
 dirs['THX']             = ['THW', 'THQ']
 dirs['TTTT']            = ['TTTT']
 
@@ -78,13 +78,15 @@ dirs['TTX']             = dirs['TTVV'] + dirs['TTW'] + dirs['TWZ'] + dirs['TZQ']
 dirs['TTG']            = ['TTGLep']
 
 dirs['VVTo2L2Nu']       = ['VVTo2L2Nu']
-dirs['ZZTo2L2Q']        = ['ZZTo2L2Q_redBy5']
-dirs['WZTo3LNu']        = ['WZTo3LNu_amcatnlo']
+
+dirs['WW']              = ["WWToLNuQQ"]
+dirs['WZ']              = ["WZTo1L3Nu", "WZTo2L2Q", "WZTo3LNu_amcatnlo"] # no miniAOD of WZTo1L1Nu2Q yet
+dirs['ZZ']              = ["ZZTo2L2Q_redBy5", "ZZTo2Q2Nu"]
 
 dirs['ZZ4l']            = ['ZZTo4L']
 
-dirs['diBoson']         = dirs['VVTo2L2Nu'] + dirs['ZZTo2L2Q'] + dirs['WZTo3LNu']
-dirs['triBoson']        = ["WWZ","WZZ","ZZZ"] 
+dirs['diBoson']         = dirs['VVTo2L2Nu'] + dirs['WW'] + dirs['WZ'] + dirs['ZZ']
+dirs['triBoson']        = ["WWZ","WZZ","ZZZ"] # WWW_4F to be added in the next round
 dirs['multiBoson']      = dirs['diBoson'] + dirs['triBoson']
 
 dirs['allMC']           = dirs['DY_LO'] + dirs['Top_pow'] + dirs['TTZ'] + dirs['TTXNoZ'] + dirs['multiBoson']

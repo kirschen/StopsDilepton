@@ -28,11 +28,11 @@ def getTopPtDrawString(selection = "dilep"):
     else:
         raise ValueError ("top pt reweighting implemented only for 'dilep' ")
 
-    return "sqrt(exp(Sum$(("+str(a)+"+("+str(b)+")*genPartAll_pt)*(abs(genPartAll_pdgId)==6&&genPartAll_nDaughters==2&&genPartAll_status==62&&genPartAll_pt<=400))))"
+    return "sqrt(exp(Sum$(("+str(a)+"+("+str(b)+")*GenPart_pt)*(abs(GenPart_pdgId)==6&&GenPart_status==62&&GenPart_pt<=400))))"
 
 def getTopPtsForReweighting(r):
     res=[]
     for i in range(r.ngenPartAll):
-        if abs(r.genPartAll_pdgId[i])==6 and r.genPartAll_nDaughters[i]==2 and r.genPartAll_status[i]==62 and r.genPartAll_pt[i]<400:
+        if abs(r.GenPart_pdgId[i])==6 and r.GenPart_status[i]==62 and r.GenPart_pt[i]<400:
             res.append(r.genPartAll_pt[i])
     return res
