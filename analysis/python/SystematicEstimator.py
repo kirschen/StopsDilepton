@@ -116,6 +116,12 @@ class SystematicEstimator:
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
+    def L1PrefireSystematic(self, region, channel, setup):
+        ref  = self.cachedEstimate(region, channel, setup)
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightL1PrefireUp']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightL1PrefireDown']}))
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
+    
     def btaggingSFbSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']}))
