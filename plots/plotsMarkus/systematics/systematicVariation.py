@@ -100,9 +100,9 @@ def metSelectionModifier( sys, returntype = 'func'):
 
 # these are the nominal MC weights we always apply
 if args.reweightPU == 'Central': 
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightTrackingSF", "reweightL1Prefire"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire"]
 if args.reweightPU == 'VUp':
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightTrackingSF", "reweightL1Prefire"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire"]
 
 # weight the MC according to a variation
 def MC_WEIGHT( variation, returntype = "string"):
@@ -151,6 +151,8 @@ variations = {
     'DilepTriggerUp'    : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerUp']]},
     'LeptonSFDown'      : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFDown'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFDown']]},
     'LeptonSFUp'        : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFUp'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFUp']]},
+    'L1PrefireDown'     : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireDown'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireDown']]},
+    'L1PrefireUp'       : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireUp'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireUp']]},
 #    'TopPt':{},
 #   'JERUp':{},
 #   'JERDown':{},
@@ -656,6 +658,7 @@ systematics = [\
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
     {'name': 'JER',        'pair':('jerUp', 'jerDown')},
+    {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
 ]
 
 # loop over modes
@@ -685,11 +688,11 @@ for mode in modes:
             if args.signal is not None: cmd.append( '--signal=%s'%args.signal )
             cmd.append('--era=%s'%args.era)
             cmd.append('--plot_directory=%s'%args.plot_directory)
-            cmd.append('--selection=%s'%args.selection)
-            cmd.append('--variation=%s'%variation)
-            cmd.append('--mode=%s'%args.mode)
-            if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             cmd.append('--reweightPU=%s'%args.reweightPU)
+            cmd.append('--selection=%s'%args.selection)
+            cmd.append('--mode=%s'%args.mode)
+            cmd.append('--variation=%s'%variation)
+            if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             if args.noDYHT: cmd.append('--noDYHT')
             if args.overwrite: cmd.append('--overwrite')
             if args.small: cmd.append('--small')

@@ -68,6 +68,8 @@ dirs['TTZToLLNuNu']     = ['TTZToLLNuNu_ext2_comb', 'TTZToLLNuNu_m1to10']
 dirs['TTZToQQ']         = ['TTZToQQ']
 dirs['TTZ']             = ['TTZToLLNuNu_ext2_comb', 'TTZToLLNuNu_m1to10', "TTZToQQ"]
 
+dirs['TTG']             = ["TTGJets_comb"]
+
 dirs['TTH']             = ['TTHbb', 'TTHnobb_pow']
 dirs['TWZ']             = ['tWnunu', 'tWll']
 dirs['TTW']             = ['TTWToLNu_ext2', 'TTWToQQ']
@@ -136,6 +138,7 @@ TTXNoZ_16         = Sample.fromDirectory(name="TTXNoZ",           treeName="Even
 TTH_16            = Sample.fromDirectory(name="TTH",              treeName="Events", isData=False, color=color.TTH,             texName="t#bar{t}H",                         directory=directories['TTH'])
 TTW_16            = Sample.fromDirectory(name="TTW",              treeName="Events", isData=False, color=color.TTW,             texName="t#bar{t}W",                         directory=directories['TTW'])
 TTZ_16            = Sample.fromDirectory(name="TTZ",              treeName="Events", isData=False, color=color.TTZ,             texName="t#bar{t}Z",                         directory=directories['TTZ'])
+TTG_16            = Sample.fromDirectory(name="TTG",              treeName="Events", isData=False, color=color.TTG,             texName="t#bar{t}#gamma",                    directory=directories['TTG'])
 TTZtoLLNuNu_16    = Sample.fromDirectory(name="TTZtoNuNu",        treeName="Events", isData=False, color=color.TTZtoLLNuNu,     texName="t#bar{t}Z (l#bar{l}/#nu#bar{#nu})", directory=directories['TTZToLLNuNu'])
 TTZToQQ_16        = Sample.fromDirectory(name="TTZtoQQ",          treeName="Events", isData=False, color=color.TTZtoQQ,         texName="t#bar{t}Z (q#bar{q})",              directory=directories['TTZToQQ'])
 TZQ_16            = Sample.fromDirectory(name="TZQ",              treeName="Events", isData=False, color=color.TZQ,             texName="tZq",                               directory=directories['TZQ'])
