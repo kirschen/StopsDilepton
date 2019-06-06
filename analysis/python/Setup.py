@@ -63,7 +63,7 @@ class Setup:
         }
 
         self.puWeight = 'reweightPUVUp' if self.year == 2018 else 'reweightPU'
-        self.sys = {'weight':'weight', 'reweight':[self.puWeight, 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
+        self.sys = {'weight':'weight', 'reweight':[self.puWeight, 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger', 'reweightL1Prefire'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
 
         if year == 2016:
             top         = Top_pow_16
@@ -78,8 +78,8 @@ class Setup:
             TTZ         = TTZ_17
             multiBoson  = multiBoson_17
             TTXNoZ      = TTXNoZ_17
-            #data        = Run2017 #FIXME!! 
-            data        = Run2017BCDE
+            data        = Run2017  
+            #data        = Run2017BCDE
         elif year == 2018:
             top         = Top_pow_18
             DY          = DY_HT_LO_18
@@ -138,6 +138,7 @@ class Setup:
                     # all the other weight systematics
                     for upOrDown in ['Up','Down']:
                       if 'reweightDilepTrigger'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightDilepTrigger')
+                      if 'reweightL1Prefire'+upOrDown           in res.sys[k]: res.sys[k].remove('reweightL1Prefire')
                       if 'reweightBTag_SF_b_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightBTag_SF_l_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightLeptonSF'+upOrDown            in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
@@ -280,12 +281,18 @@ class Setup:
               if self.year == 2018:
                 res['prefixes'].append('HEMJetVetoWide')
                 res['cuts'].append("Sum$(Jet_pt>20&&Jet_eta<-1.0&&Jet_eta>-3.2&&Jet_phi<-0.5&&Jet_phi>-2.0)==0")
+              # add BadeeJetVeto in 2017
+              if self.year == 2017:
+                res['prefixes'].append('BadEEJetVeto')
+                res['cuts'].append("Sum$((2.6<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt>30))==0")
+
 
               res['prefixes'].append('lepSel')
               res['cuts'].append("l1_pt>30&&l2_pt>20")
-
+              
         res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), year=self.year, isFastSim=isFastSim))
         res['cuts'].extend(self.externalCuts)
+
 
          
         # for SUSY PU uncertainty of 2016 samples
