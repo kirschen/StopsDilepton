@@ -28,9 +28,9 @@ python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processing
 #
 #
 # top
-#python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --reduceSizeBy 3 --noTopPtReweighting --sample TTLep_pow # SPLIT80
-python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --noTopPtReweighting --flagTTBar --sample TTLep_pow # SPLIT80
-python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --noTopPtReweighting --flagTTBar --sample TTSingleLep_pow #SPLIT80
+#python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --reduceSizeBy 3 --sample TTLep_pow # SPLIT80
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --flagTTBar --sample TTLep_pow # SPLIT80
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --flagTTBar --sample TTSingleLep_pow #SPLIT80
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --flagTTGamma --sample TTGLep # SPLIT20
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --reduceSizeBy 5 --sample TToLeptons_sch_amcatnlo # SPLIT20
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --sample T_tWch # SPLIT20
@@ -77,3 +77,7 @@ python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processing
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --sample TTWW # SPLIT5
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2018 --processingEra stops_2018_nano_v0p11  --skipGenLepMatching --sample TTZZ # SPLIT5
 
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p13 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 # SPLIT45
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p13 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_250to350 # SPLIT45
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p13 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_350to400 # SPLIT45
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p13 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_400to1200 # SPLIT45

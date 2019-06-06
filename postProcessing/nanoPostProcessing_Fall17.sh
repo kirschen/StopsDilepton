@@ -2,8 +2,8 @@
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --sample TTZToQQ #SPLIT10
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --sample TTZToLLNuNu # SPLIT20
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --sample TTZToLLNuNu_m1to10 # SPLIT20
-#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --noTopPtReweighting --flagTTBar --sample TTLep_pow # SPLIT80
-#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --noTopPtReweighting --flagTTBar --sample TTSingleLep_pow #SPLIT80
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --flagTTBar --sample TTLep_pow # SPLIT80
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --flagTTBar --sample TTSingleLep_pow #SPLIT80
 #
 ##python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --sample DYJetsToLL_M50_ext1 # SPLIT10
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --sample DYJetsToLL_M50_LO DYJetsToLL_M50_LO_ext1 # SPLIT50

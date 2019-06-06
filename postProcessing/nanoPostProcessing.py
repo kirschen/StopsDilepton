@@ -664,8 +664,9 @@ if not options.skipNanoTools:
         else:
             JEC             = "Fall17_17Nov2017_V32_MC"
     elif options.year == 2018:
-        metSigParamsMC      = [1.8430848616315363, 1.8572853766660877, 1.613083160233781, 1.3966398718198898, 1.4831008506492056, 0.0011310724285762122, 0.6929410058142578]
-        metSigParamsData    = [1.6231076732985186, 1.615595174619551, 1.4731794897915416, 1.5183631493937553, 2.145670387603659, -0.0001524158603362826, 0.7510574688006575]
+        # tune parameters updated using JER smearing (affecting MC)
+        metSigParamsMC      = [2.0125792791161086, 1.907019584601178, 1.691418568871399, 1.8522963629751756, 2.5811948493039836, 0.0013040694868296128, 0.6944381179120537]
+        metSigParamsData    = [1.4698510928845903, 1.6274969872662128, 1.4401026396007923, 1.3066363203359852, 1.9626614559348625, 0.0003847902120762913, 0.7511670653138974]
         JER                 = "Autumn18_V1_MC"                if not sample.isData else "Autumn18_V1_DATA"
         JERera              = "Autumn18_V1"
         if sample.isData:
@@ -674,7 +675,7 @@ if not options.skipNanoTools:
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
         elif fastSim:
-            JEC             = "Fall17_FastsimV1_MC"
+            JEC             = "Autumn18_FastSimV1_MC"
         else:
             JEC             = "Autumn18_V8_MC"
 
