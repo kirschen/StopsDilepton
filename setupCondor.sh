@@ -4,7 +4,7 @@
 echo JetMETCorrections/Modules/ >> .git/info/sparse-checkout
 git checkout
 
-eval `scram runtime -csh`
+eval `scram runtime -sh`
 cd $CMSSW_BASE/src
 
 # nanoAOD tools (for MET Significance, JEC/JER...)
