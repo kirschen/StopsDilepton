@@ -8,19 +8,19 @@ eval `scram runtime -csh`
 cd $CMSSW_BASE/src
 
 # nanoAOD tools (for MET Significance, JEC/JER...)
-git clone https://github.com/danbarto/nanoAOD-tools.git PhysicsTools/NanoAODTools
+git clone https://github.com/HephyAnalysisSW/nanoAOD-tools.git PhysicsTools/NanoAODTools
 cd $CMSSW_BASE/src
 
 # RootTools (for plotting, sample handling, processing)
-git clone -b 'v0.1_stops2l' --single-branch --depth 1 https://github.com/danbarto/RootTools.git
+git clone -b 'master' --single-branch --depth 1 https://github.com/HephyAnalysisSW/RootTools.git
 cd $CMSSW_BASE/src
 
 # Shared samples (miniAOD/nanoAOD)
-git clone -b 'v0.1_stops2l' --single-branch --depth 1 https://github.com/danbarto/Samples.git
+git clone -b 'master' --single-branch --depth 1 https://github.com/HephyAnalysisSW/Samples.git
 cd $CMSSW_BASE/src
 
 # Shared analysis tools and data
-git clone -b 'v0.1_stops2l' --single-branch --depth 1 https://github.com/danbarto/Analysis.git
+git clone -b 'master' --single-branch --depth 1 https://github.com/HephyAnalysisSW/Analysis.git
 cd $CMSSW_BASE/src
 
 scram b -j9
