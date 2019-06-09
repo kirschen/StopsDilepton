@@ -107,6 +107,8 @@ elif year == 2017:
     #    # need sample based weights
     #    pass
 elif year == 2018:
+    #data_directory           = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
+    #postProcessing_directory = "stops_2018_nano_v0p13/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     if args.DYInc:
@@ -833,6 +835,12 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+    texX = 'pdgId(l1)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l1_pdgId/I" ),
+    binning=[30,-15,15],
+  ))
+
+  plots.append(Plot(
     texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,300],
@@ -848,6 +856,12 @@ for index, mode in enumerate(allModes):
     texX = '#phi(l_{2})', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "l2_phi/F" ),
     binning=[10,-pi,pi],
+  ))
+
+  plots.append(Plot(
+    texX = 'pdgId(l2)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l2_pdgId/I" ),
+    binning=[30,-15,15],
   ))
 
   # Plots only when at least one jet:

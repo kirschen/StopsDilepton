@@ -32,7 +32,7 @@ def getTopPtDrawString(selection = "dilep"):
 
 def getTopPtsForReweighting(r):
     res=[]
-    for i in range(r.ngenPartAll):
+    for i in range(r.nGenPart):
         if abs(r.GenPart_pdgId[i])==6 and r.GenPart_status[i]==62 and r.GenPart_pt[i]<400:
-            res.append(r.genPartAll_pt[i])
+            res.append(r.GenPart_pt[i])
     return res
