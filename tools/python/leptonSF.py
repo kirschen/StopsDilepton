@@ -15,6 +15,13 @@ from math import sqrt
 
 class leptonSF:
     def __init__(self, year):
+
+        # default assumptions
+        self.mu_x_is_pt  = True
+        self.mu_abs_eta  = True
+        self.ele_x_is_pt = False
+        self.ele_abs_eta = False
+
         if year == 2016:
             keys_mu  = [("MuonRun2016_MediumID.root", "SF")]
             keys_ele = [("ElectronScaleFactors_Run2016.root", "Run2016_CutBasedTightNoIso94XV2")]
@@ -23,6 +30,7 @@ class leptonSF:
             keys_ele = [("ElectronScaleFactors_Run2017.root", "Run2017_CutBasedTightNoIso94XV2")]
         elif year == 2018:
             keys_mu  = [("MuonRun2018_MediumID.root", "SF2D")]
+            self.mu_x_is_pt = False # for the 2018 histo, pt and eta are reversed!
             keys_ele = [("ElectronScaleFactors_Run2018.root", "Run2018_CutBasedTightNoIso94XV2")]
         
         self.dataDir = "$CMSSW_BASE/src/StopsDilepton/tools/data/leptonSFData"
@@ -32,8 +40,10 @@ class leptonSF:
         for effMap in self.mu + self.ele: assert effMap
 
     def getPartialSF(self, effMap, pt, eta):
-        sf  = effMap.GetBinContent(effMap.GetXaxis().FindBin(pt), effMap.GetYaxis().FindBin(abs(eta)))
-        err = effMap.GetBinError(  effMap.GetXaxis().FindBin(pt), effMap.GetYaxis().FindBin(abs(eta)))
+
+        bin_x, bin_y = effMap.GetXaxis().FindBin(pt), effMap.GetYaxis().FindBin(eta)
+        sf  = effMap.GetBinContent(bin_x, bin_y)
+        err = effMap.GetBinError  (bin_x, bin_y)
         return u_float(sf, err)
 
     def mult(self, list):
@@ -43,16 +53,18 @@ class leptonSF:
 
     def getSF(self, pdgId, pt, eta, sigma=0):
         # protection for the abs(eta)=2.4 case
-        if eta >= 2.4: eta = 2.39
+        if eta >= 2.4:  eta = 2.39
         if eta <= -2.4: eta = -2.39
 
         if abs(pdgId)==13:   
           if pt >= 120: pt = 119 # last bin is valid to infinity
-          sf = self.mult([self.getPartialSF(effMap, pt, eta) for effMap in self.mu])
+          eta_ = abs(eta) if self.mu_abs_eta else eta
+          sf   = self.mult([ self.getPartialSF(effMap, pt, eta_) if self.mu_x_is_pt else self.getPartialSF(effMap, eta_, pt) for effMap in self.mu])
           sf.sigma = 0.03 # Recommendation for Moriond17
         elif abs(pdgId)==11:
           if pt >= 500: pt = 499 # last bin is valid to infinity
-          sf = self.mult([self.getPartialSF(effMap, eta, pt) for effMap in self.ele]) # eta/pt are intentionally mixed up because the 2D hists are the other way around... don't even ask
+          eta_ = abs(eta) if self.ele_abs_eta else eta
+          sf   = self.mult([self.getPartialSF(effMap, pt, eta_) if self.ele_x_is_pt else self.getPartialSF(effMap, eta_, pt) for effMap in self.ele]) # eta/pt are intentionally mixed up because the 2D hists are the other way around... don't even ask
         else: 
           raise Exception("Lepton SF for PdgId %i not known"%pdgId)
 
