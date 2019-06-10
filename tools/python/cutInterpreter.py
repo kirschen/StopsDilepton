@@ -60,7 +60,9 @@ special_cuts = {
     "ZPhiNoHEM":        "(!(dl_phi>-2+pi&&dl_phi<-0.5+pi))",
     "fwdJetVeto":       "Sum$(abs(Jet_eta)>4.53&&Jet_pt>30)==0",
     "metPhiPeak":       "met_phi>-1.2&&met_phi<-0.6",
-    "metVetoPhiPeak":       "(!(met_phi>-1.2&&met_phi<-0.6))",
+    "metVetoPhiPeak":   "(!(met_phi>-1.2&&met_phi<-0.6))",
+    "leadingMu":        "abs(l1_pdgId)==13",
+    "leadingE":         "abs(l1_pdgId)==11",
 
   }
 

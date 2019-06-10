@@ -107,8 +107,10 @@ elif year == 2017:
     #    # need sample based weights
     #    pass
 elif year == 2018:
-    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    data_directory           = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p13/dilep/"
+    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     if args.DYInc:
         mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     else:
@@ -133,8 +135,8 @@ for sample in mc:
 if args.small:
     for sample in mc + [data_sample]:
         sample.normalization = 1.
-        sample.reduceFiles( factor = 40 )
-        #sample.reduceFiles( to=1)
+        #sample.reduceFiles( factor = 40 )
+        sample.reduceFiles( to=1)
         sample.scale /= sample.normalization
 
 #from Analysis.Tools.RecoilCorrector import RecoilCorrector
@@ -356,7 +358,6 @@ if True: #"2017" in args.era:
         event.badJetE  = sum( [ j['pt']*j['neEmEF']*cosh(j['eta']) for j in event.jets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
         event.badJetPt = sum( [ j['pt']*j['neEmEF'] for j in event.jets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
 
-
         bJets        = filter(lambda j:isBJet(j, tagger="DeepCSV", year=year) and abs(j['eta'])<=2.4    , event.jets)
         nonBJets     = filter(lambda j:not ( isBJet(j, tagger="DeepCSV", year=year) and abs(j['eta'])<=2.4 ), event.jets)
 
@@ -367,6 +368,11 @@ if True: #"2017" in args.era:
             event.mt2blbl_bj_dPhi = deltaPhi( event.bj0['phi'], event.bj1['phi'] ) 
             event.mt2blbl_bj_dEta = event.bj0['eta'] - event.bj1['eta']
             event.mt2blbl_bj_mass = sqrt(2.*event.bj0['pt']*event.bj1['pt']*(cosh(event.bj0['eta']-event.bj1['eta'])-cos(event.bj0['phi']-event.bj1['phi']))) 
+        else:
+            event.mt2blbl_bj_dR   = float('nan') 
+            event.mt2blbl_bj_dPhi = float('nan') 
+            event.mt2blbl_bj_dEta = float('nan') 
+            event.mt2blbl_bj_mass = float('nan') 
     
     sequence.append( make_all_jets )
 
@@ -833,6 +839,12 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+    texX = 'pdgId(l1)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l1_pdgId/I" ),
+    binning=[30,-15,15],
+  ))
+
+  plots.append(Plot(
     texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,300],
@@ -848,6 +860,12 @@ for index, mode in enumerate(allModes):
     texX = '#phi(l_{2})', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "l2_phi/F" ),
     binning=[10,-pi,pi],
+  ))
+
+  plots.append(Plot(
+    texX = 'pdgId(l2)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l2_pdgId/I" ),
+    binning=[30,-15,15],
   ))
 
   # Plots only when at least one jet:
