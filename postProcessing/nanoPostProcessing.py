@@ -899,9 +899,9 @@ def filler( event ):
     if isMC:
         event.reweightTopPt     = topPtReweightingFunc(getTopPtsForReweighting(r)) * topScaleF if doTopPtReweighting else 1.
         ISRnorm = getT2ttISRNorm(samples[0], r.GenSusyMStop, r.GenSusyMNeutralino, masspoints, options.year, signal=sample.name, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)) if renormISR else 1
-        event.reweight_nISR     = isr.getWeight(r, norm=1 )             if options.susySignal else 1
-        event.reweight_nISRUp   = isr.getWeight(r, norm=1, sigma=1)     if options.susySignal else 1
-        event.reweight_nISRDown = isr.getWeight(r, norm=1, sigma=-1)    if options.susySignal else 1
+        event.reweight_nISR     = isr.getWeight(r, norm=ISRnorm )             if options.susySignal else 1
+        event.reweight_nISRUp   = isr.getWeight(r, norm=ISRnorm, sigma=1)     if options.susySignal else 1
+        event.reweight_nISRDown = isr.getWeight(r, norm=ISRnorm, sigma=-1)    if options.susySignal else 1
 
     if options.keepAllJets:
         jetAbsEtaCut = 99.

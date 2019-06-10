@@ -100,14 +100,6 @@ def get_parser():
         help="Minimum number of simultaneous jobs."
         )
 
-    argParser.add_argument('--dataDir',
-        action='store',
-        nargs='?',
-        type=str,
-        default=user.cmg_directory,
-        help="Name of the directory where the input data is stored (for samples read from Heppy)."
-        )
-
     argParser.add_argument('--targetDir',
         action='store',
         nargs='?',
@@ -291,7 +283,7 @@ if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
     assert len(samples)==1, "Can only process one SUSY sample at a time."
     samples[0].files = samples[0].files[:maxN]
     logger.debug( "Fetching signal weights..." )
-    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = output_directory)
+    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = '/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)) #Can use same x-sec/weight for T8bbllnunu as for T2tt
     logger.debug("Done fetching signal weights.")
 
 if len(samples)==0:

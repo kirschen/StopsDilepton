@@ -69,8 +69,8 @@
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --sample WZ #SPLIT5
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12   --skipGenLepMatching --sample ZZ #SPLIT5
 
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p13 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 # SPLIT45
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p13 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_250to350 # SPLIT45
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p13 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_350to400 # SPLIT45
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p13 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_400to1200 # SPLIT45
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p13 --skipGenLepMatching --susySignal --fastSim --overwrite --sample SMS_T2tt_mStop_150to250 # SPLIT45
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p13 --skipGenLepMatching --susySignal --fastSim --overwrite --sample SMS_T2tt_mStop_250to350 # SPLIT45
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p13 --skipGenLepMatching --susySignal --fastSim --overwrite --sample SMS_T2tt_mStop_350to400 # SPLIT45
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p13 --skipGenLepMatching --susySignal --fastSim --overwrite --sample SMS_T2tt_mStop_400to1200 # SPLIT45
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p12 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_1200to2000 # SPLIT45
