@@ -109,7 +109,7 @@ elif year == 2017:
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     data_directory           = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p13/dilep/"
+    postProcessing_directory = "stops_2018_nano_v0p14/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     if args.DYInc:
         mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
