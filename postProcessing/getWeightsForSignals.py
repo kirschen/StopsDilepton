@@ -97,7 +97,7 @@ logger.info("Getting the signal weights for sample %s", options.samples[0])
 signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = cacheDir)
 masspoints = signalWeight.keys()
 
-## now, if we already have it, also get the ISR norm for each masspoint
+## now, if we already have a post-processed version of the samples, also get the ISR norm for each masspoint
 
 if options.ppSamplePath:
     import glob
@@ -112,39 +112,10 @@ if options.ppSamplePath:
 
     norm = getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, signal=sample.name, cacheDir=cacheDir, fillCache=True)
     
-    logger.info("Got the following norm for dummy masspoint mStop %s, mLSP %s : %s", masspoints[0][0], masspoints[0][1], norm)
+    logger.info("Got the following norms for the masspoints (mStop, mLSP)")
+    for masspoint in sorted(masspoints):
+        norm = getT2ttISRNorm(sample, masspoint[0], masspoint[1], masspoints, options.year, signal=sample.name, cacheDir=cacheDir)
+        logger.info("%s, %s: %s", masspoint[0], masspoint[1], norm)
     logger.info("Done.")
 
 
-
-#targetLumi = 1000
-#output_directory = '/afs/hephy.at/data/dspitzbart03/nanoTuples/stops_2017_nano_v0p7/inclusive/SMS_T2tt_mStop_400to1200/'
-#
-#from StopsDilepton.samples.helpers import getT2ttSignalWeight
-#logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
-## FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
-#assert len(samples)==1, "Can only process one SUSY sample at a time."
-#logger.debug( "Fetching signal weights..." )
-#signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = output_directory)
-#logger.debug("Done fetching signal weights.")
-#
-#mMax = 1550
-#bStr = str(mMax)+','+str(mMax)
-#
-#from Analysis.Tools.isrWeight import ISRweight
-#isr = ISRweight()
-#
-#isrWeightString = isr.getWeightString()
-#
-#sample.chain.Draw("Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022)):Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))>>hNEvents("+','.join([bStr, bStr])+")", isrWeightString+'*(1)',"goff")
-#hNEvents = ROOT.gDirectory.Get("hNEvents")
-#
-##for masspoint in signalWeight.keys():
-##    s = masspoint
-##    cut = "Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))=="+str(s[0])+"&&Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022))=="+str(s[1])
-##    
-##    num = sample.getYieldFromDraw(cut, "weight")
-##    denom = sample.getYieldFromDraw(cut, "weight*reweight_nISR")
-##
-##    print masspoint, num/denom
-#
