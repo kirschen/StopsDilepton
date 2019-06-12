@@ -392,7 +392,7 @@ def wrapper(s):
                 e = eSignal
                 #eSignal.isSignal = True
                 if fastSim:
-                    #signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF', 'weight_pol_L'], 'remove':['reweightPU36fb']})
+                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) # reweightLeptonFastSimSF
                     #signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
                     signalSetup = setup.sysClone()
                     signal = e.cachedEstimate(r, channel, signalSetup)
@@ -560,13 +560,18 @@ def wrapper(s):
 ######################################
 
 if args.signal == "T2tt":
-    if year == 2016 and False:
-        pass
-    else:
-        # no seperate 2018 signal yet
-        data_directory              = '/afs/hephy.at/data/dspitzbart03/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p7/dilep/'
+    if year == 2016:
+        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p13/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
+    elif year == 2017:
+        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p13/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
+    elif year == 2018:
+        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p13/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
 
 if args.only is not None:
     if args.only.isdigit():
