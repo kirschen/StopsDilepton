@@ -100,14 +100,6 @@ def get_parser():
         help="Minimum number of simultaneous jobs."
         )
 
-    argParser.add_argument('--dataDir',
-        action='store',
-        nargs='?',
-        type=str,
-        default=user.cmg_directory,
-        help="Name of the directory where the input data is stored (for samples read from Heppy)."
-        )
-
     argParser.add_argument('--targetDir',
         action='store',
         nargs='?',
@@ -250,14 +242,14 @@ if isInclusive:
     skimConds = []
 
 
-#from nanoMET.samples.helpers import fromNanoSample
 if options.year == 2016:
     from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as bkgSamples
-    from Samples.nanoAOD.Spring16_private           import allSamples as signalSamples
+    from Samples.nanoAOD.Summer16_private_legacy_v1 import SUSY as signalSamples
     from Samples.nanoAOD.Run2016_17Jul2018_private  import allSamples as dataSamples
-    allSamples = bkgSamples + signalSamples + dataSamples
+    allSamples = bkgSamples + dataSamples + signalSamples
 elif options.year == 2017:
     from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as bkgSamples
+    from Samples.nanoAOD.Fall17_private_legacy_v1   import SUSY as signalSamples
     from Samples.nanoAOD.Run2017_31Mar2018_private  import allSamples as dataSamples
     allSamples = bkgSamples + dataSamples
 elif options.year == 2018:
@@ -276,10 +268,8 @@ for selectedSamples in options.samples:
             samples.append(sample)
 
 print [ s.name for s in samples ]
-
 directory  = os.path.join(options.targetDir, options.processingEra)
 output_directory = os.path.join( directory, options.skim, samples[0].name )
-
 print output_directory
 
 #Samples: Load samples
@@ -291,7 +281,7 @@ if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
     assert len(samples)==1, "Can only process one SUSY sample at a time."
     samples[0].files = samples[0].files[:maxN]
     logger.debug( "Fetching signal weights..." )
-    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = output_directory)
+    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = '/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)) #Can use same x-sec/weight for T8bbllnunu as for T2tt
     logger.debug("Done fetching signal weights.")
 
 if len(samples)==0:
@@ -366,7 +356,11 @@ masspoints = list(chunks(signalWeight.keys(), chunkSize))
 
 job = options.job
 
-print job
+print "All masspoints:"
+print masspoints
+
+print "Running over:"
+print masspoints[job]
 
 # Write one file per mass point for T2tt
 if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
@@ -377,7 +371,7 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
     print "Initialising chain, otherwise first mass point is empty"
     print output.chain
     if options.small: output.reduceFiles( to = 1 )
-    for s in masspoints[job]:
+    for i,s in enumerate(masspoints[job]):
         #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
         logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
         cut = "Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))=="+str(s[0])+"&&Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022))=="+str(s[1])
@@ -406,6 +400,7 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
             logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
         else:
             logger.info( "Found file %s -> Skipping"%(signalFile) )
+        logger.info("Done with %s/%s", i+1, len(masspoints[job])) 
 
     output.clear()
 

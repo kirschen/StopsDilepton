@@ -111,8 +111,11 @@ import StopsDilepton.tools.logger as _logger
 logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job))
 logger  = _logger.get_logger(options.logLevel, logFile = logFile)
 
+#import Analysis.Tools.logger as _logger_an
+#logger_an = _logger_an.get_logger(options.logLevel, logFile = logFile )
+
 import RootTools.core.logger as _logger_rt
-logger_rt = _logger_rt.get_logger(options.logLevel, logFile = None )
+logger_rt = _logger_rt.get_logger(options.logLevel, logFile = logFile )
 
 def fill_vector_collection( event, collection_name, collection_varnames, objects):
     setattr( event, "n"+collection_name, len(objects) )
@@ -124,7 +127,6 @@ def fill_vector_collection( event, collection_name, collection_varnames, objects
                 if type(obj[var]) == type(True):
                     obj[var] = int(obj[var])
                 getattr(event, collection_name+"_"+var)[i_obj] = obj[var]
-
 
 #_logger.   add_fileHandler( user.data_output_directory + '/logs/%s_%s_debug.txt'%(options.samples[0], options.job), options.logLevel )
 
@@ -321,19 +323,26 @@ if options.LHEHTCut>0:
 sampleName = sample.name
 output_directory = os.path.join( directory, options.skim, sample.name )
 
+renormISR = False
 if options.susySignal:
-    from StopsDilepton.samples.helpers import getT2ttSignalWeight
+    from StopsDilepton.samples.helpers import getT2ttSignalWeight, getT2ttISRNorm
     logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
-    # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
     assert len(samples)==1, "Can only process one SUSY sample at a time."
     logger.info( "Signal weights will be drawn from %s files. If that's not the whole sample, stuff will be wrong.", len(samples[0].files))
     logger.info( "Fetching signal weights..." )
     logger.info( "Weights will be stored in %s for future use.", output_directory)
-    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = output_directory) #Can use same x-sec/weight for T8bbllnunu as for T2tt
+    signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = '/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)) #Can use same x-sec/weight for T8bbllnunu as for T2tt
     logger.info("Done fetching signal weights.")
 
-    # FIXME
-    # need to extract the normalizations for nISR reweighting the exact same way.
+    logger.info("Fetching the normalization for the ISR weights.")
+    masspoints = signalWeight.keys()
+    print sample, sample.name, masspoints[0][0], masspoints[0][1]
+    if getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, signal=sample.name, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)):
+        renormISR = True
+        logger.info("Successfully loaded ISR normalzations.")
+    else:
+        logger.info("!!WARNING!! No ISR normaliztion factors found. Using the ISR weights will therefore change the normalization. Be careful!")
+        #raise NotImplementedError ("Couldn't load ISR normalization factors.")
 
 len_orig = len(sample.files)
 ## sort the list of files?
@@ -347,6 +356,10 @@ from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightung
 # Decision based on sample name -> whether TTJets or TTLep is in the sample name
 isTT = sample.name.startswith("TTJets") or sample.name.startswith("TTLep") or sample.name.startswith("TT_pow")
 doTopPtReweighting = isTT and not options.noTopPtReweighting
+
+if sample.name.startswith("TTLep"):
+    sample.topScaleF = 1.002 ## found to be universal for years 2016-2018, and in principle negligible
+
 if doTopPtReweighting:
     logger.info( "Sample will have top pt reweighting." )
     topPtReweightingFunc = getUnscaledTopPairPtReweightungFunction(selection = "dilep")
@@ -356,8 +369,11 @@ if doTopPtReweighting:
         # If you don't want to get the SF for each subjob run the script and add the topScaleF to the sample
         topScaleF = sample.topScaleF
     else:
-        topScaleF = sample.getYieldFromDraw( selectionString = selectionString, weightString = getTopPtDrawString(selection = "dilep"))
-        topScaleF = topScaleF['val']/float(sample.chain.GetEntries(selectionString))
+        reweighted  = sample.getYieldFromDraw( selectionString = selectionString, weightString = getTopPtDrawString(selection = "dilep") + '*genWeight')
+        central     = sample.getYieldFromDraw( selectionString = selectionString, weightString = 'genWeight')
+
+        topScaleF = central['val']/reweighted['val']
+
     logger.info( "Found topScaleF %f", topScaleF )
 else:
     topScaleF = 1
@@ -651,8 +667,9 @@ if not options.skipNanoTools:
         else:
             JEC             = "Fall17_17Nov2017_V32_MC"
     elif options.year == 2018:
-        metSigParamsMC      = [1.8430848616315363, 1.8572853766660877, 1.613083160233781, 1.3966398718198898, 1.4831008506492056, 0.0011310724285762122, 0.6929410058142578]
-        metSigParamsData    = [1.6231076732985186, 1.615595174619551, 1.4731794897915416, 1.5183631493937553, 2.145670387603659, -0.0001524158603362826, 0.7510574688006575]
+        # tune parameters updated using JER smearing (affecting MC)
+        metSigParamsMC      = [2.0125792791161086, 1.907019584601178, 1.691418568871399, 1.8522963629751756, 2.5811948493039836, 0.0013040694868296128, 0.6944381179120537]
+        metSigParamsData    = [1.4698510928845903, 1.6274969872662128, 1.4401026396007923, 1.3066363203359852, 1.9626614559348625, 0.0003847902120762913, 0.7511670653138974]
         JER                 = "Autumn18_V1_MC"                if not sample.isData else "Autumn18_V1_DATA"
         JERera              = "Autumn18_V1"
         if sample.isData:
@@ -661,7 +678,7 @@ if not options.skipNanoTools:
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
         elif fastSim:
-            JEC             = "Fall17_FastsimV1_MC"
+            JEC             = "Autumn18_FastSimV1_MC"
         else:
             JEC             = "Autumn18_V8_MC"
 
@@ -682,16 +699,18 @@ if not options.skipNanoTools:
     if not sample.isData:
         modules.append( ISRcounter() )
         # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.
-        modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
+        #modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
+        modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
         if options.year == 2017:
             # in 2017, also recorrect the MET calculated with the v2 recipe
-            modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') )
+            #modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') )
+            modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') )
     else:
         # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.
-        modules.append( jetRecalib(JEC) )
+        modules.append( jetRecalib(JEC, JEC) )
         if options.year == 2017:
             # in 2017, also recorrect the MET calculated with the v2 recipe
-            modules.append( jetRecalib(JEC, METBranchName='METFixEE2017') )
+            modules.append( jetRecalib(JEC, JEC, METBranchName='METFixEE2017') )
         logger.info("JECs will be reapplied.")
 
     if options.year == 2016:
@@ -880,10 +899,11 @@ def filler( event ):
 
     # top pt reweighting
     if isMC:
-        event.reweightTopPt     = topPtReweightingFunc(getTopPtsForReweighting(r))/topScaleF if doTopPtReweighting else 1.
-        event.reweight_nISR     = isr.getWeight(r)              if options.susySignal else 1
-        event.reweight_nISRUp   = isr.getWeight(r, sigma=1)     if options.susySignal else 1
-        event.reweight_nISRDown = isr.getWeight(r, sigma=-1)    if options.susySignal else 1
+        event.reweightTopPt     = topPtReweightingFunc(getTopPtsForReweighting(r)) * topScaleF if doTopPtReweighting else 1.
+        ISRnorm = getT2ttISRNorm(samples[0], r.GenSusyMStop, r.GenSusyMNeutralino, masspoints, options.year, signal=sample.name, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)) if renormISR else 1
+        event.reweight_nISR     = isr.getWeight(r, norm=ISRnorm )             if options.susySignal else 1
+        event.reweight_nISRUp   = isr.getWeight(r, norm=ISRnorm, sigma=1)     if options.susySignal else 1
+        event.reweight_nISRDown = isr.getWeight(r, norm=ISRnorm, sigma=-1)    if options.susySignal else 1
 
     if options.keepAllJets:
         jetAbsEtaCut = 99.

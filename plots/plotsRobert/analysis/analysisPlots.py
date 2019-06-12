@@ -14,7 +14,7 @@ import operator
 from math                                import sqrt, cos, sin, pi, atan2, cosh
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
-from StopsDilepton.tools.helpers         import deltaPhi
+from StopsDilepton.tools.helpers         import deltaPhi, deltaR
 from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
@@ -107,8 +107,10 @@ elif year == 2017:
     #    # need sample based weights
     #    pass
 elif year == 2018:
-    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    data_directory           = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p14/dilep/"
+    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     if args.DYInc:
         mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     else:
@@ -133,8 +135,8 @@ for sample in mc:
 if args.small:
     for sample in mc + [data_sample]:
         sample.normalization = 1.
-        sample.reduceFiles( factor = 40 )
-        #sample.reduceFiles( to=1)
+        #sample.reduceFiles( factor = 40 )
+        sample.reduceFiles( to=1)
         sample.scale /= sample.normalization
 
 #from Analysis.Tools.RecoilCorrector import RecoilCorrector
@@ -315,7 +317,7 @@ if "2017" in args.era:
 sequence = []
 
 if True: #"2017" in args.era:
-    from StopsDilepton.tools.objectSelection    import muonSelector, eleSelector, getGoodMuons, getGoodElectrons, getGoodJets, getAllJets
+    from StopsDilepton.tools.objectSelection    import muonSelector, eleSelector, getGoodMuons, getGoodElectrons, getGoodJets, getAllJets, isBJet
     ele_selector = eleSelector( "tight", year = year )
     mu_selector = muonSelector( "tight", year = year )
 
@@ -355,6 +357,23 @@ if True: #"2017" in args.era:
 
         event.badJetE  = sum( [ j['pt']*j['neEmEF']*cosh(j['eta']) for j in event.jets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
         event.badJetPt = sum( [ j['pt']*j['neEmEF'] for j in event.jets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
+
+        bJets        = filter(lambda j:isBJet(j, tagger="DeepCSV", year=year) and abs(j['eta'])<=2.4    , event.jets)
+        nonBJets     = filter(lambda j:not ( isBJet(j, tagger="DeepCSV", year=year) and abs(j['eta'])<=2.4 ), event.jets)
+
+        event.bj0, event.bj1 = None, None
+        if len(bJets)+len(nonBJets)>=2:
+            event.bj0, event.bj1  = (bJets+nonBJets)[:2]
+            event.mt2blbl_bj_dR   = deltaR  ( event.bj0, event.bj1 ) 
+            event.mt2blbl_bj_dPhi = deltaPhi( event.bj0['phi'], event.bj1['phi'] ) 
+            event.mt2blbl_bj_dEta = event.bj0['eta'] - event.bj1['eta']
+            event.mt2blbl_bj_mass = sqrt(2.*event.bj0['pt']*event.bj1['pt']*(cosh(event.bj0['eta']-event.bj1['eta'])-cos(event.bj0['phi']-event.bj1['phi']))) 
+        else:
+            event.mt2blbl_bj_dR   = float('nan') 
+            event.mt2blbl_bj_dPhi = float('nan') 
+            event.mt2blbl_bj_dEta = float('nan') 
+            event.mt2blbl_bj_mass = float('nan') 
+    
     sequence.append( make_all_jets )
 
 ## veto list
@@ -820,6 +839,12 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+    texX = 'pdgId(l1)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l1_pdgId/I" ),
+    binning=[30,-15,15],
+  ))
+
+  plots.append(Plot(
     texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,300],
@@ -835,6 +860,12 @@ for index, mode in enumerate(allModes):
     texX = '#phi(l_{2})', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "l2_phi/F" ),
     binning=[10,-pi,pi],
+  ))
+
+  plots.append(Plot(
+    texX = 'pdgId(l2)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l2_pdgId/I" ),
+    binning=[30,-15,15],
   ))
 
   # Plots only when at least one jet:
@@ -1038,6 +1069,72 @@ for index, mode in enumerate(allModes):
       attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
       binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
     ))
+
+    plots.append(Plot( name = "dl_mt2blbl_bj_dR",       # SR binning of MT2ll
+      texX = 'dR(bj0,bj1))', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.mt2blbl_bj_dR,
+      binning=[12,0,6],
+    ))
+
+    plots.append(Plot( name = "dl_mt2blbl_bj_dPhi",       # SR binning of MT2ll
+      texX = 'dPhi(bj0,bj1))', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.mt2blbl_bj_dPhi,
+      binning=[12,0,pi],
+    ))
+
+    plots.append(Plot( name = "dl_mt2blbl_bj_dEta",       # SR binning of MT2ll
+      texX = 'dEta(bj0,bj1))', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.mt2blbl_bj_dEta,
+      binning=[12,-6,6],
+    ))
+
+    plots.append(Plot( name = "dl_mt2blbl_bj_mass",       # SR binning of MT2ll
+      texX = 'mass(bj0,bj1))', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.mt2blbl_bj_mass,
+      binning=[12,0,600],
+    ))
+
+    plots.append(Plot( name = "dl_mt2blbl_bj0_pt",       # SR binning of MT2ll
+      texX = 'bj0(pt)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj0['pt'] if event.bj0 is not None else float('nan'),
+      binning=[12,0,300],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj1_pt",       # SR binning of MT2ll
+      texX = 'bj1(pt)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj1['pt'] if event.bj1 is not None else float('nan'),
+      binning=[12,0,300],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj0_phi",       # SR binning of MT2ll
+      texX = 'bj0(phi)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj0['phi'] if event.bj0 is not None else float('nan'),
+      binning=[12,-pi,pi],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj1_phi",       # SR binning of MT2ll
+      texX = 'bj1(phi)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj1['phi'] if event.bj1 is not None else float('nan'),
+      binning=[12,-pi,pi],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj0_eta",       # SR binning of MT2ll
+      texX = 'bj0(eta)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj0['eta'] if event.bj0 is not None else float('nan'),
+      binning=[12,-3,3],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj1_eta",       # SR binning of MT2ll
+      texX = 'bj1(eta)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj1['eta'] if event.bj1 is not None else float('nan'),
+      binning=[12,-3,3],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj0_DeepCSV",       # SR binning of MT2ll
+      texX = 'bj0(DeepCSV)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj0['btagDeepB'] if event.bj0 is not None else float('nan'),
+      binning=[10,0,1],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj1_DeepCSV",       # SR binning of MT2ll
+      texX = 'bj1(DeepCSV)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj1['btagDeepB'] if event.bj1 is not None else float('nan'),
+      binning=[10,0,1],
+    ))
+
    
   plotting.fill(plots + plots2D, read_variables = read_variables, sequence = sequence)
 

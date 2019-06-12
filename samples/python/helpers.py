@@ -140,3 +140,39 @@ def getT2ttSignalWeight(sample, lumi, cacheDir):
     #            logger.info( "Found mStop %5i mNeu %5i Number of events: %6i, xSec: %10.6f, weight: %6.6f (+1 sigma rel: %6.6f, -1 sigma rel: %6.6f)", i,j,n, xSecSusy_.getXSec(channel=channel,mass=i,sigma=0),  signalWeight[(i,j)]['weight'], signalWeight[(i,j)]['xSecFacUp'], signalWeight[(i,j)]['xSecFacDown'] )
     del hNEvents
     return signalWeight
+
+
+def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year, signal="T2tt", fillCache=False, cacheDir='/tmp/ISR/', overwrite=False):
+    '''
+    Get the normalization for the ISR reweighting. Needs post-processed samples for nISR.
+    '''
+    from StopsDilepton.tools.user import analysis_results
+    from StopsDilepton.analysis.Cache import Cache
+    signalWeight={}
+    mMax = 1550
+    bStr = str(mMax)+','+str(mMax)
+
+    cache = Cache(cacheDir, verbosity=2)
+
+    # get the norm for all
+    if (fillCache and not cache.contains((mStop, mLSP))) or overwrite:
+        from Analysis.Tools.isrWeight import ISRweight
+        isr = ISRweight()
+        isrWeightString = isr.getWeightString()
+
+        sample.chain.Draw("Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022)):Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))>>hReweighted("+','.join([bStr, bStr])+")", isrWeightString+'*(1)',"goff")
+        hReweighted = ROOT.gDirectory.Get("hReweighted")
+
+        sample.chain.Draw("Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022)):Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))>>hCentral("+','.join([bStr, bStr])+")", '(1)',"goff")
+        hCentral = ROOT.gDirectory.Get("hCentral")
+
+        for mSt, mNeu in massPoints:
+            norm = hCentral.GetBinContent(hCentral.GetXaxis().FindBin(mSt), hCentral.GetYaxis().FindBin(mNeu)) / hReweighted.GetBinContent(hReweighted.GetXaxis().FindBin(mSt), hReweighted.GetYaxis().FindBin(mNeu))
+            cache.add((mSt, mNeu), norm)
+
+    if not cache.contains((mStop, mLSP)):
+        return False
+    else:
+        return cache.get((mStop, mLSP))
+
+
