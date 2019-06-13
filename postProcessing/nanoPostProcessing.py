@@ -1344,6 +1344,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 
   # Destroy the TTree
     maker.clear()
+    sample.clear()
 
 
 logger.info( "Converted %i events of %i, cloned %i",  convertedEvents, reader.nEvents , clonedEvents )
