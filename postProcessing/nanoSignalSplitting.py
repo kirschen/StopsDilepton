@@ -21,10 +21,11 @@ from RootTools.core.standard import *
 import StopsDilepton.tools.user as user
 
 # Tools for systematics
-from StopsDilepton.tools.helpers import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection
+from StopsDilepton.tools.helpers import closestOSDLMassToMZ, writeObjToFile, m3, deltaR, bestDRMatchInCollection
 from StopsDilepton.tools.overlapRemovalTTG import getTTGJetsEventType
 from StopsDilepton.tools.getGenBoson import getGenZ, getGenPhoton
 
+from Analysis.Tools.helpers import deepCheckRootFile
 
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
@@ -383,7 +384,7 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
         signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
         #signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
         logger.debug("Ouput file will be %s", signalFile)
-        if not (os.path.exists(signalFile) and checkRootFile(signalFile)) or options.overwrite:
+        if not (os.path.exists(signalFile) and deepCheckRootFile(signalFile)) or options.overwrite:
             outF = ROOT.TFile.Open(signalFile, "RECREATE")
             t = output.chain.CopyTree(cut)
             nEvents = t.GetEntries()
