@@ -96,3 +96,22 @@ if os.environ['USER'] in ['mdoppler']:
       analysis_results        = '/afs/cern.ch/work/d/dspitzba/StopsDilepton/results/80X_v30'
       combineReleaseLocation = '/afs/cern.ch/work/d/dspitzba/CMS/stop/CMSSW_7_4_7/src'
     runOnGentT2 = False
+
+if os.environ['USER'] in ['llechner']:
+    # Where postprocessed data goes 
+    data_output_directory      = "/afs/hephy.at/data/cms01/nanoTuples/"
+    # Where you store the data
+    data_directory      = "/afs/hephy.at/data/cms01/nanoTuples/"
+    # Where the plots go
+    plot_directory      = "/afs/hephy.at/user/l/llechner/www/stopsDileptonLegacy/"
+    # Analysis result files
+    analysis_results        = '/afs/hephy.at/data/llechner01/StopsDileptonLegacy/results/v1/' #Path to analysis results
+    dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/llechner/'
+    cern_proxy_certificate  = '/afs/cern.ch/user/l/llechner/private/.proxy'
+    #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postprocessing_output_directory = "/afs/hephy.at/data/cms01/nanoTuples/"
+    if 'cern' in os.getenv("HOSTNAME"):
+      postprocessing_output_directory = "/eos/home-d/llechner/nanoTuples/"
+      analysis_results        = '/afs/cern.ch/work/l/llechner/StopsDilepton/results/80X_v30'
+      plot_directory      = "/eos/home-d/llechner/plots/"
+
