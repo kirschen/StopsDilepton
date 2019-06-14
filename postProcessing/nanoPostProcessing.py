@@ -301,18 +301,6 @@ leptonSF            = leptonSF_(options.year)
 #if fastSim:
 #   leptonFastSimSF  = leptonFastSimSF_(options.year)
 
-# output directory (store temporarily when running on dpm)
-#if options.writeToDPM:
-#    # overwrite function not implemented yet!
-#    from StopsDilepton.tools.user import dpm_directory as user_directory
-#    # Allow parallel processing of N threads on one worker
-#    directory = os.path.join( '/tmp/%s'%os.environ['USER'], str(uuid.uuid4()) )
-#else:
-#    # User specific
-#    from StopsDilepton.tools.user import postprocessing_output_directory as user_directory
-#    directory = os.path.join( options.targetDir, options.processingEra ) 
-
-
 options.skim = options.skim + '_small' if options.small else options.skim
 
 # LHE cut (DY samples)
@@ -333,7 +321,7 @@ if options.writeToDPM:
 else:
     # User specific
     from StopsDilepton.tools.user import postprocessing_output_directory as user_directory
-##    directory  = os.path.join( user_directory, options.processingEra )
+    directory = os.path.join( options.targetDir, options.processingEra ) 
     output_directory = os.path.join( directory, options.skim, sampleName )
 
 renormISR = False
@@ -1486,11 +1474,11 @@ if options.writeToDPM:
         subprocess.call( [ 'rm', '-rf', output_directory ] ) # Let's risk it.
 
 else:
-    if checkRootFile( outputFilePath, checkForObjects=["Events"] ) and deepCheckRootFile( outputFilePath ) and deepCheckWeight( outputFilePath ):
+    if checkRootFile( outfilename, checkForObjects=["Events"] ) and deepCheckRootFile( outfilename ) and deepCheckWeight( outfilename ):
         logger.info( "Target: File check ok!" )
     else:
-        logger.info( "Corrupt rootfile! Removing file: %s"%outputFilePath )
-        os.remove( outputFilePath )
+        logger.info( "Corrupt rootfile! Removing file: %s"%outfilename )
+        os.remove( outfilename )
         raise Exception("Corrupt rootfile! File not copied: %s"%source )
 
 # There is a double free corruption due to stupid ROOT memory management which leads to a non-zero exit code
