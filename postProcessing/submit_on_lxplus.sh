@@ -44,8 +44,8 @@ aklog -d hephy.at
 echo "---------------------"
 
 echo "---------------------"
-echo "Changing to script dir: $1"
-cd $1
+echo "Changing to script dir: ../$1/"
+cd ../$1/
 ls -l
 echo "---------------------"
 

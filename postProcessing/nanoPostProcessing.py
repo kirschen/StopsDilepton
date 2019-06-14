@@ -412,6 +412,53 @@ try:    #Avoid trouble with race conditions in multithreading
 except:
     pass
 
+filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
+fileNumber = options.job if options.job is not None else 0
+outfilename = filename+ext
+# checking overwrite or file exists
+if not options.overwrite and options.writeToDPM:
+    try:
+        # ls the directory on DPM
+        checkFile = "/cms" + targetPath.split("/cms")[1] + "/"
+        cmd = [ "xrdfs", redirector_hephy, "ls", checkFile ]
+        fileList = subprocess.check_output( cmd ).split("\n")[:-1]
+        fileList = [ line.split(checkFile)[1].split(".root")[0] for line in fileList ]
+    except:
+        # Not even the directory exists on dpm
+        fileList = []
+
+    if sample.name in fileList:
+        # Sample found on dpm, check if it is ok
+        target  = os.path.join( targetPath, sample.name+".root" )
+        if checkRootFile( target, checkForObjects=["Events"] ) and deepCheckRootFile( target ) and deepCheckWeight( target ):
+            logger.info( "File already processed. Source: File check ok! Skipping." ) # Everything is fine, no overwriting
+            sys.exit(0)
+        else:
+            logger.info( "File corrupt. Removing file from target." )
+            cmd = [ "xrdfs", redirector_hephy, "rm", "/cms" + target.split("/cms")[1] ]
+            subprocess.call( cmd )
+            logger.info( "Reprocessing." )
+    else:
+        logger.info( "Sample not processed yet." )
+        logger.info( "Processing." )
+
+elif not options.overwrite and not options.writeToDPM:
+    if os.path.isfile(outfilename):
+        logger.info( "Output file %s found.", outfilename)
+        if checkRootFile( outfilename, checkForObjects=["Events"] ) and deepCheckRootFile( outfilename ) and deepCheckWeight( outfilename ):
+            logger.info( "File already processed. Source: File check ok! Skipping." ) # Everything is fine, no overwriting
+            sys.exit(0)
+        else:
+            logger.info( "File corrupt. Removing file from target." )
+            os.remove( outfilename )
+            logger.info( "Reprocessing." )
+    else:
+        logger.info( "Sample not processed yet." )
+        logger.info( "Processing." )
+
+else:
+    logger.info( "Overwriting.")
+
 #branches to be kept for data and MC
 branchKeepStrings_DATAMC = [\
     "run", "luminosityBlock", "event", "fixedGridRhoFastjetAll", "PV_npvs", "PV_npvsGood",
@@ -588,24 +635,6 @@ if options.susySignal:
 if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
-
-## Need to check existing root files before starting nanoAODs
-
-filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
-fileNumber = options.job if options.job is not None else 0
-outfilename = filename+ext
-if os.path.isfile(outfilename):
-    logger.info( "Output file %s found.", outfilename)
-    if not checkRootFile(outfilename, checkForObjects=["Events"]):
-        logger.info( "File %s is broken. Overwriting.", outfilename)
-    elif not options.overwrite:
-        logger.info( "Skipping.")
-        exit()
-        #continue
-    else:
-        logger.info( "Overwriting.")
-
-logger.info("Proceeding.")
 
 if not options.skipNanoTools:
     ### nanoAOD postprocessor
@@ -1290,23 +1319,9 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 
     logger.info( "Processing range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 
-    # Check whether file exists
-    fileNumber = options.job if options.job is not None else 0
-    outfilename = filename+ext
-    
     _logger.   add_fileHandler( outfilename.replace('.root', '.log'), options.logLevel )
     _logger_rt.add_fileHandler( outfilename.replace('.root', '_rt.log'), options.logLevel )
     
-    if os.path.isfile(outfilename):
-        logger.info( "Output file %s found.", outfilename)
-        if not checkRootFile(outfilename, checkForObjects=["Events"]):
-            logger.info( "File %s is broken. Overwriting.", outfilename)
-        elif not options.overwrite:
-            logger.info( "Skipping.")
-            continue
-        else:
-            logger.info( "Overwriting.")
-
     tmp_directory = ROOT.gDirectory
     outputfile = ROOT.TFile.Open(outfilename, 'recreate')
     tmp_directory.cd()
