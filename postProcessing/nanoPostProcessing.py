@@ -28,20 +28,21 @@ from RootTools.core.standard import *
 import StopsDilepton.tools.user as user
 
 # Tools for systematics
-from StopsDilepton.tools.mt2Calculator      import mt2Calculator
-from StopsDilepton.tools.helpers            import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile, getSortedZCandidates, getMinDLMass
-from StopsDilepton.tools.addJERScaling      import addJERScaling
-from StopsDilepton.tools.objectSelection    import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector, mergeCollections, genLepFromZ
-from StopsDilepton.tools.getGenBoson        import getGenZ, getGenPhoton
-from StopsDilepton.tools.polReweighting     import getPolWeights
-from StopsDilepton.tools.triggerEfficiency  import triggerEfficiency
-from StopsDilepton.tools.leptonSF           import leptonSF as leptonSF_
-from StopsDilepton.tools.leptonFastSimSF    import leptonFastSimSF as leptonFastSimSF_
-from Analysis.Tools.overlapRemovalTTG       import photonFromTopDecay, hasMesonMother, getParentIds, isIsolatedPhoton, getPhotonCategory
-from Analysis.Tools.puProfileCache          import *
-from Analysis.Tools.L1PrefireWeight         import L1PrefireWeight
+from StopsDilepton.tools.mt2Calculator       import mt2Calculator
+from StopsDilepton.tools.helpers             import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile, getSortedZCandidates, getMinDLMass
+from StopsDilepton.tools.addJERScaling       import addJERScaling
+from StopsDilepton.tools.objectSelection     import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector, mergeCollections, genLepFromZ
+from StopsDilepton.tools.getGenBoson         import getGenZ, getGenPhoton
+from StopsDilepton.tools.polReweighting      import getPolWeights
+from StopsDilepton.tools.triggerEfficiency   import triggerEfficiency
+from StopsDilepton.tools.leptonSF            import leptonSF as leptonSF_
+from StopsDilepton.tools.leptonFastSimSF     import leptonFastSimSF as leptonFastSimSF_
+from Analysis.Tools.overlapRemovalTTG        import photonFromTopDecay, hasMesonMother, getParentIds, isIsolatedPhoton, getPhotonCategory
+from Analysis.Tools.puProfileCache           import *
+from Analysis.Tools.L1PrefireWeight          import L1PrefireWeight
 from Analysis.Tools.LeptonTrackingEfficiency import LeptonTrackingEfficiency
-from Analysis.Tools.isrWeight               import ISRweight
+from Analysis.Tools.isrWeight                import ISRweight
+from Analysis.Tools.helpers                  import checkRootFile, deepCheckRootFile, deepCheckWeight
 
 #MC tools
 from StopsDilepton.tools.mcTools import pdgToName, GenSearch, B_mesons, D_mesons, B_mesons_abs, D_mesons_abs
@@ -111,8 +112,11 @@ import StopsDilepton.tools.logger as _logger
 logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job))
 logger  = _logger.get_logger(options.logLevel, logFile = logFile)
 
+#import Analysis.Tools.logger as _logger_an
+#logger_an = _logger_an.get_logger(options.logLevel, logFile = logFile )
+
 import RootTools.core.logger as _logger_rt
-logger_rt = _logger_rt.get_logger(options.logLevel, logFile = None )
+logger_rt = _logger_rt.get_logger(options.logLevel, logFile = logFile )
 
 def fill_vector_collection( event, collection_name, collection_varnames, objects):
     setattr( event, "n"+collection_name, len(objects) )
@@ -124,7 +128,6 @@ def fill_vector_collection( event, collection_name, collection_varnames, objects
                 if type(obj[var]) == type(True):
                     obj[var] = int(obj[var])
                 getattr(event, collection_name+"_"+var)[i_obj] = obj[var]
-
 
 #_logger.   add_fileHandler( user.data_output_directory + '/logs/%s_%s_debug.txt'%(options.samples[0], options.job), options.logLevel )
 
@@ -298,18 +301,6 @@ leptonSF            = leptonSF_(options.year)
 #if fastSim:
 #   leptonFastSimSF  = leptonFastSimSF_(options.year)
 
-# output directory (store temporarily when running on dpm)
-if options.writeToDPM:
-    # overwrite function not implemented yet!
-    from StopsDilepton.tools.user import dpm_directory as user_directory
-    # Allow parallel processing of N threads on one worker
-    directory = os.path.join( '/tmp/%s'%os.environ['USER'], str(uuid.uuid4()) )
-else:
-    # User specific
-    from StopsDilepton.tools.user import postprocessing_output_directory as user_directory
-    directory = os.path.join( options.targetDir, options.processingEra ) 
-
-
 options.skim = options.skim + '_small' if options.small else options.skim
 
 # LHE cut (DY samples)
@@ -319,7 +310,19 @@ if options.LHEHTCut>0:
     skimConds.append( "LHE_HTIncoming<%f"%options.LHEHTCut )
 
 sampleName = sample.name
-output_directory = os.path.join( directory, options.skim, sample.name )
+
+# output directory (store temporarily when running on dpm)
+if options.writeToDPM:
+    from StopsDilepton.tools.user import dpm_directory as user_directory
+    from Samples.Tools.config  import redirector    as redirector_hephy
+    # Allow parallel processing of N threads on one worker
+    output_directory = os.path.join( '/tmp/%s'%os.environ['USER'], str(uuid.uuid4()) )
+    targetPath       = redirector_hephy + os.path.join( user_directory, 'postprocessed',  options.processingEra, options.skim, sampleName )
+else:
+    # User specific
+    from StopsDilepton.tools.user import postprocessing_output_directory as user_directory
+    directory = os.path.join( options.targetDir, options.processingEra ) 
+    output_directory = os.path.join( directory, options.skim, sampleName )
 
 renormISR = False
 if options.susySignal:
@@ -334,7 +337,8 @@ if options.susySignal:
 
     logger.info("Fetching the normalization for the ISR weights.")
     masspoints = signalWeight.keys()
-    if getT2ttISRNorm(samples[0], masspoints[0][0], masspoints[0][1], masspoints, options.year, signal=sample.name):
+    print sample, sample.name, masspoints[0][0], masspoints[0][1]
+    if getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, signal=sample.name, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)):
         renormISR = True
         logger.info("Successfully loaded ISR normalzations.")
     else:
@@ -407,6 +411,53 @@ try:    #Avoid trouble with race conditions in multithreading
     logger.info( "Created output directory %s.", output_directory )
 except:
     pass
+
+filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
+fileNumber = options.job if options.job is not None else 0
+outfilename = filename+ext
+# checking overwrite or file exists
+if not options.overwrite and options.writeToDPM:
+    try:
+        # ls the directory on DPM
+        checkFile = "/cms" + targetPath.split("/cms")[1] + "/"
+        cmd = [ "xrdfs", redirector_hephy, "ls", checkFile ]
+        fileList = subprocess.check_output( cmd ).split("\n")[:-1]
+        fileList = [ line.split(checkFile)[1].split(".root")[0] for line in fileList ]
+    except:
+        # Not even the directory exists on dpm
+        fileList = []
+
+    if sample.name in fileList:
+        # Sample found on dpm, check if it is ok
+        target  = os.path.join( targetPath, sample.name+".root" )
+        if checkRootFile( target, checkForObjects=["Events"] ) and deepCheckRootFile( target ) and deepCheckWeight( target ):
+            logger.info( "File already processed. Source: File check ok! Skipping." ) # Everything is fine, no overwriting
+            sys.exit(0)
+        else:
+            logger.info( "File corrupt. Removing file from target." )
+            cmd = [ "xrdfs", redirector_hephy, "rm", "/cms" + target.split("/cms")[1] ]
+            subprocess.call( cmd )
+            logger.info( "Reprocessing." )
+    else:
+        logger.info( "Sample not processed yet." )
+        logger.info( "Processing." )
+
+elif not options.overwrite and not options.writeToDPM:
+    if os.path.isfile(outfilename):
+        logger.info( "Output file %s found.", outfilename)
+        if checkRootFile( outfilename, checkForObjects=["Events"] ) and deepCheckRootFile( outfilename ) and deepCheckWeight( outfilename ):
+            logger.info( "File already processed. Source: File check ok! Skipping." ) # Everything is fine, no overwriting
+            sys.exit(0)
+        else:
+            logger.info( "File corrupt. Removing file from target." )
+            os.remove( outfilename )
+            logger.info( "Reprocessing." )
+    else:
+        logger.info( "Sample not processed yet." )
+        logger.info( "Processing." )
+
+else:
+    logger.info( "Overwriting.")
 
 #branches to be kept for data and MC
 branchKeepStrings_DATAMC = [\
@@ -502,7 +553,7 @@ if isMC:
 
 read_variables += [\
     TreeVariable.fromString('nElectron/I'),
-    VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F]'),
+    VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F,vidNestedWPBitmap/I]'),
     TreeVariable.fromString('nMuon/I'),
     VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
     TreeVariable.fromString('nJet/I'),
@@ -584,24 +635,6 @@ if options.susySignal:
 if fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
-
-## Need to check existing root files before starting nanoAODs
-
-filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
-fileNumber = options.job if options.job is not None else 0
-outfilename = filename+ext
-if os.path.isfile(outfilename):
-    logger.info( "Output file %s found.", outfilename)
-    if not checkRootFile(outfilename, checkForObjects=["Events"]):
-        logger.info( "File %s is broken. Overwriting.", outfilename)
-    elif not options.overwrite:
-        logger.info( "Skipping.")
-        exit()
-        #continue
-    else:
-        logger.info( "Overwriting.")
-
-logger.info("Proceeding.")
 
 if not options.skipNanoTools:
     ### nanoAOD postprocessor
@@ -778,8 +811,8 @@ def getMetCorrected(r, var, addPhoton = None, branch='MET'):
         raise ValueError
 
 # using miniRelIso 0.2 as baseline 
-ele_selector = eleSelector( "tight", year = options.year )
-mu_selector = muonSelector( "tight", year = options.year )
+eleSelector_ = eleSelector( "tightMiniIso02", year = options.year )
+muSelector_  = muonSelector("tightMiniIso02", year = options.year )
 
 genPhotonSel_TTG_OR = genPhotonSelector( 'overlapTTGamma' )
 
@@ -897,10 +930,10 @@ def filler( event ):
     # top pt reweighting
     if isMC:
         event.reweightTopPt     = topPtReweightingFunc(getTopPtsForReweighting(r)) * topScaleF if doTopPtReweighting else 1.
-        ISRnorm = getT2ttISRNorm(samples[0], r.GenSusyMStop, r.GenSusyMNeutralino, masspoints, options.year, signal=sample.name) if renormISR else 1
-        event.reweight_nISR     = isr.getWeight(r, norm=1 )             if options.susySignal else 1
-        event.reweight_nISRUp   = isr.getWeight(r, norm=1, sigma=1)     if options.susySignal else 1
-        event.reweight_nISRDown = isr.getWeight(r, norm=1, sigma=-1)    if options.susySignal else 1
+        ISRnorm = getT2ttISRNorm(samples[0], r.GenSusyMStop, r.GenSusyMNeutralino, masspoints, options.year, signal=sample.name, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)) if renormISR else 1
+        event.reweight_nISR     = isr.getWeight(r, norm=ISRnorm )             if options.susySignal else 1
+        event.reweight_nISRUp   = isr.getWeight(r, norm=ISRnorm, sigma=1)     if options.susySignal else 1
+        event.reweight_nISRDown = isr.getWeight(r, norm=ISRnorm, sigma=-1)    if options.susySignal else 1
 
     if options.keepAllJets:
         jetAbsEtaCut = 99.
@@ -915,8 +948,8 @@ def filler( event ):
         event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = L1PW.getWeight(allSlimmedPhotons, allSlimmedJets)
 
     # get leptons before jets in order to clean jets
-    electrons_pt10  = getGoodElectrons(r, ele_selector = ele_selector)
-    muons_pt10      = getGoodMuons(r, mu_selector = mu_selector )
+    electrons_pt10  = getGoodElectrons(r, ele_selector = eleSelector_)
+    muons_pt10      = getGoodMuons(r,     mu_selector = muSelector_ )
 
     for e in electrons_pt10:
         e['pdgId']      = int( -11*e['charge'] )
@@ -1083,10 +1116,13 @@ def filler( event ):
             event.reweightDilepTriggerUp     = 0 
             event.reweightDilepTriggerDown   = 0 
 
-            leptonsForSF = (leptons[:2] if isDiLep else (leptons[:3] if isTriLep else leptons[:1]))
-            event.reweightLeptonSF           = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta']) for l in leptonsForSF], 1)
-            event.reweightLeptonSFUp         = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = +1) for l in leptonsForSF], 1)
-            event.reweightLeptonSFDown       = reduce(mul, [leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , sigma = -1) for l in leptonsForSF], 1)
+            leptonsForSF   = ( leptons[:2] if isDiLep else (leptons[:3] if isTriLep else leptons[:1]) )
+            leptonSFValues = [ leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
+            event.reweightLeptonSF           = reduce(mul, [sf[0] for sf in leptonSFValues], 1)
+            event.reweightLeptonSFDown       = reduce(mul, [sf[1] for sf in leptonSFValues], 1)
+            event.reweightLeptonSFUp         = reduce(mul, [sf[2] for sf in leptonSFValues], 1)  
+            if event.reweightLeptonSF ==0:
+                logger.error( "reweightLeptonSF is zero!")
 
             event.reweightLeptonTrackingSF   = reduce(mul, [leptonTrackingSF.getSF(pdgId = l['pdgId'], pt = l['pt'], eta = ((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta']))  for l in leptonsForSF], 1)
 
@@ -1286,23 +1322,9 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 
     logger.info( "Processing range %i/%i from %i to %i which are %i events.",  ievtRange, len(eventRanges), eventRange[0], eventRange[1], eventRange[1]-eventRange[0] )
 
-    # Check whether file exists
-    fileNumber = options.job if options.job is not None else 0
-    outfilename = filename+ext
-    
     _logger.   add_fileHandler( outfilename.replace('.root', '.log'), options.logLevel )
     _logger_rt.add_fileHandler( outfilename.replace('.root', '_rt.log'), options.logLevel )
     
-    if os.path.isfile(outfilename):
-        logger.info( "Output file %s found.", outfilename)
-        if not checkRootFile(outfilename, checkForObjects=["Events"]):
-            logger.info( "File %s is broken. Overwriting.", outfilename)
-        elif not options.overwrite:
-            logger.info( "Skipping.")
-            continue
-        else:
-            logger.info( "Overwriting.")
-
     tmp_directory = ROOT.gDirectory
     outputfile = ROOT.TFile.Open(outfilename, 'recreate')
     tmp_directory.cd()
@@ -1341,6 +1363,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
 
   # Destroy the TTree
     maker.clear()
+    sample.clear()
 
 
 logger.info( "Converted %i events of %i, cloned %i",  convertedEvents, reader.nEvents , clonedEvents )
@@ -1417,22 +1440,68 @@ else:
     os.remove(logFile)
     logger.info( "Removed temporary log file" )
 
+
+
+# Copying output to DPM or AFS and check the files
 if options.writeToDPM:
-    for dirname, subdirs, files in os.walk( directory ):
+
+    for dirname, subdirs, files in os.walk( output_directory ):
         logger.debug( 'Found directory: %s',  dirname )
+
         for fname in files:
-            source = os.path.abspath(os.path.join(dirname, fname))
-            postfix = '_small' if options.small else ''
-            cmd = ['xrdcp', source, 'root://hephyse.oeaw.ac.at/%s' % os.path.join( user_directory, 'postprocessed',  options.processingEra, options.skim+postfix, sampleName, fname ) ]
+
+            if fname.startswith("nanoAOD_") or "_for_" in fname: continue # do not copy the nanoAODTools files
+            if not fname.endswith(".root"): continue # remove that for copying log files
+
+            source  = os.path.abspath( os.path.join( dirname, fname ) )
+            target  = os.path.join( targetPath, fname )
+
+            if fname.endswith(".root"): # redundant, but keep it in case you want to copy log files
+                if checkRootFile( source, checkForObjects=["Events"] ) and deepCheckRootFile( source ) and deepCheckWeight( source ):
+                    logger.info( "Source: File check ok!" )
+                else:
+                    raise Exception("Corrupt rootfile at source! File not copied: %s"%source )
+
+            cmd = [ 'xrdcp', '-f',  source, target ]
             logger.info( "Issue copy command: %s", " ".join( cmd ) )
             subprocess.call( cmd )
 
-    # Clean up.
-    subprocess.call( [ 'rm', '-rf', directory ] ) # Let's risk it.
+            if fname.endswith(".root"):
+                if checkRootFile( target, checkForObjects=["Events"] ) and deepCheckRootFile( target ) and deepCheckWeight( target ):
+                    logger.info( "Target: File check ok!" )
+                else:
+                    logger.info( "Corrupt rootfile at target! Trying again: %s"%target )
+                    logger.info( "2nd try: Issue copy command: %s", " ".join( cmd ) )
+                    subprocess.call( cmd )
 
-## Use garbage collector to remoe Keras readers before we clean up the Theano compile directory (otherwise error on exit)
-#import gc
-#for reader in filter( lambda o: isinstance(o, KerasReader), gc.get_objects()):
-#    del reader
-#logger.info( "Removing theano compile directory %s", theano_compile_dir )
-#shutil.rmtree( theano_compile_dir )
+                    # Many files are corrupt after copying, a 2nd try fixes that
+                    if checkRootFile( target, checkForObjects=["Events"] ) and deepCheckRootFile( target ) and deepCheckWeight( target ):
+                        logger.info( "2nd try successfull!" )
+                    else:
+                        # if not successful, the corrupt root file needs to be deleted from DPM
+                        logger.info( "2nd try: No success, removing file: %s"%target )
+                        logger.info( "Issue rm command: %s", " ".join( cmd ) )
+                        cmd = [ "xrdfs", redirector_hephy, "rm", "/cms" + target.split("/cms")[1] ]
+                        subprocess.call( cmd )
+                        raise Exception("Corrupt rootfile at target! File not copied: %s"%source )
+
+
+    # Clean up.
+    if not options.runOnLxPlus:
+        # not needed on condor, container will be removed automatically
+        subprocess.call( [ 'rm', '-rf', output_directory ] ) # Let's risk it.
+
+else:
+    if checkRootFile( outfilename, checkForObjects=["Events"] ) and deepCheckRootFile( outfilename ) and deepCheckWeight( outfilename ):
+        logger.info( "Target: File check ok!" )
+    else:
+        logger.info( "Corrupt rootfile! Removing file: %s"%outfilename )
+        os.remove( outfilename )
+        raise Exception("Corrupt rootfile! File not copied: %s"%source )
+
+# There is a double free corruption due to stupid ROOT memory management which leads to a non-zero exit code
+# Thus the job is resubmitted on condor even if the output is ok
+# Current idea is that the problem is with xrootd having a non-closed root file
+sample.clear()
+
+
