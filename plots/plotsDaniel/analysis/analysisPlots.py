@@ -41,6 +41,7 @@ argParser.add_argument('--reweightPU',         action='store', default=None, cho
 argParser.add_argument('--isr',                action='store_true', default=False)
 argParser.add_argument('--preHEM',             action='store_true', default=False)
 argParser.add_argument('--postHEM',            action='store_true', default=False)
+argParser.add_argument('--dpm', action='store_true', help='Use dpm?', )
 args = argParser.parse_args()
 
 #
@@ -50,6 +51,10 @@ import StopsDilepton.tools.logger as logger
 import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
+
+# Load from DPM?
+if args.dpm:
+    data_directory = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
 
 if args.small:                        args.plot_directory += "_small"
 if args.noData:                       args.plot_directory += "_noData"
@@ -68,34 +73,24 @@ if args.postHEM:                      args.plot_directory += "_postHEM"
 from Analysis.Tools.puReweighting import getReweightingFunction
 
 if args.year == 2016:
-    data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p7/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2016_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
     if args.reweightPU:
         nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
     recoilCorrector = RecoilCorrector( 2016 )
 elif args.year == 2017:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    postProcessing_directory = "stops_2017_nano_v0p6/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+    mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
     if args.reweightPU:
         # need sample based weights
         pass
     recoilCorrector = RecoilCorrector( 2017 )
 elif args.year == 2018:
-    data_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    postProcessing_directory = "stops_2018_nano_v0p5/dilep/"
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
+    mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
     #nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
     if args.reweightPU:
         nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
@@ -502,6 +497,12 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+    texX = 'I_{rel}(l_{1})', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l1_relIso03/F" ),
+    binning=[44,0,0.22],
+  ))
+
+  plots.append(Plot(
     texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,300],
@@ -517,6 +518,12 @@ for index, mode in enumerate(allModes):
     texX = '#phi(l_{2})', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "l2_phi/F" ),
     binning=[10,-pi,pi],
+  ))
+
+  plots.append(Plot(
+    texX = 'I_{rel}(l_{2})', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l2_relIso03/F" ),
+    binning=[44,0,0.22],
   ))
 
   plots.append(Plot(
