@@ -127,6 +127,16 @@ def muonSelector( lepton_selection, year, ptCut = 10):
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1 \
                 and l["mediumId"] 
+    elif lepton_selection == 'tightMiniIso02':
+        def func(l):
+            return \
+                l["pt"]                 >= ptCut \
+                and abs(l["eta"])       < 2.4 \
+                and l['miniPFRelIso_all'] < 0.20 \
+                and l["sip3d"]          < 4.0 \
+                and abs(l["dxy"])       < 0.05 \
+                and abs(l["dz"])        < 0.1 \
+                and l["mediumId"] 
     elif lepton_selection == 'tightNoIso':
         def func(l):
             return \
@@ -221,6 +231,14 @@ def eleSelector( lepton_selection, year, ptCut = 10):
                 and l["sip3d"]          < 4.0 \
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1
+    elif lepton_selection == 'tightMiniIso02':
+        cbEleSelector_ = cbEleSelector( 'tight', removeCuts = ['GsfEleRelPFIsoScaledCut'] )
+        def func(l):
+            return \
+                l["pt"]                 >= ptCut \
+                and abs(l["eta"])       < 2.4 \
+                and cbEleSelector_(l['vidNestedWPBitmap']) \
+                and l["miniPFRelIso_all"] < 0.2
     elif lepton_selection == 'tightNoIso':
         def func(l):
             return \
@@ -281,7 +299,7 @@ def eleSelectorString(relIso03 = 0.2, eleId = 4, ptCut = 20, absEtaCut = 2.4, dx
 leptonVars_data = ['eta','etaSc', 'pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'relIso03', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2', 'eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz']
 leptonVars = leptonVars_data + ['mcMatchId','mcMatchAny']
 
-electronVars_data = ['pt','eta','phi','pdgId','cutBased','miniPFRelIso_all','pfRelIso03_all','sip3d','lostHits','convVeto','dxy','dz','charge','deltaEtaSC','mvaFall17V2noIso_WP80']
+electronVars_data = ['pt','eta','phi','pdgId','cutBased','miniPFRelIso_all','pfRelIso03_all','sip3d','lostHits','convVeto','dxy','dz','charge','deltaEtaSC','mvaFall17V2noIso_WP80', 'vidNestedWPBitmap']
 electronVars = electronVars_data + []
 
 muonVars_data = ['pt','eta','phi','pdgId','mediumId','miniPFRelIso_all','pfRelIso03_all','sip3d','dxy','dz','charge']

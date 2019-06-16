@@ -553,7 +553,7 @@ if isMC:
 
 read_variables += [\
     TreeVariable.fromString('nElectron/I'),
-    VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F]'),
+    VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F,vidNestedWPBitmap/I]'),
     TreeVariable.fromString('nMuon/I'),
     VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
     TreeVariable.fromString('nJet/I'),
@@ -811,8 +811,8 @@ def getMetCorrected(r, var, addPhoton = None, branch='MET'):
         raise ValueError
 
 # using miniRelIso 0.2 as baseline 
-ele_selector = eleSelector( "tight", year = options.year )
-mu_selector = muonSelector( "tight", year = options.year )
+eleSelector_ = eleSelector( "tightMiniIso02", year = options.year )
+muSelector_  = muonSelector("tightMiniIso02", year = options.year )
 
 genPhotonSel_TTG_OR = genPhotonSelector( 'overlapTTGamma' )
 
@@ -948,8 +948,8 @@ def filler( event ):
         event.reweightL1Prefire, event.reweightL1PrefireUp, event.reweightL1PrefireDown = L1PW.getWeight(allSlimmedPhotons, allSlimmedJets)
 
     # get leptons before jets in order to clean jets
-    electrons_pt10  = getGoodElectrons(r, ele_selector = ele_selector)
-    muons_pt10      = getGoodMuons(r, mu_selector = mu_selector )
+    electrons_pt10  = getGoodElectrons(r, ele_selector = eleSelector_)
+    muons_pt10      = getGoodMuons(r,     mu_selector = muSelector_ )
 
     for e in electrons_pt10:
         e['pdgId']      = int( -11*e['charge'] )
@@ -1121,6 +1121,8 @@ def filler( event ):
             event.reweightLeptonSF           = reduce(mul, [sf[0] for sf in leptonSFValues], 1)
             event.reweightLeptonSFDown       = reduce(mul, [sf[1] for sf in leptonSFValues], 1)
             event.reweightLeptonSFUp         = reduce(mul, [sf[2] for sf in leptonSFValues], 1)  
+            if event.reweightLeptonSF ==0:
+                logger.error( "reweightLeptonSF is zero!")
 
             event.reweightLeptonTrackingSF   = reduce(mul, [leptonTrackingSF.getSF(pdgId = l['pdgId'], pt = l['pt'], eta = ((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta']))  for l in leptonsForSF], 1)
 
