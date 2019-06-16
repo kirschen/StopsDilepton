@@ -1,0 +1,1 @@
+submitCondor.py $1 --hephyToken --dpm --maxRetries 10 --resubmitFailedJobs --discSpace 5000 --execFile submit_on_lxplus.sh --output /afs/cern.ch/work/s/schoef/public/condor_logs/Autumn18_v0p13/   --queue testmatch nanoPostProcessing_Autumn18_test.sh
