@@ -26,7 +26,7 @@ cd CMSSW_10_2_9/src/
 eval `scramv1 runtime -sh`
 # github repos
 git cms-init
-git clone -b 'PP-2018-v0p13' --single-branch --depth 1 https://github.com/HephyAnalysisSW/StopsDilepton.git
+git clone -b 'PP-2018-v0p14' --single-branch --depth 1 https://github.com/HephyAnalysisSW/StopsDilepton.git
 ./StopsDilepton/setupCondor.sh
 
 scram b
