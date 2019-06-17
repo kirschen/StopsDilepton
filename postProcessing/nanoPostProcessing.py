@@ -29,7 +29,7 @@ import StopsDilepton.tools.user as user
 
 # Tools for systematics
 from StopsDilepton.tools.mt2Calculator       import mt2Calculator
-from StopsDilepton.tools.helpers             import closestOSDLMassToMZ, checkRootFile, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile, getSortedZCandidates, getMinDLMass
+from StopsDilepton.tools.helpers             import closestOSDLMassToMZ, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile, getSortedZCandidates, getMinDLMass
 from StopsDilepton.tools.addJERScaling       import addJERScaling
 from StopsDilepton.tools.objectSelection     import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector, mergeCollections, genLepFromZ
 from StopsDilepton.tools.getGenBoson         import getGenZ, getGenPhoton
@@ -313,8 +313,8 @@ sampleName = sample.name
 
 # output directory (store temporarily when running on dpm)
 if options.writeToDPM:
-    from StopsDilepton.tools.user import dpm_directory as user_directory
-    from Samples.Tools.config  import redirector    as redirector_hephy
+    from StopsDilepton.tools.user import dpm_directory  as user_directory
+    from Samples.Tools.config  import redirector as redirector_hephy
     # Allow parallel processing of N threads on one worker
     output_directory = os.path.join( '/tmp/%s'%os.environ['USER'], str(uuid.uuid4()) )
     targetPath       = redirector_hephy + os.path.join( user_directory, 'postprocessed',  options.processingEra, options.skim, sampleName )
@@ -1484,7 +1484,6 @@ if options.writeToDPM:
                         cmd = [ "xrdfs", redirector_hephy, "rm", "/cms" + target.split("/cms")[1] ]
                         subprocess.call( cmd )
                         raise Exception("Corrupt rootfile at target! File not copied: %s"%source )
-
 
     # Clean up.
     if not options.runOnLxPlus:
