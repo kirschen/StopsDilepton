@@ -1,6 +1,11 @@
+# StopsDilepton
 from StopsDilepton.tools.helpers import mZ, getVarValue, getObjDict, deltaR
+
+# standard imports 
 from math import *
 import numbers
+import textwrap     # for CutBased Ele ID
+import operator
 
 jetVars = ['eta','pt','phi','btagDeepB', 'btagCSVV2', 'jetId', 'area', 'rawFactor']
 
@@ -122,6 +127,16 @@ def muonSelector( lepton_selection, year, ptCut = 10):
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1 \
                 and l["mediumId"] 
+    elif lepton_selection == 'tightMiniIso02':
+        def func(l):
+            return \
+                l["pt"]                 >= ptCut \
+                and abs(l["eta"])       < 2.4 \
+                and l['miniPFRelIso_all'] < 0.20 \
+                and l["sip3d"]          < 4.0 \
+                and abs(l["dxy"])       < 0.05 \
+                and abs(l["dz"])        < 0.1 \
+                and l["mediumId"] 
     elif lepton_selection == 'tightNoIso':
         def func(l):
             return \
@@ -160,6 +175,48 @@ def muonSelectorString(relIso03 = 0.2, ptCut = 20, absEtaCut = 2.4, dxy = 0.05, 
         return '&&'.join(string)
 
 ## ELECTRONS ##
+
+# Electron bitmap
+# or  https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
+# Attention: only for nanoAOD v94x or higher (in 80x, only 2 bits are used)
+vidNestedWPBitMapNamingList = \
+    ['GsfEleMissingHitsCut',
+     'GsfEleConversionVetoCut',
+     'GsfEleRelPFIsoScaledCut',
+     'GsfEleEInverseMinusPInverseCut',
+     'GsfEleHadronicOverEMEnergyScaledCut',
+     'GsfEleFull5x5SigmaIEtaIEtaCut',
+     'GsfEleDPhiInCut',
+     'GsfEleDEtaInSeedCut',
+     'GsfEleSCEtaMultiRangeCut',
+     'MinPtCut']
+vidNestedWPBitMap           = { 'fail':0, 'veto':1, 'loose':2, 'medium':3, 'tight':4 }  # Bitwise (Electron vidNestedWPBitMap ID flags (3 bits per cut), '000'=0 is fail, '001'=1 is veto, '010'=2 is loose, '011'=3 is medium, '100'=4 is tight)
+
+def cutBasedEleBitmap( integer ):
+    return [int( x, 2 ) for x in textwrap.wrap("{0:030b}".format(integer),3) ]
+
+def cbEleSelector( quality, removeCuts = [] ):
+    if quality not in vidNestedWPBitMap.keys():
+        raise Exception( "Don't know about quality %r" % quality )
+    if type( removeCuts ) == str:
+        removeCuts = [removeCuts]
+
+    # construct a list of thresholds the electron has to satisfy 
+    thresholds = []
+    for cut in removeCuts:
+        if cut not in vidNestedWPBitMapNamingList:
+            raise Exception( "Don't know about ele cut %r" % cut )
+    for cut in vidNestedWPBitMapNamingList:
+        if cut not in removeCuts: 
+            thresholds.append( vidNestedWPBitMap[quality] )
+        else:
+            thresholds.append( 0 )
+
+    # construct the selector
+    def _selector( integer ):
+        return all(map( lambda x: operator.ge(*x), zip( cutBasedEleBitmap(integer), thresholds ) ))
+    return _selector
+
 def eleSelector( lepton_selection, year, ptCut = 10):
     # tigher isolation applied on analysis level. cutBased corresponds to Fall17V2 ID for all 2016-2018.
     if lepton_selection == 'tight':
@@ -174,6 +231,14 @@ def eleSelector( lepton_selection, year, ptCut = 10):
                 and l["sip3d"]          < 4.0 \
                 and abs(l["dxy"])       < 0.05 \
                 and abs(l["dz"])        < 0.1
+    elif lepton_selection == 'tightMiniIso02':
+        cbEleSelector_ = cbEleSelector( 'tight', removeCuts = ['GsfEleRelPFIsoScaledCut'] )
+        def func(l):
+            return \
+                l["pt"]                 >= ptCut \
+                and abs(l["eta"])       < 2.4 \
+                and cbEleSelector_(l['vidNestedWPBitmap']) \
+                and l["miniPFRelIso_all"] < 0.2
     elif lepton_selection == 'tightNoIso':
         def func(l):
             return \
@@ -231,11 +296,10 @@ def eleSelectorString(relIso03 = 0.2, eleId = 4, ptCut = 20, absEtaCut = 2.4, dx
     else:
         return '&&'.join(string)
 
-
 leptonVars_data = ['eta','etaSc', 'pt','phi','dxy', 'dz','tightId', 'pdgId', 'mediumMuonId', 'miniRelIso', 'relIso03', 'sip3d', 'mvaIdSpring15', 'convVeto', 'lostHits', 'jetPtRelv2', 'jetPtRatiov2', 'eleCutId_Spring2016_25ns_v1_ConvVetoDxyDz']
 leptonVars = leptonVars_data + ['mcMatchId','mcMatchAny']
 
-electronVars_data = ['pt','eta','phi','pdgId','cutBased','miniPFRelIso_all','pfRelIso03_all','sip3d','lostHits','convVeto','dxy','dz','charge','deltaEtaSC','mvaFall17V2noIso_WP80']
+electronVars_data = ['pt','eta','phi','pdgId','cutBased','miniPFRelIso_all','pfRelIso03_all','sip3d','lostHits','convVeto','dxy','dz','charge','deltaEtaSC','mvaFall17V2noIso_WP80', 'vidNestedWPBitmap']
 electronVars = electronVars_data + []
 
 muonVars_data = ['pt','eta','phi','pdgId','mediumId','miniPFRelIso_all','pfRelIso03_all','sip3d','dxy','dz','charge']

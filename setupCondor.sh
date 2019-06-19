@@ -16,7 +16,7 @@ git clone -b 'master' --single-branch --depth 1 https://github.com/HephyAnalysis
 cd $CMSSW_BASE/src
 
 # Shared samples (miniAOD/nanoAOD)
-git clone -b 'master' --single-branch --depth 1 https://github.com/HephyAnalysisSW/Samples.git
+git clone -b 'PP-Stops2l-v0p15' --single-branch --depth 1 https://github.com/HephyAnalysisSW/Samples.git
 cd $CMSSW_BASE/src
 
 # Shared analysis tools and data
