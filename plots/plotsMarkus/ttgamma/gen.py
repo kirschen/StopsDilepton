@@ -281,12 +281,12 @@ for index, mode in enumerate(allModes):
       for s in [TTZ, TTG]:
         s.setSelectionString("(1)")
  
-#      Z_pt_histo = TTZ.get1DHistoFromDraw( "zBoson_genPt", [args.inBins,args.minBosonPt,args.minBosonPt+args.inBins*10], selectionString=ZSelectionString)
-#      g_pt_histo = TTG.get1DHistoFromDraw( "photon_genPt", [args.inBins,args.minBosonPt,args.minBosonPt+args.inBins*10], selectionString=gSelectionString)
       #Z_pt_histo = TTZ.get1DHistoFromDraw( "zBoson_genPt", [args.inBins,args.minBosonPt,args.minBosonPt+args.inBins*10], selectionString=ZSelectionString, weightString = "weight*reweightPU*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF")
       #g_pt_histo = TTG.get1DHistoFromDraw( "photon_genPt", [args.inBins,args.minBosonPt,args.minBosonPt+args.inBins*10], selectionString=gSelectionString, weightString = "weight*reweightPU*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF" )
-      Z_pt_histo = TTZ.get1DHistoFromDraw( "zBoson_genPt", [args.inBins,args.minBosonPt,args.minBosonPt+args.inBins*10], selectionString=ZSelectionString, weightString = "weight")
-      g_pt_histo = TTG.get1DHistoFromDraw( "photon_genPt", [args.inBins,args.minBosonPt,args.minBosonPt+args.inBins*10], selectionString=gSelectionString, weightString = "weight" )
+      Z_pt_histo = TTZ.get1DHistoFromDraw( "zBoson_genPt", [args.inBins,args.minBosonPt,args.minBosonPt+args.inBins*10], selectionString=ZSelectionString)
+      g_pt_histo = TTG.get1DHistoFromDraw( "photon_genPt", [args.inBins,args.minBosonPt,args.minBosonPt+args.inBins*10], selectionString=gSelectionString)
+#      Z_pt_histo = TTZ.get1DHistoFromDraw( "zBoson_genPt", [args.inBins,args.minBosonPt,args.minBosonPt+args.inBins*10], selectionString=ZSelectionString, weightString = "weight")
+#      g_pt_histo = TTG.get1DHistoFromDraw( "photon_genPt", [args.inBins,args.minBosonPt,args.minBosonPt+args.inBins*10], selectionString=gSelectionString, weightString = "weight" )
   
       Z_pt_histo.Scale(1./Z_pt_histo.Integral() if Z_pt_histo.Integral() != 0 else 1.)
       g_pt_histo.Scale(1./g_pt_histo.Integral() if g_pt_histo.Integral() != 0 else 1.)
@@ -304,10 +304,12 @@ for index, mode in enumerate(allModes):
   for sample in [TTZ, TTG]:
     sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F']
     if "TTG" in sample.name and args.reweightBosonPt:
-      sample.weight         = lambda event, sample: event.weight*gToZReweighting(event.photon_genPt)*event.passedCut
+      sample.weight         = lambda event, sample: gToZReweighting(event.photon_genPt)*event.passedCut
+      #sample.weight         = lambda event, sample: event.weight*gToZReweighting(event.photon_genPt)*event.passedCut
       #sample.weight         = lambda event, sample: event.weight*gToZReweighting(event.photon_genPt)*event.passedCut*event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     else:
-      sample.weight         = lambda event, sample: event.weight*event.passedCut 
+      sample.weight         = lambda event, sample: event.passedCut 
+      #sample.weight         = lambda event, sample: event.weight*event.passedCut 
       #sample.weight         = lambda event, sample: event.weight*event.passedCut*event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
 #    if "TTG" in sample.name and args.reweightBosonPt:
 #      sample.weight         = lambda event, sample: event.weight*gToZReweighting(event.photon_genPt)
