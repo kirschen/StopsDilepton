@@ -657,7 +657,7 @@ systematics = [\
     {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
-    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
+    #{'name': 'JER',        'pair':('jerUp', 'jerDown')},
     {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
 ]
 
@@ -809,6 +809,7 @@ def drawObjects( scaling, scaleFactor ):
     return [tex.DrawLatex(*l) for l in lines]
 
 # We plot now. 
+if args.beta: plot_subdirectory += "_%s"%args.beta
 for mode in all_modes:
     for i_plot, plot in enumerate(plots):
         
@@ -883,10 +884,10 @@ for mode in all_modes:
             ratio_boxes.append(r_box)
 
         for log in [False, True]:
-            if args.beta is None:
-                plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, mode + ("_log" if log else ""))
-            else:
-                plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, args.beta, mode + ("_log" if log else ""))
+            #if args.beta is None:
+            plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, mode + ("_log" if log else ""))
+            #else:
+            #    plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, args.beta, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             if    mode == "all": plot.histos[1][0].legendText = "Data (%s)"%args.era
             else:                plot.histos[1][0].legendText = "Data (%s, %s)"%(args.mode, args.era)
