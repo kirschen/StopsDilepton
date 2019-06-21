@@ -61,7 +61,7 @@ dirs['singleTop_sch']    = ["TToLeptons_sch_amcatnlo"]
 
 dirs['Top_pow']          = dirs['TTLep_pow'] + dirs['singleTop_tWch'] + dirs['singleTop_tch'] + dirs['singleTop_sch']
 
-dirs['TZQ']              = ["tZq_ll"]#, "tZq_nunu_reHLT"]
+dirs['TZQ']              = ["tZq_ll"]# tZq_nunu to be added in the next round
 
 dirs['TTH']              = ["TTHnobb_pow", "TTHbb"]
 dirs['TTZtoLLNuNu']      = ["TTZToLLNuNu", "TTZToLLNuNu_m1to10"]

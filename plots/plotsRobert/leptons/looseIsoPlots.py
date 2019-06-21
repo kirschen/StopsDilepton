@@ -762,7 +762,8 @@ for plot in plots:
         plot_directory = plot_directory, ratio = ratio, 
         logX = False, logY = True, sorting = True, 
         yRange = (0.03, "auto"), 
-        drawObjects = drawObjects( None )
+        drawObjects = drawObjects( None ),
+        scaling = {0:1},
     )
 
 # Dump dl_mt2ll extra lepton histos

@@ -14,7 +14,7 @@ import operator
 from math                                import sqrt, cos, sin, pi, atan2, cosh
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
-from StopsDilepton.tools.helpers         import deltaPhi
+from StopsDilepton.tools.helpers         import deltaPhi, deltaR
 from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
@@ -107,8 +107,10 @@ elif year == 2017:
     #    # need sample based weights
     #    pass
 elif year == 2018:
-    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    data_directory           = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
+    postProcessing_directory = "stops_2018_nano_v0p14/dilep/"
+    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     if args.DYInc:
         mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
     else:
@@ -137,8 +139,8 @@ if args.small:
         sample.reduceFiles( to=1)
         sample.scale /= sample.normalization
 
-from Analysis.Tools.RecoilCorrector import RecoilCorrector
-recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v0p10_fine", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
+#from Analysis.Tools.RecoilCorrector import RecoilCorrector
+#recoilCorrector = RecoilCorrector( os.path.join( "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/results/", "recoil_v0p10_fine", "%s_lepSel-njet1p-btag0-relIso0.12-looseLeptonVeto-mll20-onZ_recoil_fitResults_SF.pkl"%args.era ) )
 
 def get_quantiles( histo, quantiles = [1-0.9545, 1-0.6826, 0.5, 0.6826, 0.9545]):
     thresholds = array.array('d', [ROOT.Double()] * len(quantiles) )
@@ -315,7 +317,7 @@ if "2017" in args.era:
 sequence = []
 
 if True: #"2017" in args.era:
-    from StopsDilepton.tools.objectSelection    import muonSelector, eleSelector, getGoodMuons, getGoodElectrons, getGoodJets, getAllJets
+    from StopsDilepton.tools.objectSelection    import muonSelector, eleSelector, getGoodMuons, getGoodElectrons, getGoodJets, getAllJets, isBJet
     ele_selector = eleSelector( "tight", year = year )
     mu_selector = muonSelector( "tight", year = year )
 
@@ -355,6 +357,23 @@ if True: #"2017" in args.era:
 
         event.badJetE  = sum( [ j['pt']*j['neEmEF']*cosh(j['eta']) for j in event.jets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
         event.badJetPt = sum( [ j['pt']*j['neEmEF'] for j in event.jets if abs(j['eta'])>2.6 and abs(j['eta'])<3.1], 0. )
+
+        bJets        = filter(lambda j:isBJet(j, tagger="DeepCSV", year=year) and abs(j['eta'])<=2.4    , event.jets)
+        nonBJets     = filter(lambda j:not ( isBJet(j, tagger="DeepCSV", year=year) and abs(j['eta'])<=2.4 ), event.jets)
+
+        event.bj0, event.bj1 = None, None
+        if len(bJets)+len(nonBJets)>=2:
+            event.bj0, event.bj1  = (bJets+nonBJets)[:2]
+            event.mt2blbl_bj_dR   = deltaR  ( event.bj0, event.bj1 ) 
+            event.mt2blbl_bj_dPhi = deltaPhi( event.bj0['phi'], event.bj1['phi'] ) 
+            event.mt2blbl_bj_dEta = event.bj0['eta'] - event.bj1['eta']
+            event.mt2blbl_bj_mass = sqrt(2.*event.bj0['pt']*event.bj1['pt']*(cosh(event.bj0['eta']-event.bj1['eta'])-cos(event.bj0['phi']-event.bj1['phi']))) 
+        else:
+            event.mt2blbl_bj_dR   = float('nan') 
+            event.mt2blbl_bj_dPhi = float('nan') 
+            event.mt2blbl_bj_dEta = float('nan') 
+            event.mt2blbl_bj_mass = float('nan') 
+    
     sequence.append( make_all_jets )
 
 ## veto list
@@ -365,87 +384,87 @@ if True: #"2017" in args.era:
 #
 #sequence.append( make_veto )
 
-# recoil
-def recoil_weight( var_bin, qt_bin):
-    #if args.recoil == 'v4':
-    def _weight_( event, sample):
-        return event.weight*(event.dl_phi>var_bin[0])*(event.dl_phi<=var_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
-    #elif args.recoil == 'v5':
-    #    def _weight_( event, sample):
-    #        return event.weight*(event.PV_npvsGood>var_bin[0])*(event.PV_npvsGood<=var_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
-    return _weight_
-
-def corr_recoil( event, sample ):
-    mt2Calculator.reset()
-    if not sample.isData: 
-        # Parametrisation vector - # define qt as GenMET + leptons
-        qt_px = event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.GenMET_pt*cos(event.GenMET_phi)
-        qt_py = event.l1_pt*sin(event.l1_phi) + event.l2_pt*sin(event.l2_phi) + event.GenMET_pt*sin(event.GenMET_phi)
-
-        qt = sqrt( qt_px**2 + qt_py**2 )
-        qt_phi = atan2( qt_py, qt_px )
-
-        #ref_phi = qt_phi
-        ref_phi = event.dl_phi
-
-        # recoil-correct met_pt, met_phi
-        # compute fake MET 
-        fakeMET_x = event.met_pt*cos(event.met_phi) - event.GenMET_pt*cos(event.GenMET_phi)
-        fakeMET_y = event.met_pt*sin(event.met_phi) - event.GenMET_pt*sin(event.GenMET_phi)
-        fakeMET = sqrt( fakeMET_x**2 + fakeMET_y**2 )
-        fakeMET_phi = atan2( fakeMET_y, fakeMET_x )
-        # project fake MET on qT
-        fakeMET_para = fakeMET*cos( fakeMET_phi - ref_phi ) 
-        fakeMET_perp = fakeMET*cos( fakeMET_phi - ( ref_phi - pi/2) ) 
-        fakeMET_para_corr = - recoilCorrector.predict_para( ref_phi, qt, -fakeMET_para ) 
-        fakeMET_perp_corr = - recoilCorrector.predict_perp( ref_phi, qt, -fakeMET_perp )
-        # rebuild fake MET vector
-        fakeMET_px_corr = fakeMET_para_corr*cos(ref_phi) + fakeMET_perp_corr*cos(ref_phi - pi/2) 
-        fakeMET_py_corr = fakeMET_para_corr*sin(ref_phi) + fakeMET_perp_corr*sin(ref_phi - pi/2) 
-        #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
-        met_px_corr = event.met_pt*cos(event.met_phi) - fakeMET_x + fakeMET_px_corr 
-        met_py_corr = event.met_pt*sin(event.met_phi) - fakeMET_y + fakeMET_py_corr
-        event.met_pt_corr  = sqrt( met_px_corr**2 + met_py_corr**2 ) 
-        event.met_phi_corr = atan2( met_py_corr, met_px_corr ) 
-
-        ## recoil-correct RawMET_pt, RawMET_phi
-        ## compute fake MET 
-        #rawFakeMET_x = event.RawMET_pt*cos(event.RawMET_phi) - event.GenMET_pt*cos(event.GenMET_phi)
-        #rawFakeMET_y = event.RawMET_pt*sin(event.RawMET_phi) - event.GenMET_pt*sin(event.GenMET_phi)
-        #rawFakeMET = sqrt( rawFakeMET_x**2 + rawFakeMET_y**2 )
-        #rawFakeMET_phi = atan2( rawFakeMET_y, rawFakeMET_x )
-        ## project fake MET on qT
-        #rawFakeMET_para = rawFakeMET*cos( rawFakeMET_phi - ref_phi ) 
-        #rawFakeMET_perp = rawFakeMET*cos( rawFakeMET_phi - ( ref_phi - pi/2) ) 
-        #rawFakeMET_para_corr = - recoilCorrector_raw.predict_para( ref_phi, qt, -rawFakeMET_para ) 
-        #rawFakeMET_perp_corr = - recoilCorrector_raw.predict_perp( ref_phi, qt, -rawFakeMET_perp )
-        ## rebuild fake MET vector
-        #rawFakeMET_px_corr = rawFakeMET_para_corr*cos(ref_phi) + rawFakeMET_perp_corr*cos(ref_phi - pi/2) 
-        #rawFakeMET_py_corr = rawFakeMET_para_corr*sin(ref_phi) + rawFakeMET_perp_corr*sin(ref_phi - pi/2) 
-        #RawMET_px_corr = event.RawMET_pt*cos(event.RawMET_phi) - rawFakeMET_x + rawFakeMET_px_corr 
-        #RawMET_py_corr = event.RawMET_pt*sin(event.RawMET_phi) - rawFakeMET_y + rawFakeMET_py_corr
-        #event.RawMET_pt_corr  = sqrt( RawMET_px_corr**2 + RawMET_py_corr**2 ) 
-        #event.RawMET_phi_corr = atan2( RawMET_py_corr, RawMET_px_corr ) 
-
-    else:
-        event.met_pt_corr     = event.met_pt 
-        event.met_phi_corr    = event.met_phi
-        #event.RawMET_pt_corr  = event.RawMET_pt 
-        #event.RawMET_phi_corr = event.RawMET_phi
-
-    mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
-    mt2Calculator.setMet(event.met_pt_corr, event.met_phi_corr)
-    event.dl_mt2ll_corr     = mt2Calculator.mt2ll()
-
-    #mt2Calculator.setMet(event.RawMET_pt, event.RawMET_phi)
-    #event.dl_mt2ll_raw      =  mt2Calculator.mt2ll()
-
-    #mt2Calculator.setMet(event.RawMET_pt_corr, event.RawMET_phi_corr)
-    #event.dl_mt2ll_raw_corr =  mt2Calculator.mt2ll()
-
-    #print event.dl_mt2ll, event.dl_mt2ll_corr
-
-sequence.append( corr_recoil )
+## recoil
+#def recoil_weight( var_bin, qt_bin):
+#    #if args.recoil == 'v4':
+#    def _weight_( event, sample):
+#        return event.weight*(event.dl_phi>var_bin[0])*(event.dl_phi<=var_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
+#    #elif args.recoil == 'v5':
+#    #    def _weight_( event, sample):
+#    #        return event.weight*(event.PV_npvsGood>var_bin[0])*(event.PV_npvsGood<=var_bin[1])*(event.dl_pt>qt_bin[0])*(event.dl_pt<qt_bin[1]) 
+#    return _weight_
+#
+#def corr_recoil( event, sample ):
+#    mt2Calculator.reset()
+#    if not sample.isData: 
+#        # Parametrisation vector - # define qt as GenMET + leptons
+#        qt_px = event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.GenMET_pt*cos(event.GenMET_phi)
+#        qt_py = event.l1_pt*sin(event.l1_phi) + event.l2_pt*sin(event.l2_phi) + event.GenMET_pt*sin(event.GenMET_phi)
+#
+#        qt = sqrt( qt_px**2 + qt_py**2 )
+#        qt_phi = atan2( qt_py, qt_px )
+#
+#        #ref_phi = qt_phi
+#        ref_phi = event.dl_phi
+#
+#        # recoil-correct met_pt, met_phi
+#        # compute fake MET 
+#        fakeMET_x = event.met_pt*cos(event.met_phi) - event.GenMET_pt*cos(event.GenMET_phi)
+#        fakeMET_y = event.met_pt*sin(event.met_phi) - event.GenMET_pt*sin(event.GenMET_phi)
+#        fakeMET = sqrt( fakeMET_x**2 + fakeMET_y**2 )
+#        fakeMET_phi = atan2( fakeMET_y, fakeMET_x )
+#        # project fake MET on qT
+#        fakeMET_para = fakeMET*cos( fakeMET_phi - ref_phi ) 
+#        fakeMET_perp = fakeMET*cos( fakeMET_phi - ( ref_phi - pi/2) ) 
+#        fakeMET_para_corr = - recoilCorrector.predict_para( ref_phi, qt, -fakeMET_para ) 
+#        fakeMET_perp_corr = - recoilCorrector.predict_perp( ref_phi, qt, -fakeMET_perp )
+#        # rebuild fake MET vector
+#        fakeMET_px_corr = fakeMET_para_corr*cos(ref_phi) + fakeMET_perp_corr*cos(ref_phi - pi/2) 
+#        fakeMET_py_corr = fakeMET_para_corr*sin(ref_phi) + fakeMET_perp_corr*sin(ref_phi - pi/2) 
+#        #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
+#        met_px_corr = event.met_pt*cos(event.met_phi) - fakeMET_x + fakeMET_px_corr 
+#        met_py_corr = event.met_pt*sin(event.met_phi) - fakeMET_y + fakeMET_py_corr
+#        event.met_pt_corr  = sqrt( met_px_corr**2 + met_py_corr**2 ) 
+#        event.met_phi_corr = atan2( met_py_corr, met_px_corr ) 
+#
+#        ## recoil-correct RawMET_pt, RawMET_phi
+#        ## compute fake MET 
+#        #rawFakeMET_x = event.RawMET_pt*cos(event.RawMET_phi) - event.GenMET_pt*cos(event.GenMET_phi)
+#        #rawFakeMET_y = event.RawMET_pt*sin(event.RawMET_phi) - event.GenMET_pt*sin(event.GenMET_phi)
+#        #rawFakeMET = sqrt( rawFakeMET_x**2 + rawFakeMET_y**2 )
+#        #rawFakeMET_phi = atan2( rawFakeMET_y, rawFakeMET_x )
+#        ## project fake MET on qT
+#        #rawFakeMET_para = rawFakeMET*cos( rawFakeMET_phi - ref_phi ) 
+#        #rawFakeMET_perp = rawFakeMET*cos( rawFakeMET_phi - ( ref_phi - pi/2) ) 
+#        #rawFakeMET_para_corr = - recoilCorrector_raw.predict_para( ref_phi, qt, -rawFakeMET_para ) 
+#        #rawFakeMET_perp_corr = - recoilCorrector_raw.predict_perp( ref_phi, qt, -rawFakeMET_perp )
+#        ## rebuild fake MET vector
+#        #rawFakeMET_px_corr = rawFakeMET_para_corr*cos(ref_phi) + rawFakeMET_perp_corr*cos(ref_phi - pi/2) 
+#        #rawFakeMET_py_corr = rawFakeMET_para_corr*sin(ref_phi) + rawFakeMET_perp_corr*sin(ref_phi - pi/2) 
+#        #RawMET_px_corr = event.RawMET_pt*cos(event.RawMET_phi) - rawFakeMET_x + rawFakeMET_px_corr 
+#        #RawMET_py_corr = event.RawMET_pt*sin(event.RawMET_phi) - rawFakeMET_y + rawFakeMET_py_corr
+#        #event.RawMET_pt_corr  = sqrt( RawMET_px_corr**2 + RawMET_py_corr**2 ) 
+#        #event.RawMET_phi_corr = atan2( RawMET_py_corr, RawMET_px_corr ) 
+#
+#    else:
+#        event.met_pt_corr     = event.met_pt 
+#        event.met_phi_corr    = event.met_phi
+#        #event.RawMET_pt_corr  = event.RawMET_pt 
+#        #event.RawMET_phi_corr = event.RawMET_phi
+#
+#    mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
+#    mt2Calculator.setMet(event.met_pt_corr, event.met_phi_corr)
+#    event.dl_mt2ll_corr     = mt2Calculator.mt2ll()
+#
+#    #mt2Calculator.setMet(event.RawMET_pt, event.RawMET_phi)
+#    #event.dl_mt2ll_raw      =  mt2Calculator.mt2ll()
+#
+#    #mt2Calculator.setMet(event.RawMET_pt_corr, event.RawMET_phi_corr)
+#    #event.dl_mt2ll_raw_corr =  mt2Calculator.mt2ll()
+#
+#    #print event.dl_mt2ll, event.dl_mt2ll_corr
+#
+#sequence.append( corr_recoil )
   
 #
 #
@@ -628,11 +647,11 @@ for index, mode in enumerate(allModes):
       binning=[10,-pi,pi],
   ))
 
-  plots.append(Plot( name = "met_phi_corr",
-      texX = '#phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
-      attribute = lambda event, sample: event.met_phi_corr,
-      binning=[10,-pi,pi],
-  ))
+  #plots.append(Plot( name = "met_phi_corr",
+  #    texX = '#phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
+  #    attribute = lambda event, sample: event.met_phi_corr,
+  #    binning=[10,-pi,pi],
+  #))
 
   #plots.append(Plot( name = "met_phi_raw",
   #    texX = 'raw #phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
@@ -670,11 +689,11 @@ for index, mode in enumerate(allModes):
     #  binning=[300/20,0,300],
     #))
 
-  plots.append(Plot( name = "met_pt_corr",
-      texX = 'corr E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
-      attribute = lambda event, sample: event.met_pt_corr,
-      binning=[400/20,0,400],
-  ))
+  #plots.append(Plot( name = "met_pt_corr",
+  #    texX = 'corr E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
+  #    attribute = lambda event, sample: event.met_pt_corr,
+  #    binning=[400/20,0,400],
+  #))
 
   #plots.append(Plot( name = "met_pt_raw_corr",
   #    texX = 'corr E_{T}^{miss} (GeV)', texY = 'Number of Events / 20 GeV',
@@ -682,11 +701,11 @@ for index, mode in enumerate(allModes):
   #    binning=[400/20,0,400],
   #))
     
-  plots.append(Plot( name = "dl_mt2ll_corr",
-      texX = 'corr M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-      attribute = lambda event, sample: event.dl_mt2ll_corr,
-      binning=[300/20,0,300],
-  ))
+  #plots.append(Plot( name = "dl_mt2ll_corr",
+  #    texX = 'corr M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+  #    attribute = lambda event, sample: event.dl_mt2ll_corr,
+  #    binning=[300/20,0,300],
+  #))
 
   #plots.append(Plot( name = "dl_mt2ll_raw_corr",
   #    texX = 'raw corr M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
@@ -820,6 +839,12 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+    texX = 'pdgId(l1)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l1_pdgId/I" ),
+    binning=[30,-15,15],
+  ))
+
+  plots.append(Plot(
     texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,300],
@@ -835,6 +860,12 @@ for index, mode in enumerate(allModes):
     texX = '#phi(l_{2})', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "l2_phi/F" ),
     binning=[10,-pi,pi],
+  ))
+
+  plots.append(Plot(
+    texX = 'pdgId(l2)', texY = 'Number of Events',
+    attribute = TreeVariable.fromString( "l2_pdgId/I" ),
+    binning=[30,-15,15],
   ))
 
   # Plots only when at least one jet:
@@ -912,16 +943,16 @@ for index, mode in enumerate(allModes):
     #  attribute = lambda event, sample: - event.RawMET_pt*cos(event.RawMET_phi-(event.dl_phi-pi/2)),
     #  binning=[80, -200,200],
     #))
-    plots.append(Plot( name = "u_para_corr", 
-      texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-      attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
-      binning=[80, -200,200],
-    ))
-    plots.append(Plot( name = "u_perp_corr", 
-      texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-      attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
-      binning=[80, -200,200],
-    ))
+    #plots.append(Plot( name = "u_para_corr", 
+    #  texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+    #  attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
+    #  binning=[80, -200,200],
+    #))
+    #plots.append(Plot( name = "u_perp_corr", 
+    #  texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+    #  attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
+    #  binning=[80, -200,200],
+    #))
     #plots.append(Plot( name = "u_para_raw_corr", 
     #  texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
     #  attribute = lambda event, sample: - event.RawMET_pt_corr*cos(event.RawMET_phi_corr-event.dl_phi),
@@ -938,37 +969,35 @@ for index, mode in enumerate(allModes):
         u_para_binning   =  [ i*20 for i in range(-10, 11) ]
         qt_binning    = [0, 50, 100, 150, 200, 300 ]
         qt_bins = [ (qt_binning[i],qt_binning[i+1]) for i in range(len(qt_binning)-1) ]
-        #if args.recoil == 'v4':
         var_binning   = [ pi*(i-5)/5. for i in range(0,11) ]
         var_bins      = [ (var_binning[i],var_binning[i+1]) for i in range(len(var_binning)-1) ]
-        for var_bin in var_bins:
-            for qt_bin in qt_bins:
-                #if args.recoil=='v4':
-                postfix = "phill_%3.2f_%3.2f_qt_%i_%i"%( var_bin[0], var_bin[1], qt_bin[0], qt_bin[1] )
-                plots.append(Plot( name = "u_para_" + postfix, 
-                  texX = "u_{#parallel} (GeV)", texY = 'Number of Events / 30 GeV',
-                  attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-event.dl_phi),
-                  weight = recoil_weight(var_bin, qt_bin),
-                  binning=[80, -200,200],
-                ))
-                plots.append(Plot( name = "u_perp_" + postfix, 
-                  texX = "u_{#perp} (GeV)", texY = 'Number of Events / 30 GeV',
-                  attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-(event.dl_phi-pi/2)),
-                  weight = recoil_weight(var_bin, qt_bin),
-                  binning=[80, -200,200],
-                ))
-                plots.append(Plot( name = "u_para_corr_" + postfix, 
-                  texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-                  attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
-                  weight = recoil_weight(var_bin, qt_bin),
-                  binning=[80, -200,200],
-                ))
-                plots.append(Plot( name = "u_perp_corr_" + postfix, 
-                  texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
-                  attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
-                  weight = recoil_weight(var_bin, qt_bin),
-                  binning=[80, -200,200],
-                ))
+        #for var_bin in var_bins:
+        #    for qt_bin in qt_bins:
+        #        postfix = "phill_%3.2f_%3.2f_qt_%i_%i"%( var_bin[0], var_bin[1], qt_bin[0], qt_bin[1] )
+        #        plots.append(Plot( name = "u_para_" + postfix, 
+        #          texX = "u_{#parallel} (GeV)", texY = 'Number of Events / 30 GeV',
+        #          attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-event.dl_phi),
+        #          weight = recoil_weight(var_bin, qt_bin),
+        #          binning=[80, -200,200],
+        #        ))
+        #        plots.append(Plot( name = "u_perp_" + postfix, 
+        #          texX = "u_{#perp} (GeV)", texY = 'Number of Events / 30 GeV',
+        #          attribute = lambda event, sample: - event.met_pt*cos(event.met_phi-(event.dl_phi-pi/2)),
+        #          weight = recoil_weight(var_bin, qt_bin),
+        #          binning=[80, -200,200],
+        #        ))
+        #        plots.append(Plot( name = "u_para_corr_" + postfix, 
+        #          texX = "u_{#parallel} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+        #          attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-event.dl_phi),
+        #          weight = recoil_weight(var_bin, qt_bin),
+        #          binning=[80, -200,200],
+        #        ))
+        #        plots.append(Plot( name = "u_perp_corr_" + postfix, 
+        #          texX = "u_{#perp} corr. (GeV)", texY = 'Number of Events / 30 GeV',
+        #          attribute = lambda event, sample: - event.met_pt_corr*cos(event.met_phi_corr-(event.dl_phi-pi/2)),
+        #          weight = recoil_weight(var_bin, qt_bin),
+        #          binning=[80, -200,200],
+        #        ))
 
 #  # Plots only when at least two jets:
   if args.selection.count('njet2'):
@@ -1040,6 +1069,72 @@ for index, mode in enumerate(allModes):
       attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
       binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
     ))
+
+    plots.append(Plot( name = "dl_mt2blbl_bj_dR",       # SR binning of MT2ll
+      texX = 'dR(bj0,bj1))', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.mt2blbl_bj_dR,
+      binning=[12,0,6],
+    ))
+
+    plots.append(Plot( name = "dl_mt2blbl_bj_dPhi",       # SR binning of MT2ll
+      texX = 'dPhi(bj0,bj1))', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.mt2blbl_bj_dPhi,
+      binning=[12,0,pi],
+    ))
+
+    plots.append(Plot( name = "dl_mt2blbl_bj_dEta",       # SR binning of MT2ll
+      texX = 'dEta(bj0,bj1))', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.mt2blbl_bj_dEta,
+      binning=[12,-6,6],
+    ))
+
+    plots.append(Plot( name = "dl_mt2blbl_bj_mass",       # SR binning of MT2ll
+      texX = 'mass(bj0,bj1))', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.mt2blbl_bj_mass,
+      binning=[12,0,600],
+    ))
+
+    plots.append(Plot( name = "dl_mt2blbl_bj0_pt",       # SR binning of MT2ll
+      texX = 'bj0(pt)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj0['pt'] if event.bj0 is not None else float('nan'),
+      binning=[12,0,300],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj1_pt",       # SR binning of MT2ll
+      texX = 'bj1(pt)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj1['pt'] if event.bj1 is not None else float('nan'),
+      binning=[12,0,300],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj0_phi",       # SR binning of MT2ll
+      texX = 'bj0(phi)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj0['phi'] if event.bj0 is not None else float('nan'),
+      binning=[12,-pi,pi],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj1_phi",       # SR binning of MT2ll
+      texX = 'bj1(phi)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj1['phi'] if event.bj1 is not None else float('nan'),
+      binning=[12,-pi,pi],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj0_eta",       # SR binning of MT2ll
+      texX = 'bj0(eta)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj0['eta'] if event.bj0 is not None else float('nan'),
+      binning=[12,-3,3],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj1_eta",       # SR binning of MT2ll
+      texX = 'bj1(eta)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj1['eta'] if event.bj1 is not None else float('nan'),
+      binning=[12,-3,3],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj0_DeepCSV",       # SR binning of MT2ll
+      texX = 'bj0(DeepCSV)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj0['btagDeepB'] if event.bj0 is not None else float('nan'),
+      binning=[10,0,1],
+    ))
+    plots.append(Plot( name = "dl_mt2blbl_bj1_DeepCSV",       # SR binning of MT2ll
+      texX = 'bj1(DeepCSV)', texY = 'Number of Events / 30 GeV',
+      attribute = lambda event, sample: event.bj1['btagDeepB'] if event.bj1 is not None else float('nan'),
+      binning=[10,0,1],
+    ))
+
    
   plotting.fill(plots + plots2D, read_variables = read_variables, sequence = sequence)
 

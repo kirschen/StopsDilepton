@@ -34,8 +34,6 @@
 
 
 
-
-
 #python systematicVariation.py --dpm --era Run2017BCDE --plot_directory v5 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1 --overwrite
 ##python systematicVariation.py --dpm --era Run2017BCDE --plot_directory v5 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ --noDYHT --overwrite
 python systematicVariation.py --dpm --era Run2017BCDE --plot_directory v5 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1 --overwrite

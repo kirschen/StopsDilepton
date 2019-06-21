@@ -26,7 +26,7 @@ cd CMSSW_10_2_9/src/
 eval `scramv1 runtime -sh`
 # github repos
 git cms-init
-git clone -b 'v0.1' --single-branch --depth 1 https://github.com/HephyAnalysisSW/StopsDilepton.git
+git clone -b 'PP-Stops2l-v0p15' --single-branch --depth 1 https://github.com/HephyAnalysisSW/StopsDilepton.git
 ./StopsDilepton/setupCondor.sh
 
 scram b
@@ -44,8 +44,8 @@ aklog -d hephy.at
 echo "---------------------"
 
 echo "---------------------"
-echo "Changing to script dir: $1"
-cd $1
+echo "Changing to script dir: ../$1/"
+cd ../$1/
 ls -l
 echo "---------------------"
 
