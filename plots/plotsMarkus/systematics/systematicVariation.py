@@ -697,13 +697,10 @@ for mode in modes:
             cmd.append('--variation=%s'%variation)
             if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             if args.noDYHT: cmd.append('--noDYHT')
-<<<<<<< HEAD
             if args.dpm: cmg.append('--dpm')
-=======
             if args.overwrite: cmd.append('--overwrite')
             if args.small: cmd.append('--small')
 
->>>>>>> b3d155c8ff8ded6e44e70c9848150c100b845764
             cmd_string = ' '.join( cmd )
             missing_cmds.append( cmd_string )
             logger.info("Missing variation %s, era %s in mode %s in cache. Need to run: \n%s", variation, args.era, mode, cmd_string)
