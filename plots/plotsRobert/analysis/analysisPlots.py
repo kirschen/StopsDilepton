@@ -46,6 +46,7 @@ argParser.add_argument('--isr',                action='store_true', default=Fals
 argParser.add_argument('--plotUPara',          action='store_true',     help='Plot u_para?', )
 argParser.add_argument('--splitMET',           action='store_true',     help='Split in MET bins?' )
 argParser.add_argument('--splitMETSig',        action='store_true',     help='Split in METSig bins?' )
+argParser.add_argument('--splitNvtx',          action='store_true',     help='Split in Nvtx bins?' )
 args = argParser.parse_args()
 
 #
@@ -59,6 +60,7 @@ logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 if args.small:                        args.plot_directory += "_small"
 if args.splitMET:                     args.plot_directory += "_splitMET"
 if args.splitMETSig:                  args.plot_directory += "_splitMETSig"
+if args.splitNvtx:                    args.plot_directory += "_splitNvtx"
 if args.DYInc:                        args.plot_directory += "_DYInc"
 if args.noData:                       args.plot_directory += "_noData"
 if args.signal == "DM":               args.plot_directory += "_DM"
@@ -108,8 +110,6 @@ elif year == 2017:
     #    pass
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    data_directory           = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
-    postProcessing_directory = "stops_2018_nano_v0p14/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     if args.DYInc:
         mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
@@ -219,6 +219,42 @@ def splitMetSigMC(mc):
 
     return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]
 
+def splitNvtxMC(mc):
+    dy = mc[-1]
+    dy_1 = copy.deepcopy( dy )
+    dy_1.name += "_1"
+    dy_1.addSelectionString( "PV_npvsGood<20" )
+    dy_1.texName += " (N_{vtx}<20)"
+    dy_1.color   = ROOT.kGreen + 1 
+    dy_2 = copy.deepcopy( dy )
+    dy_2.name += "_2"
+    dy_2.addSelectionString( "PV_npvsGood>=20&&PV_npvsGood<40" )
+    dy_2.texName += " (20#leq N_{vtx}<40)"
+    dy_2.color   = ROOT.kGreen + 2
+    dy_3 = copy.deepcopy( dy )
+    dy_3.name += "_3"
+    dy_3.addSelectionString( "PV_npvsGood>=40" )
+    dy_3.texName += " (40#leq S)"
+    dy_3.color   = ROOT.kGreen + 3
+    tt = mc[0]
+    tt_1 = copy.deepcopy( tt )
+    tt_1.name += "_1"
+    tt_1.addSelectionString( "PV_npvsGood<20" )
+    tt_1.texName += " (N_{vtx}<20)"
+    tt_1.color   = ROOT.kAzure + 1 
+    tt_2 = copy.deepcopy( tt )
+    tt_2.name += "_2"
+    tt_2.addSelectionString( "PV_npvsGood>=20&&PV_npvsGood<40" )
+    tt_2.texName += " (20#leq N_{vtx}<40)"
+    tt_2.color   = ROOT.kAzure + 2
+    tt_3 = copy.deepcopy( tt )
+    tt_3.name += "_3"
+    tt_3.addSelectionString( "PV_npvsGood>=40" )
+    tt_3.texName += " (40#leq S)"
+    tt_3.color   = ROOT.kAzure + 3
+
+    return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]
+
 signals = []
 if args.signal == "T2tt":
     # Load 2017 signal
@@ -274,7 +310,7 @@ def drawPlots(plots, mode, dataMCScale):
           plotting.draw(plot,
             plot_directory = plot_directory_,
             ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-            logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig),
+            logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig or args.splitNvtx),
             yRange = (0.03, "auto") if log else (0.001, "auto"),
             scaling = {0:1} if args.dataMCScaling else {},
             legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
@@ -538,6 +574,8 @@ for index, mode in enumerate(allModes):
     mc_ = splitMetMC(mc)
   elif args.splitMETSig:
     mc_ = splitMetSigMC(mc)
+  elif args.splitNvtx:
+    mc_ = splitNvtxMC(mc)
   else:
     mc_ = mc 
 

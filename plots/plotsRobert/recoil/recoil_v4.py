@@ -34,6 +34,7 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--loop',                                    action='store_true',     help='Make a loop?', )
 argParser.add_argument('--fine',                                    action='store_true',     help='Fine binning?', )
+argParser.add_argument('--dpm',                                     action='store_true',     help='Use dpm?', )
 argParser.add_argument('--raw',                                     action='store_true',     help='Raw MET corrections?', )
 argParser.add_argument('--dlPhiInclusive',                          action='store_true',     help='Inclusive in DPhi?', )
 argParser.add_argument('--reweightPU',         action='store', default=None, choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
@@ -65,6 +66,10 @@ elif "2017" in args.era:
     year = 2017
 elif "2018" in args.era:
     year = 2018
+
+# Load from DPM?
+if args.dpm:
+    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
 
 logger.info( "Working in year %i", year )
 if year == 2016:
