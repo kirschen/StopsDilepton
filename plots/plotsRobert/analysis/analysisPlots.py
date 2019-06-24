@@ -223,34 +223,34 @@ def splitNvtxMC(mc):
     dy = mc[-1]
     dy_1 = copy.deepcopy( dy )
     dy_1.name += "_1"
-    dy_1.addSelectionString( "PV_npvsGood<20" )
-    dy_1.texName += " (N_{vtx}<20)"
+    dy_1.addSelectionString( "PV_npvsGood<25" )
+    dy_1.texName += " (N_{vtx}<25)"
     dy_1.color   = ROOT.kGreen + 1 
     dy_2 = copy.deepcopy( dy )
     dy_2.name += "_2"
-    dy_2.addSelectionString( "PV_npvsGood>=20&&PV_npvsGood<40" )
-    dy_2.texName += " (20#leq N_{vtx}<40)"
+    dy_2.addSelectionString( "PV_npvsGood>=25&&PV_npvsGood<35" )
+    dy_2.texName += " (25#leq N_{vtx}<35)"
     dy_2.color   = ROOT.kGreen + 2
     dy_3 = copy.deepcopy( dy )
     dy_3.name += "_3"
-    dy_3.addSelectionString( "PV_npvsGood>=40" )
-    dy_3.texName += " (40#leq S)"
+    dy_3.addSelectionString( "PV_npvsGood>=35" )
+    dy_3.texName += " (35#leq S)"
     dy_3.color   = ROOT.kGreen + 3
     tt = mc[0]
     tt_1 = copy.deepcopy( tt )
     tt_1.name += "_1"
-    tt_1.addSelectionString( "PV_npvsGood<20" )
-    tt_1.texName += " (N_{vtx}<20)"
+    tt_1.addSelectionString( "PV_npvsGood<25" )
+    tt_1.texName += " (N_{vtx}<25)"
     tt_1.color   = ROOT.kAzure + 1 
     tt_2 = copy.deepcopy( tt )
     tt_2.name += "_2"
-    tt_2.addSelectionString( "PV_npvsGood>=20&&PV_npvsGood<40" )
-    tt_2.texName += " (20#leq N_{vtx}<40)"
+    tt_2.addSelectionString( "PV_npvsGood>=25&&PV_npvsGood<35" )
+    tt_2.texName += " (25#leq N_{vtx}<35)"
     tt_2.color   = ROOT.kAzure + 2
     tt_3 = copy.deepcopy( tt )
     tt_3.name += "_3"
-    tt_3.addSelectionString( "PV_npvsGood>=40" )
-    tt_3.texName += " (40#leq S)"
+    tt_3.addSelectionString( "PV_npvsGood>=35" )
+    tt_3.texName += " (35#leq S)"
     tt_3.color   = ROOT.kAzure + 3
 
     return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]

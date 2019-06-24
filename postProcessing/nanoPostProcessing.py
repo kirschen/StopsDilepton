@@ -298,8 +298,8 @@ if isMC:
 
 leptonTrackingSF    = LeptonTrackingEfficiency(options.year)
 leptonSF            = leptonSF_(options.year)
-#if fastSim:
-#   leptonFastSimSF  = leptonFastSimSF_(options.year)
+if fastSim:
+   leptonFastSimSF  = leptonFastSimSF_(options.year)
 
 options.skim = options.skim + '_small' if options.small else options.skim
 
@@ -1118,11 +1118,19 @@ def filler( event ):
 
             leptonsForSF   = ( leptons[:2] if isDiLep else (leptons[:3] if isTriLep else leptons[:1]) )
             leptonSFValues = [ leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
-            event.reweightLeptonSF           = reduce(mul, [sf[0] for sf in leptonSFValues], 1)
-            event.reweightLeptonSFDown       = reduce(mul, [sf[1] for sf in leptonSFValues], 1)
-            event.reweightLeptonSFUp         = reduce(mul, [sf[2] for sf in leptonSFValues], 1)  
+            event.reweightLeptonSF     = reduce(mul, [sf[0] for sf in leptonSFValues], 1)
+            event.reweightLeptonSFDown = reduce(mul, [sf[1] for sf in leptonSFValues], 1)
+            event.reweightLeptonSFUp   = reduce(mul, [sf[2] for sf in leptonSFValues], 1)  
             if event.reweightLeptonSF ==0:
                 logger.error( "reweightLeptonSF is zero!")
+
+            if fastSim:
+                leptonFastSimSFValues = [ leptonFastSimSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
+                event.reweightLeptonFastSimSF     = reduce(mul, [sf[0] for sf in leptonFastSimSFValues], 1)
+                event.reweightLeptonFastSimSFDown = reduce(mul, [sf[1] for sf in leptonFastSimSFValues], 1)
+                event.reweightLeptonFastSimSFUp   = reduce(mul, [sf[2] for sf in leptonFastSimSFValues], 1)  
+                if event.reweightLeptonFastSimSF ==0:
+                    logger.error( "reweightLeptonFastSimSF is zero!")
 
             event.reweightLeptonTrackingSF   = reduce(mul, [leptonTrackingSF.getSF(pdgId = l['pdgId'], pt = l['pt'], eta = ((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta']))  for l in leptonsForSF], 1)
 

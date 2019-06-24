@@ -9,7 +9,7 @@ from StopsDilepton.analysis.u_float import u_float
 import os
 from math import sqrt
 
-class leptonSF:
+class leptonFastSimSF:
     def __init__(self, year):
 
         # default assumptions
@@ -82,6 +82,6 @@ class leptonSF:
         return sf.val, (1-sf.sigma)*sf.val, (1+sf.sigma)*sf.val 
 
 if __name__ == "__main__":
-    sf_2016 = leptonSF( year = 2016 )
-    sf_2017 = leptonSF( year = 2017 )
-    sf_2018 = leptonSF( year = 2018 )
+    sf_2016 = leptonFastSimSF( year = 2016 )
+    sf_2017 = leptonFastSimSF( year = 2017 )
+    sf_2018 = leptonFastSimSF( year = 2018 )
