@@ -298,8 +298,8 @@ if isMC:
 
 leptonTrackingSF    = LeptonTrackingEfficiency(options.year)
 leptonSF            = leptonSF_(options.year)
-#if fastSim:
-#   leptonFastSimSF  = leptonFastSimSF_(options.year)
+if fastSim:
+   leptonFastSimSF  = leptonFastSimSF_(options.year)
 
 options.skim = options.skim + '_small' if options.small else options.skim
 
@@ -655,8 +655,8 @@ if not options.skipNanoTools:
     cut = '&&'.join(skimConds)
     # different different METSig parameters for data/MC and years
     if options.year == 2016:
-        metSigParamsMC      = [1.617529475909303, 1.4505983036866312, 1.411498565372343, 1.4087559908291813, 1.3633674107893856, 0.0019861227075085516, 0.6539410816436597]
-        metSigParamsData    = [1.843242937068234, 1.64107911184195, 1.567040591823117, 1.5077143780804294, 1.614014783345394, -0.0005986196920895609, 0.6071479349467596]
+        metSigParamsMC      = [1.617529475909303, 1.617529475909303, 1.4505983036866312, 1.4505983036866312, 1.411498565372343, 1.411498565372343, 1.4087559908291813, 1.4087559908291813, 1.3633674107893856, 1.3633674107893856, 0.0019861227075085516, 0.6539410816436597]
+        metSigParamsData    = [1.843242937068234, 1.843242937068234, 1.64107911184195,   1.64107911184195,   1.567040591823117, 1.567040591823117, 1.5077143780804294, 1.5077143780804294, 1.614014783345394,  1.614014783345394, -0.0005986196920895609, 0.6071479349467596]
         JER                 = "Summer16_25nsV1_MC"          if not sample.isData else "Summer16_25nsV1_DATA"
         JERera              = "Summer16_25nsV1"
         if sample.isData:
@@ -673,9 +673,8 @@ if not options.skipNanoTools:
         else:
             JEC             = "Summer16_07Aug2017_V11_MC"
     elif options.year == 2017:
-        metSigParamsMC      = [1.7760438537732681, 1.720421230892687, 1.6034765551361112, 1.5336832981702226, 2.0928447254019757, 0.0011228025809342157, 0.7287313412909979]
-        #metSigParamsData    = [1.518621014453362, 1.611898248687222, 1.5136936762143423, 1.4878342676980971, 1.9192499533282406, -0.0005835026352392627, 0.749718704693196] ## inclusive tuning
-        metSigParamsData    = [1.5652051127525366, 1.5804471271338907, 1.4862753507081927, 1.5535827934024427, 2.024950815338281, 0.00041900662100602046, 0.7318170819391664] # BCDE tuning
+        metSigParamsMC      = [1.9648214119268503, 1.5343086462230238, 1.9167197601498538, 1.5145044341064964, 1.8069380221985405, 1.3217263662622654, 1.5506294867561126, 1.272977540964842,  1.50742322311234,   1.6542883449796797, -0.0017865650107230548,  0.6593106706741719]
+        metSigParamsData    = [2.228118299837604,  1.2420725475347338, 2.227630982417529,  1.256752205787215,  2.0215250734187853, 1.1557507029911258, 1.7350536144535336, 1.1587692458345757, 1.9385081854607988, 1.8726188460472792, -2.6697894266706265e-05, 0.646984812801919]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
         if sample.isData:
@@ -689,7 +688,6 @@ if not options.skipNanoTools:
                 JEC         = "Fall17_17Nov2017DE_V32_DATA"
             elif sample.name.count('Run2017F'):
                 JEC         = "Fall17_17Nov2017F_V32_DATA"
-                metSigParamsData    = [1.4903886050473685, 1.6552347847889408, 1.5375539513889926, 1.5191557344959805, 1.677028876500211, 0.00036790289207031587, 0.7904482365411786] # F tuning
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
         elif fastSim:
@@ -698,8 +696,8 @@ if not options.skipNanoTools:
             JEC             = "Fall17_17Nov2017_V32_MC"
     elif options.year == 2018:
         # tune parameters updated using JER smearing (affecting MC)
-        metSigParamsMC      = [2.0125792791161086, 1.907019584601178, 1.691418568871399, 1.8522963629751756, 2.5811948493039836, 0.0013040694868296128, 0.6944381179120537]
-        metSigParamsData    = [1.4698510928845903, 1.6274969872662128, 1.4401026396007923, 1.3066363203359852, 1.9626614559348625, 0.0003847902120762913, 0.7511670653138974]
+        metSigParamsMC      = [1.8430848616315363, 1.8430848616315363, 1.8572853766660877, 1.8572853766660877, 1.613083160233781,  1.613083160233781,  1.3966398718198898, 1.3966398718198898, 1.4831008506492056, 1.4831008506492056, 0.0011310724285762122, 0.6929410058142578]
+        metSigParamsData    = [1.6231076732985186, 1.6231076732985186, 1.615595174619551,  1.615595174619551,  1.4731794897915416, 1.4731794897915416, 1.5183631493937553, 1.5183631493937553, 2.145670387603659,  2.145670387603659, -0.0001524158603362826, 0.7510574688006575]
         JER                 = "Autumn18_V1_MC"                if not sample.isData else "Autumn18_V1_DATA"
         JERera              = "Autumn18_V1"
         if sample.isData:
@@ -746,7 +744,7 @@ if not options.skipNanoTools:
     if options.year == 2016:
         modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
     elif options.year == 2017:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=25.) )
+        modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
     elif options.year == 2018:
         modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=25.) )
 
@@ -1118,11 +1116,19 @@ def filler( event ):
 
             leptonsForSF   = ( leptons[:2] if isDiLep else (leptons[:3] if isTriLep else leptons[:1]) )
             leptonSFValues = [ leptonSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
-            event.reweightLeptonSF           = reduce(mul, [sf[0] for sf in leptonSFValues], 1)
-            event.reweightLeptonSFDown       = reduce(mul, [sf[1] for sf in leptonSFValues], 1)
-            event.reweightLeptonSFUp         = reduce(mul, [sf[2] for sf in leptonSFValues], 1)  
+            event.reweightLeptonSF     = reduce(mul, [sf[0] for sf in leptonSFValues], 1)
+            event.reweightLeptonSFDown = reduce(mul, [sf[1] for sf in leptonSFValues], 1)
+            event.reweightLeptonSFUp   = reduce(mul, [sf[2] for sf in leptonSFValues], 1)  
             if event.reweightLeptonSF ==0:
                 logger.error( "reweightLeptonSF is zero!")
+
+            if fastSim:
+                leptonFastSimSFValues = [ leptonFastSimSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
+                event.reweightLeptonFastSimSF     = reduce(mul, [sf[0] for sf in leptonFastSimSFValues], 1)
+                event.reweightLeptonFastSimSFDown = reduce(mul, [sf[1] for sf in leptonFastSimSFValues], 1)
+                event.reweightLeptonFastSimSFUp   = reduce(mul, [sf[2] for sf in leptonFastSimSFValues], 1)  
+                if event.reweightLeptonFastSimSF ==0:
+                    logger.error( "reweightLeptonFastSimSF is zero!")
 
             event.reweightLeptonTrackingSF   = reduce(mul, [leptonTrackingSF.getSF(pdgId = l['pdgId'], pt = l['pt'], eta = ((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta']))  for l in leptonsForSF], 1)
 

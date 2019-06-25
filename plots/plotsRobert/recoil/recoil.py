@@ -190,7 +190,11 @@ if args.small:
 
 pickle_file = os.path.join(output_directory, 'recoil_%s.pkl'%args.mode )
 if not os.path.exists( output_directory ): 
-    os.makedirs( output_directory )
+    try:
+        os.makedirs( output_directory )
+    except:
+        pass
+
 if not os.path.isfile( pickle_file ) or args.overwrite:
     # Make 3D plot to get u_para/u_perp for in nJet and qt bins
     h3D_u_para = {}
