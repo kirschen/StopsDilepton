@@ -744,7 +744,7 @@ if not options.skipNanoTools:
     if options.year == 2016:
         modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
     elif options.year == 2017:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
+        modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=15., vetoEtaRegion=(2.65,3.14)) )
     elif options.year == 2018:
         modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=25.) )
 
