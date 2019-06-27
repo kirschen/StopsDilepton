@@ -34,9 +34,10 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--plot_directory',    action='store',      default='v1')
-argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-miniIso0.2-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
+argParser.add_argument('--appendCmds',        action='store_true')
 argParser.add_argument('--dpm',               action='store_true',     help='Use dpm?', )
 argParser.add_argument('--noDYHT',            action='store_true',     help='run without HT-binned DY')
 argParser.add_argument('--scaling',           action='store',      default=None, choices = [None, 'mc', 'top'],     help='Scale top to data in mt2ll<100?')
@@ -444,6 +445,27 @@ for mode in modes:
 
     if args.selection.count('njet2'):
         if args.variation == 'central':
+            dl_mt2blbl_fine_data  = Plot( 
+                name = "dl_mt2blbl_fine_data",
+                texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV' if args.normalizeBinWidth else "Number of Events",
+                binning=[420/30,0,400],
+                stack = stack_data,
+                attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+                weight = data_weight,
+                ) 
+            plots.append( dl_mt2blbl_fine_data )
+    
+        dl_mt2blbl_fine_mc  = Plot(
+            name = "dl_mt2blbl_fine_mc",
+            texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV' if args.normalizeBinWidth else "Number of Events",
+            binning=[420/30,0,400],
+            stack = stack_mc,
+            attribute = TreeVariable.fromString( selectionModifier("dl_mt2blbl/F") )      if selectionModifier is not None else None,
+            selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
+            weight          = mc_weight )
+        plots.append( dl_mt2blbl_fine_mc )
+
+        if args.variation == 'central':
             dl_mt2blbl_data  = Plot( 
                 name = "dl_mt2blbl_data",
                 texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
@@ -652,16 +674,16 @@ if args.variation is not None:
 
 # Systematic pairs:( 'name', 'up', 'down' )
 systematics = [\
-    {'name':'JEC',         'pair':('jesTotalUp', 'jesTotalDown')},
-    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown')},
-    {'name':'PU',          'pair':('PUUp', 'PUDown')},
-    {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
-    {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
-    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
-    {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
+#    {'name':'JEC',         'pair':('jesTotalUp', 'jesTotalDown')},
+#    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown')},
+#    {'name':'PU',          'pair':('PUUp', 'PUDown')},
+#    {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
+#    {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
+#    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
+#    {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
-    #{'name': 'JER',        'pair':('jerUp', 'jerDown')},
-#    {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
+    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
+    #{'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
 ]
 
 # loop over modes
@@ -697,7 +719,7 @@ for mode in modes:
             cmd.append('--variation=%s'%variation)
             if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             if args.noDYHT: cmd.append('--noDYHT')
-            if args.dpm: cmg.append('--dpm')
+            if args.dpm: cmd.append('--dpm')
             if args.overwrite: cmd.append('--overwrite')
             if args.small: cmd.append('--small')
 
@@ -707,7 +729,7 @@ for mode in modes:
 
 # write missing cmds
 filename = 'missing.sh'
-if os.path.exists(filename):
+if os.path.exists(filename) and args.appendCmds:
     append_write = 'a' # append if already exists
 else:
     append_write = 'w' # make a new file if not
@@ -900,8 +922,9 @@ for mode in all_modes:
             #else:
             #    plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, args.beta, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
-            if    mode == "all": plot.histos[1][0].legendText = "Data (%s)"%args.era
-            else:                plot.histos[1][0].legendText = "Data (%s, %s)"%(args.mode, args.era)
+            texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
+            if    mode == "all": plot.histos[1][0].legendText = "data (%s)"%args.era
+            else:                plot.histos[1][0].legendText = "data (%s, %s)"%(args.era, texMode)
 
             _drawObjects = []
 
@@ -910,7 +933,7 @@ for mode in all_modes:
               ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
               logX = False, logY = log, sorting = True,
               yRange = (0.03, "auto") if log else (0.001, "auto"),
-              #scaling = {0:1},
+              scaling = {0:1},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
               drawObjects = drawObjects( args.scaling, dataMC_SF[mode]['central'][Top_pow.name] ) + boxes,
               copyIndexPHP = True, extensions = ["png"],

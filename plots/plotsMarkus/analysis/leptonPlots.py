@@ -36,7 +36,7 @@ argParser.add_argument('--noData',             action='store_true', default=Fals
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='v2')
 argParser.add_argument('--era',                action='store', type=str,      default="Run2016")
-argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--study',              action='store', type=str,      default=None, choices = [None, "Muon", "Electron"])
 argParser.add_argument('--minmax',                                   action='store_true')
 argParser.add_argument('--recoil',             action='store', type=str,      default=None, choices = ["nvtx", "VUp", None])
