@@ -20,7 +20,7 @@ class leptonSF:
         self.ele_abs_eta = True
         self.ele_max_pt  = 200
 
-        if year == 2016:
+        if   year == 2016:
             keys_mu  = [ ("2016_TnP_NUM_MediumID_DENOM_generalTracks_VAR_map_pt_eta.root",  "SF"),
                          ("2016_TnP_NUM_MiniIsoTight_DENOM_MediumID_VAR_map_pt_eta.root",   "SF")]
             keys_ele = [ ("2016_electrons_scaleFactors.root",       "GsfElectronToCutBasedSpring15T"),

@@ -33,6 +33,9 @@ def getTopPtDrawString(selection = "dilep"):
 def getTopPtsForReweighting(r):
     res=[]
     for i in range(r.nGenPart):
-        if abs(r.GenPart_pdgId[i])==6 and r.GenPart_status[i]==62 and r.GenPart_pt[i]<400:
-            res.append(r.GenPart_pt[i])
+        try:
+            if abs(r.GenPart_pdgId[i])==6 and r.GenPart_status[i]==62 and r.GenPart_pt[i]<400:
+                res.append(r.GenPart_pt[i])
+        except IndexError: #rare case with too many particles
+            pass
     return res
