@@ -82,6 +82,9 @@ class cutInterpreter:
         elif string.startswith("relIso"):
            iso = float( string.replace('relIso','') )
            return "l1_relIso03<%3.2f&&l2_relIso03<%3.2f"%( iso, iso )
+        elif string.startswith("miniIso"):
+           iso = float( string.replace('miniIso','') )
+           return "l1_miniRelIso<%3.2f&&l2_miniRelIso<%3.2f"%( iso, iso )
         # special cuts
         if string in special_cuts.keys(): return special_cuts[string]
 
