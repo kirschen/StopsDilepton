@@ -12,6 +12,7 @@ argParser.add_argument('--logLevel',       action='store', default='INFO',      
 argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","ttHinv"],  help="Which signal?")
 argParser.add_argument("--removeDir",      action='store_true',                                                             help="Remove the directory in the combine release after study is done?")
 argParser.add_argument("--expected",       action='store_true',                                                             help="Use expected results?")
+argParser.add_argument("--combined",       action='store_true',                                                             help="Use expected results?")
 argParser.add_argument("--cores",          action='store', default=8,               nargs='?',                              help="Run on n cores in parallel")
 argParser.add_argument("--year",           action='store', default=2017,               nargs='?',                           help="Which year?")
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                              help="pick only one masspoint?")
@@ -31,7 +32,8 @@ year = int(args.year)
 def wrapper(s):
     logger.info("Processing mass point %s"%s.name)
     cardFile = "%s_shapeCard.txt"%s.name
-    cardFilePath = "%s/%s/fitAll/cardFiles/%s/%s/%s"%(analysis_results, args.year, args.signal, 'expected' if args.expected else 'observed', cardFile)
+    #analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v2/'
+    cardFilePath = "%s/%s/fitAll/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, 'expected' if args.expected else 'observed', cardFile)
     combineDirname = os.path.join(os.path.abspath('.'), s.name)
     logger.info("Creating %s"%combineDirname)
     if not os.path.isdir(combineDirname): os.makedirs(combineDirname)
@@ -71,8 +73,8 @@ if args.signal == "T2tt":
         pass
     else:
         # no seperate 2018 signal yet
-        data_directory              = '/afs/hephy.at/data/dspitzbart03/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p7/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p13/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
 
 allJobs = [j.name for j in jobs]
