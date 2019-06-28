@@ -760,14 +760,18 @@ if not options.skipNanoTools:
 
     # remove empty files. this is necessary in 2018 because empty miniAOD files exist.
     sample.files = [ f for f in sample.files if nonEmptyFile(f) ]
-
-    p = PostProcessor(output_directory,sample.files,cut=cut, modules=modules, postfix="_for_%s"%sample.name)
+    newFileList = []
     logger.info("Starting nanoAOD postprocessing")
-    if not options.reuseNanoAOD:
-        p.run()
+    for f in sample.files:
+        # need a hash to avoid data loss
+        file_hash = str(hash(f))
+        p = PostProcessor(output_directory, [f], cut=cut, modules=modules, postfix="_for_%s_%s"%(sample.name, file_hash))
+        if not options.reuseNanoAOD:
+            p.run()
+        newFileList += [output_directory + '/' + f.split('/')[-1].replace('.root', '_for_%s_%s.root'%(sample.name, file_hash))]
     logger.info("Done. Replacing input files for further processing.")
     
-    sample.files = [ output_directory + '/' + x.split('/')[-1].replace('.root', '_for_%s.root'%sample.name) for x in sample.files ]
+    sample.files = newFileList
 
 # Define a reader
 reader = sample.treeReader( \
