@@ -84,12 +84,12 @@ logger.info( "Working in year %i", year )
 
 # Load from DPM?
 if args.dpm:
-    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
+    data_directory = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
 
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    data_directory          = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
-    postProcessing_directory= "stops_2016_nano_v0p15/dilep/"
+    #data_directory          = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
+    #postProcessing_directory= "stops_2016_nano_v0p15/dilep/"
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     if args.DYInc:
         mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
@@ -112,8 +112,8 @@ elif year == 2017:
     #    pass
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    data_directory          = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
-    postProcessing_directory= "stops_2018_nano_v0p15/dilep/"
+    #data_directory          = "/afs/hephy.at/data/rschoefbeck02/nanoTuples/"
+    #postProcessing_directory= "stops_2018_nano_v0p15/dilep/"
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     if args.DYInc:
         mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]

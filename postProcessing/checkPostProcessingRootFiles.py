@@ -102,8 +102,8 @@ for ppEntry in dictList:
     nanoAOD_list = []
     if len( nanoAODFiles )>0:
         logger.warning( "Found nanoAODFiles. Shouldn't be here: %s", ",".join( nanoAODFiles ) )
-        nanoAOD_list = list(set([ int(f.rstrip('.root').split('_')[-1]) for f in nanoAODFiles ]))
-
+        nanoAOD_list = list(set([ int(f.rstrip('.root').split('_')[-2]) for f in nanoAODFiles ]))
+    
     if len(allRootFiles)>0:
         rootFiles  = [ os.path.join(dirPath, filename) for filename in allRootFiles]
 
@@ -130,15 +130,22 @@ for ppEntry in dictList:
             execCommand += [ ppEntry["command"] ]
         continue
 
-    job_ids = [ int(item.rstrip('.root').split('_')[-1]) for item in rootFiles ]
+    # more than one files
+    if ppEntry['nFiles']>1:
+        job_ids = [ int(item.rstrip('.root').split('_')[-1]) for item in rootFiles ]
+    # one file
+    elif ppEntry['nFiles']==1 and rootFiles[0].endswith(sample+'.root'):
+        job_ids = [0]
+    
     missing_ids = [ id for id in range(ppEntry['nFiles']) if ( id not in job_ids or id in nanoAOD_list ) ]
     if args.createExec:
         for missing_id in missing_ids:
             execCommand += [ ppEntry["command"].split("#SPLIT")[0] + "--nJobs %s --job %s"%(ppEntry["nFiles"], missing_id) ]
 
-    if  len(missing_ids)>0:
+    if len(missing_ids)>0:
         logger.info( "Sample %s: Found %i missing IDs: %s", sample, len(missing_ids), ",".join( map(str, missing_ids)) )
-
+    else:
+        logger.info( "Sample %s seems OK. %i jobs", sample, ppEntry['nFiles'])
 if args.createExec:
     with open( "missingFiles.sh", 'w' if args.overwrite else "a" ) as f:
         for line in execCommand:

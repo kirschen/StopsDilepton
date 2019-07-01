@@ -51,6 +51,7 @@ DY_M50_HT =[
 dirs = {}
 dirs['DY']              = ["DYJetsToLL_M50" ]
 dirs['DY_LO']           = ["DYJetsToLL_M50_LO", "DYJetsToLL_M10to50_LO"]
+dirs['DY_LO_M50']       = ["DYJetsToLL_M50_LO"]
 dirs['DY_HT_LO']        =  DY_M50_HT + DY_M5to50_HT
 
 dirs['TTLep_pow']       = ["TTLep_pow"]
@@ -96,6 +97,7 @@ directories = { key : [ os.path.join( data_directory_, postProcessing_directory_
 
 DY_HT_LO_18     = Sample.fromDirectory(name="DY_HT_LO",         treeName="Events", isData=False, color=color.DY,              texName="DY (HT, LO)",                       directory=directories['DY_HT_LO'])
 DY_LO_18        = Sample.fromDirectory(name="DY_LO",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO'])
+DY_LO_M50_18        = Sample.fromDirectory(name="DY_LO_M50",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO_M50'])
 Top_pow_18      = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
 Top_pow_1l_18   = Sample.fromDirectory(name="Top_pow_1l",       treeName="Events", isData=False, color=color.TTJets_1l,       texName="t#bar{t} (1l)",                     directory=directories['Top_pow_1l'])
 TTXNoZ_18       = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W, tZq",                  directory=directories['TTXNoZ'])
