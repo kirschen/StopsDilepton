@@ -27,10 +27,10 @@ logger.info("Loading MC samples from directory %s", os.path.join(data_directory_
 
 DY_M5to50_HT = [
                 "DYJetsToLL_M10to50_LO_lheHT100", 
-                "DYJetsToLL_M4to50_HT100to200",
+                "DYJetsToLL_M4to50_HT100to200_comb",
                 "DYJetsToLL_M4to50_HT200to400_comb",
                 "DYJetsToLL_M4to50_HT400to600_comb",
-                "DYJetsToLL_M4to50_HT600toInf"
+                "DYJetsToLL_M4to50_HT600toInf_comb"
                 ] 
 
 DY_M50_HT =[
