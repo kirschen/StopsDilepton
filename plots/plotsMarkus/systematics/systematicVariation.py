@@ -70,11 +70,6 @@ elif "2018" in args.era:
 
 logger.info( "Working in year %i", year )
 
-if args.reweightPU == 'Central':
-    nominalPuWeight, upPUWeight, downPUWeight = "reweightPU", "reweightPUUp", "reweightPUDown"
-elif args.reweightPU == 'VUp':
-    nominalPuWeight, upPUWeight, downPUWeight = "reweightPUVUp", "reweightPUVVUp", "reweightPUUp"
-
 def jetSelectionModifier( sys, returntype = "func"):
     #Need to make sure all jet variations of the following observables are in the ntuple
     variiedJetObservables = ['nJetGood', 'nBTag', 'dl_mt2ll', 'dl_mt2blbl', 'MET_significance', 'met_pt', 'metSig']
@@ -101,9 +96,15 @@ def metSelectionModifier( sys, returntype = 'func'):
 
 # these are the nominal MC weights we always apply
 if args.reweightPU == 'Central': 
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
 if args.reweightPU == 'VUp':
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
+
+# weights to use for PU variation
+if args.reweightPU == 'Central':
+    nominalPuWeight, upPUWeight, downPUWeight = "reweightPU", "reweightPUUp", "reweightPUDown"
+elif args.reweightPU == 'VUp':
+    nominalPuWeight, upPUWeight, downPUWeight = "reweightPUVUp", "reweightPUVVUp", "reweightPUUp"
 
 # weight the MC according to a variation
 def MC_WEIGHT( variation, returntype = "string"):
@@ -129,7 +130,7 @@ def MC_WEIGHT( variation, returntype = "string"):
         return variiedMCWeights
 
 def data_weight( event, sample ):
-    return event.weight
+    return event.weight*event.reweightHEM
 
 data_weight_string = "weight"
 
@@ -152,8 +153,8 @@ variations = {
     'DilepTriggerUp'    : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerUp']]},
     'LeptonSFDown'      : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFDown'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFDown']]},
     'LeptonSFUp'        : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFUp'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFUp']]},
-#    'L1PrefireDown'     : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireDown'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireDown']]},
-#    'L1PrefireUp'       : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireUp'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireUp']]},
+    'L1PrefireDown'     : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireDown'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireDown']]},
+    'L1PrefireUp'       : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireUp'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireUp']]},
 #    'TopPt':{},
 #   'JERUp':{},
 #   'JERDown':{},
@@ -231,7 +232,7 @@ read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2
 #                  "Jet[pt/F,rawFactor/F,pt_nom/F,eta/F,area/F]", "run/I", "fixedGridRhoFastjetAll/F",
 #                  "nMuon/I", "Muon[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,pfRelIso04_all/F,phi/F,pt/F,ptErr/F,segmentComp/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,nStations/I,nTrackerLayers/I,pdgId/I,tightCharge/I,highPtId/b,inTimeMuon/O,isGlobal/O,isPFcand/O,isTracker/O,mediumId/O,mediumPromptId/O,miniIsoId/b,multiIsoId/b,mvaId/b,pfIsoId/b,softId/O,softMvaId/O,tightId/O,tkIsoId/b,triggerIdLoose/O,cleanmask/b]",
                   #"LepGood[pt/F,eta/F,miniRelIso/F]", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
-                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","event/l"]
+                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","event/l","reweightHEM/F"]
 
 sequence = []
 #def corr_recoil( event, sample ):
@@ -674,16 +675,16 @@ if args.variation is not None:
 
 # Systematic pairs:( 'name', 'up', 'down' )
 systematics = [\
-#    {'name':'JEC',         'pair':('jesTotalUp', 'jesTotalDown')},
-#    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown')},
-#    {'name':'PU',          'pair':('PUUp', 'PUDown')},
-#    {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
-#    {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
-#    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
-#    {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
+    {'name':'JEC',         'pair':('jesTotalUp', 'jesTotalDown')},
+    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown')},
+    {'name':'PU',          'pair':('PUUp', 'PUDown')},
+    {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
+    {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
+    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
+    {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
     {'name': 'JER',        'pair':('jerUp', 'jerDown')},
-    #{'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
+    {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
 ]
 
 # loop over modes
