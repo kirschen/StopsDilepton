@@ -292,7 +292,7 @@ for index, mode in enumerate(allModes):
 
   data_sample.setSelectionString([getFilterCut(isData=True, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
   data_sample.name           = "data"
-  data_sample.read_variables = ["event/I","run/I", "reweightHEM/F"]
+  data_sample.read_variables = ["event/I", "run/I", "reweightHEM/F"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   data_sample.weight = lambda event, sample: event.weight*event.reweightHEM
   weight_ = lambda event, sample: event.weight

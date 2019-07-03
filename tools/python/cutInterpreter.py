@@ -81,7 +81,7 @@ class cutInterpreter:
             return "l1_mIsoWP>%i&&l2_mIsoWP>%i" % (str_, str_)
         elif string.startswith("relIso"):
            iso = float( string.replace('relIso','') )
-           raise ValueError("We do not want to use relIso for our analysis!")
+           raise ValueError("We do not want to use relIso for our analysis anymore!")
            return "l1_relIso03<%3.2f&&l2_relIso03<%3.2f"%( iso, iso )
         elif string.startswith("miniIso"):
            iso = float( string.replace('miniIso','') )
