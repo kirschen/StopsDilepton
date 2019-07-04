@@ -64,12 +64,6 @@ logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 if args.small:                        args.plot_directory += "_small"
-if args.study:                        args.plot_directory += "_%s"%args.study
-if args.minmax:                  
-    args.plot_directory += "_minmax"
-else:
-    if args.study == None:
-        args.plot_directory += "_l1l2"
 if args.reweightPU:                   args.plot_directory += "_%s"%args.reweightPU
 if args.recoil:                       args.plot_directory += '_recoil_'+args.recoil
 if args.splitMET:                     args.plot_directory += "_splitMET"
@@ -174,317 +168,103 @@ read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_e
 read_variables += [
             "l1_pdgId/I", "l2_pdgId/I",
             "Jet[pt/F,rawFactor/F,pt_nom/F,eta/F,area/F]", "run/I", "fixedGridRhoFastjetAll/F",
-            "nMuon/I", "Muon[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,pfRelIso04_all/F,phi/F,pt/F,ptErr/F,segmentComp/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,nStations/I,nTrackerLayers/I,pdgId/I,tightCharge/I,highPtId/b,inTimeMuon/O,isGlobal/O,isPFcand/O,isTracker/O,mediumId/O,mediumPromptId/O,miniIsoId/b,multiIsoId/b,mvaId/b,pfIsoId/b,softId/O,softMvaId/O,tightId/O,tkIsoId/b,triggerIdLoose/O,cleanmask/b]",
-            "nElectron/I", "Electron[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,phi/F,pt/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,pdgId/I,tightCharge/I]" 
-            # variables that do not exist for Electron:
-            # "Electron[pfRelIso04_all/F,ptErr/F,segmentComp/F,nStations/I,nTrackerLayers/I,highPtId/b,inTimeMuon/O]" 
-            #,isGlobal/O,isPFcand/O,isTracker/O,mediumId/O,mediumPromptId/O,miniIsoId/b,multiIsoId/b,mvaId/b,pfIsoId/b,softId/O,softMvaId/O,tightId/O,tkIsoId/b,triggerIdLoose/O,cleanmask/b]"
+            "nMuon/I", 
+            "Muon[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,pfRelIso04_all/F,phi/F,pt/F,ptErr/F,segmentComp/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,nStations/I,nTrackerLayers/I,pdgId/I,tightCharge/I,highPtId/b,inTimeMuon/O,isGlobal/O,isPFcand/O,isTracker/O,mediumId/O,mediumPromptId/O,miniIsoId/b,multiIsoId/b,mvaId/b,pfIsoId/b,softId/O,softMvaId/O,tightId/O,tkIsoId/b,triggerIdLoose/O,cleanmask/b]",
+            "nElectron/I",
+            "Electron[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,phi/F,pt/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,pdgId/I,tightCharge/I]" 
             ]
 
 sequence = []
 
-def make_muon_selection( event, sample ):
-    if sample.isData:
-        event.l1_muIndex = -1
-        event.l2_muIndex = -1
-        for i in range(event.nMuon):
-            if event.l1_pt==event.Muon_pt[i]:
-                event.l1_muIndex = i
-            if event.l2_pt==event.Muon_pt[i]:
-                event.l2_muIndex = i
+def make_variables( event, sample ):
+    if sample.mode == "mumu":
+        pdgID = 13
+        lep = "mu"
+        Lepton = "Muon"
+    elif sample.mode == "ee":
+        pdgID = 11
+        lep = "ele"
+        Lepton = "Electron"
 
-    if abs(event.l1_pdgId)==13 and event.l1_muIndex>=0:
-        event.l1_dxy = event.Muon_dxy[event.l1_muIndex]
-        event.l1_dxyErr = event.Muon_dxyErr[event.l1_muIndex]
-        event.l1_dz = event.Muon_dz[event.l1_muIndex]
-        event.l1_dzErr = event.Muon_dzErr[event.l1_muIndex]
-        event.l1_ip3d = event.Muon_ip3d[event.l1_muIndex]
-        event.l1_jetRelIso = event.Muon_jetRelIso[event.l1_muIndex]
-        event.l1_miniPFRelIso_all = event.Muon_miniPFRelIso_all[event.l1_muIndex]
-        event.l1_pfRelIso03_all = event.Muon_pfRelIso03_all[event.l1_muIndex]
-        event.l1_pt = event.Muon_pt[event.l1_muIndex]
-        event.l1_sip3d = event.Muon_sip3d[event.l1_muIndex]
-        event.l1_mvaTTH = event.Muon_mvaTTH[event.l1_muIndex]
-        event.l1_charge = event.Muon_charge[event.l1_muIndex]
-        event.l1_ptErr = event.Muon_ptErr[event.l1_muIndex]
-        event.l1_pfRelIso04_all = event.Muon_pfRelIso04_all[event.l1_muIndex]
-        event.l1_segmentComp = event.Muon_segmentComp[event.l1_muIndex]
-        event.l1_nStations = event.Muon_nStations[event.l1_muIndex]
-        event.l1_nTrackerLayers = event.Muon_nTrackerLayers[event.l1_muIndex]
-        event.l1_highPtId = ord(event.Muon_highPtId[event.l1_muIndex])
-        event.l1_inTimeMuon = event.Muon_inTimeMuon[event.l1_muIndex]
-        event.l1_jetRelIsoCalc = (event.Jet_pt[event.Muon_jetIdx[event.l1_muIndex]]-event.l1_pt)/event.l1_pt
-        event.l1_jetRawPt = event.Jet_pt[event.Muon_jetIdx[event.l1_muIndex]]*(1-event.Jet_rawFactor[event.Muon_jetIdx[event.l1_muIndex]])
-        event.l1_jetRelIsoCalcRaw = (event.l1_jetRawPt-event.l1_pt)/event.l1_pt
-        event.l1_jetRelIsoNom = (event.Jet_pt_nom[event.Muon_jetIdx[event.l1_muIndex]]-event.l1_pt)/event.l1_pt 
-        corrector = corrector_data if sample.isData else corrector_mc
+    for i in [1,2]:
+        if sample.isData:
+            setattr(event, "l"+str(i)+"_"+lep+"Index", -1)
+            for j in range(getattr(event, "n"+Lepton)):
+                if getattr(event, "l"+str(i)+"_pt")==getattr(event, Lepton+"_pt")[j]:
+                    setattr(event, "l"+str(i)+"_"+lep+"Index", j)
+                if getattr(event, "l"+str(i)+"_pt")==getattr(event, Lepton+"_pt")[j]:
+                    setattr(event, "l"+str(i)+"_"+lep+"Index", j)
 
-        event.l1_jetPtRecorrected = event.l1_jetRawPt*corrector.correction( event.l1_jetRawPt, event.Jet_eta[event.Muon_jetIdx[event.l1_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l1_muIndex]], event.fixedGridRhoFastjetAll, event.run ) 
-        event.l1_jetRelIsoRecorr = (event.l1_jetPtRecorrected-event.l1_pt)/event.l1_pt
+        if abs(getattr(event, "l"+str(i)+"_pdgId"))==pdgID and getattr(event, "l"+str(i)+"_"+lep+"Index")>=0:
+            setattr(event, "l"+str(i)+"_dxy", getattr(event, Lepton+"_dxy")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_dxyErr", getattr(event, Lepton+"_dxyErr")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_dz", getattr(event, Lepton+"_dz")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_dzErr", getattr(event, Lepton+"_dzErr")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_ip3d", getattr(event, Lepton+"_ip3d")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_jetRelIso", getattr(event, Lepton+"_jetRelIso")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_miniPFRelIso_all", getattr(event, Lepton+"_miniPFRelIso_all")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_pfRelIso03_all", getattr(event, Lepton+"_pfRelIso03_all")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_pt", getattr(event, Lepton+"_pt")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_sip3d", getattr(event, Lepton+"_sip3d")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_mvaTTH", getattr(event, Lepton+"_mvaTTH")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_charge", getattr(event, Lepton+"_charge")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+            setattr(event, "l"+str(i)+"_jetRelIsoCalc", (event.Jet_pt[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]]-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt"))
+            setattr(event, "l"+str(i)+"_jetRawPt", event.Jet_pt[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]]*(1-event.Jet_rawFactor[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]]))
+            setattr(event, "l"+str(i)+"_jetRelIsoCalcRaw", (getattr(event, "l"+str(i)+"_jetRawPt")-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt"))
+            setattr(event, "l"+str(i)+"_jetRelIsoNom", (event.Jet_pt_nom[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]]-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt") )
 
-        if (event.l1_jetRawPt - event.l1_pt) >= 15:
-            jetPtHad = (event.l1_jetRawPt - event.l1_pt)*corrector.correction( event.l1_jetRawPt - event.l1_pt, event.Jet_eta[event.Muon_jetIdx[event.l1_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l1_muIndex]], event.fixedGridRhoFastjetAll, event.run ) 
+            corrector = corrector_data if sample.isData else corrector_mc
+            setattr(event, "l"+str(i)+"_jetPtRecorrected", getattr(event, "l"+str(i)+"_jetRawPt")*corrector.correction( getattr(event, "l"+str(i)+"_jetRawPt"), event.Jet_eta[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]], event.Jet_area[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]], event.fixedGridRhoFastjetAll, event.run ) )
+            setattr(event, "l"+str(i)+"_jetRelIsoRecorr", (getattr(event, "l"+str(i)+"_jetPtRecorrected")-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt"))
+
+            if (getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt")) >= 15:
+                jetPtHad = (getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt"))*corrector.correction( getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt"), event.Jet_eta[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]], event.Jet_area[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]], event.fixedGridRhoFastjetAll, event.run ) 
+            else:
+                jetPtHad = getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt")
+            setattr(event, "l"+str(i)+"_jetRelIsoRecorrHad", (jetPtHad)/getattr(event, "l"+str(i)+"_pt"))
+
+            # not in Electron
+            if Lepton is "Muon":
+                setattr(event, "l"+str(i)+"_ptErr", getattr(event, Lepton+"_ptErr")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+                setattr(event, "l"+str(i)+"_pfRelIso04_all", getattr(event, Lepton+"_pfRelIso04_all")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+                setattr(event, "l"+str(i)+"_segmentComp", getattr(event, Lepton+"_segmentComp")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+                setattr(event, "l"+str(i)+"_nStations", getattr(event, Lepton+"_nStations")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+                setattr(event, "l"+str(i)+"_nTrackerLayers", getattr(event, Lepton+"_nTrackerLayers")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+                setattr(event, "l"+str(i)+"_highPtId", ord(getattr(event, Lepton+"_highPtId")[getattr(event, "l"+str(i)+"_"+lep+"Index")]))
+                setattr(event, "l"+str(i)+"_inTimeMuon", getattr(event, Lepton+"_inTimeMuon")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
         else:
-            jetPtHad = event.l1_jetRawPt - event.l1_pt
-        event.l1_jetRelIsoRecorrHad = (jetPtHad)/event.l1_pt
+            setattr(event, "l"+str(i)+"_dxy", float('nan'))
+            setattr(event, "l"+str(i)+"_dxyErr", float('nan'))
+            setattr(event, "l"+str(i)+"_dz", float('nan'))
+            setattr(event, "l"+str(i)+"_dzErr", float('nan'))
+            setattr(event, "l"+str(i)+"_ip3d", float('nan'))
+            setattr(event, "l"+str(i)+"_jetRelIso", float('nan'))
+            setattr(event, "l"+str(i)+"_miniPFRelIso_all", float('nan'))
+            setattr(event, "l"+str(i)+"_pfRelIso03_all", float('nan'))
+            setattr(event, "l"+str(i)+"_pt", float('nan'))
+            setattr(event, "l"+str(i)+"_sip3d", float('nan'))
+            setattr(event, "l"+str(i)+"_mvaTTH", float('nan'))
+            setattr(event, "l"+str(i)+"_charge", float('nan'))
 
-        #corrector.correction( rawPt, eta, area, rho, run ) 
-#        if sample.isData: print "rawPt %f eta %f area %f rho %f run %i"%(event.l1_jetRawPt, event.Jet_eta[event.Muon_jetIdx[event.l1_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l1_muIndex]], event.fixedGridRhoFastjetAll, event.run)
-
-        #print "~~~> jetRelIso(tuple) %f, jetRelIso04 %f, jetRelIso(recorrHad) %f"%(event.l1_jetRelIso, event.l1_pfRelIso04_all, event.l1_jetRelIsoRecorrHad)
-
-#        if "data" in sample.name:
-#            print "~~~> jetIdx %i, jetRelIso(tuple) %f, jetRelIso04 %f, jetRelIso(nom) %f, jetRelIso(calc) %f, jetRelIso(raw) %f"%(event.Muon_jetIdx[event.l1_muIndex], event.l1_jetRelIso, event.l1_pfRelIso04_all, event.l1_jetRelIsoNom, event.l1_jetRelIsoCalc, event.l1_jetRelIsoCalcRaw)
-#        if abs(event.l1_jetRelIso-event.l1_pfRelIso04_all)<0.0001: 
-#            print "~~~> jetRelIso == jetRelIso04 (that means no matched jet!) %s"%sample.name
-#            print "~~~> jetIdx %i, jetRelIso(tuple) %f, jetRelIso04 %f, jetRelIso(nom) %f, jetRelIso(calc) %f, jetRelIso(raw) %f, jet_pt %f, l1_pt %f"%(event.Muon_jetIdx[event.l1_muIndex], event.l1_jetRelIso, event.l1_pfRelIso04_all, event.l1_jetRelIsoNom, event.l1_jetRelIsoCalc, event.l1_jetRelIsoCalcRaw, event.Jet_pt[event.Muon_jetIdx[event.l1_muIndex]], event.l1_pt)
-    else:
-        event.l1_dxy = float('nan')
-        event.l1_dxyErr = float('nan')
-        event.l1_dz = float('nan')
-        event.l1_dzErr = float('nan')
-        event.l1_ip3d = float('nan')
-        event.l1_jetRelIso = float('nan')
-        event.l1_miniPFRelIso_all = float('nan')
-        event.l1_pfRelIso03_all = float('nan')
-        event.l1_pt = float('nan')
-        event.l1_sip3d = float('nan')
-        event.l1_mvaTTH = float('nan')
-        event.l1_charge = float('nan')
-        event.l1_ptErr = float('nan')
-        event.l1_pfRelIso04_all = float('nan')
-        event.l1_segmentComp = float('nan')
-        event.l1_nStations = float('nan')
-        event.l1_nTrackerLayers = float('nan')
-        event.l1_highPtId = float('nan')
-        event.l1_inTimeMuon = float('nan')
-        event.l1_jetRelIsoCalc = float('nan')
-        event.l1_jetRelIsoCalcRaw = float('nan')
-        event.l1_jetRawPt = float('nan')
-        event.l1_jetPtRecorrected = float('nan')
-        event.l1_jetRelIsoRecorr = float('nan')
-        event.l1_jetRelIsoRecorrHad = float('nan')
-        event.l1_jetRelIsoNom = float('nan')
-    if abs(event.l2_pdgId)==13 and event.l2_muIndex>=0: 
-        event.l2_dxy = event.Muon_dxy[event.l2_muIndex]
-        event.l2_dxyErr = event.Muon_dxyErr[event.l2_muIndex]
-        event.l2_dz = event.Muon_dz[event.l2_muIndex]
-        event.l2_dzErr = event.Muon_dzErr[event.l2_muIndex]
-        event.l2_ip3d = event.Muon_ip3d[event.l2_muIndex]
-        event.l2_jetRelIso = event.Muon_jetRelIso[event.l2_muIndex]
-        event.l2_miniPFRelIso_all = event.Muon_miniPFRelIso_all[event.l2_muIndex]
-        event.l2_pfRelIso03_all = event.Muon_pfRelIso03_all[event.l2_muIndex]
-        event.l2_pt = event.Muon_pt[event.l2_muIndex]
-        event.l2_sip3d = event.Muon_sip3d[event.l2_muIndex]
-        event.l2_mvaTTH = event.Muon_mvaTTH[event.l2_muIndex]
-        event.l2_charge = event.Muon_charge[event.l2_muIndex]
-        event.l2_ptErr = event.Muon_ptErr[event.l2_muIndex]
-        event.l2_pfRelIso04_all = event.Muon_pfRelIso04_all[event.l2_muIndex]
-        event.l2_segmentComp = event.Muon_segmentComp[event.l2_muIndex]
-        event.l2_nStations = event.Muon_nStations[event.l2_muIndex]
-        event.l2_nTrackerLayers = event.Muon_nTrackerLayers[event.l2_muIndex]
-        event.l2_highPtId = ord(event.Muon_highPtId[event.l2_muIndex])
-        event.l2_inTimeMuon = event.Muon_inTimeMuon[event.l2_muIndex]
-        event.l2_jetRelIsoCalc = (event.Jet_pt[event.Muon_jetIdx[event.l2_muIndex]]-event.l2_pt)/event.l2_pt
-        event.l2_jetRawPt = event.Jet_pt[event.Muon_jetIdx[event.l2_muIndex]]*(1-event.Jet_rawFactor[event.Muon_jetIdx[event.l2_muIndex]])
-        event.l2_jetRelIsoCalcRaw = (event.l2_jetRawPt-event.l2_pt)/event.l2_pt
-        event.l2_jetRelIsoNom = (event.Jet_pt_nom[event.Muon_jetIdx[event.l2_muIndex]]-event.l2_pt)/event.l2_pt 
-        corrector = corrector_data if sample.isData else corrector_mc
-
-        event.l2_jetPtRecorrected = event.l2_jetRawPt*corrector.correction( event.l2_jetRawPt, event.Jet_eta[event.Muon_jetIdx[event.l2_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l2_muIndex]], event.fixedGridRhoFastjetAll, event.run ) 
-        event.l2_jetRelIsoRecorr = (event.l2_jetPtRecorrected-event.l2_pt)/event.l2_pt
-
-        if (event.l2_jetRawPt - event.l2_pt) >= 15:
-            jetPtHad = (event.l2_jetRawPt - event.l2_pt)*corrector.correction( event.l2_jetRawPt - event.l2_pt, event.Jet_eta[event.Muon_jetIdx[event.l2_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l2_muIndex]], event.fixedGridRhoFastjetAll, event.run ) 
-        else:
-            jetPtHad = event.l2_jetRawPt - event.l2_pt
-        event.l2_jetRelIsoRecorrHad = (jetPtHad)/event.l2_pt
-    else:
-        event.l2_dxy = float('nan')
-        event.l2_dxyErr = float('nan')
-        event.l2_dz = float('nan')
-        event.l2_dzErr = float('nan')
-        event.l2_ip3d = float('nan')
-        event.l2_jetRelIso = float('nan')
-        event.l2_miniPFRelIso_all = float('nan')
-        event.l2_pfRelIso03_all = float('nan')
-        event.l2_pt = float('nan')
-        event.l2_sip3d = float('nan')
-        event.l2_mvaTTH = float('nan')
-        event.l2_charge = float('nan')
-        event.l2_ptErr = float('nan')
-        event.l2_pfRelIso04_all = float('nan')
-        event.l2_segmentComp = float('nan')
-        event.l2_nStations = float('nan')
-        event.l2_nTrackerLayers = float('nan')
-        event.l2_highPtId = float('nan')
-        event.l2_inTimeMuon = float('nan')
-        event.l2_jetRelIsoCalc = float('nan')
-        event.l2_jetRelIsoCalcRaw = float('nan')
-        event.l2_jetRawPt = float('nan')
-        event.l2_jetPtRecorrected = float('nan')
-        event.l2_jetRelIsoRecorr = float('nan')
-        event.l2_jetRelIsoRecorrHad = float('nan')
-        event.l2_jetRelIsoNom = float('nan')
+            setattr(event, "l"+str(i)+"_jetRelIsoCalc", float('nan'))
+            setattr(event, "l"+str(i)+"_jetRelIsoCalcRaw", float('nan'))
+            setattr(event, "l"+str(i)+"_jetRawPt", float('nan'))
+            setattr(event, "l"+str(i)+"_jetRelIsoNom", float('nan'))
+            setattr(event, "l"+str(i)+"_jetPtRecorrected", float('nan'))
+            setattr(event, "l"+str(i)+"_jetRelIsoRecorr", float('nan'))
+            setattr(event, "l"+str(i)+"_jetRelIsoRecorrHad", float('nan'))
+            
+            if Lepton is "Muon":
+                setattr(event, "l"+str(i)+"_ptErr", float('nan'))
+                setattr(event, "l"+str(i)+"_pfRelIso04_all", float('nan'))
+                setattr(event, "l"+str(i)+"_segmentComp", float('nan'))
+                setattr(event, "l"+str(i)+"_nStations", float('nan'))
+                setattr(event, "l"+str(i)+"_nTrackerLayers", float('nan'))
+                setattr(event, "l"+str(i)+"_highPtId", float('nan'))
+                setattr(event, "l"+str(i)+"_inTimeMuon", float('nan'))
 
 
-# Only valid for Muon study!!
-def make_minmax_selection( event, sample ):
-    # is there a event.l2_lepIndex ? what is event.l2_index?
-    if event.l1_pdgId == 13 and event.l2_pdgId == 13:
-        corrector = corrector_data if sample.isData else corrector_mc
-
-        l1_jetRelIsoCalc = (event.Jet_pt[event.Muon_jetIdx[event.l1_muIndex]]-event.l1_pt)/event.l1_pt
-        l1_jetRawPt = event.Jet_pt[event.Muon_jetIdx[event.l1_muIndex]]*(1-event.Jet_rawFactor[event.Muon_jetIdx[event.l1_muIndex]])
-        l1_jetRelIsoCalcRaw = (event.l1_jetRawPt-event.l1_pt)/event.l1_pt
-        l1_jetRelIsoNom = (event.Jet_pt_nom[event.Muon_jetIdx[event.l1_muIndex]]-event.l1_pt)/event.l1_pt 
-        l1_jetPtRecorrected = event.l1_jetRawPt*corrector.correction( event.l1_jetRawPt, event.Jet_eta[event.Muon_jetIdx[event.l1_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l1_muIndex]], event.fixedGridRhoFastjetAll, event.run ) 
-        l1_jetRelIsoRecorr = (event.l1_jetPtRecorrected-event.l1_pt)/event.l1_pt
-        if (l1_jetRawPt - event.l1_pt) >= 15:
-            jetPtHad = (l1_jetRawPt - event.l1_pt)*corrector.correction( l1_jetRawPt - event.l1_pt, event.Jet_eta[event.Muon_jetIdx[event.l1_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l1_muIndex]], event.fixedGridRhoFastjetAll, event.run ) 
-        else:
-            jetPtHad = l1_jetRawPt - event.l1_pt
-        l1_jetRelIsoRecorrHad = (jetPtHad)/event.l1_pt
-
-        l2_jetRelIsoCalc = (event.Jet_pt[event.Muon_jetIdx[event.l2_muIndex]]-event.l2_pt)/event.l2_pt
-        l2_jetRawPt = event.Jet_pt[event.Muon_jetIdx[event.l2_muIndex]]*(1-event.Jet_rawFactor[event.Muon_jetIdx[event.l2_muIndex]])
-        l2_jetRelIsoCalcRaw = (event.l2_jetRawPt-event.l2_pt)/event.l2_pt
-        l2_jetRelIsoNom = (event.Jet_pt_nom[event.Muon_jetIdx[event.l2_muIndex]]-event.l2_pt)/event.l2_pt 
-        l2_jetPtRecorr = event.l2_jetRawPt*corrector.correction( event.l2_jetRawPt, event.Jet_eta[event.Muon_jetIdx[event.l2_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l2_muIndex]], event.fixedGridRhoFastjetAll, event.run ) 
-        l2_jetRelIsoRecorr = (event.l2_jetPtRecorrected-event.l2_pt)/event.l2_pt
-        if (l2_jetRawPt - event.l2_pt) >= 15:
-            jetPtHad = (l2_jetRawPt - event.l2_pt)*corrector.correction( l2_jetRawPt - event.l2_pt, event.Jet_eta[event.Muon_jetIdx[event.l2_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l2_muIndex]], event.fixedGridRhoFastjetAll, event.run ) 
-        else:
-            jetPtHad = l2_jetRawPt - event.l2_pt
-        l2_jetRelIsoRecorrHad = (jetPtHad)/event.l2_pt
-
-
-
-        event.l1_dxy = max(event.Muon_dxy[event.l1_muIndex], event.Muon_dxy[event.l2_muIndex])
-        event.l1_dxyErr = max(event.Muon_dxyErr[event.l1_muIndex], event.Muon_dxyErr[event.l2_muIndex])
-        event.l1_dz = max(event.Muon_dz[event.l1_muIndex], event.Muon_dz[event.l2_muIndex])
-        event.l1_dzErr = max(event.Muon_dzErr[event.l1_muIndex], event.Muon_dzErr[event.l2_muIndex])
-        event.l1_ip3d = max(event.Muon_ip3d[event.l1_muIndex], event.Muon_ip3d[event.l2_muIndex])
-        event.l1_jetRelIso = max(event.Muon_jetRelIso[event.l1_muIndex], event.Muon_jetRelIso[event.l2_muIndex])
-        event.l1_miniPFRelIso_all = max(event.Muon_miniPFRelIso_all[event.l1_muIndex], event.Muon_miniPFRelIso_all[event.l2_muIndex])
-        event.l1_pfRelIso03_all = max(event.Muon_pfRelIso03_all[event.l1_muIndex], event.Muon_pfRelIso03_all[event.l2_muIndex])
-        event.l1_pfRelIso04_all = max(event.Muon_pfRelIso04_all[event.l1_muIndex], event.Muon_pfRelIso04_all[event.l2_muIndex])
-        event.l1_pt = max(event.Muon_pt[event.l1_muIndex], event.Muon_pt[event.l2_muIndex])
-        event.l1_ptErr = max(event.Muon_ptErr[event.l1_muIndex], event.Muon_ptErr[event.l2_muIndex])
-        event.l1_segmentComp = max(event.Muon_segmentComp[event.l1_muIndex], event.Muon_segmentComp[event.l2_muIndex])
-        event.l1_sip3d = max(event.Muon_sip3d[event.l1_muIndex], event.Muon_sip3d[event.l2_muIndex])
-        event.l1_mvaTTH = max(event.Muon_mvaTTH[event.l1_muIndex], event.Muon_mvaTTH[event.l2_muIndex])
-        event.l1_charge = max(event.Muon_charge[event.l1_muIndex], event.Muon_charge[event.l2_muIndex])
-        event.l1_nStations = max(event.Muon_nStations[event.l1_muIndex], event.Muon_nStations[event.l2_muIndex])
-        event.l1_nTrackerLayers = max(event.Muon_nTrackerLayers[event.l1_muIndex], event.Muon_nTrackerLayers[event.l2_muIndex])
-        event.l1_pdgId = max(event.Muon_pdgId[event.l1_muIndex], event.Muon_pdgId[event.l2_muIndex])
-        event.l1_highPtId = max(ord(event.Muon_highPtId[event.l1_muIndex]), ord(event.Muon_highPtId[event.l2_muIndex]))
-        event.l1_inTimeMuon = max(event.Muon_inTimeMuon[event.l1_muIndex], event.Muon_inTimeMuon[event.l2_muIndex])
-        #event.l1_mediumId = max(event.Muon_mediumId[event.l1_muIndex], event.Muon_mediumId[event.l2_muIndex])
-        #event.l1_mediumPromptId = max(event.Muon_mediumPromptId[event.l1_muIndex], event.Muon_mediumPromptId[event.l2_muIndex])
-
-        event.l1_jetRelIsoCalc = max(l1_jetRelIsoCalc, l2_jetRelIsoCalc)
-        event.l1_jetRawPt = max(l1_jetRawPt, l2_jetRawPt)
-        event.l1_jetRelIsoCalcRaw = max(l1_jetRelIsoCalcRaw, l2_jetRelIsoCalcRaw)
-        event.l1_jetRelIsoNom = max(l1_jetRelIsoNom, l2_jetRelIsoNom)
-        event.l1_jetPtRecorrected = max(l1_jetPtRecorrected, l2_jetPtRecorrected)
-        event.l1_jetRelIsoRecorr = max(l1_jetRelIsoRecorr, l2_jetRelIsoRecorr)
-        event.l1_jetRelIsoRecorrHad = max(l1_jetRelIsoRecorrHad, l2_jetRelIsoRecorrHad)
-
-        event.l2_dxy = min(event.Muon_dxy[event.l1_muIndex], event.Muon_dxy[event.l2_muIndex])
-        event.l2_dxyErr = min(event.Muon_dxyErr[event.l1_muIndex], event.Muon_dxyErr[event.l2_muIndex])
-        event.l2_dz = min(event.Muon_dz[event.l1_muIndex], event.Muon_dz[event.l2_muIndex])
-        event.l2_dzErr = min(event.Muon_dzErr[event.l1_muIndex], event.Muon_dzErr[event.l2_muIndex])
-        event.l2_ip3d = min(event.Muon_ip3d[event.l1_muIndex], event.Muon_ip3d[event.l2_muIndex])
-        event.l2_jetRelIso = min(event.Muon_jetRelIso[event.l1_muIndex], event.Muon_jetRelIso[event.l2_muIndex])
-        event.l2_miniPFRelIso_all = min(event.Muon_miniPFRelIso_all[event.l1_muIndex], event.Muon_miniPFRelIso_all[event.l2_muIndex])
-        event.l2_pfRelIso03_all = min(event.Muon_pfRelIso03_all[event.l1_muIndex], event.Muon_pfRelIso03_all[event.l2_muIndex])
-        event.l2_pfRelIso04_all = min(event.Muon_pfRelIso04_all[event.l1_muIndex], event.Muon_pfRelIso04_all[event.l2_muIndex])
-        event.l2_pt = min(event.Muon_pt[event.l1_muIndex], event.Muon_pt[event.l2_muIndex])
-        event.l2_ptErr = min(event.Muon_ptErr[event.l1_muIndex], event.Muon_ptErr[event.l2_muIndex])
-        event.l2_segmentComp = min(event.Muon_segmentComp[event.l1_muIndex], event.Muon_segmentComp[event.l2_muIndex])
-        event.l2_sip3d = min(event.Muon_sip3d[event.l1_muIndex], event.Muon_sip3d[event.l2_muIndex])
-        event.l2_mvaTTH = min(event.Muon_mvaTTH[event.l1_muIndex], event.Muon_mvaTTH[event.l2_muIndex])
-        event.l2_charge = min(event.Muon_charge[event.l1_muIndex], event.Muon_charge[event.l2_muIndex])
-        event.l2_nStations = min(event.Muon_nStations[event.l1_muIndex], event.Muon_nStations[event.l2_muIndex])
-        event.l2_nTrackerLayers = min(event.Muon_nTrackerLayers[event.l1_muIndex], event.Muon_nTrackerLayers[event.l2_muIndex])
-        event.l2_pdgId = min(event.Muon_pdgId[event.l1_muIndex], event.Muon_pdgId[event.l2_muIndex])
-        event.l2_highPtId = min(ord(event.Muon_highPtId[event.l1_muIndex]), ord(event.Muon_highPtId[event.l2_muIndex]))
-        event.l2_inTimeMuon = min(event.Muon_inTimeMuon[event.l1_muIndex], event.Muon_inTimeMuon[event.l2_muIndex])
-        #event.l2_mediumId = min(event.Muon_mediumId[event.l1_muIndex], event.Muon_mediumId[event.l2_muIndex])
-        #event.l2_mediumPromptId = min(event.Muon_mediumPromptId[event.l1_muIndex], event.Muon_mediumPromptId[event.l2_muIndex])
-        event.l2_jetRelIsoCalc = min(l1_jetRelIsoCalc, l2_jetRelIsoCalc)
-        event.l2_jetRawPt = min(l1_jetRawPt, l2_jetRawPt)
-        event.l2_jetRelIsoCalcRaw = min(l1_jetRelIsoCalcRaw, l2_jetRelIsoCalcRaw)
-        event.l2_jetRelIsoNom = min(l1_jetRelIsoNom, l2_jetRelIsoNom)
-        event.l2_jetPtRecorrected = min(l1_jetPtRecorrected, l2_jetPtRecorrected)
-        event.l2_jetRelIsoRecorr = min(l1_jetRelIsoRecorr, l2_jetRelIsoRecorr)
-        event.l2_jetRelIsoRecorrHad = min(l1_jetRelIsoRecorrHad, l2_jetRelIsoRecorrHad)
-    else:
-        event.l1_dxy = float('nan')
-        event.l1_dxyErr = float('nan')
-        event.l1_dz = float('nan')
-        event.l1_dzErr = float('nan')
-        event.l1_ip3d = float('nan')
-        event.l1_jetRelIso = float('nan')
-        event.l1_miniPFRelIso_all = float('nan')
-        event.l1_pfRelIso03_all = float('nan')
-        event.l1_pfRelIso04_all = float('nan')
-        event.l1_pt = float('nan')
-        event.l1_ptErr = float('nan')
-        event.l1_segmentComp = float('nan')
-        event.l1_sip3d = float('nan')
-        event.l1_mvaTTH = float('nan')
-        event.l1_charge = float('nan')
-        event.l1_nStations = float('nan')
-        event.l1_nTrackerLayers = float('nan')
-        event.l1_highPtId = float('nan')
-        event.l1_inTimeMuon = float('nan')
-        #event.l1_mediumId = float('nan')
-        #event.l1_mediumPromptId = float('nan')
-        event.l1_jetRelIsoCalc = float('nan')
-        event.l1_jetRawPt = float('nan')
-        event.l1_jetRelIsoCalcRaw = float('nan')
-        event.l1_jetRelIsoNom = float('nan')
-        event.l1_jetPtRecorrected = float('nan')
-        event.l1_jetRelIsoRecorr = float('nan')
-        event.l1_jetRelIsoRecorrHad = float('nan')
-
-        event.l2_dxy = float('nan')
-        event.l2_dxyErr = float('nan')
-        event.l2_dz = float('nan')
-        event.l2_dzErr = float('nan')
-        event.l2_ip3d = float('nan')
-        event.l2_jetRelIso = float('nan')
-        event.l2_miniPFRelIso_all = float('nan')
-        event.l2_pfRelIso03_all = float('nan')
-        event.l2_pfRelIso04_all = float('nan')
-        event.l2_pt = float('nan')
-        event.l2_ptErr = float('nan')
-        event.l2_segmentComp = float('nan')
-        event.l2_sip3d = float('nan')
-        event.l2_mvaTTH = float('nan')
-        event.l2_charge = float('nan')
-        event.l2_nStations = float('nan')
-        event.l2_nTrackerLayers = float('nan')
-        event.l2_highPtId = float('nan')
-        event.l2_inTimeMuon = float('nan')
-        #event.l2_mediumId = float('nan')
-        #event.l2_mediumPromptId = float('nan')
-        event.l2_jetRelIsoCalc = float('nan')
-        event.l2_jetRawPt = float('nan')
-        event.l2_jetRelIsoCalcRaw = float('nan')
-        event.l2_jetRelIsoNom = float('nan')
-        event.l2_jetPtRecorrected = float('nan')
-        event.l2_jetRelIsoRecorr = float('nan')
-        event.l2_jetRelIsoRecorrHad = float('nan')
-
-print "~~~~> Studying %s %s"%(args.study, args.minmax)
-if args.study == "Muon":
-  sequence.append( make_muon_selection )
-else:
-  if args.minmax:
-    sequence.append( make_minmax_selection )
+sequence.append( make_variables )
 
 #
 #
@@ -502,23 +282,28 @@ def getLeptonSelection( mode ):
 #
 yields     = {}
 allPlots   = {}
-allModes   = ['mumu','mue','ee']
+allModes   = ['mumu','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
 
+  # little hack to have mode in sequence
+  for s in [data_sample]+mc:
+    s.mode = mode
+
   data_sample.setSelectionString([getFilterCut(isData=True, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
   data_sample.name           = "data"
-  data_sample.read_variables = ["event/I","run/I"]
+  data_sample.read_variables = ["event/I", "run/I", "reweightHEM/F"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
-  weight_ = lambda event, sample: event.weight*event.reweightHEM
+  data_sample.weight = lambda event, sample: event.weight*event.reweightHEM
+  weight_ = lambda event, sample: event.weight
 
   for sample in mc:
-    sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I", "reweightHEM/F"]
+    sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I", "l1_eleIndex/I", "l2_eleIndex/I", "reweightHEM/F"]
     sample.read_variables += ['reweightPU%s/F'%args.reweightPU if args.reweightPU != "Central" else "reweightPU/F"]
     if args.reweightPU == 'Central':
-        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightHEM
     else:
-        sample.weight         = lambda event, sample: getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightHEM
     sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
@@ -530,6 +315,7 @@ for index, mode in enumerate(allModes):
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper', histo_class=ROOT.TH1D)
+  #Plot.setDefaults(stack = stack, selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper', histo_class=ROOT.TH1D)
   
   plots = []
 
@@ -940,21 +726,21 @@ for index, mode in enumerate(allModes):
   allPlots[mode] = plots
 
 # Add the different channels into SF and all
-for mode in ["SF","all"]:
-  yields[mode] = {}
-  for y in yields[allModes[0]]:
-    try:    yields[mode][y] = sum(yields[c][y] for c in (['ee','mumu'] if mode=="SF" else ['ee','mumu','mue']))
-    except: yields[mode][y] = 0
-  dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
-
-  for plot in allPlots['mumu']:
-    for plot2 in (p for p in (allPlots['ee'] if mode=="SF" else allPlots["mue"]) if p.name == plot.name):  #For SF add EE, second round add EMu for all
-      for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
-	for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
-	  if i==k:
-	    j.Add(l)
-
-  drawPlots(allPlots['mumu'], mode, dataMCScale)
+#for mode in ["SF","all"]:
+#  yields[mode] = {}
+#  for y in yields[allModes[0]]:
+#    try:    yields[mode][y] = sum(yields[c][y] for c in (['ee','mumu'] if mode=="SF" else ['ee','mumu']))
+#    except: yields[mode][y] = 0
+#  dataMCScale = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
+#
+#  for plot in allPlots['mumu']:
+#    for plot2 in (p for p in (allPlots['ee'] if mode=="SF" else allPlots["mue"]) if p.name == plot.name):  #For SF add EE, second round add EMu for all
+#      for i, j in enumerate(list(itertools.chain.from_iterable(plot.histos))):
+#	for k, l in enumerate(list(itertools.chain.from_iterable(plot2.histos))):
+#	  if i==k:
+#	    j.Add(l)
+#
+#  drawPlots(allPlots['mumu'], mode, dataMCScale)
 
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, cutInterpreter.cutString(args.selection) )

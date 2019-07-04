@@ -34,9 +34,10 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--plot_directory',    action='store',      default='v1')
-argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-miniIso0.2-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
+argParser.add_argument('--appendCmds',        action='store_true')
 argParser.add_argument('--dpm',               action='store_true',     help='Use dpm?', )
 argParser.add_argument('--noDYHT',            action='store_true',     help='run without HT-binned DY')
 argParser.add_argument('--scaling',           action='store',      default=None, choices = [None, 'mc', 'top'],     help='Scale top to data in mt2ll<100?')
@@ -69,11 +70,6 @@ elif "2018" in args.era:
 
 logger.info( "Working in year %i", year )
 
-if args.reweightPU == 'Central':
-    nominalPuWeight, upPUWeight, downPUWeight = "reweightPU", "reweightPUUp", "reweightPUDown"
-elif args.reweightPU == 'VUp':
-    nominalPuWeight, upPUWeight, downPUWeight = "reweightPUVUp", "reweightPUVVUp", "reweightPUUp"
-
 def jetSelectionModifier( sys, returntype = "func"):
     #Need to make sure all jet variations of the following observables are in the ntuple
     variiedJetObservables = ['nJetGood', 'nBTag', 'dl_mt2ll', 'dl_mt2blbl', 'MET_significance', 'met_pt', 'metSig']
@@ -100,9 +96,15 @@ def metSelectionModifier( sys, returntype = 'func'):
 
 # these are the nominal MC weights we always apply
 if args.reweightPU == 'Central': 
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightTrackingSF", "reweightL1Prefire"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
 if args.reweightPU == 'VUp':
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightTrackingSF", "reweightL1Prefire"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
+
+# weights to use for PU variation
+if args.reweightPU == 'Central':
+    nominalPuWeight, upPUWeight, downPUWeight = "reweightPU", "reweightPUUp", "reweightPUDown"
+elif args.reweightPU == 'VUp':
+    nominalPuWeight, upPUWeight, downPUWeight = "reweightPUVUp", "reweightPUVVUp", "reweightPUUp"
 
 # weight the MC according to a variation
 def MC_WEIGHT( variation, returntype = "string"):
@@ -128,7 +130,7 @@ def MC_WEIGHT( variation, returntype = "string"):
         return variiedMCWeights
 
 def data_weight( event, sample ):
-    return event.weight
+    return event.weight*event.reweightHEM
 
 data_weight_string = "weight"
 
@@ -151,6 +153,8 @@ variations = {
     'DilepTriggerUp'    : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerUp']]},
     'LeptonSFDown'      : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFDown'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFDown']]},
     'LeptonSFUp'        : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFUp'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFUp']]},
+    'L1PrefireDown'     : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireDown'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireDown']]},
+    'L1PrefireUp'       : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireUp'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireUp']]},
 #    'TopPt':{},
 #   'JERUp':{},
 #   'JERDown':{},
@@ -228,7 +232,7 @@ read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2
 #                  "Jet[pt/F,rawFactor/F,pt_nom/F,eta/F,area/F]", "run/I", "fixedGridRhoFastjetAll/F",
 #                  "nMuon/I", "Muon[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,pfRelIso04_all/F,phi/F,pt/F,ptErr/F,segmentComp/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,nStations/I,nTrackerLayers/I,pdgId/I,tightCharge/I,highPtId/b,inTimeMuon/O,isGlobal/O,isPFcand/O,isTracker/O,mediumId/O,mediumPromptId/O,miniIsoId/b,multiIsoId/b,mvaId/b,pfIsoId/b,softId/O,softMvaId/O,tightId/O,tkIsoId/b,triggerIdLoose/O,cleanmask/b]",
                   #"LepGood[pt/F,eta/F,miniRelIso/F]", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
-                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","event/l"]
+                  "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","event/l","reweightHEM/F"]
 
 sequence = []
 #def corr_recoil( event, sample ):
@@ -402,6 +406,7 @@ for mode in modes:
             texX        = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
             binning     = Binning.fromThresholds(mt2llBinning),
             stack       = stack_data,
+            addOverFlowBin  = 'upper',
             attribute   = TreeVariable.fromString( "dl_mt2ll/F" ),
             weight      = data_weight )
         plots.append( dl_mt2ll_data )
@@ -411,6 +416,7 @@ for mode in modes:
         texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
         binning         = Binning.fromThresholds(mt2llBinning),
         stack           = stack_mc,
+        addOverFlowBin  = 'upper',
         attribute       = TreeVariable.fromString( selectionModifier("dl_mt2ll/F"))   if selectionModifier is not None else None,
         selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
         weight          = mc_weight )
@@ -439,6 +445,27 @@ for mode in modes:
     
 
     if args.selection.count('njet2'):
+        if args.variation == 'central':
+            dl_mt2blbl_fine_data  = Plot( 
+                name = "dl_mt2blbl_fine_data",
+                texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV' if args.normalizeBinWidth else "Number of Events",
+                binning=[420/30,0,400],
+                stack = stack_data,
+                attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+                weight = data_weight,
+                ) 
+            plots.append( dl_mt2blbl_fine_data )
+    
+        dl_mt2blbl_fine_mc  = Plot(
+            name = "dl_mt2blbl_fine_mc",
+            texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV' if args.normalizeBinWidth else "Number of Events",
+            binning=[420/30,0,400],
+            stack = stack_mc,
+            attribute = TreeVariable.fromString( selectionModifier("dl_mt2blbl/F") )      if selectionModifier is not None else None,
+            selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
+            weight          = mc_weight )
+        plots.append( dl_mt2blbl_fine_mc )
+
         if args.variation == 'central':
             dl_mt2blbl_data  = Plot( 
                 name = "dl_mt2blbl_data",
@@ -657,6 +684,7 @@ systematics = [\
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
     {'name': 'JER',        'pair':('jerUp', 'jerDown')},
+    {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
 ]
 
 # loop over modes
@@ -686,26 +714,23 @@ for mode in modes:
             if args.signal is not None: cmd.append( '--signal=%s'%args.signal )
             cmd.append('--era=%s'%args.era)
             cmd.append('--plot_directory=%s'%args.plot_directory)
-            cmd.append('--selection=%s'%args.selection)
-            cmd.append('--variation=%s'%variation)
-            cmd.append('--mode=%s'%args.mode)
-            if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             cmd.append('--reweightPU=%s'%args.reweightPU)
+            cmd.append('--selection=%s'%args.selection)
+            cmd.append('--mode=%s'%args.mode)
+            cmd.append('--variation=%s'%variation)
+            if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             if args.noDYHT: cmd.append('--noDYHT')
-<<<<<<< HEAD
-            if args.dpm: cmg.append('--dpm')
-=======
+            if args.dpm: cmd.append('--dpm')
             if args.overwrite: cmd.append('--overwrite')
             if args.small: cmd.append('--small')
 
->>>>>>> b3d155c8ff8ded6e44e70c9848150c100b845764
             cmd_string = ' '.join( cmd )
             missing_cmds.append( cmd_string )
             logger.info("Missing variation %s, era %s in mode %s in cache. Need to run: \n%s", variation, args.era, mode, cmd_string)
 
 # write missing cmds
 filename = 'missing.sh'
-if os.path.exists(filename):
+if os.path.exists(filename) and args.appendCmds:
     append_write = 'a' # append if already exists
 else:
     append_write = 'w' # make a new file if not
@@ -818,6 +843,7 @@ def drawObjects( scaling, scaleFactor ):
     return [tex.DrawLatex(*l) for l in lines]
 
 # We plot now. 
+if args.beta: plot_subdirectory += "_%s"%args.beta
 for mode in all_modes:
     for i_plot, plot in enumerate(plots):
         
@@ -892,13 +918,14 @@ for mode in all_modes:
             ratio_boxes.append(r_box)
 
         for log in [False, True]:
-            if args.beta is None:
-                plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, mode + ("_log" if log else ""))
-            else:
-                plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, args.beta, mode + ("_log" if log else ""))
+            #if args.beta is None:
+            plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, mode + ("_log" if log else ""))
+            #else:
+            #    plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, args.beta, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
-            if    mode == "all": plot.histos[1][0].legendText = "Data (%s)"%args.era
-            else:                plot.histos[1][0].legendText = "Data (%s, %s)"%(args.mode, args.era)
+            texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
+            if    mode == "all": plot.histos[1][0].legendText = "data (%s)"%args.era
+            else:                plot.histos[1][0].legendText = "data (%s, %s)"%(args.era, texMode)
 
             _drawObjects = []
 
@@ -907,7 +934,7 @@ for mode in all_modes:
               ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
               logX = False, logY = log, sorting = True,
               yRange = (0.03, "auto") if log else (0.001, "auto"),
-              #scaling = {0:1},
+              scaling = {0:1},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
               drawObjects = drawObjects( args.scaling, dataMC_SF[mode]['central'][Top_pow.name] ) + boxes,
               copyIndexPHP = True, extensions = ["png"],
