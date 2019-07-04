@@ -17,6 +17,7 @@ special_cuts = {
 
     "OS":                "(l1_pdgId*l2_pdgId)<0",
     "lepSel":            "l1_pt>30&&l2_pt>20",
+    "lepSel1Tight":      "l1_pt>20&&(!(l2_pt>=0))",
     "lepSelTight":       "l1_pt>40&&l2_pt>20",
     "lepSelEXO":         "l1_pt>25&&l2_pt>10",
     "quadlep":           "Sum$(lep_pt>10&&abs(lep_eta)<2.4&&lep_pfRelIso03_all<0.12)>3",
