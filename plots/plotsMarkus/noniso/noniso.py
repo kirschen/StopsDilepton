@@ -155,8 +155,9 @@ ele_selector_noIso   = eleSelector(  'tightNoIso', year )
 mu_selector_noIso    = muonSelector( 'tightNoIso', year )
 
 def make_noIso(event, sample):
-    event.iso_mt    = float('nan')
-    event.noIso_mt  = float('nan')
+    event.iso_mt        = float('nan')
+    event.noIso_mt      = float('nan')
+    event.noIso_relIso  = float('nan')
 
     noIsoLeptons = getGoodMuons(event, mu_selector = mu_selector_noIso) + getGoodElectrons(event, ele_selector = ele_selector_noIso) 
 
@@ -176,12 +177,12 @@ def make_noIso(event, sample):
         l = loose_leptons[0]
         ll = {"pt": l["pt"], "phi": l["phi"], "eta": l["eta"], "pdgId": l["pdgId"], "miniPFRelIso_all": l['miniPFRelIso_all']}
 
-#        print "non-isolated lepton has pdg id: {}\n mode requires pdg id {}".format(ll["pdgId"], pdgID)
         if abs(ll["pdgId"]) == pdgID:
-#            print ll["pdgId"], pdgID
-            event.iso_mt = sqrt(2*l1["pt"]*event.met_pt*(1-(cos(l1["phi"]-event.met_phi))))
-            event.noIso_mt = sqrt(2*ll["pt"]*event.met_pt*(1-(cos(ll["phi"]-event.met_phi))))
-        
+            event.iso_mt       = sqrt(2*l1["pt"]*event.met_pt*(1-(cos(l1["phi"]-event.met_phi))))
+            event.noIso_mt     = sqrt(2*ll["pt"]*event.met_pt*(1-(cos(ll["phi"]-event.met_phi))))
+            event.noIso_relIso = ll["miniPFRelIso_all"] 
+#        else:
+#            event.weight = 0
 
 sequence.append( make_noIso )
 
@@ -234,6 +235,12 @@ for index, mode in enumerate(allModes):
       name = 'yield', texX = 'yield', texY = 'Number of Events',
       attribute = lambda event, sample: 0.5 + index,
       binning=[2, 0, 2],
+  ))
+  
+  plots.append(Plot(
+      texX = 'relIso of non-isolated lepton', texY = 'Number of Events',
+      name = "noIso_relIso", attribute =lambda event, sample: event.noIso_relIso, 
+      binning=[20, 0, 1.0],
   ))
   
   plots.append(Plot(
