@@ -156,33 +156,32 @@ mu_selector_noIso    = muonSelector( 'tightNoIso', year )
 
 def make_noIso(event, sample):
     event.iso_mt    = float('nan')
-    event.noIso_mt = float('nan')
+    event.noIso_mt  = float('nan')
 
-#        print event.nElectron
-#        isoLeptons =  getGoodMuons(event, mu_selector = mu_selector_iso) + getGoodElectrons(event, ele_selector = ele_selector_iso)
     noIsoLeptons = getGoodMuons(event, mu_selector = mu_selector_noIso) + getGoodElectrons(event, ele_selector = ele_selector_noIso) 
 
-#        print "sum:", str(event.nMuon+event.nElectron), "#iso: ", len(isoLeptons), "#non-iso", len(nonisoLeptons)
     loose_leptons = []
-    for l in noIsoLeptons:#+isoLeptons:
+    for l in noIsoLeptons:
         if l['miniPFRelIso_all'] > 0.2:
-            #print "l_pt", l['pt'], "l_pdgId", l['pdgId'], l['miniPFRelIso_all']
             loose_leptons.append(l)
-    #print "l1: ", event.l1_pt
-    #print "l2: ", event.l2_pt
+    
+    if sample.mode == "mumu" or sample.mode == "emu": # second (non isolated) lepton is a MUON
+        pdgID = 13
+    elif sample.mode == "mue" or sample.mode == "ee": # second (non isolated) lepton is an ELECTRON
+        pdgID = 11
+
     if len(loose_leptons)>0:
-#            for l in loose_leptons:
-#                print l["pt"]
-#            print "\n"
         l1 = {"pt": event.l1_pt, "phi": event.l1_phi, "eta": event.l1_eta, "pdgId": event.l1_pdgId}
 
         l = loose_leptons[0]
         ll = {"pt": l["pt"], "phi": l["phi"], "eta": l["eta"], "pdgId": l["pdgId"], "miniPFRelIso_all": l['miniPFRelIso_all']}
 
-        event.iso_mt = sqrt(2*l1["pt"]*event.met_pt*(1-(cos(l1["phi"]-event.met_phi))))
-        event.noIso_mt = sqrt(2*ll["pt"]*event.met_pt*(1-(cos(ll["phi"]-event.met_phi))))
-        #print event.iso_mt, event.noIso_mt
-        #print l1, "\n", ll
+#        print "non-isolated lepton has pdg id: {}\n mode requires pdg id {}".format(ll["pdgId"], pdgID)
+        if abs(ll["pdgId"]) == pdgID:
+#            print ll["pdgId"], pdgID
+            event.iso_mt = sqrt(2*l1["pt"]*event.met_pt*(1-(cos(l1["phi"]-event.met_phi))))
+            event.noIso_mt = sqrt(2*ll["pt"]*event.met_pt*(1-(cos(ll["phi"]-event.met_phi))))
+        
 
 sequence.append( make_noIso )
 
@@ -190,33 +189,35 @@ sequence.append( make_noIso )
 #
 # default offZ for SF
 def getLeptonSelection( mode ):
-  if   mode=="mu": return "nGoodMuons==1"
-  elif mode=="e":  return "nGoodElectrons==1"
+  if   mode=="mumu": return "nGoodMuons==1"
+  elif mode=="mue":  return "nGoodMuons==1"
+  elif mode=="emu":  return "nGoodElectrons==1"
+  elif mode=="ee":   return "nGoodElectrons==1"
 
 # Loop over channels
 
 yields     = {}
 allPlots   = {}
-allModes   = ['mu','e']
+allModes   = ['mumu','mue', 'emu', 'ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
   
+  for s in [data_sample]+mc:
+    s.mode = mode            # hack to have mode in sequence
+
   data_sample.setSelectionString([getFilterCut(isData=True, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["event/I", "run/I", "reweightHEM/F"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
-  weight_ = lambda event, sample: event.weight*event.reweightHEM
+  weight_                    = lambda event, sample: event.weight*event.reweightHEM
   
   for sample in mc:
-      sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I", "reweightHEM/F"]
+      sample.read_variables  = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I", "reweightHEM/F"]
       sample.read_variables += ['reweightPU%s/F'%args.reweightPU if args.reweightPU != "Central" else "reweightPU/F"]
-      #if args.reweightPU == 'Central':
       #    sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightHEM
-      #else:
-      sample.weight         = lambda event, sample: getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+      sample.weight          = lambda event, sample: getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
       sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
  
-  print "\n\n", sample.selectionString, "\n\n" 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
   
   if not args.noData:
@@ -236,21 +237,15 @@ for index, mode in enumerate(allModes):
   ))
   
   plots.append(Plot(
-      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-      attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-      binning=[300/20, 100,400], 
-  ))
-  
-  plots.append(Plot(
       texX = 'M_T for isolated lepton (GeV)', texY = 'Number of Events / 10 GeV',
       name = "iso_mT", attribute =lambda event, sample: event.iso_mt, 
-      binning=[200/10, 0, 200],
+      binning=[400/10, 0, 400],
   ))
   
   plots.append(Plot(
       texX = 'M_T for non-isolated lepton (GeV)', texY = 'Number of Events / 10 GeV',
       name = "noIso_mT", attribute =lambda event, sample: event.noIso_mt, 
-      binning=[200/10, 0, 200],
+      binning=[400/10, 0, 400],
   ))
   
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
