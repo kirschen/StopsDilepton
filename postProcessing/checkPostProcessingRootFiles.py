@@ -132,7 +132,10 @@ for ppEntry in dictList:
 
     # more than one files
     if ppEntry['nFiles']>1:
-        job_ids = [ int(item.rstrip('.root').split('_')[-1]) for item in rootFiles ]
+        try:
+            job_ids = [ int(item.rstrip('.root').split('_')[-1]) for item in rootFiles ]
+        except:
+            print rootFiles
     # one file
     elif ppEntry['nFiles']==1 and rootFiles[0].endswith(sample+'.root'):
         job_ids = [0]
