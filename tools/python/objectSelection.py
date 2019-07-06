@@ -240,16 +240,23 @@ def eleSelector( lepton_selection, year, ptCut = 10):
                 and cbEleSelector_(l['vidNestedWPBitmap']) \
                 and l["miniPFRelIso_all"] < 0.2
     elif lepton_selection == 'tightNoIso':
+        cbEleSelector_ = cbEleSelector( 'tight', removeCuts = ['GsfEleRelPFIsoScaledCut'] )
         def func(l):
             return \
                 l["pt"]                 >= ptCut \
                 and abs(l["eta"])       < 2.4 \
-                and ( l['cutBased']       >= 4 or l['mvaFall17V2noIso_WP80'] )\
-                and l["convVeto"] \
-                and ord(l["lostHits"])  == 0 \
-                and l["sip3d"]          < 4.0 \
-                and abs(l["dxy"])       < 0.05 \
-                and abs(l["dz"])        < 0.1
+                and cbEleSelector_(l['vidNestedWPBitmap']) 
+#    elif lepton_selection == 'tightNoIso':
+#        def func(l):
+#            return \
+#                l["pt"]                 >= ptCut \
+#                and abs(l["eta"])       < 2.4 \
+#                and ( l['cutBased']       >= 4 or l['mvaFall17V2noIso_WP80'] )\
+#                and l["convVeto"] \
+#                and ord(l["lostHits"])  == 0 \
+#                and l["sip3d"]          < 4.0 \
+#                and abs(l["dxy"])       < 0.05 \
+#                and abs(l["dz"])        < 0.1
     elif lepton_selection == 'medium':
         def func(l):
             return \

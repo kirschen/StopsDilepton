@@ -33,7 +33,7 @@ argParser.add_argument('--dpm',                                   action='store_
 argParser.add_argument('--overwrite', action='store_true',  help='overwrite?',)
 argParser.add_argument('--reweightPU',         action='store', default='Central', choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
 argParser.add_argument('--plot_directory',  default='v0',  action='store',)
-argParser.add_argument('--selection', action='store', default='lepSel-njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection', action='store', default='lepSel-njet2p-btag1p-miniIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 
 args = argParser.parse_args()
 
@@ -244,6 +244,7 @@ def makeNonIsoLeptons( event, sample ):
     electrons_lowPt_noIso  = getGoodElectrons(event, ele_selector = ele_selector_noIso)
     muons_lowPt_noIso      = getGoodMuons(event, mu_selector = mu_selector_noIso )
     
+    print muons_lowPt_noIso
     extra_electrons_lowPt_noIso = [ l for l in electrons_lowPt_noIso if l['pt'] not in [ event.l1_pt, event.l2_pt] ]
     extra_muons_lowPt_noIso     = [ l for l in muons_lowPt_noIso     if l['pt'] not in [ event.l1_pt, event.l2_pt] ]
 
