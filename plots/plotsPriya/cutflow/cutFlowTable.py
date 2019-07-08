@@ -148,25 +148,29 @@ if args.small:
 #multiIsoWPMT = multiIsoLepString('M','T', ('l1_index','l2_index'))
 relIso04sm12Cut =   "&&".join(["LepGood_relIso04["+ist+"]<0.12" for ist in ('l1_index','l2_index')])
 
-weight_string = 'weight*reweightLeptonTrackingSF*reweightBTag_SF*reweightLeptonSF*reweightDilepTrigger*reweightPU'
+weight_string = 'weight*reweightLeptonTrackingSF*reweightBTag_SF*reweightLeptonSF*reweightDilepTrigger*reweightPU*reweightL1Prefire'
 
 
 cuts=[
   ("==2 relIso03<0.12 leptons,l1 pt > 30, l2pt > 20",  "$n_{\\textrm{lep.}==2}$",       "nGoodMuons+nGoodElectrons==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>30&&l2_pt>20"),
-  ("opposite sign",              "opposite charge",       "isOS==1"),
-  ("looseLeptonVeto",            "loose lepton veto",       "(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2"),
-  ("m(ll)>20",                   "$M(ll)>20$ GeV",       "dl_mass>20"),
-  ("|m(ll) - mZ|>15 for SF",     "$|M(ll)-M_{Z}| > 15$ GeV (SF)",       "( (isMuMu==1||isEE==1)&&abs(dl_mass-91.1876)>=15 || isEMu==1 )"),
+  ("opposite sign",              "opposite charge",                    "isOS==1"),
+  ("looseLeptonVeto",            "loose lepton veto",                  "(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2"),
+  ("m(ll)>20",                   "$M(ll)>20$ GeV",                     "dl_mass>20"),
+  ("|m(ll) - mZ|>15 for SF",     "$|M(ll)-M_{Z}| > 15$ GeV (SF)",      "( (isMuMu==1||isEE==1)&&abs(dl_mass-91.1876)>=15 || isEMu==1 )"),
   (">=2 jets",                   "$n_{jet}>=2$",       "nJetGood>=2"),
   (">=1 b-tags (CSVv2)",         "$n_{b-tag}>=1$",       "nBTag>=1"),
-  ("MET_significance >= 12",     "$E_{T}^{miss}$ significance",       "MET_significance>=12"), 
+  ("MET_significance >= 12",     "$E_{T}^{miss}$ significance",        "MET_significance>=12"), 
  # ("MET>80",                     "$\\ETmiss>80$ GeV",       "met_pt>80"),
  # ("MET/sqrt(HT)>5",             "$\\ETmiss/\\sqrt{H_{T}}>5$",       "met_pt/sqrt(ht)>5."),
   ("dPhiJetMET",                 "$\\phi(\\ETmiss, jets)$ veto",       "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
-  ("MT2(ll) > 140",              "$M_{T2}(ll)>140$ GeV",       "dl_mt2ll>140"),
+  #2018:
+  ("HEMJetVetoWide",             "HEMJetVetoWide",                     "Sum$(Jet_pt>20&&Jet_eta<-1.0&&Jet_eta>-3.2&&Jet_phi<-0.5&&Jet_phi>-2.0)==0"),
+  #2017:
+  #("badEEJetVeto",               "badEEJetVeto",                       "Sum$((2.6<abs(Jet_eta)&&abs(Jet_eta)<3&&Jet_pt>30))==0"),
+  ("MT2(ll) > 140",              "$M_{T2}(ll)>140$ GeV",               "dl_mt2ll>140"),
     ]
 
-path = "/afs/hephy.at/user/p/phussain/www/stopsDilepton/analysisPlots/%i"%args.year
+path = "/afs/hephy.at/user/p/phussain/www/stopsDilepton/analysisPlots/v02/%i"%args.year
 if not os.path.exists( path ):
     os.makedirs(path)
 

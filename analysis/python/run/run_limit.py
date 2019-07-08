@@ -330,6 +330,7 @@ def wrapper(s):
                         #print "Process", name, "uncertainty scale", uncScale
                         c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
+                        #if not niceName.count('controlTTBar'):
                             c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
                             c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
                             c.specifyUncertainty('JER',      binname, name, 1 + 0.03 )#e.JERSystematic(        r, channel, setup).val * uncScale )

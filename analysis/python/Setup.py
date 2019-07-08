@@ -1,5 +1,6 @@
 #Standard import
 import copy
+import os
 
 # RootTools
 from RootTools.core.standard import *
@@ -12,19 +13,18 @@ logger = logging.getLogger(__name__)
 from StopsDilepton.tools.user       import analysis_results
 from StopsDilepton.tools.helpers    import getObjFromFile
 
-#define samples
-from StopsDilepton.samples.nanoTuples_Summer16_postProcessed            import *
-from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed   import *
-from StopsDilepton.samples.nanoTuples_Fall17_postProcessed              import *
-from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed   import *
-from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed            import *
-from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed  import *
-
 from StopsDilepton.analysis.SystematicEstimator         import jmeVariations, metVariations
 from StopsDilepton.analysis.SetupHelpers                import getZCut, channels, allChannels, trilepChannels, allTrilepChannels
 from StopsDilepton.analysis.fastSimGenMetReplacements   import fastSimGenMetReplacements
 from Analysis.Tools.metFilters                          import getFilterCut
 
+##define samples
+#from StopsDilepton.samples.nanoTuples_Summer16_postProcessed            import *
+#from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed   import *
+#from StopsDilepton.samples.nanoTuples_Fall17_postProcessed              import *
+#from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed   import *
+#from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed            import *
+#from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed  import *
 #Define defaults here
 zMassRange            = 15
 default_mllMin        = 20
@@ -63,29 +63,36 @@ class Setup:
         }
 
         self.puWeight = 'reweightPUVUp' if self.year == 2018 else 'reweightPU'
-        self.sys = {'weight':'weight', 'reweight':[self.puWeight, 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger', 'reweightL1Prefire'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
+        self.sys = {'weight':'weight', 'reweight':[self.puWeight, 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger', 'reweightL1Prefire','reweightHEM'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
 
         if year == 2016:
+            #define samples
+            from StopsDilepton.samples.nanoTuples_Summer16_postProcessed            import Top_pow_16, DY_HT_LO_16, TTZ_16, multiBoson_16,TTXNoZ_16
             top         = Top_pow_16
             DY          = DY_HT_LO_16
             TTZ         = TTZ_16
             multiBoson  = multiBoson_16
             TTXNoZ      = TTXNoZ_16
+            from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed   import Run2016
             data        = Run2016
         elif year == 2017:
+            from StopsDilepton.samples.nanoTuples_Fall17_postProcessed              import Top_pow_17, DY_HT_LO_17, TTZ_17, multiBoson_17, TTXNoZ_17
             top         = Top_pow_17
             DY          = DY_HT_LO_17
             TTZ         = TTZ_17
             multiBoson  = multiBoson_17
             TTXNoZ      = TTXNoZ_17
+            from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed   import Run2017 
             data        = Run2017  
             #data        = Run2017BCDE
         elif year == 2018:
+            from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed            import Top_pow_18, DY_HT_LO_18, TTZ_18, multiBoson_18, TTXNoZ_18 
             top         = Top_pow_18
             DY          = DY_HT_LO_18
             TTZ         = TTZ_18
             multiBoson  = multiBoson_18
             TTXNoZ      = TTXNoZ_18
+            from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed  import Run2018 
             data        = Run2018
 
         self.samples = {
@@ -274,13 +281,13 @@ class Setup:
               #res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2')
               res['cuts'].append('(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2')
 
-              res['prefixes'].append('relIso0.12')
-              res['cuts'].append("l1_relIso03<0.12&&l2_relIso03<0.12")
+              res['prefixes'].append('miniIso0.2')
+              res['cuts'].append("l1_miniRelIso<0.2&&l2_miniRelIso<0.2")
 
               # add HEMJetVetoWide in 2018
-              if self.year == 2018:
-                res['prefixes'].append('HEMJetVetoWide')
-                res['cuts'].append("Sum$(Jet_pt>20&&Jet_eta<-1.0&&Jet_eta>-3.2&&Jet_phi<-0.5&&Jet_phi>-2.0)==0")
+             # if self.year == 2018:
+             #   res['prefixes'].append('HEMJetVetoWide')
+             #   res['cuts'].append("Sum$(Jet_pt>20&&Jet_eta<-1.0&&Jet_eta>-3.2&&Jet_phi<-0.5&&Jet_phi>-2.0)==0")
               # add BadeeJetVeto in 2017
               if self.year == 2017:
                 res['prefixes'].append('BadEEJetVeto')

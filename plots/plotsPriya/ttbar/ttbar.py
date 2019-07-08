@@ -27,8 +27,8 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',           action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='v0combined')
-argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag1p-relIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-priya')
+argParser.add_argument('--plot_directory',     action='store',      default='v02')
+argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag1p-relIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
@@ -54,10 +54,11 @@ if args.noBadChargedCandidateFilter:  args.plot_directory += "_noBadChargedCandi
 from Analysis.Tools.puReweighting import getReweightingFunction
 
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+#from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
+#from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
 
-samples = [ Top_pow_16, Top_pow_17, Top_pow_18 ]
+#samples = [ Top_pow_16, Top_pow_17, Top_pow_18 ]
+samples = [ Top_pow_16]
 
 if args.small:
     for sample in samples:
@@ -107,19 +108,19 @@ read_variables += [
             "Muon[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,pfRelIso04_all/F,phi/F,pt/F,ptErr/F,segmentComp/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,nStations/I,nTrackerLayers/I,pdgId/I,tightCharge/I,highPtId/b,inTimeMuon/O,isGlobal/O,isPFcand/O,isTracker/O,mediumId/O,mediumPromptId/O,miniIsoId/b,multiIsoId/b,mvaId/b,pfIsoId/b,softId/O,softMvaId/O,tightId/O,tkIsoId/b,triggerIdLoose/O,genPartIdx/I,genPartFlav/b,cleanmask/b]"
             ]
 
-read_variables += ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F']
+read_variables += ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', 'reweightL1Prefire/F']
 
 sequence = []
 
-def make_jet_weight( event, sample):
-
-    jet_pt_mism = [ abs(event.JetGood_pt[i] - event.JetGood_genPt[i]) for i in range( event.nJetGood ) ]
-
-    event.onlyGoodJets = max( jet_pt_mism )<40
-
-sequence.append( make_jet_weight ) 
-
-def make_lepton_selection( event, sample ):
+#def make_jet_weight( event, sample):
+#
+#    jet_pt_mism = [ abs(event.JetGood_pt[i] - event.JetGood_genPt[i]) for i in range( event.nJetGood ) ]
+#
+#    event.onlyGoodJets = max( jet_pt_mism )<40
+#
+#sequence.append( make_jet_weight ) 
+#
+#def make_lepton_selection( event, sample ):
 
     # 0 unmatched, 1 prompt (gamma*) , 15 tau, 22 prompt photon (conv), 5 b, 4 c, 3 light/unknown
     # remember: if type is /b use ord()
@@ -128,18 +129,18 @@ def make_lepton_selection( event, sample ):
        # print ord(event.Muon_genPartFlav[event.l1_muIndex])
 #    if event.l2_muIndex>=0:
 #        print event.Muon_pt[event.l2_muIndex], event.l2_pt
-    event.PrPr = 0
-    event.tauX=0
-    event.unmatchX=0
-    if (ord(event.Muon_genPartFlav[event.l1_muIndex])==1 and ord(event.Muon_genPartFlav[event.l2_muIndex])==1) or (ord(event.Muon_genPartFlav[event.l2_muIndex])==1 and ord(event.Muon_genPartFlav[event.l1_muIndex])==1):
-        #if ord(event.Muon_genPartFlav[event.l2_muIndex])==1 and ord(event.Muon_genPartFlav[event.l1_muIndex])==1: 
-         print ord(event.Muon_genPartFlav[event.l1_muIndex])
-         event.PrPr = 1    
-    elif ord(event.Muon_genPartFlav[event.l1_muIndex])==15 or ord(event.Muon_genPartFlav[event.l2_muIndex])==15:
-        event.tauX = 1
-    elif ord(event.Muon_genPartFlav[event.l1_muIndex])==0 or ord(event.Muon_genPartFlav[event.l2_muIndex])==0:
-        event.unmatchX = 1
-sequence.append( make_lepton_selection )
+#    event.PrPr = 0
+#    event.tauX=0
+#    event.unmatchX=0
+#    if (ord(event.Muon_genPartFlav[event.l1_muIndex])==1 and ord(event.Muon_genPartFlav[event.l2_muIndex])==1) or (ord(event.Muon_genPartFlav[event.l2_muIndex])==1 and ord(event.Muon_genPartFlav[event.l1_muIndex])==1):
+#        #if ord(event.Muon_genPartFlav[event.l2_muIndex])==1 and ord(event.Muon_genPartFlav[event.l1_muIndex])==1: 
+#         print ord(event.Muon_genPartFlav[event.l1_muIndex])
+#         event.PrPr = 1    
+#    elif ord(event.Muon_genPartFlav[event.l1_muIndex])==15 or ord(event.Muon_genPartFlav[event.l2_muIndex])==15:
+#        event.tauX = 1
+#    elif ord(event.Muon_genPartFlav[event.l1_muIndex])==0 or ord(event.Muon_genPartFlav[event.l2_muIndex])==0:
+#        event.unmatchX = 1
+#sequence.append( make_lepton_selection )
 
 
 
@@ -173,21 +174,22 @@ for index, mode in enumerate(allModes):
     sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
 
   Top_pow_16.setSelectionString([getFilterCut(isData=False, year=2016, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
-  Top_pow_17.setSelectionString([getFilterCut(isData=False, year=2017, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
-  Top_pow_18.setSelectionString([getFilterCut(isData=False, year=2018, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
+  #Top_pow_17.setSelectionString([getFilterCut(isData=False, year=2017, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
+  #Top_pow_18.setSelectionString([getFilterCut(isData=False, year=2018, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
 
   Top_pow_16.style = styles.lineStyle(ROOT.kBlue, errors = True)
-  Top_pow_17.style = styles.lineStyle(ROOT.kGreen, errors = True)
-  Top_pow_18.style = styles.lineStyle(ROOT.kRed, errors = True)
+  #Top_pow_17.style = styles.lineStyle(ROOT.kGreen, errors = True)
+  #Top_pow_18.style = styles.lineStyle(ROOT.kRed, errors = True)
   Top_pow_16.name += "_2016"
-  Top_pow_17.name += "_2017"
-  Top_pow_18.name += "_2018"
+  #Top_pow_17.name += "_2017"
+  #Top_pow_18.name += "_2018"
   Top_pow_16.texName += " (2016)"
-  Top_pow_17.texName += " (2017)"
-  Top_pow_18.texName += " (2018)"
+  #Top_pow_17.texName += " (2017)"
+  #Top_pow_18.texName += " (2018)"
 
   #stack = Stack( *list([s] for s in samples) )
-  stack = Stack( Top_pow_16,Top_pow_17, Top_pow_18 )
+  stack = Stack( Top_pow_16 )
+  #stack = Stack( Top_pow_16,Top_pow_17, Top_pow_18 )
  # stack = Stack(event.PrPr, event.onlyGoodJets  )
 
  # Use some defaults
@@ -195,42 +197,42 @@ for index, mode in enumerate(allModes):
   
   plots = []
 
-  plots.append(Plot(
-    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+  plots.append(Plot( name = "w_o_L1Prefire",
+    texX = 'M_{T2}(ll) (GeV) ', texY = 'Number of Events / 20 GeV',
     attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
     #attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
     binning=[400/20, 0,400]),
   )
 
-  plots.append(Plot( name = "dl_mt2ll_onlyGoodJets",
-     texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-     attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-     weight = lambda event, sample: event.onlyGoodJets, 
-     binning=[400/20, 0,400]),
-  )
-  plots.append(Plot( name = "dl_mt2ll_onlyPromptPair",
-    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-    weight = lambda event, sample: event.PrPr , 
-    binning=[400/20, 0,400]),
- 
- )
+ # plots.append(Plot( name = "dl_mt2ll_onlyGoodJets",
+ #    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+ #    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+ #    weight = lambda event, sample: event.onlyGoodJets, 
+ #    binning=[400/20, 0,400]),
+ # )
+ # plots.append(Plot( name = "dl_mt2ll_onlyPromptPair",
+ #   texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+ #   attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+ #   weight = lambda event, sample: event.PrPr , 
+ #   binning=[400/20, 0,400]),
+ #
+ #)
 
-  plots.append(Plot( name = "dl_mt2ll_onetau",
-    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-    weight = lambda event, sample: event.tauX ,  
-    binning=[400/20, 0,400]),
- 
- )
+ # plots.append(Plot( name = "dl_mt2ll_onetau",
+ #   texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+ #   attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+ #   weight = lambda event, sample: event.tauX ,  
+ #   binning=[400/20, 0,400]),
+ #
+ #)
 
-  plots.append(Plot( name = "dl_mt2ll_oneunmatched",
-    texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-    attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-    weight = lambda event, sample:  event.unmatchX,  
-    binning=[400/20, 0,400]),
- 
- )
+ # plots.append(Plot( name = "dl_mt2ll_oneunmatched",
+ #   texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+ #   attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+ #   weight = lambda event, sample:  event.unmatchX,  
+ #   binning=[400/20, 0,400]),
+ #
+ #)
 
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
