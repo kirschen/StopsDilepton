@@ -2,6 +2,9 @@
 /afs/hephy.at/data/dspitzbart02/StopsDileptonLegacy/results/v1/2017/signalOnly/limits/T2tt/T2tt/limitResults.root
 
 /afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v1//comb/signalOnly/limits/T2tt/T2tt/limitResults.root
+
+/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v2/2017/fitAll/limits/T2tt/T2tt/limitResults.root
+
 '''
 
 #!/usr/bin/env python
@@ -29,13 +32,14 @@ from optparse import OptionParser
 parser = OptionParser()
 #parser.add_option("--file",             dest="filename",    default=None,   type="string", action="store",  help="Which file?")
 parser.add_option("--signal",           action='store',     default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW", "T8bbllnunu_XCha0p5_XSlep0p09", "ttHinv"], help="which signal?")
-parser.add_option("--year",             dest="year",        default=2016,   type="int",    action="store",  help="Which year?")
+parser.add_option("--year",             dest="year",   type="int",    action="store",  help="Which year?")
 
 (options, args) = parser.parse_args()
 #year = int(options.year)
 signalString = options.signal
 #defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
-defFile = os.path.join(analysis_results, "comb/signalOnly/limits/%s/%s/limitResults.root"%(signalString,signalString))
+#defFile = os.path.join(analysis_results, "comb/signalOnly/limits/%s/%s/limitResults.root"%(signalString,signalString))
+defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
 
 print defFile
 if options.year == 2016:
@@ -47,7 +51,8 @@ elif options.year == 2017:
 elif options.year == 2018:
     lumi    = 60 
     #eraText =  "(2018)"
-
+else:
+     lumi = 138.4
 def toGraph2D(name,title,length,x,y,z):
     result = ROOT.TGraph2D(length)
     result.SetName(name)
@@ -65,9 +70,11 @@ def toGraph2D(name,title,length,x,y,z):
 
 
 ifs = defFile.split('/')
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_FR_combined')
+#plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_FR_combined')
 
 #plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_FR_%i'%options.year)
+
+plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_limitAll_FR_%i'%options.year)
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 
@@ -187,7 +194,7 @@ for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
   histsCol[i + "_smooth"] = histsCol[i + "_int"].Clone(i + "_smooth")
   histsCol[i + "_smooth"].Smooth(1,"k5b")
 
-ROOT.gStyle.SetPadRightMargin(0.15)
+ROOT.gStyle.SetPadRightMargin(0.05)
 c1 = ROOT.TCanvas()
 niceColorPalette(255)
 
@@ -236,7 +243,7 @@ fileIN = inputFile('SMS_limit.cfg')
 
 # classic temperature histogra
 xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "asdf")
-xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-2,10) )
+xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-3,10) )
 xsecPlot.Save("%sXSEC" %outputname)
 
 temp = ROOT.TFile("tmp.root","update")

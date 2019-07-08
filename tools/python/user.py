@@ -44,7 +44,7 @@ if os.environ['USER'] in ['phussain']:
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     # directory with veto lists
-    analysis_results        = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v2/'
+    analysis_results        = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
     MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
     MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'

@@ -191,42 +191,6 @@ for sample in mc:
 
 sequence = []
 
-#def make_jet_weight( event, sample):
-#
-#    jet_pt_mism = [ abs(event.JetGood_pt[i] - event.JetGood_genPt[i]) for i in range( event.nJetGood ) ]
-#    event.onlyGoodJets = max( jet_pt_mism )>= 50
-#    #for i in range(event.nJetGood):
-#       # print sample.name
-#       # print jet_pt_mism[i]
-#sequence.append( make_jet_weight ) 
-#
-#def make_lepton_selection( event, sample ):
-#
-#    # 0 unmatched, 1 prompt (gamma*) , 15 tau, 22 prompt photon (conv), 5 b, 4 c, 3 light/unknown
-#    # remember: if type is /b use ord()
-#    #if event.l1_muIndex>=0 and  ord(event.Muon_genPartFlav[event.l1_muIndex])==1:
-#       # print event.Muon_pt[event.l1_muIndex], event.l1_pt
-#       # print ord(event.Muon_genPartFlav[event.l1_muIndex])
-##    if event.l2_muIndex>=0:
-##        print event.Muon_pt[event.l2_muIndex], event.l2_pt
-#    event.PrPr = 0
-#    event.PrX = 0
-#    event.tauX=0
-#    event.unmatchX=0
-#    if (ord(event.Muon_genPartFlav[event.l1_muIndex])==1 and ord(event.Muon_genPartFlav[event.l2_muIndex])!=1) or (ord(event.Muon_genPartFlav[event.l2_muIndex])!=1 and ord(event.Muon_genPartFlav[event.l1_muIndex])==1):
-#        #if ord(event.Muon_genPartFlav[event.l2_muIndex])==1 and ord(event.Muon_genPartFlav[event.l1_muIndex])==1: 
-#        # print ord(event.Muon_genPartFlav[event.l1_muIndex])
-#        event.PrPr = 1    
-#    elif ord(event.Muon_genPartFlav[event.l1_muIndex])==15 or ord(event.Muon_genPartFlav[event.l2_muIndex])==15:
-#        event.tauX = 1
-#    elif ord(event.Muon_genPartFlav[event.l1_muIndex])==0 or ord(event.Muon_genPartFlav[event.l2_muIndex])==0:
-#        event.unmatchX = 1
-#    elif ord(event.Muon_genPartFlav[event.l1_muIndex])==1 or ord(event.Muon_genPartFlav[event.l2_muIndex])==1:
-#        event.PrX = 1
-#sequence.append( make_lepton_selection )
-
-#
-#
 # default offZ for SF
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
 def getLeptonSelection( mode ):
@@ -248,30 +212,24 @@ for index, mode in enumerate(allModes):
   data_sample.setSelectionString([getFilterCut(isData=True, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
   data_sample.name           = "data"
   #data_sample.texName        = "%s"
-  data_sample.read_variables = ["event/I","run/I"]
+  data_sample.read_variables = ["event/I","run/I", "reweightHEM/F"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
-  weight_ = lambda event, sample: event.weight
+                    weight_  = lambda event, sample: event.weight * event.reweightHEM
 
   for sample in mc:
     sample.read_variables += ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F','reweightL1Prefire/F','reweightHEM/F']
     if args.reweightPU and args.reweightPU not in ["noPUReweighting", "nvtx"]:
-        sample.read_variables.append( 'reweightPU%s/F'%args.reweightPU )
-    #    if year == 2017:
-    #        logger.info("Getting PU profile and weight for sample %s", sample.name)
-    #        puProfiles = puProfile( source_sample = sample )
-    #        mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
-    #        nTrueInt_puRW = getReweightingFunction(data="PU_2017_41860_XSec%s"%args.reweightPU, mc=mcHist)
-
+        sample.read_variables.append('reweightPU/F' if args.reweightPU=='Central' else 'reweightPU%s/F'%args.reweightPU )
     if args.reweightPU == "noPUReweighting":
-        sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire*event.reweightHEM
+        sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
     elif args.reweightPU == "nvtx":
-        sample.weight         = lambda event, sample: nvtx_puRW(event.PV_npvsGood) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire*event.reweightHEM
+        sample.weight         = lambda event, sample: nvtx_puRW(event.PV_npvsGood) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
     elif args.reweightPU:
-        pu_getter = operator.attrgetter("reweightPU%s"%args.reweightPU)
-        sample.weight         = lambda event, sample: pu_getter(event) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire*event.reweightHEM
+        pu_getter = operator.attrgetter('reweightPU' if args.reweightPU=='Central' else "reweightPU%s"%args.reweightPU)
+        sample.weight         = lambda event, sample: pu_getter(event) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
     else: #default
 
-        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire*event.reweightHEM
+        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
     sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
    # # Four TTbar with different selections 
   TTbars = [copy.deepcopy(mc[0]) for i in range(4)] 

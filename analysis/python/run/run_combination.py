@@ -8,13 +8,15 @@ import os
 import argparse
 from RootTools.core.Sample import Sample
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--logLevel',       action='store',      default='INFO',         nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
-argParser.add_argument("--signal",         action='store',      default='T2tt',         nargs='?', choices=["T2tt"], help="which signal scan?")
-argParser.add_argument("--model",          action='store',      default='dim6top_LO',   nargs='?', choices=["dim6top_LO", "ewkDM"], help="which signal model?")
-argParser.add_argument("--only",           action='store',      default=None,           nargs='?',                                                                                           help="pick only one signal point?")
-argParser.add_argument("--includeCR",      action='store_true', help="Do simultaneous SR and CR fit")
-argParser.add_argument("--expected",      action='store_true', help="Do simultaneous SR and CR fit")
-argParser.add_argument("--calcNuisances",  action='store_true', help="Extract the nuisances and store them in text files?")
+argParser.add_argument('--logLevel',       action='store',        default='INFO',         nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
+argParser.add_argument("--signal",         action='store',        default='T2tt',         nargs='?', choices=["T2tt"],                  help="which signal scan?")
+argParser.add_argument("--overwrite",      action = "store_true", default = False,                                                      help="Overwrite existing output files")
+
+argParser.add_argument("--model",          action='store',        default='dim6top_LO',   nargs='?', choices=["dim6top_LO", "ewkDM"],   help="which signal model?")
+argParser.add_argument("--only",           action='store',        default=None,           nargs='?',                                                                                           help="pick only one signal point?")
+argParser.add_argument("--includeCR",      action='store_true',                                                                         help="Do simultaneous SR and CR fit")
+argParser.add_argument("--expected",       action='store_true',                                                                         help="Do simultaneous SR and CR fit")
+argParser.add_argument("--calcNuisances",  action='store_true',                                                                         help="Extract the nuisances and store them in text files?")
 
 
 args = argParser.parse_args()
@@ -42,9 +44,11 @@ setup = Setup(2016)
 
 years = [2016,2017,2018]
 
+overWrite = args.overwrite
 #controlRegions = 'controlAll'
-controlRegions = 'signalOnly'
-
+controlRegions = 'fitAll'
+#controlRegions = 'signalOnly'
+#controlRegions = 'controlDYVV'
 def wrapper(s):
 
     logger.info("Now working on %s", s.name)
@@ -71,6 +75,7 @@ def wrapper(s):
     cacheFileName = os.path.join(limitDir, 'calculatedLimits')
     limitCache    = Cache(cacheFileName, verbosity=2)
 
+
     # run combine and store results in sqlite database
     if not os.path.isdir(limitDir):
         os.makedirs(limitDir)
@@ -86,7 +91,7 @@ def wrapper(s):
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
     elif args.signal == "ttHinv":                       sConfig = ("ttHinv", "2l")
 
-    overWrite = False
+    #overWrite = False
 
     if not overWrite and limitCache.contains(sConfig):
         
@@ -94,10 +99,11 @@ def wrapper(s):
         logger.info("Found result for %s, reusing", s.name)
 
     else:
-        
+        print "*" *100
         combinedCard = c.combineCards( cards )
         res = c.calcLimit(combinedCard)
-
+        print res 
+        print "+"*10
         if args.calcNuisances:
             c.calcNuisances(combinedCard)
 
@@ -149,10 +155,10 @@ def wrapper(s):
 
 
 
-            #print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
-            limitCache.add(sConfig, res)
-            logger.info("Adding results to database")
-            logger.info("Results stored in %s", limitDir )
+        #print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
+        limitCache.add(sConfig, res)
+        logger.info("Adding results to database")
+        logger.info("Results stored in %s", limitDir )
 
 
     if res:
@@ -165,7 +171,7 @@ def wrapper(s):
         elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":    sString = "mStop %i mNeu %i" % sConfig
         elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":   sString = "mStop %i mNeu %i" % sConfig
         elif args.signal == "ttHinv":                         sString = "ttH->inv"
-    print sString, res
+    #print sString, res
     try:
         print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
         return sConfig, res
@@ -174,12 +180,11 @@ def wrapper(s):
         return None
 
 if args.signal == "T2tt":
-    data_directory              = '/afs/hephy.at/data/dspitzbart03/nanoTuples/'
-    postProcessing_directory    = 'stops_2017_nano_v0p7/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
+    postProcessing_directory    = 'stops_2017_nano_v0p13/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
 
-allJobs = [j.name for j in jobs]
-
+allJobs = [j for j in jobs if j.name != 'T2tt_150_63']
 if args.only is not None:
     if args.only.isdigit():
         wrapper(jobs[int(args.only)])
@@ -187,8 +192,8 @@ if args.only is not None:
         jobNames = [ x.name for x in jobs ]
         wrapper(jobs[jobNames.index(args.only)])
     exit(0)
-
-results = map(wrapper, jobs)
+#i= [j for j in jobs if j.name != 'T2tt_150_63']    
+results = map(wrapper, allJobs)
 results = [r for r in results if r]
 
 #########################################################################################
