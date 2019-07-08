@@ -11,7 +11,7 @@ import itertools
 # StopsDilepton/Analysis
 from StopsDilepton.tools.cutInterpreter import cutInterpreter
 from StopsDilepton.tools.helpers import deltaR
-from Samples.Tools.metFilters           import getFilterCut
+from Analysis.Tools.metFilters           import getFilterCut
 
 # RootTools
 from RootTools.core.standard import *

@@ -15,7 +15,7 @@ from math                                import sqrt, cos, sin, pi, atan2, cosh
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi, deltaR
-from Samples.Tools.metFilters            import getFilterCut
+from Analysis.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
 from Analysis.Tools.puProfileCache import *
@@ -34,7 +34,7 @@ argParser.add_argument('--dataMCScaling',      action='store_true',     help='Da
 argParser.add_argument('--DYInc',              action='store_true',     help='Use Inclusive DY sample?', )
 argParser.add_argument('--plot_directory',     action='store',      default='v0p3')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
-argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--nvtxReweightSelection',          action='store',      default=None)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
@@ -44,6 +44,7 @@ argParser.add_argument('--blinded',            action='store_true', default=Fals
 argParser.add_argument('--reweightPU',         action='store', default='Central', choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
 argParser.add_argument('--isr',                action='store_true', default=False)
 argParser.add_argument('--plotUPara',          action='store_true',     help='Plot u_para?', )
+#argParser.add_argument('--splitDiBoson',       action='store_true',     help='Split diBoson?' )
 argParser.add_argument('--splitMET',           action='store_true',     help='Split in MET bins?' )
 argParser.add_argument('--splitMETSig',        action='store_true',     help='Split in METSig bins?' )
 argParser.add_argument('--splitNvtx',          action='store_true',     help='Split in Nvtx bins?' )
@@ -881,6 +882,12 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+    texX = 'I_{mini}(l_{1})', texY = 'Number of Events',
+    name = 'l1_miniRelIso', attribute = lambda event, sample: event.l1_miniRelIso, read_variables = ['l1_miniRelIso/F'],
+    binning=[20,0,.5],
+  ))
+
+  plots.append(Plot(
     texX = 'pdgId(l1)', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "l1_pdgId/I" ),
     binning=[30,-15,15],
@@ -902,6 +909,12 @@ for index, mode in enumerate(allModes):
     texX = '#phi(l_{2})', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "l2_phi/F" ),
     binning=[10,-pi,pi],
+  ))
+  
+  plots.append(Plot(
+    texX = 'I_{mini}(l_{2})', texY = 'Number of Events',
+    name = 'l2_miniRelIso', attribute = lambda event, sample: event.l2_miniRelIso, read_variables = ['l2_miniRelIso/F'],
+    binning=[20,0,.5],
   ))
 
   plots.append(Plot(

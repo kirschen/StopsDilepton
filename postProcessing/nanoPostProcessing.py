@@ -224,7 +224,7 @@ if isData and options.triggerSelection:
     era = extractEra(samples[0].name)[-1]
     print "######### Era %s ########"%era
     ts = triggerSelector(options.year, era=era)
-    triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
+    triggerCond  = ts.getSelection(options.samples[0] if isData else "MC")
     treeFormulas = {"triggerDecision": {'string':triggerCond} }
 
     logger.info("Sample will have the following trigger skim: %s"%triggerCond)
@@ -489,7 +489,7 @@ branchKeepStrings_DATA = [ ]
 jetCorrInfo = []
 jetMCInfo   = ['genJetIdx/I','hadronFlavour/I']
 
-if sample.isData:
+if isData:
     lumiScaleFactor=None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_DATA
     from FWCore.PythonUtilities.LumiList import LumiList

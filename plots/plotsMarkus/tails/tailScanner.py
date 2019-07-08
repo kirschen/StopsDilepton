@@ -1,7 +1,7 @@
 ''' Tail Scanner
 '''
 import ROOT
-from Samples.Tools.metFilters            import getFilterCut
+from Analysis.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 
 import argparse
