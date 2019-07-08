@@ -299,7 +299,7 @@ class Setup:
               
         res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), year=self.year, isFastSim=isFastSim))
         if dataMC=='Data' and self.year == 2018:
-            res['cuts'].append('HEMJetVeto>0')
+            res['cuts'].append('reweightHEM>0')
         res['cuts'].extend(self.externalCuts)
 
 
