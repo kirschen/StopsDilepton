@@ -219,12 +219,9 @@ else:
 
 L1PW = L1PrefireWeight(options.year)
 
-if sample.isData and options.triggerSelection:
+if isData and options.triggerSelection:
     from StopsDilepton.tools.triggerSelector import triggerSelector
-    if isData:
-        era = extractEra(samples[0].name)[-1]
-    else:
-        era = None
+    era = extractEra(samples[0].name)[-1]
     print "######### Era %s ########"%era
     ts = triggerSelector(options.year, era=era)
     triggerCond  = ts.getSelection(options.samples[0] if sample.isData else "MC")
@@ -232,6 +229,8 @@ if sample.isData and options.triggerSelection:
 
     logger.info("Sample will have the following trigger skim: %s"%triggerCond)
     skimConds.append( triggerCond )
+elif isData and not options.triggerSelection:
+    raise Exception( "Data should have a trigger selection" )
 
 sample_name_postFix = ""
 

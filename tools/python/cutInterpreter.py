@@ -64,6 +64,7 @@ special_cuts = {
     "metVetoPhiPeak":   "(!(met_phi>-1.2&&met_phi<-0.6))",
     "leadingMu":        "abs(l1_pdgId)==13",
     "leadingE":         "abs(l1_pdgId)==11",
+    "Jet12Central":     "abs(JetGood_eta[0])<1.5&&abs(JetGood_eta[1])<1.5"
 
   }
 
