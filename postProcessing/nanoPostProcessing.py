@@ -58,6 +58,9 @@ xSecModifications = {
 # central configuration
 targetLumi = 1000 #pb-1 Which lumi to normalize to
 
+def extractEra(sampleName):
+    return sampleName[sampleName.find("Run"):sampleName.find("Run")+len('Run2000A')]
+
 def get_parser():
     ''' Argument parser for post-processing module.
     '''
@@ -65,7 +68,7 @@ def get_parser():
     argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
 
     argParser.add_argument('--logLevel',    action='store',         nargs='?',  choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],   default='INFO', help="Log level for logging" )
-    argParser.add_argument('--sample',      action='store',         nargs='*',  type=str, default=None,                  help="MiniAOD signal sample to be postprocessed" )
+    argParser.add_argument('--samples',     action='store',         nargs='*',  type=str, default=['TTZToLLNuNu_ext'],                  help="List of samples to be post-processed, given as CMG component name" )
     argParser.add_argument('--eventsPerJob',action='store',         nargs='?',  type=int, default=30000000,                             help="Maximum number of events per job (Approximate!)." )
     argParser.add_argument('--nJobs',       action='store',         nargs='?',  type=int, default=1,                                    help="Maximum number of simultaneous jobs." )
     argParser.add_argument('--job',         action='store',                     type=int, default=0,                                    help="Run only jobs i" )
@@ -106,7 +109,7 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as _logger
-logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, options.sample, os.environ['USER'], str(0 if options.nJobs==1 else options.job))
+logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job))
 logger  = _logger.get_logger(options.logLevel, logFile = logFile)
 
 #import Analysis.Tools.logger as _logger_an
@@ -125,6 +128,8 @@ def fill_vector_collection( event, collection_name, collection_varnames, objects
                 if type(obj[var]) == type(True):
                     obj[var] = int(obj[var])
                 getattr(event, collection_name+"_"+var)[i_obj] = obj[var]
+
+#_logger.   add_fileHandler( user.data_output_directory + '/logs/%s_%s_debug.txt'%(options.samples[0], options.job), options.logLevel )
 
 # Flags 
 isDiLep         = options.skim.lower().startswith('dilep')
