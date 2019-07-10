@@ -5,7 +5,7 @@ import itertools
 from math                                import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory, analysis_results
-from Samples.Tools.metFilters            import getFilterCut
+from Analysis.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.samples.color import color
 

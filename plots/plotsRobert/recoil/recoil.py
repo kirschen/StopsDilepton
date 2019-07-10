@@ -16,7 +16,7 @@ from RootTools.core.standard             import *
 # StopsDilepton
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi, map_level
-from Samples.Tools.metFilters            import getFilterCut
+from Analysis.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.GaussianFit     import GaussianFit
 from StopsDilepton.plots.pieChart        import makePieChart

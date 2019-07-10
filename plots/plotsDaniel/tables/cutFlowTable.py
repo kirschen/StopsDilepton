@@ -98,7 +98,7 @@ relIso04sm12Cut =   "&&".join(["LepGood_relIso04["+ist+"]<0.12" for ist in ('l1_
 lumiFac = 60.0
 #lumiFac = 1
 
-from Samples.Tools.metFilters import getFilterCut
+from Analysis.Tools.metFilters import getFilterCut
 
 filters = getFilterCut(2018)
 #presel = '&&Flag_goodVertices&&Flag_HBHENoiseIsoFilter&&Flag_HBHENoiseFilter&&Flag_globalTightHalo2016Filter&&Flag_eeBadScFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_badChargedHadronSummer2016'

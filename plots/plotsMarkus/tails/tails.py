@@ -9,7 +9,7 @@ from distutils.spawn import find_executable
 
 # StopsDilepton/Analysis
 from StopsDilepton.tools.cutInterpreter import cutInterpreter
-from Samples.Tools.metFilters           import getFilterCut
+from Analysis.Tools.metFilters           import getFilterCut
 
 # RootTools
 from RootTools.core.standard import *

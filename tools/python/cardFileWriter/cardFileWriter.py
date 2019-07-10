@@ -389,6 +389,9 @@ class cardFileWriter:
         os.system(combineCommand)
 
         tempResFile = uniqueDirname+"/higgsCombineTest.AsymptoticLimits.mH120.root"
+
+        #print tempResFile  
+
         try:
             res= self.readResFile(tempResFile)
         except:

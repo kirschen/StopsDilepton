@@ -16,7 +16,7 @@ from StopsDilepton.tools.mt2Calculator   import mt2Calculator
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 
 # Samples
-from Samples.Tools.metFilters            import getFilterCut
+from Analysis.Tools.metFilters            import getFilterCut
 
 # argParser
 import argparse

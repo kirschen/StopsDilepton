@@ -16,7 +16,7 @@ from math                         import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard      import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaR, deltaPhi, getObjDict, getVarValue
-from Samples.Tools.metFilters import getFilterCut
+from Analysis.Tools.metFilters import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 
 #
