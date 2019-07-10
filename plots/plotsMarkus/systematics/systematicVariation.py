@@ -720,7 +720,6 @@ for mode in modes:
             cmd.append('--variation=%s'%variation)
             if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             if args.noDYHT: cmd.append('--noDYHT')
-            if args.dpm: cmd.append('--dpm')
             if args.overwrite: cmd.append('--overwrite')
             if args.small: cmd.append('--small')
 
