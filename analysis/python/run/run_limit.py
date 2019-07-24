@@ -169,6 +169,7 @@ elif args.signal == "ttHinv":
 
 
 scaleUncCache = Cache(setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal, verbosity=2)
+print setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal
 isrUncCache   = Cache(setup.analysis_results+'/systematics/isr_%s.pkl'   % args.signal, verbosity=2)
 PDF = ['TTLep_pow', 'DY', 'multiboson', 'TTZ'] 
 PDFUncCaches   = {p:Cache(setup.analysis_results+'/systematicsTest_v2/PDF_%s.pkl' %p, verbosity=2) for p in PDF}
@@ -396,6 +397,8 @@ def wrapper(s):
                   c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
+                  print eSignal.name, r, channel
+                  print "signal scale",getScaleUnc(eSignal.name, r, channel)
                   if not args.signal == "ttHinv": c.specifyUncertainty('isr',      binname, 'signal', 1 + abs(getIsrUnc(  eSignal.name, r, channel)))
 
                   if fastSim: 
@@ -409,21 +412,21 @@ def wrapper(s):
                   c.specifyUncertainty(uname, binname, 'signal', 1 + signal.sigma/signal.val )
             
                   # add all signal uncertainties to print out max
-                  if counter < 26:
-                    systematicUncertainties["PU"].append(e.PUSystematic(r, channel, signalSetup).val)
-                    systematicUncertainties["PDF"].append(getPDFUncSignal(s.name, r, channel))
-                    systematicUncertainties["xsec_QCD"].append(1.092)
-                    systematicUncertainties["xsec_PDF"].append(1.036)
-                    systematicUncertainties["JEC"].append(e.JECSystematic(        r, channel, signalSetup).val)
-                    systematicUncertainties["unclEn"].append(e.unclusteredSystematic(r, channel, signalSetup).val)
-                    systematicUncertainties["JER"].append(e.JERSystematic(        r, channel, signalSetup).val)
-                    systematicUncertainties["SFb"].append(e.btaggingSFbSystematic(r, channel, signalSetup).val)
-                    systematicUncertainties["SFl"].append(e.btaggingSFlSystematic(r, channel, signalSetup).val)
-                    systematicUncertainties["trigger"].append(e.triggerSystematic(    r, channel, signalSetup).val)
-                    systematicUncertainties["leptonSF"].append(e.leptonSFSystematic(   r, channel, signalSetup).val)
-                    systematicUncertainties["scale"].append(getScaleUnc(eSignal.name, r, channel))
-                    systematicUncertainties["MCstat"].append(signal.sigma/signal.val)
-                    #systematicUncertainties[""].append()
+                  #if counter < 26:
+                  #  systematicUncertainties["PU"].append(e.PUSystematic(r, channel, signalSetup).val)
+                  #  systematicUncertainties["PDF"].append(getPDFUncSignal(s.name, r, channel))
+                  #  systematicUncertainties["xsec_QCD"].append(1.092)
+                  #  systematicUncertainties["xsec_PDF"].append(1.036)
+                  #  systematicUncertainties["JEC"].append(e.JECSystematic(        r, channel, signalSetup).val)
+                  #  systematicUncertainties["unclEn"].append(e.unclusteredSystematic(r, channel, signalSetup).val)
+                  #  systematicUncertainties["JER"].append(e.JERSystematic(        r, channel, signalSetup).val)
+                  #  systematicUncertainties["SFb"].append(e.btaggingSFbSystematic(r, channel, signalSetup).val)
+                  #  systematicUncertainties["SFl"].append(e.btaggingSFlSystematic(r, channel, signalSetup).val)
+                  #  systematicUncertainties["trigger"].append(e.triggerSystematic(    r, channel, signalSetup).val)
+                  #  systematicUncertainties["leptonSF"].append(e.leptonSFSystematic(   r, channel, signalSetup).val)
+                  #  systematicUncertainties["scale"].append(getScaleUnc(eSignal.name, r, channel))
+                  #  systematicUncertainties["MCstat"].append(signal.sigma/signal.val)
+                  #  #systematicUncertainties[""].append()
                     
                 else:
                   uname = 'Stat_'+binname+'_signal'
@@ -452,12 +455,12 @@ def wrapper(s):
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
     elif args.signal == "ttHinv":                       sConfig = ("ttHinv", "2l")
 
-    # Print the systematic uncertainties
-    print
-    print "Systematic uncertainties"
-    print "{:10}{:10}{:10}".format("name", "min", "max")
-    for syst in systematicUncertainties.keys():
-        print "{:10}{:10.2f}{:10.2f}".format(syst, min(systematicUncertainties[syst])*100, max(systematicUncertainties[syst])*100)
+    ## Print the systematic uncertainties
+    #print
+    #print "Systematic uncertainties"
+    #print "{:10}{:10}{:10}".format("name", "min", "max")
+    #for syst in systematicUncertainties.keys():
+    #    print "{:10}{:10.2f}{:10.2f}".format(syst, min(systematicUncertainties[syst])*100, max(systematicUncertainties[syst])*100)
 
     if not args.significanceScan:
         if useCache and not overWrite and limitCache.contains(sConfig):

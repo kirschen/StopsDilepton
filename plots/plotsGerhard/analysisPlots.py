@@ -231,7 +231,7 @@ for index, mode in enumerate(allModes):
             sample.reduceFiles( to = 1 )
 
   # Use some defaults
-  Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
+  Plot.setDefaults(stack = stack, weight = weight_, selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper')
   
   plots = []
 

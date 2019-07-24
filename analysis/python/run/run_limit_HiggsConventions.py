@@ -86,13 +86,13 @@ setupTTZ4.regions = noRegions
 setupTTZ5.regions = noRegions
 
 # Define estimators for CR
-setup.estimators     = constructEstimatorList(["TTJets-DD","TTZ","DY", 'multiBoson', 'other'])
-setupDYVV.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTTZ1.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTTZ2.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTTZ3.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTTZ4.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTTZ5.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
+setup.estimators     = constructEstimatorList(["TTJets-DD","TTZ","DY", 'multiBoson', 'rare'])
+setupDYVV.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'rare'])
+setupTTZ1.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'rare'])
+setupTTZ2.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'rare'])
+setupTTZ3.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'rare'])
+setupTTZ4.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'rare'])
+setupTTZ5.estimators = constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'rare'])
 
 if args.fitAll:        setups = [setup, setupDYVV, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 elif args.controlDYVV: setups = [setupDYVV]
@@ -169,6 +169,7 @@ elif args.signal == "ttHinv":
 
 
 scaleUncCache = Cache(setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal, verbosity=2)
+print setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal
 isrUncCache   = Cache(setup.analysis_results+'/systematics/isr_%s.pkl'   % args.signal, verbosity=2)
 PDF = ['TTLep_pow', 'DY', 'multiboson', 'TTZ'] 
 PDFUncCaches   = {p:Cache(setup.analysis_results+'/systematicsTest_v2/PDF_%s.pkl' %p, verbosity=2) for p in PDF}
@@ -218,8 +219,8 @@ def wrapper(s):
         counter=0
         c.reset()
         c.setPrecision(3)
-        c.addUncertainty('CMS_PU',                  'lnN')
-        c.addUncertainty('CMS_topPt',               'lnN')
+        c.addUncertainty('CMS_pileup',              'lnN')
+        c.addUncertainty('CMS_ttHinv2l_topPt',      'lnN')
         c.addUncertainty('CMS_scale_j',             'lnN')
         c.addUncertainty('CMS_scale_unclEn',        'lnN')
         c.addUncertainty('CMS_res_j',               'lnN')
@@ -231,17 +232,18 @@ def wrapper(s):
         c.addUncertainty('QCDscale_ttbar_ACCEPT',   'lnN')
         c.addUncertainty('QCDscale_ttZ_ACCEPT',     'lnN')
         c.addUncertainty('QCDscale_ttH',            'lnN')
-        c.addUncertainty('pdf_gg',                  'lnN')
-        c.addUncertainty('pdf_higgs_ttH_xsec',      'lnN')
-        c.addUncertainty('CMS_topGaus',             'lnN')
-        c.addUncertainty('CMS_topNonGaus',          'lnN')
-        c.addUncertainty('CMS_topFakes',            'lnN')
-        c.addUncertainty('CMS_multiBoson',          'lnN')
-        c.addUncertainty('CMS_DY',                  'lnN')
-        c.addUncertainty('CMS_DY_SR',               'lnN')
-        c.addUncertainty('CMS_ttZ_SR',              'lnN')
-        c.addUncertainty('CMS_ttZ',                 'lnN')
-        c.addUncertainty('CMS_rare',                'lnN')
+        c.addUncertainty('pdf_gg_ACCEPT',           'lnN')
+        c.addUncertainty('pdf_higgs_ttH',           'lnN')
+        c.addUncertainty('pdf_higgs_ttH_ACCEPT',    'lnN')
+        c.addUncertainty('CMS_ttHinv2l_topGaus',    'lnN')
+        c.addUncertainty('CMS_ttHinv2l_topNonGaus', 'lnN')
+        c.addUncertainty('CMS_ttHinv2l_topFakes',   'lnN')
+        c.addUncertainty('CMS_ttHinv2l_multiBoson', 'lnN')
+        c.addUncertainty('CMS_ttHinv2l_DYxsec',     'lnN')
+        c.addUncertainty('CMS_ttHinv2l_DYSF',       'lnN')
+        c.addUncertainty('CMS_ttHinv2l_ttZSF',      'lnN')
+        c.addUncertainty('CMS_ttHinv2l_ttZxsec',    'lnN')
+        c.addUncertainty('CMS_ttHinv2l_rare',       'lnN')
         if fastSim:
             c.addUncertainty('btagFS',   'lnN')
             c.addUncertainty('leptonFS', 'lnN')
@@ -317,46 +319,46 @@ def wrapper(s):
                         if 'TTJets' in name: uncScale = 1#./sqrt(norm_G**2 + norm_NG**2 + norm_F**2) # scaling of uncertainties to be used in the future
                         else: uncScale = 1
                         #print "Process", name, "uncertainty scale", uncScale
-                        c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('trigger',  binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale )
-                        c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('CMS_pileup',          binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('CMS_scale_j',         binname, name, 1 + max([e.JECSystematic(        r, channel, setup).val * uncScale, 0.0]) )
+                        c.specifyUncertainty('CMS_scale_unclEn',    binname, name, 1 + max([e.unclusteredSystematic(r, channel, setup).val * uncScale, 0.0]) )
+                        c.specifyUncertainty('CMS_res_j',           binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('CMS_ttHinv2l_topPt',  binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('CMS_btag_heavy',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('CMS_btag_light',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('CMS_eff_trigger',     binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('CMS_eff_l',           binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale )
                         
                         if e.name.count('TTJets'):
-                            c.specifyUncertainty('scaleTT', binname, name, 1+getScaleUncBkg('TTLep_pow', r, channel,'TTLep_pow'))
-                            c.specifyUncertainty('PDF',     binname, name, 1+getPDFUnc('TTLep_pow', r, channel,'TTLep_pow'))
+                            c.specifyUncertainty('QCDscale_ttbar_ACCEPT', binname, name, 1+getScaleUncBkg('TTLep_pow', r, channel,'TTLep_pow'))
+                            c.specifyUncertainty('pdf_gg_ACCEPT',     binname, name, 1+getPDFUnc('TTLep_pow', r, channel,'TTLep_pow'))
                             #c.specifyUncertainty('top', binname, name, 2 if (setup.regions != noRegions and r == setup.regions[-1]) else 1.5)
 
                         if name == 'TTJetsG':
-                            c.specifyUncertainty('topGaus',  binname, name, 1.15)#1.15
+                            c.specifyUncertainty('CMS_ttHinv2l_topGaus',  binname, name, 1.15)#1.15
 
                         if name == 'TTJetsNG':
-                            c.specifyUncertainty('topNonGaus', binname, name, 1.30)#1.3
+                            c.specifyUncertainty('CMS_ttHinv2l_topNonGaus', binname, name, 1.30)#1.3
 
                         if name == 'TTJetsF':
-                            c.specifyUncertainty('topFakes', binname, name, 1.50)#1.5
+                            c.specifyUncertainty('CMS_ttHinv2l_topFakes', binname, name, 1.50)#1.5
 
-                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.5)
+                        if e.name.count('multiBoson'): c.specifyUncertainty('CMS_ttHinv2l_multiBoson', binname, name, 1.5)
 
                         if e.name.count('DY'):
-                            c.specifyUncertainty('DY',         binname, name, 1/(1+0.5))#1.5
+                            c.specifyUncertainty('CMS_ttHinv2l_DYxsec',         binname, name, 1/(1+0.5))#1.5
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0:
-                                c.specifyUncertainty("DY_SR", binname, name, 1.25)
+                                c.specifyUncertainty("CMS_ttHinv2l_DYSF", binname, name, 1.25)
 
                         if e.name.count('TTZ'):
-                            c.specifyUncertainty('ttZ',        binname, name, 1.2)
-                            c.specifyUncertainty('scaleTTZ',binname, name, 1+getScaleUncBkg('TTZ', r, channel,'TTZ'))
-                            c.specifyUncertainty('PDF',     binname, name, 1+getPDFUnc('TTZ', r, channel,'TTZ'))
+                            c.specifyUncertainty('CMS_ttHinv2l_ttZxsec',        binname, name, 1.2)
+                            c.specifyUncertainty('QCDscale_ttZ_ACCEPT',binname, name, 1+getScaleUncBkg('TTZ', r, channel,'TTZ'))
+                            c.specifyUncertainty('pdf_gg_ACCEPT',     binname, name, 1+getPDFUnc('TTZ', r, channel,'TTZ'))
 
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0:
-                                c.specifyUncertainty("ttZ_SR", binname, name, 1.20)
+                                c.specifyUncertainty("CMS_ttHinv2l_ttZSF", binname, name, 1.20)
 
-                        if e.name.count('other'):      c.specifyUncertainty('rare',      binname, name, 1.25) # change to "rare" to avoid comments from Higgs
+                        if e.name.count('rare'):      c.specifyUncertainty('CMS_ttHinv2l_rare',      binname, name, 1.25) # change to "rare" to avoid comments from Higgs
 
                         #MC bkg stat (some condition to neglect the smaller ones?)
                         uname = 'Stat_'+binname+'_'+name
@@ -380,21 +382,23 @@ def wrapper(s):
 
                 if signal.val>0:
                   if not fastSim:
-                    c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
-                    c.specifyUncertainty('PDF',      binname, 'signal', 1 + getPDFUncSignal(s.name, r, channel))
+                    c.specifyUncertainty('CMS_pileup',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
+                    c.specifyUncertainty('pdf_higgs_ttH_ACCEPT',      binname, 'signal', 1 + getPDFUncSignal("ttH_HToInvisible_M125", r, channel))
+                    print getPDFUncSignal(s.name, r, channel)
                     if args.signal == "ttHinv":
                         # x-sec uncertainties for ttH: https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBSMAt13TeV#ttH_Process
-                        c.specifyUncertainty('xsec_QCD',      binname, 'signal', 1.092)
-                        c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
-                  c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
-                  c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
-                  c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
-                  c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
-                  c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
-
+                        c.specifyUncertainty('QCDscale_ttH',      binname, 'signal', 1.092)
+                        c.specifyUncertainty('pdf_higgs_ttH',      binname, 'signal', 1.036)
+                  c.specifyUncertainty('CMS_scale_j',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
+                  c.specifyUncertainty('CMS_scale_unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
+                  c.specifyUncertainty('CMS_res_j',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val )
+                  c.specifyUncertainty('CMS_btag_heavy',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
+                  c.specifyUncertainty('CMS_btag_light',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
+                  c.specifyUncertainty('CMS_eff_trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
+                  c.specifyUncertainty('CMS_eff_l', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
+                  c.specifyUncertainty('QCDscale_ttH_ACCEPT',    binname, 'signal', 1 + getScaleUnc("ttH_HToInvisible_M125", r, channel)) #had 0.3 for tests
+                  print eSignal.name, r, channel
+                  print "signal scale", getScaleUnc(eSignal.name, r, channel)
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
@@ -405,22 +409,22 @@ def wrapper(s):
                   c.addUncertainty(uname, 'lnN')
                   c.specifyUncertainty(uname, binname, 'signal', 1 + signal.sigma/signal.val )
             
-                  # add all signal uncertainties to print out max
-                  if counter < 26:
-                    systematicUncertainties["PU"].append(e.PUSystematic(r, channel, signalSetup).val)
-                    systematicUncertainties["PDF"].append(getPDFUncSignal(s.name, r, channel))
-                    systematicUncertainties["xsec_QCD"].append(1.092)
-                    systematicUncertainties["xsec_PDF"].append(1.036)
-                    systematicUncertainties["JEC"].append(e.JECSystematic(        r, channel, signalSetup).val)
-                    systematicUncertainties["unclEn"].append(e.unclusteredSystematic(r, channel, signalSetup).val)
-                    systematicUncertainties["JER"].append(e.JERSystematic(        r, channel, signalSetup).val)
-                    systematicUncertainties["SFb"].append(e.btaggingSFbSystematic(r, channel, signalSetup).val)
-                    systematicUncertainties["SFl"].append(e.btaggingSFlSystematic(r, channel, signalSetup).val)
-                    systematicUncertainties["trigger"].append(e.triggerSystematic(    r, channel, signalSetup).val)
-                    systematicUncertainties["leptonSF"].append(e.leptonSFSystematic(   r, channel, signalSetup).val)
-                    systematicUncertainties["scale"].append(getScaleUnc(eSignal.name, r, channel))
-                    systematicUncertainties["MCstat"].append(signal.sigma/signal.val)
-                    #systematicUncertainties[""].append()
+                  ## add all signal uncertainties to print out max
+                  #if counter < 26:
+                  #  systematicUncertainties["PU"].append(e.PUSystematic(r, channel, signalSetup).val)
+                  #  systematicUncertainties["PDF"].append(getPDFUncSignal(s.name, r, channel))
+                  #  systematicUncertainties["xsec_QCD"].append(1.092)
+                  #  systematicUncertainties["xsec_PDF"].append(1.036)
+                  #  systematicUncertainties["JEC"].append(e.JECSystematic(        r, channel, signalSetup).val)
+                  #  systematicUncertainties["unclEn"].append(e.unclusteredSystematic(r, channel, signalSetup).val)
+                  #  systematicUncertainties["JER"].append(e.JERSystematic(        r, channel, signalSetup).val)
+                  #  systematicUncertainties["SFb"].append(e.btaggingSFbSystematic(r, channel, signalSetup).val)
+                  #  systematicUncertainties["SFl"].append(e.btaggingSFlSystematic(r, channel, signalSetup).val)
+                  #  systematicUncertainties["trigger"].append(e.triggerSystematic(    r, channel, signalSetup).val)
+                  #  systematicUncertainties["leptonSF"].append(e.leptonSFSystematic(   r, channel, signalSetup).val)
+                  #  systematicUncertainties["scale"].append(getScaleUnc(eSignal.name, r, channel))
+                  #  systematicUncertainties["MCstat"].append(signal.sigma/signal.val)
+                  #  #systematicUncertainties[""].append()
                     
                 else:
                   uname = 'Stat_'+binname+'_signal'
@@ -434,7 +438,7 @@ def wrapper(s):
                   if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
         c.addUncertainty('lumi_13TeV', 'lnN')
-        c.specifyFlatUncertainty('lumi_13TeV', 1.026) #update to 2.5%?
+        c.specifyFlatUncertainty('lumi_13TeV', 1.025) #update to 2.5%?
         cardFileName = c.writeToFile(cardFileName)
     else:
         print "File %s found. Reusing."%cardFileName
@@ -452,9 +456,9 @@ def wrapper(s):
     # Print the systematic uncertainties
     print
     print "Systematic uncertainties"
-    print "{:10}{:10}{:10}".format("name", "min", "max")
-    for syst in systematicUncertainties.keys():
-        print "{:10}{:10.2f}{:10.2f}".format(syst, min(systematicUncertainties[syst])*100, max(systematicUncertainties[syst])*100)
+    #print "{:10}{:10}{:10}".format("name", "min", "max")
+    #for syst in systematicUncertainties.keys():
+    #    print "{:10}{:10.2f}{:10.2f}".format(syst, min(systematicUncertainties[syst])*100, max(systematicUncertainties[syst])*100)
 
     if not args.significanceScan:
         if useCache and not overWrite and limitCache.contains(sConfig):

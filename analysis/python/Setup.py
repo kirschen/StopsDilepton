@@ -86,7 +86,7 @@ class Setup:
         'TTZ' :       {c:TTZ          for c in channels+trilepChannels},
         'multiBoson' :{c:multiBoson   for c in channels+trilepChannels},
         'TTXNoZ' :    {c:TTXNoZ       for c in channels+trilepChannels},
-        'other'  :    {c:Sample.combine('other', [otherEWKBkgs]) for c in channels+trilepChannels},
+        'rare'  :    {c:Sample.combine('rare', [otherEWKBkgs]) for c in channels+trilepChannels},
         'Data'   :    {'MuMu':  DoubleMuon_Run2016_backup,
                        'EE':    DoubleEG_Run2016_backup,
                        'EMu':   MuonEG_Run2016_backup,
