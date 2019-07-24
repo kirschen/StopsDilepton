@@ -4,7 +4,7 @@ cmsrel CMSSW_8_0_26_patch1
 cd CMSSW_8_0_26_patch1/src
 cmsenv
 git cms-init
-git clone https://github.com/HephySusySW/StopsDilepton
+git clone https://github.com/GhentAnalysis/StopsDilepton
 ./StopsDilepton/setupOptiMass.sh
 ./StopsDilepton/setup80X.sh
 ```
@@ -34,4 +34,10 @@ Inside the combine release location do
 git clone https://github.com/cms-analysis/CombineHarvester.git CombineHarvester
 cd CombineHarvester
 scram b -j 6
+```
+
+# for MVA
+```
+cmsenv
+./setPyMva.sh
 ```

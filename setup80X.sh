@@ -7,8 +7,8 @@ cd $CMSSW_BASE/src
 # 
 # X-PAG code for limit
 #
-git clone git@github.com:GhentAnalysis/PlotsSMS StopsDilepton/PlotsSMS
-git clone git@github.com:GhentAnalysis/RootTools
+git clone git@github.com:HephySusySW/PlotsSMS StopsDilepton/PlotsSMS
+git clone git@github.com:HephySusySW/RootTools
 scram b -j9
 
 #
@@ -19,7 +19,7 @@ cp $CMSSW_BASE/src/StopsDilepton/.sparse-checkout $CMSSW_BASE/src/.git/info/spar
 git checkout -b heppy_80X cmg-central/heppy_80X
 
 # add your mirror, and push the 80X branch to it
-git remote add origin git@github.com:GhentAnalysis/cmg-cmssw.git
+git remote add origin git@github.com:HephySusySW/cmg-cmssw.git
 git push -u origin heppy_80X
 
 # now get the CMGTools subsystem from the cmgtools-lite repository
@@ -27,7 +27,7 @@ git clone -o cmg-central https://github.com/CERN-PH-CMG/cmgtools-lite.git -b 80X
 cd CMGTools 
 
 # add your fork, and push the 80X branch to it
-git remote add origin git@github.com:GhentAnalysis/cmgtools-lite.git 
+git remote add origin git@github.com:HephySusySW/cmgtools-lite.git 
 git push -u origin 80X_StopsDilepton
 
 cd $CMSSW_BASE/src
