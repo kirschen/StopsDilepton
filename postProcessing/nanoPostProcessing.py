@@ -232,8 +232,6 @@ if isData and options.triggerSelection:
 elif isData and not options.triggerSelection:
     raise Exception( "Data should have a trigger selection" )
 
-sample_name_postFix = ""
-
 triggerEff          = triggerEfficiency(options.year)
 isr                 = ISRweight()
 
@@ -245,10 +243,21 @@ if len(samples)>1:
     sampleForPU = Sample.combine(sample_name, samples, maxN = -1)
 elif len(samples)==1:
     sample      = samples[0]
-    sample.name+=sample_name_postFix
     sampleForPU = samples[0]
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
+
+# Add scale etc. friends
+has_susy_weight_friend = False
+if options.susySignal:
+    # Make friend sample
+    friend_dir = "/afs/hephy.at/data/cms05/nanoTuples/signalWeights/%s/%s"% (options.year, sample.name )
+    if os.path.exists( friend_dir ):
+        weight_friend = Sample.fromDirectory( "weight_friend", directory = [friend_dir] ) 
+        if weight_friend.chain.BuildIndex("luminosityBlock", "event")>0:
+            has_susy_weight_friend = True
+    else:
+        raise RuntimeError( "We need the LHE weight friend tries. Not found in: %s" % friend_dir )
 
 if options.reduceSizeBy > 1:
     logger.info("Sample size will be reduced by a factor of %s", options.reduceSizeBy)
@@ -276,8 +285,6 @@ if isMC:
         # keep the weight name for now. Should we update to a more general one?
         puProfiles = puProfile( source_sample = sampleForPU )
         mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
-        print puProfiles
-        print sampleForPU, mcHist
         nTrueInt_puRW       = getReweightingFunction(data="PU_2017_41860_XSecCentral",  mc=mcHist)
         nTrueInt_puRWDown   = getReweightingFunction(data="PU_2017_41860_XSecDown",     mc=mcHist)
         nTrueInt_puRWVDown  = getReweightingFunction(data="PU_2017_41860_XSecVDown",    mc=mcHist)
@@ -336,7 +343,6 @@ if options.susySignal:
 
     logger.info("Fetching the normalization for the ISR weights.")
     masspoints = signalWeight.keys()
-    print sample, sample.name, masspoints[0][0], masspoints[0][1]
     if getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, signal=sample.name, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)):
         renormISR = True
         logger.info("Successfully loaded ISR normalzations.")
@@ -481,7 +487,6 @@ if options.year == 2017:
 branchKeepStrings_MC = [\
     "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_pt","GenMET_phi", "nISR",
 ]
-
 #branches to be kept for data only
 branchKeepStrings_DATA = [ ]
 
@@ -563,6 +568,11 @@ new_variables += [\
     'JetGood[%s]'% ( ','.join(jetVars+['index/I']) + ',genPt/F' ),
     'met_pt/F', 'met_phi/F', 'met_pt_min/F'
 ]
+
+# Add weight branches for susy signal samples from friend tree
+if has_susy_weight_friend:
+    new_variables.extend([ "LHE[weight/F]", "LHE_weight_original/F"] )
+
 
 
 if sample.isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
@@ -749,8 +759,6 @@ if not options.skipNanoTools:
     if options.year == 2017:
         modules.append(METminProducer(isData=isData, calcVariations=(not isData)))
 
-    #print sample.files
-
     # check if files are available (e.g. if dpm is broken this should result in an error)
     for f in sample.files:
         if not checkRootFile(f):
@@ -772,6 +780,7 @@ if not options.skipNanoTools:
     sample.files = newFileList
 
 # Define a reader
+
 reader = sample.treeReader( \
     variables = read_variables ,
     selectionString = "&&".join(skimConds)
@@ -785,7 +794,6 @@ def getMetPhotonEstimated(met_pt, met_phi, photon):
   gamma.SetPtEtaPhiM(photon['pt'], photon['eta'], photon['phi'], photon['mass'] )
   metGamma = met + gamma
   return (metGamma.Pt(), metGamma.Phi())
-
 
 ## Calculate corrected met pt/phi using systematics for jets
 def getMetJetCorrected(met_pt, met_phi, jets, var, ptVar='pt'):
@@ -823,7 +831,7 @@ grannies_B = {}
 def filler( event ):
     # shortcut
     r = reader.event
-    workaround  = (r.run, r.luminosityBlock, r.event) # some fastsim files seem to have issues, apparently solved by this.
+    #workaround  = (r.run, r.luminosityBlock, r.event) # some fastsim files seem to have issues, apparently solved by this.
     event.isData = s.isData
     event.overlapRemoval = 1 
     
@@ -866,6 +874,13 @@ def filler( event ):
         
     # weight
     if options.susySignal:
+        if has_susy_weight_friend:
+            if weight_friend.chain.GetEntryWithIndex(r.luminosityBlock, r.event)>0:
+                event.LHE_weight_original =  weight_friend.chain.GetLeaf("LHE_weight_original").GetValue()
+                event.nLHE = int(weight_friend.chain.GetLeaf("nLHE").GetValue())
+                for nEvt in range(event.nLHE):
+                    event.LHE_weight[nEvt] = weight_friend.chain.GetLeaf("LHE_weight").GetValue(nEvt)
+
         r.GenSusyMStop = max([p['mass']*(abs(p['pdgId']==1000006)) for p in gPart])
         r.GenSusyMNeutralino = max([p['mass']*(abs(p['pdgId']==1000022)) for p in gPart])
         if 'T8bbllnunu' in options.samples[0]:
@@ -1346,6 +1361,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
     reader.setEventRange( eventRange )
 
     clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events", rootfile = outputfile )
+
     clonedEvents += clonedTree.GetEntries()
     # Clone the empty maker in order to avoid recompilation at every loop iteration
     maker = treeMaker_parent.cloneWithoutCompile( externalTree = clonedTree )

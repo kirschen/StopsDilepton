@@ -10,8 +10,11 @@ ROOT.gROOT.SetBatch(True)
 from math                                import sqrt, cos, sin, pi, acos
 import imp
 
-#RootTools
+# RootTools
 from RootTools.core.standard             import *
+
+# Analysis
+from Analysis.Tools.helpers              import checkRootFile, deepCheckRootFile
 
 # User specific
 import StopsDilepton.tools.user as user
@@ -26,7 +29,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',  action='store',      default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--small',     action='store_true', help='Run only on a small subset of the data?')#, default = True)
-argParser.add_argument('--overwrite', action='store',      nargs='?', choices = ['none', 'all', 'target'], default = 'none', help='Overwrite?')#, default = True)
+argParser.add_argument('--overwrite', action='store_true', help='Overwrite?')#, default = True)
 argParser.add_argument('--targetDir', action='store',      nargs='?',  type=str, default=user.postprocessing_output_directory, help="Name of the directory the post-processed files will be saved" )
 argParser.add_argument('--sample',    action='store',      default='SMS_T2tt_mStop_150to250', help="Name of the sample loaded from fwlite_benchmarks. Only if no inputFiles are specified")
 argParser.add_argument('--year',      action='store',      type=int,                        help="Which year?" )
@@ -108,9 +111,6 @@ def fill_vector( event, collection_name, collection_varnames, obj):
 
 logger.info( "Running over files: %s", ", ".join(sample.files ) )
 
-# FWLite reader if this is an EDM file
-reader = sample.fwliteReader( products = products )
-
 def filler( event ):
     event.run, event.luminosityBlock, event.event = reader.evt
     LHE_weights                 = reader.products['generator'].weights()
@@ -123,9 +123,12 @@ output_filename = os.path.join(output_directory, sample.name + '.root')
 _logger.   add_fileHandler( output_filename.replace('.root', '.log'), args.logLevel )
 _logger_rt.add_fileHandler( output_filename.replace('.root', '_rt.log'), args.logLevel )
 
-if os.path.exists( output_filename ) and args.overwrite =='none':
+if os.path.exists( output_filename ) and checkRootFile( output_filename, checkForObjects=["Events"] ) and deepCheckRootFile( output_filename ) and not args.overwrite:
     logger.info( "File %s found. Quit.", output_filename )
     sys.exit(0)
+
+# FWLite reader if this is an EDM file
+reader = sample.fwliteReader( products = products )
 
 output_file = ROOT.TFile( output_filename, 'recreate')
 output_file.cd()
