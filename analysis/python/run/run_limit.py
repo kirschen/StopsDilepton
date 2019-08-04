@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#regionsLegacytest1
 import ROOT
 import os
 import argparse
@@ -43,7 +44,7 @@ from StopsDilepton.analysis.SetupHelpers    import channels, trilepChannels
 from StopsDilepton.analysis.estimators      import *
 from StopsDilepton.analysis.Setup           import Setup
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions         import regionsLegacy, noRegions, regionsAgg
+from StopsDilepton.analysis.regions         import regionsLegacy, noRegions, regionsAgg 
 #regionsLegacy, noRegions, regionsS, regionsAgg, regionsDM, regionsDM1, regionsDM2, regionsDM3, regionsDM4, regionsDM5, regionsDM6, regionsDM7
 from StopsDilepton.analysis.Cache           import Cache
 from copy import deepcopy
@@ -51,7 +52,7 @@ from copy import deepcopy
 setup = Setup(year=year)
 
 # Define CR
-setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False,  'zWindow': 'onZ'})
+setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False,  'zWindow': 'onZ', 'metSigMin' : 5})
 setupTTZ1 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(2,2),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
 setupTTZ2 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(1,1),  'dPhi': False, 'dPhiInv': False})
 setupTTZ3 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
@@ -66,6 +67,7 @@ elif args.DMsync:
     setup.channels = ['EE','MuMu', 'EMu']
 else:
     setup.channels     = ['SF','EMu']
+#setupDYVV.channels = ['EE']
 setupDYVV.channels = ['SF']
 setupTTZ1.channels = ['all']
 setupTTZ2.channels = ['all']
@@ -210,7 +212,7 @@ def wrapper(s):
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = os.path.abspath('.') # now run directly in the run directory
 
-    cardFileName = os.path.join(limitDir, s.name+'.txt')
+    cardFileName = os.path.join(limitDir, s.name+'_50.txt')
     if not os.path.exists(cardFileName) or overWrite:
         counter=0
         c.reset()
