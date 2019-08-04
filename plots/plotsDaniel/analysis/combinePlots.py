@@ -13,8 +13,9 @@ import pickle
 import copy
 
 #processes = ['TTZ','TTXNoZ','DY','Top_pow','multiBoson']
-processes = ['TTZ','TTXNoZ','ZZ','multiBoson']
+#processes = ['TTZ','TTXNoZ','ZZ','multiBoson']
 
+processes = ['']
 
 hists = {}
 
@@ -26,6 +27,7 @@ tmpFile = '/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/analysisPlots
 
 files = [tmpFile.replace('2016', year) for year in ['2016','2017','2018'] ]
 #files = [tmpFile.replace('2018', year) for year in ['2018']]
+#files = ['/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/MB_test_altBinning/dl_mt2blbl.root', '/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/MB_test_altBinning_EE/dl_mt2blbl.png']
 
 for i,f in enumerate(files):
     print "Working on file:",f

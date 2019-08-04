@@ -397,7 +397,7 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
             logger.debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
             if nEvents == nnEvents: logger.debug("All events written")
             else: logger.debug("Something went wrong, discrepancy between file and tree")
-            inF.Close()
+           inF.Close()
             logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
         else:
             logger.info( "Found file %s -> Skipping"%(signalFile) )
