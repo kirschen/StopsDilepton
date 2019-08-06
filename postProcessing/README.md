@@ -20,3 +20,10 @@ Now, you can post-process again, and the sample will automatically have the corr
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p16 --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbstausnu_XCha0p5_mStop_200to1800_XStau0p25
 ```
 There is no need to redo the `getWeightsForSignals` step.
+
+The last step of processing is to split the sample into seperate files for each mass-point.
+Be careful with the `--T2tt` flag, working on a proper flag for the stau-snu sample.
+```
+python nanoSignalSplitting.py --year 2016 --fastSim --T2tt --processingEra stops_2016_nano_v0p16 --skim dilep --samples SMS_T2tt_mStop_150to250
+```
+More examples can be found in `nanoSignalSplitting.sh`.
