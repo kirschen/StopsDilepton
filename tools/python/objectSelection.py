@@ -77,7 +77,11 @@ def filterGenPhotons( genParts, status=None ):
 def genLepFromZ( genParts ):
     ''' get all gen leptons (e,m,tau) from Z
     '''
-    leptons = list( filter( lambda l: abs(l['pdgId']) in [11,13,15] and abs(genParts[l['genPartIdxMother']]['pdgId']) == 23, genParts ) )
+    try:
+        leptons = list( filter( lambda l: abs(l['pdgId']) in [11,13,15] and abs(genParts[l['genPartIdxMother']]['pdgId']) == 23, genParts ) )
+    except:
+        print "Found no generated leptons"
+        leptons = []
     return leptons
 
 def get_index_str( index ):
