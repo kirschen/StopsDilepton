@@ -161,6 +161,10 @@ def get_parser():
         help="Is T8bbllnunu signal?"
         )
 
+    argParser.add_argument('--T8bbstausnu',
+        action='store_true',
+        help="Is T8bbstausnu signal?"
+        )
     argParser.add_argument('--TTDM',
         action='store_true',
         help="Is TTDM signal?"

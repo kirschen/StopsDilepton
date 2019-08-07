@@ -42,7 +42,7 @@ if os.environ['USER'] in ['phussain']:
     #dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     #cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postprocessing_output_directory = "/afs/hephy.at/data/cms03/nanoTuples/"
     # directory with veto lists
     #analysis_results        = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
     analysis_results        = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/vpseudomet/'
