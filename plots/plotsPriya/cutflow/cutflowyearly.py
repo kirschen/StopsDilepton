@@ -87,7 +87,7 @@ weight_string18 = 'weight*reweightLeptonTrackingSF*reweightBTag_SF*reweightLepto
 
 cuts=[
   ("no cuts",                               "no cuts",                                  "(1)"),
-  ("==2 SF leptons,l1 pt > 30, l2pt > 20",  "$n_{\\textrm{lep.}==2}$",                  "nGoodMuons+nGoodElectrons==2&&l1_pt>25&&l2_pt>20&&abs(l1_pdgId)==abs(l2_pdgId)"),
+  ("==2 SF leptons,l1 pt > 25, l2pt > 20",  "$n_{\\textrm{lep.}==2}$",                  "nGoodMuons+nGoodElectrons==2&&l1_pt>25&&l2_pt>20&&abs(l1_pdgId)==abs(l2_pdgId)"),
   ("opposite sign",                         "opposite charge",                          "isOS==1"),
   ("MT2(blbl) > 140",                       "$M_{T2}(blbl)>140$ GeV",                   "dl_mt2blbl>140"),
   ("MT2(ll) >= 100",                        "$M_{T2}(ll)>=100$ GeV",                    "dl_mt2ll>=100"),
@@ -137,8 +137,12 @@ if args.year == 2017:
 if args.year == 2018:
     samples = samples18
     cuts = cuts
-
-samples[0].setSelectionString([getFilterCut(isData=True, year=args.year)])
+for sample in samples:
+    if "Run" in sample.name:
+        sample.setSelectionString([getFilterCut(isData=True, year=args.year)])
+    else:
+        sample.setSelectionString([getFilterCut(year=args.year)])
+#samples[0].setSelectionString([getFilterCut(isData=True, year=args.year)])
 if args.small:
     for sample in samples:
         #sample.reduceFiles( to = 7)
@@ -151,7 +155,7 @@ for i_cut, cut in enumerate(cuts):
     value_mc = 0
     for i_sample, sample in enumerate(samples):
         #print sample.name
-        #if i_cut == 10 :
+        #if i_cut != 14 : continue 
         if sample.name == 'vv_16':
             values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string16)['val'] 
             print "reweight 16", weight_string16
@@ -163,19 +167,21 @@ for i_cut, cut in enumerate(cuts):
             print weight_string_d18
         elif sample.name == 'Run2016':
             values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string)['val']
+            #print sample.selectionString
             print "reweight 16 data sample", weight_string
         elif sample.name == 'vv_17':
             values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string17)['val'] 
             print "reweight vv_17", weight_string17
         elif sample.name == 'Run2017':
-            values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string)['val']
+            values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string)['val'] 
             print "reweight 17 data sample", weight_string
         else:
-            values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string16)['val']
+            values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string16)['val'] 
             value_mc += values[i_cut][i_sample] 
             print i_sample, sample.name, values[i_cut][i_sample]
-   # if i_cut == 11:
-   #     logger.info( "%30s 2016 %6.2f 2017 %6.2f 2018 %6.2f data16 %6.2f data17 %6.2f data18 %6.2f", cut[0], values[i_cut][0], values[i_cut][1], values[i_cut][2],values[i_cut][3],values[i_cut][4],values[i_cut][5] ) 
+            #print sample.selectionString
+    #if i_cut == 14:
+        #logger.info( "%30s Data%i %6.2f  MC%i %6.2f ", cut[0],args.year, values[i_cut][0], args.year, value_mc ) 
    #    #logger.debug("I had a problem here: %s", "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]) )
    # else:
    #     logger.info( "%30s 2016 %6.2f 2017 %6.2f 2018 %6.2f ", cut[0], values[i_cut][0], values[i_cut][1], values[i_cut][2] )
