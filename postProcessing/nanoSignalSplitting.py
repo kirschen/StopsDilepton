@@ -279,7 +279,7 @@ print output_directory
 
 #Samples: Load samples
 maxN = 2 if options.small else None
-if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
+if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt or options.T8bbstausnu:
     from StopsDilepton.samples.helpers import getT2ttSignalWeight
     logger.info( "SUSY signal samples to be processed: %s", ",".join(s.name for s in samples) )
     # FIXME I'm forcing ==1 signal sample because I don't have a good idea how to construct a sample name from the complicated T2tt_x_y_z_... names
@@ -302,7 +302,7 @@ outDir = os.path.join(options.targetDir, options.processingEra, options.skim, sa
 
 print outDir
 
-if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt:
+if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt or options.T8bbstausnu:
     xSection = None
     # special filet for bad jets in FastSim: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16#Cleaning_up_of_fastsim_jets_from
     skimConds.append( "Sum$(JetFailId_pt>30&&abs(JetFailId_eta)<2.5&&JetFailId_mcPt==0&&JetFailId_chHEF<0.1)+Sum$(Jet_pt>30&&abs(Jet_eta)<2.5&&Jet_mcPt==0&&Jet_chHEF<0.1)==0" )
@@ -341,6 +341,19 @@ if options.T8bbllnunu:
     signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T8bbllnunu")
     if not os.path.exists(signalDir): os.makedirs(signalDir) #FIXME
 
+if options.T8bbstausnu:
+    T8bbllnunu_strings = options.samples[0].split('_')
+    for st in T8bbstausnu_strings:
+        if 'XStau' in st:
+            x_stau = st.replace('XStau','')
+            logger.info("Factor x_stau in this sample is %s",x_stau)
+        if 'XCha' in st:
+            x_cha = st.replace('XCha','')
+            logger.info("Factor x_cha in this sample is %s",x_cha)
+    signalSubDir = options.samples[0].replace('SMS_','')
+
+    signalDir = os.path.join(options.targetDir, options.processingEra, options.skim, "T8bbstausnu")
+    if not os.path.exists(signalDir): os.makedirs(signalDir) #FIXME
 try:    #Avoid trouble with race conditions in multithreading
     os.makedirs(outDir)
     logger.info( "Created output directory %s.", outDir )
@@ -368,11 +381,13 @@ print "Running over:"
 print masspoints[job]
 
 # Write one file per mass point for T2tt
-if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
+if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt or options.T8bbstausnu :
     if options.T2tt: output = Sample.fromDirectory("T2tt_output", outDir)
     elif options.T2bW: output = Sample.fromDirectory("T2bW_output", outDir)
     elif options.T2bt: output = Sample.fromDirectory("T2bt_output", outDir)
+    elif options.T8bbstausnu:output = Sample.fromDirectory("T8bbstausnu_output", outDir) 
     else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
+    
     print "Initialising chain, otherwise first mass point is empty"
     print output.chain
     if options.small: output.reduceFiles( to = 1 )
@@ -384,7 +399,9 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt:
         if options.T2tt: signal_prefix = 'T2tt_'
         elif options.T2bW: signal_prefix = 'T2bW_'
         elif options.T2bt: signal_prefix = 'T2bt_'
-        else: signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
+        elif options.T8bbstausnu: signal_prefix = 'T8bbstausnu_XCha%s_XStau%s'%(x_cha,x_stau)
+        elif options.T8bbllnunu: signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
+        else: logger.info("Model isn't specified") 
         signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
         #signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
         logger.debug("Ouput file will be %s", signalFile)
