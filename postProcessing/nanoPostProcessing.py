@@ -172,21 +172,19 @@ if options.runOnLxPlus:
     from Samples.Tools.config import redirector_global as redirector
 
 if options.year == 2016:
-    from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as bkgSamples
-    from Samples.nanoAOD.Summer16_private_legacy_v1 import SUSY as signalSamples
+    from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as mcSamples
     from Samples.nanoAOD.Run2016_17Jul2018_private  import allSamples as dataSamples
-    allSamples = bkgSamples + dataSamples + signalSamples
+    allSamples = mcSamples + dataSamples
 elif options.year == 2017:
-    from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as bkgSamples
-    from Samples.nanoAOD.Fall17_private_legacy_v1   import SUSY as signalSamples
+    from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as mcSamples
     from Samples.nanoAOD.Run2017_31Mar2018_private  import allSamples as dataSamples
-    allSamples = bkgSamples + dataSamples
+    allSamples = mcSamples + dataSamples
 elif options.year == 2018:
     from Samples.nanoAOD.Spring18_private           import allSamples as HEMSamples
     from Samples.nanoAOD.Run2018_26Sep2018_private  import allSamples as HEMDataSamples
-    from Samples.nanoAOD.Autumn18_private_legacy_v1 import allSamples as bkgSamples
+    from Samples.nanoAOD.Autumn18_private_legacy_v1 import allSamples as mcSamples
     from Samples.nanoAOD.Run2018_17Sep2018_private  import allSamples as dataSamples
-    allSamples = HEMSamples + HEMDataSamples + bkgSamples + dataSamples
+    allSamples = HEMSamples + HEMDataSamples + mcSamples + dataSamples
 else:
     raise NotImplementedError
 
@@ -239,6 +237,7 @@ isr                 = ISRweight()
 if len(samples)>1:
     sample_name =  samples[0].name+"_comb"
     logger.info( "Combining samples %s to %s.", ",".join(s.name for s in samples), sample_name )
+    assert False, ""
     sample      = Sample.combine(sample_name, samples, maxN = maxN)
     sampleForPU = Sample.combine(sample_name, samples, maxN = -1)
 elif len(samples)==1:
