@@ -169,10 +169,15 @@ def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year, signal="T2tt", fillCac
         hCentral = ROOT.gDirectory.Get("hCentral")
 
         for mSt, mNeu in massPoints:
+            key = (mSt, mNeu, sample.name, year)
             norm = hCentral.GetBinContent(hCentral.GetXaxis().FindBin(mSt), hCentral.GetYaxis().FindBin(mNeu)) / hReweighted.GetBinContent(hReweighted.GetXaxis().FindBin(mSt), hReweighted.GetYaxis().FindBin(mNeu))
+            #print mSt, mNeu
+            #print key
+            #print norm
             cache.add( key , norm)
 
     if not cache.contains(key):
         return False
     else:
+        #print cache.get(key)
         return cache.get(key)
