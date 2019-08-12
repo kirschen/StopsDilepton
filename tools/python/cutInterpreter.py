@@ -11,6 +11,7 @@ mIsoWP = { "VT":5, "T":4, "M":3 , "L":2 , "VL":1, 0:"None" }
 
 special_cuts = {
     # ("multiIsoVT":        "(1)", 
+    "oldLooseLeptonVeto":   "(Sum$(Electron_pt>15&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&Muon_pfRelIso03_all<0.4) )==2",
     "looseLeptonVeto":   "(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2",
     "tightLooseLeptonVeto":   "(Sum$(Electron_pt>5&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2",
     "supertightLooseLeptonVeto":   "(nElectron+nMuon)==2",
@@ -64,7 +65,8 @@ special_cuts = {
     "metVetoPhiPeak":   "(!(met_phi>-1.2&&met_phi<-0.6))",
     "leadingMu":        "abs(l1_pdgId)==13",
     "leadingE":         "abs(l1_pdgId)==11",
-    "Jet12Central":     "abs(JetGood_eta[0])<1.5&&abs(JetGood_eta[1])<1.5"
+    "Jet12Central":     "abs(JetGood_eta[0])<1.5&&abs(JetGood_eta[1])<1.5",
+    "CSVV2":            "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_btagCSVV2>0.8484)==0"
 
   }
 
@@ -83,7 +85,7 @@ class cutInterpreter:
             return "l1_mIsoWP>%i&&l2_mIsoWP>%i" % (str_, str_)
         elif string.startswith("relIso"):
            iso = float( string.replace('relIso','') )
-           raise ValueError("We do not want to use relIso for our analysis anymore!")
+           #raise ValueError("We do not want to use relIso for our analysis anymore!")
            return "l1_relIso03<%3.2f&&l2_relIso03<%3.2f"%( iso, iso )
         elif string.startswith("miniIso"):
            iso = float( string.replace('miniIso','') )
