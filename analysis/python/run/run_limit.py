@@ -212,7 +212,7 @@ def wrapper(s):
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = os.path.abspath('.') # now run directly in the run directory
 
-    cardFileName = os.path.join(limitDir, s.name+'_50.txt')
+    cardFileName = os.path.join(limitDir, s.name+'.txt')
     if not os.path.exists(cardFileName) or overWrite:
         counter=0
         c.reset()
