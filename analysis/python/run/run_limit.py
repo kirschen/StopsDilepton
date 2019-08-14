@@ -44,7 +44,7 @@ from StopsDilepton.analysis.SetupHelpers    import channels, trilepChannels
 from StopsDilepton.analysis.estimators      import *
 from StopsDilepton.analysis.Setup           import Setup
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions         import regionsLegacy, noRegions, regionsAgg 
+from StopsDilepton.analysis.regions         import regionsLegacy, noRegions, regionsAgg, highMT2blblregions
 #regionsLegacy, noRegions, regionsS, regionsAgg, regionsDM, regionsDM1, regionsDM2, regionsDM3, regionsDM4, regionsDM5, regionsDM6, regionsDM7
 from StopsDilepton.analysis.Cache           import Cache
 from copy import deepcopy
@@ -241,6 +241,7 @@ def wrapper(s):
         c.addUncertainty('topNonGaus', shapeString)
         c.addUncertainty('topFakes',   shapeString)
         c.addUncertainty('DY_SR',      shapeString)
+        c.addUncertainty('DY_add',     shapeString) # only in high mt2blbl
         c.addUncertainty('ttZ_SR',     shapeString)
         # all regions, lnN
         c.addUncertainty('topNorm',    'lnN')
@@ -366,6 +367,8 @@ def wrapper(s):
 
                         if e.name.count('DY'):
                             c.specifyUncertainty('DY',         binname, name, 1.5)#1/(1+0.5))#1.5
+                            if r in highMT2blblregions:
+                                c.specifyUncertainty('DY_add',         binname, name, 2.0)
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                 c.specifyUncertainty("DY_SR", binname, name, 1.25)
 
