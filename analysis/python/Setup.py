@@ -148,6 +148,7 @@ class Setup:
                       if 'reweightL1Prefire'+upOrDown           in res.sys[k]: res.sys[k].remove('reweightL1Prefire')
                       if 'reweightBTag_SF_b_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightBTag_SF_l_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
+                      if 'reweightBTag_SF_FS_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightLeptonSF'+upOrDown            in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
                       if 'reweightLeptonFastSimSF'+upOrDown     in res.sys[k]: res.sys[k].remove('reweightLeptonFastSimSF')
                 else:
