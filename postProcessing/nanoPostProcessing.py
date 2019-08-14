@@ -140,7 +140,7 @@ isSmall         = options.skim.lower().count('small')
 isInclusive     = options.skim.lower().count('inclusive') 
 
 fastSim = options.fastSim
-if options.susySignal: fastSim = True
+#if options.susySignal: fastSim = True
 
 # Skim condition
 skimConds = []
@@ -248,7 +248,7 @@ else:
 
 # Add scale etc. friends
 has_susy_weight_friend = False
-if options.susySignal:
+if options.susySignal and fastSim:
     # Make friend sample
     friend_dir = "/afs/hephy.at/data/cms05/nanoTuples/signalWeights/%s/%s"% (options.year, sample.name )
     if os.path.exists( friend_dir ):
@@ -597,8 +597,8 @@ if isTriLep or isDiLep:
             'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F',
             'reweightLeptonTrackingSF/F',
          ] )
-    #if options.susySignal:
-    #    new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
+    if options.susySignal and fastSim:
+        new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F', 'genZ_mass/F', 'isOnShellTTZ/I'] )
 new_variables.extend( ['met_pt_photonEstimated/F','MET_phi_photonEstimated/F','metSig_photonEstimated/F'] )
@@ -1199,14 +1199,14 @@ def filler( event ):
               dlg = dl + gamma
               event.dlg_mass = dlg.M()
 
-            #if options.susySignal:
-            #    mt2Calculator.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
-            #    setattr(event, "dl_mt2ll_gen", mt2Calculator.mt2ll())
-            #    if len(jets)>=2:
-            #        bj0, bj1 = (bJets+nonBJets)[:2]
-            #        mt2Calculator.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-            #        setattr(event, "dl_mt2bb_gen",   mt2Calculator.mt2bb())
-            #        setattr(event, "dl_mt2blbl_gen", mt2Calculator.mt2blbl())
+            if options.susySignal and fastSim:
+                mt2Calculator.setMet(getattr(r, 'GenMET_pt'), getattr(r, 'GenMET_phi'))
+                setattr(event, "dl_mt2ll_gen", mt2Calculator.mt2ll())
+                if len(jets)>=2:
+                    bj0, bj1 = (bJets+nonBJets)[:2]
+                    mt2Calculator.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                    setattr(event, "dl_mt2bb_gen",   mt2Calculator.mt2bb())
+                    setattr(event, "dl_mt2blbl_gen", mt2Calculator.mt2blbl())
                 
             for i in metVariants:
                 mt2Calculator.setMet(getattr(event, 'met_pt'+i), getattr(event, 'met_phi'+i))
@@ -1398,7 +1398,7 @@ if sample.isData and convertedEvents>0: # avoid json to be overwritten in cases 
     logger.info( "Written JSON file %s", jsonFile )
 
 # Write one file per mass point for SUSY signals
-if options.nJobs == 1:
+if options.nJobs == 1 and fastSim:
     if options.susySignal:
         signalModel = options.samples[0].split('_')[1]
         output = Sample.fromDirectory(signalModel+"_output", output_directory)

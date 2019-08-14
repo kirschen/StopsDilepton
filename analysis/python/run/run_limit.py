@@ -397,15 +397,14 @@ def wrapper(s):
                 #signal
                 eSignal.isSignal = True
                 e = eSignal
-                #eSignal.isSignal = True
+                
                 if fastSim:
-                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) # reweightLeptonFastSimSF
-                    #signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
-                    signalSetup = setup.sysClone()
+                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) # reweightLeptonFastSimSF not yet in the tuples?
                     signal = e.cachedEstimate(r, channel, signalSetup)
+                    # need MET Significance with gen MET for this. not yet implemented.
                     #signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'genMet'}))) # genMET modifier -> what to do for legacy?
                 else:
-                    signalSetup = setup.sysClone()
+                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) 
                     signal = e.cachedEstimate(r, channel, signalSetup)
 
                 signal = signal * args.scale
@@ -416,8 +415,8 @@ def wrapper(s):
 
                 #signal.val, signal.sigma = 0.1, 1.0
 
-                if niceName.count('controlTTZ'): signal.val = 0.001 # to avoid failing of the fit
-                if niceName.count('controlDY'): signal.val = 0.001 # to avoid failing of the fit
+                if niceName.count('controlTTZ') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
+                if niceName.count('controlDY') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
                 c.specifyExpectation(binname, 'signal', signal.val*xSecScale )
 
 
@@ -441,7 +440,7 @@ def wrapper(s):
 
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + 0.02 )#e.leptonFSSystematic(    r, channel, signalSetup).val )
-                    c.specifyUncertainty('btagFS',   binname, 'signal', 1 + 0.02 )#e.btaggingSFFSSystematic(r, channel, signalSetup).val )
+                    c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('FSmet',    binname, 'signal', 1 + 0.02 )#e.fastSimMETSystematic(  r, channel, signalSetup).val )
                     c.specifyUncertainty('PUFS',     binname, 'signal', 1 + 0.02 )#e.fastSimPUSystematic(   r, channel, signalSetup).val )
 
