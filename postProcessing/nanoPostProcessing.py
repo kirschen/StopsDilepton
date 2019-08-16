@@ -58,6 +58,9 @@ xSecModifications = {
 # central configuration
 targetLumi = 1000 #pb-1 Which lumi to normalize to
 
+def extractEra(sampleName):
+    return sampleName[sampleName.find("Run"):sampleName.find("Run")+len('Run2000A')]
+
 def get_parser():
     ''' Argument parser for post-processing module.
     '''
@@ -65,7 +68,7 @@ def get_parser():
     argParser = argparse.ArgumentParser(description = "Argument parser for cmgPostProcessing")
 
     argParser.add_argument('--logLevel',    action='store',         nargs='?',  choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],   default='INFO', help="Log level for logging" )
-    argParser.add_argument('--sample',      action='store',         nargs='*',  type=str, default=None,                  help="MiniAOD signal sample to be postprocessed" )
+    argParser.add_argument('--samples',     action='store',         nargs='*',  type=str, default=['TTZToLLNuNu_ext'],                  help="List of samples to be post-processed, given as CMG component name" )
     argParser.add_argument('--eventsPerJob',action='store',         nargs='?',  type=int, default=30000000,                             help="Maximum number of events per job (Approximate!)." )
     argParser.add_argument('--nJobs',       action='store',         nargs='?',  type=int, default=1,                                    help="Maximum number of simultaneous jobs." )
     argParser.add_argument('--job',         action='store',                     type=int, default=0,                                    help="Run only jobs i" )
@@ -106,7 +109,7 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as _logger
-logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, options.sample, os.environ['USER'], str(0 if options.nJobs==1 else options.job))
+logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job))
 logger  = _logger.get_logger(options.logLevel, logFile = logFile)
 
 #import Analysis.Tools.logger as _logger_an
@@ -126,6 +129,8 @@ def fill_vector_collection( event, collection_name, collection_varnames, objects
                     obj[var] = int(obj[var])
                 getattr(event, collection_name+"_"+var)[i_obj] = obj[var]
 
+#_logger.   add_fileHandler( user.data_output_directory + '/logs/%s_%s_debug.txt'%(options.samples[0], options.job), options.logLevel )
+
 # Flags 
 isDiLep         = options.skim.lower().startswith('dilep')
 isTriLep        = options.skim.lower().startswith('trilep')
@@ -135,7 +140,7 @@ isSmall         = options.skim.lower().count('small')
 isInclusive     = options.skim.lower().count('inclusive') 
 
 fastSim = options.fastSim
-if options.susySignal: fastSim = True
+#if options.susySignal: fastSim = True
 
 # Skim condition
 skimConds = []
@@ -167,21 +172,19 @@ if options.runOnLxPlus:
     from Samples.Tools.config import redirector_global as redirector
 
 if options.year == 2016:
-    from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as bkgSamples
-    from Samples.nanoAOD.Summer16_private_legacy_v1 import SUSY as signalSamples
+    from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as mcSamples
     from Samples.nanoAOD.Run2016_17Jul2018_private  import allSamples as dataSamples
-    allSamples = bkgSamples + dataSamples + signalSamples
+    allSamples = mcSamples + dataSamples
 elif options.year == 2017:
-    from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as bkgSamples
-    from Samples.nanoAOD.Fall17_private_legacy_v1   import SUSY as signalSamples
+    from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as mcSamples
     from Samples.nanoAOD.Run2017_31Mar2018_private  import allSamples as dataSamples
-    allSamples = bkgSamples + dataSamples
+    allSamples = mcSamples + dataSamples
 elif options.year == 2018:
     from Samples.nanoAOD.Spring18_private           import allSamples as HEMSamples
     from Samples.nanoAOD.Run2018_26Sep2018_private  import allSamples as HEMDataSamples
-    from Samples.nanoAOD.Autumn18_private_legacy_v1 import allSamples as bkgSamples
+    from Samples.nanoAOD.Autumn18_private_legacy_v1 import allSamples as mcSamples
     from Samples.nanoAOD.Run2018_17Sep2018_private  import allSamples as dataSamples
-    allSamples = HEMSamples + HEMDataSamples + bkgSamples + dataSamples
+    allSamples = HEMSamples + HEMDataSamples + mcSamples + dataSamples
 else:
     raise NotImplementedError
 
@@ -227,8 +230,6 @@ if isData and options.triggerSelection:
 elif isData and not options.triggerSelection:
     raise Exception( "Data should have a trigger selection" )
 
-sample_name_postFix = ""
-
 triggerEff          = triggerEfficiency(options.year)
 isr                 = ISRweight()
 
@@ -236,14 +237,26 @@ isr                 = ISRweight()
 if len(samples)>1:
     sample_name =  samples[0].name+"_comb"
     logger.info( "Combining samples %s to %s.", ",".join(s.name for s in samples), sample_name )
+    assert False, ""
     sample      = Sample.combine(sample_name, samples, maxN = maxN)
     sampleForPU = Sample.combine(sample_name, samples, maxN = -1)
 elif len(samples)==1:
     sample      = samples[0]
-    sample.name+=sample_name_postFix
     sampleForPU = samples[0]
 else:
     raise ValueError( "Need at least one sample. Got %r",samples )
+
+# Add scale etc. friends
+has_susy_weight_friend = False
+if options.susySignal and fastSim:
+    # Make friend sample
+    friend_dir = "/afs/hephy.at/data/cms05/nanoTuples/signalWeights/%s/%s"% (options.year, sample.name )
+    if os.path.exists( friend_dir ):
+        weight_friend = Sample.fromDirectory( "weight_friend", directory = [friend_dir] ) 
+        if weight_friend.chain.BuildIndex("luminosityBlock", "event")>0:
+            has_susy_weight_friend = True
+    else:
+        raise RuntimeError( "We need the LHE weight friend tries. Not found in: %s" % friend_dir )
 
 if options.reduceSizeBy > 1:
     logger.info("Sample size will be reduced by a factor of %s", options.reduceSizeBy)
@@ -271,8 +284,6 @@ if isMC:
         # keep the weight name for now. Should we update to a more general one?
         puProfiles = puProfile( source_sample = sampleForPU )
         mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
-        print puProfiles
-        print sampleForPU, mcHist
         nTrueInt_puRW       = getReweightingFunction(data="PU_2017_41860_XSecCentral",  mc=mcHist)
         nTrueInt_puRWDown   = getReweightingFunction(data="PU_2017_41860_XSecDown",     mc=mcHist)
         nTrueInt_puRWVDown  = getReweightingFunction(data="PU_2017_41860_XSecVDown",    mc=mcHist)
@@ -331,7 +342,6 @@ if options.susySignal:
 
     logger.info("Fetching the normalization for the ISR weights.")
     masspoints = signalWeight.keys()
-    print sample, sample.name, masspoints[0][0], masspoints[0][1]
     if getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, signal=sample.name, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)):
         renormISR = True
         logger.info("Successfully loaded ISR normalzations.")
@@ -476,7 +486,6 @@ if options.year == 2017:
 branchKeepStrings_MC = [\
     "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_pt","GenMET_phi", "nISR",
 ]
-
 #branches to be kept for data only
 branchKeepStrings_DATA = [ ]
 
@@ -559,6 +568,11 @@ new_variables += [\
     'met_pt/F', 'met_phi/F', 'met_pt_min/F'
 ]
 
+# Add weight branches for susy signal samples from friend tree
+if has_susy_weight_friend:
+    new_variables.extend([ "LHE[weight/F]", "LHE_weight_original/F"] )
+
+
 
 if sample.isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
 new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
@@ -583,8 +597,8 @@ if isTriLep or isDiLep:
             'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F',
             'reweightLeptonTrackingSF/F',
          ] )
-    #if options.susySignal:
-    #    new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
+    if options.susySignal and fastSim:
+        new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F', 'genZ_mass/F', 'isOnShellTTZ/I'] )
 new_variables.extend( ['met_pt_photonEstimated/F','MET_phi_photonEstimated/F','metSig_photonEstimated/F'] )
@@ -744,8 +758,6 @@ if not options.skipNanoTools:
     if options.year == 2017:
         modules.append(METminProducer(isData=isData, calcVariations=(not isData)))
 
-    #print sample.files
-
     # check if files are available (e.g. if dpm is broken this should result in an error)
     for f in sample.files:
         if not checkRootFile(f):
@@ -767,6 +779,7 @@ if not options.skipNanoTools:
     sample.files = newFileList
 
 # Define a reader
+
 reader = sample.treeReader( \
     variables = read_variables ,
     selectionString = "&&".join(skimConds)
@@ -780,7 +793,6 @@ def getMetPhotonEstimated(met_pt, met_phi, photon):
   gamma.SetPtEtaPhiM(photon['pt'], photon['eta'], photon['phi'], photon['mass'] )
   metGamma = met + gamma
   return (metGamma.Pt(), metGamma.Phi())
-
 
 ## Calculate corrected met pt/phi using systematics for jets
 def getMetJetCorrected(met_pt, met_phi, jets, var, ptVar='pt'):
@@ -818,7 +830,7 @@ grannies_B = {}
 def filler( event ):
     # shortcut
     r = reader.event
-    workaround  = (r.run, r.luminosityBlock, r.event) # some fastsim files seem to have issues, apparently solved by this.
+    #workaround  = (r.run, r.luminosityBlock, r.event) # some fastsim files seem to have issues, apparently solved by this.
     event.isData = s.isData
     event.overlapRemoval = 1 
     
@@ -861,6 +873,13 @@ def filler( event ):
         
     # weight
     if options.susySignal:
+        if has_susy_weight_friend:
+            if weight_friend.chain.GetEntryWithIndex(r.luminosityBlock, r.event)>0:
+                event.LHE_weight_original =  weight_friend.chain.GetLeaf("LHE_weight_original").GetValue()
+                event.nLHE = int(weight_friend.chain.GetLeaf("nLHE").GetValue())
+                for nEvt in range(event.nLHE):
+                    event.LHE_weight[nEvt] = weight_friend.chain.GetLeaf("LHE_weight").GetValue(nEvt)
+
         r.GenSusyMStop = max([p['mass']*(abs(p['pdgId']==1000006)) for p in gPart])
         r.GenSusyMNeutralino = max([p['mass']*(abs(p['pdgId']==1000022)) for p in gPart])
         if 'T8bbllnunu' in options.samples[0]:
@@ -1180,14 +1199,14 @@ def filler( event ):
               dlg = dl + gamma
               event.dlg_mass = dlg.M()
 
-            #if options.susySignal:
-            #    mt2Calculator.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
-            #    setattr(event, "dl_mt2ll_gen", mt2Calculator.mt2ll())
-            #    if len(jets)>=2:
-            #        bj0, bj1 = (bJets+nonBJets)[:2]
-            #        mt2Calculator.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-            #        setattr(event, "dl_mt2bb_gen",   mt2Calculator.mt2bb())
-            #        setattr(event, "dl_mt2blbl_gen", mt2Calculator.mt2blbl())
+            if options.susySignal and fastSim:
+                mt2Calculator.setMet(getattr(r, 'GenMET_pt'), getattr(r, 'GenMET_phi'))
+                setattr(event, "dl_mt2ll_gen", mt2Calculator.mt2ll())
+                if len(jets)>=2:
+                    bj0, bj1 = (bJets+nonBJets)[:2]
+                    mt2Calculator.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                    setattr(event, "dl_mt2bb_gen",   mt2Calculator.mt2bb())
+                    setattr(event, "dl_mt2blbl_gen", mt2Calculator.mt2blbl())
                 
             for i in metVariants:
                 mt2Calculator.setMet(getattr(event, 'met_pt'+i), getattr(event, 'met_phi'+i))
@@ -1341,6 +1360,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
     reader.setEventRange( eventRange )
 
     clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events", rootfile = outputfile )
+
     clonedEvents += clonedTree.GetEntries()
     # Clone the empty maker in order to avoid recompilation at every loop iteration
     maker = treeMaker_parent.cloneWithoutCompile( externalTree = clonedTree )
@@ -1378,7 +1398,7 @@ if sample.isData and convertedEvents>0: # avoid json to be overwritten in cases 
     logger.info( "Written JSON file %s", jsonFile )
 
 # Write one file per mass point for SUSY signals
-if options.nJobs == 1:
+if options.nJobs == 1 and fastSim:
     if options.susySignal:
         signalModel = options.samples[0].split('_')[1]
         output = Sample.fromDirectory(signalModel+"_output", output_directory)

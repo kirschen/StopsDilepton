@@ -148,6 +148,7 @@ class Setup:
                       if 'reweightL1Prefire'+upOrDown           in res.sys[k]: res.sys[k].remove('reweightL1Prefire')
                       if 'reweightBTag_SF_b_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightBTag_SF_l_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
+                      if 'reweightBTag_SF_FS_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightLeptonSF'+upOrDown            in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
                       if 'reweightLeptonFastSimSF'+upOrDown     in res.sys[k]: res.sys[k].remove('reweightLeptonFastSimSF')
                 else:
@@ -230,7 +231,8 @@ class Setup:
           res['cuts'].append('met_pt'+sysStr+metStr+'>='+str(metMin))
           res['prefixes'].append('met'+str(metMin))
         if metSigMin and metSigMin>0:
-          res['cuts'].append('MET_significance'+sysStr+metStr+'>='+str(metSigMin))
+          #res['cuts'].append('MET_significance'+sysStr+metStr+'>='+str(metSigMin))
+          res['cuts'].append('metSig'+sysStr+metStr+'>='+str(metSigMin))
           res['prefixes'].append('METsig'+str(metSigMin))
 
         if dPhi:
@@ -297,7 +299,7 @@ class Setup:
               res['prefixes'].append('lepSel')
               res['cuts'].append("l1_pt>30&&l2_pt>20")
               
-        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), year=self.year, isFastSim=isFastSim))
+        res['cuts'].append(getFilterCut(isData=(dataMC=='Data'), year=self.year, isFastSim=isFastSim, skipBadPFMuon=False))
         if dataMC=='Data' and self.year == 2018:
             res['cuts'].append('reweightHEM>0')
         res['cuts'].extend(self.externalCuts)

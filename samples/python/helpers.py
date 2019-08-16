@@ -115,7 +115,7 @@ def getT2ttSignalWeight(sample, lumi, cacheDir):
     xSecSusy_ = xSecSusy()
     channel='stop13TeV'
     signalWeight={}
-    mMax = 1550
+    mMax = 2000
     bStr = str(mMax)+','+str(mMax)
     #sample.chain.Draw("GenSusyMNeutralino:GenSusyMStop>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
 
@@ -149,13 +149,15 @@ def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year, signal="T2tt", fillCac
     from StopsDilepton.tools.user import analysis_results
     from StopsDilepton.analysis.Cache import Cache
     signalWeight={}
-    mMax = 1550
+    mMax = 2000
     bStr = str(mMax)+','+str(mMax)
 
     cache = Cache(cacheDir, verbosity=2)
 
+    key = (mStop, mLSP, sample.name, year)
+
     # get the norm for all
-    if (fillCache and not cache.contains((mStop, mLSP))) or overwrite:
+    if (fillCache and not cache.contains(key )) or overwrite:
         from Analysis.Tools.isrWeight import ISRweight
         isr = ISRweight()
         isrWeightString = isr.getWeightString()
@@ -167,12 +169,15 @@ def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year, signal="T2tt", fillCac
         hCentral = ROOT.gDirectory.Get("hCentral")
 
         for mSt, mNeu in massPoints:
+            key = (mSt, mNeu, sample.name, year)
             norm = hCentral.GetBinContent(hCentral.GetXaxis().FindBin(mSt), hCentral.GetYaxis().FindBin(mNeu)) / hReweighted.GetBinContent(hReweighted.GetXaxis().FindBin(mSt), hReweighted.GetYaxis().FindBin(mNeu))
-            cache.add((mSt, mNeu), norm)
+            #print mSt, mNeu
+            #print key
+            #print norm
+            cache.add( key , norm)
 
-    if not cache.contains((mStop, mLSP)):
+    if not cache.contains(key):
         return False
     else:
-        return cache.get((mStop, mLSP))
-
-
+        #print cache.get(key)
+        return cache.get(key)

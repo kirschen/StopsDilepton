@@ -42,9 +42,10 @@ if os.environ['USER'] in ['phussain']:
     #dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     #cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    postprocessing_output_directory = "/afs/hephy.at/data/cms03/nanoTuples/"
     # directory with veto lists
-    analysis_results        = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
+    #analysis_results        = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
+    analysis_results        = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/vpseudomet/'
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
     MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
     MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'
@@ -60,7 +61,7 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/"
     # Analysis result files
-    analysis_results        = '/afs/hephy.at/data/dspitzbart02/StopsDileptonLegacy/results/v1/' #Path to analysis results
+    analysis_results        = '/afs/hephy.at/data/cms02/StopsDileptonLegacy/results/v3/' #Path to analysis results
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"

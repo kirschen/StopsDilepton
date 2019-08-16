@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#regionsLegacytest1
 import ROOT
 import os
 import argparse
@@ -43,7 +44,7 @@ from StopsDilepton.analysis.SetupHelpers    import channels, trilepChannels
 from StopsDilepton.analysis.estimators      import *
 from StopsDilepton.analysis.Setup           import Setup
 from StopsDilepton.analysis.DataObservation import DataObservation
-from StopsDilepton.analysis.regions         import regionsLegacy, noRegions, regionsAgg
+from StopsDilepton.analysis.regions         import regionsLegacy, noRegions, regionsAgg, highMT2blblregions
 #regionsLegacy, noRegions, regionsS, regionsAgg, regionsDM, regionsDM1, regionsDM2, regionsDM3, regionsDM4, regionsDM5, regionsDM6, regionsDM7
 from StopsDilepton.analysis.Cache           import Cache
 from copy import deepcopy
@@ -51,7 +52,7 @@ from copy import deepcopy
 setup = Setup(year=year)
 
 # Define CR
-setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False,  'zWindow': 'onZ'})
+setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False,  'zWindow': 'onZ', 'metSigMin' : 12})
 setupTTZ1 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(2,2),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
 setupTTZ2 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(1,1),  'dPhi': False, 'dPhiInv': False})
 setupTTZ3 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
@@ -66,6 +67,7 @@ elif args.DMsync:
     setup.channels = ['EE','MuMu', 'EMu']
 else:
     setup.channels     = ['SF','EMu']
+#setupDYVV.channels = ['EE']
 setupDYVV.channels = ['SF']
 setupTTZ1.channels = ['all']
 setupTTZ2.channels = ['all']
@@ -239,6 +241,7 @@ def wrapper(s):
         c.addUncertainty('topNonGaus', shapeString)
         c.addUncertainty('topFakes',   shapeString)
         c.addUncertainty('DY_SR',      shapeString)
+        c.addUncertainty('DY_add',     shapeString) # only in high mt2blbl
         c.addUncertainty('ttZ_SR',     shapeString)
         # all regions, lnN
         c.addUncertainty('topNorm',    'lnN')
@@ -364,6 +367,8 @@ def wrapper(s):
 
                         if e.name.count('DY'):
                             c.specifyUncertainty('DY',         binname, name, 1.5)#1/(1+0.5))#1.5
+                            if r in highMT2blblregions:
+                                c.specifyUncertainty('DY_add',         binname, name, 2.0)
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                 c.specifyUncertainty("DY_SR", binname, name, 1.25)
 
@@ -392,15 +397,14 @@ def wrapper(s):
                 #signal
                 eSignal.isSignal = True
                 e = eSignal
-                #eSignal.isSignal = True
+                
                 if fastSim:
-                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) # reweightLeptonFastSimSF
-                    #signalSetup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
-                    signalSetup = setup.sysClone()
+                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) # reweightLeptonFastSimSF not yet in the tuples?
                     signal = e.cachedEstimate(r, channel, signalSetup)
+                    # need MET Significance with gen MET for this. not yet implemented.
                     #signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'genMet'}))) # genMET modifier -> what to do for legacy?
                 else:
-                    signalSetup = setup.sysClone()
+                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) 
                     signal = e.cachedEstimate(r, channel, signalSetup)
 
                 signal = signal * args.scale
@@ -411,7 +415,8 @@ def wrapper(s):
 
                 #signal.val, signal.sigma = 0.1, 1.0
 
-                if niceName.count('controlTTZ'): signal.val = 0.001 # to avoid failing of the fit
+                if niceName.count('controlTTZ') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
+                if niceName.count('controlDY') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
                 c.specifyExpectation(binname, 'signal', signal.val*xSecScale )
 
 
@@ -435,7 +440,7 @@ def wrapper(s):
 
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + 0.02 )#e.leptonFSSystematic(    r, channel, signalSetup).val )
-                    c.specifyUncertainty('btagFS',   binname, 'signal', 1 + 0.02 )#e.btaggingSFFSSystematic(r, channel, signalSetup).val )
+                    c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('FSmet',    binname, 'signal', 1 + 0.02 )#e.fastSimMETSystematic(  r, channel, signalSetup).val )
                     c.specifyUncertainty('PUFS',     binname, 'signal', 1 + 0.02 )#e.fastSimPUSystematic(   r, channel, signalSetup).val )
 
