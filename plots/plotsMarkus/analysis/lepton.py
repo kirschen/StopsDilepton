@@ -164,7 +164,7 @@ def drawPlots(plots, mode, dataMCScale):
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I"]
+read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I", "nGoodLeptons/I", "nlep/I", "nJet/I"]
 read_variables += [
             "l1_pdgId/I", "l2_pdgId/I",
             "Jet[pt/F,rawFactor/F,pt_nom/F,eta/F,area/F]", "run/I", "fixedGridRhoFastjetAll/F",
@@ -195,43 +195,60 @@ def make_variables( event, sample ):
                 if getattr(event, "l"+str(i)+"_pt")==getattr(event, Lepton+"_pt")[j]:
                     setattr(event, "l"+str(i)+"_"+lep+"Index", j)
 
-        if abs(getattr(event, "l"+str(i)+"_pdgId"))==pdgID and getattr(event, "l"+str(i)+"_"+lep+"Index")>=0:
-            setattr(event, "l"+str(i)+"_dxy", getattr(event, Lepton+"_dxy")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_dxyErr", getattr(event, Lepton+"_dxyErr")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_dz", getattr(event, Lepton+"_dz")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_dzErr", getattr(event, Lepton+"_dzErr")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_ip3d", getattr(event, Lepton+"_ip3d")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_jetRelIso", getattr(event, Lepton+"_jetRelIso")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_miniPFRelIso_all", getattr(event, Lepton+"_miniPFRelIso_all")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_pfRelIso03_all", getattr(event, Lepton+"_pfRelIso03_all")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_pt", getattr(event, Lepton+"_pt")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_sip3d", getattr(event, Lepton+"_sip3d")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_mvaTTH", getattr(event, Lepton+"_mvaTTH")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_charge", getattr(event, Lepton+"_charge")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-            setattr(event, "l"+str(i)+"_jetRelIsoCalc", (event.Jet_pt[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]]-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt"))
-            setattr(event, "l"+str(i)+"_jetRawPt", event.Jet_pt[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]]*(1-event.Jet_rawFactor[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]]))
-            setattr(event, "l"+str(i)+"_jetRelIsoCalcRaw", (getattr(event, "l"+str(i)+"_jetRawPt")-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt"))
-            setattr(event, "l"+str(i)+"_jetRelIsoNom", (event.Jet_pt_nom[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]]-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt") )
+        lepIdx = getattr(event, "l"+str(i)+"_"+lep+"Index")
+        if abs(getattr(event, "l"+str(i)+"_pdgId"))==pdgID and lepIdx>=0:
+            nLepton = getattr(event, "nElectron") + getattr(event, "nMuon")
+            if lepIdx+1 > nLepton: 
+                print "lepIndex > nLeptons: ", str(lepIdx+1), " > ", nLepton
 
-            corrector = corrector_data if sample.isData else corrector_mc
-            setattr(event, "l"+str(i)+"_jetPtRecorrected", getattr(event, "l"+str(i)+"_jetRawPt")*corrector.correction( getattr(event, "l"+str(i)+"_jetRawPt"), event.Jet_eta[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]], event.Jet_area[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]], event.fixedGridRhoFastjetAll, event.run ) )
-            setattr(event, "l"+str(i)+"_jetRelIsoRecorr", (getattr(event, "l"+str(i)+"_jetPtRecorrected")-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt"))
+            setattr(event, "l"+str(i)+"_dxy", getattr(event, Lepton+"_dxy")[lepIdx])
+            setattr(event, "l"+str(i)+"_dxyErr", getattr(event, Lepton+"_dxyErr")[lepIdx])
+            setattr(event, "l"+str(i)+"_dz", getattr(event, Lepton+"_dz")[lepIdx])
+            setattr(event, "l"+str(i)+"_dzErr", getattr(event, Lepton+"_dzErr")[lepIdx])
+            setattr(event, "l"+str(i)+"_ip3d", getattr(event, Lepton+"_ip3d")[lepIdx])
+            setattr(event, "l"+str(i)+"_jetRelIso", getattr(event, Lepton+"_jetRelIso")[lepIdx])
+            setattr(event, "l"+str(i)+"_miniPFRelIso_all", getattr(event, Lepton+"_miniPFRelIso_all")[lepIdx])
+            setattr(event, "l"+str(i)+"_pfRelIso03_all", getattr(event, Lepton+"_pfRelIso03_all")[lepIdx])
+            setattr(event, "l"+str(i)+"_pt", getattr(event, Lepton+"_pt")[lepIdx])
+            setattr(event, "l"+str(i)+"_sip3d", getattr(event, Lepton+"_sip3d")[lepIdx])
+            setattr(event, "l"+str(i)+"_mvaTTH", getattr(event, Lepton+"_mvaTTH")[lepIdx])
+            setattr(event, "l"+str(i)+"_charge", getattr(event, Lepton+"_charge")[lepIdx])
+            # Jet_pt
+            # Electron_jetIdx
+            # l1_eleIndex
+            # nJetGood
+            jetIdx_for_lepton = getattr(event, Lepton+"_jetIdx")[lepIdx]
+            if jetIdx_for_lepton > getattr(event, "nJet"):
+                print "jetIdx > nJet:"
+                print str(jetIdx_for_lepton+1) 
+                print str(getattr(event, "nJet"))
 
-            if (getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt")) >= 15:
-                jetPtHad = (getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt"))*corrector.correction( getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt"), event.Jet_eta[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]], event.Jet_area[getattr(event, Lepton+"_jetIdx")[getattr(event, "l"+str(i)+"_"+lep+"Index")]], event.fixedGridRhoFastjetAll, event.run ) 
-            else:
-                jetPtHad = getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt")
-            setattr(event, "l"+str(i)+"_jetRelIsoRecorrHad", (jetPtHad)/getattr(event, "l"+str(i)+"_pt"))
+            try:
+                setattr(event, "l"+str(i)+"_jetRelIsoCalc", (event.Jet_pt[jetIdx_for_lepton]-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt"))
+                setattr(event, "l"+str(i)+"_jetRawPt", event.Jet_pt[jetIdx_for_lepton]*(1-event.Jet_rawFactor[jetIdx_for_lepton]))
+                setattr(event, "l"+str(i)+"_jetRelIsoCalcRaw", (getattr(event, "l"+str(i)+"_jetRawPt")-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt"))
+                setattr(event, "l"+str(i)+"_jetRelIsoNom", (event.Jet_pt_nom[jetIdx_for_lepton]-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt") )
 
+                corrector = corrector_data if sample.isData else corrector_mc
+                setattr(event, "l"+str(i)+"_jetPtRecorrected", getattr(event, "l"+str(i)+"_jetRawPt")*corrector.correction( getattr(event, "l"+str(i)+"_jetRawPt"), event.Jet_eta[jetIdx_for_lepton], event.Jet_area[jetIdx_for_lepton], event.fixedGridRhoFastjetAll, event.run ) )
+                setattr(event, "l"+str(i)+"_jetRelIsoRecorr", (getattr(event, "l"+str(i)+"_jetPtRecorrected")-getattr(event, "l"+str(i)+"_pt"))/getattr(event, "l"+str(i)+"_pt"))
+
+                if (getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt")) >= 15:
+                    jetPtHad = (getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt"))*corrector.correction( getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt"), event.Jet_eta[jetIdx_for_lepton], event.Jet_area[jetIdx_for_lepton], event.fixedGridRhoFastjetAll, event.run ) 
+                else:
+                    jetPtHad = getattr(event, "l"+str(i)+"_jetRawPt") - getattr(event, "l"+str(i)+"_pt")
+                setattr(event, "l"+str(i)+"_jetRelIsoRecorrHad", (jetPtHad)/getattr(event, "l"+str(i)+"_pt"))
+            except:
+                pass
             # not in Electron
             if Lepton is "Muon":
-                setattr(event, "l"+str(i)+"_ptErr", getattr(event, Lepton+"_ptErr")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-                setattr(event, "l"+str(i)+"_pfRelIso04_all", getattr(event, Lepton+"_pfRelIso04_all")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-                setattr(event, "l"+str(i)+"_segmentComp", getattr(event, Lepton+"_segmentComp")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-                setattr(event, "l"+str(i)+"_nStations", getattr(event, Lepton+"_nStations")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-                setattr(event, "l"+str(i)+"_nTrackerLayers", getattr(event, Lepton+"_nTrackerLayers")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
-                setattr(event, "l"+str(i)+"_highPtId", ord(getattr(event, Lepton+"_highPtId")[getattr(event, "l"+str(i)+"_"+lep+"Index")]))
-                setattr(event, "l"+str(i)+"_inTimeMuon", getattr(event, Lepton+"_inTimeMuon")[getattr(event, "l"+str(i)+"_"+lep+"Index")])
+                setattr(event, "l"+str(i)+"_ptErr", getattr(event, Lepton+"_ptErr")[lepIdx])
+                setattr(event, "l"+str(i)+"_pfRelIso04_all", getattr(event, Lepton+"_pfRelIso04_all")[lepIdx])
+                setattr(event, "l"+str(i)+"_segmentComp", getattr(event, Lepton+"_segmentComp")[lepIdx])
+                setattr(event, "l"+str(i)+"_nStations", getattr(event, Lepton+"_nStations")[lepIdx])
+                setattr(event, "l"+str(i)+"_nTrackerLayers", getattr(event, Lepton+"_nTrackerLayers")[lepIdx])
+                setattr(event, "l"+str(i)+"_highPtId", ord(getattr(event, Lepton+"_highPtId")[lepIdx]))
+                setattr(event, "l"+str(i)+"_inTimeMuon", getattr(event, Lepton+"_inTimeMuon")[lepIdx])
         else:
             setattr(event, "l"+str(i)+"_dxy", float('nan'))
             setattr(event, "l"+str(i)+"_dxyErr", float('nan'))
@@ -246,7 +263,7 @@ def make_variables( event, sample ):
             setattr(event, "l"+str(i)+"_mvaTTH", float('nan'))
             setattr(event, "l"+str(i)+"_charge", float('nan'))
 
-            setattr(event, "l"+str(i)+"_jetRelIsoCalc", float('nan'))
+            #setattr(event, "l"+str(i)+"_jetRelIsoCalc", float('nan'))
             setattr(event, "l"+str(i)+"_jetRelIsoCalcRaw", float('nan'))
             setattr(event, "l"+str(i)+"_jetRawPt", float('nan'))
             setattr(event, "l"+str(i)+"_jetRelIsoNom", float('nan'))
@@ -282,7 +299,8 @@ def getLeptonSelection( mode ):
 #
 yields     = {}
 allPlots   = {}
-allModes   = ['mumu','ee']
+allModes   = ['ee']
+#allModes   = ['mumu','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
 
@@ -336,12 +354,6 @@ for index, mode in enumerate(allModes):
     texX = 'miniRelIso(l_{1}) (GeV)', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "l1_miniRelIso/F" ),
     binning=[30,0,0.3], addOverFlowBin = 'upper',
-  ))
-
-  plots.append(Plot(
-    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 15 GeV',
-    attribute = TreeVariable.fromString( "l1_pt/F" ),
-    binning=[20,0,10], addOverFlowBin = 'upper',
   ))
 
   plots.append(Plot(
@@ -410,11 +422,11 @@ for index, mode in enumerate(allModes):
     binning=[50,-.15,.5], 
   ))
 
-  plots.append(Plot(
-    texX = 'relIso(l_{1}) (GeV) calculated with Jet_pt', texY = 'Number of Events',
-    name = 'l1_jetRelIsoCalc', attribute = lambda event, sample: event.l1_jetRelIsoCalc,
-    binning=[50,-.15,.5], 
-  ))
+#  plots.append(Plot(
+#    texX = 'relIso(l_{1}) (GeV) calculated with Jet_pt', texY = 'Number of Events',
+#    name = 'l1_jetRelIsoCalc', attribute = lambda event, sample: event.l1_jetRelIsoCalc,
+#    binning=[50,-.15,.5], 
+#  ))
 
   plots.append(Plot(
     texX = 'relIso(l_{1}) (GeV) calculated with raw Jet_pt', texY = 'Number of Events',
@@ -533,6 +545,12 @@ for index, mode in enumerate(allModes):
 
 
   plots.append(Plot(
+    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 15 GeV',
+    attribute = TreeVariable.fromString( "l1_pt/F" ),
+    binning=[20,0,100], addOverFlowBin = 'upper',
+  ))
+
+  plots.append(Plot(
     texX = 'p_{T}(l_{2}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l2_pt/F" ),
     binning=[20,0,100], addOverFlowBin = 'upper',
@@ -598,11 +616,11 @@ for index, mode in enumerate(allModes):
     binning=[50,-.15,.5], 
   ))
 
-  plots.append(Plot(
-    texX = 'calculated jet relIso(l_{2}) (GeV)', texY = 'Number of Events',
-    name = 'l2_jetRelIsoCalc', attribute = lambda event, sample: event.l2_jetRelIsoCalc,
-    binning=[50,-.15,.5], 
-  ))
+#  plots.append(Plot(
+#    texX = 'calculated jet relIso(l_{2}) (GeV)', texY = 'Number of Events',
+#    name = 'l2_jetRelIsoCalc', attribute = lambda event, sample: event.l2_jetRelIsoCalc,
+#    binning=[50,-.15,.5], 
+#  ))
 
   plots.append(Plot(
     texX = 'calculated raw jet relIso(l_{2}) (GeV)', texY = 'Number of Events',
