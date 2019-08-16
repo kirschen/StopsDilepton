@@ -161,6 +161,7 @@ limitCache    = Cache(cacheFileName, verbosity=2)
 cacheFileNameS  = os.path.join(limitDir, 'calculatedSignifs')
 signifCache     = Cache(cacheFileNameS, verbosity=2)
 
+fastSim = False # default value
 if   args.signal == "T2tt" and not args.fullSim:    fastSim = True
 elif args.signal == "T2bW":                         fastSim = True
 elif args.signal == "T2bt":                         fastSim = True
@@ -170,6 +171,11 @@ elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  fastSim = True
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": fastSim = True
 elif args.signal == "TTbarDM":                      fastSim = False
 elif args.signal == "ttHinv":                       fastSim = False
+
+if fastSim:
+    logger.info("Assuming the signal sample is FastSim!")
+else:
+    logger.info("Assuming the signal sample is FullSim!")
 
 scaleUncCache = Cache(setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal, verbosity=2)
 isrUncCache   = Cache(setup.analysis_results+'/systematics/isr_%s.pkl'   % args.signal, verbosity=2)
@@ -370,10 +376,8 @@ def wrapper(s):
                         if e.name.count('multiBoson'): c.specifyUncertainty(multiboson_SF, binname, name, 1.50)
 
                         if e.name.count('DY'):
-                            print "DY_SF", DY_SF_nui
                             c.specifyUncertainty(DY_SF_nui,         binname, name, 1.5)#1/(1+0.5))#1.5
                             if r in highMT2blblregions:
-                                print "DY_add"
                                 c.specifyUncertainty(DY_add,         binname, name, 2.0)
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                 c.specifyUncertainty("DY_SR", binname, name, 1.25)
@@ -425,6 +429,7 @@ def wrapper(s):
                 if niceName.count('controlDY') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
                 c.specifyExpectation(binname, 'signal', signal.val*xSecScale )
 
+                logger.info("Signal expectation: %s", signal.val*xSecScale)
 
                 if signal.val>0 or True:
                   if not fastSim:

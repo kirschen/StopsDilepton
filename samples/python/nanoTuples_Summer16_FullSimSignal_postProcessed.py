@@ -26,6 +26,8 @@ dirs['T2tt_mStop_250_mLSP_150'] = ['SMS_T2tt_mStop_250_mLSP_150']
 dirs['T2tt_mStop_300_mLSP_150'] = ['SMS_T2tt_mStop_300_mLSP_150']
 dirs['T2tt_mStop_325_mLSP_150'] = ['SMS_T2tt_mStop_325_mLSP_150']
 dirs['T2tt_mStop_350_mLSP_150'] = ['SMS_T2tt_mStop_350_mLSP_150']
+dirs['T2tt_mStop_650_mLSP_350'] = ['SMS_T2tt_mStop_650_mLSP_350']
+dirs['T2tt_mStop_850_mLSP_100'] = ['SMS_T2tt_mStop_850_mLSP_100']
 
 directories = { key : [ os.path.join( data_directory_, postProcessing_directory_, dir) for dir in dirs[key]] for key in dirs.keys()}
 
@@ -42,6 +44,8 @@ T2tt_mStop_250_mLSP_150  = Sample.fromDirectory(name="T2tt_mStop_250_mLSP_150", 
 T2tt_mStop_300_mLSP_150  = Sample.fromDirectory(name="T2tt_mStop_300_mLSP_150",   treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_300_mLSP_150'])
 T2tt_mStop_325_mLSP_150  = Sample.fromDirectory(name="T2tt_mStop_325_mLSP_150",   treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_325_mLSP_150'])
 T2tt_mStop_350_mLSP_150  = Sample.fromDirectory(name="T2tt_mStop_350_mLSP_150",   treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_350_mLSP_150'])
+T2tt_mStop_650_mLSP_350  = Sample.fromDirectory(name="T2tt_mStop_650_mLSP_350",   treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_650_mLSP_350'])
+T2tt_mStop_850_mLSP_100  = Sample.fromDirectory(name="T2tt_mStop_850_mLSP_100",   treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_850_mLSP_100'])
 
 signals_T2tt = [
     T2tt_mStop_150_mLSP_50,
@@ -54,10 +58,12 @@ signals_T2tt = [
     T2tt_mStop_300_mLSP_150,
     T2tt_mStop_325_mLSP_150,
     T2tt_mStop_350_mLSP_150,
+    T2tt_mStop_650_mLSP_350,
+    T2tt_mStop_850_mLSP_100,
 ]
 
 for s in signals_T2tt:
-    t1, mStop, t2, mNeu = name.replace('T2tt_','').split('_')
+    t1, mStop, t2, mNeu = s.name.replace('T2tt_','').split('_')
     s.mStop = int(mStop)
     s.mNeu = int(mNeu)
     s.isFastSim = False
