@@ -71,6 +71,45 @@ elif "2018" in args.era:
 
 logger.info( "Working in year %i", year )
 
+# Load from DPM?
+if args.dpm:
+    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
+    
+if year == 2016:
+    from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+    from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
+    if args.noDYHT:
+        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+        #print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
+elif year == 2017:
+    from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
+    from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
+    if args.noDYHT:
+        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+        #print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
+
+elif year == 2018:
+    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
+    if args.noDYHT:
+        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
+        #print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
+
+# postions of MC components in list
+position = {s.name:i_s for i_s,s in enumerate(mc)}
+
+
+
+
 def jetSelectionModifier( sys, returntype = "func"):
     #Need to make sure all jet variations of the following observables are in the ntuple
     variiedJetObservables = ['nJetGood', 'nBTag', 'dl_mt2ll', 'dl_mt2blbl', 'MET_significance', 'met_pt', 'metSig']
@@ -129,6 +168,23 @@ def MC_WEIGHT( variation, returntype = "string"):
         return weight_
     elif returntype == "list":
         return variiedMCWeights
+#NN ----------------------------------------------------------------
+    elif returntype == "handle":
+        inputSample, inputWeight = variation['addSampleWeight']
+
+        sampleWeights = variiedMCWeights
+        if sample.name == inputSample.name:
+            sampleWeights.append(inputWeight)
+        return "*".join(sampleWeights)
+#        def weight_( event, sample ):
+#            ww = 1
+#            for iw, w in enumerate(variiedMCWeights):
+#                ww *= getattr(event, w)
+#            if sample.name == inputSample.name:
+#                ww *= float(inputWeight)
+#            return ww
+#        return weight_
+# ------------------------------------------------------------------
 
 def data_weight( event, sample ):
     return event.weight*event.reweightHEM
@@ -156,6 +212,25 @@ variations = {
     'LeptonSFUp'        : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFUp'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFUp']]},
     'L1PrefireDown'     : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireDown'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireDown']]},
     'L1PrefireUp'       : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireUp'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireUp']]},
+#NN
+    'DYInputUp'             : {'addSampleWeight':(DY_HT_LO, '1.5'),                                                       'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'DYInputDown'           : {'addSampleWeight':(DY_HT_LO, '0.5'),                                                       'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'TT1JetMismInputUp'     : {'addSampleWeight':(Top_pow, '(1+0.3*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) >=1))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'TT1JetMismInputDown'   : {'addSampleWeight':(Top_pow, '(1-0.3*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) >=1))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'TTTotJetMismInputUp'   : {'addSampleWeight':(Top_pow,
+           '(1+0.15*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) >= 40))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'TTTotJetMismInputDown' : {'addSampleWeight':(Top_pow, 
+           '(1-0.15*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) >= 40))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'TTNonPromptInputUp'    : {'addSampleWeight':(Top_pow, 
+                               '(1+0.5*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) < 40 && ((l1_muIndex>=0 && (Muon_genPartFlav[l1_muIndex])!=1) || (l2_muIndex>=0 && (Muon_genPartFlav[l2_muIndex])!=1))))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'TTNonPromptInputDown'  : {'addSampleWeight':(Top_pow,
+                               '(1-0.5*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) < 40 && ((l1_muIndex>=0 && (Muon_genPartFlav[l1_muIndex])!=1) || (l2_muIndex>=0 && (Muon_genPartFlav[l2_muIndex])!=1))))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'MBInputUp'             : {'addSampleWeight':(multiBoson, '1.5'),                                                     'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'MBInputDown'           : {'addSampleWeight':(multiBoson, '0.5'),                                                     'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'TTZInputUp'            : {'addSampleWeight':(TTZ_LO, '1.2'),                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'TTZInputDown'          : {'addSampleWeight':(TTZ_LO, '0.8'),                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'OtherInputUp'          : {'addSampleWeight':(TTXNoZ, '1.25'),                                                        'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
+    'OtherInputDown'        : {'addSampleWeight':(TTXNoZ, '0.75'),                                                        'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
 #    'TopPt':{},
 }
 
@@ -177,42 +252,6 @@ if args.signal == "T2tt":         plot_subdirectory += "_T2tt"
 if args.small:                    plot_subdirectory += "_small"
 if args.reweightPU:               plot_subdirectory += "_reweightPU%s"%args.reweightPU
 #if args.recoil:                  plot_subdirectory  += '_recoil_'+args.recoil
-
-# Load from DPM?
-if args.dpm:
-    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
-    
-if year == 2016:
-    from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
-    if args.noDYHT:
-        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-        #print "~~~~> using normal DY sample instead of HT binned one"
-    else:
-        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
-elif year == 2017:
-    from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
-    if args.noDYHT:
-        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-        #print "~~~~> using normal DY sample instead of HT binned one"
-    else:
-        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
-
-elif year == 2018:
-    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
-    if args.noDYHT:
-        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-        #print "~~~~> using normal DY sample instead of HT binned one"
-    else:
-        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
-
-# postions of MC components in list
-position = {s.name:i_s for i_s,s in enumerate(mc)}
 
 #if args.recoil:
 #    from Analysis.Tools.RecoilCorrector import RecoilCorrector
@@ -385,7 +424,12 @@ for mode in modes:
     Plot.setDefaults( selectionString = cutInterpreter.cutString(args.selection) )
 
     # if we're running a variation specify
-    if args.variation is not None:
+#NN
+    if args.variation is not None and  "Input" in args.variation: # input variation
+        addSampleWeight   = variations[args.variation]['addSampleWeight']
+        selectionModifier = variations[args.variation]['selectionModifier']
+        mc_weight         = MC_WEIGHT( variation = variations[args.variation], returntype='handle')
+    elif args.variation is not None:
         selectionModifier = variations[args.variation]['selectionModifier']
         mc_weight         = MC_WEIGHT( variation = variations[args.variation], returntype='func')
     else:
@@ -705,7 +749,15 @@ systematics = [\
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
 #    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
     {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
-]
+#NN
+    {'name': 'DYInput',           'pair':('DYInputUp', 'DYInputDown')},
+    {'name': 'TT1JetMismInput',   'pair':('TT1JetMismUp', 'TT1JetMismDown')},
+    {'name': 'TTTotJetMismInput', 'pair':('TTTotJetMismUp', 'TTTotJetMismDown')},
+    {'name': 'TTNonPromptInput',  'pair':('TTNonPromptInputUp', 'TTNonPromptInputDown')},
+    {'name': 'MBInput',           'pair':('MBInputUp', 'MBInputDown')},
+    {'name': 'TTZInput',          'pair':('TTZInputUp', 'TTZInputDown')},
+    {'name': 'OtherInput',        'pair':('OtherInputUp', 'OtherInputDown')},
+] 
 
 # loop over modes
 missing_cmds   = []
