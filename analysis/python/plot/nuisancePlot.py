@@ -53,8 +53,9 @@ def plotNuisances(nuisanceList, name):
   c.SaveAs(name);
 
 nuisanceList     = getNuisancesFromFile(args.nuisanceFile)
-nuisanceListStat = [i for i in nuisanceList if i[0].count('Stat_')] 
-nuisanceListSys  = [i for i in nuisanceList if not i[0].count('Stat_')]
+print nuisanceList
+nuisanceListStat = [i for i in nuisanceList if (i[0].count('Stat_') or i[0].count('prop_'))] 
+nuisanceListSys  = [i for i in nuisanceList if not (i[0].count('Stat_') or i[0].count('prop_'))]
 
 plotNuisances(nuisanceList,     pullsFile+'_pulls_all.png')
 plotNuisances(nuisanceListStat, pullsFile+'_pulls_stat.png')

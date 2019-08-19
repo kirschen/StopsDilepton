@@ -81,3 +81,9 @@ python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms06/nanoTuples/  -
 python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms06/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbllnunu_XCha0p5_XSlep0p5_mN1_700_1300 #SPLIT45
 python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms06/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbllnunu_XCha0p5_XSlep0p95 #SPLIT45
 python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms06/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbllnunu_XCha0p5_XSlep0p95_mN1_700_1600 #SPLIT45
+
+# FullSim corridor
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_175_mLSP_1
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_50
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_75
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_100

@@ -139,7 +139,7 @@ isSmall         = options.skim.lower().count('small')
 isInclusive     = options.skim.lower().count('inclusive') 
 
 fastSim = options.fastSim
-if options.susySignal: fastSim = True
+#if options.susySignal: fastSim = True
 
 # Skim condition
 skimConds = []
@@ -247,7 +247,7 @@ else:
 
 # Add scale etc. friends
 has_susy_weight_friend = False
-if options.susySignal:
+if options.susySignal and fastSim:
     # Make friend sample
     friend_dir = "/afs/hephy.at/data/cms05/nanoTuples/signalWeights/%s/%s"% (options.year, sample.name )
     if os.path.exists( friend_dir ):
@@ -383,7 +383,7 @@ else:
     topScaleF = 1
     logger.info( "Sample will NOT have top pt reweighting. topScaleF=%f",topScaleF )
 
-if fastSim:
+if options.susySignal:
     from Analysis.Tools.isrWeight import *
     isr = ISRweight()
     logger.info("Sample will have ISR reweighting called reweight_nISR.")
@@ -532,7 +532,11 @@ if options.year == 2017:
         read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt_jesTotalUp/F', 'METFixEE2017_pt_jesTotalDown/F', 'METFixEE2017_pt_jer/F', 'METFixEE2017_pt_jerUp/F', 'METFixEE2017_pt_jerDown/F', 'METFixEE2017_pt_unclustEnDown/F', 'METFixEE2017_pt_unclustEnUp/F', 'METFixEE2017_phi_jesTotalUp/F', 'METFixEE2017_phi_jesTotalDown/F', 'METFixEE2017_phi_jer/F', 'METFixEE2017_phi_jerUp/F', 'METFixEE2017_phi_jerDown/F', 'METFixEE2017_phi_unclustEnDown/F', 'METFixEE2017_phi_unclustEnUp/F'])
 read_variables += map(TreeVariable.fromString, [ 'MET_pt_nom/F', 'MET_phi_nom/F' ])
 if isMC:
+<<<<<<< HEAD
     read_variables += map(TreeVariable.fromString, [ 'MET_pt_jesTotalUp/F', 'MET_pt_jesTotalDown/F', 'MET_pt_jer/F', 'MET_pt_jerUp/F', 'MET_pt_jerDown/F', 'MET_pt_unclustEnDown/F', 'MET_pt_unclustEnUp/F', 'MET_phi_jesTotalUp/F', 'MET_phi_jesTotalDown/F', 'MET_phi_jer/F', 'MET_phi_jerUp/F', 'MET_phi_jerDown/F', 'MET_phi_unclustEnDown/F', 'MET_phi_unclustEnUp/F'])
+=======
+    read_variables += map(TreeVariable.fromString, [ 'GenMET_pt/F', 'GenMET_phi/F', 'MET_pt_jesTotalUp/F', 'MET_pt_jesTotalDown/F', 'MET_pt_jerUp/F', 'MET_pt_jerDown/F', 'MET_pt_unclustEnDown/F', 'MET_pt_unclustEnUp/F', 'MET_phi_jesTotalUp/F', 'MET_phi_jesTotalDown/F', 'MET_phi_jerUp/F', 'MET_phi_jerDown/F', 'MET_phi_unclustEnDown/F', 'MET_phi_unclustEnUp/F'])
+>>>>>>> 20faeed93d73488d5861dab8e776686d07130973
 
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
                     VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (options.year == 2016) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
@@ -596,8 +600,8 @@ if isTriLep or isDiLep:
             'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F',
             'reweightLeptonTrackingSF/F',
          ] )
-    #if options.susySignal:
-    #    new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
+    if options.susySignal and fastSim:
+        new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F', 'genZ_mass/F', 'isOnShellTTZ/I'] )
 new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
@@ -1142,14 +1146,14 @@ def filler( event ):
               dlg = dl + gamma
               event.dlg_mass = dlg.M()
 
-            #if options.susySignal:
-            #    mt2Calculator.setMet(getattr(r, 'met_genPt'), getattr(r, 'met_genPhi'))
-            #    setattr(event, "dl_mt2ll_gen", mt2Calculator.mt2ll())
-            #    if len(jets)>=2:
-            #        bj0, bj1 = (bJets+nonBJets)[:2]
-            #        mt2Calculator.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-            #        setattr(event, "dl_mt2bb_gen",   mt2Calculator.mt2bb())
-            #        setattr(event, "dl_mt2blbl_gen", mt2Calculator.mt2blbl())
+            if options.susySignal and fastSim:
+                mt2Calculator.setMet(getattr(r, 'GenMET_pt'), getattr(r, 'GenMET_phi'))
+                setattr(event, "dl_mt2ll_gen", mt2Calculator.mt2ll())
+                if len(jets)>=2:
+                    bj0, bj1 = (bJets+nonBJets)[:2]
+                    mt2Calculator.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                    setattr(event, "dl_mt2bb_gen",   mt2Calculator.mt2bb())
+                    setattr(event, "dl_mt2blbl_gen", mt2Calculator.mt2blbl())
                 
             mt2Calculator.setMet(getattr(event, 'met_pt'), getattr(event, 'met_phi'))
             setattr(event, "dl_mt2ll", mt2Calculator.mt2ll())
@@ -1340,6 +1344,58 @@ if sample.isData and convertedEvents>0: # avoid json to be overwritten in cases 
     LumiList( runsAndLumis = outputLumiList ).writeJSON(jsonFile)
     logger.info( "Written JSON file %s", jsonFile )
 
+<<<<<<< HEAD
+=======
+# Write one file per mass point for SUSY signals
+if options.nJobs == 1 and fastSim:
+    if options.susySignal:
+        signalModel = options.samples[0].split('_')[1]
+        output = Sample.fromDirectory(signalModel+"_output", output_directory)
+        print "Initialising chain, otherwise first mass point is empty"
+        print output.chain
+        if options.small: output.reduceFiles( to = 1 )
+        for s in signalWeight.keys():
+            logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
+            cut = "Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))=="+str(s[0])+"&&Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022))=="+str(s[1])
+            logger.debug("Using cut %s", cut)
+
+            signal_prefix = signalModel + '_'
+            if 'T8bbllnunu' in signalModel:
+                T8bbllnunu_strings = options.samples[0].split('_')
+                for st in T8bbllnunu_strings:
+                    if 'XSlep' in st:
+                        x_slep = st.replace('XSlep','')
+                        logger.info("Factor x_slep in this sample is %s",x_slep)
+                    if 'XCha' in st:
+                        x_cha = st.replace('XCha','')
+                        logger.info("Factor x_cha in this sample is %s",x_cha)
+                assert x_cha, "Could not find X factor for chargino in T8bbllnunu model"
+                assert x_slep, "Could not find X factor for slepton in T8bbllnunu model"
+                signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
+
+            signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
+            logger.debug("Ouput file will be %s", signalFile)
+            if not os.path.exists(signalFile) or options.overwrite:
+                outF = ROOT.TFile.Open(signalFile, "RECREATE")
+                t = output.chain.CopyTree(cut)
+                nEvents = t.GetEntries()
+                outF.Write()
+                outF.Close()
+                logger.info( "Number of events %i", nEvents)
+                inF = ROOT.TFile.Open(signalFile, "READ")
+                u = inF.Get("Events")
+                nnEvents = u.GetEntries()
+                logger.debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
+                if nEvents == nnEvents: logger.debug("All events written")
+                else: logger.debug("Something went wrong, discrepancy between file and tree")
+                inF.Close()
+                logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
+            else:
+                logger.info( "Found file %s -> Skipping"%(signalFile) )
+    
+        output.clear()
+
+>>>>>>> 20faeed93d73488d5861dab8e776686d07130973
 if not options.keepNanoAOD and not options.skipNanoTools:
     for f in sample.files:
         try:
