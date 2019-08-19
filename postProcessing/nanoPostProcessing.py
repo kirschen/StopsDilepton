@@ -99,7 +99,6 @@ def get_parser():
     argParser.add_argument('--skipNanoTools',               action='store_true',                                                        help="Skipt the nanoAOD tools step for computing JEC/JER/MET etc uncertainties")
     argParser.add_argument('--keepNanoAOD',                 action='store_true',                                                        help="Keep nanoAOD output?")
     argParser.add_argument('--reuseNanoAOD',                action='store_true',                                                        help="Keep nanoAOD output?")
-    argParser.add_argument('--reapplyJECS',                 action='store_true',                                                        help="Reapply JECs to data?")
     argParser.add_argument('--reduceSizeBy',                action='store',     type=int,                                               help="Reduce the size of the sample by a factor of...")
     argParser.add_argument('--event',                       action='store',     type=int, default=-1,                                   help="Just process event no")
 
@@ -138,9 +137,6 @@ isSingleLep     = options.skim.lower().startswith('singlelep')
 isTiny          = options.skim.lower().count('tiny') 
 isSmall         = options.skim.lower().count('small')
 isInclusive     = options.skim.lower().count('inclusive') 
-
-fastSim = options.fastSim
-#if options.susySignal: fastSim = True
 
 # Skim condition
 skimConds = []
@@ -248,7 +244,7 @@ else:
 
 # Add scale etc. friends
 has_susy_weight_friend = False
-if options.susySignal and fastSim:
+if options.susySignal and options.fastSim:
     # Make friend sample
     friend_dir = "/afs/hephy.at/data/cms05/nanoTuples/signalWeights/%s/%s"% (options.year, sample.name )
     if os.path.exists( friend_dir ):
@@ -303,7 +299,7 @@ if isMC:
 
 leptonTrackingSF    = LeptonTrackingEfficiency(options.year)
 leptonSF            = leptonSF_(options.year)
-if fastSim:
+if options.fastSim:
    leptonFastSimSF  = leptonFastSimSF_(options.year)
 
 options.skim = options.skim + '_small' if options.small else options.skim
@@ -384,7 +380,7 @@ else:
     topScaleF = 1
     logger.info( "Sample will NOT have top pt reweighting. topScaleF=%f",topScaleF )
 
-if fastSim:
+if options.susySignal:
     from Analysis.Tools.isrWeight import *
     isr = ISRweight()
     logger.info("Sample will have ISR reweighting called reweight_nISR.")
@@ -394,7 +390,7 @@ addSystematicVariations = (not isData) and (not options.skipSystematicVariations
 
 # B tagging SF
 from Analysis.Tools.BTagEfficiency import BTagEfficiency
-btagEff = BTagEfficiency( fastSim = fastSim, year=options.year, tagger='DeepCSV' )
+btagEff = BTagEfficiency( fastSim = options.fastSim, year=options.year, tagger='DeepCSV' )
 
 # Directory for individual signal files
 if options.susySignal:
@@ -474,7 +470,7 @@ branchKeepStrings_DATAMC = [\
     "nElectron", "Electron_*",
     "nMuon", "Muon_*",
 ]
-if not fastSim:
+if not options.fastSim:
     branchKeepStrings_DATAMC += ["HLT_*"]
 
 if options.year == 2017:
@@ -518,7 +514,7 @@ else:
 jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F'] + jetCorrInfo
 if isMC:
     jetVars     += jetMCInfo
-    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jerUp/F', 'pt_jerDown/F']
+    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jer/F', 'pt_jerUp/F', 'pt_jerDown/F']
 jetVarNames     = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
@@ -530,10 +526,10 @@ read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I'
 if options.year == 2017:
     read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'METFixEE2017_phi/F', 'METFixEE2017_pt_nom/F', 'METFixEE2017_phi_nom/F', 'MET_pt_min/F'])
     if isMC:
-        read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt_jesTotalUp/F', 'METFixEE2017_pt_jesTotalDown/F', 'METFixEE2017_pt_jerUp/F', 'METFixEE2017_pt_jerDown/F', 'METFixEE2017_pt_unclustEnDown/F', 'METFixEE2017_pt_unclustEnUp/F', 'METFixEE2017_phi_jesTotalUp/F', 'METFixEE2017_phi_jesTotalDown/F', 'METFixEE2017_phi_jerUp/F', 'METFixEE2017_phi_jerDown/F', 'METFixEE2017_phi_unclustEnDown/F', 'METFixEE2017_phi_unclustEnUp/F'])
+        read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt_jesTotalUp/F', 'METFixEE2017_pt_jesTotalDown/F', 'METFixEE2017_pt_jer/F', 'METFixEE2017_pt_jerUp/F', 'METFixEE2017_pt_jerDown/F', 'METFixEE2017_pt_unclustEnDown/F', 'METFixEE2017_pt_unclustEnUp/F', 'METFixEE2017_phi_jesTotalUp/F', 'METFixEE2017_phi_jesTotalDown/F', 'METFixEE2017_phi_jer/F', 'METFixEE2017_phi_jerUp/F', 'METFixEE2017_phi_jerDown/F', 'METFixEE2017_phi_unclustEnDown/F', 'METFixEE2017_phi_unclustEnUp/F'])
 read_variables += map(TreeVariable.fromString, [ 'MET_pt_nom/F', 'MET_phi_nom/F' ])
 if isMC:
-    read_variables += map(TreeVariable.fromString, [ 'MET_pt_jesTotalUp/F', 'MET_pt_jesTotalDown/F', 'MET_pt_jerUp/F', 'MET_pt_jerDown/F', 'MET_pt_unclustEnDown/F', 'MET_pt_unclustEnUp/F', 'MET_phi_jesTotalUp/F', 'MET_phi_jesTotalDown/F', 'MET_phi_jerUp/F', 'MET_phi_jerDown/F', 'MET_phi_unclustEnDown/F', 'MET_phi_unclustEnUp/F'])
+    read_variables += map(TreeVariable.fromString, [ 'GenMET_pt/F', 'GenMET_phi/F', 'MET_pt_jesTotalUp/F', 'MET_pt_jesTotalDown/F', 'MET_pt_jer/F', 'MET_pt_jerUp/F', 'MET_pt_jerDown/F', 'MET_pt_unclustEnDown/F', 'MET_pt_unclustEnUp/F', 'MET_phi_jesTotalUp/F', 'MET_phi_jesTotalDown/F', 'MET_phi_jer/F', 'MET_phi_jerUp/F', 'MET_phi_jerDown/F', 'MET_phi_unclustEnDown/F', 'MET_phi_unclustEnUp/F'])
 
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
                     VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (options.year == 2016) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
@@ -585,7 +581,7 @@ if isSingleLep:
 if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I', 'nGoodLeptons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I', 'l1_eleIndex/I', 'l1_muIndex/I' ] )
-    new_variables.extend( ['mlmZ_mass/F', 'mt_photonEstimated/F'])
+    new_variables.extend( ['mlmZ_mass/F'])
     if isMC: new_variables.extend(['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F'])
 if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I', 'l2_eleIndex/I', 'l2_muIndex/I' ] )
@@ -597,14 +593,13 @@ if isTriLep or isDiLep:
             'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F',
             'reweightLeptonTrackingSF/F',
          ] )
-    if options.susySignal and fastSim:
+    if options.susySignal and options.fastSim:
         new_variables.extend( ['dl_mt2ll_gen/F', 'dl_mt2bb_gen/F', 'dl_mt2blbl_gen/F' ] )
 new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/F','photon_idCutBased/I'] )
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F', 'genZ_mass/F', 'isOnShellTTZ/I'] )
-new_variables.extend( ['met_pt_photonEstimated/F','MET_phi_photonEstimated/F','metSig_photonEstimated/F'] )
 new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
 if isTriLep or isDiLep:
-  new_variables.extend( ['dlg_mass/F','dl_mt2ll_photonEstimated/F', 'dl_mt2bb_photonEstimated/F', 'dl_mt2blbl_photonEstimated/F' ] )
+  new_variables.extend( ['dlg_mass/F'] )
 
 ## ttZ related variables
 new_variables.extend( ['Z1_l1_index/I', 'Z1_l2_index/I', 'Z2_l1_index/I', 'Z2_l2_index/I', 'nonZ1_l1_index/I', 'nonZ1_l2_index/I'] )
@@ -616,14 +611,11 @@ if options.checkTTGJetsOverlap:
 
 if addSystematicVariations:
 
-    for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
-        if 'Unclustered' not in var: new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I','ht_'+var+'/F'] )
-        new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F', 'metSig_'+var+'/F'] )
+    for var in ['jesTotalUp', 'jesTotalDown', 'jer', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
+        new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F'] )
+        if not var.startswith('unclust'): new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I'] )
         if isTriLep or isDiLep:
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
-        new_variables.extend( ['met_pt_photonEstimated_'+var+'/F', 'met_phi_photonEstimated_'+var+'/F', 'metSig_photonEstimated_'+var+'/F'] )
-        if isTriLep or isDiLep:
-            new_variables.extend( ['dl_mt2ll_photonEstimated_'+var+'/F', 'dl_mt2bb_photonEstimated_'+var+'/F', 'dl_mt2blbl_photonEstimated_'+var+'/F'] )
 
 # Btag weights Method 1a
 for var in btagEff.btagWeightNames:
@@ -639,7 +631,7 @@ if options.susySignal:
     if 'T2tt' in options.samples[0]:
         new_variables  += ['weight_pol_L/F', 'weight_pol_R/F']
 
-if fastSim and (isTriLep or isDiLep):
+if options.fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
 
@@ -675,7 +667,7 @@ if not options.skipNanoTools:
                 JEC         = "Summer16_07Aug2017GH_V11_DATA"
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
-        elif fastSim:
+        elif options.fastSim:
             JEC             = "Spring16_25nsFastSimV1_MC"
         else:
             JEC             = "Summer16_07Aug2017_V11_MC"
@@ -697,7 +689,7 @@ if not options.skipNanoTools:
                 JEC         = "Fall17_17Nov2017F_V32_DATA"
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
-        elif fastSim:
+        elif options.fastSim:
             JEC             = "Fall17_FastsimV1_MC"
         else:
             JEC             = "Fall17_17Nov2017_V32_MC"
@@ -712,7 +704,7 @@ if not options.skipNanoTools:
                 JEC         = "Autumn18_Run%s_V8_DATA"%era
             else:
                 raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
-        elif fastSim:
+        elif options.fastSim:
             JEC             = "Autumn18_FastSimV1_MC"
         else:
             JEC             = "Autumn18_V8_MC"
@@ -784,38 +776,6 @@ reader = sample.treeReader( \
     variables = read_variables ,
     selectionString = "&&".join(skimConds)
     )
-
-# Calculate photonEstimated met
-def getMetPhotonEstimated(met_pt, met_phi, photon):
-  met = ROOT.TLorentzVector()
-  met.SetPtEtaPhiM(met_pt, 0, met_phi, 0 )
-  gamma = ROOT.TLorentzVector()
-  gamma.SetPtEtaPhiM(photon['pt'], photon['eta'], photon['phi'], photon['mass'] )
-  metGamma = met + gamma
-  return (metGamma.Pt(), metGamma.Phi())
-
-## Calculate corrected met pt/phi using systematics for jets
-def getMetJetCorrected(met_pt, met_phi, jets, var, ptVar='pt'):
-  met_corr_px  = met_pt*cos(met_phi) + sum([(j[ptVar]-j['pt_'+var])*cos(j['phi']) if j[ptVar]>15 else 0 for j in jets])
-  met_corr_py  = met_pt*sin(met_phi) + sum([(j[ptVar]-j['pt_'+var])*sin(j['phi']) if j[ptVar]>15 else 0 for j in jets])
-  met_corr_pt  = sqrt(met_corr_px**2 + met_corr_py**2)
-  met_corr_phi = atan2(met_corr_py, met_corr_px)
-  return (met_corr_pt, met_corr_phi)
-
-def getMetCorrected(r, var, addPhoton = None, branch='MET'):
-    if var == "": # why is this here??
-      if addPhoton is not None: return getMetPhotonEstimated(r.MET_pt_nom, r.MET_phi_nom, addPhoton)
-      else:                     return (r.MET_pt_nom, r.MET_phi_nom)
-
-    elif var in [ "unclustEnUp", "unclustEnDown" ]:
-      var_ = var
-      MET_pt  = getattr(r, "%s_pt_"%branch+var_)
-      MET_phi = getattr(r, "%s_phi_"%branch+var_)
-      if addPhoton is not None: return getMetPhotonEstimated(MET_pt, MET_phi, addPhoton)
-      else:                     return (MET_pt, MET_phi)
-
-    else:
-        raise ValueError
 
 # using miniRelIso 0.2 as baseline 
 eleSelector_ = eleSelector( "tightMiniIso02", year = options.year )
@@ -991,7 +951,7 @@ def filler( event ):
 
     # now get jets, cleaned against good leptons
 
-    jetPtVar = 'pt_nom'# if options.reapplyJECS else 'pt'  ## always use pt_nom
+    jetPtVar = 'pt_nom'
 
     allJetsNotClean = getAllJets(r, [], ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar=None)
     reallyAllJets= getAllJets(r, leptons, ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar='jetId') # keeping robert's comment: ... yeah, I know.
@@ -1010,14 +970,14 @@ def filler( event ):
 
     # store the correct MET (EE Fix for 2017, MET_min as backup in 2017)
     
-    if options.year == 2017 and not fastSim:
+    if options.year == 2017 and not options.fastSim:
         # v2 recipe. Could also use our own recipe
-        event.met_pt    = r.METFixEE2017_pt
-        event.met_phi   = r.METFixEE2017_phi
+        event.met_pt     = r.METFixEE2017_pt
+        event.met_phi    = r.METFixEE2017_phi
         event.met_pt_min = r.MET_pt_min
     else:
-        event.met_pt    = r.MET_pt_nom 
-        event.met_phi   = r.MET_phi_nom
+        event.met_pt     = r.MET_pt_nom 
+        event.met_phi    = r.MET_phi_nom
 
         event.met_pt_min = 0
 
@@ -1047,13 +1007,10 @@ def filler( event ):
     bjets_sys     = {}
     nonBjets_sys  = {}
 
-    metVariants = [''] # default
-
     # Keep photons and estimate met including (leading pt) photon
     photons = getGoodPhotons(r, ptCut=20, idLevel="tight", isData=isData, year=options.year)
     event.nPhotonGood = len(photons)
     if event.nPhotonGood > 0:
-      metVariants += ['_photonEstimated']  # do all met calculations also for the photonEstimated variant
       event.photon_pt         = photons[0]['pt']
       event.photon_eta        = photons[0]['eta']
       event.photon_phi        = photons[0]['phi']
@@ -1063,15 +1020,15 @@ def filler( event ):
         event.photon_genPt  = genPhoton['pt']  if genPhoton is not None else float('nan')
         event.photon_genEta = genPhoton['eta'] if genPhoton is not None else float('nan')
 
-      event.met_pt_photonEstimated, event.met_phi_photonEstimated = getMetPhotonEstimated(event.met_pt, event.met_phi, photons[0])
-      event.metSig_photonEstimated = event.met_pt_photonEstimated/sqrt(event.ht) if event.ht>0 else float('nan')
-
       event.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
       event.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
 
     if addSystematicVariations:
-        for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown']:
-            setattr(event, 'met_pt_'+var, getattr(r, 'METFixEE2017_pt_'+var) if options.year == 2017 else getattr(r, 'MET_pt_'+var) )
+        for var in ['jesTotalUp', 'jesTotalDown', 'jer', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
+            setattr(event, 'met_pt_'+var,  getattr(r, 'METFixEE2017_pt_'+var)  if options.year == 2017 else getattr(r, 'MET_pt_'+var) )
+            setattr(event, 'met_phi_'+var, getattr(r, 'METFixEE2017_phi_'+var) if options.year == 2017 else getattr(r, 'MET_phi_'+var) )
+            # need not do anything for jets for the pure MET uncertainty
+            if var.startswith('unclust'): continue
             alljets_sys[var]    = allJetsNotClean
             jets_sys[var]       = filter(lambda j: jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_'+var), allJets)
             bjets_sys[var]      = filter(lambda j: isBJet(j) and abs(j['eta'])<2.4, jets_sys[var])
@@ -1080,19 +1037,6 @@ def filler( event ):
             setattr(event, "nJetGood_"+var, len(jets_sys[var]))
             setattr(event, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
             setattr(event, "nBTag_"+var,    len(bjets_sys[var]))
-
-        for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
-            for i in metVariants:
-                # use cmg MET correction values ecept for JER where it is zero. There, propagate jet variations.
-                if 'jer' in var or 'jes' in var:
-                  (met_corr_pt, met_corr_phi) = getMetJetCorrected(getattr(event, "met_pt" + i), getattr(event,"met_phi" + i), alljets_sys[var], var, ptVar='pt_nom')
-                else:
-                  (met_corr_pt, met_corr_phi) = getMetCorrected(r, var, photons[0] if i.count("photonEstimated") else None, branch="METFixEE2017" if options.year == 2017 else "MET")
-
-                setattr(event, "met_pt" +i+"_"+var, met_corr_pt)
-                setattr(event, "met_phi"+i+"_"+var, met_corr_phi)
-                ht = getattr(event, "ht_"+var) if 'unclust' not in var else event.ht 
-                setattr(event, "metSig" +i+"_"+var, getattr(event, "met_pt"+i+"_"+var)/sqrt( ht ) if ht>0 else float('nan') )
 
     if isSingleLep or isTriLep or isDiLep:
         event.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
@@ -1115,10 +1059,6 @@ def filler( event ):
 
         # For TTZ studies: find Z boson candidate, and use third lepton to calculate mt
         (event.mlmZ_mass, zl1, zl2) = closestOSDLMassToMZ(leptons_pt10)
-#        if len(leptons_pt10) >= 3:
-#            thirdLepton = leptons_pt10[[x for x in range(len(leptons_pt10)) if x != zl1 and x != zl2][0]]
-#            for i in metVariants:
-#              setattr(event, "mt"+i, sqrt(2*thirdLepton['pt']*getattr(event, "met_pt"+i)*(1-cos(thirdLepton['phi']-getattr(event, "met_phi"+i)))))
 
         #if fastSim:
         #    event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt) for l in leptons], 1)
@@ -1138,7 +1078,7 @@ def filler( event ):
             if event.reweightLeptonSF ==0:
                 logger.error( "reweightLeptonSF is zero!")
 
-            if fastSim:
+            if options.fastSim:
                 leptonFastSimSFValues = [ leptonFastSimSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
                 event.reweightLeptonFastSimSF     = reduce(mul, [sf[0] for sf in leptonFastSimSFValues], 1)
                 event.reweightLeptonFastSimSFDown = reduce(mul, [sf[1] for sf in leptonFastSimSFValues], 1)
@@ -1199,7 +1139,7 @@ def filler( event ):
               dlg = dl + gamma
               event.dlg_mass = dlg.M()
 
-            if options.susySignal and fastSim:
+            if options.susySignal and options.fastSim:
                 mt2Calculator.setMet(getattr(r, 'GenMET_pt'), getattr(r, 'GenMET_phi'))
                 setattr(event, "dl_mt2ll_gen", mt2Calculator.mt2ll())
                 if len(jets)>=2:
@@ -1208,32 +1148,32 @@ def filler( event ):
                     setattr(event, "dl_mt2bb_gen",   mt2Calculator.mt2bb())
                     setattr(event, "dl_mt2blbl_gen", mt2Calculator.mt2blbl())
                 
-            for i in metVariants:
-                mt2Calculator.setMet(getattr(event, 'met_pt'+i), getattr(event, 'met_phi'+i))
-                setattr(event, "dl_mt2ll"+i, mt2Calculator.mt2ll())
+            mt2Calculator.setMet(getattr(event, 'met_pt'), getattr(event, 'met_phi'))
+            setattr(event, "dl_mt2ll", mt2Calculator.mt2ll())
 
-                bj0, bj1 = None, None
-                if len(jets)>=2:
-                    bj0, bj1 = (bJets+nonBJets)[:2]
-                    mt2Calculator.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
-                    setattr(event, "dl_mt2bb"+i,   mt2Calculator.mt2bb())
-                    setattr(event, "dl_mt2blbl"+i, mt2Calculator.mt2blbl())
+            bj0, bj1 = None, None
+            if len(jets)>=2:
+                bj0, bj1 = (bJets+nonBJets)[:2]
+                mt2Calculator.setBJets(bj0['pt'], bj0['eta'], bj0['phi'], bj1['pt'], bj1['eta'], bj1['phi'])
+                setattr(event, "dl_mt2bb",   mt2Calculator.mt2bb())
+                setattr(event, "dl_mt2blbl", mt2Calculator.mt2blbl())
 
-                if addSystematicVariations:
-                    for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
-                        mt2Calculator.setMet( getattr(event, "met_pt"+i+"_"+var), getattr(event, "met_phi"+i+"_"+var) )
-                        setattr(event, "dl_mt2ll"+i+"_"+var,  mt2Calculator.mt2ll())
-                        if not 'unclust' in var:
-                            if len(jets_sys[var])>=2:
-                                bj0_, bj1_ = (bjets_sys[var]+nonBjets_sys[var])[:2]
-                            else: 
-                                bj0_, bj1_ = None, None
-                        else:
-                            bj0_, bj1_ = bj0, bj1
-                        if bj0_ and bj1_:
-                            mt2Calculator.setBJets(bj0_['pt'], bj0_['eta'], bj0_['phi'], bj1_['pt'], bj1_['eta'], bj1_['phi'])
-                            setattr(event, 'dl_mt2bb'  +i+'_'+var, mt2Calculator.mt2bb())
-                            setattr(event, 'dl_mt2blbl'+i+'_'+var, mt2Calculator.mt2blbl())
+            if addSystematicVariations:
+                for var in ['jesTotalUp', 'jesTotalDown', 'jer', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
+                    mt2Calculator.setMet( getattr(event, "met_pt_"+var), getattr(event, "met_phi_"+var) )
+
+                    setattr(event, "dl_mt2ll_"+var,  mt2Calculator.mt2ll())
+                    if not var.startswith('unclust'):
+                        if len(jets_sys[var])>=2:
+                            bj0_, bj1_ = (bjets_sys[var]+nonBjets_sys[var])[:2]
+                        else: 
+                            bj0_, bj1_ = None, None
+                    else:
+                        bj0_, bj1_ = bj0, bj1
+                    if bj0_ and bj1_:
+                        mt2Calculator.setBJets(bj0_['pt'], bj0_['eta'], bj0_['phi'], bj1_['pt'], bj1_['eta'], bj1_['phi'])
+                        setattr(event, 'dl_mt2bb_'  +var, mt2Calculator.mt2bb())
+                        setattr(event, 'dl_mt2blbl_'+var, mt2Calculator.mt2blbl())
 
             # for quadlep stuff
             allZCands = getSortedZCandidates(leptons_pt10)
@@ -1396,55 +1336,6 @@ if sample.isData and convertedEvents>0: # avoid json to be overwritten in cases 
     jsonFile = filename+'_%s.json'%(0 if options.nJobs==1 else options.job)
     LumiList( runsAndLumis = outputLumiList ).writeJSON(jsonFile)
     logger.info( "Written JSON file %s", jsonFile )
-
-# Write one file per mass point for SUSY signals
-if options.nJobs == 1 and fastSim:
-    if options.susySignal:
-        signalModel = options.samples[0].split('_')[1]
-        output = Sample.fromDirectory(signalModel+"_output", output_directory)
-        print "Initialising chain, otherwise first mass point is empty"
-        print output.chain
-        if options.small: output.reduceFiles( to = 1 )
-        for s in signalWeight.keys():
-            logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
-            cut = "Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))=="+str(s[0])+"&&Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022))=="+str(s[1])
-            logger.debug("Using cut %s", cut)
-
-            signal_prefix = signalModel + '_'
-            if 'T8bbllnunu' in signalModel:
-                T8bbllnunu_strings = options.samples[0].split('_')
-                for st in T8bbllnunu_strings:
-                    if 'XSlep' in st:
-                        x_slep = st.replace('XSlep','')
-                        logger.info("Factor x_slep in this sample is %s",x_slep)
-                    if 'XCha' in st:
-                        x_cha = st.replace('XCha','')
-                        logger.info("Factor x_cha in this sample is %s",x_cha)
-                assert x_cha, "Could not find X factor for chargino in T8bbllnunu model"
-                assert x_slep, "Could not find X factor for slepton in T8bbllnunu model"
-                signal_prefix = 'T8bbllnunu_XCha%s_XSlep%s_'%(x_cha,x_slep)
-
-            signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
-            logger.debug("Ouput file will be %s", signalFile)
-            if not os.path.exists(signalFile) or options.overwrite:
-                outF = ROOT.TFile.Open(signalFile, "RECREATE")
-                t = output.chain.CopyTree(cut)
-                nEvents = t.GetEntries()
-                outF.Write()
-                outF.Close()
-                logger.info( "Number of events %i", nEvents)
-                inF = ROOT.TFile.Open(signalFile, "READ")
-                u = inF.Get("Events")
-                nnEvents = u.GetEntries()
-                logger.debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
-                if nEvents == nnEvents: logger.debug("All events written")
-                else: logger.debug("Something went wrong, discrepancy between file and tree")
-                inF.Close()
-                logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
-            else:
-                logger.info( "Found file %s -> Skipping"%(signalFile) )
-    
-        output.clear()
 
 if not options.keepNanoAOD and not options.skipNanoTools:
     for f in sample.files:

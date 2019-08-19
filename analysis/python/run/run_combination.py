@@ -46,10 +46,6 @@ setup = Setup(2016)
 years = [2016,2017,2018]
 
 overWrite = args.overwrite
-#controlRegions = 'controlAll'
-#controlRegions = 'fitAll'
-#controlRegions = 'signalOnly'
-#controlRegions = 'controlDYVV'
 def wrapper(s):
 
     logger.info("Now working on %s", s.name)
@@ -129,7 +125,9 @@ def wrapper(s):
                 DY_prefit   = 0
                 DY_postfit  = 0
                 MB_prefit   = 0
-                MB_postfit  = 0
+                MB_postfit   = 0
+                other_prefit  = 0
+                other_postfit  = 0
 
                 for year in years:
                     binName = "dc_%s"%year
@@ -146,8 +144,8 @@ def wrapper(s):
                     MB_prefit  += postFitResults['results']['shapes_prefit'][binName]['multiBoson']
                     MB_postfit += postFitResults['results']['shapes_fit_b'][binName]['multiBoson']
 
-                    other_prefit  = postFitResults['results']['shapes_prefit'][binName]['other']
-                    other_postfit = postFitResults['results']['shapes_fit_b'][binName]['other']
+                    other_prefit  += postFitResults['results']['shapes_prefit'][binName]['other']
+                    other_postfit += postFitResults['results']['shapes_fit_b'][binName]['other']
 
                 print
                 print "## Scale Factors for backgrounds: ##"
@@ -155,7 +153,8 @@ def wrapper(s):
                 print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit/ttZ_prefit).val, '+/-',  ttZ_postfit.sigma/ttZ_postfit.val)
                 print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit/DY_prefit).val,   '+/-',  DY_postfit.sigma/DY_postfit.val)
                 print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
-                print "{:20}{:4.2f}{:3}{:4.2f}".format('Other:',        (other_postfit/other_prefit).val,   '+/-',  other_postfit.sigma/other_postfit.val)
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit/other_prefit).val,   '+/-',  other_postfit.sigma/other_postfit.val)
+
 
 
 
