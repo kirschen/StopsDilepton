@@ -60,8 +60,8 @@ def getRegionsMetSig(mt2llThresholds, mt2blblThresholds, metsigThresholds):
 
 regions2016     = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("MET_pt", (80, -1))] + getRegionsMet(mt2llThresholds = [ 100, 140, 240], mt2blblThresholds = [0, 100, 200, -1], metThresholds = [80, 200, -1]) + [Region("dl_mt2ll", (240, -1)) + Region("dl_mt2blbl", (0, -1)) + Region('MET_pt', (80, -1))]
 
-regionsLegacy   = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("MET_significance", (12, -1))] + getRegionsMetSig( mt2llThresholds = [ 100, 140, 240 ], mt2blblThresholds = [ 0, 100, 200, -1], metsigThresholds = [ 12, 100, -1] ) + getRegionsMetSig( mt2llThresholds = [ 240, -1 ], mt2blblThresholds = [ 0, -1], metsigThresholds = [ 12, -1] )
-highMT2blblregions   = getRegionsMetSig( mt2llThresholds = [ 100, 140, 240 ], mt2blblThresholds = [ 100, 200, -1], metsigThresholds = [ 12, 100, -1] ) + getRegionsMetSig( mt2llThresholds = [ 240, -1 ], mt2blblThresholds = [ 0, -1], metsigThresholds = [ 12, -1] )
+regionsLegacy   = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("MET_significance", (12, -1))] + getRegionsMetSig( mt2llThresholds = [ 100, 140, 240 ], mt2blblThresholds = [ 0, 100, 200, -1], metsigThresholds = [ 12, 50, -1] ) + getRegionsMetSig( mt2llThresholds = [ 240, -1 ], mt2blblThresholds = [ 0, -1], metsigThresholds = [ 12, -1] )
+highMT2blblregions   = getRegionsMetSig( mt2llThresholds = [ 100, 140, 240 ], mt2blblThresholds = [ 100, 200, -1], metsigThresholds = [ 12, 50, -1] ) + getRegionsMetSig( mt2llThresholds = [ 240, -1 ], mt2blblThresholds = [ 0, -1], metsigThresholds = [ 12, -1] )
 
 regionsLegacytest1   = [Region("dl_mt2ll", (0, 100)) + Region("dl_mt2blbl", (0, -1)) + Region("MET_significance", (12, -1))] + getRegionsMetSig( mt2llThresholds = [ 100, 140, 240 ], mt2blblThresholds = [ 0, 100], metsigThresholds = [ 12, 100, -1] )  + getRegionsMetSig( mt2llThresholds = [ 100, 140, 240 ], mt2blblThresholds = [ 200, -1], metsigThresholds = [ 12, 100, -1] ) + getRegionsMetSig( mt2llThresholds = [ 240, -1 ], mt2blblThresholds = [ 0, -1], metsigThresholds = [ 12, -1] )
 

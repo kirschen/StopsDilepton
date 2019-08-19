@@ -9,13 +9,14 @@ import argparse
 from RootTools.core.Sample import Sample
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',        default='INFO',         nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
-argParser.add_argument("--signal",         action='store',        default='T2tt',         nargs='?', choices=["T2tt"],                  help="which signal scan?")
-argParser.add_argument("--overwrite",      action = "store_true", default = False,                                                      help="Overwrite existing output files")
+argParser.add_argument("--signal",         action='store',        default='T2tt',         nargs='?', choices=["T2tt"],                                                                         help="which signal scan?")
+argParser.add_argument("--overwrite",      action = "store_true", default = False,                                                                                                             help="Overwrite existing output files")
+argParser.add_argument("--controlRegions", action='store',        default='controlAll',   nargs='?', choices=["controlAll","signalOnly","controlDYVV","controlTTZ","controlTT","fitAll"],                help="which signal scan?")
 
-argParser.add_argument("--model",          action='store',        default='dim6top_LO',   nargs='?', choices=["dim6top_LO", "ewkDM"],   help="which signal model?")
+argParser.add_argument("--model",          action='store',        default='dim6top_LO',   nargs='?', choices=["dim6top_LO", "ewkDM"],                                                          help="which signal model?")
 argParser.add_argument("--only",           action='store',        default=None,           nargs='?',                                                                                           help="pick only one signal point?")
-argParser.add_argument("--includeCR",      action='store_true',                                                                         help="Do simultaneous SR and CR fit")
-argParser.add_argument("--expected",       action='store_true',                                                                         help="Do simultaneous SR and CR fit")
+argParser.add_argument("--includeCR",      action='store_true',                                                                                                                                help="Do simultaneous SR and CR fit")
+argParser.add_argument("--expected",       action='store_true',                                                                                                                                help="Do simultaneous SR and CR fit")
 argParser.add_argument("--calcNuisances",  action='store_true',                                                                         help="Extract the nuisances and store them in text files?")
 
 
@@ -46,7 +47,7 @@ years = [2016,2017,2018]
 
 overWrite = args.overwrite
 #controlRegions = 'controlAll'
-controlRegions = 'fitAll'
+#controlRegions = 'fitAll'
 #controlRegions = 'signalOnly'
 #controlRegions = 'controlDYVV'
 def wrapper(s):
@@ -60,7 +61,7 @@ def wrapper(s):
     # get the seperated cards
     for year in years:
         
-        baseDir  = analysis_results+"/%s/%s/"%(year,controlRegions)
+        baseDir  = analysis_results+"/%s/%s/"%(year,args.controlRegions)
         limitDir = baseDir+"/cardFiles/%s/%s/"%(args.signal,'expected' if args.expected else 'observed')
         cardFileName = os.path.join(limitDir, s.name+'_shapeCard.txt')
 
@@ -111,10 +112,10 @@ def wrapper(s):
             # extract the SFs #
             ###################
             #if not args.useTxt 
-            if False:
+            if True:
                 # Would be a bit more complicated with the classical txt files, so only automatically extract the SF when using shape based datacards
                 from StopsDilepton.tools.getPostFit import getPrePostFitFromMLF
-
+                print combinedCard
                 print cardFileName
                 combineWorkspace = combinedCard.replace('shapeCard.txt','shapeCard_FD.root')
                 print "Extracting fit results from %s"%combineWorkspace
@@ -145,13 +146,16 @@ def wrapper(s):
                     MB_prefit  += postFitResults['results']['shapes_prefit'][binName]['multiBoson']
                     MB_postfit += postFitResults['results']['shapes_fit_b'][binName]['multiBoson']
 
+                    other_prefit  = postFitResults['results']['shapes_prefit'][binName]['other']
+                    other_postfit = postFitResults['results']['shapes_fit_b'][binName]['other']
+
                 print
                 print "## Scale Factors for backgrounds: ##"
                 print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit/top_prefit).val, '+/-',  top_postfit.sigma/top_postfit.val)
                 print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit/ttZ_prefit).val, '+/-',  ttZ_postfit.sigma/ttZ_postfit.val)
                 print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit/DY_prefit).val,   '+/-',  DY_postfit.sigma/DY_postfit.val)
                 print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
-
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('Other:',        (other_postfit/other_prefit).val,   '+/-',  other_postfit.sigma/other_postfit.val)
 
 
 
@@ -201,7 +205,7 @@ results = [r for r in results if r]
 #########################################################################################
 
 # Make histograms for T2tt
-baseDir  = analysis_results+"/comb/%s/"%(controlRegions)
+baseDir  = analysis_results+"/comb/%s/"%(args.controlRegions)
 if "T2" in args.signal or  "T8bb" in args.signal:
     binSize = 25
     shift = binSize/2.*(-1)
