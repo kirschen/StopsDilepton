@@ -20,6 +20,7 @@ argParser.add_argument("--expected",       default = False, action = "store_true
 argParser.add_argument("--DMsync",         default = False, action = "store_true", help="Use two regions for MET+X syncing")
 argParser.add_argument("--noSignal",       default = False, action = "store_true", help="Don't use any signal (force signal yield to 0)?")
 argParser.add_argument("--useTxt",         default = False, action = "store_true", help="Use txt based cardFiles instead of root/shape based ones?")
+argParser.add_argument("--fullSim",        default = False, action = "store_true", help="Use FullSim signals")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--removeSR",       default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--skipFitDiagnostics", default = False, action = "store_true", help="Don't do the fitDiagnostics (this is necessary for pre/postfit plots, but not 2D scans)?")
@@ -160,7 +161,8 @@ limitCache    = Cache(cacheFileName, verbosity=2)
 cacheFileNameS  = os.path.join(limitDir, 'calculatedSignifs')
 signifCache     = Cache(cacheFileNameS, verbosity=2)
 
-if   args.signal == "T2tt":                         fastSim = True
+fastSim = False # default value
+if   args.signal == "T2tt" and not args.fullSim:    fastSim = True
 elif args.signal == "T2bW":                         fastSim = True
 elif args.signal == "T2bt":                         fastSim = True
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": fastSim = True
@@ -169,6 +171,11 @@ elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  fastSim = True
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": fastSim = True
 elif args.signal == "TTbarDM":                      fastSim = False
 elif args.signal == "ttHinv":                       fastSim = False
+
+if fastSim:
+    logger.info("Assuming the signal sample is FastSim!")
+else:
+    logger.info("Assuming the signal sample is FullSim!")
 
 scaleUncCache = Cache(setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal, verbosity=2)
 isrUncCache   = Cache(setup.analysis_results+'/systematics/isr_%s.pkl'   % args.signal, verbosity=2)
@@ -237,16 +244,19 @@ def wrapper(s):
         c.addUncertainty('xsec_QCD',   shapeString)
         c.addUncertainty('isr',        shapeString)
         # only in SRs
+        DY_add = 'DY_add_%s'%year
         c.addUncertainty('topGaus',    shapeString)
         c.addUncertainty('topNonGaus', shapeString)
         c.addUncertainty('topFakes',   shapeString)
         c.addUncertainty('DY_SR',      shapeString)
-        c.addUncertainty('DY_add',     shapeString) # only in high mt2blbl
+        c.addUncertainty(DY_add,       shapeString) # only in high mt2blbl
         c.addUncertainty('ttZ_SR',     shapeString)
         # all regions, lnN
+        DY_SF_nui = 'DY_%s'%year
+        multiboson_SF = 'multiBoson_%s'%year
         c.addUncertainty('topNorm',    'lnN')
-        c.addUncertainty('multiBoson', 'lnN')
-        c.addUncertainty('DY',         'lnN')
+        c.addUncertainty(multiboson_SF, 'lnN')
+        c.addUncertainty(DY_SF_nui,         'lnN')
         c.addUncertainty('ttZ',        'lnN')
         c.addUncertainty('other',      'lnN')
         if fastSim:
@@ -363,12 +373,12 @@ def wrapper(s):
                                 c.specifyUncertainty('topFakes', binname, name, 1.50) # avoid constraining of uncertainties in the ttbar CR
                             c.specifyUncertainty('topNorm',  binname, name, 1.15)
 
-                        if e.name.count('multiBoson'): c.specifyUncertainty('multiBoson', binname, name, 1.50)
+                        if e.name.count('multiBoson'): c.specifyUncertainty(multiboson_SF, binname, name, 1.50)
 
                         if e.name.count('DY'):
-                            c.specifyUncertainty('DY',         binname, name, 1.5)#1/(1+0.5))#1.5
+                            c.specifyUncertainty(DY_SF_nui,         binname, name, 1.5)#1/(1+0.5))#1.5
                             if r in highMT2blblregions:
-                                c.specifyUncertainty('DY_add',         binname, name, 2.0)
+                                c.specifyUncertainty(DY_add,         binname, name, 2.0)
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                 c.specifyUncertainty("DY_SR", binname, name, 1.25)
 
@@ -419,6 +429,7 @@ def wrapper(s):
                 if niceName.count('controlDY') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
                 c.specifyExpectation(binname, 'signal', signal.val*xSecScale )
 
+                logger.info("Signal expectation: %s", signal.val*xSecScale)
 
                 if signal.val>0 or True:
                   if not fastSim:
@@ -568,9 +579,12 @@ def wrapper(s):
 
 if args.signal == "T2tt":
     if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p13/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
+        if args.fullSim:
+             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T2tt as jobs
+        else:
+            data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p13/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p13/dilep/'
