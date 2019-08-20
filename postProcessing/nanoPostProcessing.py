@@ -1212,9 +1212,7 @@ def filler( event ):
                 event.nonZ1_l1_index = nonZ_tightLepton_indices[0] if len(nonZ_tightLepton_indices)>0 else -1
                 event.nonZ1_l2_index = nonZ_tightLepton_indices[1] if len(nonZ_tightLepton_indices)>1 else -1
 
-
             event.min_dl_mass = getMinDLMass(leptons_pt10)[0][0]
-
 
     #if addSystematicVariations:
     # B tagging weights method 1a
@@ -1353,8 +1351,6 @@ else:
     logger.info( "Successfully copied log file" )
     os.remove(logFile)
     logger.info( "Removed temporary log file" )
-
-
 
 # Copying output to DPM or AFS and check the files
 if options.writeToDPM:
