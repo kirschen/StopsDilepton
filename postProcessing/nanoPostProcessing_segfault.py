@@ -99,7 +99,6 @@ def get_parser():
     argParser.add_argument('--skipNanoTools',               action='store_true',                                                        help="Skipt the nanoAOD tools step for computing JEC/JER/MET etc uncertainties")
     argParser.add_argument('--keepNanoAOD',                 action='store_true',                                                        help="Keep nanoAOD output?")
     argParser.add_argument('--reuseNanoAOD',                action='store_true',                                                        help="Keep nanoAOD output?")
-    argParser.add_argument('--reapplyJECS',                 action='store_true',                                                        help="Reapply JECs to data?")
     argParser.add_argument('--reduceSizeBy',                action='store',     type=int,                                               help="Reduce the size of the sample by a factor of...")
     argParser.add_argument('--event',                       action='store',     type=int, default=-1,                                   help="Just process event no")
 
@@ -519,7 +518,7 @@ else:
 jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F'] + jetCorrInfo
 if isMC:
     jetVars     += jetMCInfo
-    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jerUp/F', 'pt_jerDown/F']
+    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jer/F', 'pt_jerUp/F', 'pt_jerDown/F']
 jetVarNames     = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
@@ -531,10 +530,10 @@ read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I'
 if options.year == 2017:
     read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'METFixEE2017_phi/F', 'METFixEE2017_pt_nom/F', 'METFixEE2017_phi_nom/F', 'MET_pt_min/F'])
     if isMC:
-        read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt_jesTotalUp/F', 'METFixEE2017_pt_jesTotalDown/F', 'METFixEE2017_pt_jerUp/F', 'METFixEE2017_pt_jerDown/F', 'METFixEE2017_pt_unclustEnDown/F', 'METFixEE2017_pt_unclustEnUp/F', 'METFixEE2017_phi_jesTotalUp/F', 'METFixEE2017_phi_jesTotalDown/F', 'METFixEE2017_phi_jerUp/F', 'METFixEE2017_phi_jerDown/F', 'METFixEE2017_phi_unclustEnDown/F', 'METFixEE2017_phi_unclustEnUp/F'])
+        read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt_jesTotalUp/F', 'METFixEE2017_pt_jesTotalDown/F', 'METFixEE2017_pt_jer/F', 'METFixEE2017_pt_jerUp/F', 'METFixEE2017_pt_jerDown/F', 'METFixEE2017_pt_unclustEnDown/F', 'METFixEE2017_pt_unclustEnUp/F', 'METFixEE2017_phi_jesTotalUp/F', 'METFixEE2017_phi_jesTotalDown/F', 'METFixEE2017_phi_jer/F', 'METFixEE2017_phi_jerUp/F', 'METFixEE2017_phi_jerDown/F', 'METFixEE2017_phi_unclustEnDown/F', 'METFixEE2017_phi_unclustEnUp/F'])
 read_variables += map(TreeVariable.fromString, [ 'MET_pt_nom/F', 'MET_phi_nom/F' ])
 if isMC:
-    read_variables += map(TreeVariable.fromString, [ 'GenMET_pt/F', 'GenMET_phi/F', 'MET_pt_jesTotalUp/F', 'MET_pt_jesTotalDown/F', 'MET_pt_jerUp/F', 'MET_pt_jerDown/F', 'MET_pt_unclustEnDown/F', 'MET_pt_unclustEnUp/F', 'MET_phi_jesTotalUp/F', 'MET_phi_jesTotalDown/F', 'MET_phi_jerUp/F', 'MET_phi_jerDown/F', 'MET_phi_unclustEnDown/F', 'MET_phi_unclustEnUp/F'])
+    read_variables += map(TreeVariable.fromString, [ 'GenMET_pt/F', 'GenMET_phi/F', 'MET_pt_jesTotalUp/F', 'MET_pt_jesTotalDown/F', 'MET_pt_jer/F', 'MET_pt_jerUp/F', 'MET_pt_jerDown/F', 'MET_pt_unclustEnDown/F', 'MET_pt_unclustEnUp/F', 'MET_phi_jesTotalUp/F', 'MET_phi_jesTotalDown/F', 'MET_phi_jer/F', 'MET_phi_jerUp/F', 'MET_phi_jerDown/F', 'MET_phi_unclustEnDown/F', 'MET_phi_unclustEnUp/F'])
 
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
                     VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (options.year == 2016) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
@@ -604,7 +603,7 @@ new_variables.extend( ['nPhotonGood/I','photon_pt/F','photon_eta/F','photon_phi/
 if isMC: new_variables.extend( ['photon_genPt/F', 'photon_genEta/F', 'genZ_mass/F', 'isOnShellTTZ/I'] )
 new_variables.extend( ['photonJetdR/F','photonLepdR/F'] )
 if isTriLep or isDiLep:
-  new_variables.extend( ['dlg_mass/F' ] )
+  new_variables.extend( ['dlg_mass/F'] )
 
 ## ttZ related variables
 new_variables.extend( ['Z1_l1_index/I', 'Z1_l2_index/I', 'Z2_l1_index/I', 'Z2_l2_index/I', 'nonZ1_l1_index/I', 'nonZ1_l2_index/I'] )
@@ -616,10 +615,10 @@ if options.checkTTGJetsOverlap:
 
 if addSystematicVariations:
 
-    for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
-        if not var.startswith('unclust'):
-            new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I'] )
+    for var in ['jesTotalUp', 'jesTotalDown', 'jer', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F'] )
+        if not var.startswith('unclust'): 
+            new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I'] )
         if isTriLep or isDiLep:
             new_variables.extend( ['dl_mt2ll_'+var+'/F', 'dl_mt2bb_'+var+'/F', 'dl_mt2blbl_'+var+'/F'] )
 
@@ -957,7 +956,7 @@ def filler( event ):
 
     # now get jets, cleaned against good leptons
 
-    jetPtVar = 'pt_nom'# if options.reapplyJECS else 'pt'  ## always use pt_nom
+    jetPtVar = 'pt_nom'
 
     allJetsNotClean = getAllJets(r, [], ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar=None)
     reallyAllJets= getAllJets(r, leptons, ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar='jetId') # keeping robert's comment: ... yeah, I know.
@@ -984,7 +983,6 @@ def filler( event ):
     else:
         event.met_pt    = r.MET_pt_nom 
         event.met_phi   = r.MET_phi_nom
-
         event.met_pt_min = 0
 
     # Filling jets
@@ -1011,7 +1009,6 @@ def filler( event ):
     bjets_sys     = {}
     nonBjets_sys  = {}
 
-
     # Keep photons and estimate met including (leading pt) photon
     photons = getGoodPhotons(r, ptCut=20, idLevel="tight", isData=isData, year=options.year)
     event.nPhotonGood = len(photons)
@@ -1028,8 +1025,9 @@ def filler( event ):
       event.photonJetdR = min(deltaR(photons[0], j) for j in jets) if len(jets) > 0 else 999
       event.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
 
+
     if addSystematicVariations:
-        for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
+        for var in ['jesTotalUp', 'jesTotalDown', 'jer', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
             setattr(event, 'met_pt_'+var,  getattr(r, 'METFixEE2017_pt_'+var)  if options.year == 2017 else getattr(r, 'MET_pt_'+var) )
             setattr(event, 'met_phi_'+var, getattr(r, 'METFixEE2017_phi_'+var) if options.year == 2017 else getattr(r, 'MET_phi_'+var) )
             if not var.startswith('unclust'):
@@ -1039,8 +1037,30 @@ def filler( event ):
                 nonBjets_sys[var]   = filter(lambda j: not ( isBJet(j) and abs(j['eta'])<2.4), jets_sys[var])
 
                 setattr(event, "nJetGood_"+var, len(jets_sys[var]))
-                setattr(event, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
                 setattr(event, "nBTag_"+var,    len(bjets_sys[var]))
+
+    #print 'GenMET_pt', r.GenMET_pt
+    #print 'GenMET_phi', r.GenMET_phi
+    #print 'MET_pt_jesTotalUp', r.MET_pt_jesTotalUp
+    #print 'MET_phi_jesTotalUp', r.MET_phi_jesTotalUp
+    #print 'MET_pt_jesTotalDown', r.MET_pt_jesTotalDown
+    #print 'MET_phi_jesTotalDown', r.MET_phi_jesTotalDown
+    #print 'MET_pt_jer', r.MET_pt_jer
+    #print 'MET_phi_jer', r.MET_phi_jer
+    #print 'MET_pt_jerUp', r.MET_pt_jerUp
+    #print 'MET_phi_jerUp', r.MET_phi_jerUp
+    #print 'MET_pt_jerDown', r.MET_pt_jerDown
+    #print 'MET_phi_jerDown', r.MET_phi_jerDown
+    #print 'MET_pt_unclustEnDown', r.MET_pt_unclustEnDown
+    #print 'MET_phi_unclustEnDown', r.MET_phi_unclustEnDown
+    #print 'MET_pt_unclustEnUp', r.MET_pt_unclustEnUp
+    #print 'MET_phi_unclustEnUp', r.MET_phi_unclustEnUp
+    #print 'MET_pt_nom', r.MET_pt_nom
+    #print 'MET_phi_nom', r.MET_phi_nom
+    #print 'jet_pt', [ j['pt'] for j in jets ] 
+    #print 'jet_pt_jer', [ j['pt_jer'] for j in jets_sys['jer'] ] 
+    #print 'jet_pt_jerUp', [ j['pt_jerUp'] for j in jets_sys['jerUp'] ] 
+    #print 'jet_pt_jerDown', [ j['pt_jerDown'] for j in jets_sys['jerDown'] ] 
 
     if isSingleLep or isTriLep or isDiLep:
         event.nGoodMuons      = len(filter( lambda l:abs(l['pdgId'])==13, leptons))
@@ -1063,11 +1083,6 @@ def filler( event ):
 
         # For TTZ studies: find Z boson candidate, and use third lepton to calculate mt
         (event.mlmZ_mass, zl1, zl2) = closestOSDLMassToMZ(leptons_pt10)
-
-        #if fastSim:
-        #    event.reweightLeptonFastSimSF     = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt) for l in leptons], 1)
-        #    event.reweightLeptonFastSimSFUp   = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt, sigma = +1) for l in leptons], 1)
-        #    event.reweightLeptonFastSimSFDown = reduce(mul, [leptonFastSimSF.get2DSF(pdgId=l['pdgId'], pt=l['pt'], eta=l['eta'] , nvtx = r.Pileup_nTrueInt, sigma = -1) for l in leptons], 1)
 
         if isMC:
             event.reweightDilepTrigger       = 0 
@@ -1163,10 +1178,10 @@ def filler( event ):
                 setattr(event, "dl_mt2blbl", mt2Calculator.mt2blbl())
 
             if addSystematicVariations:
-                for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
+                for var in ['jesTotalUp', 'jesTotalDown', 'jer', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
                     mt2Calculator.setMet( getattr(event, "met_pt_"+var), getattr(event, "met_phi_"+var) )
                     setattr(event, "dl_mt2ll_"+var,  mt2Calculator.mt2ll())
-                    if not var.startswith( 'unclust'):
+                    if not var.startswith('unclust'):
                         if len(jets_sys[var])>=2:
                             bj0_, bj1_ = (bjets_sys[var]+nonBjets_sys[var])[:2]
                         else: 
@@ -1214,6 +1229,7 @@ def filler( event ):
 
                 event.nonZ1_l1_index = nonZ_tightLepton_indices[0] if len(nonZ_tightLepton_indices)>0 else -1
                 event.nonZ1_l2_index = nonZ_tightLepton_indices[1] if len(nonZ_tightLepton_indices)>1 else -1
+
 
             event.min_dl_mass = getMinDLMass(leptons_pt10)[0][0]
 
