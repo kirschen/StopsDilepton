@@ -172,10 +172,22 @@ def MC_WEIGHT( variation, returntype = "string"):
     elif returntype == "handle":
         inputSample, inputWeight = variation['addSampleWeight']
 
-        sampleWeights = variiedMCWeights
-        if sample.name == inputSample.name:
-            sampleWeights.append(inputWeight)
-        return "*".join(sampleWeights)
+        # list
+        weightList = []
+        for sample in mc:
+            sampleWeights = variiedMCWeights
+            if sample.name == inputSample.name:
+                sampleWeights.append(inputWeight)
+            weightList.append(sampleWeights)
+        return [weightList]
+
+        # string
+#        sampleWeights = variiedMCWeights
+#        if sample.name == inputSample.name:
+#            sampleWeights.append(inputWeight)
+#        return "*".join(sampleWeights)
+
+        # weight function
 #        def weight_( event, sample ):
 #            ww = 1
 #            for iw, w in enumerate(variiedMCWeights):
