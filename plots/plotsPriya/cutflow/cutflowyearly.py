@@ -2,7 +2,7 @@
 import ROOT
 import os
 import pickle
-
+from  math import sqrt
 # RootTools
 from RootTools.core.standard import *
 from Analysis.Tools.metFilters            import getFilterCut
@@ -41,7 +41,7 @@ if args.dpm:
 from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 #samples             = [ multiBoson_16]
-samples             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
+samples             = [ TTZ_16, TTXNoZ_16, multiBoson_16, DY_HT_LO_16, Top_pow_16]
 from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
 from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
 #samples             = [ multiBoson_17]
@@ -87,23 +87,28 @@ weight_string18 = 'weight*reweightLeptonTrackingSF*reweightBTag_SF*reweightLepto
 
 cuts=[
   ("no cuts",                               "no cuts",                                  "(1)"),
-  ("==2 SF leptons,l1 pt > 25, l2pt > 20",  "$n_{\\textrm{lep.}==2}$",                  "nGoodMuons+nGoodElectrons==2&&l1_pt>25&&l2_pt>20&&abs(l1_pdgId)==abs(l2_pdgId)"),
+  ("==2 SFleptons,l1pt>25,l2pt>20",         "$n_{\\textrm{lep.}==2}$",                  "nGoodMuons+nGoodElectrons==2&&l1_pt>25&&l2_pt>20&&abs(l1_pdgId)==abs(l2_pdgId)"),
+  #("only  mumu",                            "only mumu",                                "isMuMu == 1"   ),  
   ("opposite sign",                         "opposite charge",                          "isOS==1"),
   ("MT2(blbl) > 140",                       "$M_{T2}(blbl)>140$ GeV",                   "dl_mt2blbl>140"),
+  #("100<MT2(blbl) < 200",                   "$M_{T2}(blbl)<200$ GeV",               "dl_mt2blbl<200"),
   ("MT2(ll) >= 100",                        "$M_{T2}(ll)>=100$ GeV",                    "dl_mt2ll>=100"),
   #("looseLeptonVeto",                       "loose lepton veto",                        "(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2"),
-  ("looseLeptonVeto",                       "loose lepton veto",                        "(Sum$(Electron_pt>15&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&Muon_pfRelIso03_all<0.4) )==2"),
+  ("oldlooseLeptonVeto",                    "old loose lepton veto",                    "(Sum$(Electron_pt>15&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&Muon_pfRelIso03_all<0.4) )==2"),
   ("m(ll)>20",                              "$M(ll)>20$ GeV",                           "dl_mass>20"),
   #("|m(ll) - mZ|>15 for SF",               "$|M(ll)-M_{Z}| > 15$ GeV (SF)",            "( (isMuMu==1||isEE==1)&&abs(dl_mass-91.1876)>=15 || isEMu==1 )"),
   ("|m(ll) - mZ|<15 for SF on Z",           "$|M(ll)-M_{Z}| < 15$ GeV (SF)",            "( (isMuMu==1||isEE==1)&&abs(dl_mass-91.1876)<=15 || isEMu==1 )"),
   (">=2 jets",                              "$n_{jet}>=2$",                             "nJetGood>=2"),
-  ("==0 b-tags",                            "$n_{b-tag}==0$",                           "nBTag==0"),
+  ("==0 CSVV2 b-tags",                      "CSVV2$n_{b-tag}==0$",                      "(Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_btagCSVV2>0.8484)==0)"),
+  #("==0 b-tags",                            "$n_{b-tag}==0$",                           "nBTag==0"),
+  #("relIso <=0.12",                         "relIso <= 0.12",                           "l1_relIso03 <= 0.12 && l2_relIso03 <= 0.12"),
+  ("miniIso <=0.2",                         "miniIso <= 0.2",                           "l1_miniRelIso <= 0.2 && l2_miniRelIso <= 0.2"),
   #("MET_significance >= 12",               "$E_{T}^{miss}$ significance",              "MET_significance>=12"), 
-  ("relIso <=0.12",                         "relIso <= 0.12",                           "l1_relIso03 <= 0.12 && l2_relIso03 <= 0.12"),
   ("MET>80",                                "$\\ETmiss>80$ GeV",                        "met_pt>80"),
   ("MET/sqrt(HT)>5",                        "$\\ETmiss/\\sqrt{H_{T}}>5$",               "met_pt/sqrt(ht)>5."),
-  ("only SF",                               "SameFlavor",                               "(isEE == 1 || isMuMu == 1)"   ),
+  #("only SF",                               "SameFlavor",                               "(isEE == 1 || isMuMu == 1)"   ),
   ("only  mumu",                            "only mumu",                                "isMuMu == 1"   ),  
+  ("only  EE",                              "only EE",                                  "isEE == 1"   ),  
 
   #("dPhiJetMET",                            "$\\phi(\\ETmiss, jets)$ veto",             "Sum$( ( cos(met_phi-JetGood_phi)>cos(0.25) )*(Iteration$<2) )+Sum$( ( cos(met_phi-JetGood_phi)>0.8 )*(Iteration$==0) )==0"),
     ]
@@ -147,46 +152,40 @@ if args.small:
     for sample in samples:
         #sample.reduceFiles( to = 7)
         sample.reduceFiles( factor = 40 )
-
+eff = {}
 values = {}
 for i_cut, cut in enumerate(cuts):
     name, texname, sel = cut
     values[i_cut]={}
+    eff[i_cut]={}
     value_mc = 0
     for i_sample, sample in enumerate(samples):
         #print sample.name
-        #if i_cut != 14 : continue 
-        if sample.name == 'vv_16':
-            values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string16)['val'] 
-            print "reweight 16", weight_string16
-        elif sample.name == 'vv_18':
-            values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string18)['val'] 
-            print"VV 18 reweight: ", weight_string18
-        elif sample.name == 'Run2018':
-            values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string_d18)['val']
-            print weight_string_d18
-        elif sample.name == 'Run2016':
+        if i_cut < 10 : continue 
+       # if sample.name == 'TTZ_16':
+       #     values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string16)['val'] 
+       # if sample.name == 'TTXNoZ_16':
+       #     values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string16)['val'] 
+        if sample.name == 'Run2016':
             values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string)['val']
-            #print sample.selectionString
-            print "reweight 16 data sample", weight_string
-        elif sample.name == 'vv_17':
-            values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string17)['val'] 
-            print "reweight vv_17", weight_string17
-        elif sample.name == 'Run2017':
-            values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string)['val'] 
-            print "reweight 17 data sample", weight_string
+            selection = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]])    
+            print selection
+            #print "reweight 16 data sample", weight_string
         else:
             values[i_cut][i_sample] = sample.getYieldFromDraw(selectionString = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]), weightString = weight_string16)['val'] 
-            value_mc += values[i_cut][i_sample] 
-            print i_sample, sample.name, values[i_cut][i_sample]
-            #print sample.selectionString
-    #if i_cut == 14:
+            #value_mc += values[i_cut][i_sample] 
+            #print i_sample, sample.name, values[i_cut][i_sample]
+            selection = "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]])    
+            print selection
+    if i_cut >= 10:
         #logger.info( "%30s Data%i %6.2f  MC%i %6.2f ", cut[0],args.year, values[i_cut][0], args.year, value_mc ) 
    #    #logger.debug("I had a problem here: %s", "&&".join([ '('+c[2]+')' for c in cuts[:i_cut+1]]) )
    # else:
    #     logger.info( "%30s 2016 %6.2f 2017 %6.2f 2018 %6.2f ", cut[0], values[i_cut][0], values[i_cut][1], values[i_cut][2] )
     
-    logger.info( "%30s Data%i %6.2f  MC%i %6.2f ", cut[0],args.year, values[i_cut][0], args.year, value_mc )
+        logger.info( "%20s Data%i %6.2f TTZ  %6.2f TTXNoZ %6.2f multiBoson %6.2f DY %6.2f Top_pow %6.2f", cut[0],args.year, values[i_cut][0], values[i_cut][1], values[i_cut][2], values[i_cut][3],values[i_cut][4], values[i_cut][5])
+   # if i_cut>=5:
+   #     logger.info("%30s Data efficiency %6.2f DY efficiency %6.2f multiBoson eff %6.2f", cut[0], eff[i_cut][0], eff[i_cut][4], eff[i_cut][3])
 
 
 #values17 = {}

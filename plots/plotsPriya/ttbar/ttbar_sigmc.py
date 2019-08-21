@@ -33,8 +33,12 @@ argParser.add_argument('--dataMCScaling',      action='store_true',     help='Da
 argParser.add_argument('--plot_directory',     action='store',      default='v04_ttbardist')
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--recoil',             action='store', type=str,      default=None, choices = ["nvtx", "VUp", None])
-argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
-#argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.1-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+#argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.1-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+#argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonVeto-mll20-badEEJetVeto-dPhiJet0-dPhiJet1')
+#argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.1-looseLeptonVeto-mll20-badEEJetVeto-dPhiJet0-dPhiJet1')
+#argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+#argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-badEEJetVeto-dPhiJet0-dPhiJet1')
 argParser.add_argument('--nvtxReweightSelection',          action='store',      default=None)
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
@@ -190,6 +194,12 @@ for sample in mc:
     sample.read_variables  = [ "JetGood[genPt/F]" ] 
 
 sequence = []
+def makeWeight(event, sample):
+    print event.weight
+
+sequence.append(makeWeight)
+
+
 
 # default offZ for SF
 offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
@@ -214,7 +224,13 @@ for index, mode in enumerate(allModes):
   #data_sample.texName        = "%s"
   data_sample.read_variables = ["event/I","run/I", "reweightHEM/F"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
-                    weight_  = lambda event, sample: event.weight * event.reweightHEM
+#                    weight_  = lambda event, sample: event.weight * event.reweightHEM
+  if year == 2018:
+    weight_ = lambda event, sample: event.weight*event.reweightHEM
+    print "2018"
+    print weight_
+  else:
+    weight_ = lambda event, sample: event.weight
 
   for sample in mc:
     sample.read_variables += ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F','reweightL1Prefire/F','reweightHEM/F']

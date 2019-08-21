@@ -5,6 +5,7 @@
 
 /afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v2/2017/fitAll/limits/T2tt/T2tt/limitResults.root
 
+/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3//comb/fitAll/limits/T2tt/T2tt/limitResults.root
 '''
 
 #!/usr/bin/env python
@@ -38,8 +39,9 @@ parser.add_option("--year",             dest="year",   type="int",    action="st
 #year = int(options.year)
 signalString = options.signal
 #defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
-#defFile = os.path.join(analysis_results, "comb/signalOnly/limits/%s/%s/limitResults.root"%(signalString,signalString))
-defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
+defFile = os.path.join(analysis_results, "comb/signalOnly/limits/%s/%s/limitResults.root"%(signalString,signalString))
+#defFile = os.path.join(analysis_results, "comb/fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
+#defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
 
 print defFile
 if options.year == 2016:
@@ -70,11 +72,13 @@ def toGraph2D(name,title,length,x,y,z):
 
 
 ifs = defFile.split('/')
-#plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_FR_combined')
+plotDir = os.path.join(plot_directory,ifs[-3],'v3', ifs[-2]+'FR_signalOnly_combined')
 
-#plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_FR_%i'%options.year)
+#plotDir = os.path.join(plot_directory,ifs[-3],'v3', ifs[-2]+'FR_limitAll_combined')
 
-plotDir = os.path.join(plot_directory, ifs[-3], ifs[-2]+'_limitAll_FR_%i'%options.year)
+#plotDir = os.path.join(plot_directory, ifs[-3], 'v3', ifs[-2]+'FR_%i'%options.year)
+
+#plotDir = os.path.join(plot_directory, ifs[-3],'v3', ifs[-2]+'limitAll_FR_%i'%options.year)
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 

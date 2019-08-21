@@ -1,4 +1,5 @@
 '''
+/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3//COMBINED/controlAll//cardFiles/T2tt/observed/
 Get a signal region plot from the cardfiles
 '''
 
@@ -13,6 +14,7 @@ parser.add_option('--overwrite',            dest="overwrite", default = False, a
 parser.add_option('--postFit',              dest="postFit", default = False, action = "store_true", help="Apply pulls?")
 parser.add_option('--expected',             action = "store_true", help="Run expected?")
 parser.add_option('--preliminary',             action = "store_true", help="Run expected?")
+parser.add_option('--combined',             action = "store_true", help="combined fit for all years?")
 parser.add_option("--year",                 action='store',      default=2017, type="int", help='Which year?')
 (options, args) = parser.parse_args()
 
@@ -38,15 +40,20 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None)
 
 # get a setup
 from StopsDilepton.analysis.Setup import Setup
-
-setup = Setup(options.year)
-
+if options.combined:
+    setup=Setup(2016)
+else:
+    setup = Setup(options.year)
+analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
 isData = True if not options.expected else False
 lumiStr = setup.dataLumi/1000
-
+years=[2016,2017,2018]
 controlRegions = 'controlAll'
-cardName = "T2tt_700_0_shapeCard"
-cardDir = analysis_results+"/%s/%s/cardFiles/%s/%s/"%(options.year,controlRegions,options.signal,'expected' if options.expected else 'observed')
+cardName = "T2tt_400_0_shapeCard"
+if options.combined:
+    cardDir = analysis_results+"/COMBINED/%s/cardFiles/%s/%s/"%(controlRegions,options.signal,'expected' if options.expected else 'observed')
+else:
+    cardDir = analysis_results+"/%s/%s/cardFiles/%s/%s/"%(options.year,controlRegions,options.signal,'expected' if options.expected else 'observed')
 
 cardFile = "%s/%s.txt"%(cardDir, cardName)
 
@@ -55,8 +62,12 @@ logger.info("Plotting from cardfile %s"%cardFile)
 
 # get the results
 postFitResults = getPrePostFitFromMLF(cardFile.replace('.txt','_FD.root'))
-
-
+preFitHist={}
+postFitHist={}
+bhistos=[]
+hists={}
+histos={}
+bkgHist=[]
 processes = [   ('TTJetsG',''), 
                 ('TTJetsNG',''),
                 ( 'TTJetsF', 't#bar{t}/t'),
@@ -64,33 +75,74 @@ processes = [   ('TTJetsG',''),
                 ('multiBoson', 'VV/VVV'),
                 ('TTZ', 't#bar{t}Z'),
                 ('other', 't#bar{t}X, rare') ]
+if options.combined:
+    for year in years:
+        preFitHist[year]        = postFitResults['hists']['shapes_prefit']['dc_%s'%year]
+        postFitHist[year]       = postFitResults['hists']['shapes_fit_b']['dc_%s'%year]
+        hists[year] = preFitHist[year] if not options.postFit else postFitHist[year]
+        #print hists[year]
+#    preFitHists.update(preFitHist[2016], preFitHists[2017] ,preFitHists[2018])
+    #hists = preFitHist if not options.postFit else postFitHist
+    for i,(p,tex) in enumerate(processes):
+        print i, hists[2016][p]
+        bhistos.append( hists[2016][p])
+        #bhistos.Reset()
+        #bhistos.SetName('%s')%p
+        print bhistos[i]
+    dataHist = hists[2016]['DY'].Clone()
+    dataHist.Reset()
+    dataHist.SetName('data')
+    dataHist.legendText = 'Data'
+    for n,(p,tex) in enumerate(processes):
+        print n
+        for i in range(bhistos[n].GetNbinsX()):
+            #print i, bhistos[n].GetNbinsX()
+            v=0
+            v=hists[2016][p].GetBinContent(i+1) + hists[2017][p].GetBinContent(i+1) + hists[2018][p].GetBinContent(i+1)
+            print v
+            bhistos[n].SetBinContent(i+1, v)
+        if tex:
+            bhistos[n].legendText = tex
+        histos[p]=bhistos[n]
+        print bhistos[n], histos[p]
+        bhistos[n].style = styles.fillStyle( getattr(color, p), lineColor=getattr(color,p), errors=False )
+        bkgHist.append( bhistos[n])
+    print bkgHist
 
-preFitHists     = postFitResults['hists']['shapes_prefit']['Bin0']
-postFitHists    = postFitResults['hists']['shapes_fit_b']['Bin0']
+    for i in range(dataHist.GetNbinsX()):
+        dataHist.SetBinContent(i+1, (hists[2016]['data'].Eval(i+0.5) + hists[2017]['data'].Eval(i+0.5) + hists[2018]['data'].Eval(i+0.5)))
+        dataHist.SetBinError(i+1, (hists[2016]['data'].Eval(i+0.5) + hists[2017]['data'].Eval(i+0.5) + hists[2018]['data'].Eval(i+0.5)))
+    histos['data'] = dataHist
 
-hists = preFitHists if not options.postFit else postFitHists
+    histos['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
+    histos['data'].legendOption = 'p'
+    print histos
+else:
+    preFitHists     = postFitResults['hists']['shapes_prefit']['Bin0']
+    postFitHists    = postFitResults['hists']['shapes_fit_b']['Bin0']
+    print preFitHists
+    hists = preFitHists if not options.postFit else postFitHists
 
-bkgHists = []
+    bkgHists = []
 
-dataHist = hists['DY'].Clone()
-dataHist.Reset()
-dataHist.SetName('data')
-dataHist.legendText = 'Data'
+    dataHist = hists['DY'].Clone()
+    dataHist.Reset()
+    dataHist.SetName('data')
+    dataHist.legendText = 'Data'
 
-for p,tex in processes:
-    hists[p].style = styles.fillStyle( getattr(color, p), lineColor=getattr(color,p), errors=False )
-    bkgHists.append(hists[p])
-    if tex:
-        hists[p].legendText = tex
-    
+    for p,tex in processes:
+        hists[p].style = styles.fillStyle( getattr(color, p), lineColor=getattr(color,p), errors=False )
+        bkgHists.append(hists[p])
+        if tex:
+            hists[p].legendText = tex
+        
+    for i in range(dataHist.GetNbinsX()):
+        dataHist.SetBinContent(i+1, hists['data'].Eval(i+0.5))
+        dataHist.SetBinError(i+1, math.sqrt(hists['data'].Eval(i+0.5)))
 
-for i in range(dataHist.GetNbinsX()):
-    dataHist.SetBinContent(i+1, hists['data'].Eval(i+0.5))
-    dataHist.SetBinError(i+1, math.sqrt(hists['data'].Eval(i+0.5)))
-
-hists['data'] = dataHist
-hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
-hists['data'].legendOption = 'p'
+    hists['data'] = dataHist
+    hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
+    hists['data'].legendOption = 'p'
 #hists['BSM'].legendOption = 'l'
 
 ### manually calculate the chi2 (no correlations).
@@ -156,29 +208,29 @@ hists['data'].legendOption = 'p'
 
 boxes = []
 ratio_boxes = []
-for ib in range(1, 1 + hists['total_background'].GetNbinsX() ):
-    val = hists['total_background'].GetBinContent(ib)
+for ib in range(1, 1 + hists[2016]['total_background'].GetNbinsX() ):
+    val = hists[2016]['total_background'].GetBinContent(ib) + hists[2017]['total_background'].GetBinContent(ib) + hists[2018]['total_background'].GetBinContent(ib)
     if val<0: continue
-    sys = hists['total_background'].GetBinError(ib)
+    sys = hists[2016]['total_background'].GetBinError(ib) + hists[2017]['total_background'].GetBinError(ib) + hists[2018]['total_background'].GetBinError(ib)
     if val > 0:
         sys_rel = sys/val
     else:
         sys_rel = 1.
     
     # uncertainty box in main histogram
-    box = ROOT.TBox( hists['total_background'].GetXaxis().GetBinLowEdge(ib),  max([0.006, val-sys]), hists['total_background'].GetXaxis().GetBinUpEdge(ib), max([0.006, val+sys]) )
+    box = ROOT.TBox( hists[2016]['total_background'].GetXaxis().GetBinLowEdge(ib),  max([0.006, val-sys]), hists[2016]['total_background'].GetXaxis().GetBinUpEdge(ib), max([0.006, val+sys]) )
     box.SetLineColor(ROOT.kGray+1)
     box.SetFillStyle(3244)
     box.SetFillColor(ROOT.kGray+1)
     
     # uncertainty box in ratio histogram
-    r_box = ROOT.TBox( hists['total_background'].GetXaxis().GetBinLowEdge(ib),  max(0.11, 1-sys_rel), hists['total_background'].GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys_rel) )
+    r_box = ROOT.TBox( hists[2016]['total_background'].GetXaxis().GetBinLowEdge(ib),  max(0.11, 1-sys_rel), hists[2016]['total_background'].GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys_rel) )
     r_box.SetLineColor(ROOT.kGray+1)
     r_box.SetFillStyle(3244)
     r_box.SetFillColor(ROOT.kGray+1)
 
     boxes.append( box )
-    hists['total_background'].SetBinError(ib, 0)
+    hists[2016]['total_background'].SetBinError(ib, 0)
     ratio_boxes.append( r_box )
 
 def drawObjects( isData=False, lumi=36. ):
@@ -200,10 +252,12 @@ def drawObjects( isData=False, lumi=36. ):
 #            hist.GetXaxis().SetBinLabel(i, "%s"%(i-15))
 
 drawObjects = drawObjects( isData=isData, lumi=round(lumiStr,1)) + boxes #+ drawDivisions( regions )
-
-plots = [ bkgHists, [hists['data']]]
-
-plotName = "controlRegions_%s"%options.year
+if options.combined:
+    plots = [ bkgHist, [histos['data']]]
+    plotName = "controlRegions_COMBINED"
+else:
+    plots = [ bkgHists, [hists['data']]]
+    plotName = "controlRegions_%s"%options.year
 if options.postFit:
     plotName += '_postFit'
 
@@ -214,12 +268,12 @@ plotting.draw(
                 texX = "",
                 texY = 'Number of events',
             ),
-    plot_directory = os.path.join(plot_directory, "controlRegions"),
+    plot_directory = os.path.join(plot_directory, "controlRegions", 'vtest'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
     legend = (0.70,0.60, 0.95, 0.90),
     widths = {'x_width':900, 'y_width':600, 'y_ratio_width':250},
-    yRange = (0.03,60000.),
+    yRange = (0.2,300000.),
     #yRange = (0.03, [0.001,0.5]),
     ratio = {'yRange': (0.11, 1.89), 'texY':'Data/pred', 'histos':[(1,0)], 'drawObjects':ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
             'histModifications': [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035)]} ,
