@@ -234,7 +234,6 @@ isr                 = ISRweight()
 if len(samples)>1:
     sample_name =  samples[0].name+"_comb"
     logger.info( "Combining samples %s to %s.", ",".join(s.name for s in samples), sample_name )
-    assert False, ""
     sample      = Sample.combine(sample_name, samples, maxN = maxN)
     sampleForPU = Sample.combine(sample_name, samples, maxN = -1)
 elif len(samples)==1:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' analysis script for standard plots with systematic errors
+''' analysis script for MT plots with systematic errors
 '''
 
 # Standard imports and batch mode
@@ -15,12 +15,14 @@ from RootTools.core.standard             import *
 #Analysis / StopsDilepton / Samples
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi, add_histos
-from Analysis.Tools.metFilters            import getFilterCut
+from Analysis.Tools.metFilters           import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
 from Analysis.Tools.puReweighting        import getReweightingFunction
 from Analysis.Tools.DirDB                import DirDB
+
+from StopsDilepton.tools.objectSelection import muonSelector, eleSelector, getGoodMuons, getGoodElectrons
 
 # JEC corrector
 from JetMET.JetCorrector.JetCorrector    import JetCorrector, correction_levels_data, correction_levels_mc
@@ -33,8 +35,8 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
-argParser.add_argument('--plot_directory',    action='store',      default='v1')
-argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-miniIso0.2-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
+argParser.add_argument('--plot_directory',    action='store',      default='isoVSinvIso')
+argParser.add_argument('--selection',         action='store',      default='lepSel1Tight-njet4p-btag1p-dPhiJet0-dPhiJet1')
 argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
 argParser.add_argument('--normalize',         action='store_true')
@@ -44,7 +46,7 @@ argParser.add_argument('--noDYHT',            action='store_true',     help='run
 argParser.add_argument('--scaling',           action='store',      default=None, choices = [None, 'mc', 'top'],     help='Scale top to data in mt2ll<100?')
 argParser.add_argument('--variation_scaling', action='store_true', help='Scale the variations individually to mimick bkg estimation?')
 argParser.add_argument('--overwrite',         action='store_true',     help='Overwrite?')
-argParser.add_argument('--mode',              action='store',      default = 'all', choices = ['mumu', 'ee', 'mue', 'all'],   help='Which mode?')
+argParser.add_argument('--mode',              action='store',      default = 'all', choices = ['mumu', 'ee', 'mue', 'emu', 'all'],   help='Which mode?')
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
 argParser.add_argument('--reweightPU',        action='store',      default='Central', choices=[ 'Central', 'VUp'] )
 #argParser.add_argument('--recoil',             action='store', type=str,      default="Central", choices = ["nvtx", "VUp", "Central"])
@@ -71,48 +73,9 @@ elif "2018" in args.era:
 
 logger.info( "Working in year %i", year )
 
-# Load from DPM?
-if args.dpm:
-    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
-    
-if year == 2016:
-    from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
-    from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
-    if args.noDYHT:
-        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-        #print "~~~~> using normal DY sample instead of HT binned one"
-    else:
-        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
-elif year == 2017:
-    from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
-    from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
-    if args.noDYHT:
-        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-        #print "~~~~> using normal DY sample instead of HT binned one"
-    else:
-        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
-
-elif year == 2018:
-    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
-    if args.noDYHT:
-        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-        #print "~~~~> using normal DY sample instead of HT binned one"
-    else:
-        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
-
-# postions of MC components in list
-position = {s.name:i_s for i_s,s in enumerate(mc)}
-
-
-
-
 def jetSelectionModifier( sys, returntype = "func"):
     #Need to make sure all jet variations of the following observables are in the ntuple
-    variiedJetObservables = ['nJetGood', 'nBTag', 'dl_mt2ll', 'dl_mt2blbl', 'MET_significance', 'met_pt', 'metSig']
+    variiedJetObservables = ['nJetGood', 'nBTag', 'dl_mt2ll', 'dl_mt2blbl', 'MET_significance', 'met_pt', 'met_phi', 'metSig']
     if returntype == "func":
         def changeCut_( string ):
             for s in variiedJetObservables:
@@ -124,7 +87,7 @@ def jetSelectionModifier( sys, returntype = "func"):
 
 def metSelectionModifier( sys, returntype = 'func'):
     #Need to make sure all MET variations of the following observables are in the ntuple
-    variiedMetObservables = ['dl_mt2ll', 'dl_mt2blbl', 'MET_significance', 'met_pt', 'metSig']
+    variiedMetObservables = ['dl_mt2ll', 'dl_mt2blbl', 'MET_significance', 'met_pt', 'met_phi', 'metSig']
     if returntype == "func":
         def changeCut_( string ):
             for s in variiedMetObservables:
@@ -136,9 +99,9 @@ def metSelectionModifier( sys, returntype = 'func'):
 
 # these are the nominal MC weights we always apply
 if args.reweightPU == 'Central': 
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
 if args.reweightPU == 'VUp':
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
 
 # weights to use for PU variation
 if args.reweightPU == 'Central':
@@ -168,35 +131,6 @@ def MC_WEIGHT( variation, returntype = "string"):
         return weight_
     elif returntype == "list":
         return variiedMCWeights
-#NN ----------------------------------------------------------------
-    elif returntype == "handle":
-        inputSample, inputWeight = variation['addSampleWeight']
-
-        # list
-        weightList = []
-        for sample in mc:
-            sampleWeights = variiedMCWeights
-            if sample.name == inputSample.name:
-                sampleWeights.append(inputWeight)
-            weightList.append(sampleWeights)
-        return [weightList]
-
-        # string
-#        sampleWeights = variiedMCWeights
-#        if sample.name == inputSample.name:
-#            sampleWeights.append(inputWeight)
-#        return "*".join(sampleWeights)
-
-        # weight function
-#        def weight_( event, sample ):
-#            ww = 1
-#            for iw, w in enumerate(variiedMCWeights):
-#                ww *= getattr(event, w)
-#            if sample.name == inputSample.name:
-#                ww *= float(inputWeight)
-#            return ww
-#        return weight_
-# ------------------------------------------------------------------
 
 def data_weight( event, sample ):
     return event.weight*event.reweightHEM
@@ -204,6 +138,10 @@ def data_weight( event, sample ):
 data_weight_string = "weight"
 
 # Define all systematic variations
+jet_systematics    = ['jesTotalUp','jesTotalDown', 'jerUp', 'jerDown']
+met_systematics    = ['unclustEnUp', 'unclustEnDown']
+jme_systematics    = jet_systematics + met_systematics
+
 variations = {
     'central'           : {'read_variables': [ '%s/F'%v for v in nominalMCWeights ]},
     'jesTotalUp'        : {'selectionModifier':jetSelectionModifier('jesTotalUp'),               'read_variables' : [ '%s/F'%v for v in nominalMCWeights + jetSelectionModifier('jesTotalUp','list')]},
@@ -218,31 +156,12 @@ variations = {
     'BTag_SF_b_Up'      : {'replaceWeight':('reweightBTag_SF','reweightBTag_SF_b_Up'),           'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightBTag_SF_b_Up'] ]},
     'BTag_SF_l_Down'    : {'replaceWeight':('reweightBTag_SF','reweightBTag_SF_l_Down'),         'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightBTag_SF_l_Down']]},
     'BTag_SF_l_Up'      : {'replaceWeight':('reweightBTag_SF','reweightBTag_SF_l_Up'),           'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightBTag_SF_l_Up'] ]},
-    'DilepTriggerDown'  : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerDown'),  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerDown']]},
-    'DilepTriggerUp'    : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerUp']]},
+#    'DilepTriggerDown'  : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerDown'),  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerDown']]},
+#    'DilepTriggerUp'    : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerUp']]},
     'LeptonSFDown'      : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFDown'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFDown']]},
     'LeptonSFUp'        : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFUp'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFUp']]},
     'L1PrefireDown'     : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireDown'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireDown']]},
     'L1PrefireUp'       : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireUp'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireUp']]},
-#NN
-    'DYInputUp'             : {'addSampleWeight':(DY_HT_LO, '1.5'),                                                       'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'DYInputDown'           : {'addSampleWeight':(DY_HT_LO, '0.5'),                                                       'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'TT1JetMismInputUp'     : {'addSampleWeight':(Top_pow, '(1+0.3*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) >=1))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'TT1JetMismInputDown'   : {'addSampleWeight':(Top_pow, '(1-0.3*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) >=1))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'TTTotJetMismInputUp'   : {'addSampleWeight':(Top_pow,
-           '(1+0.15*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) >= 40))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'TTTotJetMismInputDown' : {'addSampleWeight':(Top_pow, 
-           '(1-0.15*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) >= 40))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'TTNonPromptInputUp'    : {'addSampleWeight':(Top_pow, 
-                               '(1+0.5*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) < 40 && ((l1_muIndex>=0 && (Muon_genPartFlav[l1_muIndex])!=1) || (l2_muIndex>=0 && (Muon_genPartFlav[l2_muIndex])!=1))))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'TTNonPromptInputDown'  : {'addSampleWeight':(Top_pow,
-                               '(1-0.5*(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) < 40 && ((l1_muIndex>=0 && (Muon_genPartFlav[l1_muIndex])!=1) || (l2_muIndex>=0 && (Muon_genPartFlav[l2_muIndex])!=1))))'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'MBInputUp'             : {'addSampleWeight':(multiBoson, '1.5'),                                                     'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'MBInputDown'           : {'addSampleWeight':(multiBoson, '0.5'),                                                     'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'TTZInputUp'            : {'addSampleWeight':(TTZ_LO, '1.2'),                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'TTZInputDown'          : {'addSampleWeight':(TTZ_LO, '0.8'),                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'OtherInputUp'          : {'addSampleWeight':(TTXNoZ, '1.25'),                                                        'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
-    'OtherInputDown'        : {'addSampleWeight':(TTXNoZ, '0.75'),                                                        'read_variables' : ['%s/F'%v for v in nominalMCWeights] }, 
 #    'TopPt':{},
 }
 
@@ -265,6 +184,42 @@ if args.small:                    plot_subdirectory += "_small"
 if args.reweightPU:               plot_subdirectory += "_reweightPU%s"%args.reweightPU
 #if args.recoil:                  plot_subdirectory  += '_recoil_'+args.recoil
 
+# Load from DPM?
+if args.dpm:
+    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
+    
+if year == 2016:
+    from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
+    from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
+    if args.noDYHT:
+        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+        #print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_16, Top_pow_1l_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
+elif year == 2017:
+    from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
+    from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
+    if args.noDYHT:
+        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
+        #print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_17, Top_pow_1l_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
+
+elif year == 2018:
+    from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
+    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
+    if args.noDYHT:
+        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
+        #print "~~~~> using normal DY sample instead of HT binned one"
+    else:
+        mc          = [ Top_pow_18, Top_pow_1l_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
+
+# postions of MC components in list
+position = {s.name:i_s for i_s,s in enumerate(mc)}
+
 #if args.recoil:
 #    from Analysis.Tools.RecoilCorrector import RecoilCorrector
 #    if args.recoil == "nvtx":
@@ -278,110 +233,87 @@ if args.reweightPU:               plot_subdirectory += "_reweightPU%s"%args.rewe
 # Read variables and sequences
 read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
                   "met_pt/F", "met_phi/F", "dl_pt/F", "dl_phi/F",
-#                  "l1_pdgId/I", "l2_pdgId/I",
+                  "l1_pdgId/I", "l2_pdgId/I",
 #                  "Jet[pt/F,rawFactor/F,pt_nom/F,eta/F,area/F]", "run/I", "fixedGridRhoFastjetAll/F",
 #                  "nMuon/I", "Muon[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,pfRelIso04_all/F,phi/F,pt/F,ptErr/F,segmentComp/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,nStations/I,nTrackerLayers/I,pdgId/I,tightCharge/I,highPtId/b,inTimeMuon/O,isGlobal/O,isPFcand/O,isTracker/O,mediumId/O,mediumPromptId/O,miniIsoId/b,multiIsoId/b,mvaId/b,pfIsoId/b,softId/O,softMvaId/O,tightId/O,tkIsoId/b,triggerIdLoose/O,cleanmask/b]",
                   #"LepGood[pt/F,eta/F,miniRelIso/F]", "nGoodMuons/F", "nGoodElectrons/F", "l1_mIsoWP/F", "l2_mIsoWP/F",
                   "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","event/l","reweightHEM/F"]
+read_variables += [
+            "nMuon/I", "Muon[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,pfRelIso04_all/F,phi/F,pt/F,ptErr/F,segmentComp/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,nStations/I,nTrackerLayers/I,pdgId/I,tightCharge/I,highPtId/b,inTimeMuon/O,isGlobal/O,isPFcand/O,isTracker/O,mediumId/O,mediumPromptId/O,miniIsoId/b,multiIsoId/b,mvaId/b,pfIsoId/b,softId/O,softMvaId/O,tightId/O,tkIsoId/b,triggerIdLoose/O,cleanmask/b]",
+            "nElectron/I", "Electron[dxy/F,dxyErr/F,dz/F,dzErr/F,eta/F,ip3d/F,jetRelIso/F,mass/F,miniPFRelIso_all/F,miniPFRelIso_chg/F,pfRelIso03_all/F,pfRelIso03_chg/F,phi/F,pt/F,sip3d/F,mvaTTH/F,charge/I,jetIdx/I,pdgId/I,tightCharge/I,lostHits/b,vidNestedWPBitmap/I]"
+            ]
 
 sequence = []
-#def corr_recoil( event, sample ):
-#    mt2Calculator.reset()
-#    if not sample.isData: 
-#        # Parametrisation vector - # define qt as GenMET + leptons
-#        qt_px = event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.GenMET_pt*cos(event.GenMET_phi)
-#        qt_py = event.l1_pt*sin(event.l1_phi) + event.l2_pt*sin(event.l2_phi) + event.GenMET_pt*sin(event.GenMET_phi)
-#
-#        qt = sqrt( qt_px**2 + qt_py**2 )
-#        qt_phi = atan2( qt_py, qt_px )
-#
-#        #ref_phi = qt_phi
-#        ref_phi = event.dl_phi
-#
-#        # compute fake MET 
-#        fakeMET_x = event.met_pt*cos(event.met_phi) - event.GenMET_pt*cos(event.GenMET_phi)
-#        fakeMET_y = event.met_pt*sin(event.met_phi) - event.GenMET_pt*sin(event.GenMET_phi)
-#
-#        fakeMET = sqrt( fakeMET_x**2 + fakeMET_y**2 )
-#        fakeMET_phi = atan2( fakeMET_y, fakeMET_x )
-#
-#        # project fake MET on qT
-#        fakeMET_para = fakeMET*cos( fakeMET_phi - ref_phi )
-#        fakeMET_perp = fakeMET*cos( fakeMET_phi - ( ref_phi - pi/2) )
-#
-#        fakeMET_para_corr = - recoilCorrector.predict_para( ref_phi, qt, -fakeMET_para )
-#        fakeMET_perp_corr = - recoilCorrector.predict_perp( ref_phi, qt, -fakeMET_perp )
-#
-#        # rebuild fake MET vector
-#        fakeMET_px_corr = fakeMET_para_corr*cos(ref_phi) + fakeMET_perp_corr*cos(ref_phi - pi/2)
-#        fakeMET_py_corr = fakeMET_para_corr*sin(ref_phi) + fakeMET_perp_corr*sin(ref_phi - pi/2)
-#        #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
-#   
-#        for var in [""] + jme_systematics:
-#            if var: var = "_"+var
-#            met_px_corr = getattr(event, "met_pt"+var)*cos(getattr(event, "met_phi"+var)) - fakeMET_x + fakeMET_px_corr 
-#            met_py_corr = getattr(event, "met_pt"+var)*sin(getattr(event, "met_phi"+var)) - fakeMET_y + fakeMET_py_corr
-#    
-#            setattr(event, "met_pt_corr"+var, sqrt( met_px_corr**2 + met_py_corr**2 ) )
-#            setattr(event, "met_phi_corr"+var, atan2( met_py_corr, met_px_corr ) )
-#            
-#            mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
-#            mt2Calculator.setMet(getattr(event,"met_pt_corr"+var), getattr(event,"met_phi_corr"+var))
-#            setattr(event, "dl_mt2ll_corr"+var, mt2Calculator.mt2ll() )
-#
-#    else:
-#        event.met_pt_corr  = event.met_pt 
-#        event.met_phi_corr = event.met_phi
-#
-#        mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
-#        mt2Calculator.setMet(event.met_pt_corr, event.met_phi_corr)
-#        event.dl_mt2ll_corr =  mt2Calculator.mt2ll()
-#
-#    #print event.dl_mt2ll, event.dl_mt2ll_corr
-#
-#sequence.append( corr_recoil )
 
-#def make_muon_selection( event, sample ):
-#    if sample.isData:
-#        event.l1_muIndex = -1
-#        event.l2_muIndex = -1
-#        for i in range(event.nMuon):
-#            if event.l1_pt==event.Muon_pt[i]:
-#                event.l1_muIndex = i
-#            if event.l2_pt==event.Muon_pt[i]:
-#                event.l2_muIndex = i
-#
-#    if abs(event.l1_pdgId)==13 and event.l1_muIndex>=0:
-#        event.l1_jetRawPt = event.Jet_pt[event.Muon_jetIdx[event.l1_muIndex]]*(1-event.Jet_rawFactor[event.Muon_jetIdx[event.l1_muIndex]])
-#
-#        # systematics variables:
-#        # l1_jetRawPt = getattr(event, "Jet_pt%s"%sys)
-#        # l1_pt
-#
-#        corrector = corrector_data if sample.isData else corrector_mc
-#        if (event.l1_jetRawPt - event.l1_pt) >= 15:
-#            jetPtHad = (event.l1_jetRawPt - event.l1_pt)*corrector.correction( event.l1_jetRawPt - event.l1_pt, event.Jet_eta[event.Muon_jetIdx[event.l1_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l1_muIndex]], event.fixedGridRhoFastjetAll, event.run )
-#        else:
-#            jetPtHad = event.l1_jetRawPt - event.l1_pt
-#        event.l1_jetRelIsoRecorrHad = (jetPtHad)/event.l1_pt
-#    else:
-#        event.l1_jetRawPt = float('nan') 
-#        event.l1_jetRelIsoRecorrHad = float('nan')
-#
-#sequence.append( make_muon_selection )
+ele_selector_iso     = eleSelector(  'tightMiniIso02', year )
+mu_selector_iso      = muonSelector( 'tightMiniIso02', year )
+ele_selector_invIso   = eleSelector(  'tightNoIso', year )
+mu_selector_invIso    = muonSelector( 'tightNoIso', year )
+
+def make_invIso(event, sample):
+    event.iso_mt        = float('nan')
+    event.invIso_mt      = float('nan')
+    event.invIso_relIso  = float('nan')
+    event.mt2ll  = float('nan')
+
+    # MET systematics
+    if args.variation in jme_systematics:
+        met_pt = getattr(event, "met_pt_"+args.variation) 
+        met_phi = getattr(event, "met_phi_"+args.variation) 
+    else:
+        met_pt = event.met_pt
+        met_phi = event.met_phi
+
+    invIsoLeptons = getGoodMuons(event, mu_selector = mu_selector_invIso) + getGoodElectrons(event, ele_selector = ele_selector_invIso)
+
+    loose_leptons = []
+    for l in invIsoLeptons:
+        if l['miniPFRelIso_all'] > 0.2:
+            loose_leptons.append(l)
+
+    if sample.mode == "mumu" or sample.mode == "emu": # second (non isolated) lepton is a MUON
+        pdgID = 13
+    elif sample.mode == "mue" or sample.mode == "ee": # second (non isolated) lepton is an ELECTRON
+        pdgID = 11
+
+    if len(loose_leptons)>0:
+        l1 = {"pt": event.l1_pt, "phi": event.l1_phi, "eta": event.l1_eta, "pdgId": event.l1_pdgId}
+
+        l = loose_leptons[0]
+        ll = {"pt": l["pt"], "phi": l["phi"], "eta": l["eta"], "pdgId": l["pdgId"], "miniPFRelIso_all": l['miniPFRelIso_all']}
+
+        if abs(ll["pdgId"]) == pdgID:
+            event.iso_mt       = sqrt(2*l1["pt"]*met_pt*(1-(cos(l1["phi"]-met_phi))))
+            event.invIso_mt     = sqrt(2*ll["pt"]*met_pt*(1-(cos(ll["phi"]-met_phi))))
+            event.invIso_relIso = ll["miniPFRelIso_all"]
+    
+            # MT2ll
+            l1_pt  = l1["pt"]
+            l1_phi = l1["phi"]
+            l1_eta = l1["eta"]
+            l2_pt  = ll["pt"]
+            l2_phi = ll["phi"]
+            l2_eta = ll["eta"]
+            mt2Calculator.reset()
+            mt2Calculator.setLeptons(l1_pt, l1_eta, l1_phi, l2_pt, l2_eta, l2_phi)
+            mt2Calculator.setMet(met_pt, met_phi)
+            event.mt2ll = mt2Calculator.mt2ll()
+
+
+sequence.append( make_invIso )
 
 
 
 signals = []
 
 # selection
-offZ = "&&abs(dl_mass-91.1876)>15" if not (args.selection.count("onZ") or args.selection.count("allZ") or args.selection.count("offZ")) else ""
 def getLeptonSelection( mode ):
-  if   mode=="mumu": return "nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ
-  elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
-  elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
+  if   mode=="mumu": return "nGoodMuons==1"
+  elif mode=="mue":  return "nGoodMuons==1"
+  elif mode=="emu":  return "nGoodElectrons==1"
+  elif mode=="ee":   return "nGoodElectrons==1"
 
-modes = ['mumu', 'mue', 'ee'] if args.mode=='all' else [ args.mode ]
+modes   = ['mumu', 'mue', 'emu', 'ee'] if args.mode=='all' else [args.mode]
 
 allPlots   = {}
 
@@ -411,17 +343,17 @@ for sample in mc:
 # reduce if small
 if args.small:
   data_sample.normalization = 1.
-  data_sample.reduceFiles( factor = 40 )
-  #data_sample.reduceFiles( to = 1 )
+  #data_sample.reduceFiles( factor = 40 )
+  data_sample.reduceFiles( to = 1 )
   data_sample.scale /= data_sample.normalization
   for sample in mc:
     sample.normalization = 1.
-    sample.reduceFiles( factor = 40 )
-    #sample.reduceFiles( to = 1 )
+    #sample.reduceFiles( factor = 40 )
+    sample.reduceFiles( to = 1 )
     sample.scale /= sample.normalization
 
 # Fire up the cache
-dirDB = DirDB(os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, 'cache'))
+dirDB = DirDB(os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory , args.selection, 'cache'))
 
 # loop over modes
 for mode in modes:
@@ -432,16 +364,15 @@ for mode in modes:
     for sample in mc:
         sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(mode)])
 
+    # hack to have mode in sequence
+    for s in [data_sample]+mc:
+        s.mode = mode            
+
     # Use some defaults
     Plot.setDefaults( selectionString = cutInterpreter.cutString(args.selection) )
 
     # if we're running a variation specify
-#NN
-    if args.variation is not None and  "Input" in args.variation: # input variation
-        addSampleWeight   = variations[args.variation]['addSampleWeight']
-        selectionModifier = variations[args.variation]['selectionModifier']
-        mc_weight         = MC_WEIGHT( variation = variations[args.variation], returntype='handle')
-    elif args.variation is not None:
+    if args.variation is not None:
         selectionModifier = variations[args.variation]['selectionModifier']
         mc_weight         = MC_WEIGHT( variation = variations[args.variation], returntype='func')
     else:
@@ -456,59 +387,75 @@ for mode in modes:
 
     mt2llBinning = [0,20,40,60,80,100,140,240,340]
     if args.variation == 'central':
-        dl_mt2ll_data   = Plot(
-            name        = "dl_mt2ll_data",
-            texX        = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+        mt2ll_data   = Plot(
+            name        = "mt2ll_data",
+            texX        = 'M_{T2}(ll) for iso/non-iso lepton pair (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
             binning     = Binning.fromThresholds(mt2llBinning),
             stack       = stack_data,
-            attribute   = TreeVariable.fromString( "dl_mt2ll/F" ),
+            attribute   = lambda event, sample: event.mt2ll,
             weight      = data_weight )
-        plots.append( dl_mt2ll_data )
+        plots.append( mt2ll_data )
 
-    dl_mt2ll_mc  = Plot(\
-        name            = "dl_mt2ll_mc",
-        texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
+    mt2ll_mc  = Plot(\
+        name            = "mt2ll_mc",
+        texX            = 'M_{T2}(ll) for iso/non-iso lepton pair (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
         binning         = Binning.fromThresholds(mt2llBinning),
         stack           = stack_mc,
-        attribute       = TreeVariable.fromString( selectionModifier("dl_mt2ll/F"))   if selectionModifier is not None else None,
+        attribute       = lambda event, sample: event.mt2ll,
+#        attribute       = lambda event, sample: getattr(event, "mt2ll_"+args.variation) if args.variation in jme_systematics else event.mt2ll,
+#        attribute       = TreeVariable.fromString( selectionModifier("mt2ll/F"))   if selectionModifier is not None else None,
         selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
         weight          = mc_weight )
-    plots.append( dl_mt2ll_mc )
+    plots.append( mt2ll_mc )
 
-#    mt2llOverflowBinning = [0,20,40,60,80,100,140,240,340]
-#    if args.variation == 'central':
-#        dl_mt2llOverflow_data   = Plot(
-#            name        = "dl_mt2llOverflow_data",
-#            texX        = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#            binning     = Binning.fromThresholds(mt2llOverflowBinning),
-#            stack       = stack_data,
-#            addOverFlowBin  = 'upper',
-#            attribute   = TreeVariable.fromString( "dl_mt2ll/F" ),
-#            weight      = data_weight )
-#        plots.append( dl_mt2llOverflow_data )
-#
-#    dl_mt2llOverflow_mc  = Plot(\
-#        name            = "dl_mt2llOverflow_mc",
-#        texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#        binning         = Binning.fromThresholds(mt2llOverflowBinning),
-#        stack           = stack_mc,
-#        addOverFlowBin  = 'upper',
-#        attribute       = TreeVariable.fromString( selectionModifier("dl_mt2ll/F"))   if selectionModifier is not None else None,
-#        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
-#        weight          = mc_weight )
-#    plots.append( dl_mt2llOverflow_mc )
+    if args.variation == 'central':
+        iso_mt_data   = Plot(
+            name        = "iso_mT_data",
+            texX        = 'M_{T} for isolated lepton (GeV)', texY = 'Number of Events / 10 GeV' if args.normalizeBinWidth else "Number of Events",
+            binning     = [400/10, 0, 400],
+            stack       = stack_data,
+            attribute   = lambda event, sample: event.iso_mt,
+            weight      = data_weight )
+        plots.append( iso_mt_data )
 
-#    mt2llCorrBinning = [0,20,40,60,80,100,140,240,340]
-#    if args.variation == 'central':
-#        dl_mt2ll_corr_data   = Plot(
-#            name        = "dl_mt2ll_corr_data",
-#            texX        = 'corrected M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#            binning     = Binning.fromThresholds(mt2llCorrBinning),
-#            stack       = stack_data,
-#            attribute   = lambda event, sample: event.dl_mt2ll_corr, 
-#            weight      = data_weight )
-#        plots.append( dl_mt2ll_corr_data )
-#
+    iso_mt_mc  = Plot(\
+        name            = "iso_mT_mc",
+        texX            = 'M_{T} for isolated lepton (GeV)', texY = 'Number of Events / 10 GeV' if args.normalizeBinWidth else "Number of Events",
+        binning         = [400/10, 0, 400],
+        stack           = stack_mc,
+        attribute       = lambda event, sample: event.iso_mt,
+#        attribute       = lambda event, sample: getattr(event, "iso_mt_"+args.variation) if args.variation in jme_systematics else event.iso_mt,
+#        attribute       = TreeVariable.fromString( selectionModifier("iso_mt/F"))   if selectionModifier is not None else None,
+        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
+        weight          = mc_weight )
+    plots.append( iso_mt_mc )
+
+    if args.variation == 'central':
+        invIso_mt_data   = Plot(
+            name        = "invIso_mT_data",
+            texX        = 'M_{T} for non-isolated lepton (GeV)', texY = 'Number of Events / 10 GeV' if args.normalizeBinWidth else "Number of Events",
+            binning     = [400/10, 0, 400],
+            stack       = stack_data,
+            attribute   = lambda event, sample: event.invIso_mt,
+            weight      = data_weight )
+        plots.append( invIso_mt_data )
+
+    invIso_mt_mc  = Plot(\
+        name            = "invIso_mT_mc",
+        texX            = 'M_{T} for non-isolated lepton (GeV)', texY = 'Number of Events / 10 GeV' if args.normalizeBinWidth else "Number of Events",
+        binning         = [400/10, 0, 400],
+        stack           = stack_mc,
+        attribute       = lambda event, sample: event.invIso_mt,
+#        attribute       = lambda event, sample: getattr(event, "invIso_mt_"+args.variation) if args.variation in jme_systematics else event.invIso_mt,
+#        attribute       = TreeVariable.fromString( selectionModifier("invIso_mt/F"))   if selectionModifier is not None else None,
+        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
+        weight          = mc_weight )
+    plots.append( invIso_mt_mc )
+
+
+
+
+
 #    dl_mt2ll_corr_mc  = Plot(\
 #        name            = "dl_mt2ll_corr_mc",
 #        texX            = 'corrected M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
@@ -518,50 +465,6 @@ for mode in modes:
 #        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
 #        weight          = mc_weight )
 #    plots.append( dl_mt2ll_corr_mc )
-    
-
-    if args.selection.count('njet2'):
-        if args.variation == 'central':
-            dl_mt2blbl_fine_data  = Plot( 
-                name = "dl_mt2blbl_fine_data",
-                texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV' if args.normalizeBinWidth else "Number of Events",
-                binning=[420/30,0,400],
-                stack = stack_data,
-                attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-                weight = data_weight,
-                ) 
-            plots.append( dl_mt2blbl_fine_data )
-    
-        dl_mt2blbl_fine_mc  = Plot(
-            name = "dl_mt2blbl_fine_mc",
-            texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV' if args.normalizeBinWidth else "Number of Events",
-            binning=[420/30,0,400],
-            stack = stack_mc,
-            attribute = TreeVariable.fromString( selectionModifier("dl_mt2blbl/F") )      if selectionModifier is not None else None,
-            selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
-            weight          = mc_weight )
-        plots.append( dl_mt2blbl_fine_mc )
-
-        if args.variation == 'central':
-            dl_mt2blbl_data  = Plot( 
-                name = "dl_mt2blbl_data",
-                texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-                binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
-                stack = stack_data,
-                attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-                weight = data_weight,
-                ) 
-            plots.append( dl_mt2blbl_data )
-    
-        dl_mt2blbl_mc  = Plot(
-            name = "dl_mt2blbl_mc",
-            texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-            binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
-            stack = stack_mc,
-            attribute = TreeVariable.fromString( selectionModifier("dl_mt2blbl/F") )      if selectionModifier is not None else None,
-            selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
-            weight          = mc_weight )
-        plots.append( dl_mt2blbl_mc )
     
     nBtagBinning = [6, 0, 6] 
     if args.variation == 'central':
@@ -585,7 +488,7 @@ for mode in modes:
     plots.append( nbtags_mc )
     
 
-    jetBinning = [8,2,10] if args.selection.count('njet2') else [2,0,2]
+    jetBinning = [8,0,10] 
     if args.variation == 'central':
         njets_data   = Plot(
             name        = "njets_data",
@@ -674,29 +577,6 @@ for mode in modes:
         weight          = mc_weight )
     plots.append( metSig_mc )
 
-
-#    if args.variation == 'central': 
-#        jetRelIsoRecorr_data  = Plot( 
-#            name        = "l1_jetRelIsoRecorrHad_data",
-#            texX        = 'relIso(l_{1}) (GeV) with recorrected jet pt', texY = "Number of Events",
-#            binning     = [50,0,.5], 
-#            stack       = stack_data, 
-#            attribute   = lambda event, sample: event.l1_jetRelIsoRecorrHad, 
-#            weight      = data_weight,
-#            )
-#        plots.append( jetRelIsoRecorr_data )
-#    
-#    jetRelIsoRecorr_mc  = Plot(\
-#        name = "l1_jetRelIsoRecorrHad_mc",
-#        texX = 'relIso(l_{1}) (GeV) with recorrected jet pt', texY = "Number of Events",
-#        stack = stack_mc,
-#        binning     = [50,0,.5], 
-#        attribute   = lambda event, sample: event.l1_jetRelIsoRecorrHad, 
-#        #attribute   = lambda event, sample: getattr(event, selectionModifier("l1_jetRelIsoRecorrHad/F") if selectionModifier is not None else None, 
-#        selectionString = selectionModifier( cutInterpreter.cutString(args.selection) ) if selectionModifier is not None else None,
-#        weight          = mc_weight )
-#    plots.append( jetRelIsoRecorr_mc )
-
     ## Make plot directory
     #plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.plot_directory, args.selection, args.era, mode)
     #try: 
@@ -707,25 +587,26 @@ for mode in modes:
     if args.variation is not None:
         key  = (args.era, mode, args.variation)
 
-        success = False
+        database_complete = False
         if dirDB.contains(key) and not args.overwrite:
-            normalisation_mc, normalisation_data, histos = dirDB.get( key )
+            #normalisation_mc, normalisation_data, histos = dirDB.get( key )
+            histos = dirDB.get( key )
             for i_p, h_s in enumerate(histos):
                 plots[i_p].histos = h_s
             logger.info( "Loaded normalisations and histograms for %s in mode %s from cache.", args.era, mode)
             logger.debug("Loaded normalisation_mc: %r normalisation_data: %r", normalisation_mc, normalisation_data )
             if normalisation_mc['Top_pow']<=0:
-                success = False
+                database_complete = False
                 logger.info( "!!! Top_pow histo is zero !!!" )
             else: 
-                success = True
-        if not success:
+                database_complete = True
+        if not database_complete:
             logger.info( "Obtain normalisations and histograms for %s in mode %s.", args.era, mode)
             # Calculate the normalisation yield for mt2ll<100
             normalization_selection_string = selectionModifier(cutInterpreter.cutString(args.selection + '-mt2llTo100'))
             mc_normalization_weight_string    = MC_WEIGHT(variations[args.variation], returntype='string')
             normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
-            print normalization_selection_string, mc_normalization_weight_string
+            #print normalization_selection_string, mc_normalization_weight_string
 
             if args.variation == 'central':
                 normalisation_data = data_sample.scale*data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
@@ -741,7 +622,8 @@ for mode in modes:
 
             # save
             #print "normalisation_mc %f"%(normalisation_mc)
-            dirDB.add( key, (normalisation_mc, normalisation_data, [plot.histos for plot in plots]), overwrite = args.overwrite)
+            #dirDB.add( key, (normalisation_mc, normalisation_data, [plot.histos for plot in plots]), overwrite = args.overwrite)
+            dirDB.add( key, ([plot.histos for plot in plots]), overwrite = args.overwrite)
 
             logger.info( "Done with %s in channel %s.", args.variation, mode)
 
@@ -756,20 +638,12 @@ systematics = [\
     {'name':'PU',          'pair':('PUUp', 'PUDown')},
     {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
     {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
-    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
+#    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
-#    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
+    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
     {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
-#NN
-    {'name': 'DYInput',           'pair':('DYInputUp', 'DYInputDown')},
-    {'name': 'TT1JetMismInput',   'pair':('TT1JetMismUp', 'TT1JetMismDown')},
-    {'name': 'TTTotJetMismInput', 'pair':('TTTotJetMismUp', 'TTTotJetMismDown')},
-    {'name': 'TTNonPromptInput',  'pair':('TTNonPromptInputUp', 'TTNonPromptInputDown')},
-    {'name': 'MBInput',           'pair':('MBInputUp', 'MBInputDown')},
-    {'name': 'TTZInput',          'pair':('TTZInputUp', 'TTZInputDown')},
-    {'name': 'OtherInput',        'pair':('OtherInputUp', 'OtherInputDown')},
-] 
+]
 
 # loop over modes
 missing_cmds   = []
@@ -780,19 +654,18 @@ for mode in modes:
    
     for variation in variations.keys():
         key  = (args.era, mode, variation)
-        success = False
+        database_complete = False
         if dirDB.contains(key) and not args.overwrite:
-            normalisation_mc, normalisation_data, histos = dirDB.get(key)
-            variation_data[(mode, variation)] = {'histos':histos, 'normalisation_mc':normalisation_mc, 'normalisation_data':normalisation_data}
+            #normalisation_mc, normalisation_data, histos = dirDB.get(key)
+            histos = dirDB.get(key)
+            #variation_data[(mode, variation)] = {'histos':histos, 'normalisation_mc':normalisation_mc, 'normalisation_data':normalisation_data}
+            variation_data[(mode, variation)] = {'histos':histos}
             logger.info( "Loaded normalisations and histograms for variation %s, era %s in mode %s from cache.", variation, args.era, mode)
-            if normalisation_mc['Top_pow']<=0:
-                success = False
-                logger.info( "!!! Top_pow histo is zero !!!" )
-            else: 
-                success = True
-        if not success:
+            database_complete = True
+ 
+        if not database_complete:
             # prepare sub variation command
-            cmd = ['python', 'systematicVariation.py']
+            cmd = ['python', 'sysiso.py']
             if args.dpm: cmd.append('--dpm')
             cmd.append('--logLevel=%s'%args.logLevel)
             if args.signal is not None: cmd.append( '--signal=%s'%args.signal )
@@ -831,29 +704,29 @@ if len(missing_cmds)>0:
 # make 'all' and 'SF' from ee/mumu/mue
 new_modes = []
 all_modes = list(modes)
-if 'mumu' in modes and 'ee' in modes:
-    new_modes.append( ('SF', ('mumu', 'ee')) )
-    all_modes.append( 'SF' )
-if 'mumu' in modes and 'ee' in modes and 'mue' in modes:
-    new_modes.append( ('all', ('mue', 'SF')) )
+#if 'mumu' in modes and 'ee' in modes:
+#    new_modes.append( ('SF', ('mumu', 'ee')) )
+#    all_modes.append( 'SF' )
+if 'mumu' in modes and 'ee' in modes and 'mue' in modes and 'emu' in modes:
+    new_modes.append( ('all', ('mumu', 'mue', 'emu', 'ee')) )
     all_modes.append( 'all' )
 for variation in variations:
     for new_mode, old_modes in new_modes:
         new_key = ( new_mode, variation )
         variation_data[new_key] = {}
-        # Adding up data_normalisation 
-        if variation == 'central':
-            variation_data[new_key]['normalisation_data'] = sum( variation_data[( old_mode, variation )]['normalisation_data'] for old_mode in old_modes )
-        else:
-            variation_data[new_key]['normalisation_data'] = -1 
-
-        # Adding up mc normalisation
-        sample_keys = variation_data[( old_modes[0], variation )]['normalisation_mc'].keys()
-        variation_data[new_key]['normalisation_mc'] = {}
-        for sample_key in sample_keys: 
-            variation_data[new_key]['normalisation_mc'][sample_key] = variation_data[( old_modes[0], variation )]['normalisation_mc'][sample_key]
-            for mode in old_modes[1:]:
-                variation_data[new_key]['normalisation_mc'][sample_key] += variation_data[( mode, variation )]['normalisation_mc'][sample_key]
+#        # Adding up data_normalisation 
+#        if variation == 'central':
+#            variation_data[new_key]['normalisation_data'] = sum( variation_data[( old_mode, variation )]['normalisation_data'] for old_mode in old_modes )
+#        else:
+#            variation_data[new_key]['normalisation_data'] = -1 
+#
+#        # Adding up mc normalisation
+#        sample_keys = variation_data[( old_modes[0], variation )]['normalisation_mc'].keys()
+#        variation_data[new_key]['normalisation_mc'] = {}
+#        for sample_key in sample_keys: 
+#            variation_data[new_key]['normalisation_mc'][sample_key] = variation_data[( old_modes[0], variation )]['normalisation_mc'][sample_key]
+#            for mode in old_modes[1:]:
+#                variation_data[new_key]['normalisation_mc'][sample_key] += variation_data[( mode, variation )]['normalisation_mc'][sample_key]
 
         # Adding up histos (clone old_modes[0] at 3rd level, then add)
         variation_data[new_key]['histos'] = [[[ h.Clone() for h in hs ] for hs in plot_histos ] for plot_histos in variation_data[( old_modes[0], variation )]['histos']]
@@ -877,42 +750,42 @@ dataMC_SF = {}
 for mode in all_modes:
     # All SF to 1
     dataMC_SF[mode] = {variation:{s.name:1 for s in mc} for variation in variations} 
-    yield_data = variation_data[(mode,'central')]['normalisation_data'] 
-    if args.scaling == 'top': 
-        # scale variations individually
-        if args.variation_scaling:
-            logger.info( "Scaling top yield to data for mt2ll<100 individually for all variations." )
-            for variation in variations.keys():
-                #print ""%()
-                yield_non_top = sum( val for name, val in variation_data[(mode,variation)]['normalisation_mc'].iteritems() if name != Top_pow.name)
-                yield_top     = variation_data[(mode,variation)]['normalisation_mc'][Top_pow.name]
-                #print "mode %s yield_data %f yield_non_top %f yield_top %f"%(mode, yield_data, yield_non_top, yield_top)
-                dataMC_SF[mode][variation][Top_pow.name] = (yield_data - yield_non_top)/yield_top
-                #if mode=='mumu' and variation=='central': assert False, ''
-        # scale all variations with the central factor
-        else:
-            logger.info( "Scaling top yield to data for mt2ll<100 ( all variations are scaled by central SF)" )
-            yield_non_top = sum( val for name, val in variation_data[(mode,'central')]['normalisation_mc'].iteritems() if name != Top_pow.name)
-            yield_top     = variation_data[(mode,'central')]['normalisation_mc'][Top_pow.name]
-            sf = (yield_data - yield_non_top)/yield_top
-            for variation in variations.keys():
-                dataMC_SF[mode][variation][Top_pow.name] = sf 
-    elif args.scaling == 'mc':
-        # scale variations individually
-        if args.variation_scaling:
-            logger.info( "Scaling MC yield to data for mt2ll<100 individually for all variations." )
-            for variation in variations.keys():
-                yield_mc = sum( val for name, val in variation_data[(mode,variation)]['normalisation_mc'].iteritems())
-                for s in mc:
-                    dataMC_SF[mode][variation][s.name] = yield_data/yield_mc
-        # scale all variations with the central factor
-        else:
-            logger.info( "Scaling MC yield to data for mt2ll<100 ( all variations are scaled by central SF)" )
-            yield_mc = sum( val for name, val in variation_data[(mode,'central')]['normalisation_mc'].iteritems())
-            sf = yield_data/yield_mc
-            for variation in variations.keys():
-                for s in mc:
-                    dataMC_SF[mode][variation][s.name] = sf 
+#    yield_data = variation_data[(mode,'central')]['normalisation_data'] 
+#    if args.scaling == 'top': 
+#        # scale variations individually
+#        if args.variation_scaling:
+#            logger.info( "Scaling top yield to data for mt2ll<100 individually for all variations." )
+#            for variation in variations.keys():
+#                #print ""%()
+#                yield_non_top = sum( val for name, val in variation_data[(mode,variation)]['normalisation_mc'].iteritems() if name != Top_pow.name)
+#                yield_top     = variation_data[(mode,variation)]['normalisation_mc'][Top_pow.name]
+#                #print "mode %s yield_data %f yield_non_top %f yield_top %f"%(mode, yield_data, yield_non_top, yield_top)
+#                dataMC_SF[mode][variation][Top_pow.name] = (yield_data - yield_non_top)/yield_top
+#                #if mode=='mumu' and variation=='central': assert False, ''
+#        # scale all variations with the central factor
+#        else:
+#            logger.info( "Scaling top yield to data for mt2ll<100 ( all variations are scaled by central SF)" )
+#            yield_non_top = sum( val for name, val in variation_data[(mode,'central')]['normalisation_mc'].iteritems() if name != Top_pow.name)
+#            yield_top     = variation_data[(mode,'central')]['normalisation_mc'][Top_pow.name]
+#            sf = (yield_data - yield_non_top)/yield_top
+#            for variation in variations.keys():
+#                dataMC_SF[mode][variation][Top_pow.name] = sf 
+#    elif args.scaling == 'mc':
+#        # scale variations individually
+#        if args.variation_scaling:
+#            logger.info( "Scaling MC yield to data for mt2ll<100 individually for all variations." )
+#            for variation in variations.keys():
+#                yield_mc = sum( val for name, val in variation_data[(mode,variation)]['normalisation_mc'].iteritems())
+#                for s in mc:
+#                    dataMC_SF[mode][variation][s.name] = yield_data/yield_mc
+#        # scale all variations with the central factor
+#        else:
+#            logger.info( "Scaling MC yield to data for mt2ll<100 ( all variations are scaled by central SF)" )
+#            yield_mc = sum( val for name, val in variation_data[(mode,'central')]['normalisation_mc'].iteritems())
+#            sf = yield_data/yield_mc
+#            for variation in variations.keys():
+#                for s in mc:
+#                    dataMC_SF[mode][variation][s.name] = sf 
 
 def drawObjects( scaling, scaleFactor ):
     tex = ROOT.TLatex()
@@ -926,6 +799,7 @@ def drawObjects( scaling, scaleFactor ):
     return [tex.DrawLatex(*l) for l in lines]
 
 # We plot now. 
+if args.normalize: plot_subdirectory += "_normalized"
 if args.beta: plot_subdirectory += "_%s"%args.beta
 for mode in all_modes:
     for i_plot, plot in enumerate(plots):
@@ -1006,7 +880,7 @@ for mode in all_modes:
             #else:
             #    plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, args.beta, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
-            texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
+            texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else "e#mu" if mode =="emu" else mode
             if    mode == "all": plot.histos[1][0].legendText = "data (%s)"%args.era
             else:                plot.histos[1][0].legendText = "data (%s, %s)"%(args.era, texMode)
 

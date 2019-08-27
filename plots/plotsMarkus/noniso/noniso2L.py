@@ -15,9 +15,8 @@ from math                                import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
-from Analysis.Tools.metFilters            import getFilterCut
+from Samples.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
-from StopsDilepton.tools.mt2Calculator   import mt2Calculator
 
 from StopsDilepton.tools.objectSelection import muonSelector, eleSelector, getGoodMuons, getGoodElectrons
 
@@ -72,16 +71,16 @@ if args.dpm:
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16, WW_16, Top_pow_1l_16]
+    mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16, WW_16]
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17, WW_17, Top_pow_1l_17]
+    mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17, WW_17]
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
 #    mc             = [Top_pow_18]
-    mc             = [Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18, WW_18, Top_pow_1l_18] 
+    mc             = [Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18, WW_18] 
 
 try:
   data_sample = eval(args.era)
@@ -159,7 +158,6 @@ def make_noIso(event, sample):
     event.iso_mt        = float('nan')
     event.noIso_mt      = float('nan')
     event.noIso_relIso  = float('nan')
-    event.dl_mt2llCalc  = float('nan')
 
     noIsoLeptons = getGoodMuons(event, mu_selector = mu_selector_noIso) + getGoodElectrons(event, ele_selector = ele_selector_noIso) 
 
@@ -185,19 +183,6 @@ def make_noIso(event, sample):
             event.noIso_relIso = ll["miniPFRelIso_all"] 
 #        else:
 #            event.weight = 0
-        
-        # MT2ll
-        l1_pt  = l1["pt"]
-        l1_phi = l1["phi"]
-        l1_eta = l1["eta"]
-        l2_pt  = ll["pt"]
-        l2_phi = ll["phi"]
-        l2_eta = ll["eta"]
-        mt2Calculator.reset()
-        mt2Calculator.setLeptons(l1_pt, l1_eta, l1_phi, l2_pt, l2_eta, l2_phi)
-        mt2Calculator.setMet(event.met_pt, event.met_phi)
-        event.dl_mt2llCalc = mt2Calculator.mt2ll()
-
 
 sequence.append( make_noIso )
 
@@ -270,12 +255,6 @@ for index, mode in enumerate(allModes):
       binning=[400/10, 0, 400],
   ))
   
-  plots.append(Plot(
-      texX = 'M_{T2}(ll) for isolated/non-isolated lepton pair (GeV)', texY = 'Number of Events / 20 GeV',
-      name = "iso_nonIso_mt2ll", attribute =lambda event, sample: event.dl_mt2llCalc, 
-      binning=[300/20, 0, 300],
-  ))
-
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
   
   # Get normalization yields from yield histogram
