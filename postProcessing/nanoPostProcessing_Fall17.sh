@@ -2,7 +2,7 @@
 #python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms06/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p15   --skipGenLepMatching --sample TTZToQQ #SPLIT8
 #python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms06/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p15   --skipGenLepMatching --sample TTZToLLNuNu #SPLIT20
 #python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms06/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p15   --skipGenLepMatching --sample TTZToLLNuNu_m1to10 #SPLIT4
-python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms06/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16   --skipGenLepMatching --flagTTBar --sample TTLep_pow #SPLIT77
+#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms06/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16   --skipGenLepMatching --flagTTBar --sample TTLep_pow #SPLIT77
 #python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms06/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p15   --skipGenLepMatching --flagTTBar --sample TTSingleLep_pow #SPLIT80
 #
 ##python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms06/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p15   --skipGenLepMatching --sample DYJetsToLL_M50_ext1 #SPLIT10
@@ -87,3 +87,5 @@ python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms06/nanoTuples/ -
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_50
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_75
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_100
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_650_mLSP_350
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p16 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_850_mLSP_100
