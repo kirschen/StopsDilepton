@@ -346,8 +346,8 @@ def wrapper(s):
                         #if not niceName.count('controlTTBar'):
                             c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
                             c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
-                            c.specifyUncertainty('JER',      binname, name, 1 + 0.03 )#e.JERSystematic(        r, channel, setup).val * uncScale )
-                            c.specifyUncertainty('topPt',    binname, name, 1 + 0.02 )#e.topPtSystematic(      r, channel, setup).val * uncScale )
+                            c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
+                            c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
                             c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                             c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
                             c.specifyUncertainty('trigger',  binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
@@ -409,7 +409,7 @@ def wrapper(s):
                 e = eSignal
                 
                 if fastSim:
-                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) # reweightLeptonFastSimSF not yet in the tuples?
+                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
                     signal = e.cachedEstimate(r, channel, signalSetup)
                     # need MET Significance with gen MET for this. not yet implemented.
                     #signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'genMet'}))) # genMET modifier -> what to do for legacy?
@@ -441,7 +441,7 @@ def wrapper(s):
                         c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
                   c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
                   c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('JER',      binname, 'signal', 1 + 0.02 )#e.JERSystematic(        r, channel, signalSetup).val )
+                  c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val ) #0.02 )
                   c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
@@ -582,17 +582,34 @@ if args.signal == "T2tt":
         if args.fullSim:
              from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
-            data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p13/dilep/'
+            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
     elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p13/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
     elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p13/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
+
+if args.signal == "T2bW":
+    if year == 2016:
+        if args.fullSim:
+             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T2bW as jobs
+        else:
+            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2bW as jobs
+    elif year == 2017:
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2bW as jobs
+    elif year == 2018:
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2bW as jobs
 
 if args.only is not None:
     if args.only.isdigit():

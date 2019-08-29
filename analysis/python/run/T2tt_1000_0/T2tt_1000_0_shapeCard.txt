@@ -1,0 +1,49 @@
+#cardFileWriter, 10:04AM on June 13, 2019
+imax 1
+jmax *
+kmax *
+
+# Bin0: inclusive bin
+
+shapes * * T2tt_1000_0_shape.root  $PROCESS $PROCESS_$SYSTEMATIC 
+
+bin                                                                   Bin0
+observation                                                          83829
+
+bin                                                                   Bin0         Bin0         Bin0         Bin0         Bin0         Bin0         Bin0         Bin0
+process                                                             signal          TTZ           DY   multiBoson        other      TTJetsG     TTJetsNG      TTJetsF
+process                                                                  0            1            2            3            4            5            6            7
+rate                                                                 2.456      265.236      865.903      354.317      333.806     79974.91     1211.372      822.116
+
+topNorm                        lnN                                       -            -            -            -            -         1.15         1.15         1.15
+multiBoson                     lnN                                       -            -            -          1.5            -            -            -            -
+DY                             lnN                                       -            -          1.5            -            -            -            -            -
+ttZ                            lnN                                       -          1.2            -            -            -            -            -            -
+other                          lnN                                       -            -            -            -         1.25            -            -            -
+Lumi                           lnN                                   1.026        1.026        1.026        1.026        1.026        1.026        1.026        1.026
+PU                             shape                                     -          1.0          1.0          1.0          1.0          1.0          1.0          1.0
+topPt                          shape                                     -          1.0          1.0          1.0          1.0            -            -            -
+JEC                            shape                                   1.0          1.0          1.0          1.0          1.0            -            -            -
+unclEn                         shape                                   1.0          1.0          1.0          1.0          1.0            -            -            -
+JER                            shape                                   1.0          1.0          1.0          1.0          1.0            -            -            -
+SFb                            shape                                   1.0          1.0          1.0          1.0          1.0            -            -            -
+SFl                            shape                                   1.0          1.0          1.0          1.0          1.0            -            -            -
+trigger                        shape                                   1.0          1.0          1.0          1.0          1.0            -            -            -
+leptonSF                       shape                                   1.0          1.0          1.0          1.0          1.0            -            -            -
+scale                          shape                                   1.0            -            -            -            -            -            -            -
+scaleTT                        shape                                     -            -            -            -            -          1.0          1.0          1.0
+scaleTTZ                       shape                                     -          1.0            -            -            -            -            -            -
+PDF                            shape                                     -          1.0            -            -            -          1.0          1.0          1.0
+xsec_PDF                       shape                                     -            -            -            -            -            -            -            -
+xsec_QCD                       shape                                     -            -            -            -            -            -            -            -
+isr                            shape                                   1.0            -            -            -            -            -            -            -
+topGaus                        shape                                     -            -            -            -            -          1.0            -            -
+topNonGaus                     shape                                     -            -            -            -            -            -          1.0            -
+topFakes                       shape                                     -            -            -            -            -            -            -          1.0
+DY_SR                          shape                                     -            -          1.0            -            -            -            -            -
+ttZ_SR                         shape                                     -          1.0            -            -            -            -            -            -
+btagFS                         shape                                   1.0            -            -            -            -            -            -            -
+leptonFS                       shape                                   1.0            -            -            -            -            -            -            -
+FSmet                          shape                                   1.0            -            -            -            -            -            -            -
+PUFS                           shape                                   1.0            -            -            -            -            -            -            -
+* autoMCStats 0 

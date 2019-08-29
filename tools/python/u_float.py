@@ -32,6 +32,8 @@ class u_float():
         return u
 
     def __add__(self,other):
+        if isinstance(other, (int, long, float)):
+            return u_float( self.val + other, self.sigma )
         if not type(other)==type(self):
             if other == 0 or other == None: return self
             elif self == 0 or self == None: return other
@@ -48,9 +50,10 @@ class u_float():
         return self + other
 
     def __sub__(self,other):
+        if isinstance(other, (int, long, float)):
+            return u_float( self.val - other, self.sigma )
         if not type(other)==type(self):
             raise ValueError( "Can't add, two objects should be u_float but is %r."%(type(other)) )
-
         val = self.val-other.val
         sigma = sqrt(self.sigma**2+other.sigma**2)
         return u_float(val,sigma)
