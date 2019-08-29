@@ -165,7 +165,7 @@ elif args.controlDYVV: setups = [setupDYVV]
 elif args.controlTTZ:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 else:                  setups = [setup]
 
-from StopsDilepton.analysis.u_float                                              import u_float
+from StopsDilepton.tools.u_float                                              import u_float
 from math                                                                        import sqrt
 
 ##https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSYSignalSystematicsRun2

@@ -24,7 +24,7 @@ estimators     = constructEstimatorList(["TTJets","Top_gaussian", "Top_nongaussi
 for e in estimators: e.initCache(setup.defaultCacheDir())
 
 
-from StopsDilepton.analysis.u_float                                           import u_float
+from StopsDilepton.tools.u_float                                           import u_float
 from math                                                                     import sqrt
 
 

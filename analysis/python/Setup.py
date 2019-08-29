@@ -63,7 +63,7 @@ class Setup:
         }
 
         self.puWeight = 'reweightPUVUp' if self.year == 2018 else 'reweightPU'
-        self.sys = {'weight':'weight', 'reweight':[self.puWeight, 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger', 'reweightL1Prefire','reweightHEM'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
+        self.sys = {'weight':'weight', 'reweight':[self.puWeight, 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger', 'reweightL1Prefire','reweightHEM', 'reweightTopPt'], 'selectionModifier':None} # TopPt missing for now. Default PU reweighting
 
         if year == 2016:
             #define samples

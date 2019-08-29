@@ -1,0 +1,980 @@
+2019-05-25 18:56:48,256 - StopsDilepton.samples.nanoTuples_Summer16_postProcessed - INFO - Loading MC samples from directory /dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2016_nano_v0p7/dilep/
+2019-05-25 18:56:49,723 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:56:49,723 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:56:51,956 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:56:51,956 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:56:51,956 - RootTools.core.Sample - DEBUG - Created new sample DY_HT_LO with 214 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:56:51,956 - RootTools.core.Sample - DEBUG - Loaded sample DY_HT_LO from 214 files.
+2019-05-25 18:56:53,394 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:56:53,395 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:56:56,657 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:56:56,657 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:56:56,658 - RootTools.core.Sample - DEBUG - Created new sample DY_HT_M50_LO with 134 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:56:56,658 - RootTools.core.Sample - DEBUG - Loaded sample DY_HT_M50_LO from 134 files.
+2019-05-25 18:56:58,089 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:56:58,089 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:00,108 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:00,108 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:00,109 - RootTools.core.Sample - DEBUG - Created new sample DY_HT_M5to50_LO with 80 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:00,109 - RootTools.core.Sample - DEBUG - Loaded sample DY_HT_M5to50_LO from 80 files.
+2019-05-25 18:57:01,530 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:01,531 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:02,308 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:02,308 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:02,308 - RootTools.core.Sample - DEBUG - Created new sample Top_pow with 113 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:02,308 - RootTools.core.Sample - DEBUG - Loaded sample Top_pow from 113 files.
+2019-05-25 18:57:03,725 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:03,726 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:03,917 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:03,918 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:03,918 - RootTools.core.Sample - DEBUG - Created new sample Top_1l_pow with 50 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:03,918 - RootTools.core.Sample - DEBUG - Loaded sample Top_1l_pow from 50 files.
+2019-05-25 18:57:05,341 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:05,342 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:05,949 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:05,950 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:05,950 - RootTools.core.Sample - DEBUG - Created new sample singleTop with 23 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:05,950 - RootTools.core.Sample - DEBUG - Loaded sample singleTop from 23 files.
+2019-05-25 18:57:07,365 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:07,366 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:08,240 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:08,241 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:08,241 - RootTools.core.Sample - DEBUG - Created new sample singleTop_tch with 40 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:08,241 - RootTools.core.Sample - DEBUG - Loaded sample singleTop_tch from 40 files.
+2019-05-25 18:57:09,666 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:09,666 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:10,632 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:10,632 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:10,632 - RootTools.core.Sample - DEBUG - Created new sample TTX with 56 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:10,632 - RootTools.core.Sample - DEBUG - Loaded sample TTX from 56 files.
+2019-05-25 18:57:12,052 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:12,052 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:13,347 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:13,347 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:13,347 - RootTools.core.Sample - DEBUG - Created new sample TTXNoZ with 43 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:13,347 - RootTools.core.Sample - DEBUG - Loaded sample TTXNoZ from 43 files.
+2019-05-25 18:57:14,786 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:14,786 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:14,906 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:14,907 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:14,907 - RootTools.core.Sample - DEBUG - Created new sample TTH with 5 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:14,907 - RootTools.core.Sample - DEBUG - Loaded sample TTH from 5 files.
+2019-05-25 18:57:16,346 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:16,347 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:16,472 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:16,473 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:16,473 - RootTools.core.Sample - DEBUG - Created new sample TTW with 16 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:16,473 - RootTools.core.Sample - DEBUG - Loaded sample TTW from 16 files.
+2019-05-25 18:57:17,888 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:17,889 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:18,336 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:18,336 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:18,336 - RootTools.core.Sample - DEBUG - Created new sample TTZ with 13 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:18,336 - RootTools.core.Sample - DEBUG - Loaded sample TTZ from 13 files.
+2019-05-25 18:57:19,750 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:19,751 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:19,873 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:19,873 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:19,873 - RootTools.core.Sample - DEBUG - Created new sample TTZtoNuNu with 9 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:19,874 - RootTools.core.Sample - DEBUG - Loaded sample TTZtoNuNu from 9 files.
+2019-05-25 18:57:21,289 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:21,289 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:21,409 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:21,409 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:21,409 - RootTools.core.Sample - DEBUG - Created new sample TTZtoQQ with 4 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:21,410 - RootTools.core.Sample - DEBUG - Loaded sample TTZtoQQ from 4 files.
+2019-05-25 18:57:22,827 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:22,827 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:22,960 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:22,960 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:22,960 - RootTools.core.Sample - DEBUG - Created new sample TZQ with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:22,961 - RootTools.core.Sample - DEBUG - Loaded sample TZQ from 20 files.
+2019-05-25 18:57:24,387 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:24,387 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:24,623 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:24,623 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:24,623 - RootTools.core.Sample - DEBUG - Created new sample TWZ with 2 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:24,623 - RootTools.core.Sample - DEBUG - Loaded sample TWZ from 2 files.
+2019-05-25 18:57:26,039 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:26,040 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:26,783 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:26,783 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:26,783 - RootTools.core.Sample - DEBUG - Created new sample diBoson with 84 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:26,784 - RootTools.core.Sample - DEBUG - Loaded sample diBoson from 84 files.
+2019-05-25 18:57:28,209 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:28,209 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:28,471 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:28,471 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:28,471 - RootTools.core.Sample - DEBUG - Created new sample triBoson with 4 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:28,471 - RootTools.core.Sample - DEBUG - Loaded sample triBoson from 4 files.
+2019-05-25 18:57:29,887 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:29,887 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:32,103 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:32,103 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:32,104 - RootTools.core.Sample - DEBUG - Created new sample multiBoson with 88 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:32,104 - RootTools.core.Sample - DEBUG - Loaded sample multiBoson from 88 files.
+2019-05-25 18:57:33,514 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:33,515 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:33,670 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:33,670 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:33,670 - RootTools.core.Sample - DEBUG - Created new sample ZZ4l with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:33,670 - RootTools.core.Sample - DEBUG - Loaded sample ZZ4l from 20 files.
+2019-05-25 18:57:33,671 - RootTools.core.Sample - DEBUG - Sample now has selectionString: abs(met_pt-met_genPt)&&abs(met_pt-met_genPt)<=50&&l1_mcMatchId!=0&&l2_mcMatchId!=0
+2019-05-25 18:57:33,672 - RootTools.core.Sample - DEBUG - Sample now has selectionString: abs(met_pt-met_genPt)>50&&l1_mcMatchId!=0&&l2_mcMatchId!=0
+2019-05-25 18:57:33,672 - RootTools.core.Sample - DEBUG - Sample now has selectionString: !(l1_mcMatchId!=0&&l2_mcMatchId!=0)
+2019-05-25 18:57:33,673 - StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed - INFO - Loading data samples from directory /dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2016_nano_v0p5/dilep/
+2019-05-25 18:57:35,085 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:35,086 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:35,517 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:35,517 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:35,517 - RootTools.core.Sample - DEBUG - Created new sample DoubleEG_Run2016BCD with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:35,517 - RootTools.core.Sample - DEBUG - Loaded sample DoubleEG_Run2016BCD from 30 files.
+2019-05-25 18:57:36,939 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:36,939 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:37,366 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:37,366 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:37,366 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2016BCD with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:37,367 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2016BCD from 30 files.
+2019-05-25 18:57:38,785 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:38,786 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:39,223 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:39,223 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:39,224 - RootTools.core.Sample - DEBUG - Created new sample SingleElectron_Run2016BCD with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:39,224 - RootTools.core.Sample - DEBUG - Loaded sample SingleElectron_Run2016BCD from 30 files.
+2019-05-25 18:57:40,649 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:40,649 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:41,077 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:41,078 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:41,078 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2016BCD with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:41,078 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2016BCD from 30 files.
+2019-05-25 18:57:42,548 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:42,548 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:42,980 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:42,981 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:42,981 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2016BCD with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:42,981 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2016BCD from 30 files.
+2019-05-25 18:57:44,410 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:44,411 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:44,696 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:44,697 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:44,697 - RootTools.core.Sample - DEBUG - Created new sample DoubleEG_Run2016EF with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:44,697 - RootTools.core.Sample - DEBUG - Loaded sample DoubleEG_Run2016EF from 20 files.
+2019-05-25 18:57:46,108 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:46,108 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:46,399 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:46,400 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:46,400 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2016EF with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:46,400 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2016EF from 20 files.
+2019-05-25 18:57:47,821 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:47,821 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:48,108 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:48,109 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:48,109 - RootTools.core.Sample - DEBUG - Created new sample SingleElectron_Run2016EF with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:48,109 - RootTools.core.Sample - DEBUG - Loaded sample SingleElectron_Run2016EF from 20 files.
+2019-05-25 18:57:49,530 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:49,531 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:49,826 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:49,827 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:49,827 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2016EF with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:49,827 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2016EF from 20 files.
+2019-05-25 18:57:51,248 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:51,248 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:51,537 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:51,538 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:51,538 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2016EF with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:51,538 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2016EF from 20 files.
+2019-05-25 18:57:52,954 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:52,954 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:53,239 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:53,240 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:53,240 - RootTools.core.Sample - DEBUG - Created new sample DoubleEG_Run2016GH with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:53,240 - RootTools.core.Sample - DEBUG - Loaded sample DoubleEG_Run2016GH from 20 files.
+2019-05-25 18:57:54,663 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:54,663 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:54,949 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:54,949 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:54,949 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2016GH with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:54,949 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2016GH from 20 files.
+2019-05-25 18:57:56,363 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:56,364 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:56,649 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:56,650 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:56,650 - RootTools.core.Sample - DEBUG - Created new sample SingleElectron_Run2016GH with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:56,650 - RootTools.core.Sample - DEBUG - Loaded sample SingleElectron_Run2016GH from 20 files.
+2019-05-25 18:57:58,078 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:58,078 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:57:58,363 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:57:58,363 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:57:58,363 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2016GH with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:57:58,363 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2016GH from 20 files.
+2019-05-25 18:57:59,780 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:57:59,780 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:00,064 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:00,065 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:00,065 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2016GH with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:00,065 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2016GH from 20 files.
+2019-05-25 18:58:01,482 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:01,482 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:03,744 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:03,744 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:03,744 - RootTools.core.Sample - DEBUG - Created new sample DoubleEG_Run2016 with 70 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:03,744 - RootTools.core.Sample - DEBUG - Loaded sample DoubleEG_Run2016 from 70 files.
+2019-05-25 18:58:05,174 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:05,174 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:07,425 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:07,426 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:07,426 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2016 with 70 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:07,426 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2016 from 70 files.
+2019-05-25 18:58:08,851 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:08,851 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:11,108 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:11,109 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:11,109 - RootTools.core.Sample - DEBUG - Created new sample SingleElectron_Run2016 with 70 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:11,109 - RootTools.core.Sample - DEBUG - Loaded sample SingleElectron_Run2016 from 70 files.
+2019-05-25 18:58:12,519 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:12,519 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:14,771 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:14,772 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:14,772 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2016 with 70 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:14,772 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2016 from 70 files.
+2019-05-25 18:58:16,193 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:16,193 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:18,433 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:18,433 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:18,433 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2016 with 70 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:18,434 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2016 from 70 files.
+2019-05-25 18:58:18,434 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:18,434 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:18,434 - RootTools.core.Sample - DEBUG - Created new sample Run2016 with 350 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 18:58:18,434 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:18,434 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:18,434 - RootTools.core.Sample - DEBUG - Created new sample Run2016BCD with 150 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 18:58:18,435 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:18,435 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:18,435 - RootTools.core.Sample - DEBUG - Created new sample Run2016EF with 100 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 18:58:18,435 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:18,435 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:18,435 - RootTools.core.Sample - DEBUG - Created new sample Run2016GH with 100 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 18:58:18,436 - StopsDilepton.samples.nanoTuples_Fall17_postProcessed - INFO - Loading MC samples from directory /dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/
+2019-05-25 18:58:19,867 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:19,868 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:20,247 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:20,247 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:20,247 - RootTools.core.Sample - DEBUG - Created new sample DY_LO with 60 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:20,248 - RootTools.core.Sample - DEBUG - Loaded sample DY_LO from 60 files.
+2019-05-25 18:58:21,669 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:21,669 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:21,951 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:21,952 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:21,952 - RootTools.core.Sample - DEBUG - Created new sample DY_lowMass_LO with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:21,952 - RootTools.core.Sample - DEBUG - Loaded sample DY_lowMass_LO from 10 files.
+2019-05-25 18:58:23,367 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:23,367 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:25,409 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:25,409 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:25,410 - RootTools.core.Sample - DEBUG - Created new sample DY_HT_LO with 222 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:25,410 - RootTools.core.Sample - DEBUG - Loaded sample DY_HT_LO from 222 files.
+2019-05-25 18:58:26,826 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:26,826 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:27,807 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:27,808 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:27,808 - RootTools.core.Sample - DEBUG - Created new sample Top_pow with 178 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:27,808 - RootTools.core.Sample - DEBUG - Loaded sample Top_pow from 178 files.
+2019-05-25 18:58:29,224 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:29,225 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:29,371 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:29,372 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:29,372 - RootTools.core.Sample - DEBUG - Created new sample Top_1l_pow with 2 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:29,372 - RootTools.core.Sample - DEBUG - Loaded sample Top_1l_pow from 2 files.
+2019-05-25 18:58:30,792 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:30,792 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:32,407 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:32,407 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:32,407 - RootTools.core.Sample - DEBUG - Created new sample TTX with 172 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:32,408 - RootTools.core.Sample - DEBUG - Loaded sample TTX from 172 files.
+2019-05-25 18:58:33,824 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:33,824 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:37,011 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:37,011 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:37,011 - RootTools.core.Sample - DEBUG - Created new sample TTXNoZ with 140 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:37,011 - RootTools.core.Sample - DEBUG - Loaded sample TTXNoZ from 140 files.
+2019-05-25 18:58:38,446 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:38,446 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:38,693 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:38,694 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:38,694 - RootTools.core.Sample - DEBUG - Created new sample TTH with 40 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:38,694 - RootTools.core.Sample - DEBUG - Loaded sample TTH from 40 files.
+2019-05-25 18:58:40,115 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:40,115 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:40,357 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:40,357 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:40,358 - RootTools.core.Sample - DEBUG - Created new sample TTW with 29 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:40,358 - RootTools.core.Sample - DEBUG - Loaded sample TTW from 29 files.
+2019-05-25 18:58:41,776 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:41,777 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:42,660 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:42,660 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:42,660 - RootTools.core.Sample - DEBUG - Created new sample TTZ with 32 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:42,660 - RootTools.core.Sample - DEBUG - Loaded sample TTZ from 32 files.
+2019-05-25 18:58:44,080 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:44,080 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:44,324 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:44,325 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:44,325 - RootTools.core.Sample - DEBUG - Created new sample TTZtoNuNu with 24 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:44,325 - RootTools.core.Sample - DEBUG - Loaded sample TTZtoNuNu from 24 files.
+2019-05-25 18:58:45,741 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:45,741 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:45,861 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:45,861 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:45,861 - RootTools.core.Sample - DEBUG - Created new sample TTZtoQQ with 8 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:45,862 - RootTools.core.Sample - DEBUG - Loaded sample TTZtoQQ from 8 files.
+2019-05-25 18:58:47,280 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:47,281 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:47,407 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:47,407 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:47,407 - RootTools.core.Sample - DEBUG - Created new sample TZQ with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:47,407 - RootTools.core.Sample - DEBUG - Loaded sample TZQ from 20 files.
+2019-05-25 18:58:48,825 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:48,826 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:48,979 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:48,980 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:48,980 - RootTools.core.Sample - DEBUG - Created new sample VVTo2L2Nu with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:48,980 - RootTools.core.Sample - DEBUG - Loaded sample VVTo2L2Nu from 20 files.
+2019-05-25 18:58:50,407 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:50,408 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:50,559 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:50,560 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:50,560 - RootTools.core.Sample - DEBUG - Created new sample WW with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:50,560 - RootTools.core.Sample - DEBUG - Loaded sample WW from 20 files.
+2019-05-25 18:58:51,978 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:51,979 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:52,587 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:52,588 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:52,588 - RootTools.core.Sample - DEBUG - Created new sample WZ with 80 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:52,588 - RootTools.core.Sample - DEBUG - Loaded sample WZ from 80 files.
+2019-05-25 18:58:54,014 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:54,015 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:54,171 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:54,171 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:54,171 - RootTools.core.Sample - DEBUG - Created new sample ZZ with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:54,171 - RootTools.core.Sample - DEBUG - Loaded sample ZZ from 20 files.
+2019-05-25 18:58:55,592 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:55,593 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:55,745 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:55,745 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:55,746 - RootTools.core.Sample - DEBUG - Created new sample ZZ4l with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:55,746 - RootTools.core.Sample - DEBUG - Loaded sample ZZ4l from 20 files.
+2019-05-25 18:58:57,162 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:57,163 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:58:57,719 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:58:57,720 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:58:57,720 - RootTools.core.Sample - DEBUG - Created new sample triBoson with 36 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:58:57,720 - RootTools.core.Sample - DEBUG - Loaded sample triBoson from 36 files.
+2019-05-25 18:58:59,143 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:58:59,143 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:03,318 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:03,319 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:03,319 - RootTools.core.Sample - DEBUG - Created new sample multiBoson with 176 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:03,319 - RootTools.core.Sample - DEBUG - Loaded sample multiBoson from 176 files.
+2019-05-25 18:59:03,320 - StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed - INFO - Loading data samples from directory /dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/
+2019-05-25 18:59:04,738 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:04,739 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:05,456 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:05,456 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:05,456 - RootTools.core.Sample - DEBUG - Created new sample DoubleEG_Run2017 with 50 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:05,457 - RootTools.core.Sample - DEBUG - Loaded sample DoubleEG_Run2017 from 50 files.
+2019-05-25 18:59:06,868 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:06,869 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:07,189 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:07,190 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:07,190 - RootTools.core.Sample - DEBUG - Created new sample DoubleEG_Run2017B with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:07,190 - RootTools.core.Sample - DEBUG - Loaded sample DoubleEG_Run2017B from 10 files.
+2019-05-25 18:59:08,607 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:08,607 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:09,563 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:09,563 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:09,563 - RootTools.core.Sample - DEBUG - Created new sample DoubleEG_Run2017CDE with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:09,564 - RootTools.core.Sample - DEBUG - Loaded sample DoubleEG_Run2017CDE from 30 files.
+2019-05-25 18:59:10,985 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:10,985 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:11,468 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:11,468 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:11,468 - RootTools.core.Sample - DEBUG - Created new sample DoubleEG_Run2017BCDE with 40 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:11,468 - RootTools.core.Sample - DEBUG - Loaded sample DoubleEG_Run2017BCDE from 40 files.
+2019-05-25 18:59:12,881 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:12,882 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:13,206 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:13,207 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:13,207 - RootTools.core.Sample - DEBUG - Created new sample DoubleEG_Run2017F with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:13,207 - RootTools.core.Sample - DEBUG - Loaded sample DoubleEG_Run2017F from 10 files.
+2019-05-25 18:59:14,633 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:14,633 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:15,348 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:15,349 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:15,349 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2017 with 50 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:15,349 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2017 from 50 files.
+2019-05-25 18:59:16,762 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:16,763 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:17,084 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:17,084 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:17,084 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2017B with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:17,084 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2017B from 10 files.
+2019-05-25 18:59:18,521 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:18,522 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:19,479 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:19,480 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:19,480 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2017CDE with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:19,480 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2017CDE from 30 files.
+2019-05-25 18:59:20,901 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:20,902 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:21,393 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:21,393 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:21,393 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2017BCDE with 40 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:21,393 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2017BCDE from 40 files.
+2019-05-25 18:59:22,811 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:22,811 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:23,130 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:23,131 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:23,131 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2017F with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:23,131 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2017F from 10 files.
+2019-05-25 18:59:24,547 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:24,547 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:25,263 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:25,263 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:25,263 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2017 with 50 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:25,263 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2017 from 50 files.
+2019-05-25 18:59:26,680 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:26,681 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:27,005 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:27,005 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:27,005 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2017B with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:27,006 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2017B from 10 files.
+2019-05-25 18:59:28,433 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:28,434 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:29,390 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:29,391 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:29,391 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2017CDE with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:29,391 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2017CDE from 30 files.
+2019-05-25 18:59:30,807 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:30,808 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:31,299 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:31,300 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:31,300 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2017BCDE with 40 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:31,300 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2017BCDE from 40 files.
+2019-05-25 18:59:32,722 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:32,722 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:33,042 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:33,043 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:33,043 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2017F with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:33,043 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2017F from 10 files.
+2019-05-25 18:59:34,455 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:34,456 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:35,165 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:35,166 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:35,166 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2017 with 50 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:35,166 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2017 from 50 files.
+2019-05-25 18:59:36,581 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:36,581 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:36,912 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:36,913 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:36,913 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2017B with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:36,913 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2017B from 10 files.
+2019-05-25 18:59:38,357 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:38,358 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:39,320 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:39,320 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:39,320 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2017CDE with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:39,321 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2017CDE from 30 files.
+2019-05-25 18:59:40,744 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:40,744 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:41,239 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:41,239 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:41,239 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2017BCDE with 40 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:41,239 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2017BCDE from 40 files.
+2019-05-25 18:59:42,665 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:42,666 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:42,990 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:42,991 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:42,991 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2017F with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:42,991 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2017F from 10 files.
+2019-05-25 18:59:44,416 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:44,416 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:45,124 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:45,125 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:45,125 - RootTools.core.Sample - DEBUG - Created new sample SingleElectron_Run2017 with 50 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:45,125 - RootTools.core.Sample - DEBUG - Loaded sample SingleElectron_Run2017 from 50 files.
+2019-05-25 18:59:46,563 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:46,564 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:46,883 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:46,883 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:46,883 - RootTools.core.Sample - DEBUG - Created new sample SingleElectron_Run2017B with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:46,884 - RootTools.core.Sample - DEBUG - Loaded sample SingleElectron_Run2017B from 10 files.
+2019-05-25 18:59:48,301 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:48,301 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:49,255 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:49,255 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:49,256 - RootTools.core.Sample - DEBUG - Created new sample SingleElectron_Run2017CDE with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:49,256 - RootTools.core.Sample - DEBUG - Loaded sample SingleElectron_Run2017CDE from 30 files.
+2019-05-25 18:59:50,684 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:50,685 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:51,168 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:51,168 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:51,168 - RootTools.core.Sample - DEBUG - Created new sample SingleElectron_Run2017BCDE with 40 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:51,168 - RootTools.core.Sample - DEBUG - Loaded sample SingleElectron_Run2017BCDE from 40 files.
+2019-05-25 18:59:52,586 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:52,587 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:52,900 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:52,900 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:52,900 - RootTools.core.Sample - DEBUG - Created new sample SingleElectron_Run2017F with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:52,901 - RootTools.core.Sample - DEBUG - Loaded sample SingleElectron_Run2017F from 10 files.
+2019-05-25 18:59:52,901 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:52,901 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:52,901 - RootTools.core.Sample - DEBUG - Created new sample Run2017 with 250 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 18:59:52,901 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:52,901 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:52,901 - RootTools.core.Sample - DEBUG - Created new sample Run2017B with 50 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 18:59:52,901 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:52,902 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:52,902 - RootTools.core.Sample - DEBUG - Created new sample Run2017CDE with 150 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 18:59:52,902 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:52,902 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:52,902 - RootTools.core.Sample - DEBUG - Created new sample Run2017BCDE with 200 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 18:59:52,902 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:52,902 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:52,902 - RootTools.core.Sample - DEBUG - Created new sample Run2017F with 50 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 18:59:52,903 - StopsDilepton.samples.nanoTuples_Autumn18_postProcessed - INFO - Loading MC samples from directory /dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2018_nano_v0p10/dilep/
+2019-05-25 18:59:54,325 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:54,325 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:56,576 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:56,576 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:56,576 - RootTools.core.Sample - DEBUG - Created new sample DY_HT_LO with 290 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:56,576 - RootTools.core.Sample - DEBUG - Loaded sample DY_HT_LO from 290 files.
+2019-05-25 18:59:57,988 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:57,988 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 18:59:58,339 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 18:59:58,339 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 18:59:58,339 - RootTools.core.Sample - DEBUG - Created new sample DY_LO with 80 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 18:59:58,340 - RootTools.core.Sample - DEBUG - Loaded sample DY_LO from 80 files.
+2019-05-25 18:59:59,752 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 18:59:59,752 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:00,787 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:00,788 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:00,788 - RootTools.core.Sample - DEBUG - Created new sample Top_pow with 180 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:00,788 - RootTools.core.Sample - DEBUG - Loaded sample Top_pow from 180 files.
+2019-05-25 19:00:02,228 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:02,228 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:03,935 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:03,935 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:03,935 - RootTools.core.Sample - DEBUG - Created new sample TTXNoZ with 125 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:03,935 - RootTools.core.Sample - DEBUG - Loaded sample TTXNoZ from 125 files.
+2019-05-25 19:00:05,360 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:05,361 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:09,257 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:09,258 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:09,258 - RootTools.core.Sample - DEBUG - Created new sample TTX with 155 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:09,258 - RootTools.core.Sample - DEBUG - Loaded sample TTX from 155 files.
+2019-05-25 19:00:10,692 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:10,692 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:10,943 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:10,944 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:10,944 - RootTools.core.Sample - DEBUG - Created new sample TTH with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:10,944 - RootTools.core.Sample - DEBUG - Loaded sample TTH from 30 files.
+2019-05-25 19:00:12,360 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:12,360 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:12,609 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:12,609 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:12,609 - RootTools.core.Sample - DEBUG - Created new sample TWZ with 16 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:12,610 - RootTools.core.Sample - DEBUG - Loaded sample TWZ from 16 files.
+2019-05-25 19:00:14,033 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:14,033 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:14,280 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:14,281 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:14,281 - RootTools.core.Sample - DEBUG - Created new sample TTW with 34 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:14,281 - RootTools.core.Sample - DEBUG - Loaded sample TTW from 34 files.
+2019-05-25 19:00:15,699 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:15,699 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:15,833 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:15,833 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:15,834 - RootTools.core.Sample - DEBUG - Created new sample TZQ with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:15,834 - RootTools.core.Sample - DEBUG - Loaded sample TZQ from 20 files.
+2019-05-25 19:00:17,251 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:17,251 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:17,488 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:17,488 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:17,488 - RootTools.core.Sample - DEBUG - Created new sample TTVV with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:17,489 - RootTools.core.Sample - DEBUG - Loaded sample TTVV from 10 files.
+2019-05-25 19:00:18,925 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:18,925 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:19,163 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:19,163 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:19,163 - RootTools.core.Sample - DEBUG - Created new sample THX with 10 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:19,164 - RootTools.core.Sample - DEBUG - Loaded sample THX from 10 files.
+2019-05-25 19:00:20,576 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:20,576 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:20,701 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:20,701 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:20,701 - RootTools.core.Sample - DEBUG - Created new sample TTTT with 5 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:20,702 - RootTools.core.Sample - DEBUG - Loaded sample TTTT from 5 files.
+2019-05-25 19:00:22,117 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:22,117 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:22,844 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:22,845 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:22,845 - RootTools.core.Sample - DEBUG - Created new sample TTZ with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:22,845 - RootTools.core.Sample - DEBUG - Loaded sample TTZ from 30 files.
+2019-05-25 19:00:24,268 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:24,268 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:24,424 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:24,425 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:24,425 - RootTools.core.Sample - DEBUG - Created new sample TTG with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:24,425 - RootTools.core.Sample - DEBUG - Loaded sample TTG from 20 files.
+2019-05-25 19:00:25,855 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:25,855 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:26,008 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:26,008 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:26,008 - RootTools.core.Sample - DEBUG - Created new sample VVTo2L2Nu with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:26,008 - RootTools.core.Sample - DEBUG - Loaded sample VVTo2L2Nu from 20 files.
+2019-05-25 19:00:27,422 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:27,423 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:27,577 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:27,578 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:27,578 - RootTools.core.Sample - DEBUG - Created new sample ZZ4l with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:27,578 - RootTools.core.Sample - DEBUG - Loaded sample ZZ4l from 20 files.
+2019-05-25 19:00:28,994 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:28,994 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:29,149 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:29,150 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:29,150 - RootTools.core.Sample - DEBUG - Created new sample WZ with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:29,150 - RootTools.core.Sample - DEBUG - Loaded sample WZ from 20 files.
+2019-05-25 19:00:30,573 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:30,573 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:30,725 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:30,726 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:30,726 - RootTools.core.Sample - DEBUG - Created new sample ZZ with 20 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:30,726 - RootTools.core.Sample - DEBUG - Loaded sample ZZ from 20 files.
+2019-05-25 19:00:32,173 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:32,173 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:32,570 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:32,570 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:32,570 - RootTools.core.Sample - DEBUG - Created new sample triBoson with 15 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:32,570 - RootTools.core.Sample - DEBUG - Loaded sample triBoson from 15 files.
+2019-05-25 19:00:33,993 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:33,993 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:35,911 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:35,912 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:35,912 - RootTools.core.Sample - DEBUG - Created new sample multiBoson with 75 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:35,912 - RootTools.core.Sample - DEBUG - Loaded sample multiBoson from 75 files.
+2019-05-25 19:00:37,322 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:37,322 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:44,889 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:44,890 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:44,890 - RootTools.core.Sample - DEBUG - Created new sample allBkgs with 490 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:44,890 - RootTools.core.Sample - DEBUG - Loaded sample allBkgs from 490 files.
+2019-05-25 19:00:44,891 - StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed - INFO - Loading data samples from directory /dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2018_nano_v0p10/dilep/
+2019-05-25 19:00:46,310 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:46,311 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:46,483 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:46,484 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:46,484 - RootTools.core.Sample - DEBUG - Created new sample EGamma_Run2018A with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:46,484 - RootTools.core.Sample - DEBUG - Loaded sample EGamma_Run2018A from 30 files.
+2019-05-25 19:00:47,897 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:47,897 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:48,070 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:48,071 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:48,071 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2018A with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:48,071 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2018A from 30 files.
+2019-05-25 19:00:49,483 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:49,483 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:49,660 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:49,660 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:49,660 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2018A with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:49,660 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2018A from 30 files.
+2019-05-25 19:00:51,079 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:51,079 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:51,251 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:51,252 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:51,252 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2018A with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:51,252 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2018A from 30 files.
+2019-05-25 19:00:52,665 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:52,666 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:52,841 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:52,841 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:52,841 - RootTools.core.Sample - DEBUG - Created new sample EGamma_Run2018B with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:52,842 - RootTools.core.Sample - DEBUG - Loaded sample EGamma_Run2018B from 30 files.
+2019-05-25 19:00:54,278 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:54,279 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:54,451 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:54,451 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:54,451 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2018B with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:54,452 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2018B from 30 files.
+2019-05-25 19:00:55,869 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:55,870 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:56,044 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:56,044 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:56,044 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2018B with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:56,045 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2018B from 30 files.
+2019-05-25 19:00:57,463 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:57,463 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:57,636 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:57,637 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:57,637 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2018B with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:57,637 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2018B from 30 files.
+2019-05-25 19:00:59,058 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:00:59,058 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:00:59,231 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:00:59,231 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:00:59,231 - RootTools.core.Sample - DEBUG - Created new sample EGamma_Run2018C with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:00:59,231 - RootTools.core.Sample - DEBUG - Loaded sample EGamma_Run2018C from 30 files.
+2019-05-25 19:01:00,641 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:00,641 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:00,813 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:00,813 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:00,814 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2018C with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:00,814 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2018C from 30 files.
+2019-05-25 19:01:02,240 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:02,240 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:02,418 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:02,419 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:02,419 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2018C with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:02,419 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2018C from 30 files.
+2019-05-25 19:01:03,850 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:03,850 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:04,022 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:04,023 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:04,023 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2018C with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:04,023 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2018C from 30 files.
+2019-05-25 19:01:05,439 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:05,440 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:05,615 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:05,615 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:05,615 - RootTools.core.Sample - DEBUG - Created new sample EGamma_Run2018D with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:05,616 - RootTools.core.Sample - DEBUG - Loaded sample EGamma_Run2018D from 30 files.
+2019-05-25 19:01:07,039 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:07,039 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:07,214 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:07,215 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:07,215 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2018D with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:07,215 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2018D from 30 files.
+2019-05-25 19:01:08,634 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:08,634 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:08,809 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:08,809 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:08,809 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2018D with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:08,810 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2018D from 30 files.
+2019-05-25 19:01:10,221 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:10,221 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:10,390 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:10,391 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:10,391 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2018D with 30 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:10,391 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2018D from 30 files.
+2019-05-25 19:01:11,815 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:11,816 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:14,748 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:14,748 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:14,749 - RootTools.core.Sample - DEBUG - Created new sample EGamma_Run2018 with 120 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:14,749 - RootTools.core.Sample - DEBUG - Loaded sample EGamma_Run2018 from 120 files.
+2019-05-25 19:01:16,166 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:16,166 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:19,003 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:19,004 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:19,004 - RootTools.core.Sample - DEBUG - Created new sample DoubleMuon_Run2018 with 120 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:19,004 - RootTools.core.Sample - DEBUG - Loaded sample DoubleMuon_Run2018 from 120 files.
+2019-05-25 19:01:20,425 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:20,426 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:23,243 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:23,243 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:23,243 - RootTools.core.Sample - DEBUG - Created new sample MuonEG_Run2018 with 120 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:23,244 - RootTools.core.Sample - DEBUG - Loaded sample MuonEG_Run2018 from 120 files.
+2019-05-25 19:01:24,662 - RootTools.core.helpers - INFO - Found proxy /afs/hephy.at/user/p/phussain/private/.proxy with lifetime 166 hours
+2019-05-25 19:01:24,662 - RootTools.core.Sample - INFO - Using proxy /afs/hephy.at/user/p/phussain/private/.proxy
+2019-05-25 19:01:27,607 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:27,607 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:27,607 - RootTools.core.Sample - DEBUG - Created new sample SingleMuon_Run2018 with 120 files, treeName Events,  selectionStrings [] and weightStrings [].
+2019-05-25 19:01:27,607 - RootTools.core.Sample - DEBUG - Loaded sample SingleMuon_Run2018 from 120 files.
+2019-05-25 19:01:27,607 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:27,608 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:27,608 - RootTools.core.Sample - DEBUG - Created new sample Run2018A with 120 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 19:01:27,608 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:27,608 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:27,608 - RootTools.core.Sample - DEBUG - Created new sample Run2018B with 120 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 19:01:27,608 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:27,608 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:27,608 - RootTools.core.Sample - DEBUG - Created new sample Run2018C with 120 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 19:01:27,609 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:27,609 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:27,609 - RootTools.core.Sample - DEBUG - Created new sample Run2018ABC with 360 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 19:01:27,609 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:27,609 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:27,609 - RootTools.core.Sample - DEBUG - Created new sample Run2018D with 120 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 19:01:27,609 - RootTools.core.Sample - DEBUG - Sample now has selectionString: (1)
+2019-05-25 19:01:27,609 - RootTools.core.Sample - DEBUG - Sample now has weightString: (1)
+2019-05-25 19:01:27,610 - RootTools.core.Sample - DEBUG - Created new sample Run2018 with 480 files, treeName Events,  selectionStrings ['(1)'] and weightStrings [].
+2019-05-25 19:01:27,682 - StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed - INFO - Default cache dir is: /afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v1/2017/isOS-nJets2p-nbtag1p-METsig12-dPhiJet0-dPhiJet-mll20-looseLeptonVeto-relIso0.12-lepSel/cacheFiles
+[?1034h2019-05-25 19:01:27,812 - StopsDilepton.analysis.SystematicEstimator - DEBUG - Calculating other result for (Region('dl_mt2blbl', (0, -1))+Region('dl_mt2ll', (0, 100))+Region('MET_significance', (12, -1)), 'EE', '{"reweight": ["reweightBTag_SF", "reweightDilepTrigger", "reweightLeptonSF", "reweightLeptonTrackingSF", "reweightPU"], "selectionModifier": null, "weight": "weight"}', '{"dPhi": true, "dPhiInv": false, "leptonCharges": "isOS", "metMin": 0, "metSigMin": 12, "mllMin": 20, "nBTags": [1, -1], "nJets": [2, -1], "triLep": false, "zWindow": "offZ"}', '28017.000000000004')
+2019-05-25 19:01:27,812 - StopsDilepton.analysis.MCBasedEstimate - DEBUG - MC prediction for other channel EE
+2019-05-25 19:01:27,813 - StopsDilepton.analysis.MCBasedEstimate - DEBUG - Using cut MET_significance>=12&&dl_mt2blbl>=0&&dl_mt2ll>=0&&dl_mt2ll<100&&isOS&&nJetGood>=2&&nBTag>=1&&MET_significance>=12&&cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)&&dl_mass>=20&&abs(dl_mass - 91.1876)>15&&isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>30&&l2_pt>20&&Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilter and weight weight*reweightPU*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF*reweightDilepTrigger
+2019-05-25 19:01:27,813 - RootTools.core.Sample - DEBUG - For Sample TTXNoZ: Return selectionString MET_significance>=12&&dl_mt2blbl>=0&&dl_mt2ll>=0&&dl_mt2ll<100&&isOS&&nJetGood>=2&&nBTag>=1&&MET_significance>=12&&cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)&&dl_mass>=20&&abs(dl_mass - 91.1876)>15&&isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>30&&l2_pt>20&&Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilter because sample has no selectionString
+2019-05-25 19:01:27,813 - RootTools.core.Sample - DEBUG - For Sample TTXNoZ: Return weightString weight*reweightPU*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF*reweightDilepTrigger because sample has no weightString
+2019-05-25 19:01:27,836 - RootTools.core.Sample - DEBUG - First request of attribute 'chain' for sample TTXNoZ. Calling __loadChain
+2019-05-25 19:01:27,859 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_0.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,251 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_1.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,257 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_10.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,312 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_11.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,366 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_12.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,421 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_13.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,479 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_14.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,536 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_15.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,541 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_16.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,545 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_17.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,599 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_18.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,604 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_19.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,609 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_2.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,614 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_3.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,619 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_4.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,625 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_5.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,629 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_6.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,634 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_7.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,768 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_8.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,773 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHnobb_pow/TTHnobb_pow_9.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,778 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_0.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,783 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_1.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,788 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_10.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,793 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_11.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,846 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_12.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,851 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_13.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,856 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_14.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,861 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_15.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,866 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_16.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,871 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_17.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,876 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_18.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,881 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_19.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,885 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_2.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,890 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_3.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,900 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_4.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,929 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_5.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,946 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_6.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,951 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_7.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,956 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_8.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,961 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTHbb/TTHbb_9.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,976 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_0.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,981 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_1.root to sample 'TTXNoZ'
+2019-05-25 19:01:28,995 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_10.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,024 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_11.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,029 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_12.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,042 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_13.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,047 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_14.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,052 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_15.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,069 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_16.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,074 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_17.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,078 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_18.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,084 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_19.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,088 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_2.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,093 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_3.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,125 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_4.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,141 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_5.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,157 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_6.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,197 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_7.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,225 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_8.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,279 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/tZq_ll/tZq_ll_9.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,305 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_0.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,328 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_1.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,333 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_10.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,342 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_11.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,354 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_12.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,359 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_13.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,386 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_14.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,391 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_15.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,408 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_16.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,412 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_17.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,417 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_18.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,422 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_19.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,438 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_2.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,443 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_3.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,459 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_4.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,464 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_5.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,483 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_6.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,525 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_7.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,539 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_8.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,558 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THQ/THQ_9.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,564 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_0.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,568 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_1.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,573 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_10.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,596 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_11.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,609 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_12.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,614 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_13.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,633 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_14.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,637 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_15.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,663 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_16.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,686 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_17.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,691 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_18.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,714 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_2.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,735 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_3.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,750 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_4.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,767 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_5.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,782 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_6.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,787 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_7.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,792 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_8.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,797 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/THW/THW_9.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,830 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_0.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,834 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_1.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,839 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_10.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,850 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_11.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,866 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_2.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,890 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_3.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,907 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_4.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,937 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_5.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,954 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_6.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,958 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_7.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,963 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_8.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,979 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTTT/TTTT_9.root to sample 'TTXNoZ'
+2019-05-25 19:01:29,997 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_0.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,001 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_1.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,010 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_10.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,028 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_11.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,043 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_12.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,063 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_13.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,068 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_14.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,097 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_15.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,102 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_16.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,118 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_17.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,122 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_18.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,127 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_19.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,147 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_2.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,151 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_3.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,156 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_4.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,171 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_5.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,188 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_6.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,193 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_7.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,205 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_8.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,222 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToLNu/TTWToLNu_9.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,237 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToQQ/TTWToQQ_0.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,253 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToQQ/TTWToQQ_1.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,258 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToQQ/TTWToQQ_2.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,262 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToQQ/TTWToQQ_3.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,267 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToQQ/TTWToQQ_4.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,279 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToQQ/TTWToQQ_5.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,284 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToQQ/TTWToQQ_6.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,288 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToQQ/TTWToQQ_7.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,319 - RootTools.core.Sample - DEBUG - Now adding file root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/stops_2017_nano_v0p9/dilep/TTWToQQ/TTWToQQ_8.root to sample 'TTXNoZ'
+2019-05-25 19:01:30,337 - RootTools.core.Sample - DEBUG - Loaded 140 files for sample 'TTXNoZ'.
+2019-05-25 19:01:30,337 - RootTools.core.Sample - DEBUG - getYieldFromDraw for sample TTXNoZ with chain <ROOT.TChain object ("Events") at 0x4ade3f0>
+2019-05-25 19:07:00,369 - StopsDilepton.analysis.SystematicEstimator - DEBUG - Adding cached other result for (Region('dl_mt2blbl', (0, -1))+Region('dl_mt2ll', (0, 100))+Region('MET_significance', (12, -1)), 'EE', '{"reweight": ["reweightBTag_SF", "reweightDilepTrigger", "reweightLeptonSF", "reweightLeptonTrackingSF", "reweightPU"], "selectionModifier": null, "weight": "weight"}', '{"dPhi": true, "dPhiInv": false, "leptonCharges": "isOS", "metMin": 0, "metSigMin": 12, "mllMin": 20, "nBTags": [1, -1], "nJets": [2, -1], "triLep": false, "zWindow": "offZ"}', '28017.000000000004') : 21.5292797404+-0.480385872149
+2019-05-25 19:07:00,369 - StopsDilepton.analysis.SystematicEstimator - DEBUG - Calculating other result for (Region('dl_mt2blbl', (0, -1))+Region('dl_mt2ll', (0, 100))+Region('MET_significance', (12, -1)), 'EE', '{"reweight": ["reweightBTag_SF", "reweightDilepTrigger", "reweightLeptonSF", "reweightLeptonTrackingSF", "reweightPUUp"], "selectionModifier": null, "weight": "weight"}', '{"dPhi": true, "dPhiInv": false, "leptonCharges": "isOS", "metMin": 0, "metSigMin": 12, "mllMin": 20, "nBTags": [1, -1], "nJets": [2, -1], "triLep": false, "zWindow": "offZ"}', '28017.000000000004')
+2019-05-25 19:07:00,369 - StopsDilepton.analysis.MCBasedEstimate - DEBUG - MC prediction for other channel EE
+2019-05-25 19:07:00,370 - StopsDilepton.analysis.MCBasedEstimate - DEBUG - Using cut MET_significance>=12&&dl_mt2blbl>=0&&dl_mt2ll>=0&&dl_mt2ll<100&&isOS&&nJetGood>=2&&nBTag>=1&&MET_significance>=12&&cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)&&dl_mass>=20&&abs(dl_mass - 91.1876)>15&&isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>30&&l2_pt>20&&Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilter and weight weight*reweightLeptonSF*reweightBTag_SF*reweightPUUp*reweightLeptonTrackingSF*reweightDilepTrigger
+2019-05-25 19:07:00,370 - RootTools.core.Sample - DEBUG - For Sample TTXNoZ: Return selectionString MET_significance>=12&&dl_mt2blbl>=0&&dl_mt2ll>=0&&dl_mt2ll<100&&isOS&&nJetGood>=2&&nBTag>=1&&MET_significance>=12&&cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)&&dl_mass>=20&&abs(dl_mass - 91.1876)>15&&isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>30&&l2_pt>20&&Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilter because sample has no selectionString
+2019-05-25 19:07:00,370 - RootTools.core.Sample - DEBUG - For Sample TTXNoZ: Return weightString weight*reweightLeptonSF*reweightBTag_SF*reweightPUUp*reweightLeptonTrackingSF*reweightDilepTrigger because sample has no weightString
+2019-05-25 19:07:00,370 - RootTools.core.Sample - DEBUG - getYieldFromDraw for sample TTXNoZ with chain <ROOT.TChain object ("Events") at 0x4ade3f0>
+2019-05-25 19:12:02,412 - StopsDilepton.analysis.SystematicEstimator - DEBUG - Adding cached other result for (Region('dl_mt2blbl', (0, -1))+Region('dl_mt2ll', (0, 100))+Region('MET_significance', (12, -1)), 'EE', '{"reweight": ["reweightBTag_SF", "reweightDilepTrigger", "reweightLeptonSF", "reweightLeptonTrackingSF", "reweightPUUp"], "selectionModifier": null, "weight": "weight"}', '{"dPhi": true, "dPhiInv": false, "leptonCharges": "isOS", "metMin": 0, "metSigMin": 12, "mllMin": 20, "nBTags": [1, -1], "nJets": [2, -1], "triLep": false, "zWindow": "offZ"}', '28017.000000000004') : 20.7262561773+-0.459428133192
+2019-05-25 19:12:02,413 - StopsDilepton.analysis.SystematicEstimator - DEBUG - Calculating other result for (Region('dl_mt2blbl', (0, -1))+Region('dl_mt2ll', (0, 100))+Region('MET_significance', (12, -1)), 'EE', '{"reweight": ["reweightBTag_SF", "reweightDilepTrigger", "reweightLeptonSF", "reweightLeptonTrackingSF", "reweightPUDown"], "selectionModifier": null, "weight": "weight"}', '{"dPhi": true, "dPhiInv": false, "leptonCharges": "isOS", "metMin": 0, "metSigMin": 12, "mllMin": 20, "nBTags": [1, -1], "nJets": [2, -1], "triLep": false, "zWindow": "offZ"}', '28017.000000000004')
+2019-05-25 19:12:02,413 - StopsDilepton.analysis.MCBasedEstimate - DEBUG - MC prediction for other channel EE
+2019-05-25 19:12:02,413 - StopsDilepton.analysis.MCBasedEstimate - DEBUG - Using cut MET_significance>=12&&dl_mt2blbl>=0&&dl_mt2ll>=0&&dl_mt2ll<100&&isOS&&nJetGood>=2&&nBTag>=1&&MET_significance>=12&&cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)&&dl_mass>=20&&abs(dl_mass - 91.1876)>15&&isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>30&&l2_pt>20&&Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilter and weight weight*reweightLeptonSF*reweightPUDown*reweightLeptonTrackingSF*reweightBTag_SF*reweightDilepTrigger
+2019-05-25 19:12:02,413 - RootTools.core.Sample - DEBUG - For Sample TTXNoZ: Return selectionString MET_significance>=12&&dl_mt2blbl>=0&&dl_mt2ll>=0&&dl_mt2ll<100&&isOS&&nJetGood>=2&&nBTag>=1&&MET_significance>=12&&cos(met_phi-JetGood_phi[0])<0.8&&cos(met_phi-JetGood_phi[1])<cos(0.25)&&dl_mass>=20&&abs(dl_mass - 91.1876)>15&&isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>30&&l2_pt>20&&Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilter because sample has no selectionString
+2019-05-25 19:12:02,413 - RootTools.core.Sample - DEBUG - For Sample TTXNoZ: Return weightString weight*reweightLeptonSF*reweightPUDown*reweightLeptonTrackingSF*reweightBTag_SF*reweightDilepTrigger because sample has no weightString
+2019-05-25 19:12:02,414 - RootTools.core.Sample - DEBUG - getYieldFromDraw for sample TTXNoZ with chain <ROOT.TChain object ("Events") at 0x4ade3f0>
+2019-05-25 19:17:22,708 - StopsDilepton.analysis.SystematicEstimator - DEBUG - Adding cached other result for (Region('dl_mt2blbl', (0, -1))+Region('dl_mt2ll', (0, 100))+Region('MET_significance', (12, -1)), 'EE', '{"reweight": ["reweightBTag_SF", "reweightDilepTrigger", "reweightLeptonSF", "reweightLeptonTrackingSF", "reweightPUDown"], "selectionModifier": null, "weight": "weight"}', '{"dPhi": true, "dPhiInv": false, "leptonCharges": "isOS", "metMin": 0, "metSigMin": 12, "mllMin": 20, "nBTags": [1, -1], "nJets": [2, -1], "triLep": false, "zWindow": "offZ"}', '28017.000000000004') : 22.3063296171+-0.505403703535
+2019-05-25 19:17:22,894 - StopsDilepton.analysis.SystematicEstimator - DEBUG - Calculating other result for (Region('dl_mt2blbl', (0, -1))+Region('dl_mt2ll', (0, 100))+Region('MET_significance', (12, -1)), 'EE', '{"reweight": ["reweightBTag_SF", "reweightDilepTrigger", "reweightLeptonSF", "reweightLeptonTrackingSF", "reweightPU"], "selectionModifier": "jesTotalUp", "weight": "weight"}', '{"dPhi": true, "dPhiInv": false, "leptonCharges": "isOS", "metMin": 0, "metSigMin": 12, "mllMin": 20, "nBTags": [1, -1], "nJets": [2, -1], "triLep": false, "zWindow": "offZ"}', '28017.000000000004')
+2019-05-25 19:17:22,895 - StopsDilepton.analysis.MCBasedEstimate - DEBUG - MC prediction for other channel EE
+2019-05-25 19:17:22,895 - StopsDilepton.analysis.MCBasedEstimate - DEBUG - Using cut MET_significance_jesTotalUp>=12&&dl_mt2blbl_jesTotalUp>=0&&dl_mt2ll_jesTotalUp>=0&&dl_mt2ll_jesTotalUp<100&&isOS&&nJetGood_jesTotalUp>=2&&nBTag_jesTotalUp>=1&&MET_significance_jesTotalUp>=12&&cos(met_phi_jesTotalUp-JetGood_phi[0])<0.8&&cos(met_phi_jesTotalUp-JetGood_phi[1])<cos(0.25)&&dl_mass>=20&&abs(dl_mass - 91.1876)>15&&isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>30&&l2_pt>20&&Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilter and weight weight*reweightPU*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF*reweightDilepTrigger
+2019-05-25 19:17:22,895 - RootTools.core.Sample - DEBUG - For Sample TTXNoZ: Return selectionString MET_significance_jesTotalUp>=12&&dl_mt2blbl_jesTotalUp>=0&&dl_mt2ll_jesTotalUp>=0&&dl_mt2ll_jesTotalUp<100&&isOS&&nJetGood_jesTotalUp>=2&&nBTag_jesTotalUp>=1&&MET_significance_jesTotalUp>=12&&cos(met_phi_jesTotalUp-JetGood_phi[0])<0.8&&cos(met_phi_jesTotalUp-JetGood_phi[1])<cos(0.25)&&dl_mass>=20&&abs(dl_mass - 91.1876)>15&&isEE==1&&nGoodMuons==0&&nGoodElectrons==2&&(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2&&l1_relIso03<0.12&&l2_relIso03<0.12&&l1_pt>30&&l2_pt>20&&Flag_goodVertices&&Flag_globalSuperTightHalo2016Filter&&Flag_HBHENoiseFilter&&Flag_HBHENoiseIsoFilter&&Flag_EcalDeadCellTriggerPrimitiveFilter&&Flag_BadPFMuonFilter&&Flag_BadChargedCandidateFilter&&Flag_ecalBadCalibFilter because sample has no selectionString
+2019-05-25 19:17:22,895 - RootTools.core.Sample - DEBUG - For Sample TTXNoZ: Return weightString weight*reweightPU*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF*reweightDilepTrigger because sample has no weightString
+2019-05-25 19:17:22,895 - RootTools.core.Sample - DEBUG - getYieldFromDraw for sample TTXNoZ with chain <ROOT.TChain object ("Events") at 0x4ade3f0>

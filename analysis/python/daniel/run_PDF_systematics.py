@@ -20,7 +20,7 @@ import pickle
 from StopsDilepton.analysis.SetupHelpers import channels, allChannels
 from StopsDilepton.analysis.estimators   import setup
 from StopsDilepton.analysis.regions      import regionsO, noRegions, regionsS, regionsAgg
-from StopsDilepton.analysis.u_float      import u_float 
+from StopsDilepton.tools.u_float      import u_float 
 from StopsDilepton.analysis.Region       import Region 
 
 #RootTools

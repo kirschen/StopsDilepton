@@ -1,0 +1,22 @@
+python run_estimate.py --selectEstimator other --logLevel DEBUG --year 2017 --control DYVV --selectRegion 5 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator other --logLevel DEBUG --year 2017 --control DYVV --selectRegion 6 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator other --logLevel DEBUG --year 2017 --control DYVV --selectRegion 7 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator other --logLevel DEBUG --year 2017 --control DYVV --selectRegion 8 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator other --logLevel DEBUG --year 2017 --control DYVV --selectRegion 9 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator other --logLevel DEBUG --year 2017 --control DYVV --selectRegion 10 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator other --logLevel DEBUG --year 2017 --control DYVV --selectRegion 11 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator other --logLevel DEBUG --year 2017 --control DYVV --selectRegion 12 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator other --logLevel DEBUG --year 2017 --control DYVV --selectRegion 13 ---nThreads 1 --dpm
+
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 2 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 3 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 4 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 5 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 6 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 7 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 8 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 9 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 10 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 11 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 12 --nThreads 1 --dpm
+python run_estimate.py --selectEstimator DY --logLevel DEBUG --year 2017 --control DYVV --selectRegion 13 --nThreads 1 --dpm
