@@ -35,7 +35,7 @@ observation = DataObservation(name='Data', sample=setup.sample['Data'])
 for e in estimators + [summedEstimate, observation] + signalEstimators:
     e.initCache(setup.defaultCacheDir())
 
-from StopsDilepton.analysis.u_float import u_float
+from StopsDilepton.tools.u_float import u_float
 from math import sqrt
 
 
