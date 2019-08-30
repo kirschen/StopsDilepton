@@ -5,7 +5,7 @@ Material from https://twiki.cern.ch/twiki/bin/view/CMS/SUSLeptonSF
 
 import ROOT
 from StopsDilepton.tools.helpers import getObjFromFile
-from StopsDilepton.tools.u_float import u_float
+from StopsDilepton.analysis.u_float import u_float
 import os
 from math import sqrt
 

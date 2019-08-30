@@ -11,7 +11,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',        default='INFO',         nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
 argParser.add_argument("--signal",         action='store',        default='T2tt',         nargs='?', choices=["T2tt"],                                                                         help="which signal scan?")
 argParser.add_argument("--overwrite",      action = "store_true", default = False,                                                                                                             help="Overwrite existing output files")
-argParser.add_argument("--controlRegions", action='store',        default='signalOnly',   nargs='?', choices=["controlAll","signalOnly","controlDYVV","controlTTZ","controlTT","fitAll"],                help="which signal scan?")
+argParser.add_argument("--controlRegions", action='store',        default='controlAll',   nargs='?', choices=["controlAll","signalOnly","controlDYVV","controlTTZ","controlTT","fitAll"],                help="which signal scan?")
 
 argParser.add_argument("--model",          action='store',        default='dim6top_LO',   nargs='?', choices=["dim6top_LO", "ewkDM"],                                                          help="which signal model?")
 argParser.add_argument("--only",           action='store',        default=None,           nargs='?',                                                                                           help="pick only one signal point?")
@@ -44,7 +44,6 @@ from StopsDilepton.analysis.Cache               import Cache
 setup = Setup(2016)
 
 years = [2016,2017,2018]
-#analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
 
 overWrite = args.overwrite
 def wrapper(s):

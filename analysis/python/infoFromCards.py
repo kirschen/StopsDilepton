@@ -1,4 +1,4 @@
-from StopsDilepton.tools.u_float import u_float
+from StopsDilepton.analysis.u_float import u_float
 import math
 
 def getPull(nuisanceFile, name):

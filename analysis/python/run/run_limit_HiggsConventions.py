@@ -99,7 +99,7 @@ elif args.controlDYVV: setups = [setupDYVV]
 elif args.controlTTZ:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 else:                  setups = [setup]
 
-from StopsDilepton.tools.u_float                                              import u_float
+from StopsDilepton.analysis.u_float                                              import u_float
 from math                                                                        import sqrt
 
 #signals_T8bbllnunu_XCha0p5_XSlep0p5 = [s for s in signals_T8bbllnunu_XCha0p5_XSlep0p5 if not s.mStop==851]

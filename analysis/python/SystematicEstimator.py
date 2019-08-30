@@ -1,4 +1,4 @@
-jmeVariations = [ "jerUp", "jerDown", "jesTotalUp", "jesTotalDown"]
+jmeVariations = ["JER", "JERUp", "JERDown", "jesTotalUp", "jesTotalDown"]
 metVariations = ['unclustEnUp', 'unclustEnDown']
 
 # Standard imports
@@ -9,7 +9,7 @@ import json
 
 # StopsDilepton
 from StopsDilepton.analysis.Cache import Cache
-from StopsDilepton.tools.u_float import u_float
+from StopsDilepton.analysis.u_float import u_float
 from StopsDilepton.analysis.SetupHelpers import channels
 
 # Logging
@@ -95,8 +95,8 @@ class SystematicEstimator:
     def JERSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jerUp'}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jerDown'}))
-        return abs(0.5*(up+down)/ref-1.) if ref > 0 else max(up, down)
+        down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'JERDown'}))
+        return abs(0.5*(up+down)/ref-1) if ref > 0 else max(up, down)
 
     def JECSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
@@ -206,10 +206,10 @@ class SystematicEstimator:
             (region, channel, setup.sysClone({'reweight':['reweightPUUp']})),
             (region, channel, setup.sysClone({'reweight':['reweightPUDown']})),
 
-            (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
+            #(region, channel, setup.sysClone({'remove':['reweightTopPt']})),
 
-            (region, channel, setup.sysClone({'selectionModifier':'jerUp'})),
-            (region, channel, setup.sysClone({'selectionModifier':'jerDown'})),
+            #(region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
+            #(region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
 
             (region, channel, setup.sysClone({'selectionModifier':'jesTotalUp'})),
             (region, channel, setup.sysClone({'selectionModifier':'jesTotalDown'})),
@@ -235,8 +235,8 @@ class SystematicEstimator:
             l = [
                 (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
 
-                (region, channel, setup.sysClone({'selectionModifier':'jerUp'})),
-                (region, channel, setup.sysClone({'selectionModifier':'jerDown'})),
+                (region, channel, setup.sysClone({'selectionModifier':'JERUp'})),
+                (region, channel, setup.sysClone({'selectionModifier':'JERDown'})),
 
                 (region, channel, setup.sysClone({'selectionModifier':'jesTotalUp'})),
                 (region, channel, setup.sysClone({'selectionModifier':'jesTotalDown'})),
