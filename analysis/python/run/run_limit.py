@@ -669,22 +669,25 @@ if args.signal == "T2tt":
             postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
     elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
+        if args.fullSim:
+             from StopsDilepton.samples.nanoTuples_Fall17_FullSimSignal_postProcessed import signals_T2tt as jobs
+        else:
+            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+            postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
     elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
+        if args.fullSim:
+             from StopsDilepton.samples.nanoTuples_Autumn18_FullSimSignal_postProcessed import signals_T2tt as jobs
+        else:
+            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+            postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
 
 if args.signal == "T2bW":
     if year == 2016:
-        if args.fullSim:
-             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T2bW as jobs
-        else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
-            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2bW as jobs
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2bW as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
@@ -696,12 +699,9 @@ if args.signal == "T2bW":
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
     if year == 2016:
-        if args.fullSim:
-             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
-        else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
-            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
@@ -714,12 +714,9 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
     if year == 2016:
-        if args.fullSim:
-             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
-        else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
-            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
@@ -732,12 +729,9 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
     if year == 2016:
-        if args.fullSim:
-             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
-        else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
-            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
@@ -749,12 +743,9 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p09":
     if year == 2016:
-        if args.fullSim:
-             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
-        else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
-            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
