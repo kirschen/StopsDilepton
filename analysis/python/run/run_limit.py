@@ -427,7 +427,10 @@ def wrapper(s):
                 e = eSignal
                 
                 if fastSim:
-                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
+                    if args.signal == 'T2tt': 
+                        signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
+                    else:
+                        signalSetup = setup.sysClone(sys={'reweight':[ 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
                     signal = e.cachedEstimate(r, channel, signalSetup)
                     # need MET Significance with gen MET for this. not yet implemented.
                     #signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'genMet'}))) # genMET modifier -> what to do for legacy?
@@ -459,7 +462,7 @@ def wrapper(s):
                         c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
                   c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
                   c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val ) #0.02 )
+                  c.specifyUncertainty('JER',      binname, 'signal', 1 + 0.02) #e.JERSystematic(        r, channel, signalSetup).val ) #0.02 )
                   c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
@@ -691,11 +694,83 @@ if args.signal == "T2bW":
         postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2bW as jobs
 
+if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
+    if year == 2016:
+        if args.fullSim:
+             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
+        else:
+            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
+    elif year == 2017:
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
+    elif year == 2018:
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
+
+
+if args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
+    if year == 2016:
+        if args.fullSim:
+             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
+        else:
+            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
+    elif year == 2017:
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
+    elif year == 2018:
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
+
+
+if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
+    if year == 2016:
+        if args.fullSim:
+             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
+        else:
+            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
+    elif year == 2017:
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
+    elif year == 2018:
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
+
+if args.signal == "T8bbllnunu_XCha0p5_XSlep0p09":
+    if year == 2016:
+        if args.fullSim:
+             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
+        else:
+            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
+    elif year == 2017:
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
+    elif year == 2018:
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p09 as jobs
+
 if args.only is not None:
     if args.only.isdigit():
         wrapper(jobs[int(args.only)])
     else:
+        
         jobNames = [ x.name for x in jobs ]
+        print jobNames
         wrapper(jobs[jobNames.index(args.only)])
     exit(0)
 
