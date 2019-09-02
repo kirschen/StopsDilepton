@@ -25,7 +25,6 @@ class SystematicEstimator:
         self.isSignal = False
 
     def initCache(self, cacheDir):
-        print cacheDir
         if cacheDir:
             self.cacheDir       = cacheDir
             try:    os.makedirs(cacheDir)
