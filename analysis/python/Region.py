@@ -14,7 +14,7 @@ class Region:
         self.vals = {var:val}
 
     def variables(self):
-        return self.vals.keys()
+        return sorted(self.vals.keys())
 
     def __iadd__(self, otherRegion):
         if not type(self)==type(otherRegion): raise TypeError("Can't add this type to a region %r"%type(otherRegion))
