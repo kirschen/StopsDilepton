@@ -121,3 +121,6 @@ for channel in (['all'] if ((options.control and options.control.count('TTZ')) o
         if not estimate.isData and not options.noSystematics:
             if estimate.isSignal: map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getSigSysJobs(r, channel, setup, isFastSim))
             else:                 map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getBkgSysJobs(r, channel, setup))
+        logger.info('Done with region: %s', r)
+    logger.info('Done with channel: %s', channel)
+logger.info('Done.')
