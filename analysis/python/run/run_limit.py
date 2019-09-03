@@ -353,7 +353,7 @@ def wrapper(s):
                         #if not niceName.count('controlTTBar'):
                             c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
                             c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
-                            c.specifyUncertainty('JER',      binname, name, 1 + min(e.JERSystematic(        r, channel, setup).val * uncScale, 1) )#0.03 )
+                            c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
                             c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
                             c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                             c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
@@ -543,6 +543,11 @@ def wrapper(s):
             iBinTTZLow, iBinTTZHigh     = 1,5
             iBinTTLow, iBinTTHigh       = 1,5
             iBinOtherLow, iBinOtherHigh = 1,5
+        elif args.controlTT:
+            iBinDYLow, iBinDYHigh       = 1,2
+            iBinTTZLow, iBinTTZHigh     = 1,2
+            iBinTTLow, iBinTTHigh       = 1,2
+            iBinOtherLow, iBinOtherHigh = 1,2
         elif args.controlAll:
             iBinDYLow, iBinDYHigh       = 8,20
             iBinTTZLow, iBinTTZHigh     = 3,7
@@ -553,6 +558,12 @@ def wrapper(s):
             iBinTTZLow, iBinTTZHigh     = 21,46
             iBinTTLow, iBinTTHigh       = 21,46
             iBinOtherLow, iBinOtherHigh = 21,46
+        else:
+            iBinDYLow, iBinDYHigh       = 1,26
+            iBinTTZLow, iBinTTZHigh     = 1,26
+            iBinTTLow, iBinTTHigh       = 1,26
+            iBinOtherLow, iBinOtherHigh = 1,26
+
 
         print cardFileName
         combineWorkspace = cardFileName.replace('shapeCard.txt','shapeCard_FD.root')
@@ -761,7 +772,7 @@ if args.only is not None:
     else:
         
         jobNames = [ x.name for x in jobs ]
-        print jobNames
+        #print jobNames
         wrapper(jobs[jobNames.index(args.only)])
     exit(0)
 
