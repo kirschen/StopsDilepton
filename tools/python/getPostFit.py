@@ -24,8 +24,9 @@ def getValFrom1BinnedHistOrGraph( hist ):
         if input is AsymTGraph, the average of errors is given 
     """
     if type(hist) in [ ROOT.TH1F , ROOT.TH1D ]:
-        v = hist.GetBinContent(1)
-        e = hist.GetBinError(1)
+        e = ROOT.Double()
+        v = hist.IntegralAndError(0,500,e) # 500 is an arbitrary choice
+        #e = hist.GetBinError(1)
     if type(hist) in [ ROOT.TH2F , ROOT.TH2D ]:
         v = hist.GetBinContent(1,1)
         e = hist.GetBinError(1,1)

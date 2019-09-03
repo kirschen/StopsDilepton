@@ -2,6 +2,7 @@
 #regionsLegacytest1
 import ROOT
 import os
+import math
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
@@ -17,6 +18,7 @@ argParser.add_argument("--controlAll",     default = False, action = "store_true
 argParser.add_argument("--fitAll",         default = False, action = "store_true", help="Fits SR and CR together")
 argParser.add_argument("--aggregate",      default = False, action = "store_true", help="Use aggregated signal regions")
 argParser.add_argument("--expected",       default = False, action = "store_true", help="Use sum of backgrounds instead of data.")
+argParser.add_argument("--unblind",        default = False, action = "store_true", help="Use real data in the signal regions.")
 argParser.add_argument("--DMsync",         default = False, action = "store_true", help="Use two regions for MET+X syncing")
 argParser.add_argument("--noSignal",       default = False, action = "store_true", help="Don't use any signal (force signal yield to 0)?")
 argParser.add_argument("--useTxt",         default = False, action = "store_true", help="Use txt based cardFiles instead of root/shape based ones?")
@@ -94,10 +96,11 @@ else:
         tmpRegion = deepcopy(regionsLegacy[1:])
         tmpRegion.pop(int(args.removeSR))
         setup.regions   = tmpRegion
+        setupDYVV.regions = tmpRegion
     else:
         setup.regions   = regionsLegacy[1:]
         #setup.regions   = regionsDM7[1:]
-    setupDYVV.regions = regionsLegacy[1:]
+        setupDYVV.regions = regionsLegacy[1:]
 setupTTZ1.regions = noRegions
 setupTTZ2.regions = noRegions
 setupTTZ3.regions = noRegions
@@ -255,8 +258,10 @@ def wrapper(s):
         DY_SF_nui = 'DY_%s'%year
         multiboson_SF = 'multiBoson_%s'%year
         c.addUncertainty('topNorm',    'lnN')
-        c.addUncertainty(multiboson_SF, 'lnN')
-        c.addUncertainty(DY_SF_nui,         'lnN')
+        c.addUncertainty(multiboson_SF, shapeString)
+        c.addUncertainty('MB_TT',       shapeString)
+        c.addUncertainty(DY_SF_nui,     shapeString)
+        c.addUncertainty('DY_TT',       shapeString)
         c.addUncertainty('ttZ',        'lnN')
         c.addUncertainty('other',      'lnN')
         if fastSim:
@@ -271,6 +276,7 @@ def wrapper(s):
           for e in setup.estimators: e.initCache(setup.defaultCacheDir())
 
           for r in setup.regions:
+            print r
             for channel in setup.channels:
                 niceName = ' '.join([channel, r.__str__()])
                 if setup == setupDYVV: niceName += "_controlDYVV"
@@ -280,6 +286,7 @@ def wrapper(s):
                 if setup == setupTTZ4: niceName += "_controlTTZ4"
                 if setup == setupTTZ5: niceName += "_controlTTZ5"
                 if setup == setupTT:   niceName += "_controlTTBar"
+                logger.info("Bin name: %s", niceName)
                 binname = 'Bin'+str(counter)
                 counter += 1
                 total_exp_bkg = 0
@@ -346,7 +353,7 @@ def wrapper(s):
                         #if not niceName.count('controlTTBar'):
                             c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
                             c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
-                            c.specifyUncertainty('JER',      binname, name, 1 + 0.03) # e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
+                            c.specifyUncertainty('JER',      binname, name, 1 + min(e.JERSystematic(        r, channel, setup).val * uncScale, 1) )#0.03 )
                             c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
                             c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                             c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
@@ -373,17 +380,26 @@ def wrapper(s):
                                 c.specifyUncertainty('topFakes', binname, name, 1.50) # avoid constraining of uncertainties in the ttbar CR
                             c.specifyUncertainty('topNorm',  binname, name, 1.15)
 
-                        if e.name.count('multiBoson'): c.specifyUncertainty(multiboson_SF, binname, name, 1.50)
+                        if e.name.count('multiBoson'):
+                            if niceName.count("controlTT")==0:
+                                logger.info("Assigning extra uncertainties to multiboson")
+                                c.specifyUncertainty(multiboson_SF, binname, name, 1.50)
+                            else:
+                                c.specifyUncertainty('MB_TT', binname, name, 1.50)
 
                         if e.name.count('DY'):
-                            c.specifyUncertainty(DY_SF_nui,         binname, name, 1.5)#1/(1+0.5))#1.5
-                            if r in highMT2blblregions:
-                                c.specifyUncertainty(DY_add,         binname, name, 2.0)
-                            if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
-                                c.specifyUncertainty("DY_SR", binname, name, 1.25)
+                            if niceName.count("controlTT")==0:
+                                logger.info("Assigning extra uncertainties to DY")
+                                c.specifyUncertainty(DY_SF_nui,         binname, name, 1.5)#1/(1+0.5))#1.5
+                                if r in highMT2blblregions:
+                                    c.specifyUncertainty(DY_add,         binname, name, 2.0)
+                                if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
+                                    c.specifyUncertainty("DY_SR", binname, name, 1.25)
+                            else:
+                                c.specifyUncertainty('DY_TT', binname, name, 1.50)
 
-                        if e.name.count('TTZ'):
-                            c.specifyUncertainty('ttZ',        binname, name, 1.2)
+                        if e.name.count('TTZ') and niceName.count('DYVV')==0:
+                            c.specifyUncertainty('ttZ',        binname, name, 1.5)
                             c.specifyUncertainty('scaleTTZ',binname, name, 1 + 0.02) #getScaleUncBkg('TTZ', r, channel,'TTZ'))
                             c.specifyUncertainty('PDF',     binname, name, 1 + 0.02) #getPDFUnc('TTZ', r, channel,'TTZ'))
 
@@ -397,9 +413,11 @@ def wrapper(s):
                         c.addUncertainty(uname, 'lnN')
                         c.specifyUncertainty(uname, binname, name, 1 + (expected.sigma/expected.val) * uncScale if expected.val>0 else 1)
 
-                if args.expected:
+                if args.expected or (not args.unblind and not niceName.count('control')):
                     c.specifyObservation(binname, int(round(total_exp_bkg,0)))
                     logger.info("Expected observation: %s", int(round(total_exp_bkg,0)))
+                #elif not args.unblind and:
+                #    
                 else:
                     c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
                     logger.info("Observation: %s", int(args.scale*observation.cachedObservation(r, channel, setup).val))
@@ -514,35 +532,97 @@ def wrapper(s):
         # Would be a bit more complicated with the classical txt files, so only automatically extract the SF when using shape based datacards
         from StopsDilepton.tools.getPostFit import getPrePostFitFromMLF
         
+        # get the most signal region like bins
+        if args.controlDYVV:
+            iBinDYLow, iBinDYHigh       = 1,13
+            iBinTTZLow, iBinTTZHigh     = 1,13
+            iBinTTLow, iBinTTHigh       = 1,13
+            iBinOtherLow, iBinOtherHigh = 1,13
+        elif args.controlTTZ:
+            iBinDYLow, iBinDYHigh       = 1,5
+            iBinTTZLow, iBinTTZHigh     = 1,5
+            iBinTTLow, iBinTTHigh       = 1,5
+            iBinOtherLow, iBinOtherHigh = 1,5
+        elif args.controlAll:
+            iBinDYLow, iBinDYHigh       = 8,20
+            iBinTTZLow, iBinTTZHigh     = 3,7
+            iBinTTLow, iBinTTHigh       = 1,2
+            iBinOtherLow, iBinOtherHigh = 1,20
+        elif args.fitAll:
+            iBinDYLow, iBinDYHigh       = 21,46
+            iBinTTZLow, iBinTTZHigh     = 21,46
+            iBinTTLow, iBinTTHigh       = 21,46
+            iBinOtherLow, iBinOtherHigh = 21,46
+
         print cardFileName
         combineWorkspace = cardFileName.replace('shapeCard.txt','shapeCard_FD.root')
         print "Extracting fit results from %s"%combineWorkspace
         
-        postFitResults = getPrePostFitFromMLF(combineWorkspace)
+        fitResults      = getPrePostFitFromMLF(combineWorkspace)
+        preFitResults   = fitResults['results']['shapes_prefit']['Bin0']
+        preFitShapes    = fitResults['hists']['shapes_prefit']['Bin0']
+        postFitResults  = fitResults['results']['shapes_fit_b']['Bin0']
+        postFitShapes   = fitResults['hists']['shapes_fit_b']['Bin0']
         
-        top_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['TTJetsF'] + postFitResults['results']['shapes_prefit']['Bin0']['TTJetsG'] + postFitResults['results']['shapes_prefit']['Bin0']['TTJetsNG']
-        top_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['TTJetsF'] + postFitResults['results']['shapes_fit_b']['Bin0']['TTJetsG'] + postFitResults['results']['shapes_fit_b']['Bin0']['TTJetsNG']
+
+        top_prefit  = preFitResults['TTJetsF'] + preFitResults['TTJetsG'] + preFitResults['TTJetsNG']
+        top_postfit = postFitResults['TTJetsF'] + postFitResults['TTJetsG'] + postFitResults['TTJetsNG']
+
+        topF_prefit_SR_err, topG_prefit_SR_err, topNG_prefit_SR_err     = ROOT.Double(), ROOT.Double(), ROOT.Double()
+        topF_postfit_SR_err, topG_postfit_SR_err, topNG_postfit_SR_err  = ROOT.Double(), ROOT.Double(), ROOT.Double()
+        top_prefit_SR  =  preFitShapes['TTJetsF'].IntegralAndError(iBinTTLow, iBinTTHigh, topF_prefit_SR_err)  +  preFitShapes['TTJetsG'].IntegralAndError(iBinTTLow, iBinTTHigh, topG_prefit_SR_err)  +  preFitShapes['TTJetsNG'].IntegralAndError(iBinTTLow, iBinTTHigh, topNG_prefit_SR_err)
+        top_postfit_SR = postFitShapes['TTJetsF'].IntegralAndError(iBinTTLow, iBinTTHigh, topF_postfit_SR_err) + postFitShapes['TTJetsG'].IntegralAndError(iBinTTLow, iBinTTHigh, topG_postfit_SR_err) + postFitShapes['TTJetsNG'].IntegralAndError(iBinTTLow, iBinTTHigh, topNG_postfit_SR_err)
         
-        ttZ_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['TTZ']
-        ttZ_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['TTZ']
+        top_prefit_SR_err  = math.sqrt(topF_prefit_SR_err**2  + topG_prefit_SR_err**2  + topNG_prefit_SR_err**2)
+        top_postfit_SR_err = math.sqrt(topF_postfit_SR_err**2 + topG_postfit_SR_err**2 + topNG_postfit_SR_err**2)
+
+        ttZ_prefit  = preFitResults['TTZ']
+        ttZ_postfit = postFitResults['TTZ']
+
+        ttZ_prefit_SR_err   = ROOT.Double()
+        ttZ_postfit_SR_err  = ROOT.Double()
+        ttZ_prefit_SR  = preFitShapes['TTZ'].IntegralAndError(iBinTTZLow, iBinTTZHigh, ttZ_prefit_SR_err)
+        ttZ_postfit_SR = postFitShapes['TTZ'].IntegralAndError(iBinTTZLow, iBinTTZHigh, ttZ_postfit_SR_err)
         
-        DY_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['DY']
-        DY_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['DY']
+        DY_prefit  = preFitResults['DY']
+        DY_postfit = postFitResults['DY']
+
+        DY_prefit_SR_err   = ROOT.Double()
+        DY_postfit_SR_err  = ROOT.Double()
+        DY_prefit_SR  = preFitShapes['DY'].IntegralAndError(iBinDYLow, iBinDYHigh, DY_prefit_SR_err)
+        DY_postfit_SR = postFitShapes['DY'].IntegralAndError(iBinDYLow, iBinDYHigh, DY_postfit_SR_err)
         
-        MB_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['multiBoson']
-        MB_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['multiBoson']
+        MB_prefit  = preFitResults['multiBoson']
+        MB_postfit = postFitResults['multiBoson']
         
-        other_prefit  = postFitResults['results']['shapes_prefit']['Bin0']['other']
-        other_postfit = postFitResults['results']['shapes_fit_b']['Bin0']['other']
+        MB_prefit_SR_err   = ROOT.Double()
+        MB_postfit_SR_err  = ROOT.Double()
+        MB_prefit_SR  = preFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_prefit_SR_err)
+        MB_postfit_SR = postFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_postfit_SR_err)
+
+        other_prefit  = preFitResults['other']
+        other_postfit = postFitResults['other']
+
+        other_prefit_SR_err   = ROOT.Double()
+        other_postfit_SR_err  = ROOT.Double()
+        other_prefit_SR  = preFitShapes['other'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
+        other_postfit_SR = postFitShapes['other'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
 
         print
-        print "## Scale Factors for backgrounds: ##"
+        print "## Scale Factors for backgrounds, integrated over ALL regions: ##"
         print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit/top_prefit).val, '+/-',  top_postfit.sigma/top_postfit.val)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit/ttZ_prefit).val, '+/-',  ttZ_postfit.sigma/ttZ_postfit.val)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit/DY_prefit).val,   '+/-',  DY_postfit.sigma/DY_postfit.val)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit/other_prefit).val, '+/-',  other_postfit.sigma/other_postfit.val)
 
+        print
+        print "## Scale Factors for backgrounds, integrated over dedicated control regions: ##" if not args.fitAll else "## Scale Factors for backgrounds, integrated over the signal regions: ##"
+        print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit_SR/top_prefit_SR), '+/-',  top_postfit_SR_err/top_postfit_SR)
+        print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit_SR/ttZ_prefit_SR), '+/-',  ttZ_postfit_SR_err/ttZ_postfit_SR)
+        print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit_SR/DY_prefit_SR),   '+/-',  DY_postfit_SR_err/DY_postfit_SR)
+        print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit_SR/MB_prefit_SR),   '+/-',  MB_postfit_SR_err/MB_postfit_SR)
+        print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit_SR/other_prefit_SR), '+/-',  other_postfit_SR_err/other_postfit_SR)
 
     #print xSecScale
 
@@ -589,22 +669,25 @@ if args.signal == "T2tt":
             postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
     elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
+        if args.fullSim:
+             from StopsDilepton.samples.nanoTuples_Fall17_FullSimSignal_postProcessed import signals_T2tt as jobs
+        else:
+            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+            postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
     elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
+        if args.fullSim:
+             from StopsDilepton.samples.nanoTuples_Autumn18_FullSimSignal_postProcessed import signals_T2tt as jobs
+        else:
+            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+            postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
 
 if args.signal == "T2bW":
     if year == 2016:
-        if args.fullSim:
-             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T2bW as jobs
-        else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
-            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2bW as jobs
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2bW as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
@@ -616,12 +699,9 @@ if args.signal == "T2bW":
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
     if year == 2016:
-        if args.fullSim:
-             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
-        else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
-            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
@@ -634,12 +714,9 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
     if year == 2016:
-        if args.fullSim:
-             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
-        else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
-            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
@@ -652,12 +729,9 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
     if year == 2016:
-        if args.fullSim:
-             from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
-        else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
-            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
+        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
