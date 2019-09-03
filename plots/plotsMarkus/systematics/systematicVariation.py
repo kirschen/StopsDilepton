@@ -232,28 +232,28 @@ variations = {
     'L1PrefireDown'     : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireDown'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireDown']]},
     'L1PrefireUp'       : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireUp'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireUp']]},
 #NN
-    'DYInputUp'             : {'addSampleWeight':(DY_HT_LO, '1.5', '(1)'),                                               'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'DYInputDown'           : {'addSampleWeight':(DY_HT_LO, '0.5', '(1)'),                                               'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'TT1JetMismInputUp'     : {'addSampleWeight':(Top_pow, '1.3', '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) >=1)'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'TT1JetMismInputDown'   : {'addSampleWeight':(Top_pow, '0.7', '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) >=1)'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'TTTotJetMismInputUp'   : {'addSampleWeight':(Top_pow, '1.15', 
-                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) >= 40)'), 
-                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'TTTotJetMismInputDown' : {'addSampleWeight':(Top_pow, '0.85',
-                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) >= 40)'), 
-                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'TTNonPromptInputUp'    : {'addSampleWeight':(Top_pow, '1.5',
-                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) < 40 && ((l1_muIndex>=0 && (Muon_genPartFlav[l1_muIndex])!=1) || (l2_muIndex>=0 && (Muon_genPartFlav[l2_muIndex])!=1)))'), 
-                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'TTNonPromptInputDown'  : {'addSampleWeight':(Top_pow, '0.5',
-                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) < 40 && ((l1_muIndex>=0 && (Muon_genPartFlav[l1_muIndex])!=1) || (l2_muIndex>=0 && (Muon_genPartFlav[l2_muIndex])!=1)))'),
-                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'MBInputUp'             : {'addSampleWeight':(multiBoson, '1.5', '(1)'),                                             'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'MBInputDown'           : {'addSampleWeight':(multiBoson, '0.5', '(1)'),                                             'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'TTZInputUp'            : {'addSampleWeight':(TTZ_LO, '1.2', '(1)'),                                                 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'TTZInputDown'          : {'addSampleWeight':(TTZ_LO, '0.8', '(1)'),                                                 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'OtherInputUp'          : {'addSampleWeight':(TTXNoZ, '1.25', '(1)'),                                                'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-    'OtherInputDown'        : {'addSampleWeight':(TTXNoZ, '0.75', '(1)'),                                                'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'DYInputUp'             : {'addSampleWeight':(DY_HT_LO, '1.5', '(1)'),                                               'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'DYInputDown'           : {'addSampleWeight':(DY_HT_LO, '0.5', '(1)'),                                               'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'TT1JetMismInputUp'     : {'addSampleWeight':(Top_pow, '1.3', '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) >=1)'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'TT1JetMismInputDown'   : {'addSampleWeight':(Top_pow, '0.7', '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) >=1)'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'TTTotJetMismInputUp'   : {'addSampleWeight':(Top_pow, '1.15', 
+#                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) >= 40)'), 
+#                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'TTTotJetMismInputDown' : {'addSampleWeight':(Top_pow, '0.85',
+#                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) >= 40)'), 
+#                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'TTNonPromptInputUp'    : {'addSampleWeight':(Top_pow, '1.5',
+#                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) < 40 && ((l1_muIndex>=0 && (Muon_genPartFlav[l1_muIndex])!=1) || (l2_muIndex>=0 && (Muon_genPartFlav[l2_muIndex])!=1)))'), 
+#                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'TTNonPromptInputDown'  : {'addSampleWeight':(Top_pow, '0.5',
+#                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) < 40 && ((l1_muIndex>=0 && (Muon_genPartFlav[l1_muIndex])!=1) || (l2_muIndex>=0 && (Muon_genPartFlav[l2_muIndex])!=1)))'),
+#                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'MBInputUp'             : {'addSampleWeight':(multiBoson, '1.5', '(1)'),                                             'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'MBInputDown'           : {'addSampleWeight':(multiBoson, '0.5', '(1)'),                                             'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'TTZInputUp'            : {'addSampleWeight':(TTZ_LO, '1.2', '(1)'),                                                 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'TTZInputDown'          : {'addSampleWeight':(TTZ_LO, '0.8', '(1)'),                                                 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'OtherInputUp'          : {'addSampleWeight':(TTXNoZ, '1.25', '(1)'),                                                'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
+#    'OtherInputDown'        : {'addSampleWeight':(TTXNoZ, '0.75', '(1)'),                                                'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
 #    'TopPt':{},
 }
 
@@ -448,7 +448,7 @@ for mode in modes:
 
     # if we're running a variation specify
 #NN
-    print "Is input uncertainty (i.e. has key 'addSampleWeight'): ", variations[args.variation].has_key('addSampleWeight')
+    #print "Is input uncertainty (i.e. has key 'addSampleWeight'): ", variations[args.variation].has_key('addSampleWeight')
     if args.variation is not None and  "Input" in args.variation: # input variation
         addSampleWeight   = variations[args.variation]['addSampleWeight']
         #selectionModifier = None
@@ -773,16 +773,16 @@ if args.variation is not None:
 
 # Systematic pairs:( 'name', 'up', 'down' )
 systematics = [\
-#    {'name':'JEC',         'pair':('jesTotalUp', 'jesTotalDown')},
-#    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown')},
-#    {'name':'PU',          'pair':('PUUp', 'PUDown')},
-#    {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
-#    {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
-#    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
-#    {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
-#    #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
+    {'name':'JEC',         'pair':('jesTotalUp', 'jesTotalDown')},
+    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown')},
+    {'name':'PU',          'pair':('PUUp', 'PUDown')},
+    {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
+    {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
+    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
+    {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
+    #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
     {'name': 'JER',        'pair':('jerUp', 'jerDown')},
-#    {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
+    {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
 #NN
 #    {'name': 'DYInput',           'pair':('DYInputUp', 'DYInputDown')},
 #    {'name': 'TT1JetMismInput',   'pair':('TT1JetMismUp', 'TT1JetMismDown')},

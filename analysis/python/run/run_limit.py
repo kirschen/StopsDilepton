@@ -346,7 +346,7 @@ def wrapper(s):
                         #if not niceName.count('controlTTBar'):
                             c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
                             c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
-                            c.specifyUncertainty('JER',      binname, name, 1 + 0.03) # e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
+                            c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
                             c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
                             c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                             c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )

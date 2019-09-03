@@ -296,7 +296,10 @@ class cardFileWriter:
                         if unc in nuisForProc[process]:
                             if not (unc.lower().count('up') or unc.lower().count('down')):
                                 histos['%s_%sUp'%(process, unc)].SetBinContent(i+1, relUnc*expect)
-                                histos['%s_%sDown'%(process, unc)].SetBinContent(i+1, (2-relUnc)*expect)
+                                if relUnc > 2:
+                                    histos['%s_%sDown'%(process, unc)].SetBinContent(i+1, 0)
+                                else:
+                                    histos['%s_%sDown'%(process, unc)].SetBinContent(i+1, (2-relUnc)*expect)
                             else:
                                 histos['%s_%s'%(process, unc)].SetBinContent(i+1, relUnc*expect)
         # define the file names
