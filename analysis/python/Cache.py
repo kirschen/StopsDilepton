@@ -5,7 +5,7 @@ import errno
 import logging
 logger = logging.getLogger(__name__)
 
-from Analysis.Tools.DirDB import DirDB
+from Analysis.Tools.MergingDirDB import MergingDirDB
 
 class Cache:
     def __init__(self, filepath=None, verbosity=0, overwrite=False):
@@ -14,7 +14,7 @@ class Cache:
 
     def initCache(self, filepath):
         self.filepath = filepath
-        self.DB = DirDB(filepath)
+        self.DB = MergingDirDB(filepath)
 
     def contains (self, key):
         return self.DB.contains(key)
