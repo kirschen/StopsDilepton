@@ -37,7 +37,9 @@ year = int(args.year)
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(args.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger(args.logLevel, logFile = None )
+logger_rt = logger_rt.get_logger('INFO', logFile = None )
+import Analysis.Tools.logger as logger_an
+logger_an = logger_an.get_logger(args.logLevel, logFile = None )
 
 # Load from DPM?
 if args.dpm:
