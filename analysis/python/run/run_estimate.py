@@ -25,10 +25,14 @@ if options.dpm:
     data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
 
 # Logging
+import Analysis.Tools.logger as logger
+logger  = logger.get_logger(options.logLevel, logFile = None)
+
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
+
 
 from StopsDilepton.analysis.Setup import Setup
 
