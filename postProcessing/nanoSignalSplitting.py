@@ -411,11 +411,17 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt or option
             outF.Close()
             logger.info( "Number of events %i", nEvents)
             inF = ROOT.TFile.Open(signalFile, "READ")
-            u = inF.Get("Events")
-            nnEvents = u.GetEntries()
-            logger.debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
-            if nEvents == nnEvents: logger.debug("All events written")
-            else: logger.debug("Something went wrong, discrepancy between file and tree")
+            try:
+                u = inF.Get("Events")
+            except ReferenceError:
+                logger.info( "Found null pointerfor mStop %i mNeu %i. Continue. ", s[0],s[1]) 
+                u = None
+
+            if u:
+                nnEvents = u.GetEntries()
+                logger.debug("Number of events in tree %i and in file %i", nEvents, nnEvents)
+                if nEvents == nnEvents: logger.debug("All events written")
+                else: logger.debug("Something went wrong, discrepancy between file and tree")
             inF.Close()
             logger.info( "Written signal file for masses mStop %i mNeu %i to %s", s[0], s[1], signalFile)
         else:

@@ -30,8 +30,10 @@ logger  = logger.get_logger(options.logLevel, logFile = None)
 
 import StopsDilepton.tools.logger as logger
 logger = logger.get_logger(options.logLevel, logFile = None )
+import Analysis.Tools.logger as logger_an
+logger_an = logger_an.get_logger(options.logLevel, logFile = None )
 import RootTools.core.logger as logger_rt
-logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
+logger_rt = logger_rt.get_logger('INFO', logFile = None )
 
 
 from StopsDilepton.analysis.Setup import Setup
