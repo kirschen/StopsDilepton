@@ -213,8 +213,8 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger(options.logLevel, logFile ='/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) ) )
-logFileLocation = '/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) )
+logger = logger.get_logger(options.logLevel, logFile ='%s_%s.txt'%(options.skim, '_'.join(options.samples) ) )
+logFileLocation = '%s_%s.txt'%(options.skim, '_'.join(options.samples) )
 
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
@@ -370,6 +370,7 @@ if not len(signalWeight.keys())%nJobs == 0: chunkSize += 1
 
 masspoints = list(chunks(signalWeight.keys(), chunkSize))
 
+
 job = options.job
 
 print "All masspoints:"
@@ -392,7 +393,7 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt or option
     for i,s in enumerate(masspoints[job]):
         #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
         logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
-        cut = "Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))=="+str(s[0])+"&&Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022))=="+str(s[1])
+        cut = "floor(Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006)))=="+str(s[0])+"&&floor(Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022)))=="+str(s[1])
         logger.debug("Using cut %s", cut)
         if options.T2tt: signal_prefix = 'T2tt_'
         elif options.T2bW: signal_prefix = 'T2bW_'
@@ -403,6 +404,12 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt or option
         signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
         #signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
         logger.debug("Ouput file will be %s", signalFile)
+        if os.path.exists(signalFile) and deepCheckRootFile(signalFile):
+            c = ROOT.TChain("Events")
+            c.Add(signalFile)
+            if c.GetEntries()==0:
+                options.overwrite = True # :-)
+
         if not (os.path.exists(signalFile) and deepCheckRootFile(signalFile)) or options.overwrite:
             outF = ROOT.TFile.Open(signalFile, "RECREATE")
             t = output.chain.CopyTree(cut)

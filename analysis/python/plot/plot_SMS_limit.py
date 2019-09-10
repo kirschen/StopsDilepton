@@ -50,7 +50,7 @@ defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.ro
 
 print defFile
 if options.year == 2016:
-    lumi    = 36.9
+    lumi    = 35.9
     #eraText =  "(2016)"
 elif options.year == 2017:
     lumi    = 41.5
@@ -83,7 +83,7 @@ ifs = defFile.split('/')
 
 # Per Year
 #plotDir = os.path.join(plot_directory, ifs[-3], 'v4', ifs[-2]+'FR_%i'%options.year)
-plotDir = os.path.join(plot_directory, ifs[-3],'v4', ifs[-2]+'limitAll_FR_%i'%options.year)
+plotDir = os.path.join(plot_directory, ifs[-3],'v5', ifs[-2]+'limitAll_FR_%i'%options.year)
 
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
