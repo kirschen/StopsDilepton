@@ -213,8 +213,8 @@ options = get_parser().parse_args()
 
 # Logging
 import StopsDilepton.tools.logger as logger
-logger = logger.get_logger(options.logLevel, logFile ='/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) ) )
-logFileLocation = '/tmp/%s_%s.txt'%(options.skim, '_'.join(options.samples) )
+logger = logger.get_logger(options.logLevel, logFile ='%s_%s.txt'%(options.skim, '_'.join(options.samples) ) )
+logFileLocation = '%s_%s.txt'%(options.skim, '_'.join(options.samples) )
 
 import RootTools.core.logger as logger_rt
 logger_rt = logger_rt.get_logger(options.logLevel, logFile = None )
@@ -370,7 +370,6 @@ if not len(signalWeight.keys())%nJobs == 0: chunkSize += 1
 
 masspoints = list(chunks(signalWeight.keys(), chunkSize))
 
-assert False,""
 
 job = options.job
 
@@ -387,7 +386,7 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt or option
     elif options.T2bt: output = Sample.fromDirectory("T2bt_output", outDir)
     elif options.T8bbstausnu:output = Sample.fromDirectory("T8bbstausnu_output", outDir) 
     else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
-    
+
     print "Initialising chain, otherwise first mass point is empty"
     print output.chain
     if options.small: output.reduceFiles( to = 1 )
@@ -405,6 +404,12 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt or option
         signalFile = os.path.join(signalDir, signal_prefix + str(s[0]) + '_' + str(s[1]) + '.root' )
         #signalFile = os.path.join(signalDir, 'T2tt_'+str(s[0])+'_'+str(s[1])+'.root' )
         logger.debug("Ouput file will be %s", signalFile)
+        if os.path.exists(signalFile) and deepCheckRootFile(signalFile):
+            c = ROOT.TChain("Events")
+            c.Add(signalFile)
+            if c.GetEntries()==0:
+                options.overwrite = True # :-)
+
         if not (os.path.exists(signalFile) and deepCheckRootFile(signalFile)) or options.overwrite:
             outF = ROOT.TFile.Open(signalFile, "RECREATE")
             t = output.chain.CopyTree(cut)

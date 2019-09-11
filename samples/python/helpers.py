@@ -116,7 +116,7 @@ def getT2ttSignalWeight(sample, lumi, cacheDir):
     channel='stop13TeV'
     signalWeight={}
     mMax = 2000
-    bStr = str(mMax)+','+str(mMax)
+    bStr = str(mMax)+',0,'+str(mMax)
     #sample.chain.Draw("GenSusyMNeutralino:GenSusyMStop>>hNEvents("+','.join([bStr, bStr])+")", "","goff")
 
 

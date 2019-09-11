@@ -28,24 +28,29 @@ ROOT.gROOT.SetBatch(True)
 #year = 2017
 #signalString = "T2bW"
 
-analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
+# Priya
+#analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
+# Markus
+analysis_results = '/afs/hephy.at/data/cms04/StopsDileptonLegacy/results/v4/'
 
 from optparse import OptionParser
 parser = OptionParser()
 #parser.add_option("--file",             dest="filename",    default=None,   type="string", action="store",  help="Which file?")
-parser.add_option("--signal",           action='store',     default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW", "T8bbllnunu_XCha0p5_XSlep0p09", "ttHinv"], help="which signal?")
+parser.add_option("--signal",           action='store',     default='T2tt',  choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW", "T8bbllnunu_XCha0p5_XSlep0p09", "ttHinv"], help="which signal?")
 parser.add_option("--year",             dest="year",   type="int",    action="store",  help="Which year?")
 (options, args) = parser.parse_args()
 #year = int(options.year)
 signalString = options.signal
-#defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
+# combined
 #defFile = os.path.join(analysis_results, "comb/signalOnly/limits/%s/%s/limitResults.root"%(signalString,signalString))
-defFile = os.path.join(analysis_results, "comb/fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
-#defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
+#defFile = os.path.join(analysis_results, "comb/fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
+# per year
+#defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
+defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
 
 print defFile
 if options.year == 2016:
-    lumi    = 36.9
+    lumi    = 35.9
     #eraText =  "(2016)"
 elif options.year == 2017:
     lumi    = 41.5
@@ -72,13 +77,14 @@ def toGraph2D(name,title,length,x,y,z):
 
 
 ifs = defFile.split('/')
+# Combined
 #plotDir = os.path.join(plot_directory,ifs[-3],'v4', ifs[-2]+'FR_signalOnly_combined')
+#plotDir = os.path.join(plot_directory,ifs[-3],'v3', ifs[-2]+'FR_limitAll_combined')
 
-plotDir = os.path.join(plot_directory,ifs[-3],'v3', ifs[-2]+'FR_limitAll_combined')
-
+# Per Year
 #plotDir = os.path.join(plot_directory, ifs[-3], 'v4', ifs[-2]+'FR_%i'%options.year)
+plotDir = os.path.join(plot_directory, ifs[-3],'v5', ifs[-2]+'limitAll_FR_%i'%options.year)
 
-#plotDir = os.path.join(plot_directory, ifs[-3],'v4', ifs[-2]+'limitAll_FR_%i'%options.year)
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
 
