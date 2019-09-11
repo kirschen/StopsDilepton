@@ -370,6 +370,8 @@ if not len(signalWeight.keys())%nJobs == 0: chunkSize += 1
 
 masspoints = list(chunks(signalWeight.keys(), chunkSize))
 
+assert False,""
+
 job = options.job
 
 print "All masspoints:"
