@@ -386,14 +386,14 @@ if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt or option
     elif options.T2bt: output = Sample.fromDirectory("T2bt_output", outDir)
     elif options.T8bbstausnu:output = Sample.fromDirectory("T8bbstausnu_output", outDir) 
     else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
-    
+
     print "Initialising chain, otherwise first mass point is empty"
     print output.chain
     if options.small: output.reduceFiles( to = 1 )
     for i,s in enumerate(masspoints[job]):
         #cut = "GenSusyMStop=="+str(s[0])+"&&GenSusyMNeutralino=="+str(s[1]) #FIXME
         logger.info("Going to write masspoint mStop %i mNeu %i", s[0], s[1])
-        cut = "floor(Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006)))=="+str(s[0])+"&&floor(Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022)))=="+str(s[1])
+        cut = "Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))=="+str(s[0])+"&&Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022))=="+str(s[1])
         logger.debug("Using cut %s", cut)
         if options.T2tt: signal_prefix = 'T2tt_'
         elif options.T2bW: signal_prefix = 'T2bW_'
