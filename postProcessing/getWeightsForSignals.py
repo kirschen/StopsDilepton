@@ -42,6 +42,7 @@ def get_parser():
     argParser.add_argument('--samples',         action='store',         nargs='*',  type=str, default=['TTZToLLNuNu_ext'],                  help="List of samples to be post-processed, given as CMG component name" )
     argParser.add_argument('--ppSamplePath',    action='store',         nargs='*',  type=str, default=None,                  help="List of samples to be post-processed, given as CMG component name" )
     argParser.add_argument('--year',            action='store',                     type=int,                                               help="Which year?" )
+    argParser.add_argument('--overwrite',       action='store_true',                help="Overwrite ISR norm cache?" )
 
     return argParser
 
@@ -110,8 +111,7 @@ if options.ppSamplePath:
 
     from StopsDilepton.samples.helpers import getT2ttISRNorm
 
-    norm = getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, signal=sample.name, cacheDir=cacheDir, fillCache=True)
-    
+    norm = getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, signal=sample.name, cacheDir=cacheDir, fillCache=True, overwrite=options.overwrite)
     logger.info("Got the following norms for the masspoints (mStop, mLSP)")
     for masspoint in sorted(masspoints):
         norm = getT2ttISRNorm(sample, masspoint[0], masspoint[1], masspoints, options.year, signal=sample.name, cacheDir=cacheDir)
