@@ -77,8 +77,6 @@ def wrapper(s):
 
 
 if args.signal == "T2tt":
-    data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-    postProcessing_directory    = 'stops_2017_nano_v0p13/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
 
 allJobs = [j.name for j in jobs]
