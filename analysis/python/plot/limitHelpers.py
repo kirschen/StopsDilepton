@@ -15,7 +15,7 @@ def getContours(h, plotDir):
     graph_list = contours.At(idx)
     contours = []
     np = 0
-    print contours, ROOT.gROOT.GetListOfSpecials(), graph_list.GetEntries()
+    #print contours, ROOT.gROOT.GetListOfSpecials(), graph_list.GetEntries()
     for i in range(graph_list.GetEntries()):
             contours.append( graph_list.At(i).Clone("cont_"+str(i)) )
     for c in contours:
