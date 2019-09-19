@@ -31,7 +31,7 @@ ROOT.gROOT.SetBatch(True)
 # Priya
 #analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
 # Markus
-analysis_results = '/afs/hephy.at/data/cms04/StopsDileptonLegacy/results/v4/'
+analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4/'
 
 from optparse import OptionParser
 parser = OptionParser()
