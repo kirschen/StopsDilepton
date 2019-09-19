@@ -253,7 +253,7 @@ fileIN = inputFile('SMS_limit.cfg')
 
 # classic temperature histogra
 xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "asdf")
-xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-3,10) )
+xsecPlot.Draw( lumi = lumi, zAxis_range = (5*10**-4,10) )
 xsecPlot.Save("%sXSEC" %outputname)
 
 temp = ROOT.TFile("tmp.root","update")

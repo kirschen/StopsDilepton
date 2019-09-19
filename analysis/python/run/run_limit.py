@@ -754,6 +754,8 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
         postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
+for j, job in enumerate(jobs):
+    print j, job.name
 
 if args.only is not None:
     if args.only.isdigit():

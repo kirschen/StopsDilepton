@@ -33,23 +33,27 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
+argParser.add_argument('--appendCmds',        action='store_true')
+# define plot 
+argParser.add_argument('--era',               action='store', type=str,      default="Run2016")
 argParser.add_argument('--plot_directory',    action='store',      default='v1')
+argParser.add_argument('--reweightPU',        action='store',      default='Central', choices=[ 'Central', 'VUp'] )
 argParser.add_argument('--selection',         action='store',            default='njet2p-btag1p-miniIso0.2-looseLeptonVeto-mll20-met80-metSig5-dPhiJet0-dPhiJet1')
 argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
+argParser.add_argument('--mode',              action='store',      default = 'all', choices = ['mumu', 'ee', 'mue', 'SF', 'all'],   help='Which mode?')
+argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
-argParser.add_argument('--normalize',         action='store_true')
-argParser.add_argument('--appendCmds',        action='store_true')
+# loading samples
 argParser.add_argument('--dpm',               action='store_true',     help='Use dpm?', )
 argParser.add_argument('--noDYHT',            action='store_true',     help='run without HT-binned DY')
+# write caches
+argParser.add_argument('--overwrite',         action='store_true',     help='Overwrite?')
+# Scalings
 argParser.add_argument('--scaling',           action='store',      default=None, choices = [None, 'mc', 'top'],     help='Scale top to data in mt2ll<100?')
 argParser.add_argument('--variation_scaling', action='store_true', help='Scale the variations individually to mimick bkg estimation?')
-argParser.add_argument('--overwrite',         action='store_true',     help='Overwrite?')
-argParser.add_argument('--mode',              action='store',      default = 'all', choices = ['mumu', 'ee', 'mue', 'all'],   help='Which mode?')
-argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
-argParser.add_argument('--reweightPU',        action='store',      default='Central', choices=[ 'Central', 'VUp'] )
-#argParser.add_argument('--recoil',             action='store', type=str,      default="Central", choices = ["nvtx", "VUp", "Central"])
-argParser.add_argument('--era',               action='store', type=str,      default="Run2016")
-argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional subdirectory for minor changes to the plots")
+argParser.add_argument('--normalize',         action='store_true', help='Perform area normalization mc to data?')
+# add extra label to path
+argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional directory label for minor changes to the plots")
 
 args = argParser.parse_args()
 
@@ -270,9 +274,9 @@ if args.variation is not None and args.variation not in variations.keys():
 
 # arguments & directory
 plot_subdirectory = args.plot_directory
+if args.small:                    plot_subdirectory += "_small"
 if args.signal == "DM":           plot_subdirectory += "_DM"
 if args.signal == "T2tt":         plot_subdirectory += "_T2tt"
-if args.small:                    plot_subdirectory += "_small"
 if args.reweightPU:               plot_subdirectory += "_reweightPU%s"%args.reweightPU
 #if args.recoil:                  plot_subdirectory  += '_recoil_'+args.recoil
 
@@ -296,92 +300,6 @@ read_variables = ["weight/F", "l1_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2
                   "metSig/F", "ht/F", "nBTag/I", "nJetGood/I","run/I","event/l","reweightHEM/F"]
 
 sequence = []
-#def corr_recoil( event, sample ):
-#    mt2Calculator.reset()
-#    if not sample.isData: 
-#        # Parametrisation vector - # define qt as GenMET + leptons
-#        qt_px = event.l1_pt*cos(event.l1_phi) + event.l2_pt*cos(event.l2_phi) + event.GenMET_pt*cos(event.GenMET_phi)
-#        qt_py = event.l1_pt*sin(event.l1_phi) + event.l2_pt*sin(event.l2_phi) + event.GenMET_pt*sin(event.GenMET_phi)
-#
-#        qt = sqrt( qt_px**2 + qt_py**2 )
-#        qt_phi = atan2( qt_py, qt_px )
-#
-#        #ref_phi = qt_phi
-#        ref_phi = event.dl_phi
-#
-#        # compute fake MET 
-#        fakeMET_x = event.met_pt*cos(event.met_phi) - event.GenMET_pt*cos(event.GenMET_phi)
-#        fakeMET_y = event.met_pt*sin(event.met_phi) - event.GenMET_pt*sin(event.GenMET_phi)
-#
-#        fakeMET = sqrt( fakeMET_x**2 + fakeMET_y**2 )
-#        fakeMET_phi = atan2( fakeMET_y, fakeMET_x )
-#
-#        # project fake MET on qT
-#        fakeMET_para = fakeMET*cos( fakeMET_phi - ref_phi )
-#        fakeMET_perp = fakeMET*cos( fakeMET_phi - ( ref_phi - pi/2) )
-#
-#        fakeMET_para_corr = - recoilCorrector.predict_para( ref_phi, qt, -fakeMET_para )
-#        fakeMET_perp_corr = - recoilCorrector.predict_perp( ref_phi, qt, -fakeMET_perp )
-#
-#        # rebuild fake MET vector
-#        fakeMET_px_corr = fakeMET_para_corr*cos(ref_phi) + fakeMET_perp_corr*cos(ref_phi - pi/2)
-#        fakeMET_py_corr = fakeMET_para_corr*sin(ref_phi) + fakeMET_perp_corr*sin(ref_phi - pi/2)
-#        #print "%s qt: %3.2f para %3.2f->%3.2f perp %3.2f->%3.2f fakeMET(%3.2f,%3.2f) -> (%3.2f,%3.2f)" % ( sample.name, qt, fakeMET_para, fakeMET_para_corr, fakeMET_perp, fakeMET_perp_corr, fakeMET, fakeMET_phi, sqrt( fakeMET_px_corr**2+fakeMET_py_corr**2), atan2( fakeMET_py_corr, fakeMET_px_corr) )
-#   
-#        for var in [""] + jme_systematics:
-#            if var: var = "_"+var
-#            met_px_corr = getattr(event, "met_pt"+var)*cos(getattr(event, "met_phi"+var)) - fakeMET_x + fakeMET_px_corr 
-#            met_py_corr = getattr(event, "met_pt"+var)*sin(getattr(event, "met_phi"+var)) - fakeMET_y + fakeMET_py_corr
-#    
-#            setattr(event, "met_pt_corr"+var, sqrt( met_px_corr**2 + met_py_corr**2 ) )
-#            setattr(event, "met_phi_corr"+var, atan2( met_py_corr, met_px_corr ) )
-#            
-#            mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
-#            mt2Calculator.setMet(getattr(event,"met_pt_corr"+var), getattr(event,"met_phi_corr"+var))
-#            setattr(event, "dl_mt2ll_corr"+var, mt2Calculator.mt2ll() )
-#
-#    else:
-#        event.met_pt_corr  = event.met_pt 
-#        event.met_phi_corr = event.met_phi
-#
-#        mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
-#        mt2Calculator.setMet(event.met_pt_corr, event.met_phi_corr)
-#        event.dl_mt2ll_corr =  mt2Calculator.mt2ll()
-#
-#    #print event.dl_mt2ll, event.dl_mt2ll_corr
-#
-#sequence.append( corr_recoil )
-
-#def make_muon_selection( event, sample ):
-#    if sample.isData:
-#        event.l1_muIndex = -1
-#        event.l2_muIndex = -1
-#        for i in range(event.nMuon):
-#            if event.l1_pt==event.Muon_pt[i]:
-#                event.l1_muIndex = i
-#            if event.l2_pt==event.Muon_pt[i]:
-#                event.l2_muIndex = i
-#
-#    if abs(event.l1_pdgId)==13 and event.l1_muIndex>=0:
-#        event.l1_jetRawPt = event.Jet_pt[event.Muon_jetIdx[event.l1_muIndex]]*(1-event.Jet_rawFactor[event.Muon_jetIdx[event.l1_muIndex]])
-#
-#        # systematics variables:
-#        # l1_jetRawPt = getattr(event, "Jet_pt%s"%sys)
-#        # l1_pt
-#
-#        corrector = corrector_data if sample.isData else corrector_mc
-#        if (event.l1_jetRawPt - event.l1_pt) >= 15:
-#            jetPtHad = (event.l1_jetRawPt - event.l1_pt)*corrector.correction( event.l1_jetRawPt - event.l1_pt, event.Jet_eta[event.Muon_jetIdx[event.l1_muIndex]], event.Jet_area[event.Muon_jetIdx[event.l1_muIndex]], event.fixedGridRhoFastjetAll, event.run )
-#        else:
-#            jetPtHad = event.l1_jetRawPt - event.l1_pt
-#        event.l1_jetRelIsoRecorrHad = (jetPtHad)/event.l1_pt
-#    else:
-#        event.l1_jetRawPt = float('nan') 
-#        event.l1_jetRelIsoRecorrHad = float('nan')
-#
-#sequence.append( make_muon_selection )
-
-
 
 signals = []
 
@@ -392,7 +310,8 @@ def getLeptonSelection( mode ):
   elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
 
-modes = ['mumu', 'mue', 'ee'] if args.mode=='all' else [ args.mode ]
+modes = ['mumu', 'mue', 'ee'] if args.mode=='all' else ['mumu', 'ee'] if args.mode=='SF' else [ args.mode ]
+print "running modes: ", modes
 
 allPlots   = {}
 
@@ -728,17 +647,17 @@ for mode in modes:
             logger.info( "Loaded normalisations and histograms for %s in mode %s from cache.", args.era, mode)
             logger.debug("Loaded normalisation_mc: %r normalisation_data: %r", normalisation_mc, normalisation_data )
             if normalisation_mc['Top_pow']<=0:
-                success = False
-                logger.info( "!!! Top_pow histo is zero !!!" )
+                if args.scaling is not None:
+                    success = False
+                    logger.info( "Top_pow histo is zero! Maybe the '-mt2llTo100' selection interferes with yours" )
+                else:
+                    success = True
             else: 
                 success = True
         if not success:
             logger.info( "Obtain normalisations and histograms for %s in mode %s.", args.era, mode)
             # Calculate the normalisation yield for mt2ll<100
-#NN
-            cutString = cutInterpreter.cutString(args.selection + '-mt2llTo100')
-            normalization_selection_string = selectionModifier(cutString) #if selectionModifier is not None else cutString
-            #print "~   ", normalization_selection_string
+            normalization_selection_string = selectionModifier(cutInterpreter.cutString(args.selection + '-mt2llTo100')) 
 #NN ------------------------------------------------------------------------------------------------------------
 ####            mc_normalization_weight_string    = MC_WEIGHT(variations[args.variation], returntype='string')
             if args.variation is not None and "Input" in args.variation: # input variation
@@ -746,11 +665,17 @@ for mode in modes:
             else:
                 mc_normalization_weight_string    = MC_WEIGHT(variations[args.variation], returntype='string')
 # --------------------------------------------------------------------------------------------------------------
-            normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
-            print normalization_selection_string, mc_normalization_weight_string
+            if args.scaling is not None:
+                normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
+            else:
+                normalisation_mc = {s.name: 0 for s in mc}
+            #print normalization_selection_string, mc_normalization_weight_string
 
             if args.variation == 'central':
-                normalisation_data = data_sample.scale*data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
+                if args.scaling is not None:
+                    normalisation_data = data_sample.scale*data_sample.getYieldFromDraw( selectionString = normalization_selection_string, weightString = data_weight_string)['val']
+                else:
+                    normalisation_data = -5
             else:
                 normalisation_data = -1
 
@@ -781,7 +706,7 @@ systematics = [\
     {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
-    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
+#    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
     {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
 #NN
 #    {'name': 'DYInput',           'pair':('DYInputUp', 'DYInputDown')},
@@ -808,14 +733,16 @@ for mode in modes:
             variation_data[(mode, variation)] = {'histos':histos, 'normalisation_mc':normalisation_mc, 'normalisation_data':normalisation_data}
             logger.info( "Loaded normalisations and histograms for variation %s, era %s in mode %s from cache.", variation, args.era, mode)
             if normalisation_mc['Top_pow']<=0:
-                success = False
-                logger.info( "!!! Top_pow histo is zero !!!" )
+                if args.scaling is not None:
+                    success = False
+                    logger.info( "Top_pow histo is zero! Maybe the '-mt2llTo100' selection for scaling interferes with yours" )
+                else:
+                    success = True
             else: 
                 success = True
         if not success:
             # prepare sub variation command
             cmd = ['python', 'systematicVariation.py']
-            if args.dpm: cmd.append('--dpm')
             cmd.append('--logLevel=%s'%args.logLevel)
             if args.signal is not None: cmd.append( '--signal=%s'%args.signal )
             cmd.append('--era=%s'%args.era)
@@ -826,8 +753,9 @@ for mode in modes:
             cmd.append('--variation=%s'%variation)
             if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             if args.noDYHT: cmd.append('--noDYHT')
-            if args.overwrite: cmd.append('--overwrite')
             if args.small: cmd.append('--small')
+            if args.dpm: cmd.append('--dpm')
+            if args.overwrite: cmd.append('--overwrite')
 
             cmd_string = ' '.join( cmd )
             missing_cmds.append( cmd_string )
@@ -935,7 +863,7 @@ for mode in all_modes:
             for variation in variations.keys():
                 for s in mc:
                     dataMC_SF[mode][variation][s.name] = sf 
-
+        
 def drawObjects( scaling, scaleFactor ):
     tex = ROOT.TLatex()
     tex.SetNDC()
@@ -943,11 +871,20 @@ def drawObjects( scaling, scaleFactor ):
     tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary'),
-      (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF=%3.2f'% ( lumi_scale, scaleFactor ) ) if scaling == 'mc' else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(top)=%3.2f'% ( lumi_scale, scaleFactor ) ) if scaling == 'top' else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) ),
       ]
+    if scaling == 'mc':
+      lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(mc)=%3.2f'% ( lumi_scale, scaleFactor ) )]
+    elif scaling == 'top':
+      lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(top)=%3.2f'% ( lumi_scale, scaleFactor ) )]
+    elif scaling is None and args.normalize:
+      lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) scale=%3.2f'% ( lumi_scale, scaleFactor ) )]
+    else:
+      lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
+    if "mt2ll100" in args.selection: lines += [(0.55, 0.65, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
     return [tex.DrawLatex(*l) for l in lines]
 
 # We plot now. 
+if args.normalize: plot_subdirectory += "_normalized"
 if args.beta: plot_subdirectory += "_%s"%args.beta
 for mode in all_modes:
     for i_plot, plot in enumerate(plots):
@@ -966,6 +903,19 @@ for mode in all_modes:
         for i_mc_hm, mc_h in enumerate( mc_histo_list['central'][0] ):
             mc_h.style = stack_mc[0][i_mc_hm].style
             mc_h.legendText = stack_mc[0][i_mc_hm].texName
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        # area normalization scale factor
+        if args.scaling is None and args.normalize:
+            # scale variations individually
+            logger.info( "Scaling MC yield to data ( all variations are scaled by central SF)" )
+            yield_data = variation_data[(mode,'central')]['histos'][2*i_plot][0][0].Integral()
+            yield_mc = sum(variation_data[(mode,'central')]['histos'][2*i_plot+1][0][i].Integral() for i, s in enumerate(mc))
+            sf = yield_data/yield_mc
+            for variation in variations.keys():
+                for s in mc:
+                    dataMC_SF[mode][variation][s.name] = sf
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         # perform the scaling
         for variation in variations.keys():
@@ -1023,10 +973,7 @@ for mode in all_modes:
             ratio_boxes.append(r_box)
 
         for log in [False, True]:
-            #if args.beta is None:
             plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, mode + ("_log" if log else ""))
-            #else:
-            #    plot_directory_ = os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, args.beta, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
             if    mode == "all": plot.histos[1][0].legendText = "data (%s)"%args.era
@@ -1039,7 +986,7 @@ for mode in all_modes:
               ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
               logX = False, logY = log, sorting = True,
               yRange = (0.03, "auto") if log else (0.001, "auto"),
-              scaling = {0:1} if args.normalize else {},
+              #scaling = {0:1} if args.normalize else {},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
               drawObjects = drawObjects( args.scaling, dataMC_SF[mode]['central'][Top_pow.name] ) + boxes,
               copyIndexPHP = True, extensions = ["png", "pdf"],
