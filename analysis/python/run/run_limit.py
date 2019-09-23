@@ -753,6 +753,8 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
         postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
+for j, job in enumerate(jobs):
+    print j, job.name
 
 if args.only is not None:
     if args.only.isdigit():
@@ -763,6 +765,12 @@ if args.only is not None:
         #print jobNames
         wrapper(jobs[jobNames.index(args.only)])
     exit(0)
+
+# FIXME: removing 1052_0 from list
+for i, j in enumerate(jobs):
+    if j.name == "T8bbllnunu_XCha0p5_XSlep0p05_1052_0":
+        print "~removing ", j.name
+        del jobs[i]
 
 results = map(wrapper, jobs)
 results = [r for r in results if r]
