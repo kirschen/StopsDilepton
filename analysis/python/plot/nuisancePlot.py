@@ -14,6 +14,7 @@ def getNuisancesFromFile(nuisanceFile):
   nuisanceList = []
   with open(nuisanceFile) as f:
     for line in f:
+      print line
       if 'name' in line: continue
       sysName = line.split()[0]
       pull    = line.split(',')[0].split()[-1]
@@ -23,25 +24,26 @@ def getNuisancesFromFile(nuisanceFile):
 
 def plotNuisances(nuisanceList, name):
   h = ROOT.TH1F("h","",len(nuisanceList),0,len(nuisanceList))
-
   for i, (sysName, pull, pullErr) in enumerate(nuisanceList):
     h.GetXaxis().SetBinLabel(i+1, sysName);
     h.SetBinContent(i+1, pull);
     h.SetBinError(i+1, pullErr);
+  h.LabelsOption("v")
 
   ROOT.gStyle.SetPadLeftMargin(0.08);
   ROOT.gStyle.SetPadRightMargin(0.02);
   ROOT.gStyle.SetPadTopMargin(0.05);
-  ROOT.gStyle.SetPadBottomMargin(0.4);
+  ROOT.gStyle.SetPadBottomMargin(0.5);
 
-  c = ROOT.TCanvas("c1", "", 0, 0, 1500, 400);
-  h.SetMinimum(-2.1);
-  h.SetMaximum(2.1);
+  c = ROOT.TCanvas("c1", "", 0, 0, 1000, 400);
+  h.SetMinimum(-2.6);
+  h.SetMaximum(2.6);
   h.SetStats(0);
   h.SetMarkerStyle(20);
-  h.SetMarkerColor(2);
-  h.SetMarkerSize(2.0);
+  h.SetMarkerColor(ROOT.kBlack);
+  h.SetMarkerSize(1.2);
   h.SetLineWidth(2);
+  h.SetLineColor(ROOT.kBlack);
   h.GetXaxis().SetLabelSize(0.1);
   h.GetYaxis().SetTitle("Pull");
   h.GetYaxis().SetTitleOffset(0.5);
@@ -50,6 +52,19 @@ def plotNuisances(nuisanceList, name):
   h.GetYaxis().CenterTitle();
   h.GetYaxis().SetTickLength(0.015);
   h.Draw("PE1X0");
+  lineZ = ROOT.TLine(0,0,len(nuisanceList),0)
+  lineO = ROOT.TLine(0,-1,len(nuisanceList),-1)
+  lineMO = ROOT.TLine(0,1,len(nuisanceList),1)
+  lineT = ROOT.TLine(0,-2,len(nuisanceList),-2)
+  lineMT = ROOT.TLine(0,2,len(nuisanceList),2)
+  for l in [lineZ,lineO,lineMO,lineT,lineMT]:
+    l.SetLineColor(ROOT.kGray)
+  lineZ.Draw('l same')
+  lineO.Draw('l same')
+  lineMO.Draw('l same')
+  lineT.Draw('l same')
+  lineMT.Draw('l same')
+  h.Draw("PE1X0 same")
   c.SaveAs(name);
 
 nuisanceList     = getNuisancesFromFile(args.nuisanceFile)
@@ -60,3 +75,6 @@ nuisanceListSys  = [i for i in nuisanceList if not (i[0].count('Stat_') or i[0].
 plotNuisances(nuisanceList,     pullsFile+'_pulls_all.png')
 plotNuisances(nuisanceListStat, pullsFile+'_pulls_stat.png')
 plotNuisances(nuisanceListSys,  pullsFile+'_pulls_sys.png')
+plotNuisances(nuisanceList,     pullsFile+'_pulls_all.pdf')
+plotNuisances(nuisanceListStat, pullsFile+'_pulls_stat.pdf')
+plotNuisances(nuisanceListSys,  pullsFile+'_pulls_sys.pdf')
