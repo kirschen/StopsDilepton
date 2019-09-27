@@ -40,6 +40,13 @@ from StopsDilepton.tools.user                   import analysis_results,  plot_d
 from StopsDilepton.tools.cardFileWriter         import cardFileWriter
 from StopsDilepton.analysis.Cache               import Cache
 
+from StopsDilepton.samples.nanoTuples_Summer16_postProcessed            import *
+from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed   import *
+from StopsDilepton.samples.nanoTuples_Fall17_postProcessed              import *
+from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed   import *
+from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed            import *
+from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed  import *
+
 # some fake setup
 setup = Setup(2016)
 
@@ -184,8 +191,8 @@ def wrapper(s):
         return None
 
 if args.signal == "T2tt":
-    data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-    postProcessing_directory    = 'stops_2017_nano_v0p13/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+    postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
 
 allJobs = [j for j in jobs if j.name != 'T2tt_150_63']
