@@ -261,17 +261,18 @@ def wrapper(s):
         c.addUncertainty('topNonGaus', shapeString)
         c.addUncertainty('topFakes',   shapeString)
         c.addUncertainty('DY_SR',      shapeString)
+        c.addUncertainty('MB_SR',      shapeString)
         c.addUncertainty(DY_add,       shapeString) # only in high mt2blbl
         c.addUncertainty('ttZ_SR',     shapeString)
         # all regions, lnN
-        DY_SF_nui = 'DY_%s'%year
+        DY_SF_nui = 'DY'
         multiboson_SF = 'multiBoson'
         c.addUncertainty('topNorm',    'lnN')
         c.addUncertainty(multiboson_SF, shapeString)
         c.addUncertainty('MB_TT',       shapeString)
         c.addUncertainty(DY_SF_nui,     shapeString)
         c.addUncertainty('DY_TT',       shapeString)
-        c.addUncertainty('ttZ',        'lnN')
+        c.addUncertainty('ttZ',         shapeString)
         c.addUncertainty('other',      'lnN')
         if fastSim:
             c.addUncertainty('btagFS',   shapeString)
@@ -363,7 +364,6 @@ def wrapper(s):
                             c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
                             c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
                             c.specifyUncertainty(JER,        binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
-                            print 'JER', e.JERSystematic(        r, channel, setup).val
                             c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
                             c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                             c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
@@ -395,11 +395,13 @@ def wrapper(s):
                                 c.specifyUncertainty(multiboson_SF, binname, name, 1.50)
                             else:
                                 c.specifyUncertainty('MB_TT', binname, name, 1.20)
+                            if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
+                                    c.specifyUncertainty("MB_SR", binname, name, 1.25)
 
                         if e.name.count('DY'):
                             if niceName.count("controlTT")==0:
                                 logger.info("Assigning extra uncertainties to DY")
-                                c.specifyUncertainty(DY_SF_nui,         binname, name, 1/(1+0.5))#1.5
+                                c.specifyUncertainty(DY_SF_nui,         binname, name, 1.5)#1/(1+0.5))
                                 if r in highMT2blblregions:
                                     c.specifyUncertainty(DY_add,         binname, name, 1.5)
                                 if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
@@ -407,7 +409,8 @@ def wrapper(s):
                             else:
                                 c.specifyUncertainty('DY_TT', binname, name, 1.20)
 
-                        if e.name.count('TTZ') and niceName.count('DYVV')==0:
+                        if e.name.count('TTZ') and niceName.count('DYVV')==0 and niceName.count('TTBar')==0:
+                            print "IN TTZ REGION!"
                             c.specifyUncertainty('ttZ',        binname, name, 1.5)
                             c.specifyUncertainty('scaleTTZ',binname, name, 1 + 0.02) #getScaleUncBkg('TTZ', r, channel,'TTZ'))
                             c.specifyUncertainty('PDF',     binname, name, 1 + 0.02) #getPDFUnc('TTZ', r, channel,'TTZ'))
@@ -768,8 +771,8 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
         postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
-for j, job in enumerate(jobs):
-    print j, job.name
+#for j, job in enumerate(jobs):
+#    print j, job.name
 
 if args.only is not None:
     if args.only.isdigit():

@@ -33,7 +33,8 @@ def wrapper(s):
     logger.info("Processing mass point %s"%s.name)
     cardFile = "%s_shapeCard.txt"%s.name
     #analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v2/'
-    cardFilePath = "%s/%s/controlAll/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, 'expected' if args.expected else 'observed', cardFile)
+    cardFilePath = "%s/%s/fitAll/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, 'expected' if args.expected else 'observed', cardFile)
+    #cardFilePath = "%s/%s/controlAll/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, 'expected' if args.expected else 'observed', cardFile)
     #cardFilePath = "%s/%s/signalOnly/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, 'expected' if args.expected else 'observed', cardFile)
     #cardFilePath = "%s/%s/controlDYVV/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, 'expected' if args.expected else 'observed', cardFile)
     combineDirname = os.path.join(os.path.abspath('.'), s.name)
@@ -41,7 +42,7 @@ def wrapper(s):
     logger.info("Creating %s"%combineDirname)
     if not os.path.isdir(combineDirname): os.makedirs(combineDirname)
     shutil.copyfile(cardFilePath,combineDirname+'/'+cardFile)
-    shutil.copyfile(cardFilePath.replace('shapeCard.txt', 'shape.root'),combineDirname+'/'+cardFile.replace('shapeCard.txt', 'shape.root'))
+    shutil.copyfile(cardFilePath.replace('shapeCard.txt', 'shapeCard.root'),combineDirname+'/'+cardFile.replace('shapeCard.txt', 'shapeCard.root'))
     if args.bkgOnly:
         prepWorkspace   = "text2workspace.py %s --X-allow-no-signal -m 125"%cardFile
     else:

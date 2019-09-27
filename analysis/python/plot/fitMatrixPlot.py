@@ -31,7 +31,7 @@ argParser.add_argument("--overwrite",            action="store_true",           
 argParser.add_argument("--bkgOnly",              action="store_true",                            help="fix r to 0?")
 argParser.add_argument("--preliminary",          action="store_true",                            help="Run expected?")
 argParser.add_argument("--restrict",             action="store_true",                            help="Remove stat unc and r?")
-argParser.add_argument("--year",                 action="store",      type=int, default=2016,    help="Which year?")
+argParser.add_argument("--year",                 action="store",                default='2016',    help="Which year?")
 argParser.add_argument("--carddir",              action='store',                default='2016/limits/cardFiles/defaultSetup/observed',      help="which cardfile directory?")
 argParser.add_argument("--cardfile",             action='store',                default='',      help="which cardfile?")
 args = argParser.parse_args()
@@ -44,11 +44,12 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(    args.logLevel, logFile = None )
 logger_rt = logger_rt.get_logger( args.logLevel, logFile = None )
 
-if args.year == 2016:   lumi_scale = 35.92
-elif args.year == 2017: lumi_scale = 41.86
-elif args.year == 2018: lumi_scale = 58.83
+if args.year == '2016':   lumi_scale = 35.92
+elif args.year == '2017': lumi_scale = 41.86
+elif args.year == '2018': lumi_scale = 58.83
+elif args.year =='COMBINED': lumi_scale = 138.4
 
-cardFile = os.path.join( analysis_results, args.carddir, args.cardfile+".txt" )
+cardFile = os.path.join( analysis_results, args.year, args.carddir, args.cardfile+".txt" )
 logger.info("Plotting from cardfile %s"%cardFile)
 
 # get the results
