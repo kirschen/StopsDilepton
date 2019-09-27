@@ -42,11 +42,13 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None)
 from StopsDilepton.analysis.Setup import Setup
 if options.combined:
     setup=Setup(2016)
+    lumiStr = 138.4
 else:
     setup = Setup(options.year)
-analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
+    lumiStr = setup.dataLumi/1000
+#analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
 isData = True if not options.expected else False
-lumiStr = setup.dataLumi/1000
+#lumiStr = setup.dataLumi/1000
 years=[2016,2017,2018]
 controlRegions = 'controlAll'
 cardName = "T2tt_400_0_shapeCard"
@@ -108,10 +110,10 @@ if options.combined:
         bhistos[n].style = styles.fillStyle( getattr(color, p), lineColor=getattr(color,p), errors=False )
         bkgHist.append( bhistos[n])
     print bkgHist
-
+    dataHist.SetBinErrorOption(ROOT.TH1F.kPoisson)
     for i in range(dataHist.GetNbinsX()):
         dataHist.SetBinContent(i+1, (hists[2016]['data'].Eval(i+0.5) + hists[2017]['data'].Eval(i+0.5) + hists[2018]['data'].Eval(i+0.5)))
-        dataHist.SetBinError(i+1, (hists[2016]['data'].Eval(i+0.5) + hists[2017]['data'].Eval(i+0.5) + hists[2018]['data'].Eval(i+0.5)))
+        #dataHist.SetBinError(i+1, (hists[2016]['data'].Eval(i+0.5) + hists[2017]['data'].Eval(i+0.5) + hists[2018]['data'].Eval(i+0.5)))
     histos['data'] = dataHist
 
     histos['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
@@ -145,93 +147,60 @@ else:
     hists['data'].legendOption = 'p'
 #hists['BSM'].legendOption = 'l'
 
-### manually calculate the chi2 (no correlations).
-#chi2SM  = 0
-#chi2BSM = 0
-#totalExp = 0
-#totalObs = 0
-#nDOF = 0
-#Exp = []
-#Obs = []
-#printChi2 = False
-#for i, r in enumerate(regions):
-#    Exp.append(hists['total'].GetBinContent(i+1))
-#    Obs.append(hists['observed'].GetBinContent(i+1))
-#    if printChi2:
-#        print "Region %s"%(i+1)
-#        print "SM"
-#        print hists['total'].GetBinContent(i+1)
-#        print (hists['observed'].GetBinContent(i+1) - hists['total'].GetBinContent(i+1))
-#        print hists['total'].GetBinError(i+1)
-#        print hists['observed'].GetBinContent(i+1)/hists['total'].GetBinContent(i+1)
-#        print "Chi2", ( ((hists['observed'].GetBinContent(i+1) - hists['total'].GetBinContent(i+1))**2) / (hists['total'].GetBinError(i+1)**2) )
-#        print "BSM"
-#        print hists['BSM'].GetBinContent(i+1)
-#        print hists['observed'].GetBinContent(i+1) - hists['BSM'].GetBinContent(i+1)
-#        print hists['BSM'].GetBinError(i+1)
-#        print hists['observed'].GetBinContent(i+1)/hists['BSM'].GetBinContent(i+1)
-#        print "Chi2", (hists['observed'].GetBinContent(i+1) - hists['BSM'].GetBinContent(i+1))**2/hists['BSM'].GetBinError(i+1)**2
-#        print
-#    totalExp += hists['total'].GetBinContent(i+1)
-#    totalObs += hists['observed'].GetBinContent(i+1)
-#    if hists['total'].GetBinContent(i+1) > 10:# or True:
-#        chi2SM += ( ((hists['observed'].GetBinContent(i+1) - hists['total'].GetBinContent(i+1))**2) / (hists['total'].GetBinError(i+1)**2) )
-#        nDOF +=1
-#    if options.signal and hists['BSM'].GetBinContent(i+1) > 10:# or True:
-#        chi2BSM += (hists['observed'].GetBinContent(i+1) - hists['BSM'].GetBinContent(i+1))**2/hists['BSM'].GetBinError(i+1)**2
-#
-#    if i == 14 and printChi2:
-#        print "Intermediate Chi2 values:"
-#        print chi2SM
-#        print chi2BSM
-#
-#if printChi2:
-#    print "Chi-squared for SM:", chi2SM
-#    print "Chi-squared for BSM:", chi2BSM
-#    print "nDOF:", len(regions)
-#    print "nDOF (red):", nDOF
-#    print "Total Obs/Exp:", totalObs/totalExp
-#
-## get the covariance matrix
-# combineCards.py mycard.txt -S > myshapecard.txt
-# text2workspace.py myshapecard.txt
-# combine -M MaxLikelihoodFit --saveShapes --saveWithUnc --numToysForShape 5000 --saveOverall myshapecard.root
-#
-### calculate the chi2 with R^T*Cov^(-1)*R where R is the residual vector
-#import numpy as np
-#import pickle
-#E = np.array(Exp)
-#O = np.array(Obs)
-#R = E - O
-#RT = R.transpose()
-
-
 boxes = []
 ratio_boxes = []
-for ib in range(1, 1 + hists[2016]['total_background'].GetNbinsX() ):
-    val = hists[2016]['total_background'].GetBinContent(ib) + hists[2017]['total_background'].GetBinContent(ib) + hists[2018]['total_background'].GetBinContent(ib)
-    if val<0: continue
-    sys = hists[2016]['total_background'].GetBinError(ib) + hists[2017]['total_background'].GetBinError(ib) + hists[2018]['total_background'].GetBinError(ib)
-    if val > 0:
-        sys_rel = sys/val
-    else:
-        sys_rel = 1.
-    
-    # uncertainty box in main histogram
-    box = ROOT.TBox( hists[2016]['total_background'].GetXaxis().GetBinLowEdge(ib),  max([0.006, val-sys]), hists[2016]['total_background'].GetXaxis().GetBinUpEdge(ib), max([0.006, val+sys]) )
-    box.SetLineColor(ROOT.kGray+1)
-    box.SetFillStyle(3244)
-    box.SetFillColor(ROOT.kGray+1)
-    
-    # uncertainty box in ratio histogram
-    r_box = ROOT.TBox( hists[2016]['total_background'].GetXaxis().GetBinLowEdge(ib),  max(0.11, 1-sys_rel), hists[2016]['total_background'].GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys_rel) )
-    r_box.SetLineColor(ROOT.kGray+1)
-    r_box.SetFillStyle(3244)
-    r_box.SetFillColor(ROOT.kGray+1)
+if options.combined:
+    for ib in range(1, 1 + hists[2016]['total_background'].GetNbinsX() ):
+        val = hists[2016]['total_background'].GetBinContent(ib) + hists[2017]['total_background'].GetBinContent(ib) + hists[2018]['total_background'].GetBinContent(ib)
+        if val<0: continue
+        #sys = hists[2016]['total_background'].GetBinError(ib) + hists[2017]['total_background'].GetBinError(ib) + hists[2018]['total_background'].GetBinError(ib)
+        sys = math.sqrt((hists[2016]['total_background'].GetBinError(ib) * hists[2016]['total_background'].GetBinError(ib))+ (hists[2017]['total_background'].GetBinError(ib) * hists[2017]['total_background'].GetBinError(ib)) +( hists[2018]['total_background'].GetBinError(ib) * hists[2018]['total_background'].GetBinError(ib)))
+        if val > 0:
+            sys_rel = sys/val
+        else:
+            sys_rel = 1.
+        
+        # uncertainty box in main histogram
+        box = ROOT.TBox( hists[2016]['total_background'].GetXaxis().GetBinLowEdge(ib),  max([0.006, val-sys]), hists[2016]['total_background'].GetXaxis().GetBinUpEdge(ib), max([0.006, val+sys]) )
+        box.SetLineColor(ROOT.kGray+1)
+        box.SetFillStyle(3244)
+        box.SetFillColor(ROOT.kGray+1)
+        
+        # uncertainty box in ratio histogram
+        r_box = ROOT.TBox( hists[2016]['total_background'].GetXaxis().GetBinLowEdge(ib),  max(0.11, 1-sys_rel), hists[2016]['total_background'].GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys_rel) )
+        r_box.SetLineColor(ROOT.kGray+1)
+        r_box.SetFillStyle(3244)
+        r_box.SetFillColor(ROOT.kGray+1)
 
-    boxes.append( box )
-    hists[2016]['total_background'].SetBinError(ib, 0)
-    ratio_boxes.append( r_box )
+        boxes.append( box )
+        hists[2016]['total_background'].SetBinError(ib, 0)
+        ratio_boxes.append( r_box )
+else:
+
+    for ib in range(1, 1 + hists['total_background'].GetNbinsX() ):
+        val = hists['total_background'].GetBinContent(ib)
+        if val<0: continue
+        sys = hists['total_background'].GetBinError(ib)
+        if val > 0:
+            sys_rel = sys/val
+        else:
+            sys_rel = 1.
+        
+        # uncertainty box in main histogram
+        box = ROOT.TBox( hists['total_background'].GetXaxis().GetBinLowEdge(ib),  max([0.006, val-sys]), hists['total_background'].GetXaxis().GetBinUpEdge(ib), max([0.006, val+sys]) )
+        box.SetLineColor(ROOT.kGray+1)
+        box.SetFillStyle(3244)
+        box.SetFillColor(ROOT.kGray+1)
+        
+        # uncertainty box in ratio histogram
+        r_box = ROOT.TBox( hists['total_background'].GetXaxis().GetBinLowEdge(ib),  max(0.11, 1-sys_rel), hists['total_background'].GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys_rel) )
+        r_box.SetLineColor(ROOT.kGray+1)
+        r_box.SetFillStyle(3244)
+        r_box.SetFillColor(ROOT.kGray+1)
+
+        boxes.append( box )
+        hists['total_background'].SetBinError(ib, 0)
+        ratio_boxes.append( r_box )
 
 def drawObjects( isData=False, lumi=36. ):
     tex = ROOT.TLatex()
@@ -268,7 +237,7 @@ plotting.draw(
                 texX = "",
                 texY = 'Number of events',
             ),
-    plot_directory = os.path.join(plot_directory, "controlRegions", 'vtest'),
+    plot_directory = os.path.join(plot_directory, "controlRegions", 'v6'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
     legend = (0.70,0.60, 0.95, 0.90),

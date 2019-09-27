@@ -9,7 +9,7 @@ import argparse
 from RootTools.core.Sample import Sample
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',        default='INFO',         nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
-argParser.add_argument("--signal",         action='store',        default='T2tt',         nargs='?', choices=["T2tt"],                                                                         help="which signal scan?")
+argParser.add_argument("--signal",         action='store',        default='T2tt',         nargs='?', choices=["T2tt","T8bbllnunu_XCha0p5_XSlep0p5","T8bbllnunu_XCha0p5_XSlep0p05","T8bbllnunu_XCha0p5_XSlep0p95","T2bW"],                                                                         help="which signal scan?")
 argParser.add_argument("--overwrite",      action = "store_true", default = False,                                                                                                             help="Overwrite existing output files")
 argParser.add_argument("--controlRegions", action='store',        default='signalOnly',   nargs='?', choices=["controlAll","signalOnly","controlDYVV","controlTTZ","controlTT","fitAll"],                help="which signal scan?")
 
@@ -194,7 +194,15 @@ if args.signal == "T2tt":
     data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
     postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
+    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+    from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
+    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+    from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
 allJobs = [j for j in jobs if j.name != 'T2tt_150_63']
 if args.only is not None:
     if args.only.isdigit():

@@ -320,7 +320,7 @@ def drawPlots(plots, mode, dataMCScale):
             scaling = {0:1} if args.dataMCScaling else {},
             legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
             drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ) + _drawObjects,
-            copyIndexPHP = True, extensions = ["png"],
+            copyIndexPHP = True, extensions = ["png", "pdf"],
           )
       elif isinstance( plot, Plot2D ):
 
@@ -333,7 +333,7 @@ def drawPlots(plots, mode, dataMCScale):
             #scaling = {},
             #legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88),
             drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
-            copyIndexPHP = True, extensions = ["png"], 
+            copyIndexPHP = True, extensions = ["png", "pdf"], 
           )
           p_data = Plot2D.fromHisto( plot.name+'_data', plot.histos[1:], texX = plot.texX, texY = plot.texY )
           plotting.draw2D(p_data,
@@ -344,7 +344,7 @@ def drawPlots(plots, mode, dataMCScale):
             #scaling = {},
             #legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88),
             drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
-            copyIndexPHP = True, extensions = ["png"], 
+            copyIndexPHP = True, extensions = ["png", "pdf"], 
           )
 
 #
@@ -526,7 +526,7 @@ if args.reweightPU =='nvtx':
     data_nvtx_histo.Scale(1./data_nvtx_histo.Integral())
 
     mc_selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection("SF"), cutInterpreter.cutString(args.nvtxReweightSelection)])
-    mc_histos  = [ s.get1DHistoFromDraw( "PV_npvsGood", [100/5, 0, 100], selectionString=mc_selectionString, weightString = "weight*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF") for s in mc]
+    mc_histos  = [ s.get1DHistoFromDraw( "PV_npvsGood", [100/5, 0, 100], selectionString=mc_selectionString, weightString = "weight*reweightHEM*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF") for s in mc]
     mc_nvtx_histo     = mc_histos[0]
     for h in mc_histos[1:]:
         mc_nvtx_histo.Add( h )
@@ -547,9 +547,9 @@ for index, mode in enumerate(allModes):
 
   data_sample.setSelectionString([getFilterCut(isData=True, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
   data_sample.name           = "data"
-  data_sample.read_variables = ["event/I","run/I"]
+  data_sample.read_variables = ["event/I","run/I", "reweightHEM/F"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
-  weight_ = lambda event, sample: event.weight
+  weight_ = lambda event, sample: event.weight*event.reweightHEM
 
   #data_sample_filtered = copy.deepcopy( data_sample )
   #data_sample_filtered.style = styles.errorStyle(ROOT.kRed)
@@ -558,7 +558,7 @@ for index, mode in enumerate(allModes):
   #data_sample_filtered.texName+= " (filtered)"
 
   for sample in mc + signals:
-    sample.read_variables = ['reweightPU/F', 'reweightL1Prefire/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F']
+    sample.read_variables = ['reweightPU/F', 'reweightL1Prefire/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', 'reweightHEM/F']
     # Need individual pu reweighting functions for each sample in 2017, so nTrueInt_puRW is only defined here
     if args.reweightPU and args.reweightPU not in ["noPUReweighting", "nvtx"]:
         sample.read_variables.append( 'reweightPU/F' if args.reweightPU=='Central' else 'reweightPU%s/F'%args.reweightPU )

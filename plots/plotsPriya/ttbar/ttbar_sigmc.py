@@ -34,8 +34,8 @@ argParser.add_argument('--plot_directory',     action='store',      default='v04
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--recoil',             action='store', type=str,      default=None, choices = ["nvtx", "VUp", None])
 #argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
-argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.1-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
-#argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonVeto-mll20-badEEJetVeto-dPhiJet0-dPhiJet1')
+#argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag1-miniIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag1-miniIso0.2-looseLeptonVeto-mll20-badEEJetVeto-dPhiJet0-dPhiJet1')
 #argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.1-looseLeptonVeto-mll20-badEEJetVeto-dPhiJet0-dPhiJet1')
 #argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 #argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-badEEJetVeto-dPhiJet0-dPhiJet1')
@@ -194,10 +194,10 @@ for sample in mc:
     sample.read_variables  = [ "JetGood[genPt/F]" ] 
 
 sequence = []
-def makeWeight(event, sample):
-    print event.weight
-
-sequence.append(makeWeight)
+#def makeWeight(event, sample):
+#    print event.weight
+#
+#sequence.append(makeWeight)
 
 
 
@@ -227,8 +227,8 @@ for index, mode in enumerate(allModes):
 #                    weight_  = lambda event, sample: event.weight * event.reweightHEM
   if year == 2018:
     weight_ = lambda event, sample: event.weight*event.reweightHEM
-    print "2018"
-    print weight_
+    #print "2018"
+    #print weight_
   else:
     weight_ = lambda event, sample: event.weight
 

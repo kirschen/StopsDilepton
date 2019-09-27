@@ -6,6 +6,19 @@
 /afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v2/2017/fitAll/limits/T2tt/T2tt/limitResults.root
 
 /afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3//comb/fitAll/limits/T2tt/T2tt/limitResults.root
+
+/afs/hephy.at/data/cms04/StopsDileptonLegacy/results/v4/2016/signalOnly/limits/T2bW/T2bW/limitResults.root
+/afs/hephy.at/data/cms04/StopsDileptonLegacy/results/v4/2016/fitAll/limits/T8bbllnunu_XCha0p5_XSlep0p05/T8bbllnunu_XCha0p5_XSlep0p05/limitResults.root
+/afs/hephy.at/data/cms04/StopsDileptonLegacy/results/v4/2017/fitAll/limits/T8bbllnunu_XCha0p5_XSlep0p05/T8bbllnunu_XCha0p5_XSlep0p05/limitResults.root
+/afs/hephy.at/data/cms04/StopsDileptonLegacy/results/v4/2017/fitAll/limits/T8bbllnunu_XCha0p5_XSlep0p5/T8bbllnunu_XCha0p5_XSlep0p5/limitResults.root
+/afs/hephy.at/data/cms04/StopsDileptonLegacy/results/v4/2018/fitAll/limits/T8bbllnunu_XCha0p5_XSlep0p5/T8bbllnunu_XCha0p5_XSlep0p5/limitResults.root
+
+/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4/2017/fitAll/limits/T8bbllnunu_XCha0p5_XSlep0p05/T8bbllnunu_XCha0p5_XSlep0p05/limitResults.root
+afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4/2017/fitAll/limits/T8bbllnunu_XCha0p5_XSlep0p5/T8bbllnunu_XCha0p5_XSlep0p5/limitResults.root
+/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4/2016/fitAll/limits/T2bW/T2bW/limitResults.root
+/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4/2017/fitAll/limits/T2bW/T2bW/limitResults.root
+Written /afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4//comb/fitAll/limits/T2tt/T2tt/limitResults.root
+/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4//comb/fitAll/limits/T8bbllnunu_XCha0p5_XSlep0p95/T8bbllnunu_XCha0p5_XSlep0p95/limitResults.root
 '''
 
 #!/usr/bin/env python
@@ -28,9 +41,6 @@ ROOT.gROOT.SetBatch(True)
 #year = 2017
 #signalString = "T2bW"
 
-# Priya
-#analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
-# Markus
 analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4/'
 
 from optparse import OptionParser
@@ -43,10 +53,12 @@ parser.add_option("--year",             dest="year",   type="int",    action="st
 signalString = options.signal
 # combined
 #defFile = os.path.join(analysis_results, "comb/signalOnly/limits/%s/%s/limitResults.root"%(signalString,signalString))
+#defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
+#defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
+#defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
 #defFile = os.path.join(analysis_results, "comb/fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
 # per year
 #defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
-defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
 
 print defFile
 if options.year == 2016:
@@ -77,6 +89,7 @@ def toGraph2D(name,title,length,x,y,z):
 
 
 ifs = defFile.split('/')
+
 # Combined
 #plotDir = os.path.join(plot_directory,ifs[-3],'v4', ifs[-2]+'FR_signalOnly_combined')
 #plotDir = os.path.join(plot_directory,ifs[-3],'v3', ifs[-2]+'FR_limitAll_combined')
@@ -136,6 +149,7 @@ for i in ["exp","exp_up","exp_down","obs"]:
     nybins = max(1, min(500, int((ymax-ymin+bin_size/100.)/bin_size)))
     a.SetNpx(nxbins)
     a.SetNpy(nybins)
+    print nxbins , nybins
     hists[i] = a.GetHistogram().Clone()
     hists[i].Draw()
 
@@ -218,6 +232,7 @@ hists["obs_UL_int"].Clone("temperature").Write()
 
 for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
   contours = getContours(hists[i + "_smooth"], plotDir)
+  print contours
   for g in contours: cleanContour(g, model=modelname)
   contours = max(contours , key=lambda x:x.GetN()).Clone("contour_" + i)
   if False and signalString == 'T8bbllnunu_XCha0p5_XSlep0p05':
@@ -226,6 +241,7 @@ for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
             x = ROOT.Double()
             y = ROOT.Double()
             contours.GetPoint(j,x,y)
+            print x ,y
         contours.RemovePoint(j)
         contours.SetPoint(j,500,15)
   #for cont in contours:
@@ -253,7 +269,7 @@ fileIN = inputFile('SMS_limit.cfg')
 
 # classic temperature histogra
 xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "asdf")
-xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-3,10) )
+xsecPlot.Draw( lumi = lumi, zAxis_range = (5*10**-4,10) )
 xsecPlot.Save("%sXSEC" %outputname)
 
 temp = ROOT.TFile("tmp.root","update")
