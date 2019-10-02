@@ -23,6 +23,7 @@ argParser.add_argument("--DMsync",         default = False, action = "store_true
 argParser.add_argument("--noSignal",       default = False, action = "store_true", help="Don't use any signal (force signal yield to 0)?")
 argParser.add_argument("--useTxt",         default = False, action = "store_true", help="Use txt based cardFiles instead of root/shape based ones?")
 argParser.add_argument("--fullSim",        default = False, action = "store_true", help="Use FullSim signals")
+argParser.add_argument("--signalInjection",default = False, action = "store_true", help="Inject signal?")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--removeSR",       default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--skipFitDiagnostics", default = False, action = "store_true", help="Don't do the fitDiagnostics (this is necessary for pre/postfit plots, but not 2D scans)?")
@@ -153,7 +154,10 @@ else:                       subDir += 'signalOnly'
 
 baseDir = os.path.join(setup.analysis_results, str(year), subDir)
 
-limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension, 'expected' if args.expected else 'observed')
+sSubDir = 'expected' if args.expected else 'observed'
+if args.signalInjection: sSubDir += '_signalInjected'
+
+limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension, sSubDir)
 overWrite   = (args.only is not None) or args.overwrite
 if args.keepCard:
     overWrite = False
@@ -359,7 +363,7 @@ def wrapper(s):
                         else: uncScale = 1
                         #print "Process", name, "uncertainty scale", uncScale
                         c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
-                        if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
+                        if not e.name.count("TTJets") and not niceName.count('controlTTBar') or True:
                         #if not niceName.count('controlTTBar'):
                             c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
                             c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
@@ -410,7 +414,6 @@ def wrapper(s):
                                 c.specifyUncertainty('DY_TT', binname, name, 1.20)
 
                         if e.name.count('TTZ') and niceName.count('DYVV')==0 and niceName.count('TTBar')==0:
-                            print "IN TTZ REGION!"
                             c.specifyUncertainty('ttZ',        binname, name, 1.5)
                             c.specifyUncertainty('scaleTTZ',binname, name, 1 + 0.02) #getScaleUncBkg('TTZ', r, channel,'TTZ'))
                             c.specifyUncertainty('PDF',     binname, name, 1 + 0.02) #getPDFUnc('TTZ', r, channel,'TTZ'))
@@ -425,14 +428,6 @@ def wrapper(s):
                         c.addUncertainty(uname, 'lnN')
                         c.specifyUncertainty(uname, binname, name, 1 + (expected.sigma/expected.val) * uncScale if expected.val>0 else 1)
 
-                if args.expected or (not args.unblind and not niceName.count('control')):
-                    c.specifyObservation(binname, int(round(total_exp_bkg,0)))
-                    logger.info("Expected observation: %s", int(round(total_exp_bkg,0)))
-                #elif not args.unblind and:
-                #    
-                else:
-                    c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
-                    logger.info("Observation: %s", int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
                 #signal
                 eSignal.isSignal = True
@@ -451,12 +446,6 @@ def wrapper(s):
                     signal = e.cachedEstimate(r, channel, signalSetup)
 
                 signal = signal * args.scale
-
-                #if args.noSignal:
-                #    signal.val = 0
-                #    signal.sigma = 1
-
-                #signal.val, signal.sigma = 0.1, 1.0
 
                 if niceName.count('controlTTZ') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
                 if niceName.count('controlDY') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
@@ -497,6 +486,22 @@ def wrapper(s):
                   c.addUncertainty(uname, 'lnN')
                   c.specifyUncertainty(uname, binname, 'signal', 1 )
                 
+                ## Observation ##
+                # expected
+                if (args.expected or (not args.unblind and not niceName.count('control'))) and not args.signalInjection:
+                    c.specifyObservation(binname, int(round(total_exp_bkg,0)))
+                    logger.info("Expected observation: %s", int(round(total_exp_bkg,0)))
+                # expected with signal injected
+                elif args.signalInjection:
+                    pseudoObservation = int(round(total_exp_bkg+signal.val,0))
+                    c.specifyObservation(binname, pseudoObservation)
+                    logger.info("Expected observation (signal is injected!): %s", pseudoObservation)
+                # real observation (can be scaled for studies)
+                else:
+                    c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
+                    logger.info("Observation: %s", int(args.scale*observation.cachedObservation(r, channel, setup).val))
+                
+                # Muting (maybe obsolete??)
                 if not args.controlDYVV and (signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg<=0):# or (total_exp_bkg>300 and signal.val<0.05):
                   if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
                   c.muted[binname] = True
@@ -595,7 +600,7 @@ def wrapper(s):
         postFitShapes   = fitResults['hists']['shapes_fit_b']['Bin0']
         
 
-        top_prefit  = preFitResults['TTJetsF'] + preFitResults['TTJetsG'] + preFitResults['TTJetsNG']
+        top_prefit  = preFitResults['TTJetsF']  + preFitResults['TTJetsG']  + preFitResults['TTJetsNG']
         top_postfit = postFitResults['TTJetsF'] + postFitResults['TTJetsG'] + postFitResults['TTJetsNG']
 
         topF_prefit_SR_err, topG_prefit_SR_err, topNG_prefit_SR_err     = ROOT.Double(), ROOT.Double(), ROOT.Double()

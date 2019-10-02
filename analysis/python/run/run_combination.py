@@ -18,6 +18,7 @@ argParser.add_argument("--only",           action='store',        default=None, 
 argParser.add_argument("--includeCR",      action='store_true',                                                                                                                                help="Do simultaneous SR and CR fit")
 argParser.add_argument("--expected",       action='store_true',                                                                                                                                help="Do simultaneous SR and CR fit")
 argParser.add_argument("--calcNuisances",  action='store_true',                                                                         help="Extract the nuisances and store them in text files?")
+argParser.add_argument("--signalInjection",action='store_true',                                                                         help="Would you like some signal with your background?")
 
 
 args = argParser.parse_args()
@@ -64,9 +65,10 @@ def wrapper(s):
     
     # get the seperated cards
     for year in years:
-        
+        sSubDir = 'expected' if args.expected else 'observed'
+        if args.signalInjection: sSubDir += '_signalInjected'
         baseDir  = analysis_results+"/%s/%s/"%(year,args.controlRegions)
-        limitDir = baseDir+"/cardFiles/%s/%s/"%(args.signal,'expected' if args.expected else 'observed')
+        limitDir = baseDir+"/cardFiles/%s/%s/"%(args.signal, sSubDir)
         cardFileName = os.path.join(limitDir, s.name+'_shapeCard.txt')
 
         if not os.path.isfile(cardFileName):
