@@ -239,13 +239,14 @@ def wrapper(s):
         SFb     = 'SFb_%s'%year
         SFl     = 'SFl_%s'%year
         trigger = 'trigger_%s'%year
-        JEC     = 'JEC'
+        JEC     = 'JEC_%s'%year
+        unclEn  = 'unclEn_%s'%year
         JER     = 'JER_%s'%year
         PU      = 'PU_%s'%year
         c.addUncertainty(PU,           shapeString)
         c.addUncertainty('topPt',      shapeString)
         c.addUncertainty(JEC,          shapeString)
-        c.addUncertainty('unclEn',     shapeString)
+        c.addUncertainty(unclEn,       shapeString)
         c.addUncertainty(JER,          shapeString)
         c.addUncertainty(SFb,          shapeString)
         c.addUncertainty(SFl,          shapeString)
@@ -283,6 +284,11 @@ def wrapper(s):
             c.addUncertainty('leptonFS', shapeString)
             c.addUncertainty('FSmet',    shapeString)
             c.addUncertainty('PUFS',     shapeString)
+
+        #c.addRateParameter('DY', 1, '[0,2]')
+        #c.addRateParameter('multiBoson', 1, '[0,2]')
+        #c.addRateParameter('TTZ', 1, '[0,2]')
+        #c.addRateParameter('TTJetsG', 1, '[0,2]')
 
         for setup in setups:
           eSignal     = MCBasedEstimate(name=s.name, sample=s, cacheDir=setup.defaultCacheDir()) # {channel:s for channel in channels+trilepChannels}
@@ -366,7 +372,7 @@ def wrapper(s):
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar') or True:
                         #if not niceName.count('controlTTBar'):
                             c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
-                            c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
+                            c.specifyUncertainty(unclEn,     binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
                             c.specifyUncertainty(JER,        binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
                             c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
                             c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
@@ -462,7 +468,7 @@ def wrapper(s):
                         c.specifyUncertainty('xsec_QCD',      binname, 'signal', 1.092)
                         c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
                   c.specifyUncertainty(JEC,        binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
-                  c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
+                  c.specifyUncertainty(unclEn,     binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty(JER,        binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val ) #0.02 )
                   c.specifyUncertainty(SFb,        binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty(SFl,        binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )

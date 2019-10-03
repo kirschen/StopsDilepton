@@ -34,6 +34,7 @@ argParser.add_argument("--restrict",             action="store_true",           
 argParser.add_argument("--year",                 action="store",                default='2016',    help="Which year?")
 argParser.add_argument("--carddir",              action='store',                default='2016/limits/cardFiles/defaultSetup/observed',      help="which cardfile directory?")
 argParser.add_argument("--cardfile",             action='store',                default='',      help="which cardfile?")
+argParser.add_argument("--postfix",             action='store',                default='',      help="which cardfile?")
 args = argParser.parse_args()
 
 args.preliminary = True # fix label (change later)
@@ -115,6 +116,7 @@ add      = "_".join( [ item for item in args.cardfile.split("_") if item in ["ad
 if args.restrict: add += "_sysOnly"
 fit      = "bkgOnly" if args.bkgOnly else "float"
 if add: fit += "_"+add
+if args.postfix: fit += '_' + args.postfix
 
 for log in [False, True]:
     hist.GetZaxis().SetRangeUser(-1,1)
