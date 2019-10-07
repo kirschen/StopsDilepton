@@ -135,7 +135,7 @@ def MC_WEIGHT( variation, returntype = "string"):
 def data_weight( event, sample ):
     return event.weight*event.reweightHEM
 
-data_weight_string = "weight"
+data_weight_string = "weight*reweightHEM"
 
 # Define all systematic variations
 jet_systematics    = ['jesTotalUp','jesTotalDown', 'jerUp', 'jerDown']
@@ -247,8 +247,8 @@ sequence = []
 
 ele_selector_iso     = eleSelector(  'tightMiniIso02', year )
 mu_selector_iso      = muonSelector( 'tightMiniIso02', year )
-ele_selector_invIso   = eleSelector(  'tightNoIso', year )
-mu_selector_invIso    = muonSelector( 'tightNoIso', year )
+ele_selector_noIso   = eleSelector(  'tightNoIso', year )
+mu_selector_noIso    = muonSelector( 'tightNoIso', year )
 
 def make_invIso(event, sample):
     event.iso_mt        = float('nan')
@@ -264,22 +264,35 @@ def make_invIso(event, sample):
         met_pt = event.met_pt
         met_phi = event.met_phi
 
-    invIsoLeptons = getGoodMuons(event, mu_selector = mu_selector_invIso) + getGoodElectrons(event, ele_selector = ele_selector_invIso)
+    noIsoLeptons = getGoodMuons(event, mu_selector = mu_selector_noIso) + getGoodElectrons(event, ele_selector = ele_selector_noIso)
 
-    loose_leptons = []
-    for l in invIsoLeptons:
+    # leptons with high isolation
+    invIso_leptons = []
+    for l in noIsoLeptons:
         if l['miniPFRelIso_all'] > 0.2:
-            loose_leptons.append(l)
+            invIso_leptons.append(l)
+
+    # isolation of trailing lepton (if leading is isolated)
+    noIsoLeptons.sort( key = lambda p:-p['pt'] )
+    event.trailing_ele_iso = -1 
+    event.trailing_mu_iso  = -1 
+    if len(noIsoLeptons)>1:
+        if abs(noIsoLeptons[0]['pdgId'])==11 and ele_selector_iso(noIsoLeptons[0]) or abs(noIsoLeptons[0]['pdgId'])==13 and mu_selector_iso(noIsoLeptons[0]):
+            if abs(noIsoLeptons[1]['pdgId'])==11:
+                event.trailing_ele_iso = noIsoLeptons[1]['miniPFRelIso_all']
+            elif abs(noIsoLeptons[1]['pdgId'])==13:
+                event.trailing_mu_iso = noIsoLeptons[1]['miniPFRelIso_all']
+            
 
     if sample.mode == "mumu" or sample.mode == "emu": # second (non isolated) lepton is a MUON
         pdgID = 13
     elif sample.mode == "mue" or sample.mode == "ee": # second (non isolated) lepton is an ELECTRON
         pdgID = 11
 
-    if len(loose_leptons)>0:
+    if len(invIso_leptons)>0:
         l1 = {"pt": event.l1_pt, "phi": event.l1_phi, "eta": event.l1_eta, "pdgId": event.l1_pdgId}
 
-        l = loose_leptons[0]
+        l = invIso_leptons[0]
         ll = {"pt": l["pt"], "phi": l["phi"], "eta": l["eta"], "pdgId": l["pdgId"], "miniPFRelIso_all": l['miniPFRelIso_all']}
 
         if abs(ll["pdgId"]) == pdgID:
@@ -451,6 +464,46 @@ for mode in modes:
         selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
         weight          = mc_weight )
     plots.append( invIso_mt_mc )
+
+    if args.variation == 'central':
+        trailing_ele_iso_data   = Plot(
+            name        = "trailing_ele_iso_data",
+            texX        = 'I_{mini} for trailing ele', texY = 'Number of Events / 10 GeV' if args.normalizeBinWidth else "Number of Events",
+            binning     = [40, 0, 1],
+            stack       = stack_data,
+            attribute   = lambda event, sample: event.trailing_ele_iso,
+            weight      = data_weight )
+        plots.append( trailing_ele_iso_data )
+
+    trailing_ele_iso_mc  = Plot(\
+        name            = "trailing_ele_iso_mc",
+        texX            = 'I_{mini} for trailing ele', texY = 'Number of Events / 10 GeV' if args.normalizeBinWidth else "Number of Events",
+        binning         = [40,0,1],
+        stack           = stack_mc,
+        attribute       = lambda event, sample: event.trailing_ele_iso,
+        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
+        weight          = mc_weight )
+    plots.append( trailing_ele_iso_mc )
+
+    if args.variation == 'central':
+        trailing_mu_iso_data   = Plot(
+            name        = "trailing_mu_iso_data",
+            texX        = 'I_{mini} for trailing ele', texY = 'Number of Events / 10 GeV' if args.normalizeBinWidth else "Number of Events",
+            binning     = [40, 0, 1],
+            stack       = stack_data,
+            attribute   = lambda event, sample: event.trailing_mu_iso,
+            weight      = data_weight )
+        plots.append( trailing_mu_iso_data )
+
+    trailing_mu_iso_mc  = Plot(\
+        name            = "trailing_mu_iso_mc",
+        texX            = 'I_{mini} for trailing ele', texY = 'Number of Events / 10 GeV' if args.normalizeBinWidth else "Number of Events",
+        binning         = [40,0,1],
+        stack           = stack_mc,
+        attribute       = lambda event, sample: event.trailing_mu_iso,
+        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
+        weight          = mc_weight )
+    plots.append( trailing_mu_iso_mc )
 
 
 

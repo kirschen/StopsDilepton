@@ -37,8 +37,6 @@ argParser.add_argument('--era',                action='store', type=str,      de
 argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--nvtxReweightSelection',          action='store',      default=None)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
-argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
-argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
 argParser.add_argument('--unblinded',          action='store_true', default=False)
 argParser.add_argument('--blinded',            action='store_true', default=False)
 argParser.add_argument('--reweightPU',         action='store', default='Central', choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
@@ -67,8 +65,6 @@ if args.noData:                       args.plot_directory += "_noData"
 if args.signal == "DM":               args.plot_directory += "_DM"
 if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
 if args.reweightPU:                   args.plot_directory += "_%s"%args.reweightPU
-if args.noBadPFMuonFilter:            args.plot_directory += "_noBadPFMuonFilter"
-if args.noBadChargedCandidateFilter:  args.plot_directory += "_noBadChargedCandidateFilter"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
@@ -521,11 +517,11 @@ def getLeptonSelection( mode ):
 # get nvtx reweighting histo
 if args.reweightPU =='nvtx':
     logger.info( "Now obtain nvtx reweighting histo" )
-    data_selectionString = "&&".join([getFilterCut(isData=True, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection("SF"), cutInterpreter.cutString(args.nvtxReweightSelection)])
+    data_selectionString = "&&".join([getFilterCut(isData=True, year=year), getLeptonSelection("SF"), cutInterpreter.cutString(args.nvtxReweightSelection)])
     data_nvtx_histo = data_sample.get1DHistoFromDraw( "PV_npvsGood", [100/5, 0, 100], selectionString=data_selectionString, weightString = "weight" )
     data_nvtx_histo.Scale(1./data_nvtx_histo.Integral())
 
-    mc_selectionString = "&&".join([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection("SF"), cutInterpreter.cutString(args.nvtxReweightSelection)])
+    mc_selectionString = "&&".join([getFilterCut(isData=False, year=year), getLeptonSelection("SF"), cutInterpreter.cutString(args.nvtxReweightSelection)])
     mc_histos  = [ s.get1DHistoFromDraw( "PV_npvsGood", [100/5, 0, 100], selectionString=mc_selectionString, weightString = "weight*reweightHEM*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF") for s in mc]
     mc_nvtx_histo     = mc_histos[0]
     for h in mc_histos[1:]:
@@ -545,7 +541,7 @@ allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
 
-  data_sample.setSelectionString([getFilterCut(isData=True, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
+  data_sample.setSelectionString([getFilterCut(isData=True, year=year), getLeptonSelection(mode)])
   data_sample.name           = "data"
   data_sample.read_variables = ["event/I","run/I", "reweightHEM/F"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
@@ -573,7 +569,7 @@ for index, mode in enumerate(allModes):
     else: #default
         sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
 
-    sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
+    sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(mode)])
 
   if args.splitMET:
     mc_ = splitMetMC(mc)
