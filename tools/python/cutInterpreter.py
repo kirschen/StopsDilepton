@@ -13,6 +13,7 @@ special_cuts = {
     # ("multiIsoVT":        "(1)", 
     "oldLooseLeptonVeto":     "(Sum$(Electron_pt>15&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&Muon_pfRelIso03_all<0.4) )==2",
     "looseLeptonVeto":        "(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2",
+    "looseLeptonMiniIsoVeto": "(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_miniPFRelIso_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_miniPFRelIso_all<0.4) )==2",
     "tightLooseLeptonVeto":   "(Sum$(Electron_pt>5&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2",
     "supertightLooseLeptonVeto":   "(nElectron+nMuon)==2",
 
