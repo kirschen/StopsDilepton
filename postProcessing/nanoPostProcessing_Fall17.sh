@@ -1,12 +1,12 @@
 ##
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTZToQQ #SPLIT8
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTZToQQ #SPLIT8
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTZToLLNuNu #SPLIT20
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTZToLLNuNu_m1to10 #SPLIT4
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --flagTTBar --sample TTLep_pow #SPLIT77
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --flagTTBar --sample TTSingleLep_pow #SPLIT80
 #
 ##python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms04/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample DYJetsToLL_M50_ext1 #SPLIT10
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample DYJetsToLL_M50_LO DYJetsToLL_M50_LO_ext1 #SPLIT50
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample DYJetsToLL_M50_LO DYJetsToLL_M50_LO_ext1 #SPLIT50
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample DYJetsToLL_M10to50_LO #SPLIT10
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample DYJetsToLL_M50_LO DYJetsToLL_M50_LO_ext1 --LHEHTCut 70 #SPLIT32
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample DYJetsToLL_M50_HT70to100 #SPLIT10
@@ -29,35 +29,35 @@ python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ -
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TBar_tch_pow #SPLIT20
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample T_tWch_ext #SPLIT20
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TBar_tWch_ext #SPLIT20
+
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTHbb #SPLIT20
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTHnobb_pow #SPLIT20
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample THQ #SPLIT20
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample THW #SPLIT19
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TGJets #SPLIT20
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample tZq_ll #SPLIT20
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample tZq_nunu #SPLIT15
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample tWll #SPLIT20
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample tWnunu #SPLIT6
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTWW #SPLIT3
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTWZ #SPLIT3
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTZZ #SPLIT1
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTWToLNu #SPLIT20
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTWToQQ #SPLIT9
+python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms04/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTW_LO #SPLIT20
+python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms04/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTGJets #SPLIT20
 #
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTHbb #SPLIT20
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTHnobb_pow #SPLIT20
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample THQ #SPLIT20
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample THW #SPLIT19
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TGJets #SPLIT20
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample tZq_ll #SPLIT20
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample tZq_nunu #SPLIT15
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample tWll #SPLIT20
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample tWnunu #SPLIT6
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTWW #SPLIT3
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTWZ #SPLIT3
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTZZ #SPLIT1
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTWToLNu #SPLIT20
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTWToQQ #SPLIT9
-##python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms04/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTW_LO #SPLIT20
-##python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms04/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTGJets #SPLIT20
-##
 #
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample VVTo2L2Nu #SPLIT20
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample WWToLNuQQ #SPLIT20
-#python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms04/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample ZZTo2Q2Nu #SPLIT20
+python nanoPostProcessing.py --targetDir /afs/hephy.at/data/cms04/nanoTuples/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample ZZTo2Q2Nu #SPLIT20
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample ZZTo2L2Q #SPLIT20
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample ZZTo4L #SPLIT20
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample WZTo1L1Nu2Q #SPLIT20
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample WZTo2L2Q #SPLIT20
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample WZTo1L3Nu #SPLIT20
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample WZTo3LNu_amcatnlo #SPLIT20
-#python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTTT #SPLIT12
+python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample TTTT #SPLIT12
 #
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample WWW_4F #SPLIT11
 python nanoPostProcessing.py  --targetDir /afs/hephy.at/data/cms04/nanoTuples/ --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p17   --skipGenLepMatching --sample WWZ_4F #SPLIT12

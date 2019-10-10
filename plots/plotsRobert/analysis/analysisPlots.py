@@ -29,6 +29,7 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                 action='store_true',     help='Run only on a small subset of the data?', )
+argParser.add_argument('--sorting',                               action='store', default=None, choices=[None, "forDYMB"],  help='Sort histos?', )
 argParser.add_argument('--dpm',                                   action='store_true',     help='Use dpm?', )
 argParser.add_argument('--dataMCScaling',      action='store_true',     help='Data MC scaling?', )
 argParser.add_argument('--DYInc',              action='store_true',     help='Use Inclusive DY sample?', )
@@ -36,7 +37,6 @@ argParser.add_argument('--plot_directory',     action='store',      default='v0p
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--nvtxReweightSelection',          action='store',      default=None)
-argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--unblinded',          action='store_true', default=False)
 argParser.add_argument('--blinded',            action='store_true', default=False)
 argParser.add_argument('--reweightPU',         action='store', default='Central', choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
@@ -63,7 +63,6 @@ if args.splitNvtx:                    args.plot_directory += "_splitNvtx"
 if args.DYInc:                        args.plot_directory += "_DYInc"
 if args.noData:                       args.plot_directory += "_noData"
 if args.signal == "DM":               args.plot_directory += "_DM"
-if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
 if args.reweightPU:                   args.plot_directory += "_%s"%args.reweightPU
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -121,6 +120,9 @@ elif year == 2018:
     #Run2018D.vetoList = vetoList.fromDirectory('/afs/hephy.at/data/rschoefbeck02/StopsDilepton/splitMuonVeto/')
     #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
     #    nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+
+#if args.sorting == "forDYMB":
+#    mc = [ mc[4], mc[3], mc[0], mc[2], mc[1] ]
 
 try:
   data_sample = eval(args.era)
@@ -311,7 +313,7 @@ def drawPlots(plots, mode, dataMCScale):
           plotting.draw(plot,
             plot_directory = plot_directory_,
             ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-            logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig or args.splitNvtx),
+            logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig or args.splitNvtx) and args.sorting is not None,
             yRange = (0.03, "auto") if log else (0.001, "auto"),
             scaling = {0:1} if args.dataMCScaling else {},
             legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
@@ -677,7 +679,7 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
       texX = 'E_{T}^{miss} significance', texY = 'Number of Events',
       attribute = TreeVariable.fromString( "MET_significance/F" ),
-      binning=[40,0,100],
+      binning=[34,0,102],
   ))
 
   plots.append(Plot(

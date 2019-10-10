@@ -266,23 +266,22 @@ def make_invIso(event, sample):
 
     noIsoLeptons = getGoodMuons(event, mu_selector = mu_selector_noIso) + getGoodElectrons(event, ele_selector = ele_selector_noIso)
 
-    # leptons with high isolation
-    invIso_leptons = []
-    for l in noIsoLeptons:
-        if l['miniPFRelIso_all'] > 0.2:
-            invIso_leptons.append(l)
-
     # isolation of trailing lepton (if leading is isolated)
     noIsoLeptons.sort( key = lambda p:-p['pt'] )
     event.trailing_ele_iso = -1 
     event.trailing_mu_iso  = -1 
-    if len(noIsoLeptons)>1:
+    if len(noIsoLeptons)>=2:
         if abs(noIsoLeptons[0]['pdgId'])==11 and ele_selector_iso(noIsoLeptons[0]) or abs(noIsoLeptons[0]['pdgId'])==13 and mu_selector_iso(noIsoLeptons[0]):
             if abs(noIsoLeptons[1]['pdgId'])==11:
                 event.trailing_ele_iso = noIsoLeptons[1]['miniPFRelIso_all']
             elif abs(noIsoLeptons[1]['pdgId'])==13:
                 event.trailing_mu_iso = noIsoLeptons[1]['miniPFRelIso_all']
             
+    # leptons with high isolation
+    invIso_leptons = []
+    for l in noIsoLeptons:
+        if l['miniPFRelIso_all'] > 0.2:
+            invIso_leptons.append(l)
 
     if sample.mode == "mumu" or sample.mode == "emu": # second (non isolated) lepton is a MUON
         pdgID = 13
@@ -312,10 +311,7 @@ def make_invIso(event, sample):
             mt2Calculator.setMet(met_pt, met_phi)
             event.mt2ll = mt2Calculator.mt2ll()
 
-
 sequence.append( make_invIso )
-
-
 
 signals = []
 
@@ -504,10 +500,6 @@ for mode in modes:
         selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
         weight          = mc_weight )
     plots.append( trailing_mu_iso_mc )
-
-
-
-
 
 #    dl_mt2ll_corr_mc  = Plot(\
 #        name            = "dl_mt2ll_corr_mc",
