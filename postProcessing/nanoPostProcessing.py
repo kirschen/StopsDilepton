@@ -732,11 +732,11 @@ if not options.skipNanoTools:
         modules.append( ISRcounter() )
         # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.
         #modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
-        modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jetType = "AK4PFchs", redoJEC=True, doJERSmearing=False, METBranchName='MET') )
+        modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, jesUncertainties = [ "Total" ], jetType = "AK4PFchs", metBranchName='MET') )
         if options.year == 2017:
             # in 2017, also recorrect the MET calculated with the v2 recipe
             #modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') )
-            modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jetType = "AK4PFchs", redoJEC=True, doJERSmearing=False, METBranchName='METFixEE2017') )
+            modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, jesUncertainties = [ "Total" ], jetType = "AK4PFchs", redoJEC=True, metBranchName='METFixEE2017') )
     else:
         # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.
         modules.append( jetRecalib(JEC, JEC) )
