@@ -30,6 +30,8 @@ def getAllJets(c, leptons, ptCut=30, absEtaCut=2.4, jetVars=jetVars, jetCollecti
                 clean = False
                 break
         if clean:
+            ## need to undo the JERs, at least for now! ##
+            jet['pt'] = jet['pt_nom']/jet['corr_JER']
             res.append(jet)
 
     res.sort( key = lambda j:-j['pt'] )
