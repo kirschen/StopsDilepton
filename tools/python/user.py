@@ -30,7 +30,7 @@ if os.environ['USER'] in ['phussain']:
     # Where you store cmg output
     cmg_directory      = "/scratch/rschoefbeck/cmgTuples/80X_1l_9"
     # Where postprocessed data goes 
-    #data_output_directory      = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    data_output_directory      = "/afs/hephy.at/data/cms02/nanoTuples/"
     # Where you store the data
     data_directory      = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     # Where the plots go
