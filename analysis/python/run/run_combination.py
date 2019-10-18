@@ -187,15 +187,29 @@ if args.signal == "T2tt":
     data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
     postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
+elif args.signal == "T2bW":
+    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+    from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2bW as jobs
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
+    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+    from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
+elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
+    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+    from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
     data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
     postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
-elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
-    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
-    from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
+# FIXME: removing 1052_0 from list
+for i, j in enumerate(jobs):
+    if j.name == "T8bbllnunu_XCha0p5_XSlep0p05_1052_0":
+        print "~removing ", j.name
+        del jobs[i]
+
 allJobs = [j for j in jobs if j.name != 'T2tt_150_63']
 if args.only is not None:
     if args.only.isdigit():
@@ -204,7 +218,8 @@ if args.only is not None:
         jobNames = [ x.name for x in jobs ]
         wrapper(jobs[jobNames.index(args.only)])
     exit(0)
-#i= [j for j in jobs if j.name != 'T2tt_150_63']    
+#i= [j for j in jobs if j.name != 'T2tt_150_63']
+
 results = map(wrapper, allJobs)
 results = [r for r in results if r]
 

@@ -15,7 +15,7 @@ from RootTools.core.standard             import *
 #Analysis / StopsDilepton / Samples
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi, add_histos
-from Analysis.Tools.metFilters            import getFilterCut
+from Analysis.Tools.metFilters           import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
@@ -45,7 +45,6 @@ argParser.add_argument('--normalizeBinWidth', action='store_true', default=False
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
 # loading samples
 argParser.add_argument('--dpm',               action='store_true',     help='Use dpm?', )
-argParser.add_argument('--noDYHT',            action='store_true',     help='run without HT-binned DY')
 # write caches
 argParser.add_argument('--overwrite',         action='store_true',     help='Overwrite?')
 # Scalings
@@ -83,30 +82,27 @@ if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
-    if args.noDYHT:
-        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-        #print "~~~~> using normal DY sample instead of HT binned one"
+    if args.selection.count("onZ") > 0:
+        mc          = [ DY_LO_16, Top_pow_16, multiBoson_16, TTXNoZ_16, TTZ_16 ]
     else:
-        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
+        mc          = [ Top_pow_16, multiBoson_16, DY_HT_LO_16, TTXNoZ_16, TTZ_16 ]
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
-    if args.noDYHT:
-        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-        #print "~~~~> using normal DY sample instead of HT binned one"
+    if args.selection.count("onZ") > 0:
+        mc          = [ DY_LO_17, Top_pow_17, multiBoson_17, TTXNoZ_17, TTZ_17 ]
     else:
-        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
+        mc          = [ Top_pow_17, multiBoson_17, DY_HT_LO_17, TTXNoZ_17, TTZ_17 ]
 
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
-    if args.noDYHT:
-        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-        #print "~~~~> using normal DY sample instead of HT binned one"
+    if args.selection.count("onZ") > 0:
+        mc          = [ DY_LO_18, Top_pow_18, multiBoson_18, TTXNoZ_18, TTZ_18 ]
     else:
-        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
+        mc          = [ Top_pow_18, multiBoson_18, DY_HT_LO_18, TTXNoZ_18, TTZ_18 ]
 
 # postions of MC components in list
 position = {s.name:i_s for i_s,s in enumerate(mc)}
@@ -212,7 +208,7 @@ def MC_WEIGHT( variation, returntype = "string"):
 def data_weight( event, sample ):
     return event.weight*event.reweightHEM
 
-data_weight_string = "weight"
+data_weight_string = "weight*reweightHEM"
 
 # Define all systematic variations
 variations = {
@@ -407,51 +403,6 @@ for mode in modes:
         weight          = mc_weight )
     plots.append( dl_mt2ll_mc )
 
-#    mt2llOverflowBinning = [0,20,40,60,80,100,140,240,340]
-#    if args.variation == 'central':
-#        dl_mt2llOverflow_data   = Plot(
-#            name        = "dl_mt2llOverflow_data",
-#            texX        = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#            binning     = Binning.fromThresholds(mt2llOverflowBinning),
-#            stack       = stack_data,
-#            addOverFlowBin  = 'upper',
-#            attribute   = TreeVariable.fromString( "dl_mt2ll/F" ),
-#            weight      = data_weight )
-#        plots.append( dl_mt2llOverflow_data )
-#
-#    dl_mt2llOverflow_mc  = Plot(\
-#        name            = "dl_mt2llOverflow_mc",
-#        texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#        binning         = Binning.fromThresholds(mt2llOverflowBinning),
-#        stack           = stack_mc,
-#        addOverFlowBin  = 'upper',
-#        attribute       = TreeVariable.fromString( selectionModifier("dl_mt2ll/F"))   if selectionModifier is not None else None,
-#        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
-#        weight          = mc_weight )
-#    plots.append( dl_mt2llOverflow_mc )
-
-#    mt2llCorrBinning = [0,20,40,60,80,100,140,240,340]
-#    if args.variation == 'central':
-#        dl_mt2ll_corr_data   = Plot(
-#            name        = "dl_mt2ll_corr_data",
-#            texX        = 'corrected M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#            binning     = Binning.fromThresholds(mt2llCorrBinning),
-#            stack       = stack_data,
-#            attribute   = lambda event, sample: event.dl_mt2ll_corr, 
-#            weight      = data_weight )
-#        plots.append( dl_mt2ll_corr_data )
-#
-#    dl_mt2ll_corr_mc  = Plot(\
-#        name            = "dl_mt2ll_corr_mc",
-#        texX            = 'corrected M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
-#        binning         = Binning.fromThresholds(mt2llCorrBinning),
-#        stack           = stack_mc,
-#        #FIXME: attribute       = lambda event, sample: getattr(event, selectionModifier("dl_mt2ll_corr/F") if selectionModifier is not None else None, 
-#        selectionString = selectionModifier(cutInterpreter.cutString(args.selection)) if selectionModifier is not None else None,
-#        weight          = mc_weight )
-#    plots.append( dl_mt2ll_corr_mc )
-    
-
     if args.selection.count('njet2'):
         if args.variation == 'central':
             dl_mt2blbl_fine_data  = Plot( 
@@ -642,6 +593,8 @@ for mode in modes:
         success = False
         if dirDB.contains(key) and not args.overwrite:
             normalisation_mc, normalisation_data, histos = dirDB.get( key )
+            #FIXME: remove next line
+            #normalisation_mc = {s.name: 0 for s in mc}
             for i_p, h_s in enumerate(histos):
                 plots[i_p].histos = h_s
             logger.info( "Loaded normalisations and histograms for %s in mode %s from cache.", args.era, mode)
@@ -667,6 +620,7 @@ for mode in modes:
 # --------------------------------------------------------------------------------------------------------------
             if args.scaling is not None:
                 normalisation_mc = {s.name :s.scale*s.getYieldFromDraw(selectionString = normalization_selection_string, weightString = mc_normalization_weight_string)['val'] for s in mc}
+                print "~~~ normalization mc: ", normalisation_mc
             else:
                 normalisation_mc = {s.name: 0 for s in mc}
             #print normalization_selection_string, mc_normalization_weight_string
@@ -706,7 +660,7 @@ systematics = [\
     {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
-#    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
+    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
     {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
 #NN
 #    {'name': 'DYInput',           'pair':('DYInputUp', 'DYInputDown')},
@@ -730,6 +684,8 @@ for mode in modes:
         success = False
         if dirDB.contains(key) and not args.overwrite:
             normalisation_mc, normalisation_data, histos = dirDB.get(key)
+            #FIXME: remove next line
+            #normalisation_mc = {s.name: 0 for s in mc}
             variation_data[(mode, variation)] = {'histos':histos, 'normalisation_mc':normalisation_mc, 'normalisation_data':normalisation_data}
             logger.info( "Loaded normalisations and histograms for variation %s, era %s in mode %s from cache.", variation, args.era, mode)
             if normalisation_mc['Top_pow']<=0:
@@ -751,8 +707,8 @@ for mode in modes:
             cmd.append('--selection=%s'%args.selection)
             cmd.append('--mode=%s'%args.mode)
             cmd.append('--variation=%s'%variation)
+            if args.scaling is not None: cmd.append('--scaling=%s'%args.scaling)
             if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
-            if args.noDYHT: cmd.append('--noDYHT')
             if args.small: cmd.append('--small')
             if args.dpm: cmd.append('--dpm')
             if args.overwrite: cmd.append('--overwrite')
@@ -984,7 +940,7 @@ for mode in all_modes:
             plotting.draw(plot,
               plot_directory = plot_directory_,
               ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
-              logX = False, logY = log, sorting = True,
+              logX = False, logY = log, sorting = False,
               yRange = (0.03, "auto") if log else (0.001, "auto"),
               #scaling = {0:1} if args.normalize else {},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
