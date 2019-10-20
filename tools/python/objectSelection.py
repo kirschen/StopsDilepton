@@ -7,7 +7,7 @@ import numbers
 import textwrap     # for CutBased Ele ID
 import operator
 
-jetVars = ['eta','pt','phi','btagDeepB', 'btagCSVV2', 'jetId', 'area', 'rawFactor']
+jetVars = ['eta','pt','phi','btagDeepB', 'btagCSVV2', 'jetId', 'area', 'rawFactor', 'corr_JER']
 
 def getJets(c, jetVars=jetVars, jetColl="Jet"):
     return [getObjDict(c, jetColl+'_', jetVars, i) for i in range(int(getVarValue(c, 'n'+jetColl)))]

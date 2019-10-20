@@ -214,6 +214,9 @@ else:
 
 L1PW = L1PrefireWeight(options.year)
 
+# set default era
+era = None
+
 if isData and options.triggerSelection:
     from StopsDilepton.tools.triggerSelector import triggerSelector
     era = extractEra(samples[0].name)[-1]
@@ -515,10 +518,10 @@ else:
     lumiScaleFactor = xSection*targetLumi/float(sample.normalization) if xSection is not None else None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
-jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F'] + jetCorrInfo
+jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F', 'corr_JER/F'] + jetCorrInfo
 if isMC:
     jetVars     += jetMCInfo
-    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jerUp/F', 'pt_jerDown/F', 'corr_JER/F', 'corr_JEC/F']
+    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jerUp/F', 'pt_jerDown/F', 'corr_JEC/F']
 jetVarNames     = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
@@ -648,10 +651,10 @@ if not options.skipNanoTools:
     from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop       import Module
     
     ## modules for nanoAOD postprocessor
-    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties   import jetmetUncertaintiesProducer
-    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib            import jetRecalib
+    #from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties   import jetmetUncertaintiesProducer
+    #from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib            import jetRecalib
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METSigProducer        import METSigProducer 
-    from PhysicsTools.NanoAODTools.postprocessing.modules.private.ISRcounter        import ISRcounter
+    from PhysicsTools.NanoAODTools.postprocessing.modules.common.ISRcounter        import ISRcounter
     
     logger.info("Preparing nanoAOD postprocessing")
     logger.info("Will put files into directory %s", output_directory)
@@ -670,8 +673,8 @@ if not options.skipNanoTools:
         JERera              = "Fall17_V3"
 
     elif options.year == 2018:
-        metSigParamsMC      = [1.8430848616315363, 1.8430848616315363, 1.8572853766660877, 1.8572853766660877, 1.613083160233781,  1.613083160233781,  1.3966398718198898, 1.3966398718198898, 1.4831008506492056, 1.4831008506492056, 0.0011310724285762122, 0.6929410058142578]
-        metSigParamsData    = [1.6231076732985186, 1.6231076732985186, 1.615595174619551,  1.615595174619551,  1.4731794897915416, 1.4731794897915416, 1.5183631493937553, 1.5183631493937553, 2.145670387603659,  2.145670387603659, -0.0001524158603362826, 0.7510574688006575]
+        metSigParamsMC      = [1.9033100259447273, 1.7374326087706358, 1.6957838005481387, 1.7283187962364615, 1.5868244614361302, 1.526252837049335, 1.3744055574137417, 1.4500298644941831, 1.4796204632654997, 1.4481227819959115, 0.0019899110367503207, 0.6927496536100137]
+        metSigParamsData    = [1.7492714572981323, 1.3430198915313956, 1.911348554103867, 1.3718438058490257, 1.5885672661901442, 1.4385903478138795, 1.521901070409261, 1.4522895772008289, 1.8870084799263003, 1.7138750357657668, -1.359837542505224e-06, 0.7434240965656385]
         JER                 = "Autumn18_V1_MC"                if not sample.isData else "Autumn18_V1_DATA"
         JERera              = "Autumn18_V1"
 
@@ -684,6 +687,7 @@ if not options.skipNanoTools:
     logger.info("Using JERs for MET significance: %s", JER)
     logger.info("Will use the following parameters for MET significance: %s", metSigParams)
     
+    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *
     METBranchName = 'MET' if not options.year == 2017 else 'METFixEE2017'
     JMECorrector = createJMECorrector(isMC=(not sample.isData), dataYear=options.year, runPeriod=era, jesUncert="Total", jetType = "AK4PFchs", metBranchName=METBranchName, isFastSim=options.fastSim)
     modules = [
