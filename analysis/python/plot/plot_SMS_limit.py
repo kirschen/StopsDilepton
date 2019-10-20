@@ -56,7 +56,7 @@ signalString = options.signal
 #defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
 #defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
 #defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
-#defFile = os.path.join(analysis_results, "comb/fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
+defFile = os.path.join(analysis_results, "comb/fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
 # per year
 #defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
 
@@ -92,11 +92,11 @@ ifs = defFile.split('/')
 
 # Combined
 #plotDir = os.path.join(plot_directory,ifs[-3],'v4', ifs[-2]+'FR_signalOnly_combined')
-#plotDir = os.path.join(plot_directory,ifs[-3],'v3', ifs[-2]+'FR_limitAll_combined')
+plotDir = os.path.join(plot_directory,ifs[-3],'v5', ifs[-2]+'FR_limitAll_combined')
 
 # Per Year
 #plotDir = os.path.join(plot_directory, ifs[-3], 'v4', ifs[-2]+'FR_%i'%options.year)
-plotDir = os.path.join(plot_directory, ifs[-3],'v5', ifs[-2]+'limitAll_FR_%i'%options.year)
+#plotDir = os.path.join(plot_directory, ifs[-3],'v5', ifs[-2]+'limitAll_FR_%i'%options.year)
 
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
