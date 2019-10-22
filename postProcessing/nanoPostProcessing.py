@@ -689,20 +689,6 @@ if not options.skipNanoTools:
     
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *
     METBranchName = 'MET' if not options.year == 2017 else 'METFixEE2017'
-    JMECorrector = createJMECorrector(isMC=(not sample.isData), dataYear=options.year, runPeriod=era, jesUncert="Total", jetType = "AK4PFchs", metBranchName=METBranchName, isFastSim=options.fastSim)
-    modules = [
-        JMECorrector()
-    ]
-    
-    if not sample.isData:
-        modules.append( ISRcounter() )
-
-    if options.year == 2016:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
-    elif options.year == 2017:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=15., vetoEtaRegion=(2.65,3.14)) )
-    elif options.year == 2018:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=25.) )
 
     # check if files are available (e.g. if dpm is broken this should result in an error)
     for f in sample.files:
@@ -714,6 +700,20 @@ if not options.skipNanoTools:
     newFileList = []
     logger.info("Starting nanoAOD postprocessing")
     for f in sample.files:
+        JMECorrector = createJMECorrector(isMC=(not sample.isData), dataYear=options.year, runPeriod=era, jesUncert="Total", jetType = "AK4PFchs", metBranchName=METBranchName, isFastSim=options.fastSim)
+        modules = [
+            JMECorrector()
+        ]
+        
+        if not sample.isData:
+            modules.append( ISRcounter() )
+
+        if options.year == 2016:
+            modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
+        elif options.year == 2017:
+            modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=15., vetoEtaRegion=(2.65,3.14)) )
+        elif options.year == 2018:
+            modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=25.) )
         # need a hash to avoid data loss
         file_hash = str(hash(f))
         p = PostProcessor(output_directory, [f], cut=cut, modules=modules, postfix="_for_%s_%s"%(sample.name, file_hash))
