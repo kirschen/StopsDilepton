@@ -23,6 +23,7 @@ argParser.add_argument("--DMsync",         default = False, action = "store_true
 argParser.add_argument("--noSignal",       default = False, action = "store_true", help="Don't use any signal (force signal yield to 0)?")
 argParser.add_argument("--useTxt",         default = False, action = "store_true", help="Use txt based cardFiles instead of root/shape based ones?")
 argParser.add_argument("--fullSim",        default = False, action = "store_true", help="Use FullSim signals")
+argParser.add_argument("--signalInjection",default = False, action = "store_true", help="Inject signal?")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--removeSR",       default = False, action = "store", help="Remove one signal region?")
 argParser.add_argument("--skipFitDiagnostics", default = False, action = "store_true", help="Don't do the fitDiagnostics (this is necessary for pre/postfit plots, but not 2D scans)?")
@@ -127,7 +128,8 @@ if args.fitAll:        setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setup
 elif args.controlDYVV: setups = [setupDYVV]
 elif args.controlTTZ:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 elif args.controlTT:   setups = [setupTT]
-elif args.controlAll:  setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV]
+elif args.controlAll and year==2016:  setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV]
+elif args.controlAll and (year==2017 or year==2018):  setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV]
 else:                  setups = [setup]
 
 from StopsDilepton.tools.u_float    import u_float
@@ -152,7 +154,10 @@ else:                       subDir += 'signalOnly'
 
 baseDir = os.path.join(setup.analysis_results, str(year), subDir)
 
-limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension, 'expected' if args.expected else 'observed')
+sSubDir = 'expected' if args.expected else 'observed'
+if args.signalInjection: sSubDir += '_signalInjected'
+
+limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension, sSubDir)
 overWrite   = (args.only is not None) or args.overwrite
 if args.keepCard:
     overWrite = False
@@ -231,14 +236,21 @@ def wrapper(s):
         c.setPrecision(3)
         shapeString = 'lnN' if args.useTxt else 'shape'
         # experimental
-        c.addUncertainty('PU',         shapeString)
+        SFb     = 'SFb_%s'%year
+        SFl     = 'SFl_%s'%year
+        trigger = 'trigger_%s'%year
+        JEC     = 'JEC_%s'%year
+        unclEn  = 'unclEn_%s'%year
+        JER     = 'JER_%s'%year
+        PU      = 'PU_%s'%year
+        c.addUncertainty(PU,           shapeString)
         c.addUncertainty('topPt',      shapeString)
-        c.addUncertainty('JEC',        shapeString)
-        c.addUncertainty('unclEn',     shapeString)
-        c.addUncertainty('JER',        shapeString)
-        c.addUncertainty('SFb',        shapeString)
-        c.addUncertainty('SFl',        shapeString)
-        c.addUncertainty('trigger',    shapeString)
+        c.addUncertainty(JEC,          shapeString)
+        c.addUncertainty(unclEn,       shapeString)
+        c.addUncertainty(JER,          shapeString)
+        c.addUncertainty(SFb,          shapeString)
+        c.addUncertainty(SFl,          shapeString)
+        c.addUncertainty(trigger,      shapeString)
         c.addUncertainty('leptonSF',   shapeString)
         # theory (PDF, scale, ISR)
         c.addUncertainty('scale',      shapeString)
@@ -249,28 +261,34 @@ def wrapper(s):
         c.addUncertainty('xsec_QCD',   shapeString)
         c.addUncertainty('isr',        shapeString)
         # only in SRs
-        DY_add = 'DY_add_%s'%year
+        DY_add = 'DY_hMT2blbl'
         c.addUncertainty('topGaus',    shapeString)
         c.addUncertainty('topNonGaus', shapeString)
         c.addUncertainty('topFakes',   shapeString)
         c.addUncertainty('DY_SR',      shapeString)
+        c.addUncertainty('MB_SR',      shapeString)
         c.addUncertainty(DY_add,       shapeString) # only in high mt2blbl
         c.addUncertainty('ttZ_SR',     shapeString)
         # all regions, lnN
-        DY_SF_nui = 'DY_%s'%year
-        multiboson_SF = 'multiBoson_%s'%year
+        DY_SF_nui = 'DY'
+        multiboson_SF = 'multiBoson'
         c.addUncertainty('topNorm',    'lnN')
         c.addUncertainty(multiboson_SF, shapeString)
         c.addUncertainty('MB_TT',       shapeString)
         c.addUncertainty(DY_SF_nui,     shapeString)
         c.addUncertainty('DY_TT',       shapeString)
-        c.addUncertainty('ttZ',        'lnN')
+        c.addUncertainty('ttZ',         shapeString)
         c.addUncertainty('other',      'lnN')
         if fastSim:
             c.addUncertainty('btagFS',   shapeString)
             c.addUncertainty('leptonFS', shapeString)
             c.addUncertainty('FSmet',    shapeString)
             c.addUncertainty('PUFS',     shapeString)
+
+        #c.addRateParameter('DY', 1, '[0,2]')
+        #c.addRateParameter('multiBoson', 1, '[0,2]')
+        #c.addRateParameter('TTZ', 1, '[0,2]')
+        #c.addRateParameter('TTJetsG', 1, '[0,2]')
 
         for setup in setups:
           eSignal     = MCBasedEstimate(name=s.name, sample=s, cacheDir=setup.defaultCacheDir()) # {channel:s for channel in channels+trilepChannels}
@@ -350,16 +368,16 @@ def wrapper(s):
                         if 'TTJets' in name: uncScale = 1./sqrt(norm_G**2 + norm_NG**2 + norm_F**2) # scaling of uncertainties for ttbar so that the total uncertainty remains unchanged
                         else: uncScale = 1
                         #print "Process", name, "uncertainty scale", uncScale
-                        c.specifyUncertainty('PU',       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
-                        if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
+                        c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
+                        if not e.name.count("TTJets") and not niceName.count('controlTTBar') or True:
                         #if not niceName.count('controlTTBar'):
-                            c.specifyUncertainty('JEC',      binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
-                            c.specifyUncertainty('unclEn',   binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
-                            c.specifyUncertainty('JER',      binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
+                            c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
+                            c.specifyUncertainty(unclEn,     binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
+                            c.specifyUncertainty(JER,        binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
                             c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
-                            c.specifyUncertainty('SFb',      binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
-                            c.specifyUncertainty('SFl',      binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
-                            c.specifyUncertainty('trigger',  binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
+                            c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
+                            c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
+                            c.specifyUncertainty(trigger,    binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
                             c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
                         
                         if e.name.count('TTJets'):
@@ -386,20 +404,22 @@ def wrapper(s):
                                 logger.info("Assigning extra uncertainties to multiboson")
                                 c.specifyUncertainty(multiboson_SF, binname, name, 1.50)
                             else:
-                                c.specifyUncertainty('MB_TT', binname, name, 1.50)
+                                c.specifyUncertainty('MB_TT', binname, name, 1.20)
+                            if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
+                                    c.specifyUncertainty("MB_SR", binname, name, 1.25)
 
                         if e.name.count('DY'):
                             if niceName.count("controlTT")==0:
                                 logger.info("Assigning extra uncertainties to DY")
-                                c.specifyUncertainty(DY_SF_nui,         binname, name, 1.5)#1/(1+0.5))#1.5
+                                c.specifyUncertainty(DY_SF_nui,         binname, name, 1.5)#1/(1+0.5))
                                 if r in highMT2blblregions:
-                                    c.specifyUncertainty(DY_add,         binname, name, 2.0)
+                                    c.specifyUncertainty(DY_add,         binname, name, 1.5)
                                 if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                     c.specifyUncertainty("DY_SR", binname, name, 1.25)
                             else:
-                                c.specifyUncertainty('DY_TT', binname, name, 1.50)
+                                c.specifyUncertainty('DY_TT', binname, name, 1.20)
 
-                        if e.name.count('TTZ') and niceName.count('DYVV')==0:
+                        if e.name.count('TTZ') and niceName.count('DYVV')==0 and niceName.count('TTBar')==0:
                             c.specifyUncertainty('ttZ',        binname, name, 1.5)
                             c.specifyUncertainty('scaleTTZ',binname, name, 1 + 0.02) #getScaleUncBkg('TTZ', r, channel,'TTZ'))
                             c.specifyUncertainty('PDF',     binname, name, 1 + 0.02) #getPDFUnc('TTZ', r, channel,'TTZ'))
@@ -414,14 +434,6 @@ def wrapper(s):
                         c.addUncertainty(uname, 'lnN')
                         c.specifyUncertainty(uname, binname, name, 1 + (expected.sigma/expected.val) * uncScale if expected.val>0 else 1)
 
-                if args.expected or (not args.unblind and not niceName.count('control')):
-                    c.specifyObservation(binname, int(round(total_exp_bkg,0)))
-                    logger.info("Expected observation: %s", int(round(total_exp_bkg,0)))
-                #elif not args.unblind and:
-                #    
-                else:
-                    c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
-                    logger.info("Observation: %s", int(args.scale*observation.cachedObservation(r, channel, setup).val))
 
                 #signal
                 eSignal.isSignal = True
@@ -441,12 +453,6 @@ def wrapper(s):
 
                 signal = signal * args.scale
 
-                #if args.noSignal:
-                #    signal.val = 0
-                #    signal.sigma = 1
-
-                #signal.val, signal.sigma = 0.1, 1.0
-
                 if niceName.count('controlTTZ') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
                 if niceName.count('controlDY') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
                 c.specifyExpectation(binname, 'signal', signal.val*xSecScale )
@@ -455,18 +461,18 @@ def wrapper(s):
 
                 if signal.val>0 or True:
                   if not fastSim:
-                    c.specifyUncertainty('PU',       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
+                    c.specifyUncertainty(PU,       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
                     c.specifyUncertainty('PDF',      binname, 'signal', 1 + getPDFUncSignal(s.name, r, channel))
                     if args.signal == "ttHinv":
                         # x-sec uncertainties for ttH: https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBSMAt13TeV#ttH_Process
                         c.specifyUncertainty('xsec_QCD',      binname, 'signal', 1.092)
                         c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
-                  c.specifyUncertainty('JEC',      binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
-                  c.specifyUncertainty('unclEn',   binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('JER',      binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val ) #0.02 )
-                  c.specifyUncertainty('SFb',      binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('SFl',      binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty('trigger',  binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
+                  c.specifyUncertainty(JEC,        binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
+                  c.specifyUncertainty(unclEn,     binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
+                  c.specifyUncertainty(JER,        binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val ) #0.02 )
+                  c.specifyUncertainty(SFb,        binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
+                  c.specifyUncertainty(SFl,        binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
+                  c.specifyUncertainty(trigger,    binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('scale',    binname, 'signal', 1 + 0.02 )#getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
                   if not args.signal == "ttHinv": c.specifyUncertainty('isr',      binname, 'signal', 1 + 0.03 )#abs(getIsrUnc(  eSignal.name, r, channel)))
@@ -486,14 +492,37 @@ def wrapper(s):
                   c.addUncertainty(uname, 'lnN')
                   c.specifyUncertainty(uname, binname, 'signal', 1 )
                 
+                ## Observation ##
+                # expected
+                if (args.expected or (not args.unblind and not niceName.count('control'))) and not args.signalInjection:
+                    c.specifyObservation(binname, int(round(total_exp_bkg,0)))
+                    logger.info("Expected observation: %s", int(round(total_exp_bkg,0)))
+                # expected with signal injected
+                elif args.signalInjection:
+                    pseudoObservation = int(round(total_exp_bkg+signal.val,0))
+                    c.specifyObservation(binname, pseudoObservation)
+                    logger.info("Expected observation (signal is injected!): %s", pseudoObservation)
+                # real observation (can be scaled for studies)
+                else:
+                    c.specifyObservation(binname, int(args.scale*observation.cachedObservation(r, channel, setup).val))
+                    logger.info("Observation: %s", int(args.scale*observation.cachedObservation(r, channel, setup).val))
+                
+                # Muting (maybe obsolete??)
                 if not args.controlDYVV and (signal.val<=0.01 and total_exp_bkg<=0.01 or total_exp_bkg<=0):# or (total_exp_bkg>300 and signal.val<0.05):
                   if verbose: print "Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
                   c.muted[binname] = True
                 else:
                   if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
-        c.addUncertainty('Lumi', 'lnN')
-        c.specifyFlatUncertainty('Lumi', 1.026)
+        c.addUncertainty('Lumi_%s'%year, 'lnN')
+        if year == 2016:
+            lumiUncertainty = 1.025
+        elif year == 2017:
+            lumiUncertainty = 1.023
+        elif year == 2018:
+            lumiUncertainty = 1.025
+        
+        c.specifyFlatUncertainty('Lumi_%s'%year, lumiUncertainty)
         cardFileNameTxt     = c.writeToFile(cardFileName)
         cardFileNameShape   = c.writeToShapeFile(cardFileName.replace('.txt', '_shape.root'))
         cardFileName = cardFileNameTxt if args.useTxt else cardFileNameShape
@@ -577,7 +606,7 @@ def wrapper(s):
         postFitShapes   = fitResults['hists']['shapes_fit_b']['Bin0']
         
 
-        top_prefit  = preFitResults['TTJetsF'] + preFitResults['TTJetsG'] + preFitResults['TTJetsNG']
+        top_prefit  = preFitResults['TTJetsF']  + preFitResults['TTJetsG']  + preFitResults['TTJetsNG']
         top_postfit = postFitResults['TTJetsF'] + postFitResults['TTJetsG'] + postFitResults['TTJetsNG']
 
         topF_prefit_SR_err, topG_prefit_SR_err, topNG_prefit_SR_err     = ROOT.Double(), ROOT.Double(), ROOT.Double()
@@ -753,8 +782,8 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
         postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
-for j, job in enumerate(jobs):
-    print j, job.name
+#for j, job in enumerate(jobs):
+#    print j, job.name
 
 if args.only is not None:
     if args.only.isdigit():

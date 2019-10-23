@@ -27,9 +27,9 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM", "T8bbllnunu", "compilation"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='v0p3')
+argParser.add_argument('--plot_directory',     action='store',      default='v0p18')
 argParser.add_argument('--year',               action='store', type=int,      default=2016)
-argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-miniIso0.1-looseLeptonVetoMiniIso-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
@@ -194,7 +194,7 @@ def drawPlots(plots, mode, dataMCScale):
 # Read variables and sequences
 #
 read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I"]
+                  "met_pt/F", "met_phi/F", "MET_significance/F", "nBTag/I", "nJetGood/I"]
 
 sequence = []
 
@@ -440,11 +440,11 @@ for index, mode in enumerate(allModes):
     binning=[8,0,8],
   ))
 
-  plots.append(Plot(
-    texX = 'H_{T} (GeV)', texY = 'Number of Events / 25 GeV',
-    attribute = TreeVariable.fromString( "ht/F" ),
-    binning=[500/25,0,600],
-  ))
+  #plots.append(Plot(
+  #  texX = 'H_{T} (GeV)', texY = 'Number of Events / 25 GeV',
+  #  attribute = TreeVariable.fromString( "ht/F" ),
+  #  binning=[500/25,0,600],
+  #))
 
   plots.append(Plot(
     texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 4 GeV',

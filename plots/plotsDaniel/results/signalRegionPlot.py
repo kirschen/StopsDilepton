@@ -7,6 +7,8 @@ Get a signal region plot from the cardfiles
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt"], help="which signal?")
+parser.add_option("--massPoints",           dest='massPoints',  action='store', default='800_100,350_150', help="which masspoints??")
+parser.add_option("--channel",              dest='channel',  action='store', default='all', choices=['all','OF','SF'], help="which channel??")
 parser.add_option("--small",                action='store_true', help="small?")
 parser.add_option('--logLevel',             dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
 parser.add_option('--blinded',              action="store_true")
@@ -16,6 +18,7 @@ parser.add_option('--expected',             action = "store_true", help="Run exp
 parser.add_option('--preliminary',             action = "store_true", help="Run expected?")
 parser.add_option('--combined',             action = "store_true", help="combined fit for all years?")
 parser.add_option("--year",                 action='store',      default=2017, type="int", help='Which year?')
+parser.add_option("--region",               action='store',      default="controlAll", choices=['controlAll', 'signalOnly', 'controlDYVV'], help='Which year?')
 (options, args) = parser.parse_args()
 
 # Standard imports
@@ -30,6 +33,12 @@ from StopsDilepton.tools.u_float           import u_float
 from StopsDilepton.tools.user              import plot_directory, analysis_results
 from StopsDilepton.samples.color           import color
 from StopsDilepton.tools.getPostFit        import *
+from StopsDilepton.analysis.regions        import *
+
+if options.region == 'controlAll':
+    pass
+elif options.region == 'signalOnly':
+    regions = regionsLegacy[1:] + regionsLegacy[1:]
 
 from RootTools.core.standard import *
 # logger
@@ -50,20 +59,28 @@ else:
 isData = True if not options.expected else False
 #lumiStr = setup.dataLumi/1000
 years=[2016,2017,2018]
-controlRegions = 'controlAll'
-cardName = "T2tt_400_0_shapeCard"
+controlRegions = options.region
+massPoints = options.massPoints.split(',')
+cardName = "T2tt_%s_shapeCard"%massPoints[0]
+
+inSignalRegions = not options.region.count('control')>0
+if inSignalRegions:
+    cardName2 = "T2tt_%s_shapeCard"%massPoints[1]
 if options.combined:
     cardDir = analysis_results+"/COMBINED/%s/cardFiles/%s/%s/"%(controlRegions,options.signal,'expected' if options.expected else 'observed')
 else:
     cardDir = analysis_results+"/%s/%s/cardFiles/%s/%s/"%(options.year,controlRegions,options.signal,'expected' if options.expected else 'observed')
 
 cardFile = "%s/%s.txt"%(cardDir, cardName)
+if inSignalRegions:
+    cardFile2 = "%s/%s.txt"%(cardDir, cardName2)
 
 
 logger.info("Plotting from cardfile %s"%cardFile)
 
 # get the results
 postFitResults = getPrePostFitFromMLF(cardFile.replace('.txt','_FD.root'))
+if inSignalRegions: postFitResults2 = getPrePostFitFromMLF(cardFile2.replace('.txt','_FD.root'))
 preFitHist={}
 postFitHist={}
 bhistos=[]
@@ -80,8 +97,12 @@ processes = [   ('TTJetsG',''),
 if options.combined:
     for year in years:
         preFitHist[year]        = postFitResults['hists']['shapes_prefit']['dc_%s'%year]
-        postFitHist[year]       = postFitResults['hists']['shapes_fit_b']['dc_%s'%year]
+        postFitHist[year]       = postFitResults['hists']['shapes_fit_s']['dc_%s'%year]
         hists[year] = preFitHist[year] if not options.postFit else postFitHist[year]
+
+        # signal is always prefit for the plots
+        hists[year]['signal1'] = postFitResults['hists']['shapes_prefit']['dc_%s'%year]['signal']
+        if inSignalRegions: hists[year]['signal2'] = postFitResults2['hists']['shapes_prefit']['dc_%s'%year]['signal']
         #print hists[year]
 #    preFitHists.update(preFitHist[2016], preFitHists[2017] ,preFitHists[2018])
     #hists = preFitHist if not options.postFit else postFitHist
@@ -119,6 +140,26 @@ if options.combined:
     histos['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
     histos['data'].legendOption = 'p'
     print histos
+
+    signalHist = hists[2016]['DY'].Clone()
+    signalHist.Reset()
+    signalHist.SetName('signal')
+    signalHist.legendText = 'T2tt (800,100)'
+    for i in range(signalHist.GetNbinsX()):
+        signalHist.SetBinContent(i+1, (hists[2016]['signal1'].GetBinContent(i+1) + hists[2017]['signal1'].GetBinContent(i+1) + hists[2018]['signal1'].GetBinContent(i+1)))
+    histos['signal1'] = signalHist
+    histos['signal1'].style = styles.lineStyle( ROOT.kBlack, width=2 )
+
+    if inSignalRegions:
+        signalHist2 = hists[2016]['DY'].Clone()
+        signalHist2.Reset()
+        signalHist2.SetName('signal')
+        signalHist2.legendText = 'T2tt (350,150)'
+        for i in range(signalHist2.GetNbinsX()):
+            signalHist2.SetBinContent(i+1, (hists[2016]['signal2'].GetBinContent(i+1) + hists[2017]['signal2'].GetBinContent(i+1) + hists[2018]['signal2'].GetBinContent(i+1)))
+        histos['signal2'] = signalHist2
+        histos['signal2'].style = styles.lineStyle( ROOT.kBlack, width=2, dashed=True )
+
 else:
     preFitHists     = postFitResults['hists']['shapes_prefit']['Bin0']
     postFitHists    = postFitResults['hists']['shapes_fit_b']['Bin0']
@@ -213,20 +254,63 @@ def drawObjects( isData=False, lumi=36. ):
     ]
     return [tex.DrawLatex(*l) for l in lines]
 
-#def setBinLabels( hist ):
-#    for i in range(1, hist.GetNbinsX()+1):
-#        if i < 16:
-#            hist.GetXaxis().SetBinLabel(i, "%s"%i)
-#        else:
-#            hist.GetXaxis().SetBinLabel(i, "%s"%(i-15))
+def setBinLabels( hist ):
+    for i in range(1, hist.GetNbinsX()+1):
+        hist.GetXaxis().SetBinLabel(i, "   %s"%((i+1)/2 if i%2==1 else ''))
 
-drawObjects = drawObjects( isData=isData, lumi=round(lumiStr,1)) + boxes #+ drawDivisions( regions )
+def drawDivisions(regions):
+    print len(regions)
+    min = 0.15
+    max = 0.95
+    diff = (max-min) / len(regions)
+    lines = []
+    lines2 = []
+    line = ROOT.TLine()
+#   line.SetLineColor(38)
+    line.SetLineWidth(1)
+    line.SetLineStyle(2)
+    lines = [ (min+4*i*diff,  0.015, min+4*i*diff, 0.85) if min+4*i*diff<0.74 else (min+4*i*diff,  0.013, min+4*i*diff, 0.54) for i in range(1,len(regions)/4 + 1) ]
+    lines += [ (min+4*3*diff, 0.85, min+4*3*diff, 0.93 ), (min+4*6*diff, 0.85, min+4*6*diff, 0.93 )]
+    return [line.DrawLineNDC(*l) for l in lines] + [tex.DrawLatex(*l) for l in []] + [tex2.DrawLatex(*l) for l in lines2]
+
+def drawLabels( regions ):
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.028)
+    tex.SetTextAngle(0)
+    tex.SetTextAlign(12) # align right
+    min = 0.15
+    max = 0.95
+    diff = (max-min) / len(regions)
+    lines = [ (0.15 + 0.10, 0.88, "100 < M_{T2}(ll) < 140 GeV"), (0.15 + 0.45, 0.88, "140 < M_{T2}(ll) < 240 GeV") ] 
+    #lines =  [(min+(8*i+0.90)*diff, 0.850,  "M_{T2}(ll)=3")   for i, r in enumerate(regions[:-4][::4])]
+    return [tex.DrawLatex(*l) for l in lines] if len(regions)>12 else []
+
+def drawLabelsRot( regions ):
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.028)
+    tex.SetTextAngle(90)
+    tex.SetTextAlign(12) # align right
+    min = 0.15
+    max = 0.95
+    diff = (max-min) / len(regions)
+    lines = [(min+(i*4+2.7)*diff, 0.545 if i<3 else 0.285,  r.texStringForVar('dl_mt2blbl')) for i, r in enumerate(regions[::2]) if i < 6]
+    lines += [(min+(24.8)*diff, 0.7, "M_{T2}(ll) > 240 GeV")]
+    return [tex.DrawLatex(*l) for l in lines] 
+
+
+drawObjects = drawObjects( isData=isData, lumi=round(lumiStr,1)) + boxes + drawDivisions( regions ) + drawLabels( regions ) + drawLabelsRot( regions )
 if options.combined:
-    plots = [ bkgHist, [histos['data']]]
-    plotName = "controlRegions_COMBINED"
+    if inSignalRegions:
+        plots = [ bkgHist, [histos['data']], [histos['signal1']], [histos['signal2']]]
+    else:
+        plots = [ bkgHist, [histos['data']], [histos['signal1']]]
+        
+    plotName = "%s_COMBINED"%options.region
 else:
     plots = [ bkgHists, [hists['data']]]
-    plotName = "controlRegions_%s"%options.year
+    plotName = "%s_%s"%(options.region, options.year)
 if options.postFit:
     plotName += '_postFit'
 
@@ -240,12 +324,12 @@ plotting.draw(
     plot_directory = os.path.join(plot_directory, "controlRegions", 'v6'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
-    legend = (0.70,0.60, 0.95, 0.90),
+    legend = (0.70,0.55, 0.95, 0.85),
     widths = {'x_width':900, 'y_width':600, 'y_ratio_width':250},
     yRange = (0.2,300000.),
     #yRange = (0.03, [0.001,0.5]),
     ratio = {'yRange': (0.11, 1.89), 'texY':'Data/pred', 'histos':[(1,0)], 'drawObjects':ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
-            'histModifications': [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035)]} ,
+            'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035)]} ,
     drawObjects = drawObjects,
     histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2)],
     #canvasModifications = [ lambda c : c.SetLeftMargin(0.08), lambda c : c.GetPad(2).SetLeftMargin(0.08), lambda c : c.GetPad(1).SetLeftMargin(0.08), lambda c: c.GetPad(2).SetBottomMargin(0.60), lambda c : c.GetPad(1).SetRightMargin(0.03), lambda c: c.GetPad(2).SetRightMargin(0.03) ],
