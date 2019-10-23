@@ -17,6 +17,9 @@ special_cuts = {
     "tightLooseLeptonVeto":   "(Sum$(Electron_pt>5&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2",
     "supertightLooseLeptonVeto":   "(nElectron+nMuon)==2",
 
+    # for debugging: Apply 2016 cuts on sip3d 
+    "tightDebugLeptonId":   "(Sum$(Electron_pt>20&&abs(Electron_eta)<2.4&&Electron_miniPFRelIso_all<0.1&&Electron_sip3d<4&&Electron_lostHits==0&&abs(Electron_dz)<0.1&&abs(Electron_dxy)<0.05&&Electron_convVeto&&Electron_cutBased>3) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.4&&Muon_miniPFRelIso_all<0.1&&Muon_mediumId&&Muon_sip3d<4&&abs(Muon_dz)<0.1&&abs(Muon_dxy)<0.05) )==2",
+
     "OS":                "(l1_pdgId*l2_pdgId)<0",
     "lepSel":            "l1_pt>30&&l2_pt>20",
     "lep1Sel":           "l1_pt>30",
@@ -69,7 +72,6 @@ special_cuts = {
     "leadingE":         "abs(l1_pdgId)==11",
     "Jet12Central":     "abs(JetGood_eta[0])<1.5&&abs(JetGood_eta[1])<1.5",
     "CSVV2":            "Sum$(JetGood_pt>30&&abs(JetGood_eta)<2.4&&JetGood_btagCSVV2>0.8484)==0"
-
   }
 
 continous_variables = [ ("POGMetSig", "MET_significance"), ("metSig", "metSig"), ("mll", "dl_mass"), ("metPhi", "met_phi"), ("met", "met_pt"), ("mt2ll", "dl_mt2ll"), ("mt2blbl", "dl_mt2blbl"),("mt2bb", "dl_mt2bb"),("htCMG", "htJet40j"), ("photon","photon_pt"), ("nPV", "PV_npvsGood"), ("Z2mass", "Z2_mass"), ("Z1mass", "Z1_mass") ]
