@@ -592,6 +592,7 @@ for index, mode in enumerate(allModes):
     else:
         sample.weight         = lambda event, sample: getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
+    print cutInterpreter.cutString(args.selection)
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 
@@ -611,11 +612,22 @@ for index, mode in enumerate(allModes):
     binning=[3, 0, 3],
   ))
 
+  plots.append(Plot(
+      texX = 'E_{T}^{miss} significance', texY = 'Number of Events / 2.5 GeV',
+      attribute = TreeVariable.fromString( "MET_significance/F" ),
+      binning=[40,0,100],
+  ))
+
   if not args.blinded:
     plots.append(Plot(
-      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events',
       attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
       binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340])
+    ))
+    plots.append(Plot(
+      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events',
+      attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+      binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
     ))
 
   plots.append(Plot(
