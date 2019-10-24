@@ -13,6 +13,7 @@ argParser.add_argument("--signal",         action='store', default='T2tt',      
 argParser.add_argument("--removeDir",      action='store_true',                                                             help="Remove the directory in the combine release after study is done?")
 argParser.add_argument("--expected",       action='store_true',                                                             help="Use expected results?")
 argParser.add_argument("--combined",       action='store_true',                                                             help="Use expected results?")
+argParser.add_argument("--signalInjection",action='store_true',                                                             help="Inject some signal?")
 argParser.add_argument("--cores",          action='store', default=8,               nargs='?',                              help="Run on n cores in parallel")
 argParser.add_argument("--year",           action='store', default=2017,               nargs='?',                           help="Which year?")
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                              help="pick only one masspoint?")
@@ -33,7 +34,10 @@ def wrapper(s):
     logger.info("Processing mass point %s"%s.name)
     cardFile = "%s_shapeCard.txt"%s.name
     #analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v2/'
-    cardFilePath = "%s/%s/controlAll/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, 'expected' if args.expected else 'observed', cardFile)
+    sSubDir = 'expected' if args.expected else 'observed'
+    if args.signalInjection: sSubDir += '_signalInjected'
+    cardFilePath = "%s/%s/fitAll/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, sSubDir, cardFile)
+    #cardFilePath = "%s/%s/controlAll/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, 'expected' if args.expected else 'observed', cardFile)
     #cardFilePath = "%s/%s/signalOnly/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, 'expected' if args.expected else 'observed', cardFile)
     #cardFilePath = "%s/%s/controlDYVV/cardFiles/%s/%s/%s"%(analysis_results, args.year if not args.combined else 'COMBINED', args.signal, 'expected' if args.expected else 'observed', cardFile)
     combineDirname = os.path.join(os.path.abspath('.'), s.name)
@@ -41,7 +45,7 @@ def wrapper(s):
     logger.info("Creating %s"%combineDirname)
     if not os.path.isdir(combineDirname): os.makedirs(combineDirname)
     shutil.copyfile(cardFilePath,combineDirname+'/'+cardFile)
-    shutil.copyfile(cardFilePath.replace('shapeCard.txt', 'shape.root'),combineDirname+'/'+cardFile.replace('shapeCard.txt', 'shape.root'))
+    shutil.copyfile(cardFilePath.replace('shapeCard.txt', 'shapeCard.root'),combineDirname+'/'+cardFile.replace('shapeCard.txt', 'shapeCard.root'))
     if args.bkgOnly:
         prepWorkspace   = "text2workspace.py %s --X-allow-no-signal -m 125"%cardFile
     else:
@@ -64,9 +68,9 @@ def wrapper(s):
     if args.bkgOnly:
         shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_bkgOnly.pdf"%(plotDir,s.name))
     elif args.combined:
-        shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_combined.pdf"%(plotDir,s.name))
+        shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_combined%s.pdf"%(plotDir,s.name,'_signalInjected' if args.signalInjection else ''))
     elif args.year:
-        shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_%s.pdf"%(plotDir,s.name,args.year))
+        shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_%s%s.pdf"%(plotDir,s.name,args.year,'_signalInjected' if args.signalInjection else ''))
     else:
         shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s.pdf"%(plotDir,s.name))
     logger.info("Copied result to %s"%plotDir)
@@ -77,8 +81,8 @@ def wrapper(s):
 
 
 if args.signal == "T2tt":
-    data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-    postProcessing_directory    = 'stops_2017_nano_v0p13/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
 
 allJobs = [j.name for j in jobs]

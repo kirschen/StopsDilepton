@@ -214,6 +214,9 @@ else:
 
 L1PW = L1PrefireWeight(options.year)
 
+# set default era
+era = None
+
 if isData and options.triggerSelection:
     from StopsDilepton.tools.triggerSelector import triggerSelector
     era = extractEra(samples[0].name)[-1]
@@ -515,10 +518,10 @@ else:
     lumiScaleFactor = xSection*targetLumi/float(sample.normalization) if xSection is not None else None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
-jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F'] + jetCorrInfo
+jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F', 'corr_JER/F'] + jetCorrInfo
 if isMC:
     jetVars     += jetMCInfo
-    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jerUp/F', 'pt_jerDown/F']
+    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jerUp/F', 'pt_jerDown/F', 'corr_JEC/F']
 jetVarNames     = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
@@ -648,11 +651,10 @@ if not options.skipNanoTools:
     from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop       import Module
     
     ## modules for nanoAOD postprocessor
-    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties   import jetmetUncertaintiesProducer
-    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib            import jetRecalib
+    #from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties   import jetmetUncertaintiesProducer
+    #from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib            import jetRecalib
     from PhysicsTools.NanoAODTools.postprocessing.modules.jme.METSigProducer        import METSigProducer 
-    from PhysicsTools.NanoAODTools.postprocessing.modules.private.METminProducer        import METminProducer
-    from PhysicsTools.NanoAODTools.postprocessing.modules.private.ISRcounter        import ISRcounter
+    from PhysicsTools.NanoAODTools.postprocessing.modules.common.ISRcounter        import ISRcounter
     
     logger.info("Preparing nanoAOD postprocessing")
     logger.info("Will put files into directory %s", output_directory)
@@ -663,56 +665,18 @@ if not options.skipNanoTools:
         metSigParamsData    = [1.843242937068234, 1.843242937068234, 1.64107911184195,   1.64107911184195,   1.567040591823117, 1.567040591823117, 1.5077143780804294, 1.5077143780804294, 1.614014783345394,  1.614014783345394, -0.0005986196920895609, 0.6071479349467596]
         JER                 = "Summer16_25nsV1_MC"          if not sample.isData else "Summer16_25nsV1_DATA"
         JERera              = "Summer16_25nsV1"
-        if sample.isData:
-            if sample.name.count("Run2016B") or sample.name.count("Run2016C") or sample.name.count("Run2016D"):
-                JEC         = "Summer16_07Aug2017BCD_V11_DATA"
-            elif sample.name.count("Run2016E") or sample.name.count("Run2016F"):
-                JEC         = "Summer16_07Aug2017EF_V11_DATA"
-            elif sample.name.count("Run2016G") or sample.name.count("Run2016H"):
-                JEC         = "Summer16_07Aug2017GH_V11_DATA"
-            else:
-                raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
-        elif options.fastSim:
-            JEC             = "Spring16_25nsFastSimV1_MC"
-        else:
-            JEC             = "Summer16_07Aug2017_V11_MC"
+
     elif options.year == 2017:
         metSigParamsMC      = [1.9648214119268503, 1.5343086462230238, 1.9167197601498538, 1.5145044341064964, 1.8069380221985405, 1.3217263662622654, 1.5506294867561126, 1.272977540964842,  1.50742322311234,   1.6542883449796797, -0.0017865650107230548,  0.6593106706741719]
         metSigParamsData    = [2.228118299837604,  1.2420725475347338, 2.227630982417529,  1.256752205787215,  2.0215250734187853, 1.1557507029911258, 1.7350536144535336, 1.1587692458345757, 1.9385081854607988, 1.8726188460472792, -2.6697894266706265e-05, 0.646984812801919]
         JER                 = "Fall17_V3_MC"                if not sample.isData else "Fall17_V3_DATA"
         JERera              = "Fall17_V3"
-        if sample.isData:
-            if sample.name.count('Run2017B'):
-                JEC         = "Fall17_17Nov2017B_V32_DATA"
-            elif sample.name.count('Run2017C'):
-                JEC         = "Fall17_17Nov2017C_V32_DATA"
-            elif sample.name.count('Run2017D'):
-                JEC         = "Fall17_17Nov2017DE_V32_DATA"
-            elif sample.name.count('Run2017E'):
-                JEC         = "Fall17_17Nov2017DE_V32_DATA"
-            elif sample.name.count('Run2017F'):
-                JEC         = "Fall17_17Nov2017F_V32_DATA"
-            else:
-                raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
-        elif options.fastSim:
-            JEC             = "Fall17_FastsimV1_MC"
-        else:
-            JEC             = "Fall17_17Nov2017_V32_MC"
+
     elif options.year == 2018:
-        # tune parameters updated using JER smearing (affecting MC)
-        metSigParamsMC      = [1.8430848616315363, 1.8430848616315363, 1.8572853766660877, 1.8572853766660877, 1.613083160233781,  1.613083160233781,  1.3966398718198898, 1.3966398718198898, 1.4831008506492056, 1.4831008506492056, 0.0011310724285762122, 0.6929410058142578]
-        metSigParamsData    = [1.6231076732985186, 1.6231076732985186, 1.615595174619551,  1.615595174619551,  1.4731794897915416, 1.4731794897915416, 1.5183631493937553, 1.5183631493937553, 2.145670387603659,  2.145670387603659, -0.0001524158603362826, 0.7510574688006575]
+        metSigParamsMC      = [1.9033100259447273, 1.7374326087706358, 1.6957838005481387, 1.7283187962364615, 1.5868244614361302, 1.526252837049335, 1.3744055574137417, 1.4500298644941831, 1.4796204632654997, 1.4481227819959115, 0.0019899110367503207, 0.6927496536100137]
+        metSigParamsData    = [1.7492714572981323, 1.3430198915313956, 1.911348554103867, 1.3718438058490257, 1.5885672661901442, 1.4385903478138795, 1.521901070409261, 1.4522895772008289, 1.8870084799263003, 1.7138750357657668, -1.359837542505224e-06, 0.7434240965656385]
         JER                 = "Autumn18_V1_MC"                if not sample.isData else "Autumn18_V1_DATA"
         JERera              = "Autumn18_V1"
-        if sample.isData:
-            if sample.name.count("Run2018"):
-                JEC         = "Autumn18_Run%s_V8_DATA"%era
-            else:
-                raise NotImplementedError ("Don't know what JECs to use for sample %s"%sample.name)
-        elif options.fastSim:
-            JEC             = "Autumn18_FastSimV1_MC"
-        else:
-            JEC             = "Autumn18_V8_MC"
 
     # set the params for MET Significance calculation
     metSigParams            = metSigParamsMC                if not sample.isData else metSigParamsData
@@ -720,40 +684,11 @@ if not options.skipNanoTools:
     if options.overwriteJEC is not None:
         JEC = options.overwriteJEC
 
-    logger.info("Using JERs: %s", JER)
-    logger.info("Using JECs: %s", JEC)
-
-    # define modules. JEC reapplication only works with MC right now, so just don't do it.
-    modules = []
-    
+    logger.info("Using JERs for MET significance: %s", JER)
     logger.info("Will use the following parameters for MET significance: %s", metSigParams)
     
-    if not sample.isData:
-        modules.append( ISRcounter() )
-        # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.
-        #modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='MET') )
-        modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jetType = "AK4PFchs", redoJEC=True, doJERSmearing=False, METBranchName='MET') )
-        if options.year == 2017:
-            # in 2017, also recorrect the MET calculated with the v2 recipe
-            #modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jer=JERera, jetType = "AK4PFchs", redoJEC=True, METBranchName='METFixEE2017') )
-            modules.append( jetmetUncertaintiesProducer(str(options.year), JEC, [ "Total" ], jetType = "AK4PFchs", redoJEC=True, doJERSmearing=False, METBranchName='METFixEE2017') )
-    else:
-        # always correct the "standard" MET (needed e.g. for METMinProducer). JECs won't be applied twice.
-        modules.append( jetRecalib(JEC, JEC) )
-        if options.year == 2017:
-            # in 2017, also recorrect the MET calculated with the v2 recipe
-            modules.append( jetRecalib(JEC, JEC, METBranchName='METFixEE2017') )
-        logger.info("JECs will be reapplied.")
-
-    if options.year == 2016:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
-    elif options.year == 2017:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=15., vetoEtaRegion=(2.65,3.14)) )
-    elif options.year == 2018:
-        modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=25.) )
-
-    if options.year == 2017:
-        modules.append(METminProducer(isData=isData, calcVariations=(not isData)))
+    from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *
+    METBranchName = 'MET' if not options.year == 2017 else 'METFixEE2017'
 
     # check if files are available (e.g. if dpm is broken this should result in an error)
     for f in sample.files:
@@ -765,6 +700,20 @@ if not options.skipNanoTools:
     newFileList = []
     logger.info("Starting nanoAOD postprocessing")
     for f in sample.files:
+        JMECorrector = createJMECorrector(isMC=(not sample.isData), dataYear=options.year, runPeriod=era, jesUncert="Total", jetType = "AK4PFchs", metBranchName=METBranchName, isFastSim=options.fastSim)
+        modules = [
+            JMECorrector()
+        ]
+        
+        if not sample.isData:
+            modules.append( ISRcounter() )
+
+        if options.year == 2016:
+            modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
+        elif options.year == 2017:
+            modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=15., vetoEtaRegion=(2.65,3.14)) )
+        elif options.year == 2018:
+            modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=25.) )
         # need a hash to avoid data loss
         file_hash = str(hash(f))
         p = PostProcessor(output_directory, [f], cut=cut, modules=modules, postfix="_for_%s_%s"%(sample.name, file_hash))
@@ -868,7 +817,7 @@ def filler( event ):
         #    event.weight_pol_R = pol_weights[1]
 
         try:
-            event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
+            event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight'] #* r.genWeight
         except KeyError:
             logger.info("Couldn't find weight for %s, %s. Setting weight to 0.", r.GenSusyMStop, r.GenSusyMNeutralino)
             event.weight = 0.
@@ -956,8 +905,9 @@ def filler( event ):
 
     # now get jets, cleaned against good leptons
 
-    jetPtVar = 'pt_nom'# if options.reapplyJECS else 'pt'  ## always use pt_nom
+    jetPtVar = 'pt' # see comment below
 
+    # with the latest change, getAllJets calculates the correct jet pt (removing JER) and stores it as Jet_pt again. No need for Jet_pt_nom anymore
     allJetsNotClean = getAllJets(r, [], ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar=None)
     reallyAllJets= getAllJets(r, leptons, ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar='jetId') # keeping robert's comment: ... yeah, I know.
     allJets      = filter(lambda j:abs(j['eta'])<jetAbsEtaCut, reallyAllJets)
@@ -977,8 +927,8 @@ def filler( event ):
     
     if options.year == 2017 and not options.fastSim:
         # v2 recipe. Could also use our own recipe
-        event.met_pt    = r.METFixEE2017_pt
-        event.met_phi   = r.METFixEE2017_phi
+        event.met_pt    = r.METFixEE2017_pt_nom
+        event.met_phi   = r.METFixEE2017_phi_nom
         event.met_pt_min = r.MET_pt_min
     else:
         event.met_pt    = r.MET_pt_nom 
@@ -997,7 +947,7 @@ def filler( event ):
         if isMC:
             if store_jets[iJet]['genJetIdx'] >= 0:
                 event.JetGood_genPt[iJet] = r.GenJet_pt[store_jets[iJet]['genJetIdx']]
-        getattr(event, "JetGood_pt")[iJet] = jet['pt_nom']
+        getattr(event, "JetGood_pt")[iJet] = jet['pt']
 
     if isSingleLep:
         # Compute M3 and the three indiced of the jets entering m3

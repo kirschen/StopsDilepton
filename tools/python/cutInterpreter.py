@@ -17,6 +17,7 @@ special_cuts = {
     "looseLeptonMiniIsoVeto": "(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_miniPFRelIso_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_miniPFRelIso_all<0.4) )==2",
     "tightLooseLeptonVeto":   "(Sum$(Electron_pt>5&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>5&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2",
     "supertightLooseLeptonVeto":   "(nElectron+nMuon)==2",
+    "eleFakeFix":        "(Sum$(Electron_pt>20&&abs(Electron_eta)<2.4&&Electron_miniPFRelIso_all<0.1&&Electron_sip3d<4&&Electron_lostHits==0) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.4&&Muon_miniPFRelIso_all<0.1) )==2",
 
     "OS":                "(l1_pdgId*l2_pdgId)<0",
     "lepSel":            "l1_pt>30&&l2_pt>20",
