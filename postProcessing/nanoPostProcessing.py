@@ -700,7 +700,7 @@ if not options.skipNanoTools:
     newFileList = []
     logger.info("Starting nanoAOD postprocessing")
     for f in sample.files:
-        JMECorrector = createJMECorrector(isMC=(not sample.isData), dataYear=options.year, runPeriod=era, jesUncert="Total", jetType = "AK4PFchs", metBranchName=METBranchName, isFastSim=options.fastSim)
+        JMECorrector = createJMECorrector(isMC=(not sample.isData), dataYear=options.year, runPeriod=era, jesUncert="Total", jetType = "AK4PFchs", metBranchName=METBranchName, isFastSim=options.fastSim, applySmearing=False)
         modules = [
             JMECorrector()
         ]
@@ -905,7 +905,7 @@ def filler( event ):
 
     # now get jets, cleaned against good leptons
 
-    jetPtVar = 'pt' # see comment below
+    jetPtVar = 'pt_nom' # see comment below
 
     # with the latest change, getAllJets calculates the correct jet pt (removing JER) and stores it as Jet_pt again. No need for Jet_pt_nom anymore
     allJetsNotClean = getAllJets(r, [], ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar=None)
