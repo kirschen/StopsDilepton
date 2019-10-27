@@ -57,7 +57,7 @@ class leptonSip3dSF:
         if eta <= -2.4: eta = -2.39
 
         if abs(pdgId)==13:   
-          return 1. # so far we only have extra ele SF 
+          return 1.0, 1.0, 1.0 # so far we only have extra ele SF 
         elif abs(pdgId)==11:
           if pt >= self.ele_max_pt: pt = self.ele_max_pt-1 # last bin is valid to infinity
           eta_ = abs(eta) if self.ele_abs_eta else eta
