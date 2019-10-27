@@ -586,7 +586,7 @@ if has_susy_weight_friend:
 
 
 if sample.isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
-new_variables.extend( ['nBTag/I'] )
+new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
 new_variables += ["reweightHEM/F"]
 
 new_variables.append( 'lep[%s]'% ( ','.join(lepVars) ) )
@@ -964,6 +964,8 @@ def filler( event ):
         # Compute M3 and the three indiced of the jets entering m3
         event.m3, event.m3_ind1, event.m3_ind2, event.m3_ind3 = m3( jets )
 
+    event.ht         = sum([j[jetPtVar] for j in jets])
+    event.metSig     = event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan')
     event.nBTag      = len(bJets)
 
     alljets_sys   = {}
