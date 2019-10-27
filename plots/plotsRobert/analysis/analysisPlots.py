@@ -384,7 +384,7 @@ def drawPlots(plots, mode, dataMCScale):
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I", "RawMET_pt/F", "RawMET_phi/F"]
+read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I", "RawMET_pt/F", "RawMET_phi/F"]
 read_variables += ["l2_eleIndex/I"]
 read_variables+= ["event/l", "luminosityBlock/I", "run/I"]
 if "2017" in args.era:
@@ -743,12 +743,6 @@ for index, mode in enumerate(allModes):
   #    binning=[10,-pi,pi],
   #))
 
-  #plots.append(Plot(
-  #  texX = 'E_{T}^{miss}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
-  #  attribute = TreeVariable.fromString('metSig/F'),
-  #  binning= [80,20,100] if args.selection.count('metSig20') else ([25,5,30] if args.selection.count('metSig') else [30,0,30]),
-  #))
-
   if not args.blinded:
     plots.append(Plot(
       texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
@@ -860,11 +854,11 @@ for index, mode in enumerate(allModes):
     binning=[8,0,8],
   ))
 
-  plots.append(Plot(
-    texX = 'H_{T} (GeV)', texY = 'Number of Events / 25 GeV',
-    attribute = TreeVariable.fromString( "ht/F" ),
-    binning=[500/25,0,600],
-  ))
+  #plots.append(Plot(
+  #  texX = 'H_{T} (GeV)', texY = 'Number of Events / 25 GeV',
+  #  attribute = TreeVariable.fromString( "ht/F" ),
+  #  binning=[500/25,0,600],
+  #))
 
   plots.append(Plot(
     texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 4 GeV',

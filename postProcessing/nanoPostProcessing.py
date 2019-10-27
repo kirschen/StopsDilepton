@@ -36,6 +36,8 @@ from StopsDilepton.tools.getGenBoson         import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting      import getPolWeights
 from StopsDilepton.tools.triggerEfficiency   import triggerEfficiency
 from StopsDilepton.tools.leptonSF            import leptonSF as leptonSF_
+from StopsDilepton.tools.leptonHit0SF        import leptonHit0SF as leptonHit0SF_
+from StopsDilepton.tools.leptonSip3dSF       import leptonSip3dSF as leptonSip3dSF_
 from StopsDilepton.tools.leptonFastSimSF     import leptonFastSimSF as leptonFastSimSF_
 from Analysis.Tools.overlapRemovalTTG        import photonFromTopDecay, hasMesonMother, getParentIds, isIsolatedPhoton, getPhotonCategory
 from Analysis.Tools.puProfileCache           import *
@@ -302,6 +304,9 @@ if isMC:
 
 leptonTrackingSF    = LeptonTrackingEfficiency(options.year)
 leptonSF            = leptonSF_(options.year)
+leptonHit0SF        = leptonHit0SF_(options.year)
+leptonSip3dSF       = leptonSip3dSF_(options.year)
+
 if options.fastSim:
    leptonFastSimSF  = leptonFastSimSF_(options.year)
 
@@ -592,7 +597,10 @@ if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I', 'nGoodLeptons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I', 'l1_eleIndex/I', 'l1_muIndex/I' ] )
     new_variables.extend( ['mlmZ_mass/F'])
-    if isMC: new_variables.extend(['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F'])
+    if isMC: 
+            new_variables.extend(['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F'])
+            new_variables.extend(['reweightLeptonHit0SF/F', 'reweightLeptonHit0SFUp/F', 'reweightLeptonHit0SFDown/F'])
+            new_variables.extend(['reweightLeptonSip3dSF/F', 'reweightLeptonSip3dSFUp/F', 'reweightLeptonSip3dSFDown/F'])
 if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I', 'l2_eleIndex/I', 'l2_muIndex/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
@@ -1033,6 +1041,18 @@ def filler( event ):
             event.reweightLeptonSFUp   = reduce(mul, [sf[2] for sf in leptonSFValues], 1)  
             if event.reweightLeptonSF ==0:
                 logger.error( "reweightLeptonSF is zero!")
+            leptonHit0SFValues = [ leptonHit0SF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
+            event.reweightLeptonHit0SF     = reduce(mul, [sf[0] for sf in leptonHit0SFValues], 1)
+            event.reweightLeptonHit0SFDown = reduce(mul, [sf[1] for sf in leptonHit0SFValues], 1)
+            event.reweightLeptonHit0SFUp   = reduce(mul, [sf[2] for sf in leptonHit0SFValues], 1)  
+            if event.reweightLeptonHit0SF ==0:
+                logger.error( "reweightLeptonHit0SF is zero!")
+            leptonSip3dSFValues = [ leptonSip3dSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
+            event.reweightLeptonSip3dSF     = reduce(mul, [sf[0] for sf in leptonSip3dSFValues], 1)
+            event.reweightLeptonSip3dSFDown = reduce(mul, [sf[1] for sf in leptonSip3dSFValues], 1)
+            event.reweightLeptonSip3dSFUp   = reduce(mul, [sf[2] for sf in leptonSip3dSFValues], 1)  
+            if event.reweightLeptonSip3dSF ==0:
+                logger.error( "reweightLeptonSip3dSF is zero!")
 
             if options.fastSim:
                 leptonFastSimSFValues = [ leptonFastSimSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
