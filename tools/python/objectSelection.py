@@ -242,13 +242,17 @@ def eleSelector( lepton_selection, year, ptCut = 10):
                 l["pt"]                 >= ptCut \
                 and abs(l["eta"])       < 2.4 \
                 and cbEleSelector_(l['vidNestedWPBitmap']) \
-                and l["miniPFRelIso_all"] < 0.2
+                and l["miniPFRelIso_all"] < 0.2 \
+                and l["sip3d"]          < 4.0 \
+                and ord(l["lostHits"])  == 0 
     elif lepton_selection == 'tightNoIso':
         cbEleSelector_ = cbEleSelector( 'tight', removeCuts = ['GsfEleRelPFIsoScaledCut'] )
         def func(l):
             return \
                 l["pt"]                 >= ptCut \
                 and abs(l["eta"])       < 2.4 \
+                and l["sip3d"]          < 4.0 \
+                and ord(l["lostHits"])  == 0 \
                 and cbEleSelector_(l['vidNestedWPBitmap']) 
 #    elif lepton_selection == 'tightNoIso':
 #        def func(l):
