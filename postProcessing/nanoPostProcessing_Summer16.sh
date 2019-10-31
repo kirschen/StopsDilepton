@@ -65,7 +65,7 @@ python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processing
 
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p19   --skipGenLepMatching --sample WWW_4F #SPLIT1
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p19   --skipGenLepMatching --sample WWZ #SPLIT1
-python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p19   --skipGenLepMatching --sample WZG #SPLIT1
+#python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p19   --skipGenLepMatching --sample WZG #SPLIT1
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p19   --skipGenLepMatching --sample WZZ #SPLIT2
 python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p19   --skipGenLepMatching --sample ZZZ #SPLIT2
 
