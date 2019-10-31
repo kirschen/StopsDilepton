@@ -45,14 +45,14 @@ for source, target in [ ( mc_source_path, mc_target_path), ( data_source_path, d
     for obj in os.listdir(source):
         jobs.append( ( os.path.join( source, obj ), os.path.join(target)) )
 
-#import subprocess
-#def wrapper( job ):
-#    cmd = ["dpmTools.py", "--fromLocal", "--cp", job[0], job[1]]
-#    print " ".join(cmd)
-#    subprocess.call(cmd)
-#
-#from multiprocessing import Pool
-#pool = Pool(processes=2)
-#results = pool.map(wrapper, jobs)
-#pool.close()
-#pool.join()
+import subprocess
+def wrapper( job ):
+    cmd = ["dpmTools.py", "--fromLocal", "--cp", job[0], job[1]]
+    print " ".join(cmd)
+    subprocess.call(cmd)
+
+from multiprocessing import Pool
+pool = Pool(processes=2)
+results = pool.map(wrapper, jobs)
+pool.close()
+pool.join()

@@ -14,7 +14,7 @@ import operator
 from math                                import sqrt, cos, sin, pi, atan2, cosh
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
-from StopsDilepton.tools.helpers         import deltaPhi, deltaR
+from StopsDilepton.tools.helpers         import deltaPhi, deltaR, add_histos
 from Analysis.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
@@ -29,6 +29,7 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                 action='store_true',     help='Run only on a small subset of the data?', )
+argParser.add_argument('--sorting',                               action='store', default=None, choices=[None, "forDYMB"],  help='Sort histos?', )
 argParser.add_argument('--dpm',                                   action='store_true',     help='Use dpm?', )
 argParser.add_argument('--dataMCScaling',      action='store_true',     help='Data MC scaling?', )
 argParser.add_argument('--DYInc',              action='store_true',     help='Use Inclusive DY sample?', )
@@ -36,7 +37,6 @@ argParser.add_argument('--plot_directory',     action='store',      default='v0p
 argParser.add_argument('--era',                action='store', type=str,      default="2016")
 argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
 argParser.add_argument('--nvtxReweightSelection',          action='store',      default=None)
-argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--unblinded',          action='store_true', default=False)
 argParser.add_argument('--blinded',            action='store_true', default=False)
 argParser.add_argument('--reweightPU',         action='store', default='Central', choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
@@ -63,7 +63,6 @@ if args.splitNvtx:                    args.plot_directory += "_splitNvtx"
 if args.DYInc:                        args.plot_directory += "_DYInc"
 if args.noData:                       args.plot_directory += "_noData"
 if args.signal == "DM":               args.plot_directory += "_DM"
-if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
 if args.reweightPU:                   args.plot_directory += "_%s"%args.reweightPU
 #
 # Make samples, will be searched for in the postProcessing directory
@@ -121,6 +120,9 @@ elif year == 2018:
     #Run2018D.vetoList = vetoList.fromDirectory('/afs/hephy.at/data/rschoefbeck02/StopsDilepton/splitMuonVeto/')
     #if args.reweightPU and not args.reweightPU in ["noPUReweighting", "nvtx"]:
     #    nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
+
+#if args.sorting == "forDYMB":
+#    mc = [ mc[4], mc[3], mc[0], mc[2], mc[1] ]
 
 try:
   data_sample = eval(args.era)
@@ -311,7 +313,7 @@ def drawPlots(plots, mode, dataMCScale):
           plotting.draw(plot,
             plot_directory = plot_directory_,
             ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-            logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig or args.splitNvtx),
+            logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig or args.splitNvtx) and args.sorting is not None,
             yRange = (0.03, "auto") if log else (0.001, "auto"),
             scaling = {0:1} if args.dataMCScaling else {},
             legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
@@ -342,11 +344,48 @@ def drawPlots(plots, mode, dataMCScale):
             drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
             copyIndexPHP = True, extensions = ["png", "pdf"], 
           )
+          # 2D plots where we want to make a ratio start with "forRatio"
+          if plot.name.startswith("eff_num"):
+            # find the denominator plot
+            plot_den = filter( lambda p:p.name == plot.name.replace("eff_num", "eff_den"), plots)[0]
+            h_eff_data   = plot.histos[1][0] 
+            h_den_data   = plot_den.histos[1][0]
+            h_eff_data.Divide(h_den_data)
+            h_eff_mc     = add_histos(plot.histos[0])
+            h_den_mc     = add_histos(plot_den.histos[0])
+            h_eff_mc.Divide(h_den_mc)
 
+            p_eff_mc =  Plot2D.fromHisto( plot.name.replace('eff_num', 'eff_mc'), [[h_eff_mc]], texX = plot.texX, texY = plot.texY )
+            plotting.draw2D(p_eff_mc,
+              plot_directory = plot_directory_,
+              zRange = (0.8,1.2),
+              logX = False, logY = False, logZ = log, #sorting = True,
+              drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
+              copyIndexPHP = True, extensions = ["png", "pdf", "root"], 
+            )
+            p_eff_data =  Plot2D.fromHisto( plot.name.replace('eff_num', 'eff_data'), [[h_eff_data]], texX = plot.texX, texY = plot.texY )
+            plotting.draw2D(p_eff_data,
+              plot_directory = plot_directory_,
+              logX = False, logY = False, logZ = log, #sorting = True,
+              zRange = (0.8,1.2),
+              drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
+              copyIndexPHP = True, extensions = ["png", "pdf", "root"], 
+            )
+            h_eff_data.Divide(h_eff_mc) 
+            p_ratio_datamc =  Plot2D.fromHisto( plot.name.replace('eff_num', 'effRatio_dataMC'), [[h_eff_data]], texX = plot.texX, texY = plot.texY )
+            plotting.draw2D(p_ratio_datamc,
+              plot_directory = plot_directory_,
+              logX = False, logY = False, logZ = log, #sorting = True,
+              zRange = (0.8,1.2),
+              drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
+              copyIndexPHP = True, extensions = ["png", "pdf", "root"], 
+            )
+            
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I", "RawMET_pt/F", "RawMET_phi/F"]
+read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I", "RawMET_pt/F", "RawMET_phi/F"]
+read_variables += ["l2_eleIndex/I"]
 read_variables+= ["event/l", "luminosityBlock/I", "run/I"]
 if "2017" in args.era:
     read_variables.append( "MET_pt_min/F" ) 
@@ -358,7 +397,7 @@ if True: #"2017" in args.era:
     ele_selector = eleSelector( "tight", year = year )
     mu_selector = muonSelector( "tight", year = year )
 
-    jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F'] 
+    jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F', 'corr_JER/F'] 
     jetVarNames     = map( lambda s:s.split('/')[0], jetVars)
     read_variables += [\
         TreeVariable.fromString('nElectron/I'),
@@ -677,7 +716,7 @@ for index, mode in enumerate(allModes):
   plots.append(Plot(
       texX = 'E_{T}^{miss} significance', texY = 'Number of Events',
       attribute = TreeVariable.fromString( "MET_significance/F" ),
-      binning=[40,0,100],
+      binning=[34,0,102],
   ))
 
   plots.append(Plot(
@@ -702,12 +741,6 @@ for index, mode in enumerate(allModes):
   #    texX = 'raw #phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
   #    attribute = lambda event, sample: event.RawMET_phi_corr,
   #    binning=[10,-pi,pi],
-  #))
-
-  #plots.append(Plot(
-  #  texX = 'E_{T}^{miss}/#sqrt{H_{T}} (GeV^{1/2})', texY = 'Number of Events',
-  #  attribute = TreeVariable.fromString('metSig/F'),
-  #  binning= [80,20,100] if args.selection.count('metSig20') else ([25,5,30] if args.selection.count('metSig') else [30,0,30]),
   #))
 
   if not args.blinded:
@@ -821,11 +854,11 @@ for index, mode in enumerate(allModes):
     binning=[8,0,8],
   ))
 
-  plots.append(Plot(
-    texX = 'H_{T} (GeV)', texY = 'Number of Events / 25 GeV',
-    attribute = TreeVariable.fromString( "ht/F" ),
-    binning=[500/25,0,600],
-  ))
+  #plots.append(Plot(
+  #  texX = 'H_{T} (GeV)', texY = 'Number of Events / 25 GeV',
+  #  attribute = TreeVariable.fromString( "ht/F" ),
+  #  binning=[500/25,0,600],
+  #))
 
   plots.append(Plot(
     texX = 'm(ll) of leading dilepton (GeV)', texY = 'Number of Events / 4 GeV',
@@ -917,6 +950,28 @@ for index, mode in enumerate(allModes):
     texX = 'pdgId(l2)', texY = 'Number of Events',
     attribute = TreeVariable.fromString( "l2_pdgId/I" ),
     binning=[30,-15,15],
+  ))
+
+  # plot trailing lepton quantities
+  plots2D.append(Plot2D(
+    name = 'eff_num_trailing_ele_sip3Dlt4',
+    stack = stack,
+    attribute = (
+      lambda event, sample: event.l2_eta if event.l2_eleIndex>0 and event.Electron_sip3d[event.l2_eleIndex]<4 else float('nan'),
+      lambda event, sample: event.l2_pt  if event.l2_eleIndex>0 and event.Electron_sip3d[event.l2_eleIndex]<4 else float('nan'),
+    ),
+    texX = 'trailing lepton #eta', texY = 'trailing lepton p_{T} (GeV)',
+    binning=[Binning.fromThresholds([-2.5, -2, -1.566, -1.444, -0.8, 0, 0.8, 1.444, 1.566, 2.0, 2.5]), Binning.fromThresholds([20, 35, 50, 100, 200])],
+  ))
+  plots2D.append(Plot2D(
+    name = 'eff_den_trailing_ele_sip3Dlt4', #keep the cut in the name, but this is the denominator, so remove it from the lambda function
+    stack = stack,
+    attribute = (
+      lambda event, sample: event.l2_eta if event.l2_eleIndex>0 else float('nan'),
+      lambda event, sample: event.l2_pt  if event.l2_eleIndex>0 else float('nan'),
+    ),
+    texX = 'trailing lepton #eta', texY = 'trailing lepton p_{T} (GeV)',
+    binning=[Binning.fromThresholds([-2.5, -2, -1.566, -1.444, -0.8, 0, 0.8, 1.444, 1.566, 2.0, 2.5]), Binning.fromThresholds([20, 35, 50, 100, 200])],
   ))
 
   # Plots only when at least one jet:

@@ -36,6 +36,8 @@ from StopsDilepton.tools.getGenBoson         import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting      import getPolWeights
 from StopsDilepton.tools.triggerEfficiency   import triggerEfficiency
 from StopsDilepton.tools.leptonSF            import leptonSF as leptonSF_
+from StopsDilepton.tools.leptonHit0SF        import leptonHit0SF as leptonHit0SF_
+from StopsDilepton.tools.leptonSip3dSF       import leptonSip3dSF as leptonSip3dSF_
 from StopsDilepton.tools.leptonFastSimSF     import leptonFastSimSF as leptonFastSimSF_
 from Analysis.Tools.overlapRemovalTTG        import photonFromTopDecay, hasMesonMother, getParentIds, isIsolatedPhoton, getPhotonCategory
 from Analysis.Tools.puProfileCache           import *
@@ -302,6 +304,9 @@ if isMC:
 
 leptonTrackingSF    = LeptonTrackingEfficiency(options.year)
 leptonSF            = leptonSF_(options.year)
+leptonHit0SF        = leptonHit0SF_(options.year)
+leptonSip3dSF       = leptonSip3dSF_(options.year)
+
 if options.fastSim:
    leptonFastSimSF  = leptonFastSimSF_(options.year)
 
@@ -531,12 +536,15 @@ lepVarNames     = [x.split('/')[0] for x in lepVars]
 
 read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
 if options.year == 2017:
-    read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'METFixEE2017_phi/F', 'METFixEE2017_pt_nom/F', 'METFixEE2017_phi_nom/F', 'MET_pt_min/F'])
+    read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt/F', 'METFixEE2017_phi/F', 'METFixEE2017_pt_nom/F', 'METFixEE2017_phi_nom/F'])
     if isMC:
-        read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt_jesTotalUp/F', 'METFixEE2017_pt_jesTotalDown/F', 'METFixEE2017_pt_jerUp/F', 'METFixEE2017_pt_jerDown/F', 'METFixEE2017_pt_unclustEnDown/F', 'METFixEE2017_pt_unclustEnUp/F', 'METFixEE2017_phi_jesTotalUp/F', 'METFixEE2017_phi_jesTotalDown/F', 'METFixEE2017_phi_jerUp/F', 'METFixEE2017_phi_jerDown/F', 'METFixEE2017_phi_unclustEnDown/F', 'METFixEE2017_phi_unclustEnUp/F'])
-read_variables += map(TreeVariable.fromString, [ 'MET_pt_nom/F', 'MET_phi_nom/F' ])
+        read_variables += map(TreeVariable.fromString, [ 'METFixEE2017_pt_jesTotalUp/F', 'METFixEE2017_pt_jesTotalDown/F', 'METFixEE2017_pt_jerUp/F', 'METFixEE2017_pt_jerDown/F', 'METFixEE2017_pt_unclustEnDown/F', 'METFixEE2017_pt_unclustEnUp/F', 'METFixEE2017_phi_jesTotalUp/F', 'METFixEE2017_phi_jesTotalDown/F', 'METFixEE2017_phi_jerUp/F', 'METFixEE2017_phi_jerDown/F', 'METFixEE2017_phi_unclustEnDown/F', 'METFixEE2017_phi_unclustEnUp/F', 'METFixEE2017_pt_jer/F', 'METFixEE2017_phi_jer/F'])
+else:
+    read_variables += map(TreeVariable.fromString, [ 'MET_pt_nom/F', 'MET_phi_nom/F' ])
+    if isMC:
+        read_variables += map(TreeVariable.fromString, [ 'MET_pt_jesTotalUp/F', 'MET_pt_jesTotalDown/F', 'MET_pt_jerUp/F', 'MET_pt_jerDown/F', 'MET_pt_unclustEnDown/F', 'MET_pt_unclustEnUp/F', 'MET_phi_jesTotalUp/F', 'MET_phi_jesTotalDown/F', 'MET_phi_jerUp/F', 'MET_phi_jerDown/F', 'MET_phi_unclustEnDown/F', 'MET_phi_unclustEnUp/F', 'MET_pt_jer/F', 'MET_phi_jer/F'])
 if isMC:
-    read_variables += map(TreeVariable.fromString, [ 'GenMET_pt/F', 'GenMET_phi/F', 'MET_pt_jesTotalUp/F', 'MET_pt_jesTotalDown/F', 'MET_pt_jerUp/F', 'MET_pt_jerDown/F', 'MET_pt_unclustEnDown/F', 'MET_pt_unclustEnUp/F', 'MET_phi_jesTotalUp/F', 'MET_phi_jesTotalDown/F', 'MET_phi_jerUp/F', 'MET_phi_jerDown/F', 'MET_phi_unclustEnDown/F', 'MET_phi_unclustEnUp/F'])
+    read_variables += map(TreeVariable.fromString, [ 'GenMET_pt/F', 'GenMET_phi/F' ])
 
 read_variables += [ TreeVariable.fromString('nPhoton/I'),
                     VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBased/I,pdgId/I]') if (options.year == 2016) else VectorTreeVariable.fromString('Photon[pt/F,eta/F,phi/F,mass/F,cutBasedBitmap/I,pdgId/I]') ]
@@ -578,7 +586,7 @@ if has_susy_weight_friend:
 
 
 if sample.isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
-new_variables.extend( ['nBTag/I'] )
+new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
 new_variables += ["reweightHEM/F"]
 
 new_variables.append( 'lep[%s]'% ( ','.join(lepVars) ) )
@@ -589,7 +597,10 @@ if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I', 'nGoodLeptons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I', 'l1_eleIndex/I', 'l1_muIndex/I' ] )
     new_variables.extend( ['mlmZ_mass/F'])
-    if isMC: new_variables.extend(['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F'])
+    if isMC: 
+            new_variables.extend(['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F'])
+            new_variables.extend(['reweightLeptonHit0SF/F', 'reweightLeptonHit0SFUp/F', 'reweightLeptonHit0SFDown/F'])
+            new_variables.extend(['reweightLeptonSip3dSF/F', 'reweightLeptonSip3dSFUp/F', 'reweightLeptonSip3dSFDown/F'])
 if isTriLep or isDiLep:
     new_variables.extend( ['l2_pt/F', 'l2_eta/F', 'l2_phi/F', 'l2_pdgId/I', 'l2_index/I', 'l2_jetPtRelv2/F', 'l2_jetPtRatiov2/F', 'l2_miniRelIso/F', 'l2_relIso03/F', 'l2_dxy/F', 'l2_dz/F', 'l2_mIsoWP/I', 'l2_eleIndex/I', 'l2_muIndex/I' ] )
     new_variables.extend( ['isEE/I', 'isMuMu/I', 'isEMu/I', 'isOS/I' ] )
@@ -700,7 +711,7 @@ if not options.skipNanoTools:
     newFileList = []
     logger.info("Starting nanoAOD postprocessing")
     for f in sample.files:
-        JMECorrector = createJMECorrector(isMC=(not sample.isData), dataYear=options.year, runPeriod=era, jesUncert="Total", jetType = "AK4PFchs", metBranchName=METBranchName, isFastSim=options.fastSim)
+        JMECorrector = createJMECorrector(isMC=(not sample.isData), dataYear=options.year, runPeriod=era, jesUncert="Total", jetType = "AK4PFchs", metBranchName=METBranchName, isFastSim=options.fastSim, applySmearing=False)
         modules = [
             JMECorrector()
         ]
@@ -905,7 +916,7 @@ def filler( event ):
 
     # now get jets, cleaned against good leptons
 
-    jetPtVar = 'pt' # see comment below
+    jetPtVar = 'pt_nom' # see comment below
 
     # with the latest change, getAllJets calculates the correct jet pt (removing JER) and stores it as Jet_pt again. No need for Jet_pt_nom anymore
     allJetsNotClean = getAllJets(r, [], ptCut=0, absEtaCut=99, jetVars=jetVarNames, jetCollections=["Jet"], idVar=None)
@@ -929,7 +940,7 @@ def filler( event ):
         # v2 recipe. Could also use our own recipe
         event.met_pt    = r.METFixEE2017_pt_nom
         event.met_phi   = r.METFixEE2017_phi_nom
-        event.met_pt_min = r.MET_pt_min
+        #event.met_pt_min = r.MET_pt_min not done anymore
     else:
         event.met_pt    = r.MET_pt_nom 
         event.met_phi   = r.MET_phi_nom
@@ -953,6 +964,8 @@ def filler( event ):
         # Compute M3 and the three indiced of the jets entering m3
         event.m3, event.m3_ind1, event.m3_ind2, event.m3_ind3 = m3( jets )
 
+    event.ht         = sum([j[jetPtVar] for j in jets])
+    event.metSig     = event.met_pt/sqrt(event.ht) if event.ht>0 else float('nan')
     event.nBTag      = len(bJets)
 
     alljets_sys   = {}
@@ -1030,6 +1043,18 @@ def filler( event ):
             event.reweightLeptonSFUp   = reduce(mul, [sf[2] for sf in leptonSFValues], 1)  
             if event.reweightLeptonSF ==0:
                 logger.error( "reweightLeptonSF is zero!")
+            leptonHit0SFValues = [ leptonHit0SF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
+            event.reweightLeptonHit0SF     = reduce(mul, [sf[0] for sf in leptonHit0SFValues], 1)
+            event.reweightLeptonHit0SFDown = reduce(mul, [sf[1] for sf in leptonHit0SFValues], 1)
+            event.reweightLeptonHit0SFUp   = reduce(mul, [sf[2] for sf in leptonHit0SFValues], 1)  
+            if event.reweightLeptonHit0SF ==0:
+                logger.error( "reweightLeptonHit0SF is zero!")
+            leptonSip3dSFValues = [ leptonSip3dSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]
+            event.reweightLeptonSip3dSF     = reduce(mul, [sf[0] for sf in leptonSip3dSFValues], 1)
+            event.reweightLeptonSip3dSFDown = reduce(mul, [sf[1] for sf in leptonSip3dSFValues], 1)
+            event.reweightLeptonSip3dSFUp   = reduce(mul, [sf[2] for sf in leptonSip3dSFValues], 1)  
+            if event.reweightLeptonSip3dSF ==0:
+                logger.error( "reweightLeptonSip3dSF is zero!")
 
             if options.fastSim:
                 leptonFastSimSFValues = [ leptonFastSimSF.getSF(pdgId=l['pdgId'], pt=l['pt'], eta=((l['eta'] + l['deltaEtaSC']) if abs(l['pdgId'])==11 else l['eta'])) for l in leptonsForSF ]

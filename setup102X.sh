@@ -5,7 +5,7 @@ eval `scram runtime -sh`
 cd $CMSSW_BASE/src
 
 # nanoAOD tools (for MET Significance, JEC/JER...)
-git clone https://github.com/HephyAnalysisSW/nanoAOD-tools.git PhysicsTools/NanoAODTools
+git clone -b stopsDilepton https://github.com/HephyAnalysisSW/nanoAOD-tools.git PhysicsTools/NanoAODTools
 cd $CMSSW_BASE/src
 
 # X-PAG code for limit
