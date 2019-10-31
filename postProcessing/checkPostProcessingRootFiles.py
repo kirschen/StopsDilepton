@@ -102,7 +102,10 @@ for ppEntry in dictList:
     nanoAOD_list = []
     if len( nanoAODFiles )>0:
         logger.warning( "Found nanoAODFiles. Shouldn't be here: %s", ",".join( nanoAODFiles ) )
-        nanoAOD_list = list(set([ int(f.rstrip('.root').split('_')[-2]) for f in nanoAODFiles ]))
+        try:
+            nanoAOD_list = list(set([ int(f.rstrip('.root').split('_')[-2]) for f in nanoAODFiles ]))
+        except ValueError: #possibly 'SPLIT1'
+            nanoAOD_list = [0]
     
     if len(allRootFiles)>0:
         rootFiles  = [ os.path.join(dirPath, filename) for filename in allRootFiles]
