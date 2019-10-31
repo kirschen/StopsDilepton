@@ -96,12 +96,14 @@ class SystematicEstimator:
         ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jerUp'}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jerDown'}))
-        return min(abs(0.5*(up+down)/ref-1.),u_float(0.95)) if ref > 0 else max(up, down)
+        #return min(abs(0.5*(up+down)/ref-1.),u_float(0.95)) if ref > 0 else max(up, down)
+        return min(abs(0.5*(up-down)/ref),u_float(0.95)) if ref > 0 else max(up, down)
 
     def JERSystematicAsym(self, region, channel, setup):
-        ref  = self.cachedEstimate(region, channel, setup)
+        #ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jerUp'}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jerDown'}))
+        ref = (up+down)/2.
         if ref.val>0:
             return (down.val/ref.val), (up.val/ref.val)
         else:
@@ -114,9 +116,10 @@ class SystematicEstimator:
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def JECSystematicAsym(self, region, channel, setup):
-        ref  = self.cachedEstimate(region, channel, setup)
+        #ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jesTotalUp'}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jesTotalDown'}))
+        ref = (up+down)/2.
         if ref.val>0:
             return (down.val/ref.val), (up.val/ref.val)
         else:

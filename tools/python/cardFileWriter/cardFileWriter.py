@@ -123,7 +123,7 @@ class cardFileWriter:
             print "Process ", p," is not in bin",b,". Available for ", b,":",self.processes[b]
             return
         if type(val) == type(()):
-            print u, b, p, val
+            #print u, b, p, val
             self.uncertaintyVal[(u,b,p)] = round(1,self.precision) # Dummy entry
             self.uncertaintyVal[(u+'Down',b,p)] = round(val[0],self.precision)
             self.uncertaintyVal[(u+'Up',b,p)] = round(val[1],self.precision)
