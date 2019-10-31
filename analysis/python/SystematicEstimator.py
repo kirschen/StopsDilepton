@@ -93,14 +93,15 @@ class SystematicEstimator:
         return abs(0.5*(up-ref)/ref) if ref > 0 else up
 
     def JERSystematic(self, region, channel, setup):
+        # assigns the difference between smearing and not smearing
         ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jerUp'}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jerDown'}))
-        #return min(abs(0.5*(up+down)/ref-1.),u_float(0.95)) if ref > 0 else max(up, down)
-        return min(abs(0.5*(up-down)/ref),u_float(0.95)) if ref > 0 else max(up, down)
+        return min(abs(0.5*(up+down)/ref-1.),u_float(0.95)) if ref > 0 else max(up, down)
 
     def JERSystematicAsym(self, region, channel, setup):
-        #ref  = self.cachedEstimate(region, channel, setup)
+        # uses the up and down variation around the average
+        # this is in fact symmetric by construction, but since we don't use smearing this is one of the possible uncertainties to use
         up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jerUp'}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jerDown'}))
         ref = (up+down)/2.
@@ -116,7 +117,6 @@ class SystematicEstimator:
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
 
     def JECSystematicAsym(self, region, channel, setup):
-        #ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jesTotalUp'}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'jesTotalDown'}))
         ref = (up+down)/2.

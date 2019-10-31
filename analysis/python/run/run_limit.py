@@ -247,7 +247,6 @@ def wrapper(s):
         PU      = 'PU'
         c.addUncertainty(PU,           shapeString)
         c.addUncertainty('topPt',      shapeString)
-        c.addUncertainty('ttbarDummy',      shapeString)
         c.addUncertainty(JEC,          shapeString)
         c.addUncertainty(unclEn,       shapeString)
         c.addUncertainty(JER,          shapeString)
@@ -255,6 +254,7 @@ def wrapper(s):
         c.addUncertainty(SFl,          shapeString)
         c.addUncertainty(trigger,      shapeString)
         c.addUncertainty('leptonSF',   shapeString)
+        c.addUncertainty('L1prefire',  shapeString)
         # theory (PDF, scale, ISR)
         c.addUncertainty('scale',      shapeString)
         c.addUncertainty('scaleTT',    shapeString)
@@ -368,6 +368,7 @@ def wrapper(s):
                         c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
+                        c.specifyUncertainty('L1prefire', binname, name, 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
                             c.specifyUncertainty(trigger,    binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
 
@@ -584,8 +585,8 @@ def wrapper(s):
         top_prefit  = preFitResults['TTJets']
         top_postfit = postFitResults['TTJets']
 
-        top_prefit_SR_err   = ROOT.Double(), ROOT.Double(), ROOT.Double()
-        top_postfit_SR_err  = ROOT.Double(), ROOT.Double(), ROOT.Double()
+        top_prefit_SR_err   = ROOT.Double()
+        top_postfit_SR_err  = ROOT.Double()
         top_prefit_SR  =  preFitShapes['TTJets'].IntegralAndError(iBinTTLow, iBinTTHigh, top_prefit_SR_err)
         top_postfit_SR = postFitShapes['TTJets'].IntegralAndError(iBinTTLow, iBinTTHigh, top_postfit_SR_err)
         
