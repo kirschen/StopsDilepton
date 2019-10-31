@@ -948,7 +948,9 @@ def filler( event ):
         event.met_pt_min = 0
 
     # Filling jets
+    maxNJet = 100
     store_jets = jets if not options.keepAllJets else soft_jets + jets
+    store_jets = store_jets[:maxNJet]
     store_jets.sort( key = lambda j:-j[jetPtVar])
     event.nJetGood   = len(store_jets)
     for iJet, jet in enumerate(store_jets):
@@ -957,7 +959,13 @@ def filler( event ):
             getattr(event, "JetGood_"+b)[iJet] = jet[b]
         if isMC:
             if store_jets[iJet]['genJetIdx'] >= 0:
-                event.JetGood_genPt[iJet] = r.GenJet_pt[store_jets[iJet]['genJetIdx']]
+                if r.nGenJet<maxNJet:
+                    try:
+                        event.JetGood_genPt[iJet] = r.GenJet_pt[store_jets[iJet]['genJetIdx']]
+                    except IndexError:
+                        event.JetGood_genPt[iJet] = -1
+                else:
+                    event.JetGood_genPt[iJet] = -1
         getattr(event, "JetGood_pt")[iJet] = jet['pt']
 
     if isSingleLep:
