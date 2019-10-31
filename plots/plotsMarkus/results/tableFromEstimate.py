@@ -142,6 +142,10 @@ for estimate in allEstimators:
                 sys_contribution = eval("e."+syst+"Systematic")(r, channel, setup)
                 #print sys_contribution.sigma
                 #print "    "+syst+":", "{:.2f} %".format(sys_contribution.sigma/total_val*100) if total_val != 0 else float('nan')
+                ref  = e.cachedEstimate(r, channel, setup)
+                up   = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jerUp'}))
+                down = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jerDown'}))
+                if syst == "JER": print "ref: {} up: {} down: {}".format(ref,up,down)
                 print "    "+syst+":", "{:.1f} +- {:.1f} ({:.1f})".format(sys_contribution.val, sys_contribution.sigma, e_yield[e.name])
                 sys_errors[e.name][syst] = sys_contribution.val
 

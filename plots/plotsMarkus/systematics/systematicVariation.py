@@ -81,26 +81,29 @@ if args.dpm:
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
+    #Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16
     if args.selection.count("onZ") > 0:
-        mc          = [ DY_LO_16, Top_pow_16, multiBoson_16, TTXNoZ_16, TTZ_16 ]
+        mc          = [ DY_HT_LO_16, Top_pow_16, multiBoson_16, TTXNoZ_16, TTZ_16 ]
     else:
         mc          = [ Top_pow_16, multiBoson_16, DY_HT_LO_16, TTXNoZ_16, TTZ_16 ]
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
+    #Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17
     if args.selection.count("onZ") > 0:
-        mc          = [ DY_LO_17, Top_pow_17, multiBoson_17, TTXNoZ_17, TTZ_17 ]
+        mc          = [ DY_HT_LO_17, Top_pow_17, multiBoson_17, TTXNoZ_17, TTZ_17 ]
     else:
         mc          = [ Top_pow_17, multiBoson_17, DY_HT_LO_17, TTXNoZ_17, TTZ_17 ]
 
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
+    #Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18
     if args.selection.count("onZ") > 0:
-        mc          = [ DY_LO_18, Top_pow_18, multiBoson_18, TTXNoZ_18, TTZ_18 ]
+        mc          = [ DY_HT_LO_18, Top_pow_18, multiBoson_18, TTXNoZ_18, TTZ_18 ]
     else:
         mc          = [ Top_pow_18, multiBoson_18, DY_HT_LO_18, TTXNoZ_18, TTZ_18 ]
 
