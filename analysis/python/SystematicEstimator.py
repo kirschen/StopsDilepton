@@ -151,6 +151,12 @@ class SystematicEstimator:
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightL1PrefireUp']}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightL1PrefireDown']}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
+
+    def nISRSystematic(self, region, channel, setup):
+        ref  = self.cachedEstimate(region, channel, setup)
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweight_nISRUp']}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweight_nISRDown']}))
+        return abs(0.5*(up-down)/ref) if ref > 0 else max(up, down)
     
     def btaggingSFbSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
