@@ -142,8 +142,8 @@ def wrapper(s):
                 for year in years:
                     binName = "dc_%s"%year
 
-                    top_prefit  += postFitResults['results']['shapes_prefit'][binName]['TTJetsF'] + postFitResults['results']['shapes_prefit'][binName]['TTJetsG'] + postFitResults['results']['shapes_prefit'][binName]['TTJetsNG']
-                    top_postfit += postFitResults['results']['shapes_fit_b'][binName]['TTJetsF'] + postFitResults['results']['shapes_fit_b'][binName]['TTJetsG'] + postFitResults['results']['shapes_fit_b'][binName]['TTJetsNG']
+                    top_prefit  += postFitResults['results']['shapes_prefit'][binName]['TTJets']# + postFitResults['results']['shapes_prefit'][binName]['TTJetsG'] + postFitResults['results']['shapes_prefit'][binName]['TTJetsNG']
+                    top_postfit += postFitResults['results']['shapes_fit_b'][binName]['TTJets'] #+ postFitResults['results']['shapes_fit_b'][binName]['TTJetsG'] + postFitResults['results']['shapes_fit_b'][binName]['TTJetsNG']
 
                     ttZ_prefit  += postFitResults['results']['shapes_prefit'][binName]['TTZ']
                     ttZ_postfit += postFitResults['results']['shapes_fit_b'][binName]['TTZ']

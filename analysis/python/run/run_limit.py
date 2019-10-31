@@ -129,9 +129,8 @@ if args.fitAll:        setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setup
 elif args.controlDYVV: setups = [setupDYVV]
 elif args.controlTTZ:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5]
 elif args.controlTT:   setups = [setupTT]
-elif args.control2016:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV]
-elif args.controlAll and year==2016:  setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV]
-elif args.controlAll and (year==2017 or year==2018):  setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV]
+elif args.control2016: setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV]
+elif args.controlAll:  setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV]
 else:                  setups = [setup]
 
 from StopsDilepton.tools.u_float    import u_float
@@ -242,9 +241,6 @@ def wrapper(s):
         SFb     = 'SFb_%s'%year
         SFl     = 'SFl_%s'%year
         trigger = 'trigger_%s'%year
-        #SFb     = 'SFb'
-        #SFl     = 'SFl'
-        #trigger = 'trigger'
         JEC     = 'JEC'
         unclEn  = 'unclEn'
         JER     = 'JER'
@@ -269,22 +265,15 @@ def wrapper(s):
         c.addUncertainty('isr',        shapeString)
         # only in SRs
         DY_add = 'DY_hMT2blbl'
-        c.addUncertainty('topGaus',    shapeString)
-        c.addUncertainty('topNonGaus', shapeString)
+        c.addUncertainty('topNonGauss', shapeString)
         c.addUncertainty('topFakes',   shapeString)
         c.addUncertainty('DY_SR',      shapeString)
         c.addUncertainty('MB_SR',      shapeString)
         c.addUncertainty(DY_add,       shapeString) # only in high mt2blbl
         c.addUncertainty('ttZ_SR',     shapeString)
         # all regions, lnN
-        DY_SF_nui = 'DY'
-        multiboson_SF = 'multiBoson'
-        c.addUncertainty('topNorm',    'lnN')
-        #c.addUncertainty(multiboson_SF, shapeString)
         c.addUncertainty('MB_TT',       shapeString)
-        #c.addUncertainty(DY_SF_nui,     shapeString)
         c.addUncertainty('DY_TT',       shapeString)
-        #c.addUncertainty('ttZ',         shapeString)
         c.addUncertainty('other',      'lnN')
         if fastSim:
             c.addUncertainty('btagFS',   shapeString)
@@ -295,9 +284,7 @@ def wrapper(s):
         c.addRateParameter('DY', 1, '[0.5,1.5]')
         c.addRateParameter('multiBoson', 1, '[0.6,1.4]')
         c.addRateParameter('TTZ', 1, '[0.5,1.5]')
-        #c.addRateParameter('TTJetsG', 1, '[0,2]')
-        #c.addRateParameter('TTJetsNG', 1, '[0,2]')
-        #c.addRateParameter('TTJetsF', 1, '[0,2]')
+        c.addRateParameter('TTJets', 1, '[0.85,1.15]')
 
         for setup in setups:
           eSignal     = MCBasedEstimate(name=s.name, sample=s, cacheDir=setup.defaultCacheDir()) # {channel:s for channel in channels+trilepChannels}
@@ -319,8 +306,8 @@ def wrapper(s):
                 binname = 'Bin'+str(counter)
                 counter += 1
                 total_exp_bkg = 0
-                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators][1:] + [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ], niceName)
-#                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators], niceName)
+#                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators][1:] + [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ], niceName)
+                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators], niceName)
                 for e in setup.estimators:
                   name = e.name.split('-')[0]
                   expected = e.cachedEstimate(r, channel, setup)
@@ -339,30 +326,24 @@ def wrapper(s):
                     elif len(setup.regions) == len(regionsDM1[1:]): divider = 3
                     elif len(setup.regions) == len(regionsDM5[1:]): divider = 2
                     else:                                           divider = 0 # Was 0, think about changing to 1 for ttZ sideband
-                    #logger.info("Splitting SRs into ttbar and ttZ dominated regions at signal region %s",divider)
-                    #norm_G=0
                     if setup.regions == [regionsLegacy[0]]:
-                        #norm_G  = 0.98
-                        #norm_NG = 0.01
-                        #norm_F  = 0.01
-                        norm_G  = 0.34
-                        norm_NG = 0.33
-                        norm_F  = 0.33
+                        fakeUncertainty     = 1.002
+                        nonGaussUncertainty = 1.002
+                    elif niceName.count("controlDYVV") or niceName.count("controlTTZ"):
+                        fakeUncertainty     = 1.02
+                        nonGaussUncertainty = 1.02
                     elif (setup.regions != noRegions and (r in setup.regions[divider:])):
-                        norm_G  = 0.25
-                        norm_NG = 0.50
-                        norm_F  = 0.25
+                        fakeUncertainty     = 1.20
+                        nonGaussUncertainty = 1.25
                     else:
-                        norm_G  = 0.55
-                        norm_NG = 0.44
-                        norm_F  = 0.01
+                        fakeUncertainty     = 1.03
+                        nonGaussUncertainty = 1.15
                     TT_SF = 1
                     if TT_SF != 1: logger.warning("Scaling ttbar background by %s", TT_SF)
-                    c.specifyExpectation(binname, 'TTJetsG',  norm_G  * expected.val * TT_SF)
-                    c.specifyExpectation(binname, 'TTJetsNG', norm_NG * expected.val * TT_SF)
-                    c.specifyExpectation(binname, 'TTJetsF',  norm_F  * expected.val * TT_SF)
+                    logger.info("Fake and non-gauss uncertainty are %s and  %s", fakeUncertainty, nonGaussUncertainty)
+                    c.specifyExpectation(binname, 'TTJets',  expected.val * TT_SF)
                   elif e.name.count("DY"):
-                    DY_SF = 1#.31 + 0.19*(-1)
+                    DY_SF = 1
                     c.specifyExpectation(binname, name, expected.val*DY_SF)
                     if DY_SF != 1: logger.warning("Scaling DY background by %s", DY_SF)
                   elif e.name.count("TTZ"):
@@ -373,73 +354,43 @@ def wrapper(s):
                     c.specifyExpectation(binname, name, expected.val)
 
                   if expected.val>0 or True:
-                      if e.name.count('TTJets'):
-                        names = [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ]
-                      else:
-                        names = [name]
+                      names = [name]
                       for name in names:
-                        if 'TTJets' in name: uncScale = 1./sqrt(norm_G**2 + norm_NG**2 + norm_F**2) # scaling of uncertainties for ttbar so that the total uncertainty remains unchanged
-                        else: uncScale = 1
-                        #print "Process", name, "uncertainty scale", uncScale
-                        if not e.name.count("TTJets") and not niceName.count('controlTTBar') or True:
-                        #if not niceName.count('controlTTBar'):
-                            c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
-                            #c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
-                            c.specifyUncertainty(JEC,        binname, name, e.JECSystematicAsym(        r, channel, setup) )
-                            #c.specifyUncertainty(unclEn,     binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
-                            c.specifyUncertainty(unclEn,     binname, name, e.unclusteredSystematicAsym(r, channel, setup) ) # could remove uncertainties in ttbar CR
-                            #c.specifyUncertainty(JER,        binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
-                            c.specifyUncertainty(JER,        binname, name, e.JERSystematicAsym(        r, channel, setup) )
-                            c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
-                            c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
-                            c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
-                            c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
+                        uncScale = 1
+                        c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
+                        #c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
+                        c.specifyUncertainty(JEC,        binname, name, e.JECSystematicAsym(        r, channel, setup) )
+                        #c.specifyUncertainty(unclEn,     binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
+                        c.specifyUncertainty(unclEn,     binname, name, e.unclusteredSystematicAsym(r, channel, setup) ) # could remove uncertainties in ttbar CR
+                        #c.specifyUncertainty(JER,        binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
+                        c.specifyUncertainty(JER,        binname, name, e.JERSystematicAsym(        r, channel, setup) )
+                        c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
+                        c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
+                        c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
+                        c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
                             c.specifyUncertainty(trigger,    binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
-                        #if e.name.count("TTJets") and niceName.count('controlTTBar'):
-                        #    c.specifyUncertainty('ttbarDummy',        binname, name, 1.05 )
-                        #
+
                         #if e.name.count('TTJets'):
                         #    c.specifyUncertainty('scaleTT', binname, name, 1 + 0.02)#getScaleUncBkg('TTLep_pow', r, channel,'TTLep_pow'))
                         #    c.specifyUncertainty('PDF',     binname, name, 1 + 0.02)#getPDFUnc('TTLep_pow', r, channel,'TTLep_pow'))
 
-                        if name == 'TTJetsG':
-                        #    if not niceName.count('controlTTBar') and niceName.count("DYVV")==0 and niceName.count("TTZ")==0:
-                        #        c.specifyUncertainty('topGaus',  binname, name, 1.15) # avoid constraining of uncertainties in the ttbar CR
-                            c.specifyUncertainty('topNorm',  binname, name, 1.10)
-
-                        if name == 'TTJetsNG':
-                            if not niceName.count('controlTTBar') and niceName.count("DYVV")==0 and niceName.count("TTZ")==0:
-                                c.specifyUncertainty('topNonGaus', binname, name, 1.30) # avoid constraining of uncertainties in the ttbar CR
-                            c.specifyUncertainty('topNorm',  binname, name, 1.10)
-
-                        if name == 'TTJetsF':
-                            if not niceName.count('controlTTBar'):
-                                c.specifyUncertainty('topFakes', binname, name, 1.50) # avoid constraining of uncertainties in the ttbar CR
-                            c.specifyUncertainty('topNorm',  binname, name, 1.10)
+                        if name == 'TTJets':
+                            c.specifyUncertainty('topFakes',  binname, name, fakeUncertainty)
+                            c.specifyUncertainty('topNonGauss',  binname, name, nonGaussUncertainty)
 
                         if e.name.count('multiBoson'):
-                            #if niceName.count("controlTT")==0:
-                            #    logger.info("Assigning extra uncertainties to multiboson")
-                            #    c.specifyUncertainty(multiboson_SF, binname, name, 1.50)
-                            #else:
-                            #    c.specifyUncertainty('MB_TT', binname, name, 1.20)
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                     c.specifyUncertainty("MB_SR", binname, name, 1.25)
 
                         if e.name.count('DY'):
                             if niceName.count("controlTT")==0:
-                                #logger.info("Assigning extra uncertainties to DY")
-                                #c.specifyUncertainty(DY_SF_nui,         binname, name, 1.5)#1/(1+0.5))
                                 #if r in highMT2blblregions:
                                 #    c.specifyUncertainty(DY_add,         binname, name, 1.5)
                                 if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                     c.specifyUncertainty("DY_SR", binname, name, 1.25)
-                            #else:
-                            #    c.specifyUncertainty('DY_TT', binname, name, 1.20)
 
                         if e.name.count('TTZ') and niceName.count('DYVV')==0 and niceName.count('TTBar')==0:
-                            #c.specifyUncertainty('ttZ',        binname, name, 1.5)
                             #c.specifyUncertainty('scaleTTZ',binname, name, 1 + 0.02) #getScaleUncBkg('TTZ', r, channel,'TTZ'))
                             #c.specifyUncertainty('PDF',     binname, name, 1 + 0.02) #getPDFUnc('TTZ', r, channel,'TTZ'))
 
@@ -630,21 +581,14 @@ def wrapper(s):
         postFitShapes   = fitResults['hists']['shapes_fit_b']['Bin0']
         
 
-        top_prefit  = preFitResults['TTJetsF']  + preFitResults['TTJetsG']  + preFitResults['TTJetsNG']
-        top_postfit = postFitResults['TTJetsF'] + postFitResults['TTJetsG'] + postFitResults['TTJetsNG']
-        #top_prefit  = preFitResults['TTJetsF']  + preFitResults['TTJetsNG']
-        #top_postfit = postFitResults['TTJetsF'] + postFitResults['TTJetsNG']
+        top_prefit  = preFitResults['TTJets']
+        top_postfit = postFitResults['TTJets']
 
-        topF_prefit_SR_err, topG_prefit_SR_err, topNG_prefit_SR_err     = ROOT.Double(), ROOT.Double(), ROOT.Double()
-        topF_postfit_SR_err, topG_postfit_SR_err, topNG_postfit_SR_err  = ROOT.Double(), ROOT.Double(), ROOT.Double()
-        top_prefit_SR  =  preFitShapes['TTJetsF'].IntegralAndError(iBinTTLow, iBinTTHigh, topF_prefit_SR_err)  +  preFitShapes['TTJetsG'].IntegralAndError(iBinTTLow, iBinTTHigh, topG_prefit_SR_err)  +  preFitShapes['TTJetsNG'].IntegralAndError(iBinTTLow, iBinTTHigh, topNG_prefit_SR_err)
-        top_postfit_SR = postFitShapes['TTJetsF'].IntegralAndError(iBinTTLow, iBinTTHigh, topF_postfit_SR_err) + postFitShapes['TTJetsG'].IntegralAndError(iBinTTLow, iBinTTHigh, topG_postfit_SR_err) + postFitShapes['TTJetsNG'].IntegralAndError(iBinTTLow, iBinTTHigh, topNG_postfit_SR_err)
-        #top_prefit_SR  =  preFitShapes['TTJetsF'].IntegralAndError(iBinTTLow, iBinTTHigh, topF_prefit_SR_err)  + preFitShapes['TTJetsNG'].IntegralAndError(iBinTTLow, iBinTTHigh, topNG_prefit_SR_err)
-        #top_postfit_SR = postFitShapes['TTJetsF'].IntegralAndError(iBinTTLow, iBinTTHigh, topF_postfit_SR_err) + postFitShapes['TTJetsNG'].IntegralAndError(iBinTTLow, iBinTTHigh, topNG_postfit_SR_err)
+        top_prefit_SR_err   = ROOT.Double(), ROOT.Double(), ROOT.Double()
+        top_postfit_SR_err  = ROOT.Double(), ROOT.Double(), ROOT.Double()
+        top_prefit_SR  =  preFitShapes['TTJets'].IntegralAndError(iBinTTLow, iBinTTHigh, top_prefit_SR_err)
+        top_postfit_SR = postFitShapes['TTJets'].IntegralAndError(iBinTTLow, iBinTTHigh, top_postfit_SR_err)
         
-        top_prefit_SR_err  = math.sqrt(topF_prefit_SR_err**2  + topG_prefit_SR_err**2  + topNG_prefit_SR_err**2)
-        top_postfit_SR_err = math.sqrt(topF_postfit_SR_err**2 + topG_postfit_SR_err**2 + topNG_postfit_SR_err**2)
-
         ttZ_prefit  = preFitResults['TTZ']
         ttZ_postfit = postFitResults['TTZ']
 
