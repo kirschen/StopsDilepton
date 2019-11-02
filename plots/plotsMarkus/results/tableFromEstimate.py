@@ -142,11 +142,52 @@ for estimate in allEstimators:
                 sys_contribution = eval("e."+syst+"Systematic")(r, channel, setup)
                 #print sys_contribution.sigma
                 #print "    "+syst+":", "{:.2f} %".format(sys_contribution.sigma/total_val*100) if total_val != 0 else float('nan')
-                ref  = e.cachedEstimate(r, channel, setup)
-                up   = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jerUp'}))
-                down = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jerDown'}))
-                if syst == "JER": print "ref: {} up: {} down: {}".format(ref,up,down)
-                print "    "+syst+":", "{:.1f} +- {:.1f} ({:.1f})".format(sys_contribution.val, sys_contribution.sigma, e_yield[e.name])
+                if syst == "PU":
+                    ref  = e.cachedEstimate(r, channel, setup)
+                    up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightPUUp']}))
+                    down = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightPUDown']}))
+                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                elif syst == "JER":
+                    ref  = e.cachedEstimate(r, channel, setup)
+                    up   = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jerUp'}))
+                    down = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jerDown'}))
+                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                elif syst == "JEC":
+                    ref  = e.cachedEstimate(r, channel, setup)
+                    up   = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jesTotalUp'}))
+                    down = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jesTotalDown'}))
+                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                elif syst == "topPt":
+                    ref  = e.cachedEstimate(r, channel, setup)
+                    up   = e.cachedEstimate(r, channel, setup.sysClone({'remove':['reweightTopPt']}))
+                    print "\t\t\tref: {} up: {}".format(ref.val,up.val)
+                elif syst == "unclustered":
+                    ref  = e.cachedEstimate(r, channel, setup)
+                    up   = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'unclustEnUp'}))
+                    down = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'unclustEnDown'}))
+                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                elif syst == "btaggingSFb":
+                    ref  = e.cachedEstimate(r, channel, setup)
+                    up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']}))
+                    down = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']}))
+                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                elif syst == "btaggingSFl":
+                    ref  = e.cachedEstimate(r, channel, setup)
+                    up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']}))
+                    down = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']}))
+                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                elif syst == "leptonSF":
+                    ref  = e.cachedEstimate(r, channel, setup)
+                    up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']}))
+                    down = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']}))
+                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                elif syst == "trigger":
+                    ref  = e.cachedEstimate(r, channel, setup)
+                    up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightDilepTriggerUp']}))
+                    down = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightDilepTriggerDown']}))
+                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+
+                print "\t"+syst+":", "{:.3f} ({:.3f})".format(sys_contribution.val, e_yield[e.name])
                 sys_errors[e.name][syst] = sys_contribution.val
 
 

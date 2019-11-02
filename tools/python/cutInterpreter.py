@@ -11,7 +11,6 @@ mIsoWP = { "VT":5, "T":4, "M":3 , "L":2 , "VL":1, 0:"None" }
 
 special_cuts = {
     # ("multiIsoVT":        "(1)", 
-    "extraLeptonCut": "(Sum$(Electron_pt>20&&abs(Electron_eta)<2.4&&Electron_miniPFRelIso_all<0.2&&Electron_sip3d<4&&Electron_lostHits==0&&abs(Electron_dz)<0.1&&abs(Electron_dxy)<0.05&&Electron_convVeto&&Electron_cutBased>3) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.4&&Muon_miniPFRelIso_all<0.2&&Muon_mediumId&&Muon_sip3d<4&&abs(Muon_dz)<0.1&&abs(Muon_dxy)<0.05) )==2",
     "oldLooseLeptonVeto":     "(Sum$(Electron_pt>15&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&Muon_pfRelIso03_all<0.4) )==2",
     "looseLeptonVeto":        "(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2",
     "looseLeptonMiniIsoVeto": "(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_miniPFRelIso_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_miniPFRelIso_all<0.4) )==2",
