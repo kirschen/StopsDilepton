@@ -83,8 +83,11 @@ class SystematicEstimator:
 
     def PUSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUUp']}))
-        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPUDown']}))
+
+        puUpOrDown = ['VVUp','Up'] if setup.year == 2018 else ['Up','Down']
+
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU'+puUpOrDown[0]]}))
+        down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU'+puUpOrDown[1]]}))
         return abs(0.5*(up-down)/ref) if ref > 0 else max(up,down)
 
     def topPtSystematic(self, region, channel, setup):
@@ -202,9 +205,10 @@ class SystematicEstimator:
         return u_float(unc)
 
     def getBkgSysJobs(self, region, channel, setup):
+        puUpOrDown = ['VVUp','Up'] if setup.year == 2018 else ['Up','Down']
         l = [
-            (region, channel, setup.sysClone({'reweight':['reweightPUUp']})),
-            (region, channel, setup.sysClone({'reweight':['reweightPUDown']})),
+            (region, channel, setup.sysClone({'reweight':['reweightPU'+puUpOrDown[0]]})),
+            (region, channel, setup.sysClone({'reweight':['reweightPU'+puUpOrDown[1]]})),
 
             (region, channel, setup.sysClone({'remove':['reweightTopPt']})),
 
