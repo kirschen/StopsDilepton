@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 import ROOT
+import os
+
+from StopsDilepton.tools.user            import plot_directory
 
 import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
-argParser.add_argument('--nuisanceFile',       action='store',      default='nuisances.txt')
+argParser.add_argument('--nuisanceFile',        action='store',      default='nuisances.txt')
+argParser.add_argument('--outName',             action='store',      default='nuisances')
 args = argParser.parse_args()
 
 nuisancePath = '/'.join(args.nuisanceFile.split('/')[:-1])
-pullsFile = args.nuisanceFile.replace('.txt','')
+
+#pullsFile = args.nuisanceFile.replace('.txt','')
+pullsFile = os.path.join(plot_directory, 'pulls_new', args.outName)
 nuisanceFile = args.nuisanceFile.split('/')
 
 def getNuisancesFromFile(nuisanceFile):

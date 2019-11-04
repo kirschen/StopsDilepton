@@ -150,7 +150,10 @@ class Setup:
                       if 'reweightBTag_SF_l_'+upOrDown          in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightBTag_SF_FS_'+upOrDown         in res.sys[k]: res.sys[k].remove('reweightBTag_SF')
                       if 'reweightLeptonSF'+upOrDown            in res.sys[k]: res.sys[k].remove('reweightLeptonSF')
+                      if 'reweightLeptonHit0SF'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightLeptonHit0SF')
+                      if 'reweightLeptonSip3dSF'+upOrDown       in res.sys[k]: res.sys[k].remove('reweightLeptonSip3dSF')
                       if 'reweightLeptonFastSimSF'+upOrDown     in res.sys[k]: res.sys[k].remove('reweightLeptonFastSimSF')
+                      if 'reweight_nISR'+upOrDown               in res.sys[k]: res.sys[k].remove('reweight_nISR')
                 else:
                     res.sys[k] = sys[k] # if sys[k] else res.sys[k]
 

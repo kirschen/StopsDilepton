@@ -113,7 +113,7 @@ class cardFileWriter:
                 self.uncertaintyVal[(u,b,p)] = round(val,self.precision)
 
     def specifyUncertainty(self, u, b, p, val):
-        if u not in self.uncertainties:
+        if u.replace('Up','').replace('Down','') not in self.uncertainties:
             print "This uncertainty has not been added yet!",u,"Available:",self.uncertainties
             return
         if b not in self.bins:
@@ -122,13 +122,19 @@ class cardFileWriter:
         if p not in self.processes[b]:
             print "Process ", p," is not in bin",b,". Available for ", b,":",self.processes[b]
             return
-        if val<0:
-#      assert self.expectation[(b, p)]<0.1, "Found negative uncertainty %f for yield %f in %r."%(val, self.expectation[(b, p)], (u,b,p))
-            print "Warning! Found negative uncertainty %f for yield %f in %r. Reversing sign under the assumption that the correlation pattern is irrelevant (check!)."%(val, self.expectation[(b, p)], (u,b,p))
-            _val=1.0
+        if type(val) == type(()):
+            #print u, b, p, val
+            self.uncertaintyVal[(u,b,p)] = round(1,self.precision) # Dummy entry
+            self.uncertaintyVal[(u+'Down',b,p)] = round(val[0],self.precision)
+            self.uncertaintyVal[(u+'Up',b,p)] = round(val[1],self.precision)
         else:
-            _val = val
-        self.uncertaintyVal[(u,b,p)] = round(_val,self.precision)
+            if val<0:
+    #      assert self.expectation[(b, p)]<0.1, "Found negative uncertainty %f for yield %f in %r."%(val, self.expectation[(b, p)], (u,b,p))
+                print "Warning! Found negative uncertainty %f for yield %f in %r. Reversing sign under the assumption that the correlation pattern is irrelevant (check!)."%(val, self.expectation[(b, p)], (u,b,p))
+                _val=1.0
+            else:
+                _val = val
+            self.uncertaintyVal[(u,b,p)] = round(_val,self.precision)
 
     def getUncertaintyString(self, k):
         u, b, p = k
@@ -289,19 +295,30 @@ class cardFileWriter:
                     histos[process].SetBinContent(i+1, expect)
                     histos[process].SetBinError(i+1, unc)
                     for unc in nuisances:
-                        if self.uncertaintyVal.has_key((unc, b, process)):
+                        # check if up/down values are stored
+                        relUnc = 1
+                        upUnc = -1
+                        downUnc = -1
+                        if self.uncertaintyVal.has_key((unc+'Up', b, process)):
+                            upUnc = self.uncertaintyVal[(unc+'Up', b, process)]
+                            downUnc = self.uncertaintyVal[(unc+'Down', b, process)]
+                        elif self.uncertaintyVal.has_key((unc, b, process)):
                             relUnc  = self.uncertaintyVal[(unc, b, process)]
                         else:
                             relUnc = 1.
                         if unc in nuisForProc[process]:
-                            if not (unc.lower().count('up') or unc.lower().count('down')):
+                            if upUnc >= 0:
+                                histos['%s_%sDown'%(process, unc)].SetBinContent(i+1, downUnc*expect)
+                                histos['%s_%sUp'%(process, unc)].SetBinContent(i+1, upUnc*expect)
+                            #if not (unc.lower().count('up') or unc.lower().count('down')):
+                            else:
                                 histos['%s_%sUp'%(process, unc)].SetBinContent(i+1, relUnc*expect)
                                 if relUnc > 2:
                                     histos['%s_%sDown'%(process, unc)].SetBinContent(i+1, 0)
                                 else:
                                     histos['%s_%sDown'%(process, unc)].SetBinContent(i+1, (2-relUnc)*expect)
-                            else:
-                                histos['%s_%s'%(process, unc)].SetBinContent(i+1, relUnc*expect)
+                            #else:
+                            #    histos['%s_%s'%(process, unc)].SetBinContent(i+1, max([0,relUnc*expect])) # don't allow negative values
         # define the file names
         rootFile = fname.split('/')[-1]
         rootFileFull = fname
