@@ -526,7 +526,7 @@ else:
 jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F', 'corr_JER/F'] + jetCorrInfo
 if isMC:
     jetVars     += jetMCInfo
-    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jerUp/F', 'pt_jerDown/F', 'corr_JEC/F']
+    jetVars     += ['pt_jesTotalUp/F', 'pt_jesTotalDown/F', 'pt_jerUp/F', 'pt_jerDown/F', 'corr_JER/F', 'corr_JEC/F']
 jetVarNames     = [x.split('/')[0] for x in jetVars]
 genLepVars      = ['pt/F', 'phi/F', 'eta/F', 'pdgId/I', 'genPartIdxMother/I', 'status/I', 'statusFlags/I'] # some might have different types
 genLepVarNames  = [x.split('/')[0] for x in genLepVars]
@@ -629,7 +629,7 @@ if options.checkTTGJetsOverlap:
 
 if addSystematicVariations:
 
-    for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
+    for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jer', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
         if not var.startswith('unclust'):
             new_variables.extend( ['nJetGood_'+var+'/I', 'nBTag_'+var+'/I'] )
         new_variables.extend( ['met_pt_'+var+'/F', 'met_phi_'+var+'/F'] )
@@ -999,17 +999,21 @@ def filler( event ):
       event.photonLepdR = min(deltaR(photons[0], l) for l in leptons_pt10) if len(leptons_pt10) > 0 else 999
 
     if addSystematicVariations:
-        for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
+        for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']: # don't use 'jer' as of now
             setattr(event, 'met_pt_'+var,  getattr(r, 'METFixEE2017_pt_'+var)  if options.year == 2017 else getattr(r, 'MET_pt_'+var) )
             setattr(event, 'met_phi_'+var, getattr(r, 'METFixEE2017_phi_'+var) if options.year == 2017 else getattr(r, 'MET_phi_'+var) )
             if not var.startswith('unclust'):
+                corrFactor = 'corr_JER' if var == 'jer' else None
                 alljets_sys[var]    = allJetsNotClean
-                jets_sys[var]       = filter(lambda j: jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_'+var), allJets)
+                jets_sys[var]       = filter(lambda j: jetId(j, ptCut=30, absEtaCut=jetAbsEtaCut, ptVar='pt_'+var if not var=='jer' else 'pt_nom', corrFactor=corrFactor), allJets)
                 bjets_sys[var]      = filter(lambda j: isBJet(j) and abs(j['eta'])<2.4, jets_sys[var])
                 nonBjets_sys[var]   = filter(lambda j: not ( isBJet(j) and abs(j['eta'])<2.4), jets_sys[var])
+                
+                # calculate ht
+                ht = sum([j['pt_nom']*j['corr_JER'] for j in jets_sys[var]]) if var == 'jer' else sum([j['pt_'+var] for j in jets_sys[var]])
 
                 setattr(event, "nJetGood_"+var, len(jets_sys[var]))
-                setattr(event, "ht_"+var,       sum([j['pt_'+var] for j in jets_sys[var]]))
+                setattr(event, "ht_"+var,       ht)
                 setattr(event, "nBTag_"+var,    len(bjets_sys[var]))
 
     if isSingleLep or isTriLep or isDiLep:
@@ -1145,7 +1149,7 @@ def filler( event ):
                 setattr(event, "dl_mt2blbl", mt2Calculator.mt2blbl())
 
             if addSystematicVariations:
-                for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']:
+                for var in ['jesTotalUp', 'jesTotalDown', 'jerUp', 'jerDown', 'unclustEnUp', 'unclustEnDown']: # don't use 'jer' as of now
                     mt2Calculator.setMet( getattr(event, "met_pt_"+var), getattr(event, "met_phi_"+var) )
                     setattr(event, "dl_mt2ll_"+var,  mt2Calculator.mt2ll())
                     if not var.startswith( 'unclust'):
