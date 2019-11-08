@@ -15,6 +15,7 @@ argParser.add_argument("--controlRegions", action='store',        default='signa
 
 argParser.add_argument("--model",          action='store',        default='dim6top_LO',   nargs='?', choices=["dim6top_LO", "ewkDM"],                                                          help="which signal model?")
 argParser.add_argument("--only",           action='store',        default=None,           nargs='?',                                                                                           help="pick only one signal point?")
+argParser.add_argument("--skipYear",       action='store',        default=None, type=int, nargs='?', choices=[2016,2017,2018],                                                                 help="pick only one signal point?")
 argParser.add_argument("--includeCR",      action='store_true',                                                                                                                                help="Do simultaneous SR and CR fit")
 argParser.add_argument("--expected",       action='store_true',                                                                                                                                help="Do simultaneous SR and CR fit")
 argParser.add_argument("--calcNuisances",  action='store_true',                                                                         help="Extract the nuisances and store them in text files?")
@@ -52,6 +53,8 @@ from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed  import *
 setup = Setup(2016)
 
 years = [2016,2017,2018]
+if args.skipYear:
+    years.remove(args.skipYear)
 #analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
 
 overWrite = args.overwrite

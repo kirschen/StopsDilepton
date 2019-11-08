@@ -241,10 +241,11 @@ def wrapper(s):
         SFb     = 'SFb_%s'%year
         SFl     = 'SFl_%s'%year
         trigger = 'trigger_%s'%year
-        JEC     = 'JEC'
+        JEC     = 'JEC_%s'%year
         unclEn  = 'unclEn'
-        JER     = 'JER'
-        PU      = 'PU'
+        JER     = 'JER_%s'%year
+        PU      = 'PU_%s'%year
+        Lumi    = 'Lumi_%s'%year
         c.addUncertainty(PU,           shapeString)
         c.addUncertainty('topPt',      shapeString)
         c.addUncertainty(JEC,          shapeString)
@@ -275,6 +276,7 @@ def wrapper(s):
         c.addUncertainty('MB_TT',       shapeString)
         c.addUncertainty('DY_TT',       shapeString)
         c.addUncertainty('other',      'lnN')
+        c.addUncertainty(Lumi,         'lnN')
         if fastSim:
             c.addUncertainty('btagFS',   shapeString)
             c.addUncertainty('leptonFS', shapeString)
@@ -412,7 +414,7 @@ def wrapper(s):
                 
                 if fastSim:
                     if args.signal == 'T2tt': 
-                        signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
+                        signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF'], 'remove':['reweightLeptonSip3dSF', 'reweightLeptonHit0SF']}) # added reweightLeptonFastSimSF in the tuples?
                     else:
                         signalSetup = setup.sysClone(sys={'reweight':[ 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
                     signal = e.cachedEstimate(r, channel, signalSetup)
@@ -487,7 +489,6 @@ def wrapper(s):
                 else:
                   if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
-        c.addUncertainty('Lumi', 'lnN')
         if year == 2016:
             lumiUncertainty = 1.025
         elif year == 2017:
@@ -495,7 +496,7 @@ def wrapper(s):
         elif year == 2018:
             lumiUncertainty = 1.025
         
-        c.specifyFlatUncertainty('Lumi', lumiUncertainty)
+        c.specifyFlatUncertainty(Lumi, lumiUncertainty)
         cardFileNameTxt     = c.writeToFile(cardFileName)
         cardFileNameShape   = c.writeToShapeFile(cardFileName.replace('.txt', '_shape.root'))
         cardFileName = cardFileNameTxt if args.useTxt else cardFileNameShape

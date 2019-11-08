@@ -55,7 +55,7 @@ if options.combined:
 else:
     setup = Setup(options.year)
     lumiStr = setup.dataLumi/1000
-analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4/'
+analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v5/'
 isData = True if not options.expected else False
 #lumiStr = setup.dataLumi/1000
 years=[2016,2017,2018]
@@ -80,9 +80,7 @@ bhistos=[]
 hists={}
 histos={}
 bkgHist=[]
-processes = [   ('TTJetsG',''), 
-                ('TTJetsNG',''),
-                ( 'TTJetsF', 't#bar{t}/t'),
+processes = [   ( 'TTJets', 't#bar{t}/t'),
                 ('DY', 'Drell-Yan'),
                 ('multiBoson', 'VV/VVV'),
                 ('TTZ', 't#bar{t}Z'),
@@ -162,11 +160,13 @@ else:
             hists[p].legendText = tex
         
     for i in range(dataHist.GetNbinsX()):
+        print 'Data observation', hists['data'].Eval(i+0.5)
         dataHist.SetBinContent(i+1, hists['data'].Eval(i+0.5))
         dataHist.SetBinError(i+1, math.sqrt(hists['data'].Eval(i+0.5)))
 
     hists['data'] = dataHist
-    hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
+    #hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
+    hists['data'].style = styles.lineStyle( ROOT.kBlack, width = 1 )
     hists['data'].legendOption = 'p'
 #hists['BSM'].legendOption = 'l'
 
@@ -252,6 +252,8 @@ else:
 if options.postFit:
     plotName += '_postFit'
 
+for i in range(dataHist.GetNbinsX()):
+    print hists['data'].GetBinContent(i+1)
 
 plotting.draw(
     Plot.fromHisto(plotName,
@@ -259,7 +261,7 @@ plotting.draw(
                 texX = "",
                 texY = 'Number of events',
             ),
-    plot_directory = os.path.join(plot_directory, "controlRegions_debug", 'v5'),
+    plot_directory = os.path.join(plot_directory, "controlRegions", 'v5'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
     legend = (0.70,0.55, 0.95, 0.85),
