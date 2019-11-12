@@ -97,14 +97,21 @@ systematic_uncertainties_list = [\
 #for reg in allRegions:
 #    print [reg]
 
-allRegions = [
-#    Region('MET_significance', (12, 50))+Region('dl_mt2blbl', (0, 100))+Region('dl_mt2ll', (140, 240)),
-    Region('MET_significance', (12, 50))+Region('dl_mt2blbl', (100, 200))+Region('dl_mt2ll', (140, 240)),
-#    Region('MET_significance', (12, 50))+Region('dl_mt2blbl', (200, -1))+Region('dl_mt2ll', (140, 240)),
-]
-#allRegions = [Region('MET_significance', (12, 50))+Region('dl_mt2blbl', (0, -1))+Region('dl_mt2ll', (140, 240))]
+#allRegions = [
+##    Region('MET_significance', (12, 50))+Region('dl_mt2blbl', (0, 100))+Region('dl_mt2ll', (140, 240)),
+#    Region('MET_significance', (12, 50))+Region('dl_mt2blbl', (100, 200))+Region('dl_mt2ll', (140, 240)),
+##    Region('MET_significance', (12, 50))+Region('dl_mt2blbl', (200, -1))+Region('dl_mt2ll', (140, 240)),
+#]
+allRegions = [Region('MET_significance', (12, 50))+Region('dl_mt2blbl', (100, 200))+Region('dl_mt2ll', (140, 240))]
+#allRegions
+
+channels = ['all']#['SF','all']
 
 sys_errors = {}
+up_variation = {}
+down_variation = {}
+reference = {}
+
 e_yield = {}
 for estimate in allEstimators:
     # Select estimate
@@ -125,6 +132,9 @@ for estimate in allEstimators:
         e.isData   = True
     print e.name
     sys_errors[e.name] = {}
+    up_variation[e.name] = {}
+    down_variation[e.name] = {}
+    reference[e.name] = {}
     e.initCache(setup.defaultCacheDir())
 
 #    if e.name.count('T2tt') or e.name.count('TTbarDM') or e.name.count('T8bbllnunu'): e.isSignal = True
@@ -134,9 +144,15 @@ for estimate in allEstimators:
 #    if isFastSim:
 #      setup = setup.sysClone(sys={'reweight':['reweightLeptonFastSimSF'], 'remove':['reweightPU36fb']})
 
-    for channel in ['all']:#['SF','all']:
+    for channel in channels:
+        up_variation[e.name][channel] = []
+        down_variation[e.name][channel] = []
+        reference[e.name][channel] = []
         for (i, r) in enumerate(allRegions):
-            print " ", i, r
+            up_variation[e.name][channel].append({})
+            down_variation[e.name][channel].append({})
+            reference[e.name][channel].append({})
+            #print " ", i, r
             e_yield[e.name] = e.cachedEstimate(r, channel, setup).val
             for syst in systematic_uncertainties_list:
                 sys_contribution = eval("e."+syst+"Systematic")(r, channel, setup)
@@ -146,48 +162,53 @@ for estimate in allEstimators:
                     ref  = e.cachedEstimate(r, channel, setup)
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightPUUp']}))
                     down = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightPUDown']}))
-                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                    #print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
                 elif syst == "JER":
                     ref  = e.cachedEstimate(r, channel, setup)
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jerUp'}))
                     down = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jerDown'}))
-                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                    #print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
                 elif syst == "JEC":
                     ref  = e.cachedEstimate(r, channel, setup)
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jesTotalUp'}))
                     down = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'jesTotalDown'}))
-                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                    #print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
                 elif syst == "topPt":
                     ref  = e.cachedEstimate(r, channel, setup)
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'remove':['reweightTopPt']}))
-                    print "\t\t\tref: {} up: {}".format(ref.val,up.val)
+                    down = ref
+                    #print "\t\t\tref: {} up: {}".format(ref.val,up.val)
                 elif syst == "unclustered":
                     ref  = e.cachedEstimate(r, channel, setup)
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'unclustEnUp'}))
                     down = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'unclustEnDown'}))
-                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                    #print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
                 elif syst == "btaggingSFb":
                     ref  = e.cachedEstimate(r, channel, setup)
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']}))
                     down = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Down']}))
-                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                    #print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
                 elif syst == "btaggingSFl":
                     ref  = e.cachedEstimate(r, channel, setup)
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Up']}))
                     down = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightBTag_SF_l_Down']}))
-                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                    #print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
                 elif syst == "leptonSF":
                     ref  = e.cachedEstimate(r, channel, setup)
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightLeptonSFUp']}))
                     down = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightLeptonSFDown']}))
-                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                    #print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
                 elif syst == "trigger":
                     ref  = e.cachedEstimate(r, channel, setup)
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightDilepTriggerUp']}))
                     down = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightDilepTriggerDown']}))
-                    print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                    #print "\t\t\tref: {} up: {} down: {}".format(ref.val,up.val,down.val)
+                
+                up_variation[e.name][channel][i][syst] = up
+                down_variation[e.name][channel][i][syst] = down
+                reference[e.name][channel][i][syst] = ref 
 
-                print "\t"+syst+":", "{:.3f} ({:.3f})".format(sys_contribution.val, e_yield[e.name])
+                #print "\t"+syst+":", "{:.3f} ({:.3f})".format(sys_contribution.val, e_yield[e.name])
                 sys_errors[e.name][syst] = sys_contribution.val
 
 
@@ -216,4 +237,44 @@ print est_string + "\\\\"
 
 
 
+# OUTPUT 2
 
+header_string = "        "
+
+
+for syst in systematic_uncertainties_list:
+    slide_start = """
+    \\begin{frame}
+        \\frametitle{"""+syst+"""}
+        \\begin{table}[h!]
+            \\renewcommand{\\arraystretch}{1.5}
+            \\centering
+            \\footnotesize
+            \\begin{tabular}{r||c|c|c|c|c||c}
+    """
+    slide_end = """
+            \\end{tabular}
+        \\end{table}
+    \\end{frame}
+    """
+    print syst
+    table_data=""
+    for (i, r) in enumerate(allRegions):
+        print "  Region",i
+        for channel in channels:
+            print "    "+channel+" channel"
+            up_est = 0
+            down_est = 0
+            ref_est = 0
+            for estimate in allEstimators:
+                up_est += up_variation[estimate.name][channel][i][syst]
+                down_est += down_variation[estimate.name][channel][i][syst]
+                ref_est += reference[estimate.name][channel][i][syst]
+            print "      up:   ", up_est.val
+            print "      ref:  ", ref_est.val
+            print "      down: ", down_est.val
+            print "      up-ref:  ", (up_est.val-ref_est.val)/ref_est.val if ref_est.val != 0 else 0 
+            print "      ref-down:", (up_est.val-ref_est.val)/ref_est.val if ref_est.val != 0 else 0 
+            table_data += ""
+
+    #print slide_start+table_data+slide_end+"\n\n\n"

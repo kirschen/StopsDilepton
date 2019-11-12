@@ -33,7 +33,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
-argParser.add_argument('--appendCmds',        action='store_true')
+argParser.add_argument('--add',               action='store_true', help="Append missing commands to file (instead of overwriting)")
 # define plot 
 argParser.add_argument('--era',               action='store', type=str,      default="Run2016")
 argParser.add_argument('--plot_directory',    action='store',      default='v1')
@@ -232,6 +232,10 @@ variations = {
     'DilepTriggerUp'    : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerUp']]},
     'LeptonSFDown'      : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFDown'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFDown']]},
     'LeptonSFUp'        : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFUp'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFUp']]},
+#    'LeptonHit0SFDown'  : {'replaceWeight':('reweightLeptonHit0SF','reweightLeptonHit0SFDown'),  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonHit0SFDown']]},
+#    'LeptonHit0SFUp'    : {'replaceWeight':('reweightLeptonHit0SF','reweightLeptonHit0SFUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonHit0SFUp']]},
+#    'LeptonSip3dSFDown' : {'replaceWeight':('reweightLeptonSip3dSF','reweightLeptonSip3dSFDown'),'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSip3dSFDown']]},
+#    'LeptonSip3dSFUp'   : {'replaceWeight':('reweightLeptonSip3dSF','reweightLeptonSip3dSFUp'),  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSip3dSFUp']]},
     'L1PrefireDown'     : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireDown'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireDown']]},
     'L1PrefireUp'       : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireUp'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireUp']]},
 #NN
@@ -662,8 +666,10 @@ systematics = [\
     {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
     {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
+#    {'name':'leptonHit0SF',    'pair':('LeptonHit0SFDown', 'LeptonHit0SFUp')},
+#    {'name':'leptonSip3dSF',    'pair':('LeptonSip3dSFDown', 'LeptonSip3dSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
-    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
+#    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
     {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
 #NN
 #    {'name': 'DYInput',           'pair':('DYInputUp', 'DYInputDown')},
@@ -722,7 +728,7 @@ for mode in modes:
 
 # write missing cmds
 filename = 'missing.sh'
-if os.path.exists(filename) and args.appendCmds:
+if os.path.exists(filename) and args.add:
     append_write = 'a' # append if already exists
 else:
     append_write = 'w' # make a new file if not
@@ -945,7 +951,7 @@ for mode in all_modes:
               ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
               logX = False, logY = log, sorting = False,
               yRange = (0.03, "auto") if log else (0.001, "auto"),
-              #scaling = {0:1} if args.normalize else {},
+              scaling = {0:1} if args.normalize else {},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
               drawObjects = drawObjects( args.scaling, dataMC_SF[mode]['central'][Top_pow.name] ) + boxes,
               copyIndexPHP = True, extensions = ["png", "pdf"],

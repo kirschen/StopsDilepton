@@ -30,7 +30,7 @@ argParser.add_argument('--small',                                   action='stor
 argParser.add_argument('--plot_directory',     action='store',      default='v2')
 argParser.add_argument('--year',               action='store', type=int,      default=2016)
 argParser.add_argument('--era',                action='store',      default="", choices=["", "ABC", "D"])
-argParser.add_argument('--selection',          action='store',      default='lepSel-njet2p-btag0-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll100')
 argParser.add_argument('--splitBosons',        action='store_true', default=False)
 argParser.add_argument('--splitBosons2',       action='store_true', default=False)
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
@@ -78,7 +78,7 @@ if args.year == 2016:
     if args.splitBosons:
         mc         = [ Top_pow_16, TTXNoZ_16, TTZ_16, diBoson_16, triBoson_16, DY_LO_16]
     else:
-        mc         = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+        mc         = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
     # if args.reweightPU:
     #     nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
     # recoilCorrector = RecoilCorrector( 2016 )
