@@ -157,8 +157,8 @@ def wrapper(s):
                     MB_prefit  += postFitResults['results']['shapes_prefit'][binName]['multiBoson']
                     MB_postfit += postFitResults['results']['shapes_fit_b'][binName]['multiBoson']
 
-                    other_prefit  += postFitResults['results']['shapes_prefit'][binName]['other']
-                    other_postfit += postFitResults['results']['shapes_fit_b'][binName]['other']
+                    other_prefit  += postFitResults['results']['shapes_prefit'][binName]['TTXNoZ']
+                    other_postfit += postFitResults['results']['shapes_fit_b'][binName]['TTXNoZ']
 
                 print
                 print "## Scale Factors for backgrounds: ##"

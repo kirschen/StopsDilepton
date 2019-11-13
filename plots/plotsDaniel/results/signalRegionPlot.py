@@ -87,13 +87,12 @@ bhistos=[]
 hists={}
 histos={}
 bkgHist=[]
-processes = [   ('TTJetsG',''), 
-                ('TTJetsNG',''),
-                ( 'TTJetsF', 't#bar{t}/t'),
+processes = [   ('TTJets', 't#bar{t}/t'),
                 ('DY', 'Drell-Yan'),
                 ('multiBoson', 'VV/VVV'),
                 ('TTZ', 't#bar{t}Z'),
-                ('other', 't#bar{t}X, rare') ]
+                ('TTXNoZ', 't#bar{t}X, rare'),
+                ('TZX', 'tZX') ]
 if options.combined:
     for year in years:
         preFitHist[year]        = postFitResults['hists']['shapes_prefit']['dc_%s'%year]

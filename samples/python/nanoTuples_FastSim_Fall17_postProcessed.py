@@ -135,7 +135,6 @@ for f in os.listdir(os.path.join(data_directory_, postProcessing_directory_, 'T8
     if f.endswith('.root') and f.startswith('T8bbstausnu_'):
         name = f.replace('.root','')
         xChaStr, xStauStr, mStop, mNeu = name.replace('T8bbstausnu_','').split('_')
-        print "here" 
         bcha    = "b#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{#pm}}"
         nuslep  = "#nu#tilde{tau}"
         lneu    = "l#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{0}}"

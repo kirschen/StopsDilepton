@@ -84,7 +84,9 @@ processes = [   ( 'TTJets', 't#bar{t}/t'),
                 ('DY', 'Drell-Yan'),
                 ('multiBoson', 'VV/VVV'),
                 ('TTZ', 't#bar{t}Z'),
-                ('other', 't#bar{t}X, rare') ]
+                ('TTXNoZ', 't#bar{t}X, rare'),
+                #('TZX', 'tZX'),
+            ]
 if options.combined:
     for year in years:
         preFitHist[year]        = postFitResults['hists']['shapes_prefit']['dc_%s'%year]
@@ -107,12 +109,10 @@ if options.combined:
     dataHist.SetName('data')
     dataHist.legendText = 'Data'
     for n,(p,tex) in enumerate(processes):
-        print n
         for i in range(bhistos[n].GetNbinsX()):
             #print i, bhistos[n].GetNbinsX()
             v=0
             v=hists[2016][p].GetBinContent(i+1) + hists[2017][p].GetBinContent(i+1) + hists[2018][p].GetBinContent(i+1)
-            print v
             bhistos[n].SetBinContent(i+1, v)
         if tex:
             bhistos[n].legendText = tex
@@ -160,13 +160,12 @@ else:
             hists[p].legendText = tex
         
     for i in range(dataHist.GetNbinsX()):
-        print 'Data observation', hists['data'].Eval(i+0.5)
         dataHist.SetBinContent(i+1, hists['data'].Eval(i+0.5))
         dataHist.SetBinError(i+1, math.sqrt(hists['data'].Eval(i+0.5)))
 
     hists['data'] = dataHist
-    #hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
-    hists['data'].style = styles.lineStyle( ROOT.kBlack, width = 1 )
+    hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
+    #hists['data'].style = styles.lineStyle( ROOT.kBlack, width = 1 )
     hists['data'].legendOption = 'p'
 #hists['BSM'].legendOption = 'l'
 
@@ -251,9 +250,6 @@ else:
     plotName = "%s_%s"%(options.region, options.year)
 if options.postFit:
     plotName += '_postFit'
-
-for i in range(dataHist.GetNbinsX()):
-    print hists['data'].GetBinContent(i+1)
 
 plotting.draw(
     Plot.fromHisto(plotName,
