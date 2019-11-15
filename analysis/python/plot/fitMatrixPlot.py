@@ -45,10 +45,10 @@ import RootTools.core.logger as logger_rt
 logger    = logger.get_logger(    args.logLevel, logFile = None )
 logger_rt = logger_rt.get_logger( args.logLevel, logFile = None )
 
-if args.year == '2016':   lumi_scale = 35.92
-elif args.year == '2017': lumi_scale = 41.86
-elif args.year == '2018': lumi_scale = 58.83
-elif args.year =='COMBINED': lumi_scale = 138.4
+if args.year == '2016':   lumi_scale = 35.9
+elif args.year == '2017': lumi_scale = 41.5
+elif args.year == '2018': lumi_scale = 60
+elif args.year =='COMBINED': lumi_scale = 35.9+41.5+60
 
 cardFile = os.path.join( analysis_results, args.year, args.carddir, args.cardfile+".txt" )
 logger.info("Plotting from cardfile %s"%cardFile)

@@ -309,11 +309,11 @@ def wrapper(s):
 #                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators][1:] + [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ], niceName)
                 c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators if not 'TZX' in e.name ], niceName)
                 for e in setup.estimators:
-                  if e.name.count("TZX"): continue
                   name = e.name.split('-')[0]
                   expected = e.cachedEstimate(r, channel, setup)
                   expected = expected * args.scale
                   total_exp_bkg += expected.val
+                  if e.name.count("TZX"): continue
                   logger.info("Expectation for process %s: %s", e.name, expected.val)
                   if e.name.count('TTJets'):
                     if len(setup.regions) == len(regionsLegacy[1:]):     divider = 6
@@ -338,7 +338,7 @@ def wrapper(s):
                         nonGaussUncertainty = 1.25
                     else:
                         fakeUncertainty     = 1.03
-                        nonGaussUncertainty = 1.15
+                        nonGaussUncertainty = 1.10
                     TT_SF = 1
                     if TT_SF != 1: logger.warning("Scaling ttbar background by %s", TT_SF)
                     logger.info("Fake and non-gauss uncertainty are %s and  %s", fakeUncertainty, nonGaussUncertainty)
@@ -373,12 +373,13 @@ def wrapper(s):
                       for name in names:
                         uncScale = 1
                         c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
-                        #c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
-                        c.specifyUncertainty(JEC,        binname, name, e.JECSystematicAsym(        r, channel, setup) )
-                        #c.specifyUncertainty(unclEn,     binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
-                        c.specifyUncertainty(unclEn,     binname, name, e.unclusteredSystematicAsym(r, channel, setup) ) # could remove uncertainties in ttbar CR
-                        #c.specifyUncertainty(JER,        binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
-                        c.specifyUncertainty(JER,        binname, name, e.JERSystematicAsym(        r, channel, setup) )
+                        if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
+                            #c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
+                            c.specifyUncertainty(JEC,        binname, name, e.JECSystematicAsym(        r, channel, setup) )
+                            #c.specifyUncertainty(unclEn,     binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
+                            c.specifyUncertainty(unclEn,     binname, name, e.unclusteredSystematicAsym(r, channel, setup) ) # could remove uncertainties in ttbar CR
+                            #c.specifyUncertainty(JER,        binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
+                            c.specifyUncertainty(JER,        binname, name, e.JERSystematicAsym(        r, channel, setup) )
                         c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
                         c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
