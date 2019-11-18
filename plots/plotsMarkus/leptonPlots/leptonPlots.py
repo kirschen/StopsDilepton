@@ -38,7 +38,7 @@ argParser.add_argument('--noData',             action='store_true', default=Fals
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
 argParser.add_argument('--plot_directory',     action='store',      default='v2')
 argParser.add_argument('--era',                action='store', type=str,      default="Run2016")
-argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll100')
 argParser.add_argument('--study',              action='store', type=str,      default=None, choices = [None, "Muon", "Electron"])
 argParser.add_argument('--minmax',                                   action='store_true')
 argParser.add_argument('--recoil',             action='store', type=str,      default=None, choices = ["nvtx", "VUp", None])
@@ -104,7 +104,8 @@ if args.dpm:
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
+    mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
+#    mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
@@ -585,13 +586,14 @@ for index, mode in enumerate(allModes):
   weight_ = lambda event, sample: event.weight*event.reweightHEM
 
   for sample in mc:
-    sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I", "l1_eleIndex/I", "l2_eleIndex/I", "reweightHEM/F"]
+    sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightLeptonHit0SF/F','reweightLeptonSip3dSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I", "l1_eleIndex/I", "l2_eleIndex/I", "reweightHEM/F"]
     sample.read_variables += ['reweightPU%s/F'%args.reweightPU if args.reweightPU != "Central" else "reweightPU/F"]
     if args.reweightPU == 'Central':
-        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightLeptonHit0SF*event.reweightLeptonSip3dSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     else:
-        sample.weight         = lambda event, sample: getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+        sample.weight         = lambda event, sample: getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightLeptonHit0SF*event.reweightLeptonSip3dSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
     sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
+    print cutInterpreter.cutString(args.selection)
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 
@@ -611,11 +613,32 @@ for index, mode in enumerate(allModes):
     binning=[3, 0, 3],
   ))
 
+  plots.append(Plot(
+      texX = 'E_{T}^{miss} significance', texY = 'Number of Events / 2.5 GeV',
+      attribute = TreeVariable.fromString( "MET_significance/F" ),
+      binning=[40,0,100],
+  ))
+
   if not args.blinded:
     plots.append(Plot(
-      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events',
       attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
       binning=Binning.fromThresholds([0,20,40,60,80,100,140,240,340])
+    ))
+    plots.append(Plot(
+      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events',
+      attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+      binning=Binning.fromThresholds([0,20,40,60,80,100,120,140,160,200,250,300,350]),
+    ))
+    plots.append(Plot(
+      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events',
+      name = 'dl_mt2blbl_14', attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+      binning=[14,0,400]
+    ))
+    plots.append(Plot(
+      texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events',
+      name = 'dl_mt2blbl_14_overflow', attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
+      binning=[14,0,400], addOverFlowBin = 'upper',
     ))
 
   plots.append(Plot(

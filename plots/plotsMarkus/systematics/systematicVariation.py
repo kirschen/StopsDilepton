@@ -33,7 +33,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
-argParser.add_argument('--appendCmds',        action='store_true')
+argParser.add_argument('--add',               action='store_true', help="Append missing commands to file (instead of overwriting)")
 # define plot 
 argParser.add_argument('--era',               action='store', type=str,      default="Run2016")
 argParser.add_argument('--plot_directory',    action='store',      default='v1')
@@ -81,26 +81,29 @@ if args.dpm:
 if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
+    #Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16
     if args.selection.count("onZ") > 0:
-        mc          = [ DY_LO_16, Top_pow_16, multiBoson_16, TTXNoZ_16, TTZ_16 ]
+        mc          = [ DY_HT_LO_16, Top_pow_16, multiBoson_16, TTXNoZ_16, TTZ_16 ]
     else:
         mc          = [ Top_pow_16, multiBoson_16, DY_HT_LO_16, TTXNoZ_16, TTZ_16 ]
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
+    #Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17
     if args.selection.count("onZ") > 0:
-        mc          = [ DY_LO_17, Top_pow_17, multiBoson_17, TTXNoZ_17, TTZ_17 ]
+        mc          = [ DY_HT_LO_17, Top_pow_17, multiBoson_17, TTXNoZ_17, TTZ_17 ]
     else:
         mc          = [ Top_pow_17, multiBoson_17, DY_HT_LO_17, TTXNoZ_17, TTZ_17 ]
 
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
+    #Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18
     if args.selection.count("onZ") > 0:
-        mc          = [ DY_LO_18, Top_pow_18, multiBoson_18, TTXNoZ_18, TTZ_18 ]
+        mc          = [ DY_HT_LO_18, Top_pow_18, multiBoson_18, TTXNoZ_18, TTZ_18 ]
     else:
         mc          = [ Top_pow_18, multiBoson_18, DY_HT_LO_18, TTXNoZ_18, TTZ_18 ]
 
@@ -136,9 +139,9 @@ def metSelectionModifier( sys, returntype = 'func'):
 
 # these are the nominal MC weights we always apply
 if args.reweightPU == 'Central': 
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightLeptonHit0SF", "reweightLeptonSip3dSF", "reweightPU", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
 if args.reweightPU == 'VUp':
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightLeptonHit0SF", "reweightLeptonSip3dSF", "reweightPUVUp", "reweightDilepTrigger", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
 
 # weights to use for PU variation
 if args.reweightPU == 'Central':
@@ -229,6 +232,10 @@ variations = {
     'DilepTriggerUp'    : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerUp']]},
     'LeptonSFDown'      : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFDown'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFDown']]},
     'LeptonSFUp'        : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFUp'),            'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFUp']]},
+#    'LeptonHit0SFDown'  : {'replaceWeight':('reweightLeptonHit0SF','reweightLeptonHit0SFDown'),  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonHit0SFDown']]},
+#    'LeptonHit0SFUp'    : {'replaceWeight':('reweightLeptonHit0SF','reweightLeptonHit0SFUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonHit0SFUp']]},
+#    'LeptonSip3dSFDown' : {'replaceWeight':('reweightLeptonSip3dSF','reweightLeptonSip3dSFDown'),'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSip3dSFDown']]},
+#    'LeptonSip3dSFUp'   : {'replaceWeight':('reweightLeptonSip3dSF','reweightLeptonSip3dSFUp'),  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSip3dSFUp']]},
     'L1PrefireDown'     : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireDown'),        'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireDown']]},
     'L1PrefireUp'       : {'replaceWeight':('reweightL1Prefire','reweightL1PrefireUp'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightL1PrefireUp']]},
 #NN
@@ -659,8 +666,10 @@ systematics = [\
     {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
     {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
+#    {'name':'leptonHit0SF',    'pair':('LeptonHit0SFDown', 'LeptonHit0SFUp')},
+#    {'name':'leptonSip3dSF',    'pair':('LeptonSip3dSFDown', 'LeptonSip3dSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
-    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
+#    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
     {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
 #NN
 #    {'name': 'DYInput',           'pair':('DYInputUp', 'DYInputDown')},
@@ -719,7 +728,7 @@ for mode in modes:
 
 # write missing cmds
 filename = 'missing.sh'
-if os.path.exists(filename) and args.appendCmds:
+if os.path.exists(filename) and args.add:
     append_write = 'a' # append if already exists
 else:
     append_write = 'w' # make a new file if not
@@ -942,7 +951,7 @@ for mode in all_modes:
               ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
               logX = False, logY = log, sorting = False,
               yRange = (0.03, "auto") if log else (0.001, "auto"),
-              #scaling = {0:1} if args.normalize else {},
+              scaling = {0:1} if args.normalize else {},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
               drawObjects = drawObjects( args.scaling, dataMC_SF[mode]['central'][Top_pow.name] ) + boxes,
               copyIndexPHP = True, extensions = ["png", "pdf"],

@@ -118,7 +118,7 @@ def drawPlots(plots, mode, dataMCScale):
       plotting.draw(plot,
 	    plot_directory = plot_directory_,
 	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-	    logX = False, logY = log, sorting = False,
+	    logX = False, logY = log, sorting = True,
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
 	    scaling = {},
 	    legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88) if not args.noData else (0.50,0.9-0.047*sum(map(len, plot.histos)),0.85,0.9),
@@ -169,7 +169,7 @@ for index, mode in enumerate(allModes):
 
   data_sample.setSelectionString([getFilterCut(isData=True, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
   data_sample.name           = "data"
-  data_sample.read_variables = ["event/I","run/I"]
+  data_sample.read_variables = ["event/I","run/I","reweightHEM/F"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
   data_sample.scale          = 1.
   lumi_scale                 = data_sample.lumi/1000
@@ -178,7 +178,7 @@ for index, mode in enumerate(allModes):
     if args.year == 2016: lumi_scale = 35.9
     elif args.year == 2017: lumi_scale = 41.9
     elif args.year == 2018: lumi_scale = 60.0
-  weight_ = lambda event, sample: event.weight
+  weight_ = lambda event, sample: event.weight*event.reweightHEM
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 
@@ -186,17 +186,16 @@ for index, mode in enumerate(allModes):
     sample.scale          = lumi_scale
    #sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
    #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
-    sample.read_variables = ['reweightPU/F', 'reweightPUVUp/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'reweightHEM/F']
+    sample.read_variables = ['reweightPU/F', 'reweightPUVUp/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightLeptonHit0SF/F','reweightLeptonSip3dSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'reweightHEM/F']
     #if (('ttjets' in sample.name) or ('ttlep' in sample.name)) and args.isr:
     #    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F', 'reweight_nISR/F']
     #    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU*event.reweightLeptonTrackingSF*event.reweight_nISR
     #else:
     if args.reweightPUVUp:
         #sample.weight         = lambda event, sample: nTrueInt_puRW(event.Pileup_nTrueInt)
-        sample.weight         = lambda event, sample: event.reweightPUVUp*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*reweightHEM
+        sample.weight         = lambda event, sample: event.reweightPUVUp*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightLeptonHit0SF*event.reweightLeptonSip3dSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF#*event.reweightHEM
     else:
-        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*rewe
-ightHEM
+        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightLeptonHit0SF*event.reweightLeptonSip3dSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF#*event.reweightHEM
     sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
 
   # set selection strings to DY samples
