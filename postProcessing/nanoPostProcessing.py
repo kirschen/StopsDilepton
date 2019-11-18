@@ -278,6 +278,8 @@ if options.reduceSizeBy > 1:
     sample.normalization = sample.getYieldFromDraw(weightString="genWeight")['val']
     logger.info("New normalization: %s", sample.normalization)
 
+if options.massSkim:
+    sample.name += "_%s_%s"%(stop,lsp)
 
 if isMC:
     from Analysis.Tools.puReweighting import getReweightingFunction
