@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 from StopsDilepton.tools.u_float import u_float
 import math
 
-from StopsDilepton.tools.helpers import getObjFromFile
+from StopsDilepton.tools.helpers import getObjFromFile, natural_sort
 
 def getValFrom1BinnedHistOrGraph( hist ):
     """
@@ -87,4 +87,41 @@ def getPrePostFitFromMLF( mlfit ):
     
     ret = {'hists':shape_hists, 'results':shape_results, 'mlfit':mlfit }
     return ret
+
+def getCovarianceFromMLF( mlfit, postFit=False ):
+    if type(mlfit)==type(""):
+        mlfit = ROOT.TFile(mlfit, "READ")
+
+    tt = mlfit.Get("shapes_fit_s") if postFit else mlfit.Get("shapes_prefit")
+
+    h2 = tt.Get("overall_total_covar")
+
+    binNames = []
+    matrix = {}
+    nbins = h2.GetNbinsX()
+    
+    for i in range(1, nbins+1):
+        binNames.append(h2.GetXaxis().GetBinLabel(i))
+        matrix[h2.GetXaxis().GetBinLabel(i)] = {}
+        for j in range(1, nbins+1):
+            matrix[h2.GetXaxis().GetBinLabel(i)][h2.GetXaxis().GetBinLabel(j)] = h2.GetBinContent(i,j)
+
+    sorted_cov = ROOT.TH2D('cov','',nbins,0,nbins,nbins,0,nbins)
+    binNames = natural_sort(binNames)
+    
+    #SRnames = []
+    #for i in range(nbins/2):
+    #    SRnames.append("SF "+str(i))
+    #    SRnames.append("DF "+str(i))
+    #
+    #for i,k in enumerate(binNames):
+    #    if i < nSR:
+    #        sorted_cov.GetXaxis().SetBinLabel(i+1,SRnames[i])
+    #        sorted_cov.GetYaxis().SetBinLabel(i+1,SRnames[i])
+    #    for j,l in enumerate(binNames):
+    #        sorted_cov.SetBinContent(i+1,j+1,matrix[k][l])
+    #
+    #sorted_cov.GetXaxis().LabelsOption("v")
+
+    return matrix
 
