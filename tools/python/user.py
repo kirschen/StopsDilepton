@@ -15,7 +15,7 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     plot_directory      = "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton"
     #plot_directory      = "/afs/cern.ch/work/s/schoef/www/"
     # Analysis result files
-    analysis_results        =  '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v5/'
+    analysis_results        =  '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v6/'
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/'
     cern_proxy_certificate  = '/afs/cern.ch/user/s/schoef/private/.proxy'
     # directory with veto lists
@@ -44,7 +44,7 @@ if os.environ['USER'] in ['phussain']:
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postprocessing_output_directory = "/afs/hephy.at/data/cms02/nanoTuples/"
     # directory with veto lists
-    analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v5/'
+    analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v6/'
     #analysis_results        = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v4/'
     #analysis_results        = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/vpseudomet/'
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
@@ -62,7 +62,7 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/"
     # Analysis result files
-    analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v5/' #Path to analysis results
+    analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v6/' #Path to analysis results
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
@@ -84,7 +84,7 @@ if os.environ['USER'] in ['mdoppler']:
     plot_directory      = "/afs/hephy.at/user/m/mdoppler/www/stopsDileptonLegacy/"
     #plot_directory      = "/afs/cern.ch/work/d/dspitzba/www/stopsDilepton/"
     # Analysis result files
-    analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v5/'
+    analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v6/'
     #dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     #cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     # directory with veto lists
