@@ -55,7 +55,7 @@ signals_T2tt = []
 #allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in channels + trilepChannels}) for s in signals_TTbarDM + signals_T2tt + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p05 + signals_T8bbllnunu_XCha0p5_XSlep0p95]
 
 estimators = estimatorList(setup)
-allEstimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
+allEstimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TZX', 'TTXNoZ']) # replaced other
 allEstimators += [ MCBasedEstimate(name=s.name, sample={channel:s for channel in channels + trilepChannels}) for s in signals_T2tt ]
 
 

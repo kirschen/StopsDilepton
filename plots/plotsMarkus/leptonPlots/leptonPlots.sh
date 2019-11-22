@@ -1,8 +1,22 @@
 # latest lepton study
 
-python leptonPlots.py --dpm --plot_directory v0p15 --era Run2016 --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-mll20-dPhiJet0-dPhiJet1
-python leptonPlots.py --dpm --plot_directory v0p15 --era Run2017 --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-mll20-dPhiJet0-dPhiJet1
-python leptonPlots.py --dpm --plot_directory v0p15 --era Run2018 --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-mll20-dPhiJet0-dPhiJet1
+python leptonPlots.py --dpm --plot_directory v0p19_DY_LO --era Run2016 --selection lepSel-POGMetSig12-njet2p-btag0-looseLeptonMiniIsoVeto-miniIso0.2-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll100
+
+
+#python leptonPlots.py --dpm --plot_directory v0p15 --era Run2016 --selection lepSel-POGMetSig12-njet2p-btag0-looseLeptonMiniIsoVeto-miniIso0.2-mll20-dPhiJet0-dPhiJet1
+#python leptonPlots.py --dpm --plot_directory v0p15 --era Run2017 --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-looseLeptonMiniIsoVeto-miniIso0.2-mll20-dPhiJet0-dPhiJet1
+#python leptonPlots.py --dpm --plot_directory v0p18 --era Run2018 --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-looseLeptonMiniIsoVeto-miniIso0.2-mll20-dPhiJet0-dPhiJet1
+#
+#python leptonPlots.py --dpm --plot_directory v0p15 --era Run2016 --selection lepSel-POGMetSig12-njet2p-btag0-looseLeptonMiniIsoVeto-miniIso0.2-extraLeptonCut-mll20-dPhiJet0-dPhiJet1
+#python leptonPlots.py --dpm --plot_directory v0p15 --era Run2017 --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-looseLeptonMiniIsoVeto-miniIso0.2-extraLeptonCut-mll20-dPhiJet0-dPhiJet1
+#python leptonPlots.py --dpm --plot_directory v0p18 --era Run2018 --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-looseLeptonMiniIsoVeto-miniIso0.2-extraLeptonCut-mll20-dPhiJet0-dPhiJet1
+
+
+
+
+#python leptonPlots.py --dpm --plot_directory v0p15 --era Run2016 --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-mll20-dPhiJet0-dPhiJet1
+#python leptonPlots.py --dpm --plot_directory v0p15 --era Run2017 --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-mll20-dPhiJet0-dPhiJet1
+#python leptonPlots.py --dpm --plot_directory v0p15 --era Run2018 --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-mll20-dPhiJet0-dPhiJet1
 
 #python lepton.py --dpm --plot_directory v0p15 --era Run2016 --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ
 #python lepton.py --dpm --plot_directory v0p15 --era Run2016 --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1

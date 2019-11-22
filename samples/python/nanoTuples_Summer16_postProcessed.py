@@ -79,7 +79,9 @@ dirs['TTVV']            = ['TTWW', 'TTWZ','TTZZ']
 dirs['THX']             = ['THW', 'THQ']
 dirs['TTTT']            = ['TTTT']
 
-dirs['TTXNoZ']          = dirs['TTVV'] + dirs['TTW'] + dirs['TWZ'] + dirs['TZQ'] + dirs['TTH'] + dirs['TTTT'] + dirs['THX']
+#dirs['TTXNoZ']          = dirs['TTVV'] + dirs['TTW'] + dirs['TWZ'] + dirs['TZQ'] + dirs['TTH'] + dirs['TTTT'] + dirs['THX']
+dirs['TTXNoZ']          = dirs['TTVV'] + dirs['TTW'] + dirs['TTH'] + dirs['TTTT'] + dirs['THX']
+dirs['TZX']             = dirs['TWZ'] + dirs['TZQ']
 dirs['TTX']             = dirs['TTVV'] + dirs['TTW'] + dirs['TWZ'] + dirs['TZQ'] + dirs['TTH'] + dirs['TTTT'] + dirs['THX'] + dirs['TTZ']
 
 #dirs['WJetsToLNu']       = ["WJetsToLNu"]
@@ -137,6 +139,7 @@ singleTop_tch_16  = Sample.fromDirectory(name="singleTop_tch",    treeName="Even
 #singleTop_sch_16  = Sample.fromDirectory(name="singleTop_sch",    treeName="Events", isData=False, color=color.singleTop,       texName="single top sch",                    directory=directories['singleTop_sch'])
 TTX_16            = Sample.fromDirectory(name="TTX",              treeName="Events", isData=False, color=color.TTX,             texName="t#bar{t}H/W/Z, tZq",                directory=directories['TTX'])
 TTXNoZ_16         = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W, tZq, tWZ",             directory=directories['TTXNoZ'])
+TZX_16            = Sample.fromDirectory(name="TZX",              treeName="Events", isData=False, color=color.TTXNoZ,          texName="tZq, tWZ",                          directory=directories['TZX'])
 TTH_16            = Sample.fromDirectory(name="TTH",              treeName="Events", isData=False, color=color.TTH,             texName="t#bar{t}H",                         directory=directories['TTH'])
 TTW_16            = Sample.fromDirectory(name="TTW",              treeName="Events", isData=False, color=color.TTW,             texName="t#bar{t}W",                         directory=directories['TTW'])
 TTZ_16            = Sample.fromDirectory(name="TTZ",              treeName="Events", isData=False, color=color.TTZ,             texName="t#bar{t}Z",                         directory=directories['TTZ'])

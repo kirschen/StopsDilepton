@@ -35,7 +35,7 @@ import argparse
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
-argParser.add_argument('--plot_directory',    action='store',      default='isoVSinvIso')
+argParser.add_argument('--plot_directory',    action='store',      default='v0p19')
 argParser.add_argument('--selection',         action='store',      default='lepSel1Tight-njet4p-btag1p-dPhiJet0-dPhiJet1')
 argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
@@ -99,9 +99,9 @@ def metSelectionModifier( sys, returntype = 'func'):
 
 # these are the nominal MC weights we always apply
 if args.reweightPU == 'Central': 
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPU", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightLeptonHit0SF", "reweightLeptonSip3dSF", "reweightPU", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
 if args.reweightPU == 'VUp':
-    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightPUVUp", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
+    nominalMCWeights = ["weight", "reweightLeptonSF", "reweightLeptonHit0SF", "reweightLeptonSip3dSF", "reweightPUVUp", "reweightBTag_SF", "reweightLeptonTrackingSF", "reweightL1Prefire", "reweightHEM"]
 
 # weights to use for PU variation
 if args.reweightPU == 'Central':

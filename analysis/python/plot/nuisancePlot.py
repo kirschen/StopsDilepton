@@ -20,7 +20,6 @@ def getNuisancesFromFile(nuisanceFile):
   nuisanceList = []
   with open(nuisanceFile) as f:
     for line in f:
-      print line
       if 'name' in line: continue
       sysName = line.split()[0]
       pull    = line.split(',')[0].split()[-1]
@@ -74,7 +73,6 @@ def plotNuisances(nuisanceList, name):
   c.SaveAs(name);
 
 nuisanceList     = getNuisancesFromFile(args.nuisanceFile)
-print nuisanceList
 nuisanceListStat = [i for i in nuisanceList if (i[0].count('Stat_') or i[0].count('prop_'))] 
 nuisanceListSys  = [i for i in nuisanceList if not (i[0].count('Stat_') or i[0].count('prop_'))]
 
