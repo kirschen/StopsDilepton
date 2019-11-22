@@ -29,7 +29,7 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                 action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--sorting',                               action='store', default=None, choices=[None, "forDYMB"],  help='Sort histos?', )
+#argParser.add_argument('--sorting',                               action='store', default=None, choices=[None, "forDYMB"],  help='Sort histos?', )
 argParser.add_argument('--dpm',                                   action='store_true',     help='Use dpm?', )
 argParser.add_argument('--dataMCScaling',      action='store_true',     help='Data MC scaling?', )
 argParser.add_argument('--DYInc',              action='store_true',     help='Use Inclusive DY sample?', )
@@ -46,6 +46,8 @@ argParser.add_argument('--plotUPara',          action='store_true',     help='Pl
 argParser.add_argument('--splitMET',           action='store_true',     help='Split in MET bins?' )
 argParser.add_argument('--splitMETSig',        action='store_true',     help='Split in METSig bins?' )
 argParser.add_argument('--splitNvtx',          action='store_true',     help='Split in Nvtx bins?' )
+argParser.add_argument('--rwHit0',              action='store_true',     help='reweight Hit0?', )
+argParser.add_argument('--rwSip3d',              action='store_true',     help='reweight Sip3d?', )
 args = argParser.parse_args()
 
 #
@@ -62,6 +64,8 @@ if args.splitMETSig:                  args.plot_directory += "_splitMETSig"
 if args.splitNvtx:                    args.plot_directory += "_splitNvtx"
 if args.DYInc:                        args.plot_directory += "_DYInc"
 if args.noData:                       args.plot_directory += "_noData"
+if args.rwHit0:                       args.plot_directory += "_rwHit0"
+if args.rwSip3d:                      args.plot_directory += "_rwSip3d"
 if args.signal == "DM":               args.plot_directory += "_DM"
 if args.reweightPU:                   args.plot_directory += "_%s"%args.reweightPU
 #
@@ -313,7 +317,7 @@ def drawPlots(plots, mode, dataMCScale):
           plotting.draw(plot,
             plot_directory = plot_directory_,
             ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-            logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig or args.splitNvtx) and args.sorting is not None,
+            logX = False, logY = log, sorting = not (args.splitMET or args.splitMETSig or args.splitNvtx), # and args.sorting is not None,
             yRange = (0.03, "auto") if log else (0.001, "auto"),
             scaling = {0:1} if args.dataMCScaling else {},
             legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
@@ -593,8 +597,18 @@ for index, mode in enumerate(allModes):
   #data_sample_filtered.texName+= " (filtered)"
 
   for sample in mc + signals:
-    sample.read_variables = ['reweightPU/F', 'reweightL1Prefire/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', 'reweightHEM/F']
+    sample.read_variables = ['reweightPU/F', 'reweightL1Prefire/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', 'reweightHEM/F', 'reweightLeptonHit0SF/F', 'reweightLeptonSip3dSF/F']
     # Need individual pu reweighting functions for each sample in 2017, so nTrueInt_puRW is only defined here
+
+    if args.rwHit0:
+        weight_Hit0  = lambda event: 1 
+    else:
+        weight_Hit0  = operator.attrgetter( 'reweightLeptonHit0SF' ) 
+    if args.rwSip3d:
+        weight_sip3d = lambda event: 1 
+    else:
+        weight_sip3d = operator.attrgetter( 'reweightLeptonSip3dSF' ) 
+
     if args.reweightPU and args.reweightPU not in ["noPUReweighting", "nvtx"]:
         sample.read_variables.append( 'reweightPU/F' if args.reweightPU=='Central' else 'reweightPU%s/F'%args.reweightPU )
 
@@ -604,9 +618,9 @@ for index, mode in enumerate(allModes):
         sample.weight         = lambda event, sample: nvtx_puRW(event.PV_npvsGood) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
     elif args.reweightPU:
         pu_getter = operator.attrgetter( 'reweightPU' if args.reweightPU=='Central' else 'reweightPU%s'%args.reweightPU )
-        sample.weight         = lambda event, sample: pu_getter(event) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
+        sample.weight         = lambda event, sample: pu_getter(event) * event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire*weight_sip3d(event)*weight_Hit0(event)
     else: #default
-        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire
+        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF*event.reweightL1Prefire*weight_sip3d(event)*weight_Hit0(event)
 
     sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(mode)])
 
