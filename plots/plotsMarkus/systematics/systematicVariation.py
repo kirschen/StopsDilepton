@@ -426,6 +426,7 @@ for mode in modes:
         #selectionModifier = None
         selectionModifier = variations[args.variation]['selectionModifier']
         mc_weight         = MC_WEIGHT( variation = variations[args.variation], returntype='input')
+# ------------------------------------------------------------------------------------------------
     elif args.variation is not None:
         selectionModifier = variations[args.variation]['selectionModifier']
         mc_weight         = MC_WEIGHT( variation = variations[args.variation], returntype='func')
