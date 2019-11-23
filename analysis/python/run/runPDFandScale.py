@@ -143,7 +143,7 @@ PS_cache = resultsDB(cacheDir+sample.name+'_unc.sq', "PSscale", ["region", "chan
 def wrapper(args):
         r, c, setup = args
         res = estimate.cachedEstimate(r, c, setup)
-        logger.info("Done with one of the jobs in region %s and channel %s", r, c)
+        logger.debug("Done with one of the jobs in region %s and channel %s", r, c)
         return (estimate.uniqueKey(r, c, setup), res )
 
 jobs=[]
@@ -164,7 +164,6 @@ if not options.combine:
             jobs.append((region, c, setup))
             jobs.append((region, c, setup.sysClone(sys={'reweight':[LHEweight_original]})))
             for var in variations:
-                print var
                 jobs.append((region, c, setup.sysClone(sys={'reweight':[var]})))
                 #sigma_reweight  = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[var]}))
     
@@ -198,20 +197,20 @@ if options.combine:
             deltas = []
             delta_squared = 0
             # central yield inclusive and in region
-            logger.info("Getting inclusive (noRegions) yield")
+            logger.debug("Getting inclusive (noRegions) yield")
             sigma_incl_central  = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[LHEweight_original]}))
-            logger.info("Getting yield for region with LHEweight_original")
+            logger.debug("Getting yield for region with LHEweight_original")
             sigma_central       = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[LHEweight_original]}))
-            logger.info("Getting yield for region with centralWeight")
+            logger.debug("Getting yield for region with centralWeight")
             sigma_centralWeight = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[centralWeight]}))
 
             for var in scale_variations:
-                print var
-                logger.info("Getting inclusive yield with varied weight")
+                #print var
+                logger.debug("Getting inclusive yield with varied weight")
                 simga_incl_reweight = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[var]}))
                 norm = sigma_incl_central/simga_incl_reweight if not options.noKeepNorm else 1
                 
-                logger.info("Getting yield for region with varied weight")
+                logger.debug("Getting yield for region with varied weight")
                 sigma_reweight  = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[var]}))
                 sigma_reweight_acc = sigma_reweight * norm
                 

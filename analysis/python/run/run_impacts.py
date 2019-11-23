@@ -45,6 +45,7 @@ def wrapper(s):
     logger.info("Creating %s"%combineDirname)
     if not os.path.isdir(combineDirname): os.makedirs(combineDirname)
     shutil.copyfile(cardFilePath,combineDirname+'/'+cardFile)
+    if not args.combined: shutil.copyfile(cardFilePath.replace('shapeCard.txt','shape.root'),combineDirname+'/'+cardFile.replace('shapeCard.txt','shape.root'))
     shutil.copyfile(cardFilePath.replace('shapeCard.txt', 'shapeCard.root'),combineDirname+'/'+cardFile.replace('shapeCard.txt', 'shapeCard.root'))
     if args.bkgOnly:
         prepWorkspace   = "text2workspace.py %s --X-allow-no-signal -m 125"%cardFile

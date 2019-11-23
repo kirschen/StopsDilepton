@@ -51,11 +51,11 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None)
 from StopsDilepton.analysis.Setup import Setup
 if options.combined:
     setup=Setup(2016)
-    lumiStr = 138.4
+    lumiStr = 35.9+41.5+60
 else:
     setup = Setup(options.year)
     lumiStr = setup.dataLumi/1000
-analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4/'
+analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v5/'
 isData = True if not options.expected else False
 #lumiStr = setup.dataLumi/1000
 years=[2016,2017,2018]
@@ -80,13 +80,13 @@ bhistos=[]
 hists={}
 histos={}
 bkgHist=[]
-processes = [   ('TTJetsG',''), 
-                ('TTJetsNG',''),
-                ( 'TTJetsF', 't#bar{t}/t'),
+processes = [   ( 'TTJets', 't#bar{t}/t'),
                 ('DY', 'Drell-Yan'),
                 ('multiBoson', 'VV/VVV'),
                 ('TTZ', 't#bar{t}Z'),
-                ('other', 't#bar{t}X, rare') ]
+                ('TTXNoZ', 't#bar{t}X, rare'),
+                #('TZX', 'tZX'),
+            ]
 if options.combined:
     for year in years:
         preFitHist[year]        = postFitResults['hists']['shapes_prefit']['dc_%s'%year]
@@ -109,12 +109,10 @@ if options.combined:
     dataHist.SetName('data')
     dataHist.legendText = 'Data'
     for n,(p,tex) in enumerate(processes):
-        print n
         for i in range(bhistos[n].GetNbinsX()):
             #print i, bhistos[n].GetNbinsX()
             v=0
             v=hists[2016][p].GetBinContent(i+1) + hists[2017][p].GetBinContent(i+1) + hists[2018][p].GetBinContent(i+1)
-            print v
             bhistos[n].SetBinContent(i+1, v)
         if tex:
             bhistos[n].legendText = tex
@@ -167,6 +165,7 @@ else:
 
     hists['data'] = dataHist
     hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
+    #hists['data'].style = styles.lineStyle( ROOT.kBlack, width = 1 )
     hists['data'].legendOption = 'p'
 #hists['BSM'].legendOption = 'l'
 
@@ -237,11 +236,44 @@ def drawObjects( isData=False, lumi=36. ):
     return [tex.DrawLatex(*l) for l in lines]
 
 def setBinLabels( hist ):
-    for i in range(1, hist.GetNbinsX()+1):
-        hist.GetXaxis().SetBinLabel(i, "   %s"%((i+1)/2 if i%2==1 else ''))
+    #for i in range(1, hist.GetNbinsX()+1):
+    binNumbers = range(2) + range(5) + range(13)
+    for i,j in enumerate( binNumbers ):
+        #hist.GetXaxis().SetBinLabel(i, "   %s"%i if i%2==1 else '')
+        hist.GetXaxis().SetBinLabel(i+1, str(j))
 
+def drawLabels( ):
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.028)
+    tex.SetTextAngle(0)
+    tex.SetTextAlign(12) # align right
+    min = 0.15
+    max = 0.95
+    lines =  [(0.55, 0.5, 'DY/VV CR')]
+    return [tex.DrawLatex(*l) for l in lines]
+
+def drawLabelsRot( ):
+    tex = ROOT.TLatex()
+    tex.SetNDC()
+    tex.SetTextSize(0.028)
+    tex.SetTextAngle(90)
+    tex.SetTextAlign(12) # align right
+    min = 0.15
+    max = 0.95
+    lines =  [(0.17, 0.8, 'TTCRSF')]
+    lines += [(0.21, 0.8, 'TTCROF')]
+    lines += [(0.25, 0.5, 'TTZ2j2b')]
+    lines += [(0.29, 0.5, 'TTZ3j1b')]
+    lines += [(0.33, 0.5, 'TTZ3j2b')]
+    lines += [(0.37, 0.5, 'TTZ4j1b')]
+    lines += [(0.41, 0.5, 'TTZ4j2b')]
+    return [tex.DrawLatex(*l) for l in lines]
 
 drawObjects = drawObjects( isData=isData, lumi=round(lumiStr,1)) + boxes
+if options.region == 'controlAll':
+    drawObjects += drawLabelsRot() + drawLabels()
+
 if options.combined:
     plots = [ bkgHist, [histos['data']]]
         
@@ -252,22 +284,21 @@ else:
 if options.postFit:
     plotName += '_postFit'
 
-
 plotting.draw(
     Plot.fromHisto(plotName,
                 plots,
                 texX = "",
                 texY = 'Number of events',
             ),
-    plot_directory = os.path.join(plot_directory, "controlRegions_debug", 'v5'),
+    plot_directory = os.path.join(plot_directory, "controlRegions", 'v5'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
     legend = (0.70,0.55, 0.95, 0.85),
     widths = {'x_width':900, 'y_width':600, 'y_ratio_width':250},
-    yRange = (0.2,300000.),
+    yRange = (0.2,900000.),
     #yRange = (0.03, [0.001,0.5]),
     ratio = {'yRange': (0.11, 1.89), 'texY':'Data/pred', 'histos':[(1,0)], 'drawObjects':ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
-            'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035)]} ,
+            'histModifications': [ lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035)]} ,
     drawObjects = drawObjects,
     histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2)],
     #canvasModifications = [ lambda c : c.SetLeftMargin(0.08), lambda c : c.GetPad(2).SetLeftMargin(0.08), lambda c : c.GetPad(1).SetLeftMargin(0.08), lambda c: c.GetPad(2).SetBottomMargin(0.60), lambda c : c.GetPad(1).SetRightMargin(0.03), lambda c: c.GetPad(2).SetRightMargin(0.03) ],

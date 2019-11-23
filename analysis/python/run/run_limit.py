@@ -116,14 +116,14 @@ setupTT.regions = [regionsLegacy[0]]
 # Define estimators for CR
 estimators           = estimatorList(setup)
 #setup.estimators     = estimators.constructEstimatorList(["TTJets-DD","TTZ","DY", 'multiBoson', 'other'])
-setup.estimators     = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other']) # no data-driven estimation atm
-setupDYVV.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTTZ1.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTTZ2.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTTZ3.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTTZ4.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTTZ5.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
-setupTT.estimators   = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'other'])
+setup.estimators     = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX']) # no data-driven estimation atm
+setupDYVV.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
+setupTTZ1.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
+setupTTZ2.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
+setupTTZ3.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
+setupTTZ4.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
+setupTTZ5.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
+setupTT.estimators   = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
 
 if args.fitAll:        setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV, setup]
 elif args.controlDYVV: setups = [setupDYVV]
@@ -241,10 +241,11 @@ def wrapper(s):
         SFb     = 'SFb_%s'%year
         SFl     = 'SFl_%s'%year
         trigger = 'trigger_%s'%year
-        JEC     = 'JEC'
+        JEC     = 'JEC_%s'%year
         unclEn  = 'unclEn'
-        JER     = 'JER'
-        PU      = 'PU'
+        JER     = 'JER_%s'%year
+        PU      = 'PU_%s'%year
+        Lumi    = 'Lumi_%s'%year
         c.addUncertainty(PU,           shapeString)
         c.addUncertainty('topPt',      shapeString)
         c.addUncertainty(JEC,          shapeString)
@@ -272,19 +273,18 @@ def wrapper(s):
         c.addUncertainty(DY_add,       shapeString) # only in high mt2blbl
         c.addUncertainty('ttZ_SR',     shapeString)
         # all regions, lnN
-        c.addUncertainty('MB_TT',       shapeString)
-        c.addUncertainty('DY_TT',       shapeString)
         c.addUncertainty('other',      'lnN')
+        c.addUncertainty(Lumi,         'lnN')
         if fastSim:
             c.addUncertainty('btagFS',   shapeString)
             c.addUncertainty('leptonFS', shapeString)
             c.addUncertainty('FSmet',    shapeString)
             c.addUncertainty('PUFS',     shapeString)
 
-        c.addRateParameter('DY', 1, '[0.5,1.5]')
-        c.addRateParameter('multiBoson', 1, '[0.6,1.4]')
-        c.addRateParameter('TTZ', 1, '[0.5,1.5]')
-        c.addRateParameter('TTJets', 1, '[0.85,1.15]')
+        c.addRateParameter('DY',            1, '[0,10]') #0.5, 1.5
+        c.addRateParameter('multiBoson',    1, '[0.6,1.4]') #0.6, 1.4
+        c.addRateParameter('TTZ',           1, '[0,10]')
+        c.addRateParameter('TTJets',        1, '[0,10]') #[0.85,1.15]
 
         for setup in setups:
           eSignal     = MCBasedEstimate(name=s.name, sample=s, cacheDir=setup.defaultCacheDir()) # {channel:s for channel in channels+trilepChannels}
@@ -307,12 +307,13 @@ def wrapper(s):
                 counter += 1
                 total_exp_bkg = 0
 #                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators][1:] + [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ], niceName)
-                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators], niceName)
+                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators if not 'TZX' in e.name ], niceName)
                 for e in setup.estimators:
                   name = e.name.split('-')[0]
                   expected = e.cachedEstimate(r, channel, setup)
                   expected = expected * args.scale
                   total_exp_bkg += expected.val
+                  if e.name.count("TZX"): continue
                   logger.info("Expectation for process %s: %s", e.name, expected.val)
                   if e.name.count('TTJets'):
                     if len(setup.regions) == len(regionsLegacy[1:]):     divider = 6
@@ -337,20 +338,34 @@ def wrapper(s):
                         nonGaussUncertainty = 1.25
                     else:
                         fakeUncertainty     = 1.03
-                        nonGaussUncertainty = 1.15
+                        nonGaussUncertainty = 1.10
                     TT_SF = 1
                     if TT_SF != 1: logger.warning("Scaling ttbar background by %s", TT_SF)
                     logger.info("Fake and non-gauss uncertainty are %s and  %s", fakeUncertainty, nonGaussUncertainty)
                     c.specifyExpectation(binname, 'TTJets',  expected.val * TT_SF)
+                    #c.specifyUncertainty("Top", binname, name, 1.10)
                   elif e.name.count("DY"):
                     DY_SF = 1
                     c.specifyExpectation(binname, name, expected.val*DY_SF)
                     if DY_SF != 1: logger.warning("Scaling DY background by %s", DY_SF)
+                    #c.specifyUncertainty("DY", binname, name, 1.20)
+                  elif e.name.count("multiBoson"):
+                    c.specifyExpectation(binname, name, expected.val)
+                    #c.specifyUncertainty("MB", binname, name, 1.20)
                   elif e.name.count("TTZ"):
                     TTZ_SF = 1
+                    for tmp_e in setup.estimators:
+                        if tmp_e.name.count("TZX"): TZX_e = tmp_e
+                    TZX_expected = TZX_e.cachedEstimate(r, channel, setup)
+                    logger.info("Pure ttZ expected %s", expected.val)
+                    expected = expected+TZX_expected
+                    logger.info("ttZ+tZX expected %s", expected.val)
                     c.specifyExpectation(binname, name, expected.val*TTZ_SF)
                     if TTZ_SF != 1: logger.warning("Scaling ttZ background by %s", TTZ_SF)
-                  else:
+                    #c.specifyUncertainty("TTZ", binname, name, 1.10)
+                  elif e.name.count("TZX"):
+                    logger.info("TZX has been added to TTZ")
+                  elif e.name.count("TTXNoZ") or e.name.count("other"):
                     c.specifyExpectation(binname, name, expected.val)
 
                   if expected.val>0 or True:
@@ -358,12 +373,13 @@ def wrapper(s):
                       for name in names:
                         uncScale = 1
                         c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
-                        #c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
-                        c.specifyUncertainty(JEC,        binname, name, e.JECSystematicAsym(        r, channel, setup) )
-                        #c.specifyUncertainty(unclEn,     binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
-                        c.specifyUncertainty(unclEn,     binname, name, e.unclusteredSystematicAsym(r, channel, setup) ) # could remove uncertainties in ttbar CR
-                        #c.specifyUncertainty(JER,        binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
-                        c.specifyUncertainty(JER,        binname, name, e.JERSystematicAsym(        r, channel, setup) )
+                        if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
+                            #c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
+                            c.specifyUncertainty(JEC,        binname, name, e.JECSystematicAsym(        r, channel, setup) )
+                            #c.specifyUncertainty(unclEn,     binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
+                            c.specifyUncertainty(unclEn,     binname, name, e.unclusteredSystematicAsym(r, channel, setup) ) # could remove uncertainties in ttbar CR
+                            #c.specifyUncertainty(JER,        binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
+                            c.specifyUncertainty(JER,        binname, name, e.JERSystematicAsym(        r, channel, setup) )
                         c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
                         c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
@@ -398,7 +414,8 @@ def wrapper(s):
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                 c.specifyUncertainty("ttZ_SR", binname, name, 1.20)
 
-                        if e.name.count('other'):      c.specifyUncertainty('other',      binname, name, 1.25)
+                        if e.name.count('TTXNoZ'):      c.specifyUncertainty('other',      binname, name, 1.25)
+                        #if e.name.count('TZX'):      c.specifyUncertainty('TZX',      binname, name, 1.25)
 
                         #MC bkg stat (some condition to neglect the smaller ones?)
                         uname = 'Stat_'+binname+'_'+name
@@ -412,7 +429,7 @@ def wrapper(s):
                 
                 if fastSim:
                     if args.signal == 'T2tt': 
-                        signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
+                        signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF'], 'remove':['reweightLeptonSip3dSF', 'reweightLeptonHit0SF']}) # added reweightLeptonFastSimSF in the tuples?
                     else:
                         signalSetup = setup.sysClone(sys={'reweight':[ 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
                     signal = e.cachedEstimate(r, channel, signalSetup)
@@ -487,7 +504,6 @@ def wrapper(s):
                 else:
                   if verbose: print "NOT Muting bin %s. Total sig: %f, total bkg: %f"%(binname, signal.val, total_exp_bkg)
 
-        c.addUncertainty('Lumi', 'lnN')
         if year == 2016:
             lumiUncertainty = 1.025
         elif year == 2017:
@@ -495,7 +511,7 @@ def wrapper(s):
         elif year == 2018:
             lumiUncertainty = 1.025
         
-        c.specifyFlatUncertainty('Lumi', lumiUncertainty)
+        c.specifyFlatUncertainty(Lumi, lumiUncertainty)
         cardFileNameTxt     = c.writeToFile(cardFileName)
         cardFileNameShape   = c.writeToShapeFile(cardFileName.replace('.txt', '_shape.root'))
         cardFileName = cardFileNameTxt if args.useTxt else cardFileNameShape
@@ -616,13 +632,29 @@ def wrapper(s):
         MB_prefit_SR  = preFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_prefit_SR_err)
         MB_postfit_SR = postFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_postfit_SR_err)
 
-        other_prefit  = preFitResults['other']
-        other_postfit = postFitResults['other']
+        #other_prefit  = preFitResults['other']
+        #other_postfit = postFitResults['other']
+
+        #other_prefit_SR_err   = ROOT.Double()
+        #other_postfit_SR_err  = ROOT.Double()
+        #other_prefit_SR  = preFitShapes['other'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
+        #other_postfit_SR = postFitShapes['other'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
+
+        other_prefit  = preFitResults['TTXNoZ']
+        other_postfit = postFitResults['TTXNoZ']
 
         other_prefit_SR_err   = ROOT.Double()
         other_postfit_SR_err  = ROOT.Double()
-        other_prefit_SR  = preFitShapes['other'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
-        other_postfit_SR = postFitShapes['other'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
+        other_prefit_SR  = preFitShapes['TTXNoZ'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
+        other_postfit_SR = postFitShapes['TTXNoZ'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
+
+        #TZX_prefit  = preFitResults['TZX']
+        #TZX_postfit = postFitResults['TZX']
+
+        #TZX_prefit_SR_err   = ROOT.Double()
+        #TZX_postfit_SR_err  = ROOT.Double()
+        #TZX_prefit_SR  = preFitShapes['TZX'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
+        #TZX_postfit_SR = postFitShapes['TZX'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
 
         print
         print "## Scale Factors for backgrounds, integrated over ALL regions: ##"
@@ -631,6 +663,7 @@ def wrapper(s):
         print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit/DY_prefit).val,   '+/-',  DY_postfit.sigma/DY_postfit.val)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit/other_prefit).val, '+/-',  other_postfit.sigma/other_postfit.val)
+        #print "{:20}{:4.2f}{:3}{:4.2f}".format('TZX:',          (TZX_postfit/TZX_prefit).val, '+/-',  TZX_postfit.sigma/TZX_postfit.val)
 
         print
         print "## Scale Factors for backgrounds, integrated over dedicated control regions: ##" if not args.fitAll else "## Scale Factors for backgrounds, integrated over the signal regions: ##"
@@ -639,6 +672,7 @@ def wrapper(s):
         print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit_SR/DY_prefit_SR),   '+/-',  DY_postfit_SR_err/DY_postfit_SR)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit_SR/MB_prefit_SR),   '+/-',  MB_postfit_SR_err/MB_postfit_SR)
         print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit_SR/other_prefit_SR), '+/-',  other_postfit_SR_err/other_postfit_SR)
+        #print "{:20}{:4.2f}{:3}{:4.2f}".format('TZX:',          (TZX_postfit_SR/TZX_prefit_SR), '+/-',  TZX_postfit_SR_err/TZX_postfit_SR)
 
     #print xSecScale
 

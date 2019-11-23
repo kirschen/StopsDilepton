@@ -79,6 +79,7 @@ def get_parser():
     argParser.add_argument('--processingEra', action='store',       nargs='?',  type=str, default='postProcessed_80X_v22',              help="Name of the processing era" )
     argParser.add_argument('--writeToDPM', action='store_true',                                                                         help="Write output to DPM?")
     argParser.add_argument('--skim',        action='store',         nargs='?',  type=str, default='dilepTiny',                          help="Skim conditions to be applied for post-processing" )
+    argParser.add_argument('--massSkim',    action='store',         nargs='?',  type=str, default='',                                   help="Mass skim conditions to be applied for post-processing" )
     argParser.add_argument('--LHEHTCut',    action='store',         nargs='?',  type=int, default=-1,                                   help="LHE cut." )
     argParser.add_argument('--year',        action='store',                     type=int,                                               help="Which year?" )
     argParser.add_argument('--overwriteJEC',action='store',                               default=None,                                 help="Overwrite JEC?" )
@@ -160,6 +161,12 @@ if isInclusive:
     isDiLep     = True
     isTriLep    = True
 
+if options.massSkim:
+    stop, lsp = options.massSkim.split(',')
+    logger.info("Selecting mass point: %s, %s", stop, lsp)
+    skimConds.append( "Max$(GenPart_mass*(abs(GenPart_pdgId)==1000006))=="+stop+"&&Max$(GenPart_mass*(abs(GenPart_pdgId)==1000022))=="+lsp)
+
+print skimConds
 #Samples: Load samples
 maxN = 1 if options.small else None
 if options.small:
@@ -271,6 +278,8 @@ if options.reduceSizeBy > 1:
     sample.normalization = sample.getYieldFromDraw(weightString="genWeight")['val']
     logger.info("New normalization: %s", sample.normalization)
 
+if options.massSkim:
+    sample.name += "_%s_%s"%(stop,lsp)
 
 if isMC:
     from Analysis.Tools.puReweighting import getReweightingFunction
