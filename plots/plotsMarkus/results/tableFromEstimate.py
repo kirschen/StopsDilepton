@@ -357,6 +357,13 @@ for (i, r) in enumerate(allRegions):
         for estimate in mcEstimators:
             for syst in systematic_uncertainties_list:
                 unc_sum += (sys_cachedEstimate[estimate.name][channel][i][syst]*ref_cachedEstimate[estimate.name][channel][i][syst].val)**2
+            "TTJets","TTZ","DY", 'multiBoson', 'other'
+            if estimate.name == "TTJets":       unc_sum += (ref_cachedEstimate[estimate.name][channel][i][syst].val * 0.10)**2
+            elif estimate.name == "TTZ":        unc_sum += (ref_cachedEstimate[estimate.name][channel][i][syst].val * 0.20)**2
+            elif estimate.name == "DY":         unc_sum += (ref_cachedEstimate[estimate.name][channel][i][syst].val * 0.25)**2
+            elif estimate.name == "multiBoson": unc_sum += (ref_cachedEstimate[estimate.name][channel][i][syst].val * 0.25)**2
+            elif estimate.name == "other":      unc_sum += (ref_cachedEstimate[estimate.name][channel][i][syst].val * 0.25)**2
+
 
         print "Region", i, "|\t", channel, "\t{:3.1f}% ({:.1f})".format(100*sqrt(unc_sum)/yield_sum if yield_sum != 0 else 0., yield_sum)
 
