@@ -83,6 +83,11 @@ logger.info("Plotting from cardfile %s"%cardFile)
 # get the results
 postFitResults = getPrePostFitFromMLF(cardFile.replace('.txt','_FD.root'))
 if inSignalRegions: postFitResults2 = getPrePostFitFromMLF(cardFile2.replace('.txt','_FD.root'))
+
+covariance = getCovarianceFromMLF(cardFile.replace('.txt','_FD.root'), postFit=options.postFit)
+
+#raise NotImplementedError()
+
 preFitHist={}
 postFitHist={}
 bhistos=[]
@@ -174,6 +179,13 @@ else:
     hists['data'] = dataHist
     hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
     hists['data'].legendOption = 'p'
+
+    print postFitResults['hists']['shapes_prefit']['Bin0'].keys()
+    hists['signal1'] = postFitResults['hists']['shapes_prefit']['Bin0']['signal']
+    hists['signal1'].style = styles.lineStyle( ROOT.kBlack, width=2 )
+    if inSignalRegions:
+        hists['signal2'] = postFitResults2['hists']['shapes_prefit']['Bin0']['signal']
+
 #hists['BSM'].legendOption = 'l'
 
 boxes = []
@@ -181,9 +193,18 @@ ratio_boxes = []
 if options.combined:
     for ib in range(1, 1 + hists[2016]['total_background'].GetNbinsX() ):
         val = hists[2016]['total_background'].GetBinContent(ib) + hists[2017]['total_background'].GetBinContent(ib) + hists[2018]['total_background'].GetBinContent(ib)
+        print 'Bin %s expectation'%ib, val
         if val<0: continue
         #sys = hists[2016]['total_background'].GetBinError(ib) + hists[2017]['total_background'].GetBinError(ib) + hists[2018]['total_background'].GetBinError(ib)
         sys = math.sqrt((hists[2016]['total_background'].GetBinError(ib) * hists[2016]['total_background'].GetBinError(ib))+ (hists[2017]['total_background'].GetBinError(ib) * hists[2017]['total_background'].GetBinError(ib)) +( hists[2018]['total_background'].GetBinError(ib) * hists[2018]['total_background'].GetBinError(ib)))
+        print 'Bin %s uncertainty'%ib, sys
+        print hists[2016]['total_background'].GetBinError(ib), hists[2017]['total_background'].GetBinError(ib), hists[2018]['total_background'].GetBinError(ib)
+        variance = covariance['dc_2016_%s'%(ib-1)]['dc_2016_%s'%(ib-1)] + covariance['dc_2017_%s'%(ib-1)]['dc_2017_%s'%(ib-1)] + covariance['dc_2018_%s'%(ib-1)]['dc_2018_%s'%(ib-1)]
+        print math.sqrt(variance)
+        print math.sqrt(covariance['dc_2016_%s'%(ib-1)]['dc_2016_%s'%(ib-1)]), math.sqrt(covariance['dc_2017_%s'%(ib-1)]['dc_2017_%s'%(ib-1)]), math.sqrt(covariance['dc_2018_%s'%(ib-1)]['dc_2018_%s'%(ib-1)])
+        variance += covariance['dc_2016_%s'%(ib-1)]['dc_2017_%s'%(ib-1)] + covariance['dc_2016_%s'%(ib-1)]['dc_2018_%s'%(ib-1)] + covariance['dc_2017_%s'%(ib-1)]['dc_2018_%s'%(ib-1)]
+        print math.sqrt(variance)
+        sys = math.sqrt(variance)
         if val > 0:
             sys_rel = sys/val
         else:
@@ -299,7 +320,7 @@ if options.combined:
         
     plotName = "%s_COMBINED"%options.region
 else:
-    plots = [ bkgHists, [hists['data']]]
+    plots = [ bkgHists, [hists['data']], [hists['signal1']],[hists['signal2'] ]]
     plotName = "%s_%s"%(options.region, options.year)
 if options.postFit:
     plotName += '_postFit'

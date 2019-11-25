@@ -94,10 +94,13 @@ python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processin
 python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p13 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_350to400 #SPLIT45
 python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p13 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_400to1200 #SPLIT45
 
-python nanoPostProcessing.py  --forceProxy --skim inclusive  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_175_mLSP_1 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 175,1  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 #SPLIT35
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_50 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_75 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_100 #SPLIT5
-
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_650_mLSP_350 #SPLIT5
+#python nanoPostProcessing.py  --forceProxy --skim inclusive  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_175_mLSP_1 #SPLIT5
+#python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 175,1  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250
+python nanoPostProcessing.py  --forceProxy --skim inclusive  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_50 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 250,50  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250
+python nanoPostProcessing.py  --forceProxy --skim inclusive  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_75 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 250,75  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250
+python nanoPostProcessing.py  --forceProxy --skim inclusive  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_100 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 250,100  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250
+#
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2018 --processingEra stops_2018_nano_v0p19 --overwrite  --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_650_mLSP_350 #SPLIT5

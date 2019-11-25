@@ -427,7 +427,7 @@ class cardFileWriter:
         shutil.rmtree(uniqueDirname)
         return res
 
-    def calcNuisances(self, fname=None, options="",bonly=False):
+    def calcNuisances(self, fname=None, options="",bonly=False, numToysForShape=200):
         import uuid, os
         ustr          = str(uuid.uuid4())
         uniqueDirname = os.path.join(self.releaseLocation, ustr)
@@ -447,7 +447,7 @@ class cardFileWriter:
 
         assert os.path.exists(filename), "File not found: %s"%filename
 
-        combineCommand  = "cd "+uniqueDirname+";combine --forceRecreateNLL -M FitDiagnostics --saveShapes --saveNormalizations --saveOverall --saveWithUncertainties "+filename
+        combineCommand  = "cd "+uniqueDirname+";combine --forceRecreateNLL -M FitDiagnostics --saveShapes --saveNormalizations --numToysForShape %s --saveOverall --saveWithUncertainties "%numToysForShape + filename
         combineCommand +=";python diffNuisances.py  fitDiagnostics.root &> nuisances.txt"
         combineCommand +=";python diffNuisances.py -a fitDiagnostics.root &> nuisances_full.txt"
         if bonly:

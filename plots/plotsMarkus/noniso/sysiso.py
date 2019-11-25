@@ -40,7 +40,7 @@ argParser.add_argument('--selection',         action='store',      default='lepS
 argParser.add_argument('--variation',         action='store',      default=None, help="Which systematic variation to run. Don't specify for producing plots.")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
 argParser.add_argument('--normalize',         action='store_true')
-argParser.add_argument('--appendCmds',        action='store_true')
+argParser.add_argument('--add',               action='store_true')
 argParser.add_argument('--dpm',               action='store_true',     help='Use dpm?', )
 argParser.add_argument('--noDYHT',            action='store_true',     help='run without HT-binned DY')
 argParser.add_argument('--scaling',           action='store',      default=None, choices = [None, 'mc', 'top'],     help='Scale top to data in mt2ll<100?')
@@ -156,6 +156,10 @@ variations = {
     'BTag_SF_b_Up'      : {'replaceWeight':('reweightBTag_SF','reweightBTag_SF_b_Up'),           'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightBTag_SF_b_Up'] ]},
     'BTag_SF_l_Down'    : {'replaceWeight':('reweightBTag_SF','reweightBTag_SF_l_Down'),         'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightBTag_SF_l_Down']]},
     'BTag_SF_l_Up'      : {'replaceWeight':('reweightBTag_SF','reweightBTag_SF_l_Up'),           'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightBTag_SF_l_Up'] ]},
+    'LeptonHit0SFDown'  : {'replaceWeight':('reweightLeptonHit0SF','reweightLeptonHit0SFDown'),  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonHit0SFDown']]},
+    'LeptonHit0SFUp'    : {'replaceWeight':('reweightLeptonHit0SF','reweightLeptonHit0SFUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonHit0SFUp']]},
+    'LeptonSip3dSFDown' : {'replaceWeight':('reweightLeptonSip3dSF','reweightLeptonSip3dSFDown'),'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSip3dSFDown']]},
+    'LeptonSip3dSFUp'   : {'replaceWeight':('reweightLeptonSip3dSF','reweightLeptonSip3dSFUp'),  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSip3dSFUp']]},
 #    'DilepTriggerDown'  : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerDown'),  'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerDown']]},
 #    'DilepTriggerUp'    : {'replaceWeight':('reweightDilepTrigger','reweightDilepTriggerUp'),    'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightDilepTriggerUp']]},
     'LeptonSFDown'      : {'replaceWeight':('reweightLeptonSF','reweightLeptonSFDown'),          'read_variables' : [ '%s/F'%v for v in nominalMCWeights + ['reweightLeptonSFDown']]},
@@ -192,30 +196,18 @@ if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
-    if args.noDYHT:
-        mc          = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_LO_16]
-        #print "~~~~> using normal DY sample instead of HT binned one"
-    else:
-        mc          = [ Top_pow_16, Top_pow_1l_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
+    mc          = [ Top_pow_16, Top_pow_1l_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
 elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17
-    if args.noDYHT:
-        mc          = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-        #print "~~~~> using normal DY sample instead of HT binned one"
-    else:
-        mc          = [ Top_pow_17, Top_pow_1l_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17
+    mc          = [ Top_pow_17, Top_pow_1l_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
 
 elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
-    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18
-    if args.noDYHT:
-        mc          = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_LO_18]
-        #print "~~~~> using normal DY sample instead of HT binned one"
-    else:
-        mc          = [ Top_pow_18, Top_pow_1l_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18
+    mc          = [ Top_pow_18, Top_pow_1l_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
 
 # postions of MC components in list
 position = {s.name:i_s for i_s,s in enumerate(mc)}
@@ -685,6 +677,8 @@ systematics = [\
     {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
 #    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
     {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
+    {'name':'leptonHit0SF', 'pair':('LeptonHit0SFDown', 'LeptonHit0SFUp')},
+    {'name':'leptonSip3dSF','pair':('LeptonSip3dSFDown', 'LeptonSip3dSFUp')},
     #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
     {'name': 'JER',        'pair':('jerUp', 'jerDown')},
     {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
@@ -731,7 +725,7 @@ for mode in modes:
 
 # write missing cmds
 filename = 'missing.sh'
-if os.path.exists(filename) and args.appendCmds:
+if os.path.exists(filename) and args.add:
     append_write = 'a' # append if already exists
 else:
     append_write = 'w' # make a new file if not
