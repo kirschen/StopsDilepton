@@ -500,9 +500,9 @@ if options.year == 2017:
     ]
 
 #branches to be kept for MC samples only
-branchKeepStrings_MC = [\
-    "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_pt","GenMET_phi", "nISR", "LHEScaleWeight",
-]
+branchKeepStrings_MC = [ "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_pt","GenMET_phi", "nISR"]
+if not options.fastsim:
+    branchKeepStrings_MC.append("LHEScaleWeight")
 #branches to be kept for data only
 branchKeepStrings_DATA = [ ]
 
