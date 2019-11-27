@@ -251,18 +251,34 @@ def drawObjects( isData=False, lumi=36. ):
     tex.SetTextSize(0.05)
     tex.SetTextAlign(11) # align right
     lines = [
-      (0.15, 0.945, 'CMS Simulation') if not isData else ( (0.15, 0.945, 'CMS') if not options.preliminary else (0.15, 0.945, 'CMS #bf{#it{Preliminary}}')),
-      (0.70, 0.945, '#bf{%s fb^{-1} (13 TeV)}'%lumi )
+      (0.08, 0.945, 'CMS Simulation') if not isData else ( (0.08, 0.945, 'CMS') if not options.preliminary else (0.08, 0.945, 'CMS #bf{#it{Preliminary}}')),
+      (0.80, 0.945, '#bf{%s fb^{-1} (13 TeV)}'%lumi )
     ]
     return [tex.DrawLatex(*l) for l in lines]
 
+binLabels = [
+    'TT CR SF',
+    'TT CR OF',
+    'TTZ 2j2b',
+    'TTZ 3j1b',
+    'TTZ 3j2b',
+    'TTZ 4j1b',
+    'TTZ 4j2b',]
+
+binLabels += [ 'CR%s'%i for i in range(13) ]
+for i in range(13):
+    binLabels.append('SR%s SF'%i)
+    binLabels.append('SR%s OF'%i)
+#binLables += [ 'SR%s SF'%i for i in range(13) ]
+
 def setBinLabels( hist ):
     for i in range(1, hist.GetNbinsX()+1):
-        hist.GetXaxis().SetBinLabel(i, "   %s"%((i+1)/2 if i%2==1 else ''))
+        hist.GetXaxis().SetBinLabel(i, binLabels[i-1])
+#        hist.GetXaxis().SetBinLabel(i, "   %s"%((i+1)/2 if i%2==1 else ''))
 
 def drawDivisions(regions):
     #print len(regions)
-    min = 0.15
+    min = 0.08
     max = 0.95
     diff = (max-min) / len(regions)
     lines = []
@@ -271,38 +287,45 @@ def drawDivisions(regions):
 #   line.SetLineColor(38)
     line.SetLineWidth(1)
     line.SetLineStyle(2)
-    lines = [ (min+4*i*diff,  0.015, min+4*i*diff, 0.85) if min+4*i*diff<0.74 else (min+4*i*diff,  0.013, min+4*i*diff, 0.54) for i in range(1,len(regions)/4 + 1) ]
-    lines += [ (min+4*3*diff, 0.85, min+4*3*diff, 0.93 ), (min+4*6*diff, 0.85, min+4*6*diff, 0.93 )]
+    lines  = [ (min+2*diff,  0.015, min+2*diff, 0.90) ]
+    lines += [ (min+7*diff,  0.015, min+7*diff, 0.90) ]
+    lines += [ (min+20*diff,  0.015, min+20*diff, 0.90) ]
+    lines += [ (min+32*diff,  0.015, min+32*diff, 0.90) ]
+    lines += [ (min+44*diff,  0.015, min+44*diff, 0.90) ]
+    #lines = [ (min+4*i*diff,  0.015, min+4*i*diff, 0.85) if min+4*i*diff<0.74 else (min+4*i*diff,  0.013, min+4*i*diff, 0.54) for i in range(1,len(regions)/4 + 1) ]
+    #lines += [ (min+4*3*diff, 0.85, min+4*3*diff, 0.93 ), (min+4*6*diff, 0.85, min+4*6*diff, 0.93 )]
     return [line.DrawLineNDC(*l) for l in lines] + [tex.DrawLatex(*l) for l in []] + [tex2.DrawLatex(*l) for l in lines2]
 
 def drawLabels( regions ):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.028)
+    tex.SetTextSize(0.032)
     tex.SetTextAngle(0)
     tex.SetTextAlign(12) # align right
-    min = 0.15
+    min = 0.08
     max = 0.95
     diff = (max-min) / len(regions)
-    lines = [ (0.15 + 0.10, 0.88, "100 < M_{T2}(ll) < 140 GeV"), (0.15 + 0.45, 0.88, "140 < M_{T2}(ll) < 240 GeV") ] 
+    lines  = [ (min + 0.41, 0.83, "100 < M_{T2}(ll) < 140 GeV"), (min + 0.65, 0.83, "140 < M_{T2}(ll) < 240 GeV") ] 
+    lines += [ (min + 0.05, 0.83, "N_{l}=3, on-Z"), (min + 0.20, 0.83, "N_{l}=2, N_{b}=0, on-Z") ] 
     #lines =  [(min+(8*i+0.90)*diff, 0.850,  "M_{T2}(ll)=3")   for i, r in enumerate(regions[:-4][::4])]
     return [tex.DrawLatex(*l) for l in lines] if len(regions)>12 else []
 
 def drawLabelsRot( regions ):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.028)
+    tex.SetTextSize(0.032)
     tex.SetTextAngle(90)
     tex.SetTextAlign(12) # align right
-    min = 0.15
+    min = 0.08
     max = 0.95
     diff = (max-min) / len(regions)
-    lines = [(min+(i*4+2.7)*diff, 0.545 if i<3 else 0.285,  r.texStringForVar('dl_mt2blbl')) for i, r in enumerate(regions[::2]) if i < 6]
-    lines += [(min+(24.8)*diff, 0.7, "M_{T2}(ll) > 240 GeV")]
+    #lines = [(min+(i*4+2.7)*diff, 0.545 if i<3 else 0.285,  r.texStringForVar('dl_mt2blbl')) for i, r in enumerate(regions[::2]) if i < 6]
+    lines  = [(min+(44.8)*diff, 0.57, "M_{T2}(ll) > 240 GeV")]
+    lines += [(min+(1.5)*diff, 0.57, "M_{T2}(ll) < 100 GeV")]
     return [tex.DrawLatex(*l) for l in lines] 
 
 
-drawObjects = drawObjects( isData=isData, lumi=round(lumiStr,1)) + boxes
+drawObjects = drawObjects( isData=isData, lumi=round(lumiStr,1)) + boxes + drawDivisions( regions ) + drawLabelsRot( regions ) + drawLabels( regions )
 if options.region == 'signalOnly':
     drawObjects += drawDivisions( regions ) + drawLabels( regions ) + drawLabelsRot( regions )
 if options.combined:
@@ -330,15 +353,15 @@ plotting.draw(
     plot_directory = os.path.join(plot_directory, "controlRegions", 'v6'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
-    legend = (0.70,0.55, 0.95, 0.85),
-    widths = {'x_width':900, 'y_width':600, 'y_ratio_width':250},
+    legend = (0.73,0.35, 0.90, 0.75),
+    widths = {'x_width':1300, 'y_width':600, 'y_ratio_width':250},
     yRange = (0.2,yMax),
     #yRange = (0.03, [0.001,0.5]),
-    ratio = {'yRange': (0.11, 1.89), 'texY':'Data/pred', 'histos':[(1,0)], 'drawObjects':ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
-            'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035)]} ,
+    ratio = {'yRange': (0.11, 1.89), 'texY':'Data/Pred.', 'histos':[(1,0)], 'drawObjects':ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
+            'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035), lambda h: h.LabelsOption('v'), lambda h: h.GetYaxis().SetTickLength(0.035), lambda h: h.GetXaxis().SetTickLength(0.02)]} ,
     drawObjects = drawObjects,
-    histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.2)],
-    #canvasModifications = [ lambda c : c.SetLeftMargin(0.08), lambda c : c.GetPad(2).SetLeftMargin(0.08), lambda c : c.GetPad(1).SetLeftMargin(0.08), lambda c: c.GetPad(2).SetBottomMargin(0.60), lambda c : c.GetPad(1).SetRightMargin(0.03), lambda c: c.GetPad(2).SetRightMargin(0.03) ],
+    histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetYaxis().SetTickLength(0.015)],
+    canvasModifications = [ lambda c : c.SetLeftMargin(0.08), lambda c : c.GetPad(2).SetLeftMargin(0.08), lambda c : c.GetPad(1).SetLeftMargin(0.08), lambda c: c.GetPad(2).SetBottomMargin(0.60), lambda c : c.GetPad(1).SetRightMargin(0.03), lambda c: c.GetPad(2).SetRightMargin(0.03) ],
     copyIndexPHP = True,
 )
 

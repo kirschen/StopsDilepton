@@ -56,7 +56,7 @@ if os.environ['USER'] in ['phussain']:
 
 if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     # Where postprocessed data goes 
-    data_output_directory      = "/afs/hephy.at/data/cms01/nanoTuples/"
+    data_output_directory      = "/afs/hephy.at/data/cms02/nanoTuples/"
     # Where you store the data
     data_directory      = "/afs/hephy.at/data/cms01/nanoTuples/"
     # Where the plots go
