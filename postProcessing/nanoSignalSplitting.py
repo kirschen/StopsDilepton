@@ -109,6 +109,15 @@ def get_parser():
         help="Name of the directory the post-processed files will be saved"
         )
 
+    argParser.add_argument('--inputDir',
+        action='store',
+        nargs='?',
+        type=str,
+        default=user.data_output_directory,
+        help="Name of the directory the post-processed files are read"
+        )
+
+
     argParser.add_argument('--processingEra',
         action='store',
         nargs='?',
@@ -296,9 +305,8 @@ isMC   =  True not in [s.isData for s in samples]
 
 sample_name_postFix = ""
 
+inDir = os.path.join(options.inputDir, options.processingEra, options.skim, samples[0].name)
 outDir = os.path.join(options.targetDir, options.processingEra, options.skim, samples[0].name)
-
-print outDir
 
 if options.T2tt or options.T8bbllnunu or options.T2bW or options.T2bt or options.T8bbstausnu:
     xSection = None
@@ -381,11 +389,11 @@ print masspoints[job]
 
 # Write one file per mass point for T2tt
 if options.T2tt or options.T8bbllnunu  or options.T2bW or options.T2bt or options.T8bbstausnu :
-    if options.T2tt: output = Sample.fromDirectory("T2tt_output", outDir)
-    elif options.T2bW: output = Sample.fromDirectory("T2bW_output", outDir)
-    elif options.T2bt: output = Sample.fromDirectory("T2bt_output", outDir)
-    elif options.T8bbstausnu:output = Sample.fromDirectory("T8bbstausnu_output", outDir) 
-    else: output = Sample.fromDirectory("T8bbllnunu_output", outDir) #FIXME
+    if options.T2tt: output = Sample.fromDirectory("T2tt_output", inDir)
+    elif options.T2bW: output = Sample.fromDirectory("T2bW_output", inDir)
+    elif options.T2bt: output = Sample.fromDirectory("T2bt_output", inDir)
+    elif options.T8bbstausnu:output = Sample.fromDirectory("T8bbstausnu_output", inDir) 
+    else: output = Sample.fromDirectory("T8bbllnunu_output", inDir) #FIXME
 
     print "Initialising chain, otherwise first mass point is empty"
     print output.chain
