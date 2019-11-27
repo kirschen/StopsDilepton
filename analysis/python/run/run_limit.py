@@ -231,6 +231,8 @@ def wrapper(s):
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = os.path.abspath('.') # now run directly in the run directory
 
+    logger.info("Running over signal: %s", s.name)
+
     cardFileName = os.path.join(limitDir, s.name+'.txt')
     if not os.path.exists(cardFileName) or overWrite:
         counter=0
@@ -384,7 +386,7 @@ def wrapper(s):
                         c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale ) 
-                        #c.specifyUncertainty('L1prefire', binname, name, 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale ) 
+                        c.specifyUncertainty('L1prefire', binname, name, 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale ) 
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
                             c.specifyUncertainty(trigger,    binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
 
@@ -449,12 +451,12 @@ def wrapper(s):
 
                 if signal.val>0 or True:
                   if not fastSim:
-                    c.specifyUncertainty(PU,       binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
                     c.specifyUncertainty('PDF',      binname, 'signal', 1 + getPDFUncSignal(s.name, r, channel))
                     if args.signal == "ttHinv":
                         # x-sec uncertainties for ttH: https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBSMAt13TeV#ttH_Process
                         c.specifyUncertainty('xsec_QCD',      binname, 'signal', 1.092)
                         c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
+                  c.specifyUncertainty(PU,         binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
                   c.specifyUncertainty(JEC,        binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
                   c.specifyUncertainty(unclEn,     binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty(JER,        binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val ) #0.02 )
@@ -463,15 +465,14 @@ def wrapper(s):
                   c.specifyUncertainty(trigger,    binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('scale',    binname, 'signal', 1 + 0.02 )#getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
-                  #c.specifyUncertainty('L1prefire', binname, name, 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale )
+                  c.specifyUncertainty('L1prefire', binname, 'signal', 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale )
 
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
                     c.specifyUncertainty('FSmet',    binname, 'signal', 1 + 0.02 )#e.fastSimMETSystematic(  r, channel, signalSetup).val )
-                    ##c.specifyUncertainty('PUFS',     binname, 'signal', 1 + 0.02 )#e.fastSimPUSystematic(   r, channel, signalSetup).val )
-                    #if args.signal == 'T2tt':
-                    #    c.specifyUncertainty('isr',      binname, 'signal', 1 + e.nISRSystematic( r, channel, signalSetup).val)
+                    if args.signal == 'T2tt':
+                        c.specifyUncertainty('isr',      binname, 'signal', 1 + e.nISRSystematic( r, channel, signalSetup).val)
 
                   uname = 'Stat_'+binname+'_signal'
                   c.addUncertainty(uname, 'lnN')
@@ -722,15 +723,15 @@ if args.signal == "T2tt":
         if args.fullSim:
              from StopsDilepton.samples.nanoTuples_Fall17_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+            data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
+            postProcessing_directory    = 'stops_2017_nano_v0p19/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
     elif year == 2018:
         if args.fullSim:
              from StopsDilepton.samples.nanoTuples_Autumn18_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
-            data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-            postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
+            data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
+            postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
 
 if args.signal == "T2bW":
