@@ -34,8 +34,8 @@ signalEstimators = [s.name for s in signals_T2tt]
 
 import time
 
-#cmd = "submitBatch.py --title='limit17'"
-cmd = "echo"
+cmd = "submitBatch.py --title='limit17'"
+#cmd = "echo"
 
 print len(signalEstimators)
 for i, estimator in enumerate(signalEstimators):

@@ -483,6 +483,7 @@ def wrapper(s):
                   c.addUncertainty(uname, 'lnN')
                   c.specifyUncertainty(uname, binname, 'signal', 1 )
                 
+                logger.info("Done with MC. Now working on observation.")
                 ## Observation ##
                 # expected
                 if (args.expected or (not args.unblind and not niceName.count('control'))) and not args.signalInjection:

@@ -41,24 +41,22 @@ ROOT.gROOT.SetBatch(True)
 #year = 2017
 #signalString = "T2bW"
 
-analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v4/'
+analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v6/'
 
 from optparse import OptionParser
 parser = OptionParser()
 #parser.add_option("--file",             dest="filename",    default=None,   type="string", action="store",  help="Which file?")
 parser.add_option("--signal",           action='store',     default='T2tt',  choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW", "T8bbllnunu_XCha0p5_XSlep0p09", "ttHinv"], help="which signal?")
 parser.add_option("--year",             dest="year",   type="int",    action="store",  help="Which year?")
+parser.add_option("--combined",         action="store_true",  help="Combine the years?")
+parser.add_option("--unblind",          action="store_true",  help="Use real data?")
 (options, args) = parser.parse_args()
-#year = int(options.year)
+
+yearString = options.year if not options.combined else 'comb'
 signalString = options.signal
+
 # combined
-#defFile = os.path.join(analysis_results, "comb/signalOnly/limits/%s/%s/limitResults.root"%(signalString,signalString))
-#defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
-#defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
-#defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
-defFile = os.path.join(analysis_results, "comb/fitAll/limits/%s/%s/limitResults.root"%(signalString,signalString))
-# per year
-#defFile = os.path.join(analysis_results, "%s/signalOnly/limits/%s/%s/limitResults.root"%(options.year,signalString,signalString))
+defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(yearString,signalString,signalString))
 
 print defFile
 if options.year == 2016:
@@ -68,10 +66,10 @@ elif options.year == 2017:
     lumi    = 41.5
     #eraText =  "(2017)"
 elif options.year == 2018:
-    lumi    = 60 
+    lumi    = 59.7 
     #eraText =  "(2018)"
 else:
-     lumi = 138.4
+     lumi = 35.9+41.5+59.7
 def toGraph2D(name,title,length,x,y,z):
     result = ROOT.TGraph2D(length)
     result.SetName(name)
@@ -92,7 +90,7 @@ ifs = defFile.split('/')
 
 # Combined
 #plotDir = os.path.join(plot_directory,ifs[-3],'v4', ifs[-2]+'FR_signalOnly_combined')
-plotDir = os.path.join(plot_directory,ifs[-3],'v5', ifs[-2]+'FR_limitAll_combined')
+plotDir = os.path.join(plot_directory,ifs[-3],'v5', ifs[-2]+'fitAll')
 
 # Per Year
 #plotDir = os.path.join(plot_directory, ifs[-3], 'v4', ifs[-2]+'FR_%i'%options.year)
@@ -171,26 +169,25 @@ xSecKey = "obs" # exp or obs
 for ix in range(hists[xSecKey].GetNbinsX()):
     for iy in range(hists[xSecKey].GetNbinsY()):
         #mStop = 200
-        mStop = hists[xSecKey].GetXaxis().GetBinLowEdge(ix)
-        mNeu  = hists[xSecKey].GetYaxis().GetBinLowEdge(iy)
-        v = hists[xSecKey].GetBinContent(hists[xSecKey].FindBin(mStop, mNeu))
-        v2 = histsCol[xSecKey].GetBinContent(histsCol[xSecKey].FindBin(mStop, mNeu))
+        mStop   = hists[xSecKey].GetXaxis().GetBinUpEdge(ix)
+        mNeu    = hists[xSecKey].GetYaxis().GetBinUpEdge(iy)
+        v       = hists[xSecKey].GetBinContent(hists[xSecKey].FindBin(mStop, mNeu))
+        v2      = histsCol[xSecKey].GetBinContent(histsCol[xSecKey].FindBin(mStop, mNeu))
         if mStop>99 and v>0:
-            #print mStop
             scaleup   = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=1) /xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)
             scaledown = xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=-1)/xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0)
             histsCol["obs_UL"].SetBinContent(histsCol[xSecKey].FindBin(mStop, mNeu), v2*xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0))
             hists["obs_UL"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), v*xSecSusy_.getXSec(channel='stop13TeV',mass=mStop,sigma=0))
             hists["obs_up"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), v*scaleup)
             hists["obs_down"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), v*scaledown)
-            if signalString == 'T8bbllnunu_XCha0p5_XSlep0p05':#0.5, 160
-                if mNeu > (0.5*mStop-100):
-                    histsCol["obs_UL"].SetBinContent(histsCol[xSecKey].FindBin(mStop, mNeu), 0)
-                    hists["obs_UL"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), 0)
-            if signalString == 'T8bbllnunu_XCha0p5_XSlep0p5':    
-                if mNeu > (mStop-150):
-                    histsCol["obs_UL"].SetBinContent(histsCol[xSecKey].FindBin(mStop, mNeu), 0)
-                    hists["obs_UL"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), 0)
+            #if signalString == 'T8bbllnunu_XCha0p5_XSlep0p05':#0.5, 160
+            #    if mNeu > (0.5*mStop-100):
+            #        histsCol["obs_UL"].SetBinContent(histsCol[xSecKey].FindBin(mStop, mNeu), 0)
+            #        hists["obs_UL"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), 0)
+            #if signalString == 'T8bbllnunu_XCha0p5_XSlep0p5':    
+            #    if mNeu > (mStop-150):
+            #        histsCol["obs_UL"].SetBinContent(histsCol[xSecKey].FindBin(mStop, mNeu), 0)
+            #        hists["obs_UL"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), 0)
 
 for bl in blanklist:
     hists["obs_UL"].SetBinContent(hists[xSecKey].FindBin(bl[0],bl[1]), 0)
@@ -269,7 +266,7 @@ fileIN = inputFile('SMS_limit.cfg')
 
 # classic temperature histogra
 xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "asdf")
-xsecPlot.Draw( lumi = lumi, zAxis_range = (5*10**-4,10) )
+xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-3,10**2) )
 xsecPlot.Save("%sXSEC" %outputname)
 
 temp = ROOT.TFile("tmp.root","update")
