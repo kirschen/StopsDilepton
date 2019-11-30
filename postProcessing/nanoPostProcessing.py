@@ -121,9 +121,9 @@ logger  = _logger.get_logger(options.logLevel, logFile = logFile)
 import RootTools.core.logger as _logger_rt
 logger_rt = _logger_rt.get_logger(options.logLevel, logFile = logFile )
 
-def fill_vector_collection( event, collection_name, collection_varnames, objects):
+def fill_vector_collection( event, collection_name, collection_varnames, objects, maxN = 100):
     setattr( event, "n"+collection_name, len(objects) )
-    for i_obj, obj in enumerate(objects):
+    for i_obj, obj in enumerate(objects[:maxN]):
         for var in collection_varnames:
             if var in obj.keys():
                 if type(obj[var]) == type("string"):
@@ -1245,6 +1245,7 @@ def filler( event ):
             else:
                 l["lepGoodMatchIndex"] = -1
                 l["matchesPromptGoodLepton"] = 0
+        gLep = gLep[:100]
         event.nGenLep   = len(gLep)
         for iLep, lep in enumerate(gLep):
             for b in genLepVarNames:

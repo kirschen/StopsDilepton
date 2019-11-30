@@ -59,9 +59,18 @@ def getDataDictList( filepath ):
         dir     = filterEmpty( line.split("--processingEra ")[1].split(" ") )[0]
         sample  = filterEmpty( line.split("--sample ")[1].split(" ") )[0]
         command = line
-        if not filterEmpty( line.split("--sample ")[1].split(" ") )[1].startswith("--") and not filterEmpty( line.split("--sample ")[1].split(" ") )[1].startswith("#SPLIT"):
+        # find sample arguments
+        try:
+            sample_args = line.split("--sample")[1].split('--')[0].split('#')[0].rstrip().lstrip().split()
+        except IndexError as e:
+            logger.error("No sample argument in line? Reading: %s" % line)
+            raise e
+        if len(sample_args)>1:
             sample += "_comb"
-        nFiles = filterEmpty( line.split("#SPLIT")[1].split(" ") )[0].split("\n")[0]
+        if "#SPLIT" not in line: 
+            nFiles=1
+        else:
+            nFiles = filterEmpty( line.split("#SPLIT")[1].split(" ") )[0].split("\n")[0]
         dictList.append( { "skim":skim, "year":int(year), "dir":dir, "sample":sample, "nFiles":int(nFiles), "command":command} )
 
     return dictList
