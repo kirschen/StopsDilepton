@@ -105,13 +105,19 @@ elif args.year == 2018:
 data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
 if args.signal == "T2tt":
     if args.year == 2016:
-        postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
+        data_directory = "/afs/hephy.at/data/cms02/nanoTuples/"
+        postProcessing_directory = "stops_2016_nano_v0p19/dilep/"
         from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *
-    else:
-        postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
+    elif args.year == 2017:
+        data_directory = "/afs/hephy.at/data/cms01/nanoTuples/"
+        postProcessing_directory = "stops_2017_nano_v0p19/dilep/"
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import *
-    T2tt                    = T2tt_650_0
-    T2tt2                   = T2tt_500_250
+    elif args.year == 2018:
+        data_directory = "/afs/hephy.at/data/cms02/nanoTuples/"
+        postProcessing_directory = "stops_2018_nano_v0p19/dilep/"
+        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import *
+    T2tt                    = T2tt_800_100
+    T2tt2                   = T2tt_350_150
     T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T2tt, T2tt2]
@@ -404,6 +410,13 @@ for index, mode in enumerate(allModes):
   ))
 
   plots.append(Plot(
+      name = "MET_significance_high",
+      texX = 'E_{T}^{miss} significance', texY = 'Number of Events',
+      attribute = TreeVariable.fromString( "MET_significance/F" ),
+      binning=[17,12,70],
+  ))
+
+  plots.append(Plot(
       texX = '#phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
       attribute = TreeVariable.fromString( "met_phi/F" ),
       binning=[10,-pi,pi],
@@ -679,9 +692,9 @@ for index, mode in enumerate(allModes):
         ))
 
         plots.append(Plot( name = "dl_mt2blbl_coarse",       # SR binning of MT2ll
-          texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 30 GeV',
+          texX = 'M_{T2}(blbl) (GeV)', texY = 'Number of Events / 50 GeV',
           attribute = TreeVariable.fromString( "dl_mt2blbl/F" ),
-          binning=[400/100, 0, 400],
+          binning=[400/50, 0, 400],
         ))
    
 

@@ -41,21 +41,24 @@ ROOT.gROOT.SetBatch(True)
 #year = 2017
 #signalString = "T2bW"
 
-analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v6/'
 
 from optparse import OptionParser
 parser = OptionParser()
 #parser.add_option("--file",             dest="filename",    default=None,   type="string", action="store",  help="Which file?")
 parser.add_option("--signal",           action='store',     default='T2tt',  choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW", "T8bbllnunu_XCha0p5_XSlep0p09", "ttHinv"], help="which signal?")
 parser.add_option("--year",             dest="year",   type="int",    action="store",  help="Which year?")
+parser.add_option("--version",          dest="version",  default='v6',  action="store",  help="Which version?")
+parser.add_option("--subDir",           dest="subDir",  default='unblindV1',  action="store",  help="Give some extra name")
 parser.add_option("--combined",         action="store_true",  help="Combine the years?")
 parser.add_option("--unblind",          action="store_true",  help="Use real data?")
 (options, args) = parser.parse_args()
 
-yearString = options.year if not options.combined else 'comb'
+yearString = str(options.year) if not options.combined else 'comb'
 signalString = options.signal
 
-# combined
+# input
+analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/'+options.version
+
 defFile = os.path.join(analysis_results, "%s/fitAll/limits/%s/%s/limitResults.root"%(yearString,signalString,signalString))
 
 print defFile
@@ -85,16 +88,10 @@ def toGraph2D(name,title,length,x,y,z):
     #res = ROOT.TGraphDelaunay(result)
     return result
 
+plotDir = os.path.join(plot_directory,'limits', signalString, options.version, yearString, options.subDir)
 
-ifs = defFile.split('/')
-
-# Combined
-#plotDir = os.path.join(plot_directory,ifs[-3],'v4', ifs[-2]+'FR_signalOnly_combined')
-plotDir = os.path.join(plot_directory,ifs[-3],'v5', ifs[-2]+'fitAll')
-
-# Per Year
-#plotDir = os.path.join(plot_directory, ifs[-3], 'v4', ifs[-2]+'FR_%i'%options.year)
-#plotDir = os.path.join(plot_directory, ifs[-3],'v5', ifs[-2]+'limitAll_FR_%i'%options.year)
+import RootTools.plot.helpers as plot_helpers
+plot_helpers.copyIndexPHP( plotDir )
 
 if not os.path.exists(plotDir):
     os.makedirs(plotDir)
@@ -147,7 +144,6 @@ for i in ["exp","exp_up","exp_down","obs"]:
     nybins = max(1, min(500, int((ymax-ymin+bin_size/100.)/bin_size)))
     a.SetNpx(nxbins)
     a.SetNpy(nybins)
-    print nxbins , nybins
     hists[i] = a.GetHistogram().Clone()
     hists[i].Draw()
 
@@ -229,7 +225,6 @@ hists["obs_UL_int"].Clone("temperature").Write()
 
 for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
   contours = getContours(hists[i + "_smooth"], plotDir)
-  print contours
   for g in contours: cleanContour(g, model=modelname)
   contours = max(contours , key=lambda x:x.GetN()).Clone("contour_" + i)
   if False and signalString == 'T8bbllnunu_XCha0p5_XSlep0p05':
@@ -238,7 +233,6 @@ for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
             x = ROOT.Double()
             y = ROOT.Double()
             contours.GetPoint(j,x,y)
-            print x ,y
         contours.RemovePoint(j)
         contours.SetPoint(j,500,15)
   #for cont in contours:

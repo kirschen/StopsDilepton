@@ -14,8 +14,9 @@ parser.add_option('--logLevel',             dest="logLevel",              defaul
 parser.add_option('--blinded',              action="store_true")
 parser.add_option('--overwrite',            dest="overwrite", default = False, action = "store_true", help="Overwrite existing output files, bool flag set to True  if used")
 parser.add_option('--postFit',              dest="postFit", default = False, action = "store_true", help="Apply pulls?")
+parser.add_option('--signalPostFit',        dest="signalPostFit", default = False, action = "store_true", help="Apply pulls to signal too?")
 parser.add_option('--expected',             action = "store_true", help="Run expected?")
-parser.add_option('--preliminary',             action = "store_true", help="Run expected?")
+parser.add_option('--preliminary',          action = "store_true", help="Run expected?")
 parser.add_option('--combined',             action = "store_true", help="combined fit for all years?")
 parser.add_option("--year",                 action='store',      default=2017, type="int", help='Which year?')
 parser.add_option("--region",               action='store',      default="controlAll", choices=['fitAll', 'controlAll', 'signalOnly', 'controlDYVV'], help='Which year?')
@@ -69,7 +70,7 @@ inSignalRegions = not options.region.count('control')>0
 if inSignalRegions:
     cardName2 = "T2tt_%s_shapeCard"%massPoints[1]
 if options.combined:
-    cardDir = analysis_results.replace('v6','v5')+"/COMBINED/%s/cardFiles/%s/%s/"%(controlRegions,options.signal,'expected' if options.expected else 'observed')
+    cardDir = analysis_results+"/COMBINED/%s/cardFiles/%s/%s/"%(controlRegions,options.signal,'expected' if options.expected else 'observed')
 else:
     cardDir = analysis_results+"/%s/%s/cardFiles/%s/%s/"%(options.year,controlRegions,options.signal,'expected' if options.expected else 'observed')
 
@@ -107,8 +108,12 @@ if options.combined:
         hists[year] = preFitHist[year] if not options.postFit else postFitHist[year]
 
         # signal is always prefit for the plots
-        hists[year]['signal1'] = postFitResults['hists']['shapes_prefit']['dc_%s'%year]['signal']
-        if inSignalRegions: hists[year]['signal2'] = postFitResults2['hists']['shapes_prefit']['dc_%s'%year]['signal']
+        if options.postFit and options.signalPostFit:
+            hists[year]['signal1'] = postFitResults['hists']['shapes_fit_s']['dc_%s'%year]['signal']
+            if inSignalRegions: hists[year]['signal2'] = postFitResults2['hists']['shapes_fit_s']['dc_%s'%year]['signal']
+        else:
+            hists[year]['signal1'] = postFitResults['hists']['shapes_prefit']['dc_%s'%year]['signal']
+            if inSignalRegions: hists[year]['signal2'] = postFitResults2['hists']['shapes_prefit']['dc_%s'%year]['signal']
 
     for i,(p,tex) in enumerate(processes):
         bhistos.append( hists[2016][p])
@@ -138,7 +143,7 @@ if options.combined:
     signalHist = hists[2016]['DY'].Clone()
     signalHist.Reset()
     signalHist.SetName('signal')
-    signalHist.legendText = 'T2tt (800,100)'
+    signalHist.legendText = 'T2tt (%s,%s)'%(tuple(massPoints[0].split('_')))
     for i in range(signalHist.GetNbinsX()):
         signalHist.SetBinContent(i+1, (hists[2016]['signal1'].GetBinContent(i+1) + hists[2017]['signal1'].GetBinContent(i+1) + hists[2018]['signal1'].GetBinContent(i+1)))
     histos['signal1'] = signalHist
@@ -148,7 +153,7 @@ if options.combined:
         signalHist2 = hists[2016]['DY'].Clone()
         signalHist2.Reset()
         signalHist2.SetName('signal')
-        signalHist2.legendText = 'T2tt (350,150)'
+        signalHist2.legendText = 'T2tt (%s,%s)'%(tuple(massPoints[1].split('_')))
         for i in range(signalHist2.GetNbinsX()):
             signalHist2.SetBinContent(i+1, (hists[2016]['signal2'].GetBinContent(i+1) + hists[2017]['signal2'].GetBinContent(i+1) + hists[2018]['signal2'].GetBinContent(i+1)))
         histos['signal2'] = signalHist2
@@ -183,8 +188,12 @@ else:
     print postFitResults['hists']['shapes_prefit']['Bin0'].keys()
     hists['signal1'] = postFitResults['hists']['shapes_prefit']['Bin0']['signal']
     hists['signal1'].style = styles.lineStyle( ROOT.kBlack, width=2 )
+    hists['signal1'].legendText = 'T2tt (%s,%s)'%(tuple(massPoints[0].split('_')))    
+
     if inSignalRegions:
         hists['signal2'] = postFitResults2['hists']['shapes_prefit']['Bin0']['signal']
+        hists['signal2'].style = styles.lineStyle( ROOT.kBlack, width=2, dashed=True )
+        hists['signal2'].legendText = 'T2tt (%s,%s)'%(tuple(massPoints[1].split('_')))    
 
 #hists['BSM'].legendOption = 'l'
 

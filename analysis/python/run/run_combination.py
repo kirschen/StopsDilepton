@@ -74,6 +74,7 @@ def wrapper(s):
         limitDir = baseDir+"/cardFiles/%s/%s/"%(args.signal, sSubDir)
         cardFileName = os.path.join(limitDir, s.name+'_shapeCard.txt')
 
+        print cardFileName
         if not os.path.isfile(cardFileName):
             raise IOError("File %s doesn't exist!"%cardFileName)
 

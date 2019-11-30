@@ -65,6 +65,8 @@ def wrapper(s):
     os.system(combineCommand)
     
     plotDir = plot_directory + "/impacts/"
+    if args.expected:
+        s.name += '_expected'
     if not os.path.isdir(plotDir): os.makedirs(plotDir)
     if args.bkgOnly:
         shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_bkgOnly.pdf"%(plotDir,s.name))
