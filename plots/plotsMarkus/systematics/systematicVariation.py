@@ -118,20 +118,22 @@ position = {s.name:i_s for i_s,s in enumerate(mc)}
 signals = []
 if args.signal == "T2tt":
     if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p19/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
     elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p19/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
     elif year == 2018:
+        #data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+        #postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
         data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
     
     jobNames = [ x.name for x in jobs ]
-    #print jobNames
+    print jobNames
     T2tt_800_100 = jobs[jobNames.index("T2tt_800_100")]
     T2tt_350_150 = jobs[jobNames.index("T2tt_350_150")]
     T2tt_750_0   = jobs[jobNames.index("T2tt_750_0")]
@@ -241,7 +243,9 @@ def data_weight( event, sample ):
 data_weight_string = "weight*reweightHEM"
 
 def signal_weight( event, sample ):
-    return event.weight**event.reweightHEM*getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightL1Prefire*event.reweightLeptonTrackingSF*event.reweight_nISR*event.reweightLeptonFastSimSF
+    #SW
+    #return event.weight*event.reweightHEM*getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightLeptonHit0SF*event.reweightLeptonSip3dSF*event.reweightBTag_SF*event.reweightL1Prefire*event.reweightLeptonTrackingSF*event.reweight_nISR*event.reweightLeptonFastSimSF
+    return event.weight*event.reweightHEM*getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightL1Prefire*event.reweightLeptonTrackingSF*event.reweight_nISR*event.reweightLeptonFastSimSF
 
 # Define all systematic variations
 variations = {
@@ -375,7 +379,10 @@ for i_s, sample in enumerate(signals):
     sample.scale           = lumi_scale
     sample.style           = styles.lineStyle( ROOT.kBlack, width=2, dotted=not bool(i_s-2 % 3), dashed=not bool(i_s-1 % 3) )
     sample.read_variables  = ['Pileup_nTrueInt/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I"]
-    sample.read_variables += ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweight_nISR/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I", "l1_eleIndex/I", "l2_eleIndex/I", "reweightHEM/F", "reweightL1Prefire/F"]
+    sample.read_variables += ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F',
+    #SW
+    #'reweightLeptonHit0SF/F','reweightLeptonSip3dSF/F',
+    'reweightLeptonFastSimSF/F','reweight_nISR/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "l1_muIndex/I", "l2_muIndex/I", "l1_eleIndex/I", "l2_eleIndex/I", "reweightHEM/F", "reweightL1Prefire/F"]
     sample.read_variables += ['reweightPU%s/F'%args.reweightPU if args.reweightPU != "Central" else "reweightPU/F"]
     # weight has its own function!
     #sample.weight         = lambda event, sample: getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightL1Prefire*event.reweightLeptonTrackingSF*event.reweight_nISR*event.reweightLeptonFastSimSF
@@ -1066,6 +1073,10 @@ for mode in all_modes:
         for i_b in range(1, 1 + total_mc_histo['central'].GetNbinsX() ):
             # Only positive yields
             total_central_mc_yield = total_mc_histo['central'].GetBinContent(i_b)
+            # include overflow bin for the last bin
+            overflowBin = True
+            if i_b==total_mc_histo['central'].GetNbinsX() and overflowBin:
+                total_central_mc_yield += total_mc_histo['central'].GetBinContent(i_b+1)
             if total_central_mc_yield<=0: continue
             variance = 0.
             for systematic in systematics:

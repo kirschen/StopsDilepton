@@ -1,50 +1,53 @@
 # Signal region
 
-python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --signal T2tt #--dpm --overwrite
-python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --signal T2tt --add #--dpm --overwrite
-python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --signal T2tt --add #--dpm --overwrite
+#python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --signal T2tt #--dpm --overwrite
+#python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --signal T2tt --add #--dpm --overwrite
+#python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --signal T2tt --add #--dpm --overwrite
 
 
 # Sidebands
 
-#python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ #--dpm --overwrite 
-#python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --add #--dpm --overwrite
-#
-#python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ #--dpm --overwrite
-#
-#python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add #--dpm --overwrite
-#python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add #--dpm --overwrite
-#
-#python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll100 --add #--dpm --overwrite --normalize
-#python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-mt2ll100 --add #--dpm --overwrite --normalize
-#
-#
-#
-#python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --add #--dpm --overwrite
-#python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --add #--dpm --overwrite
-#
-#python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ --add #--dpm --overwrite
-#
-#python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add #--dpm --overwrite
-#python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add #--dpm --overwrite
-#
-#python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll100 --add #--dpm --overwrite --normalize
-#python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-mt2ll100 --add #--dpm --overwrite --normalize
-#
-#
-#
-#python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --add #--dpm --overwrite
-#python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --add #--dpm --overwrite
-#
-#python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ --add #--dpm --overwrite
-#
-#python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add #--dpm --overwrite
-#python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add #--dpm --overwrite
-#
-#python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll100 --add #--dpm --overwrite --normalize
-#python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-mt2ll100 --add #--dpm --overwrite --normalize
+python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --beta overflowBin #--dpm --overwrite 
+python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --add --beta overflowBin #--dpm --overwrite
+
+python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ --beta overflowBin #--dpm --overwrite
+
+python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add --beta overflowBin #--dpm --overwrite
+python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add --beta overflowBin #--dpm --overwrite
+
+python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll100 --add --beta overflowBin #--dpm --overwrite --normalize
+python systematicVariation.py --era Run2016 --plot_directory v0p19 --reweightPU Central --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-mt2ll100 --add --beta overflowBin #--dpm --overwrite --normalize
 
 
+
+python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --add --beta overflowBin #--dpm --overwrite
+python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --add --beta overflowBin #--dpm --overwrite
+
+python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ --add --beta overflowBin #--dpm --overwrite
+
+python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add --beta overflowBin #--dpm --overwrite
+python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --scaling mc --variation_scaling --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add --beta overflowBin #--dpm --overwrite
+
+python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll100 --add --beta overflowBin #--dpm --overwrite --normalize
+python systematicVariation.py --era Run2017 --plot_directory v0p19 --reweightPU Central --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-mt2ll100 --add --beta overflowBin #--dpm --overwrite --normalize
+
+
+
+python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --add --beta overflowBin #--dpm --overwrite
+python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ --add --beta overflowBin #--dpm --overwrite
+
+python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ --add --beta overflowBin #--dpm --overwrite
+
+python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add --beta overflowBin #--dpm --overwrite
+python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --scaling mc --variation_scaling --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1 --add --beta overflowBin #--dpm --overwrite
+
+python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll100 --add --beta overflowBin #--dpm --overwrite --normalize
+python systematicVariation.py --era Run2018 --plot_directory v0p19 --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-mt2ll100 --add --beta overflowBin #--dpm --overwrite --normalize
+
+
+
+
+#####################################################################################################################################################################################
 
 
 
