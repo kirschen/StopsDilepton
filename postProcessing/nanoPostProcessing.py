@@ -368,7 +368,6 @@ sample = sample.split( n=options.nJobs, nSub=options.job)
 logger.info( "fileBasedSplitting: Run over %i/%i files for job %i/%i."%(len(sample.files), len_orig, options.job, options.nJobs))
 logger.debug( "fileBasedSplitting: Files to be run over:\n%s", "\n".join(sample.files) )
 
-
 # top pt reweighting
 from StopsDilepton.tools.topPtReweighting import getUnscaledTopPairPtReweightungFunction, getTopPtDrawString, getTopPtsForReweighting
 # Decision based on sample name -> whether TTJets or TTLep is in the sample name
