@@ -944,7 +944,7 @@ def filler( event ):
 
     # store the correct MET (EE Fix for 2017, MET_min as backup in 2017)
     
-    if options.year == 2017 and not options.fastSim:
+    if options.year == 2017:# and not options.fastSim:
         # v2 recipe. Could also use our own recipe
         event.met_pt    = r.METFixEE2017_pt_nom
         event.met_phi   = r.METFixEE2017_phi_nom

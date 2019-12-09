@@ -30,8 +30,6 @@ try:
 except:
   from StopsDilepton.samples.default_locations import default_locations
   postProcessing_directory_ = default_locations.mc_2018_postProcessing_directory 
-#data_directory_              = '/afs/hephy.at/data/cms05/nanoTuples/'
-#postProcessing_directory_    = 'stops_2018_nano_v0p16/dilep/'
 
 logger.info("Loading Signal samples from directory %s", os.path.join(data_directory_, postProcessing_directory_))
 

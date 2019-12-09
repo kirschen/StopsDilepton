@@ -16,24 +16,20 @@ signals_T8bbllnunu_XCha0p5_XSlep0p09 = []
 signals_T8bbllnunu_XCha0p5_XSlep0p5  = []
 signals_T8bbllnunu_XCha0p5_XSlep0p95 = []
 
-## Data directory
-#try:
-#    data_directory_ = sys.modules['__main__'].data_directory
-#except:
-#    from StopsDilepton.samples.default_locations import default_locations
-#    data_directory_ = default_locations.mc_2016_data_directory 
-#
-## Take post processing directory if defined in main module
-#try:
-#  import sys
-#  postProcessing_directory_ = sys.modules['__main__'].postProcessing_directory
-#except:
-#  from StopsDilepton.samples.default_locations import default_locations
-#  postProcessing_directory_ = default_locations.mc_2016_postProcessing_directory 
+# Data directory
+try:
+    data_directory_ = sys.modules['__main__'].data_directory
+except:
+    from StopsDilepton.samples.default_locations import default_locations
+    data_directory_ = default_locations.mc_2016_data_directory 
 
-data_directory_              = '/afs/hephy.at/data/cms05/nanoTuples/'
-postProcessing_directory_    = 'stops_2016_nano_v0p16/dilep/'
-
+# Take post processing directory if defined in main module
+try:
+  import sys
+  postProcessing_directory_ = sys.modules['__main__'].postProcessing_directory
+except:
+  from StopsDilepton.samples.default_locations import default_locations
+  postProcessing_directory_ = default_locations.mc_2016_postProcessing_directory 
 
 logger.info("Loading Signal samples from directory %s", os.path.join(data_directory_, postProcessing_directory_))
 

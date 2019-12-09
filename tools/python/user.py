@@ -56,7 +56,7 @@ if os.environ['USER'] in ['phussain']:
 
 if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     # Where postprocessed data goes 
-    data_output_directory      = "/afs/hephy.at/data/cms01/nanoTuples/"
+    data_output_directory      = "/afs/hephy.at/data/cms02/nanoTuples/"
     # Where you store the data
     data_directory      = "/afs/hephy.at/data/cms01/nanoTuples/"
     # Where the plots go
@@ -66,7 +66,7 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postprocessing_output_directory = "/afs/hephy.at/data/cms01/nanoTuples/"
+    postprocessing_output_directory = "/afs/hephy.at/data/cms07/nanoTuples/"
     if 'cern' in os.getenv("HOSTNAME"):
       postprocessing_output_directory = "/eos/home-d/dspitzba/nanoTuples/"
       analysis_results        = '/afs/cern.ch/work/d/dspitzba/StopsDilepton/results/80X_v30'

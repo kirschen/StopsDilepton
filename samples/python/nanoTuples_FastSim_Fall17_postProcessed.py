@@ -16,22 +16,21 @@ signals_T8bbllnunu_XCha0p5_XSlep0p09 = []
 signals_T8bbllnunu_XCha0p5_XSlep0p5  = []
 signals_T8bbllnunu_XCha0p5_XSlep0p95 = []
 signals_T8bbstausnu_XCha0p5_XStau0p5 = []
+
 # Data directory
-#try:
-#    data_directory_ = sys.modules['__main__'].data_directory
-#except:
-#    from StopsDilepton.samples.default_locations import default_locations
-#    data_directory_ = default_locations.mc_2017_data_directory 
-#
-## Take post processing directory if defined in main module
-#try:
-#  import sys
-#  postProcessing_directory_ = sys.modules['__main__'].postProcessing_directory
-#except:
-#  from StopsDilepton.samples.default_locations import default_locations
-#  postProcessing_directory_ = default_locations.mc_2017_postProcessing_directory 
-data_directory_              = '/afs/hephy.at/data/cms05/nanoTuples/'
-postProcessing_directory_    = 'stops_2017_nano_v0p16/dilep/'
+try:
+    data_directory_ = sys.modules['__main__'].data_directory
+except:
+    from StopsDilepton.samples.default_locations import default_locations
+    data_directory_ = default_locations.mc_2017_data_directory 
+
+# Take post processing directory if defined in main module
+try:
+  import sys
+  postProcessing_directory_ = sys.modules['__main__'].postProcessing_directory
+except:
+  from StopsDilepton.samples.default_locations import default_locations
+  postProcessing_directory_ = default_locations.mc_2017_postProcessing_directory 
 
 
 logger.info("Loading Signal samples from directory %s", os.path.join(data_directory_, postProcessing_directory_))
@@ -130,38 +129,38 @@ for f in os.listdir(os.path.join(data_directory_, postProcessing_directory_, 'T8
 logger.info("Loaded %i T8bbllnunu signals", len(signals_T8bbllnunu_XCha0p5_XSlep0p05) + len(signals_T8bbllnunu_XCha0p5_XSlep0p5) + len(signals_T8bbllnunu_XCha0p5_XSlep0p95))
 logger.debug("Loaded T8bbllnunu signals: %s", ",".join([s.name for s in signals_T8bbllnunu_XCha0p5_XSlep0p05 + signals_T8bbllnunu_XCha0p5_XSlep0p5 + signals_T8bbllnunu_XCha0p5_XSlep0p95]))
 
-for f in os.listdir(os.path.join(data_directory_, postProcessing_directory_, 'T8bbstausnu')):
-
-    if f.endswith('.root') and f.startswith('T8bbstausnu_'):
-        name = f.replace('.root','')
-        xChaStr, xStauStr, mStop, mNeu = name.replace('T8bbstausnu_','').split('_')
-        bcha    = "b#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{#pm}}"
-        nuslep  = "#nu#tilde{tau}"
-        lneu    = "l#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{0}}"
-        ra      = " #rightarrow "
-        
-        xCha = xChaStr.replace('XCha','').replace('p','.')
-        xStau = xStauStr.replace('XStau','').replace('p','.')
-        
-        tmp = Sample.fromFiles(\
-            name = name,
-            files = [os.path.join(os.path.join(data_directory_, postProcessing_directory_,'T8bbstausnu',f))],
-            treeName = "Events",
-            isData = False,
-            color = 8 ,
-            texName = "#tilde{t} #rightarrow b#nu l#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{0}} ("+mStop+","+mNeu+","+xCha+","+xStau+")"
-            #texName = "#tilde{t}" + ra + bcha + ra + nuslep + ra + lneu + "("+mStop+","+mNeu+","+xCha+","+xSlep+")"
-        )
-
-        tmp.mStop   = int(mStop)
-        tmp.mNeu    = int(mNeu)
-        tmp.xCha    = float(xCha)
-        tmp.xStau   = float(xStau)
-        tmp.mCha    = int( tmp.xCha * ( tmp.mStop - tmp.mNeu ) + tmp.mNeu )
-        tmp.mStau   = int( tmp.xStau * ( tmp.mCha - tmp.mNeu ) + tmp.mNeu )
-        tmp.isFastSim = True
-
-        exec("%s=tmp"%name)
-        if f.startswith('T8bbstausnu_XCha0p5_XStau0p5'):
-            exec("signals_T8bbstausnu_XCha0p5_XStau0p5.append(%s)"%name)
+#for f in os.listdir(os.path.join(data_directory_, postProcessing_directory_, 'T8bbstausnu')):
+#
+#    if f.endswith('.root') and f.startswith('T8bbstausnu_'):
+#        name = f.replace('.root','')
+#        xChaStr, xStauStr, mStop, mNeu = name.replace('T8bbstausnu_','').split('_')
+#        bcha    = "b#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{#pm}}"
+#        nuslep  = "#nu#tilde{tau}"
+#        lneu    = "l#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{0}}"
+#        ra      = " #rightarrow "
+#        
+#        xCha = xChaStr.replace('XCha','').replace('p','.')
+#        xStau = xStauStr.replace('XStau','').replace('p','.')
+#        
+#        tmp = Sample.fromFiles(\
+#            name = name,
+#            files = [os.path.join(os.path.join(data_directory_, postProcessing_directory_,'T8bbstausnu',f))],
+#            treeName = "Events",
+#            isData = False,
+#            color = 8 ,
+#            texName = "#tilde{t} #rightarrow b#nu l#tilde{#chi}_{#lower[-0.3]{1}}^{#lower[0.4]{0}} ("+mStop+","+mNeu+","+xCha+","+xStau+")"
+#            #texName = "#tilde{t}" + ra + bcha + ra + nuslep + ra + lneu + "("+mStop+","+mNeu+","+xCha+","+xSlep+")"
+#        )
+#
+#        tmp.mStop   = int(mStop)
+#        tmp.mNeu    = int(mNeu)
+#        tmp.xCha    = float(xCha)
+#        tmp.xStau   = float(xStau)
+#        tmp.mCha    = int( tmp.xCha * ( tmp.mStop - tmp.mNeu ) + tmp.mNeu )
+#        tmp.mStau   = int( tmp.xStau * ( tmp.mCha - tmp.mNeu ) + tmp.mNeu )
+#        tmp.isFastSim = True
+#
+#        exec("%s=tmp"%name)
+#        if f.startswith('T8bbstausnu_XCha0p5_XStau0p5'):
+#            exec("signals_T8bbstausnu_XCha0p5_XStau0p5.append(%s)"%name)
 
