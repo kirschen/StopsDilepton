@@ -10,7 +10,7 @@
 import ROOT
 ROOT.gROOT.SetBatch(True)
 import operator
-import pickle, os, time, sys
+import pickle, os, time, sys, copy
 from math                                import sqrt, cos, sin, pi, atan2
 
 # RootTools
@@ -137,10 +137,6 @@ if args.signal == "T2tt":
     T2tt_750_0   = jobs[jobNames.index("T2tt_750_0")]
     T2tt_600_300 = jobs[jobNames.index("T2tt_600_300")]
     signals = [T2tt_800_100, T2tt_350_150]
-
-
-
-
 
 
 
@@ -352,8 +348,6 @@ def getLeptonSelection( mode ):
 modes = ['mumu', 'mue', 'ee'] if args.mode=='all' else ['mumu', 'ee'] if args.mode=='SF' else [ args.mode ]
 print "running modes: ", modes
 
-allPlots   = {}
-
 logger.info('Working on modes: %s', ','.join(modes))
 
 try:
@@ -463,7 +457,6 @@ for mode in modes:
                 weight      = signal_weight )
             plots.append( dl_mt2ll_signal )
         
-
     dl_mt2ll_mc  = Plot(\
         name            = "dl_mt2ll_mc",
         texX            = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV' if args.normalizeBinWidth else "Number of Events",
@@ -786,7 +779,6 @@ if args.variation is not None:
     logger.info( "Done with modes %s and variation %s of selection %s. Quit now.", ",".join( modes ), args.variation, args.selection )
     sys.exit(0)
 
-
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #                               COMBINE CACHED HISTOS
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -794,18 +786,18 @@ if args.variation is not None:
 
 # Systematic pairs:( 'name', 'up', 'down' )
 systematics = [\
-    {'name':'JEC',         'pair':('jesTotalUp', 'jesTotalDown')},
-    {'name':'Unclustered', 'pair':('unclustEnUp', 'unclustEnDown')},
-    {'name':'PU',          'pair':('PUUp', 'PUDown')},
-    {'name':'BTag_b',      'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
-    {'name':'BTag_l',      'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
-    {'name':'trigger',     'pair':('DilepTriggerDown', 'DilepTriggerUp')},
-    {'name':'leptonSF',    'pair':('LeptonSFDown', 'LeptonSFUp')},
+    {'name':'JEC',          'pair':('jesTotalUp', 'jesTotalDown')},
+    {'name':'Unclustered',  'pair':('unclustEnUp', 'unclustEnDown')},
+    {'name':'PU',           'pair':('PUUp', 'PUDown')},
+    {'name':'BTag_b',       'pair':('BTag_SF_b_Down', 'BTag_SF_b_Up' )},
+    {'name':'BTag_l',       'pair':('BTag_SF_l_Down', 'BTag_SF_l_Up')},
+    {'name':'trigger',      'pair':('DilepTriggerDown', 'DilepTriggerUp')},
+    {'name':'leptonSF',     'pair':('LeptonSFDown', 'LeptonSFUp')},
     {'name':'leptonHit0SF', 'pair':('LeptonHit0SFDown', 'LeptonHit0SFUp')},
     {'name':'leptonSip3dSF','pair':('LeptonSip3dSFDown', 'LeptonSip3dSFUp')},
-    #{'name': 'TopPt',     'pair':(  'TopPt', 'central')},
-    {'name': 'JER',        'pair':('jerUp', 'jerDown')},
-    {'name': 'L1Prefire',  'pair':('L1PrefireUp', 'L1PrefireDown')},
+    #{'name': 'TopPt',      'pair':(  'TopPt', 'central')},
+    {'name': 'JER',         'pair':('jerUp', 'jerDown')},
+    {'name': 'L1Prefire',   'pair':('L1PrefireUp', 'L1PrefireDown')},
 #NN
 #    {'name': 'DYInput',           'pair':('DYInputUp', 'DYInputDown')},
 #    {'name': 'TTInput',           'pair':('TTInputUp', 'TTInputDown')},
@@ -816,7 +808,7 @@ systematics = [\
 #    {'name': 'TT1JetMismInput',   'pair':('TT1JetMismUp', 'TT1JetMismDown')},
 #    {'name': 'TTTotJetMismInput', 'pair':('TTTotJetMismUp', 'TTTotJetMismDown')},
 #    {'name': 'TTNonPromptInput',  'pair':('TTNonPromptInputUp', 'TTNonPromptInputDown')},
-] 
+]
 
 # loop over modes
 missing_cmds   = []
@@ -879,7 +871,7 @@ if len(missing_cmds)>0:
             f.write( cmd + '\n')
     logger.info( "Written %i variation commands to ./missing.sh. Now I quit!", len(missing_cmds) )
     sys.exit(0)
-    
+
 # make 'all' and 'SF' from ee/mumu/mue
 new_modes = []
 all_modes = list(modes)
@@ -914,15 +906,6 @@ for variation in variations:
                 for i_hs, hs in enumerate(plot_histos):
                     for i_h, h in enumerate(hs):
                         variation_data[new_key]['histos'][i_plot_histos][i_hs][i_h].Add(h)
-                    
-#from RootTools.plot.Plot import addOverFlowBin1D
-#for p in plots:
-#  p.histos = allPlots[p.name]
-#  for s in p.histos:
-#    for h in s:
-#      addOverFlowBin1D(h, "upper")
-#      if h.Integral()==0: logger.warning( "Found empty histogram %s in results file %s", h.GetName(), result_file )
-
 
 # SF for top central such that we get area normalisation 
 dataMC_SF = {}
@@ -965,8 +948,49 @@ for mode in all_modes:
             for variation in variations.keys():
                 for s in mc:
                     dataMC_SF[mode][variation][s.name] = sf 
-        
-def drawObjects( scaling, scaleFactor ):
+
+    # perform the scaling & store styles and texName
+    for i_plot, plot in enumerate(plots):
+        for variation in variations.keys():
+            for s in mc:
+                pos_plot = i_plot if variation != 'central' else ( 3*i_plot+2 if args.signal else 2*i_plot+1 )
+                variation_data[(mode, variation)]['histos'][pos_plot][0][position[s.name]].Scale( dataMC_SF[mode][variation][s.name] ) 
+                variation_data[(mode, variation)]['histos'][pos_plot][0][position[s.name]].style = s.style 
+                variation_data[(mode, variation)]['histos'][pos_plot][0][position[s.name]].legendText = s.texName
+            for i_s, s in enumerate(signals):
+                if variation == 'central' and args.signal: 
+                    variation_data[(mode, 'central')]['histos'][3*i_plot+1][i_s][0].style = signals[i_s].style 
+                    variation_data[(mode, 'central')]['histos'][3*i_plot+1][i_s][0].legendText = signals[i_s].texName
+            if variation == 'central': 
+                pos_plot =  3*i_plot if args.signal else 2*i_plot 
+                variation_data[(mode, 'central')]['histos'][pos_plot][0][0].style = data_sample.style 
+                variation_data[(mode, 'central')]['histos'][pos_plot][0][0].legendText = data_sample.texName
+
+# store everything in the dir_db
+dirdb_key =   'variation_data_scaling_%s'%(args.scaling if args.scaling is not None else "None")
+dirdb_key += "_variation_scaling_%s"%bool(args.variation_scaling)
+dirdb_key += "_normalize_%s"%bool(args.normalize)
+save_plots = []
+for plot in plots:
+    p = copy.deepcopy(plot)
+    p.stack = None
+    save_plots.append( p )
+stack_mc_  = copy.deepcopy(stack_mc)
+stack_data_  = copy.deepcopy(stack_data)
+if args.signal:
+    stack_signal_  = copy.deepcopy(stack_signal)
+else:
+    stack_signal_=Stack([])
+for stack in [stack_mc_, stack_data_, stack_signal_]:
+    for _s in stack:
+        for s in _s:
+            del s.style 
+dirDB.add(dirdb_key, ( variation_data, save_plots, stack_mc_, stack_data_, stack_signal_), overwrite = True)
+
+#pickle.dump( ( variation_data, save_plots), file(os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, 'variation_data.pkl'), 'w' ) )
+
+
+def drawObjects( scaling ):
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.04)
@@ -974,28 +998,29 @@ def drawObjects( scaling, scaleFactor ):
     lines = [
       (0.15, 0.95, 'CMS Preliminary'),
       ]
-    if scaling == 'mc':
-      lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(mc)=%3.2f'% ( lumi_scale, scaleFactor ) )]
-    elif scaling == 'top':
-      lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(top)=%3.2f'% ( lumi_scale, scaleFactor ) )]
-    elif scaling is None and args.normalize:
-      lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) scale=%3.2f'% ( lumi_scale, scaleFactor ) )]
-    else:
-      lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
+    #if scaling == 'mc':
+    #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(mc)=%3.2f'% ( lumi_scale, scaleFactor ) )]
+    #elif scaling == 'top':
+    #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(top)=%3.2f'% ( lumi_scale, scaleFactor ) )]
+    #elif scaling is None and args.normalize:
+    #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) scale=%3.2f'% ( lumi_scale, scaleFactor ) )]
+    #else:
+    #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
+    lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
     if "mt2ll100" in args.selection: lines += [(0.55, 0.65, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
     return [tex.DrawLatex(*l) for l in lines]
 
 # We plot now. 
 if args.normalize: plot_subdirectory += "_normalized"
-if args.beta: plot_subdirectory += "_%s"%args.beta
+if args.beta:      plot_subdirectory += "_%s"%args.beta
 for mode in all_modes:
     for i_plot, plot in enumerate(plots):
         
         # for central (=no variation), we store plot_data_1, plot_mc_1, plot_data_2, plot_mc_2, ...
         if args.signal:
-            data_histo_list = variation_data[(mode, 'central')]['histos'][3*i_plot]
+            data_histo_list     = variation_data[(mode, 'central')]['histos'][3*i_plot]
             signal_histo_list   = variation_data[(mode, 'central')]['histos'][3*i_plot+1]
-            mc_histo_list   = {'central': variation_data[(mode, 'central')]['histos'][3*i_plot+2] }
+            mc_histo_list       = {'central': variation_data[(mode, 'central')]['histos'][3*i_plot+2] }
         else:
             data_histo_list = variation_data[(mode, 'central')]['histos'][2*i_plot]
             mc_histo_list   = {'central': variation_data[(mode, 'central')]['histos'][2*i_plot+1] }
@@ -1004,38 +1029,23 @@ for mode in all_modes:
             if variation=='central': continue
             mc_histo_list[variation] = variation_data[(mode, variation)]['histos'][i_plot]
 
-        # copy styles and tex
-        data_histo_list[0][0].style = data_sample.style
-        data_histo_list[0][0].legendText = data_sample.texName
-        if args.signal:
-            for i_s, sample in enumerate(signals):
-                signal_histo_list[i_s][0].style = sample.style
-                signal_histo_list[i_s][0].legendText = sample.texName
-        for i_mc_hm, mc_h in enumerate( mc_histo_list['central'][0] ):
-            mc_h.style = stack_mc[0][i_mc_hm].style
-            mc_h.legendText = stack_mc[0][i_mc_hm].texName
-
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         # area normalization scale factor
         if args.scaling is None and args.normalize:
-            # scale variations individually
-            logger.info( "Scaling MC yield to data ( all variations are scaled by central SF)" )
-            if args.signal:
-                yield_data = variation_data[(mode,'central')]['histos'][3*i_plot][0][0].Integral()
-                yield_mc = sum(variation_data[(mode,'central')]['histos'][3*i_plot+2][0][i].Integral() for i, s in enumerate(mc))
-            else:
-                yield_data = variation_data[(mode,'central')]['histos'][2*i_plot][0][0].Integral()
-                yield_mc = sum(variation_data[(mode,'central')]['histos'][2*i_plot+1][0][i].Integral() for i, s in enumerate(mc))
-            sf = yield_data/yield_mc
-            for variation in variations.keys():
-                for s in mc:
-                    dataMC_SF[mode][variation][s.name] = sf
+            assert False, "Shouldn't be here!"
+#            # scale variations individually
+#            logger.info( "Scaling MC yield to data ( all variations are scaled by central SF)" )
+#            if args.signal:
+#                yield_data = variation_data[(mode,'central')]['histos'][3*i_plot][0][0].Integral()
+#                yield_mc = sum(variation_data[(mode,'central')]['histos'][3*i_plot+2][0][i].Integral() for i, s in enumerate(mc))
+#            else:
+#                yield_data = variation_data[(mode,'central')]['histos'][2*i_plot][0][0].Integral()
+#                yield_mc = sum(variation_data[(mode,'central')]['histos'][2*i_plot+1][0][i].Integral() for i, s in enumerate(mc))
+#            sf = yield_data/yield_mc
+#            for variation in variations.keys():
+#                for s in mc:
+#                    dataMC_SF[mode][variation][s.name] = sf
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-        # perform the scaling
-        for variation in variations.keys():
-            for s in mc:
-                mc_histo_list[variation][0][position[s.name]].Scale( dataMC_SF[mode][variation][s.name] ) 
 
         # Add histos, del the stack (which refers to MC only )
         plot.histos =  mc_histo_list['central'] + data_histo_list
@@ -1106,6 +1116,6 @@ for mode in all_modes:
               yRange = (0.03, "auto") if log else (0.001, "auto"),
               scaling = {0:1} if args.normalize else {},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
-              drawObjects = drawObjects( args.scaling, dataMC_SF[mode]['central'][Top_pow.name] ) + boxes,
+              drawObjects = drawObjects( args.scaling ) + boxes,
               copyIndexPHP = True, extensions = ["png", "pdf"],
             )
