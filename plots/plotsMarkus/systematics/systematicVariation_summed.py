@@ -39,12 +39,14 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',          action='store',      default='INFO',     nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'], help="Log level for logging")
 argParser.add_argument('--signal',            action='store',      default=None,        nargs='?', choices=['None', "T2tt",'DM'], help="Add signal to plot")
 argParser.add_argument('--plot_directory',    action='store',      default='v1')
+argParser.add_argument('--selection',         action='store',      default='lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1')
 # Scalings
 argParser.add_argument('--scaling',           action='store',      default=None, choices = [None, 'mc', 'top'],     help='Scale top to data in mt2ll<100?')
 argParser.add_argument('--variation_scaling', action='store_true', help='Scale the variations individually to mimick bkg estimation?')
 argParser.add_argument('--normalize',         action='store_true', help='Perform area normalization mc to data?')
 argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional directory label for minor changes to the plots")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
+argParser.add_argument('--directories',       action='store',         nargs='*',  type=str, default=[],                  help="Input" )
 
 
 args = argParser.parse_args()
@@ -141,15 +143,15 @@ systematics = [\
 
 
 # store everything in the dir_db
-lumi_scale = 136
-directories=\
-    [
-        "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/systematicPlots/Run2016/v0p19_small_T2tt_reweightPUCentral/lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1",
-        "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/systematicPlots/Run2016/v0p19_small_T2tt_reweightPUCentral/lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1",
+lumi_scale = 137
+#args.directories=\
+#    [
+#        "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/systematicPlots/Run2016/v0p19_small_T2tt_reweightPUCentral/lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1",
+#        "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/systematicPlots/Run2016/v0p19_small_T2tt_reweightPUCentral/lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1",
 #        "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/systematicPlots/Run2016/v0p19_small_T2tt_reweightPUCentral/lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1",
 #        "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/systematicPlots/Run2017/v0p19_small_T2tt_reweightPUCentral/lepSel-badEEJetVeto-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1",
 #        "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/systematicPlots/Run2018/v0p19_small_T2tt_reweightPUVUp/lepSel-POGMetSig12-njet2p-btag1p-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1",
-    ]
+#    ]
 
 dirdb_key =   'variation_data_scaling_%s'%(args.scaling if args.scaling is not None else "None")
 dirdb_key += "_variation_scaling_%s"%bool(args.variation_scaling)
@@ -157,7 +159,7 @@ dirdb_key += "_normalize_%s"%bool(args.normalize)
 
 variation_data = {}
 plots          = {}
-for i_directory, directory in enumerate(directories):
+for i_directory, directory in enumerate(args.directories):
 
     dirDB = DirDB(os.path.join(directory, 'cache'))
     v_data, v_plots, stack_mc, stack_data, stack_signal = dirDB.get(dirdb_key)
@@ -209,29 +211,33 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
         
         # for central (=no variation), we store plot_data_1, plot_mc_1, plot_data_2, plot_mc_2, ...
         if args.signal:
-            data_histo_list     = accumulate_level_2( [variation_data[directory][(mode, 'central')]['histos'][3*i_plot] for directory in directories] )
-            signal_histo_list   = accumulate_level_2( [variation_data[directory][(mode, 'central')]['histos'][3*i_plot+1]  for directory in directories] )
-            mc_histo_list       = {'central': accumulate_level_2( [variation_data[directory][(mode, 'central')]['histos'][3*i_plot+2] for directory in directories]) }
+            data_histo_list     = accumulate_level_2( [variation_data[directory][(mode, 'central')]['histos'][3*i_plot] for directory in args.directories] )
+            signal_histo_list   = accumulate_level_2( [variation_data[directory][(mode, 'central')]['histos'][3*i_plot+1]  for directory in args.directories] )
+            mc_histo_list       = {'central': accumulate_level_2( [variation_data[directory][(mode, 'central')]['histos'][3*i_plot+2] for directory in args.directories]) }
         else:
-            data_histo_list     = accumulate_level_2( [variation_data[directory][(mode, 'central')]['histos'][2*i_plot]  for directory in directories] )
+            data_histo_list     = accumulate_level_2( [variation_data[directory][(mode, 'central')]['histos'][2*i_plot]  for directory in args.directories] )
             signal_histo_list   = []
-            mc_histo_list       = {'central': accumulate_level_2( [variation_data[directory][(mode, 'central')]['histos'][2*i_plot+1] for directory in directories]) }
+            mc_histo_list       = {'central': accumulate_level_2( [variation_data[directory][(mode, 'central')]['histos'][2*i_plot+1] for directory in args.directories]) }
 
         data_histo_list[0][0].style = styles.errorStyle(ROOT.kBlack)
         for i_mc, mc in enumerate(stack_mc[0]):
             mc_histo_list['central'][0][i_mc].legendText = mc.texName
-        for i_sig, sig in enumerate(stack_signal):
-            signal_histo_list[i_sig][0].legendText = sig[0].texName
+        if args.signal:
+            for i_sig, sig in enumerate(stack_signal):
+                signal_histo_list[i_sig][0].legendText = sig[0].texName
 
         # for the other variations, there is no data
         for variation in variations.keys():
             if variation=='central': continue
-            mc_histo_list[variation] = accumulate_level_2( [variation_data[directory][(mode, variation)]['histos'][i_plot] for directory in directories ] )
-        for directory in directories:
+            mc_histo_list[variation] = accumulate_level_2( [variation_data[directory][(mode, variation)]['histos'][i_plot] for directory in args.directories ] )
+        for directory in args.directories:
             mc_histo_list[directory] = {variation: variation_data[directory][(mode, variation)]['histos'][i_plot] for variation in variations.keys()}
 
         # Add histos, del the stack (which refers to MC only )
-        plot.histos =  mc_histo_list['central'] + data_histo_list + signal_histo_list
+        if args.signal:
+            plot.histos =  mc_histo_list['central'] + data_histo_list + signal_histo_list
+        else:
+            plot.histos =  mc_histo_list['central'] + data_histo_list
         #plot.stack  = Stack( mc, [data_sample] )
         #if args.signal != None: 
         #    plot.histos += signal_histo_list
@@ -243,7 +249,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
         # Compute all variied MC sums
         total_mc_histo  = {variation:add_histos( mc_histo_list[variation][0]) for variation in variations.keys() }
         # store also per directory
-        for directory in directories:
+        for directory in args.directories:
             total_mc_histo[directory]  = {variation:add_histos( mc_histo_list[directory][variation][0]) for variation in variations.keys() }
 
         # loop over bins & compute shaded uncertainty boxes
@@ -252,6 +258,10 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
         for i_b in range(1, 1 + total_mc_histo['central'].GetNbinsX() ):
             # Only positive yields
             total_central_mc_yield = total_mc_histo['central'].GetBinContent(i_b)
+            # include overflow bin for the last bin
+            overflowBin = True
+            if i_b==total_mc_histo['central'].GetNbinsX() and overflowBin:
+                total_central_mc_yield += total_mc_histo['central'].GetBinContent(i_b+1)
             if total_central_mc_yield<=0: continue
             variance = 0.
             for systematic in systematics:
@@ -264,7 +274,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
                 if systematic['correlated']:
                     variance += ( factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)) )**2
                 else:
-                    for directory in directories:
+                    for directory in args.directories:
                         variance += ( factor*(total_mc_histo[directory][systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[directory][systematic['pair'][1]].GetBinContent(i_b)) )**2
 
             sigma     = sqrt(variance)
@@ -291,7 +301,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             ratio_boxes.append(r_box)
 
         for log in [False, True]:
-            plot_directory_ = os.path.join(plot_directory, 'systematicPlots', 'combined', plot_subdirectory, mode + ("_log" if log else ""))
+            plot_directory_ = os.path.join(plot_directory, 'systematicPlots', 'combined', plot_subdirectory, args.selection, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
             if    mode == "all": plot.histos[1][0].legendText = "data (RunII)"
