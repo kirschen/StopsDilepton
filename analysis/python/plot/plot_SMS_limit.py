@@ -72,7 +72,7 @@ elif options.year == 2018:
     lumi    = 59.7 
     #eraText =  "(2018)"
 else:
-     lumi = 35.9+41.5+59.7
+     lumi = 137#35.9+41.5+59.7
 def toGraph2D(name,title,length,x,y,z):
     result = ROOT.TGraph2D(length)
     result.SetName(name)
