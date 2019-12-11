@@ -242,40 +242,59 @@ results = [r for r in results if r]
 
 # Make histograms for T2tt
 baseDir  = analysis_results+"/comb/%s/"%(args.controlRegions)
-if "T2" in args.signal or  "T8bb" in args.signal:
-    binSize = 25
-    shift = binSize/2.*(-1)
-    exp      = ROOT.TH2F("exp", "exp", 1600/25, shift, 1600+shift, 1500/25, shift, 1500+shift)
-    exp_down = exp.Clone("exp_down")
-    exp_up   = exp.Clone("exp_up")
-    obs      = exp.Clone("obs")
-    limitPrefix = args.signal
-    for r in results:
-        s, res = r
-        mStop, mNeu = s
-        resultList = [(exp, '0.500'), (exp_up, '0.160'), (exp_down, '0.840'), (obs, '-1.000')]
+limitPrefix = args.signal
+limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
+## new try, other thing is buggy
+def toGraph2D(name,title,length,x,y,z):
+    result = ROOT.TGraph2D(length)
+    result.SetName(name)
+    result.SetTitle(title)
+    for i in range(length):
+        result.SetPoint(i,x[i],y[i],z[i])
+    h = result.GetHistogram()
+    h.SetMinimum(min(z))
+    h.SetMaximum(max(z))
+    c = ROOT.TCanvas()
+    result.Draw()
+    del c
+    #res = ROOT.TGraphDelaunay(result)
+    return result
 
-        for hist, qE in resultList:
-            #print hist, qE, res[qE]
-            if qE=='0.500':
-              print "Masspoint m_gl %5.3f m_neu %5.3f, expected limit %5.3f"%(mStop,mNeu,res[qE])
-            if qE=='-1.000':
-              print "Observed limit %5.3f"%(res[qE])
-            hist.GetXaxis().FindBin(mStop)
-            hist.GetYaxis().FindBin(mNeu)
-            #print hist.GetName(), mStop, mNeu, res[qE]
-            hist.Fill(mStop, mNeu, res[qE])
+mStop_list = []
+mLSP_list  = []
+exp_list   = []
+obs_list   = []
+exp_up_list   = []
+exp_down_list   = []
 
-    limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
+for r in results:
+    s, res = r
+    mStop, mNeu = s
+    if mStop%50>0: continue
+    if mNeu%50>0 and not mNeu>(mStop-125): continue
+    mStop_list.append(mStop)
+    mLSP_list.append(mNeu)
+    exp_list.append(res['0.500'])
+    exp_up_list.append(res['0.160'])
+    exp_down_list.append(res['0.840'])
+    obs_list.append(res['-1.000'])
 
-    if not os.path.exists(os.path.dirname(limitResultsFilename)):
-        os.makedirs(os.path.dirname(limitResultsFilename))
+scatter         = ROOT.TGraph(len(mStop_list))
+scatter.SetName('scatter')
+for i in range(len(mStop_list)):
+    scatter.SetPoint(i,mStop_list[i],mLSP_list[i])
 
-    outfile = ROOT.TFile(limitResultsFilename, "recreate")
-    exp      .Write()
-    exp_down .Write()
-    exp_up   .Write()
-    obs      .Write()
-    outfile.Close()
-    print "Written %s"%limitResultsFilename
+exp_graph       = toGraph2D('exp','exp',len(mStop_list),mStop_list,mLSP_list,exp_list)
+exp_up_graph    = toGraph2D('exp_up','exp_up',len(mStop_list),mStop_list,mLSP_list,exp_up_list)
+exp_down_graph  = toGraph2D('exp_down','exp_down',len(mStop_list),mStop_list,mLSP_list,exp_down_list)
+obs_graph       = toGraph2D('obs','obs',len(mStop_list),mStop_list,mLSP_list,obs_list)
+
+outfile = ROOT.TFile(limitResultsFilename, "recreate")
+scatter        .Write()
+exp_graph      .Write()
+exp_down_graph .Write()
+exp_up_graph   .Write()
+obs_graph      .Write()
+outfile.Close()
+print "Written %s"%limitResultsFilename
 

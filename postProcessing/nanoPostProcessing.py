@@ -500,7 +500,7 @@ if options.year == 2017:
     ]
 
 #branches to be kept for MC samples only
-branchKeepStrings_MC = [ "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_pt","GenMET_phi", "nISR"]
+branchKeepStrings_MC = [ "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_*", "nISR"]
 if not options.fastSim:
     branchKeepStrings_MC.append("LHEScaleWeight")
 #branches to be kept for data only
@@ -734,6 +734,7 @@ if not options.skipNanoTools:
             modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=15., vetoEtaRegion=(2.65,3.14)) )
         elif options.year == 2018:
             modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=25.) )
+            modules.append( METSigProducer(JER, metSigParams, METCollection="GenMET", useRecorr=False, calcVariations=False, jetThreshold=25., outputBranch="GenMET") )
         # need a hash to avoid data loss
         file_hash = str(hash(f))
         p = PostProcessor(output_directory, [f], cut=cut, modules=modules, postfix="_for_%s_%s"%(sample.name, file_hash))

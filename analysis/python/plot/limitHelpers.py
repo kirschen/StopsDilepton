@@ -1,5 +1,6 @@
 import ROOT,os
 import ctypes
+import copy
 
 def getContours(h, plotDir):
     _h = h.Clone()
@@ -56,7 +57,26 @@ def cleanContour(g, model="T2tt"):
         else: pass# print model, "not implemented"
     for i in reversed(remove):
         g.RemovePoint(i)
+
+
     #if model=="T8bbllnunu_XCha0p5_XSlep0p05":
     #    for i in range(g.GetN()):
     #        print i, x, y
     #    #g.SetPoint(500,15)
+
+def getPoints(g):
+    x, y = ROOT.Double(), ROOT.Double()
+    points = []
+    for i in range(g.GetN()):
+        g.GetPoint(i, x, y)
+        points.append((copy.deepcopy(x),copy.deepcopy(y)))
+
+
+    f = (2*points[-1][0]-points[-2][0], 2*points[-1][1]-points[-2][1])
+    l = (2*points[0][0]-points[1][0], 2*points[0][1]-points[1][1])
+    points.insert(0,l)
+    points.append(f)
+    for i,p in enumerate(points):
+        g.SetPoint(i, p[0], p[1])
+
+

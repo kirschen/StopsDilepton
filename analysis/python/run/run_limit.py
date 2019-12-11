@@ -598,86 +598,91 @@ def wrapper(s):
         combineWorkspace = cardFileName.replace('shapeCard.txt','shapeCard_FD.root')
         print "Extracting fit results from %s"%combineWorkspace
         
-        fitResults      = getPrePostFitFromMLF(combineWorkspace)
-        preFitResults   = fitResults['results']['shapes_prefit']['Bin0']
-        preFitShapes    = fitResults['hists']['shapes_prefit']['Bin0']
-        postFitResults  = fitResults['results']['shapes_fit_b']['Bin0']
-        postFitShapes   = fitResults['hists']['shapes_fit_b']['Bin0']
-        
+        try:
+            fitResults      = getPrePostFitFromMLF(combineWorkspace)
+        except:
+            fitResults = False
 
-        top_prefit  = preFitResults['TTJets']
-        top_postfit = postFitResults['TTJets']
+        if fitResults:
+            preFitResults   = fitResults['results']['shapes_prefit']['Bin0']
+            preFitShapes    = fitResults['hists']['shapes_prefit']['Bin0']
+            postFitResults  = fitResults['results']['shapes_fit_b']['Bin0']
+            postFitShapes   = fitResults['hists']['shapes_fit_b']['Bin0']
+            
 
-        top_prefit_SR_err   = ROOT.Double()
-        top_postfit_SR_err  = ROOT.Double()
-        top_prefit_SR  =  preFitShapes['TTJets'].IntegralAndError(iBinTTLow, iBinTTHigh, top_prefit_SR_err)
-        top_postfit_SR = postFitShapes['TTJets'].IntegralAndError(iBinTTLow, iBinTTHigh, top_postfit_SR_err)
-        
-        ttZ_prefit  = preFitResults['TTZ']
-        ttZ_postfit = postFitResults['TTZ']
+            top_prefit  = preFitResults['TTJets']
+            top_postfit = postFitResults['TTJets']
 
-        ttZ_prefit_SR_err   = ROOT.Double()
-        ttZ_postfit_SR_err  = ROOT.Double()
-        ttZ_prefit_SR  = preFitShapes['TTZ'].IntegralAndError(iBinTTZLow, iBinTTZHigh, ttZ_prefit_SR_err)
-        ttZ_postfit_SR = postFitShapes['TTZ'].IntegralAndError(iBinTTZLow, iBinTTZHigh, ttZ_postfit_SR_err)
-        
-        DY_prefit  = preFitResults['DY']
-        DY_postfit = postFitResults['DY']
+            top_prefit_SR_err   = ROOT.Double()
+            top_postfit_SR_err  = ROOT.Double()
+            top_prefit_SR  =  preFitShapes['TTJets'].IntegralAndError(iBinTTLow, iBinTTHigh, top_prefit_SR_err)
+            top_postfit_SR = postFitShapes['TTJets'].IntegralAndError(iBinTTLow, iBinTTHigh, top_postfit_SR_err)
+            
+            ttZ_prefit  = preFitResults['TTZ']
+            ttZ_postfit = postFitResults['TTZ']
 
-        DY_prefit_SR_err   = ROOT.Double()
-        DY_postfit_SR_err  = ROOT.Double()
-        DY_prefit_SR  = preFitShapes['DY'].IntegralAndError(iBinDYLow, iBinDYHigh, DY_prefit_SR_err)
-        DY_postfit_SR = postFitShapes['DY'].IntegralAndError(iBinDYLow, iBinDYHigh, DY_postfit_SR_err)
-        
-        MB_prefit  = preFitResults['multiBoson']
-        MB_postfit = postFitResults['multiBoson']
-        
-        MB_prefit_SR_err   = ROOT.Double()
-        MB_postfit_SR_err  = ROOT.Double()
-        MB_prefit_SR  = preFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_prefit_SR_err)
-        MB_postfit_SR = postFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_postfit_SR_err)
+            ttZ_prefit_SR_err   = ROOT.Double()
+            ttZ_postfit_SR_err  = ROOT.Double()
+            ttZ_prefit_SR  = preFitShapes['TTZ'].IntegralAndError(iBinTTZLow, iBinTTZHigh, ttZ_prefit_SR_err)
+            ttZ_postfit_SR = postFitShapes['TTZ'].IntegralAndError(iBinTTZLow, iBinTTZHigh, ttZ_postfit_SR_err)
+            
+            DY_prefit  = preFitResults['DY']
+            DY_postfit = postFitResults['DY']
 
-        #other_prefit  = preFitResults['other']
-        #other_postfit = postFitResults['other']
+            DY_prefit_SR_err   = ROOT.Double()
+            DY_postfit_SR_err  = ROOT.Double()
+            DY_prefit_SR  = preFitShapes['DY'].IntegralAndError(iBinDYLow, iBinDYHigh, DY_prefit_SR_err)
+            DY_postfit_SR = postFitShapes['DY'].IntegralAndError(iBinDYLow, iBinDYHigh, DY_postfit_SR_err)
+            
+            MB_prefit  = preFitResults['multiBoson']
+            MB_postfit = postFitResults['multiBoson']
+            
+            MB_prefit_SR_err   = ROOT.Double()
+            MB_postfit_SR_err  = ROOT.Double()
+            MB_prefit_SR  = preFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_prefit_SR_err)
+            MB_postfit_SR = postFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_postfit_SR_err)
 
-        #other_prefit_SR_err   = ROOT.Double()
-        #other_postfit_SR_err  = ROOT.Double()
-        #other_prefit_SR  = preFitShapes['other'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
-        #other_postfit_SR = postFitShapes['other'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
+            #other_prefit  = preFitResults['other']
+            #other_postfit = postFitResults['other']
 
-        other_prefit  = preFitResults['TTXNoZ']
-        other_postfit = postFitResults['TTXNoZ']
+            #other_prefit_SR_err   = ROOT.Double()
+            #other_postfit_SR_err  = ROOT.Double()
+            #other_prefit_SR  = preFitShapes['other'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
+            #other_postfit_SR = postFitShapes['other'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
 
-        other_prefit_SR_err   = ROOT.Double()
-        other_postfit_SR_err  = ROOT.Double()
-        other_prefit_SR  = preFitShapes['TTXNoZ'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
-        other_postfit_SR = postFitShapes['TTXNoZ'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
+            other_prefit  = preFitResults['TTXNoZ']
+            other_postfit = postFitResults['TTXNoZ']
 
-        #TZX_prefit  = preFitResults['TZX']
-        #TZX_postfit = postFitResults['TZX']
+            other_prefit_SR_err   = ROOT.Double()
+            other_postfit_SR_err  = ROOT.Double()
+            other_prefit_SR  = preFitShapes['TTXNoZ'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
+            other_postfit_SR = postFitShapes['TTXNoZ'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
 
-        #TZX_prefit_SR_err   = ROOT.Double()
-        #TZX_postfit_SR_err  = ROOT.Double()
-        #TZX_prefit_SR  = preFitShapes['TZX'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
-        #TZX_postfit_SR = postFitShapes['TZX'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
+            #TZX_prefit  = preFitResults['TZX']
+            #TZX_postfit = postFitResults['TZX']
 
-        print
-        print "## Scale Factors for backgrounds, integrated over ALL regions: ##"
-        print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit/top_prefit).val, '+/-',  top_postfit.sigma/top_postfit.val)
-        print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit/ttZ_prefit).val, '+/-',  ttZ_postfit.sigma/ttZ_postfit.val)
-        print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit/DY_prefit).val,   '+/-',  DY_postfit.sigma/DY_postfit.val)
-        print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
-        print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit/other_prefit).val, '+/-',  other_postfit.sigma/other_postfit.val)
-        #print "{:20}{:4.2f}{:3}{:4.2f}".format('TZX:',          (TZX_postfit/TZX_prefit).val, '+/-',  TZX_postfit.sigma/TZX_postfit.val)
+            #TZX_prefit_SR_err   = ROOT.Double()
+            #TZX_postfit_SR_err  = ROOT.Double()
+            #TZX_prefit_SR  = preFitShapes['TZX'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_prefit_SR_err)
+            #TZX_postfit_SR = postFitShapes['TZX'].IntegralAndError(iBinOtherLow, iBinOtherHigh, other_postfit_SR_err)
 
-        print
-        print "## Scale Factors for backgrounds, integrated over dedicated control regions: ##" if not args.fitAll else "## Scale Factors for backgrounds, integrated over the signal regions: ##"
-        print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit_SR/top_prefit_SR), '+/-',  top_postfit_SR_err/top_postfit_SR)
-        print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit_SR/ttZ_prefit_SR), '+/-',  ttZ_postfit_SR_err/ttZ_postfit_SR)
-        print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit_SR/DY_prefit_SR),   '+/-',  DY_postfit_SR_err/DY_postfit_SR)
-        print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit_SR/MB_prefit_SR),   '+/-',  MB_postfit_SR_err/MB_postfit_SR)
-        print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit_SR/other_prefit_SR), '+/-',  other_postfit_SR_err/other_postfit_SR)
-        #print "{:20}{:4.2f}{:3}{:4.2f}".format('TZX:',          (TZX_postfit_SR/TZX_prefit_SR), '+/-',  TZX_postfit_SR_err/TZX_postfit_SR)
+            print
+            print "## Scale Factors for backgrounds, integrated over ALL regions: ##"
+            print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit/top_prefit).val, '+/-',  top_postfit.sigma/top_postfit.val)
+            print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit/ttZ_prefit).val, '+/-',  ttZ_postfit.sigma/ttZ_postfit.val)
+            print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit/DY_prefit).val,   '+/-',  DY_postfit.sigma/DY_postfit.val)
+            print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
+            print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit/other_prefit).val, '+/-',  other_postfit.sigma/other_postfit.val)
+            #print "{:20}{:4.2f}{:3}{:4.2f}".format('TZX:',          (TZX_postfit/TZX_prefit).val, '+/-',  TZX_postfit.sigma/TZX_postfit.val)
+
+            print
+            print "## Scale Factors for backgrounds, integrated over dedicated control regions: ##" if not args.fitAll else "## Scale Factors for backgrounds, integrated over the signal regions: ##"
+            print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit_SR/top_prefit_SR), '+/-',  top_postfit_SR_err/top_postfit_SR)
+            print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit_SR/ttZ_prefit_SR), '+/-',  ttZ_postfit_SR_err/ttZ_postfit_SR)
+            print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit_SR/DY_prefit_SR),   '+/-',  DY_postfit_SR_err/DY_postfit_SR)
+            print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit_SR/MB_prefit_SR),   '+/-',  MB_postfit_SR_err/MB_postfit_SR)
+            print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit_SR/other_prefit_SR), '+/-',  other_postfit_SR_err/other_postfit_SR)
+            #print "{:20}{:4.2f}{:3}{:4.2f}".format('TZX:',          (TZX_postfit_SR/TZX_prefit_SR), '+/-',  TZX_postfit_SR_err/TZX_postfit_SR)
 
     #print xSecScale
 
@@ -823,50 +828,66 @@ results = [r for r in results if r]
 # Process the results. Make 2D hists for SUSY scans, or table for the DM interpretation #
 #########################################################################################
 
-# Make histograms for T2tt
-if "T2" in args.signal or  "T8bb" in args.signal:
-  binSize = 25
-  shift = binSize/2.*(-1)
-  exp      = ROOT.TH2F("exp", "exp", 1600/25, shift, 1600+shift, 1500/25, shift, 1500+shift)
-#  exp      = ROOT.TH2F("exp", "exp", 128, 0, 1600, 120, 0, 1500)
-  exp_down = exp.Clone("exp_down")
-  exp_up   = exp.Clone("exp_up")
-  obs      = exp.Clone("obs")
-  limitPrefix = args.signal
-  for r in results:
+limitPrefix = args.signal
+if args.significanceScan:
+  limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'signifResults.root')
+else:
+  limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
+
+## new try, other thing is buggy
+def toGraph2D(name,title,length,x,y,z):
+    result = ROOT.TGraph2D(length)
+    result.SetName(name)
+    result.SetTitle(title)
+    for i in range(length):
+        result.SetPoint(i,x[i],y[i],z[i])
+    h = result.GetHistogram()
+    h.SetMinimum(min(z))
+    h.SetMaximum(max(z))
+    c = ROOT.TCanvas()
+    result.Draw()
+    del c
+    #res = ROOT.TGraphDelaunay(result)
+    return result
+
+mStop_list = []
+mLSP_list  = []
+exp_list   = []
+obs_list   = []
+exp_up_list   = []
+exp_down_list   = []
+
+for r in results:
     s, res = r
     mStop, mNeu = s
-    if args.significanceScan:
-        resultList = [(obs, '-1.000')]
-    else:
-        resultList = [(exp, '0.500'), (exp_up, '0.160'), (exp_down, '0.840'), (obs, '-1.000')]
+    #if mStop%50>0: continue
+    #if mNeu%50>0 and not mNeu>(mStop-125): continue
+    mStop_list.append(mStop)
+    mLSP_list.append(mNeu)
+    exp_list.append(res['0.500'])
+    exp_up_list.append(res['0.160'])
+    exp_down_list.append(res['0.840'])
+    obs_list.append(res['-1.000'])
 
-    for hist, qE in resultList:
-      #print hist, qE, res[qE]
-      if qE=='0.500':
-        print "Masspoint m_gl %5.3f m_neu %5.3f, expected limit %5.3f"%(mStop,mNeu,res[qE])
-      if qE=='-1.000':
-        print "Observed limit %5.3f"%(res[qE])
-      hist.GetXaxis().FindBin(mStop)
-      hist.GetYaxis().FindBin(mNeu)
-      #print hist.GetName(), mStop, mNeu, res[qE]
-      hist.Fill(mStop, mNeu, res[qE])
+scatter         = ROOT.TGraph(len(mStop_list))
+scatter.SetName('scatter')
+for i in range(len(mStop_list)):
+    scatter.SetPoint(i,mStop_list[i],mLSP_list[i])
 
-  if args.significanceScan:
-    limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'signifResults.root')
-  else:
-    limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
+exp_graph       = toGraph2D('exp','exp',len(mStop_list),mStop_list,mLSP_list,exp_list)
+exp_up_graph    = toGraph2D('exp_up','exp_up',len(mStop_list),mStop_list,mLSP_list,exp_up_list)
+exp_down_graph  = toGraph2D('exp_down','exp_down',len(mStop_list),mStop_list,mLSP_list,exp_down_list)
+obs_graph       = toGraph2D('obs','obs',len(mStop_list),mStop_list,mLSP_list,obs_list)
 
-  if not os.path.exists(os.path.dirname(limitResultsFilename)):
-      os.makedirs(os.path.dirname(limitResultsFilename))
+outfile = ROOT.TFile(limitResultsFilename, "recreate")
+scatter        .Write()
+exp_graph      .Write()
+exp_down_graph .Write()
+exp_up_graph   .Write()
+obs_graph      .Write()
+outfile.Close()
 
-  outfile = ROOT.TFile(limitResultsFilename, "recreate")
-  exp      .Write()
-  exp_down .Write()
-  exp_up   .Write()
-  obs      .Write()
-  outfile.Close()
-  print "Written %s"%limitResultsFilename
+print limitResultsFilename
 
 # Make table for DM
 if args.signal == "TTbarDM":
