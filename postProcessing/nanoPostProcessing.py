@@ -355,12 +355,14 @@ if options.susySignal:
 
     logger.info("Fetching the normalization for the ISR weights.")
     masspoints = signalWeight.keys()
-    if getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, signal=sample.name, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)):
+    if getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, fillCache = True, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)):
         renormISR = True
         logger.info("Successfully loaded ISR normalzations.")
     else:
         logger.info("!!WARNING!! No ISR normaliztion factors found. Using the ISR weights will therefore change the normalization. Be careful!")
         #raise NotImplementedError ("Couldn't load ISR normalization factors.")
+
+assert False, ""
 
 len_orig = len(sample.files)
 ## sort the list of files?
@@ -877,7 +879,7 @@ def filler( event ):
     # top pt reweighting
     if isMC:
         event.reweightTopPt     = topPtReweightingFunc(getTopPtsForReweighting(r)) * topScaleF if doTopPtReweighting else 1.
-        ISRnorm = getT2ttISRNorm(samples[0], r.GenSusyMStop, r.GenSusyMNeutralino, masspoints, options.year, signal=sample.name, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)) if renormISR else 1
+        ISRnorm = getT2ttISRNorm(samples[0], r.GenSusyMStop, r.GenSusyMNeutralino, masspoints, options.year, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)) if renormISR else 1
         event.reweight_nISR     = isr.getWeight(r, norm=ISRnorm )             if options.susySignal else 1
         event.reweight_nISRUp   = isr.getWeight(r, norm=ISRnorm, sigma=1)     if options.susySignal else 1
         event.reweight_nISRDown = isr.getWeight(r, norm=ISRnorm, sigma=-1)    if options.susySignal else 1
