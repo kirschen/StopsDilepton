@@ -362,8 +362,6 @@ if options.susySignal:
         logger.info("!!WARNING!! No ISR normaliztion factors found. Using the ISR weights will therefore change the normalization. Be careful!")
         #raise NotImplementedError ("Couldn't load ISR normalization factors.")
 
-assert False, ""
-
 len_orig = len(sample.files)
 ## sort the list of files?
 sample = sample.split( n=options.nJobs, nSub=options.job)
