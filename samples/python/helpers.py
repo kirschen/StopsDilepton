@@ -142,7 +142,7 @@ def getT2ttSignalWeight(sample, lumi, cacheDir):
     return signalWeight
 
 
-def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year, signal="T2tt", fillCache=False, cacheDir='/tmp/ISR/', overwrite=False):
+def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year, fillCache=False, cacheDir='/tmp/ISR/', overwrite=False):
     '''
     Get the normalization for the ISR reweighting. Needs post-processed samples for nISR.
     '''

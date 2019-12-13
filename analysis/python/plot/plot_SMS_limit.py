@@ -62,7 +62,6 @@ elif options.year == 2018:
     lumi    = 59.7 
     #eraText =  "(2018)"
 else:
-     lumi = 35.9+41.5+59.7
 
 plotDir = os.path.join(plot_directory,'limits', signalString, options.version, yearString, options.subDir)
 

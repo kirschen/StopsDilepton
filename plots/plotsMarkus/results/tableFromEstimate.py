@@ -37,24 +37,24 @@ from StopsDilepton.analysis.DataObservation import DataObservation
 # signals, so far only T2tt
 signals_T2tt = []
 if options.year == 2016:
-    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p19/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt
     #from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2bW
     #from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 
     #from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5  
     #from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 
 elif options.year == 2017:
-    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-    postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
+    postProcessing_directory    = 'stops_2017_nano_v0p19/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt
     #from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2bW
     #from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 
     #from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5  
     #from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 
 elif options.year == 2018:
-    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-    postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
+    postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt
     #from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2bW
     #from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05
@@ -78,8 +78,7 @@ for samp in signals_T2tt:
     if samp.name == "T2tt_600_0":
         s = samp
         signal_estimate = MCBasedEstimate(name=s.name, sample=s, cacheDir=setup.defaultCacheDir())
-        allEstimators += [ signal_estimate ]
-
+        #allEstimators += [ signal_estimate ]
 
 setup.verbose=True
 
@@ -87,7 +86,7 @@ systematic_uncertainties_list = [\
 'PU',
 'JER',
 'JEC',
-'topPt',
+#'topPt',
 'unclustered',
 #'leptonFS',
 #'L1Prefire',
@@ -110,7 +109,8 @@ systematic_uncertainties_list = [\
 #]
 #allRegions = [Region('MET_significance', (12, 50))+Region('dl_mt2blbl', (100, 200))+Region('dl_mt2ll', (140, 240))]
 #allRegions = allRegions[1:]
-allRegions
+allRegions #= [allRegions[2]] 
+#allRegions = [allRegions[2]] 
 
 channels = ['SF','EMu']
 
@@ -200,7 +200,13 @@ for estimate in allEstimators:
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'unclustEnUp'}))
                     down = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'unclustEnDown'}))
                     syst_tuple = e.unclusteredSystematicAsym(r, channel, setup)
-                    #print "\t\t", abs(syst_tuple[0]-1), "|", abs(syst_tuple[1]-1)
+                    #print "Unclustered", r, channel, syst_tuple
+                    n_up = (up.val/up.sigma)**2 if up.sigma != 0 else 0.
+                    n_down = (down.val/down.sigma)**2 if down.sigma != 0 else 0.
+                    print "n_down-n_up/sigma(n_down)=", (n_down-n_up)/sqrt(n_down) if n_down != 0. else 0.
+                    if n_down != 0. and (n_down-n_up)/sqrt(n_down) < 3: print "!! excluding region", r
+                    print "up:", up, "down:", down
+                    print "\t\tdown/ref-1=", syst_tuple[0]-1, "| up/ref-1=", syst_tuple[1]-1
                     sys = max(abs(syst_tuple[0]-1), abs(syst_tuple[1]-1)) if syst_tuple[0] != 0. or syst_tuple[1] != 0. else 0.
                 elif syst == "btaggingSFb":
                     up   = e.cachedEstimate(r, channel, setup.sysClone({'reweight':['reweightBTag_SF_b_Up']}))
@@ -228,6 +234,8 @@ for estimate in allEstimators:
                 ref_cachedEstimate[e.name][channel][i][syst] = ref 
                 sys_cachedEstimate[e.name][channel][i][syst] = sys
                 sys_errors[e.name][syst] = sys_contribution.val
+
+
 
 
 # OUTPUT
@@ -288,12 +296,12 @@ for syst in systematic_uncertainties_list:
     min_unc_sig = 999.0
     max_unc_sig = 0.0
     for (i, r) in enumerate(allRegions):
-        #print "  Region",i
+        print "  Region",i
 
         table_row = header_string+"Region "+str(i)
 
         for (i_c, channel) in enumerate(channels):
-            #print "    "+channel+" channel"
+            print "    "+channel+" channel"
             up_est = 0
             down_est = 0
             ref_est = 0
@@ -305,27 +313,29 @@ for syst in systematic_uncertainties_list:
             #! adding absolute uncertainties in quadrature
             sys_est = 0
             for estimate in mcEstimators:
+                print "        ",estimate.name+":"," & {:.1f}% (yield: {}) ".format( 100.0*sys_cachedEstimate[estimate.name][channel][i][syst], ref_cachedEstimate[estimate.name][channel][i][syst] )
                 sys_est  += (sys_cachedEstimate[estimate.name][channel][i][syst]*ref_cachedEstimate[estimate.name][channel][i][syst].val)**2
 
             if ref_est.val == 0.: print "Region", i, "| Channel", channel, ": ref yield is zero"
             mc_uncertainty = sqrt(sys_est)/ref_est.val if ref_est.val != 0 else 0.
-            signal_uncertainty = sys_cachedEstimate[signal_estimate.name][channel][i][syst]
+            #signal_uncertainty = sys_cachedEstimate[signal_estimate.name][channel][i][syst]
             #print "mc    ", mc_uncertainty
             #print "signal", signal_uncertainty
 
-            table_row += " & {:.1f}\\% & {:.1f}\\%".format(abs(mc_uncertainty)*100, abs(signal_uncertainty)*100)
+            table_row += " & {:.1f}\\% ".format(abs(mc_uncertainty)*100)
+            #table_row += " & {:.1f}\\% & {:.1f}\\%".format(abs(mc_uncertainty)*100, abs(signal_uncertainty)*100)
             #print "\t\t\t{:.1f}\\%".format(abs(mc_uncertainty)*100)
             #print "\t\t\t{:.1f}\\%".format(abs(signal_uncertainty)*100)
 
             # max/minimasation of uncertainties
             if mc_uncertainty < min_unc_mc: min_unc_mc = mc_uncertainty
             if mc_uncertainty > max_unc_mc: max_unc_mc = mc_uncertainty
-            if signal_uncertainty < min_unc_sig: min_unc_sig = signal_uncertainty
-            if signal_uncertainty > max_unc_sig: max_unc_sig = signal_uncertainty
+            #if signal_uncertainty < min_unc_sig: min_unc_sig = signal_uncertainty
+            #if signal_uncertainty > max_unc_sig: max_unc_sig = signal_uncertainty
          
         table_data += table_row + "\\\\ \n"
 
-    print "\t\t{:.1f} - {:.1f}\\%".format(abs(min_unc_mc*100), abs(max_unc_mc*100))
+    print "\tmin: {:.1f} | max: {:.1f}\\%".format(abs(min_unc_mc*100), abs(max_unc_mc*100))
     #print " & {:.1f}-{:.1f}\\%".format(abs(min_unc_sig*100), abs(max_unc_sig*100))
     unc_string += "{} & {:.1f}-{:.1f}\\% & {:.1f}-{:.1f}\\% \\ \n".format(syst, min_unc_mc*100, max_unc_mc*100, min_unc_sig*100, max_unc_sig*100)    
 
@@ -340,11 +350,14 @@ with file( export_path + "table_v5_"+str(options.year)+".tex", 'w' ) as f:
     #f.write( "\n\n"+unc_string )
 
 
-for (i, r) in enumerate(allRegions):
-    print "Region", i, "-", r
+
 
 
 # OUTPUT 3
+
+print "-----------------------------------------------------------------------------------------------------------"
+print " Compare to http://www.hephy.at/user/dspitzbart/stopsDileptonLegacy/controlRegions/v6/signalOnly_2017.png"
+print "-----------------------------------------------------------------------------------------------------------"
 
 for (i, r) in enumerate(allRegions):
     for (i_c, channel) in enumerate(channels):
@@ -366,4 +379,9 @@ for (i, r) in enumerate(allRegions):
 
 
         print "Region", i, "|\t", channel, "\t{:3.1f}% ({:.1f})".format(100*sqrt(unc_sum)/yield_sum if yield_sum != 0 else 0., yield_sum)
+
+print "-----------------------------------------------------------------------------------------------------------"
+
+for (i, r) in enumerate(allRegions):
+    print "Region", i, "-", r
 
