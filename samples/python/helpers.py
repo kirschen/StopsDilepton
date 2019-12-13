@@ -157,6 +157,8 @@ def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year, signal="T2tt", fillCac
     key = (mStop, mLSP, sample.name, year)
 
     # get the norm for all
+    print key
+    print cache.contains(key )
     if (fillCache and not cache.contains(key )) or overwrite:
         from Analysis.Tools.isrWeight import ISRweight
         isr = ISRweight()

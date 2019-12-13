@@ -194,7 +194,7 @@ class Setup:
         '''
         #Consistency checks
         if self.sys['selectionModifier']:
-          assert self.sys['selectionModifier'] in jmeVariations+metVariations+['genMet'] or 'nVert' in self.sys['selectionModifier'] or 'MVA' in self.sys['selectionModifier'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['genMet']))
+          assert self.sys['selectionModifier'] in jmeVariations+metVariations+['GenMET'] or 'nVert' in self.sys['selectionModifier'] or 'MVA' in self.sys['selectionModifier'], "Don't know about systematic variation %r, take one of %s"%(self.sys['selectionModifier'], ",".join(jmeVariations + ['GenMET']))
         assert dataMC in ['Data','MC'],                                                   "dataMC = Data or MC, got %r."%dataMC
         assert not leptonCharges or leptonCharges in ["isOS", "isSS"],                    "Don't understand leptonCharges %r. Should take isOS or isSS."%leptonCharges
 
@@ -324,6 +324,6 @@ class Setup:
                 res['cuts'].append(self.sys['selectionModifier'])
 
         # for SUSY fast sim MET uncertainty
-        if self.sys['selectionModifier'] == 'genMet':
+        if self.sys['selectionModifier'] == 'GenMET':
             res['cuts'] = [ fastSimGenMetReplacements(r) for r in res['cuts'] ]
         return {'cut':"&&".join(res['cuts']), 'prefix':'-'.join(res['prefixes']), 'weightStr': self.weightString()}

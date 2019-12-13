@@ -376,15 +376,16 @@ def wrapper(s):
                   if expected.val>0 or True:
                       names = [name]
                       for name in names:
+                        sysChannel = 'all' # could be channel as well
                         uncScale = 1
-                        c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, channel, setup).val * uncScale )
+                        c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, sysChannel, setup).val * uncScale )
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
                             #c.specifyUncertainty(JEC,        binname, name, 1 + e.JECSystematic(        r, channel, setup).val * uncScale )
-                            c.specifyUncertainty(JEC,        binname, name, e.JECSystematicAsym(        r, channel, setup) )
+                            c.specifyUncertainty(JEC,        binname, name, e.JECSystematicAsym(        r, sysChannel, setup) )
                             #c.specifyUncertainty(unclEn,     binname, name, 1 + e.unclusteredSystematic(r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
-                            c.specifyUncertainty(unclEn,     binname, name, e.unclusteredSystematicAsym(r, channel, setup) ) # could remove uncertainties in ttbar CR
+                            c.specifyUncertainty(unclEn,     binname, name, e.unclusteredSystematicAsym(r, sysChannel, setup) ) # could remove uncertainties in ttbar CR
                             #c.specifyUncertainty(JER,        binname, name, 1 + e.JERSystematic(        r, channel, setup).val * uncScale )#0.03 )
-                            c.specifyUncertainty(JER,        binname, name, e.JERSystematicAsym(        r, channel, setup) )
+                            c.specifyUncertainty(JER,        binname, name, e.JERSystematicAsym(        r, sysChannel, setup) )
                         c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )#0.02 )
                         c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
@@ -437,22 +438,22 @@ def wrapper(s):
                         signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF'], 'remove':['reweightLeptonSip3dSF', 'reweightLeptonHit0SF']}) # added reweightLeptonFastSimSF in the tuples?
                     else:
                         signalSetup = setup.sysClone(sys={'reweight':[ 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
-                    signal = e.cachedEstimate(r, channel, signalSetup)
-                    # need MET Significance with gen MET for this. not yet implemented.
-                    #signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'genMet'}))) # genMET modifier -> what to do for legacy?
+                    #signal = e.cachedEstimate(r, channel, signalSetup)
+                    # need MET Significance with gen MET for this
+                    signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'GenMET'}))) # genMET modifier -> what to do for legacy?
                 else:
                     signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) 
                     signal = e.cachedEstimate(r, channel, signalSetup)
 
                 signal = signal * args.scale
 
-                if niceName.count('controlTTZ') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
-                if niceName.count('controlDY') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
+                #if niceName.count('controlTTZ') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
+                #if niceName.count('controlDY') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
                 c.specifyExpectation(binname, 'signal', signal.val*xSecScale )
 
                 logger.info("Signal expectation: %s", signal.val*xSecScale)
 
-                if signal.val>0 or True:
+                if signal.val>0:
                   if not fastSim:
                     c.specifyUncertainty('PDF',      binname, 'signal', 1 + getPDFUncSignal(s.name, r, channel))
                     if args.signal == "ttHinv":
@@ -473,7 +474,9 @@ def wrapper(s):
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
-                    c.specifyUncertainty('FSmet',    binname, 'signal', 1 + 0.02 )#e.fastSimMETSystematic(  r, channel, signalSetup).val )
+                    c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
+                    #c.specifyUncertainty('FSmet',    binname, 'signal', 1 + 0.02)
+                    #print "FS MET", e.fastSimMETSystematic(  r, channel, signalSetup).val
                     if args.signal == 'T2tt':
                         c.specifyUncertainty('isr',      binname, 'signal', 1 + e.nISRSystematic( r, channel, signalSetup).val)
 
@@ -739,8 +742,8 @@ if args.signal == "T2tt":
         if args.fullSim:
              from StopsDilepton.samples.nanoTuples_Autumn18_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
-            data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-            postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
+            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+            postProcessing_directory    = 'stops_2018_nano_v0p20/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
 
 if args.signal == "T2bW":

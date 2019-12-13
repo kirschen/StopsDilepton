@@ -33,7 +33,7 @@ class Region:
         return res
 
     def cutString(self, selectionModifier=None):
-        if selectionModifier: assert selectionModifier in jmeVariations+metVariations+['genMet'] or 'nVert' in selectionModifier or 'MVA' in selectionModifier, "Don't know about systematic variation %r, take one of %s"%(selectionModifier, ",".join(jmeVariations+['genMet']))
+        if selectionModifier: assert selectionModifier in jmeVariations+metVariations+['GenMET'] or 'nVert' in selectionModifier or 'MVA' in selectionModifier, "Don't know about systematic variation %r, take one of %s"%(selectionModifier, ",".join(jmeVariations+['GenMET']))
 
         sysStr = ""
         metStr = ""
@@ -45,11 +45,11 @@ class Region:
         res=[]
         for var in self.variables():
             if var.count('met'): svar = var + sysStr + metStr
-            else:                svar = var if (not selectionModifier or selectionModifier == 'genMet' or 'nVert' in selectionModifier or 'MVA' in selectionModifier) else var+"_"+selectionModifier
+            else:                svar = var if (not selectionModifier or selectionModifier == 'GenMET' or 'nVert' in selectionModifier or 'MVA' in selectionModifier) else var+"_"+selectionModifier
             s1=svar+">="+str(self.vals[var][0])
             if self.vals[var][1]>0: s1+="&&"+svar+"<"+str(self.vals[var][1])
             res.append(s1)
-        if selectionModifier=='genMet':
+        if selectionModifier=='GenMET':
             res = [fastSimGenMetReplacements(r) for r in res]
         return "&&".join(sorted(res)) # apparently need sorting
 

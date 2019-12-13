@@ -193,7 +193,7 @@ class SystematicEstimator:
 
     def fastSimMETSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
+        gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'GenMET'}))
         assert ref+gen > 0, "denominator > 0 not fulfilled, this is odd and should not happen!"
         return abs(ref-gen)/(ref+gen)
 
@@ -236,7 +236,7 @@ class SystematicEstimator:
             if fold > 0:
                 fold_loDown += fold
         ref  = self.cachedEstimate(region, channel, setup)
-        gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
+        gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'GenMET'}))
         unc = min([abs(fold_loDown - fold_loUp)/(0.5*(ref.val+gen.val)), 1.])
         return u_float(unc)
 
@@ -309,7 +309,7 @@ class SystematicEstimator:
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']})),
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']})),
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
-                (region, channel, setup.sysClone({'selectionModifier':'genMet'})),
+                (region, channel, setup.sysClone({'selectionModifier':'GenMET'})),
                 (region, channel, setup.sysClone({'selectionModifier':'highPU'})),
                 (region, channel, setup.sysClone({'selectionModifier':'lowPU'})),
 
