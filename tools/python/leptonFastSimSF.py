@@ -41,7 +41,7 @@ class leptonFastSimSF:
             self.ele_x_is_pt = False 
             self.ele_abs_eta = False 
             self.ele_max_pt  = 500
-            keys_ele = [("2018_FastSim_detailed_ele_full_fast_sf_18.root", "CutBasedMediumNoIso94XV2_sf"),]
+            keys_ele = [("2018_FastSim_detailed_ele_full_fast_sf_18.root", "CutBasedMediumNoIso94XV2_sf"),
                         ("fastSimSF_2018", "eff_pt_eta")]
         
         self.dataDir = "$CMSSW_BASE/src/StopsDilepton/tools/data/leptonSFData"
