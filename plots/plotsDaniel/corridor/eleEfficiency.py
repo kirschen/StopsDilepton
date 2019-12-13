@@ -16,16 +16,16 @@ cuts_ele = ['Electron_pt>30','abs(Electron_eta)<2.4', 'Electron_cutBased>0', 'El
 
 cuts_mu = ['Muon_pt>30', 'abs(Muon_eta)<2.4', 'Muon_mediumId>0', 'Muon_miniPFRelIso_all<0.2', 'Muon_sip3d<4.0', 'abs(Muon_dz)<0.1', 'abs(Muon_dxy)<0.05']
 
-def getEfficiencies( sample, cuts ):
+def getEfficiencies( sample, cuts, weight='weight' ):
     print sample.name
     presel = '(1)'
-    y = sample.getYieldFromDraw("Sum$(%s)>0"%presel, 'weight')
+    y = sample.getYieldFromDraw("Sum$(%s)>0"%presel, weight)
     yields = [y['val']]
     print '{:40}{:>10}{:>10}{:>10}'.format('cut', 'yield 1/fb', 'wrt prev', 'wrt entry')
     print '{:40}{:10.2f}{:10.3f}{:10.3f}'.format(presel, y['val'], y['val']/yields[-1], y['val']/yields[0])
     for c in cuts:
         presel += '&&%s'%c
-        y = sample.getYieldFromDraw("Sum$(%s)>0"%presel, 'weight')
+        y = sample.getYieldFromDraw("Sum$(%s)>0"%presel, weight)
         print '{:40}{:10.2f}{:10.3f}{:10.3f}'.format(c, y['val'], y['val']/yields[-1], y['val']/yields[0])
         yields.append(y['val'])
 
