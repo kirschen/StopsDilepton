@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+
 from math import sqrt, cos, sin, pi
+import os
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -83,18 +85,18 @@ for samp in signals_T2tt:
 setup.verbose=True
 
 systematic_uncertainties_list = [\
-'PU',
-'JER',
-'JEC',
+#'PU',
+#'JER',
+#'JEC',
 #'topPt',
 'unclustered',
 #'leptonFS',
 #'L1Prefire',
-'btaggingSFb',
-'btaggingSFl',
+#'btaggingSFb',
+#'btaggingSFl',
 #'btaggingSFFS',
-'leptonSF',
-'trigger',
+#'leptonSF',
+#'trigger',
 #'fastSimMET',
 #'fastSimPU',
 ]
@@ -197,9 +199,11 @@ for estimate in allEstimators:
                     down = ref
                     sys = e.topPtSystematic(r, channel, setup).val
                 elif syst == "unclustered":
-                    up   = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'unclustEnUp'}))
-                    down = e.cachedEstimate(r, channel, setup.sysClone({'selectionModifier':'unclustEnDown'}))
-                    syst_tuple = e.unclusteredSystematicAsym(r, channel, setup)
+                    up   = e.cachedEstimate(r, 'all', setup.sysClone({'selectionModifier':'unclustEnUp'}))
+                    down = e.cachedEstimate(r, 'all', setup.sysClone({'selectionModifier':'unclustEnDown'}))
+                    #up   = e.cachedEstimate(r, 'all', setup.sysClone({'selectionModifier':'unclustEnUp'}))
+                    #down = e.cachedEstimate(r, 'all', setup.sysClone({'selectionModifier':'unclustEnDown'}))
+                    syst_tuple = e.unclusteredSystematicAsym(r, 'all', setup)
                     #print "Unclustered", r, channel, syst_tuple
                     n_up = (up.val/up.sigma)**2 if up.sigma != 0 else 0.
                     n_down = (down.val/down.sigma)**2 if down.sigma != 0 else 0.
@@ -343,14 +347,10 @@ for syst in systematic_uncertainties_list:
 
 #print export_string
 #print unc_string
-
-export_path = "/afs/hephy.at/user/m/mdoppler/www/uncertaintiesTable/"
-with file( export_path + "table_v5_"+str(options.year)+".tex", 'w' ) as f:
+from StopsDilepton.tools.user import plot_directory
+with file( os.path.join( plot_directory,  "table_v5_"+str(options.year)+".tex"), 'w' ) as f:
     f.write( export_string )
     #f.write( "\n\n"+unc_string )
-
-
-
 
 
 # OUTPUT 3
