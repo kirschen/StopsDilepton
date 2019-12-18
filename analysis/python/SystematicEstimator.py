@@ -95,6 +95,16 @@ class SystematicEstimator:
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightTopPt']}))
         return abs((up-ref)/ref) if ref > 0 else up
 
+    def leptonSIP3DSFSystematic(self, region, channel, setup):
+        ref  = self.cachedEstimate(region, channel, setup)
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'remove':['reweightLeptonSip3dSF']}))
+        return abs((up-ref)/ref) if ref > 0 else up
+
+    def leptonHit0SFSystematic(self, region, channel, setup):
+        ref  = self.cachedEstimate(region, channel, setup)
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'remove':['reweightLeptonHit0SF']}))
+        return abs((up-ref)/ref) if ref > 0 else up
+
     def JERSystematic(self, region, channel, setup):
         # assigns the difference between smearing and not smearing
         ref  = self.cachedEstimate(region, channel, setup)

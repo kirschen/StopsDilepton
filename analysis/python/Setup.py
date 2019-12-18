@@ -288,7 +288,7 @@ class Setup:
 
               res['prefixes'].append('looseLeptonVeto')
               #res['cuts'].append('Sum$(LepGood_pt>15&&LepGood_relIso03<0.4)==2')
-              res['cuts'].append('(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_pfRelIso03_all<0.4) )==2')
+              res['cuts'].append('(Sum$(Electron_pt>15&&abs(Electron_eta)<2.4&&Electron_miniPFRelIso_all<0.4) + Sum$(Muon_pt>15&&abs(Muon_eta)<2.4&&Muon_miniPFRelIso_all<0.4) )==2')
 
               res['prefixes'].append('miniIso0.2')
               res['cuts'].append("l1_miniRelIso<0.2&&l2_miniRelIso<0.2")

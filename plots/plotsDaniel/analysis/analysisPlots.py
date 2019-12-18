@@ -113,11 +113,11 @@ if args.signal == "T2tt":
         postProcessing_directory = "stops_2017_nano_v0p19/dilep/"
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import *
     elif args.year == 2018:
-        data_directory = "/afs/hephy.at/data/cms02/nanoTuples/"
-        postProcessing_directory = "stops_2018_nano_v0p19/dilep/"
+        data_directory = "/afs/hephy.at/data/cms07/nanoTuples/"
+        postProcessing_directory = "stops_2018_nano_v0p21/dilep/"
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import *
     T2tt                    = T2tt_800_100
-    T2tt2                   = T2tt_350_150
+    T2tt2                   = T2tt_250_50
     T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
     T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
     signals = [ T2tt, T2tt2]

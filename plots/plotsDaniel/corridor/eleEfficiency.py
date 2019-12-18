@@ -3,10 +3,10 @@ import ROOT
 from RootTools.core.standard import *
 
 FullSim_T2tt_175_1 = Sample.fromDirectory("FullSim_T2tt_175_1", "/afs/hephy.at/data/cms01/nanoTuples/stops_2018_nano_v0p19/inclusive/SMS_T2tt_mStop_175_mLSP_1/")
-FastSim_T2tt_175_1 = Sample.fromDirectory("FastSim_T2tt_175_1", "/afs/hephy.at/data/cms01/nanoTuples/stops_2018_nano_v0p19/inclusive/SMS_T2tt_mStop_150to250_175_0/")
+FastSim_T2tt_175_1 = Sample.fromDirectory("FastSim_T2tt_175_1", "/afs/hephy.at/data/cms07/nanoTuples/stops_2018_nano_v0p20/inclusive/SMS_T2tt_mStop_150to250_175_0/")
 
 FullSim_T2tt_250_50 = Sample.fromDirectory("FullSim_T2tt_250_50", "/afs/hephy.at/data/cms01/nanoTuples/stops_2018_nano_v0p19/inclusive/SMS_T2tt_mStop_250_mLSP_50/")
-FastSim_T2tt_250_50 = Sample.fromDirectory("FastSim_T2tt_250_50", "/afs/hephy.at/data/cms01/nanoTuples/stops_2018_nano_v0p19/inclusive/SMS_T2tt_mStop_150to250_250_50/")
+FastSim_T2tt_250_50 = Sample.fromDirectory("FastSim_T2tt_250_50", "/afs/hephy.at/data/cms07/nanoTuples/stops_2018_nano_v0p20/inclusive/SMS_T2tt_mStop_150to250_250_50/")
 
 
 ## some functions

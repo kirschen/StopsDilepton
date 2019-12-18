@@ -260,6 +260,8 @@ def wrapper(s):
         c.addUncertainty(SFl,          shapeString)
         c.addUncertainty(trigger,      shapeString)
         c.addUncertainty('leptonSF',   shapeString)
+        c.addUncertainty('leptonHit0SF',   shapeString)
+        c.addUncertainty('leptonSIP3DSF',   shapeString)
         c.addUncertainty('L1prefire',  shapeString)
         # theory (PDF, scale, ISR)
         c.addUncertainty('scale',      shapeString)
@@ -271,6 +273,7 @@ def wrapper(s):
         c.addUncertainty('isr',        shapeString)
         # only in SRs
         DY_add = 'DY_hMT2blbl'
+        c.addUncertainty('topXSec',    shapeString)
         c.addUncertainty('topNonGauss', shapeString)
         c.addUncertainty('topFakes',   shapeString)
         c.addUncertainty('DY_SR',      shapeString)
@@ -333,17 +336,21 @@ def wrapper(s):
                     elif len(setup.regions) == len(regionsDM5[1:]): divider = 2
                     else:                                           divider = 0 # Was 0, think about changing to 1 for ttZ sideband
                     if setup.regions == [regionsLegacy[0]]:
-                        fakeUncertainty     = 1.002
-                        nonGaussUncertainty = 1.002
+                        fakeUncertainty     = 1.02 # 1.002
+                        nonGaussUncertainty = 1.02 # 1.002
+                        normUncertainty = 1.06
                     elif niceName.count("controlDYVV") or niceName.count("controlTTZ"):
-                        fakeUncertainty     = 1.02
-                        nonGaussUncertainty = 1.02
+                        fakeUncertainty     = 1.02 # 1.02
+                        nonGaussUncertainty = 1.02 # 1.02
+                        normUncertainty = 1.08
                     elif (setup.regions != noRegions and (r in setup.regions[divider:])):
                         fakeUncertainty     = 1.20
                         nonGaussUncertainty = 1.25
+                        normUncertainty = 1.10
                     else:
-                        fakeUncertainty     = 1.03
+                        fakeUncertainty     = 1.05 # 1.03
                         nonGaussUncertainty = 1.10
+                        normUncertainty = 1.10
                     TT_SF = 1
                     if TT_SF != 1: logger.warning("Scaling ttbar background by %s", TT_SF)
                     logger.info("Fake and non-gauss uncertainty are %s and  %s", fakeUncertainty, nonGaussUncertainty)
@@ -390,6 +397,8 @@ def wrapper(s):
                         c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale ) 
+                        c.specifyUncertainty('leptonSIP3DSF', binname, name, 1 + e.leptonSIP3DSFSystematic(   r, channel, setup).val * uncScale ) 
+                        c.specifyUncertainty('leptonHit0SF', binname, name, 1 + e.leptonHit0SFSystematic(   r, channel, setup).val * uncScale ) 
                         c.specifyUncertainty('L1prefire', binname, name, 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale ) 
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
                             c.specifyUncertainty(trigger,    binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
@@ -401,6 +410,7 @@ def wrapper(s):
                         if name == 'TTJets':
                             c.specifyUncertainty('topFakes',  binname, name, fakeUncertainty)
                             c.specifyUncertainty('topNonGauss',  binname, name, nonGaussUncertainty)
+                            c.specifyUncertainty('topXSec',  binname, name, normUncertainty)
 
                         if e.name.count('multiBoson'):
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
@@ -435,12 +445,12 @@ def wrapper(s):
                 
                 if fastSim:
                     if args.signal == 'T2tt': 
-                        signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF'], 'remove':['reweightLeptonSip3dSF', 'reweightLeptonHit0SF']}) # added reweightLeptonFastSimSF in the tuples?
+                        signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF']}) # added reweightLeptonFastSimSF in the tuples?
                     else:
                         signalSetup = setup.sysClone(sys={'reweight':[ 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
-                    #signal = e.cachedEstimate(r, channel, signalSetup)
+                    signal = e.cachedEstimate(r, channel, signalSetup)
                     # need MET Significance with gen MET for this
-                    signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'GenMET'}))) # genMET modifier -> what to do for legacy?
+                    #signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'GenMET'}))) # genMET modifier -> what to do for legacy?
                 else:
                     signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) 
                     signal = e.cachedEstimate(r, channel, signalSetup)
@@ -461,21 +471,23 @@ def wrapper(s):
                         c.specifyUncertainty('xsec_QCD',      binname, 'signal', 1.092)
                         c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
                   c.specifyUncertainty(PU,         binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
-                  c.specifyUncertainty(JEC,        binname, 'signal', 1 + e.JECSystematic(        r, channel, signalSetup).val )
-                  c.specifyUncertainty(unclEn,     binname, 'signal', 1 + e.unclusteredSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty(JER,        binname, 'signal', 1 + e.JERSystematic(        r, channel, signalSetup).val ) #0.02 )
+                  c.specifyUncertainty(JEC,        binname, 'signal', e.JECSystematicAsym(        r, channel, signalSetup) )
+                  c.specifyUncertainty(unclEn,     binname, 'signal', e.unclusteredSystematicAsym(r, channel, signalSetup) )
+                  c.specifyUncertainty(JER,        binname, 'signal', e.JERSystematicAsym(        r, channel, signalSetup) ) #0.02 )
                   c.specifyUncertainty(SFb,        binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty(SFl,        binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty(trigger,    binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
+                  c.specifyUncertainty('leptonSIP3DSF', binname, 'signal', 1 + e.leptonSIP3DSFSystematic(   r, channel, signalSetup).val )
+                  c.specifyUncertainty('leptonHit0SF', binname, 'signal', 1 + e.leptonHit0SFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('scale',    binname, 'signal', 1 + 0.02 )#getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
                   c.specifyUncertainty('L1prefire', binname, 'signal', 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale )
 
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
-                    c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
-                    #c.specifyUncertainty('FSmet',    binname, 'signal', 1 + 0.02)
+                    #c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
+                    c.specifyUncertainty('FSmet',    binname, 'signal', 1 + 0.02)
                     #print "FS MET", e.fastSimMETSystematic(  r, channel, signalSetup).val
                     if args.signal == 'T2tt':
                         c.specifyUncertainty('isr',      binname, 'signal', 1 + e.nISRSystematic( r, channel, signalSetup).val)
@@ -743,7 +755,7 @@ if args.signal == "T2tt":
              from StopsDilepton.samples.nanoTuples_Autumn18_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
             data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
-            postProcessing_directory    = 'stops_2018_nano_v0p20/dilep/'
+            postProcessing_directory    = 'stops_2018_nano_v0p21/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
 
 if args.signal == "T2bW":

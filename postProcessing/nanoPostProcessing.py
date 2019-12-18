@@ -278,6 +278,8 @@ if options.reduceSizeBy > 1:
     sample.normalization = sample.getYieldFromDraw(weightString="genWeight")['val']
     logger.info("New normalization: %s", sample.normalization)
 
+nameForISR = copy.deepcopy(sample.name)
+print nameForISR
 if options.massSkim:
     sample.name += "_%s_%s"%(stop,lsp)
 
@@ -355,7 +357,7 @@ if options.susySignal:
 
     logger.info("Fetching the normalization for the ISR weights.")
     masspoints = signalWeight.keys()
-    if getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, fillCache = True, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)):
+    if getT2ttISRNorm(sample, masspoints[0][0], masspoints[0][1], masspoints, options.year, signal=nameForISR, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)):
         renormISR = True
         logger.info("Successfully loaded ISR normalzations.")
     else:
@@ -860,6 +862,7 @@ def filler( event ):
     else:
         raise NotImplementedError( "isMC %r isData %r susySignal? %r TTDM? %r" % (isMC, isData, options.susySignal, options.TTDM) )
 
+
     # lumi lists and vetos
     if sample.isData:
         #event.vetoPassed  = vetoList.passesVeto(r.run, r.lumi, r.evt)
@@ -878,7 +881,7 @@ def filler( event ):
     # top pt reweighting
     if isMC:
         event.reweightTopPt     = topPtReweightingFunc(getTopPtsForReweighting(r)) * topScaleF if doTopPtReweighting else 1.
-        ISRnorm = getT2ttISRNorm(samples[0], r.GenSusyMStop, r.GenSusyMNeutralino, masspoints, options.year, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)) if renormISR else 1
+        ISRnorm = getT2ttISRNorm(samples[0], r.GenSusyMStop, r.GenSusyMNeutralino, masspoints, options.year, signal=nameForISR, cacheDir='/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/%s/'%(options.year)) if renormISR else 1
         event.reweight_nISR     = isr.getWeight(r, norm=ISRnorm )             if options.susySignal else 1
         event.reweight_nISRUp   = isr.getWeight(r, norm=ISRnorm, sigma=1)     if options.susySignal else 1
         event.reweight_nISRDown = isr.getWeight(r, norm=ISRnorm, sigma=-1)    if options.susySignal else 1
