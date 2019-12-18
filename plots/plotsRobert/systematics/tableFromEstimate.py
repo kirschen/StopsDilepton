@@ -36,9 +36,9 @@ from StopsDilepton.analysis.DataObservation import DataObservation
 
 # Syntax: ('sys', correlated?)
 systematic_uncertainties_list = [\
-('PU',  True ),
+('PU',  False ),
 ('JER', False ),
-('JEC', True ),
+('JEC', False ),
 ('topPt', True ),
 ('unclustered', False ),
 #('leptonFS',True ),
@@ -178,7 +178,7 @@ for systematic, correlated in systematic_uncertainties_list:
     max_SF  = max([ sys_data["RunII_correlated" if correlated else "RunII_uncorrelated"][(region, 'SF')][systematic] for region in all_regions ])
     max_EMu = max([ sys_data["RunII_correlated" if correlated else "RunII_uncorrelated"][(region, 'EMu')][systematic] for region in all_regions ])
  
-    table_strings.append( "%s & %s &\\leq %5.1f"%( systematic, "yes" if correlated else "no", 100*max([ max_SF, max_EMu])) )
+    table_strings.append( "%s & %s &  $\\leq %5.1f $\\\\"%( systematic, "yes" if correlated else "no", 100*max([ max_SF, max_EMu])) )
 
 table_string = \
 """
@@ -186,7 +186,7 @@ table_string = \
    \caption{{Overview of systematic uncertainties.}} \label{{tab:experimental-uncertainties}}
    \center
       \\begin{{tabular}}{{r|c|c}}
-            systematic    & correlated? &\% \\\\\\hline
+            systematic    & era-correlated? &\% \\\\\\hline
 {systematics}
       \end{{tabular}}
 \end{{table}}
