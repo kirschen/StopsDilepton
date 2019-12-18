@@ -34,22 +34,22 @@ signalEstimators = [s.name for s in signals_T2tt]
 
 import time
 
-#cmd = "submitBatch.py --title='limit'"
-##cmd = "echo"
-#
-#print len(signalEstimators)
-#for i, estimator in enumerate(signalEstimators):
-#    os.system(cmd+" 'python run_limit.py --signal T2tt --unblind --fitAll  --year 2018 --skipFitDiagnostics --only=%s'"%str(i))
-#
-##for i, estimator in enumerate(signalEstimators):
-##    if estimator.startswith('T2tt_35') or estimator.startswith('T2tt_36') or estimator.startswith('T2tt_37') or estimator.startswith('T2tt_38') or estimator.startswith('T2tt_39') or estimator.startswith('T2tt_400'):
-##        os.system(cmd+" 'python run_combination.py --signal T2tt --controlRegions fitAll --overwrite --only=%s'"%str(i))
-
-
-cmd = "submitBatch.py --title='scale'"
+cmd = "submitBatch.py --title='limit'"
 #cmd = "echo"
 
 print len(signalEstimators)
 for i, estimator in enumerate(signalEstimators):
-    os.system(cmd+" 'python runPDFandScale.py --signal T2tt --year 2018 --combine --only=%s'"%str(i))
+    os.system(cmd+" 'python run_limit.py --signal T2tt --unblind --fitAll  --year 2018 --skipFitDiagnostics --only=%s'"%str(i))
+
+#for i, estimator in enumerate(signalEstimators):
+#    if estimator.startswith('T2tt_35') or estimator.startswith('T2tt_36') or estimator.startswith('T2tt_37') or estimator.startswith('T2tt_38') or estimator.startswith('T2tt_39') or estimator.startswith('T2tt_400'):
+#        os.system(cmd+" 'python run_combination.py --signal T2tt --controlRegions fitAll --overwrite --only=%s'"%str(i))
+
+
+##cmd = "submitBatch.py --title='scale'"
+#cmd = "echo"
+#
+#print len(signalEstimators)
+#for i, estimator in enumerate(signalEstimators):
+#    os.system(cmd+" 'python runPDFandScale.py --signal T2tt --year 2018 --combine --only=%s'"%str(i))
 

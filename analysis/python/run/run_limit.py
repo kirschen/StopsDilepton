@@ -399,8 +399,9 @@ def wrapper(s):
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
                             c.specifyUncertainty(trigger,    binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
 
-                        #if e.name.count('TTJets'):
-                        #    c.specifyUncertainty('scaleTT', binname, name, 1 + 0.02)#getScaleUncBkg('TTLep_pow', r, channel,'TTLep_pow'))
+                        if e.name.count('TTJets'):
+                            c.specifyUncertainty('scaleTT', binname, name, 1 + getScaleUnc('Top_pow', r, niceName, channel))
+                            logger.info("Scale uncertainty for top: %s", getScaleUnc('Top_pow', r, niceName, channel))
                         #    c.specifyUncertainty('PDF',     binname, name, 1 + 0.02)#getPDFUnc('TTLep_pow', r, channel,'TTLep_pow'))
 
                         if name == 'TTJets':

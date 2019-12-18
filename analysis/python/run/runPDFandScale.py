@@ -413,7 +413,7 @@ if options.combine:
                 #    PDF_cache.get({"region":region, "channel":c, "PDFset":PDFset})
                 scale_cache.get({"name": sample.name, "region":region, "CR":niceName, "channel":c, "PDFset":'scale'})
                 a = scale_cache.get({"name": sample.name, "region":region, "CR":niceName, "channel":c, "PDFset":'scale'})
-                print a
+                print a, sample.name
                 #PS_cache.get({"region":region, "channel":c, "PDFset":'PSscale'})
 
     #logger.info('Min. PDF uncertainty: %.3f', min(PDF_unc))

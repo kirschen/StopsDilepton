@@ -86,14 +86,14 @@
 #python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p19 --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbllnunu_XCha0p5_XSlep0p95 #SPLIT32
 #python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p19 --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbllnunu_XCha0p5_XSlep0p95_mN1_700_1600 #SPLIT32
 
-python nanoPostProcessing.py  --forceProxy --skim inclusive --year 2016 --processingEra stops_2016_nano_v0p19 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_175_mLSP_1 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 175,0 --year 2016 --processingEra stops_2016_nano_v0p19 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim inclusive --year 2016 --processingEra stops_2016_nano_v0p19 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_50 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 250,50 --year 2016 --processingEra stops_2016_nano_v0p19 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim inclusive --year 2016 --processingEra stops_2016_nano_v0p19 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_75 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 250,75 --year 2016 --processingEra stops_2016_nano_v0p19 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim inclusive --year 2016 --processingEra stops_2016_nano_v0p19 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_100 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 250,100 --year 2016 --processingEra stops_2016_nano_v0p19 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --year 2016 --processingEra stops_2016_nano_v0p22 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_175_mLSP_1 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 175,0 --year 2016 --processingEra stops_2016_nano_v0p22 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --year 2016 --processingEra stops_2016_nano_v0p22 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_50 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 250,50 --year 2016 --processingEra stops_2016_nano_v0p22 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --year 2016 --processingEra stops_2016_nano_v0p22 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_75 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 250,75 --year 2016 --processingEra stops_2016_nano_v0p22 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --year 2016 --processingEra stops_2016_nano_v0p22 --skipGenLepMatching --susySignal --sample SMS_T2tt_mStop_250_mLSP_100 #SPLIT5
+python nanoPostProcessing.py  --forceProxy --skim inclusive --massSkim 250,100 --year 2016 --processingEra stops_2016_nano_v0p22 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 #SPLIT5
 
 
 ## FullSim corridor
