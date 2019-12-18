@@ -192,8 +192,13 @@ if fastSim:
 else:
     logger.info("Assuming the signal sample is FullSim!")
 
-scaleUncCache = Cache(setup.analysis_results+'/systematics/scale_%s.pkl' % args.signal, verbosity=2)
-isrUncCache   = Cache(setup.analysis_results+'/systematics/isr_%s.pkl'   % args.signal, verbosity=2)
+## load the signal scale cache
+from StopsDilepton.tools.resultsDB       import resultsDB
+
+# FIXME need to be in a year subdir
+cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_NNPDF30/"
+scale_cache = resultsDB(cacheDir+'PDFandScale_unc.sq', "scale", ["name", "region", "CR", "channel", "PDFset"])
+
 PDF = ['TTLep_pow', 'DY', 'multiboson', 'TTZ'] 
 PDFUncCaches   = {p:Cache(setup.analysis_results+'/systematicsTest_v2/PDF_%s.pkl' %p, verbosity=2) for p in PDF}
 #PDFUncCacheSignal = Cache(setup.analysis_results+'/systematicsTest_v2/PDF_%s_acceptance.pkl'   % args.signal, verbosity=2)
@@ -201,13 +206,12 @@ if args.signal == "TTbarDM":
     PDFUncCacheSignal = Cache(setup.analysis_results+'/systematicsTest_v2/PDF_DM_signal_acceptance.pkl', verbosity=2) #should be one cache in the future. Kept like this for now
 else:
     PDFUncCacheSignal = Cache(setup.analysis_results+'/systematicsTest_v2/PDF_ttH_signal_acceptance.pkl', verbosity=2)
-scales = ['TTLep_pow', 'TTZ']
-scaleUncCaches   = {p:Cache(setup.analysis_results+'/systematicsTest_v2/scale_%s.pkl' %p, verbosity=2) for p in scales}
 
 
-def getScaleUnc(name, r, channel):
-  if scaleUncCache.contains((name, r, channel)):    return max(0.01, scaleUncCache.get((name, r, channel)))
-  else:                                             return 0.01
+def getScaleUnc(name, r, niceName, channel):
+  scaleUnc = scale_cache.get({"name": name, "region":r, "CR":niceName, "channel":channel, "PDFset":'scale'})
+  scaleUnc = scaleUnc.val if scaleUnc else 0
+  return max(0.01, scaleUnc)
 
 def getPDFUnc(name, r, channel, process):
     if PDFUncCaches[process].contains((name, r, channel)):  return max(0.01, PDFUncCaches[process].get((name, r, channel)))
@@ -216,14 +220,6 @@ def getPDFUnc(name, r, channel, process):
 def getPDFUncSignal(name, r, channel):
     if PDFUncCacheSignal.contains((name, r, channel)):  return max(0.01, PDFUncCacheSignal.get((name, r, channel)))
     else:                                               return 0.01
-
-def getScaleUncBkg(name, r, channel, process):
-    if scaleUncCaches[process].contains((name, r, channel)):    return max(0.01, scaleUncCaches[process].get((name, r, channel)))
-    else:                                                       return 0.01
-
-def getIsrUnc(name, r, channel):
-  if isrUncCache.contains((name,r,channel)):    return abs(isrUncCache.get((name, r, channel)))
-  else:                                         return 0.02
 
 
 def wrapper(s):
@@ -423,8 +419,9 @@ def wrapper(s):
                                 if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                     c.specifyUncertainty("DY_SR", binname, name, 1.25)
 
-                        if e.name.count('TTZ') and niceName.count('DYVV')==0 and niceName.count('TTBar')==0:
-                            #c.specifyUncertainty('scaleTTZ',binname, name, 1 + 0.02) #getScaleUncBkg('TTZ', r, channel,'TTZ'))
+                        if e.name.count('TTZ'):
+                            c.specifyUncertainty('scaleTTZ',binname, name, 1 + getScaleUnc('TTZ', r, niceName, channel)) 
+                            logger.info("Scale uncertainty for ttZ: %s", getScaleUnc(name, r, niceName, channel))
                             #c.specifyUncertainty('PDF',     binname, name, 1 + 0.02) #getPDFUnc('TTZ', r, channel,'TTZ'))
 
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
@@ -480,7 +477,9 @@ def wrapper(s):
                   c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSIP3DSF', binname, 'signal', 1 + e.leptonSIP3DSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonHit0SF', binname, 'signal', 1 + e.leptonHit0SFSystematic(   r, channel, signalSetup).val )
-                  c.specifyUncertainty('scale',    binname, 'signal', 1 + 0.02 )#getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
+                  #c.specifyUncertainty('scale',    binname, 'signal', 1 + 0.02 )#getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
+                  c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, niceName, channel)) #had 0.3 for tests
+                  logger.info("Scale uncertainty for signal is: %s", getScaleUnc(eSignal.name, r, niceName, channel))
                   c.specifyUncertainty('L1prefire', binname, 'signal', 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale )
 
                   if fastSim: 
