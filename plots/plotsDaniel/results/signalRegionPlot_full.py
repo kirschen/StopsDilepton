@@ -7,7 +7,7 @@ Get a signal region plot from the cardfiles
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt"], help="which signal?")
-parser.add_option("--massPoints",           dest='massPoints',  action='store', default='800_100,350_150', help="which masspoints??")
+parser.add_option("--massPoints",           dest='massPoints',  action='store', default='800_100,250_50', help="which masspoints??")
 parser.add_option("--channel",              dest='channel',  action='store', default='all', choices=['all','OF','SF'], help="which channel??")
 parser.add_option("--small",                action='store_true', help="small?")
 parser.add_option('--logLevel',             dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
