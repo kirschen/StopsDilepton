@@ -503,7 +503,7 @@ if options.year == 2017:
 #branches to be kept for MC samples only
 branchKeepStrings_MC = [ "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_*", "nISR"]
 if not options.fastSim:
-    branchKeepStrings_MC.append("LHEScaleWeight")
+    branchKeepStrings_MC.extend([ "*LHEScaleWeight", "*LHEPdfWeight"])
 #branches to be kept for data only
 branchKeepStrings_DATA = [ ]
 
@@ -592,8 +592,6 @@ new_variables += [\
 # Add weight branches for susy signal samples from friend tree
 if has_susy_weight_friend:
     new_variables.extend([ "LHE[weight/F]", "LHE_weight_original/F"] )
-
-
 
 if sample.isData: new_variables.extend( ['jsonPassed/I','isData/I'] )
 new_variables.extend( ['nBTag/I', 'ht/F', 'metSig/F'] )
