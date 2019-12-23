@@ -80,9 +80,13 @@ setupIncl   = setupSR.sysClone(parameters={'mllMin':0, 'nJets':(0,-1), 'nBTags':
 if options.signal:
     if options.signal == 'T2tt':
         if year == 2016:
-            pass
+            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
         elif year == 2017:
-            pass
+            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+            postProcessing_directory    = 'stops_2017_nano_v0p22/dilep/'
+            from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
         if year == 2018:
             data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
             postProcessing_directory    = 'stops_2018_nano_v0p21/dilep/'
@@ -169,7 +173,7 @@ results = {}
 
 scale_systematics = {}
 
-cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_%s/"%(PDFset)
+cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_%s/%s/"%(PDFset,year)
 
 estimate = MCBasedEstimate(name=sample.name, sample=sample )
 estimate.initCache(cacheDir)
@@ -412,8 +416,6 @@ if options.combine:
                 #if not options.reducedPDF:
                 #    PDF_cache.get({"region":region, "channel":c, "PDFset":PDFset})
                 scale_cache.get({"name": sample.name, "region":region, "CR":niceName, "channel":c, "PDFset":'scale'})
-                a = scale_cache.get({"name": sample.name, "region":region, "CR":niceName, "channel":c, "PDFset":'scale'})
-                print a, sample.name
                 #PS_cache.get({"region":region, "channel":c, "PDFset":'PSscale'})
 
     #logger.info('Min. PDF uncertainty: %.3f', min(PDF_unc))

@@ -197,8 +197,8 @@ def wrapper(s):
         return None
 
 if args.signal == "T2tt":
-    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-    postProcessing_directory    = 'stops_2017_nano_v0p16/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+    postProcessing_directory    = 'stops_2017_nano_v0p22/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
 elif args.signal == "T2bW":
     data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'

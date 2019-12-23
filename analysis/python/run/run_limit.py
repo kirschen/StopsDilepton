@@ -195,8 +195,7 @@ else:
 ## load the signal scale cache
 from StopsDilepton.tools.resultsDB       import resultsDB
 
-# FIXME need to be in a year subdir
-cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_NNPDF30/"
+cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_NNPDF30/%s/"%year
 scale_cache = resultsDB(cacheDir+'PDFandScale_unc.sq', "scale", ["name", "region", "CR", "channel", "PDFset"])
 
 PDF = ['TTLep_pow', 'DY', 'multiboson', 'TTZ'] 
@@ -211,7 +210,7 @@ else:
 def getScaleUnc(name, r, niceName, channel):
   scaleUnc = scale_cache.get({"name": name, "region":r, "CR":niceName, "channel":channel, "PDFset":'scale'})
   scaleUnc = scaleUnc.val if scaleUnc else 0
-  return max(0.01, scaleUnc)
+  return min(max(0.01, scaleUnc),0.10)
 
 def getPDFUnc(name, r, channel, process):
     if PDFUncCaches[process].contains((name, r, channel)):  return max(0.01, PDFUncCaches[process].get((name, r, channel)))
@@ -443,12 +442,13 @@ def wrapper(s):
                 
                 if fastSim:
                     if args.signal == 'T2tt': 
-                        signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF']}) # added reweightLeptonFastSimSF in the tuples?
+                        signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF']})
                     else:
-                        signalSetup = setup.sysClone(sys={'reweight':[ 'reweightLeptonFastSimSF'], 'remove':[]}) # added reweightLeptonFastSimSF in the tuples?
-                    signal = e.cachedEstimate(r, channel, signalSetup)
-                    # need MET Significance with gen MET for this
-                    #signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'GenMET'}))) # genMET modifier -> what to do for legacy?
+                        signalSetup = setup.sysClone(sys={'reweight':[ 'reweightLeptonFastSimSF'], 'remove':[]})
+                    if year == 2016 and False:
+                        signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'GenMET'})))
+                    else:
+                        signal = e.cachedEstimate(r, channel, signalSetup)
                 else:
                     signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) 
                     signal = e.cachedEstimate(r, channel, signalSetup)
@@ -468,27 +468,25 @@ def wrapper(s):
                         # x-sec uncertainties for ttH: https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBSMAt13TeV#ttH_Process
                         c.specifyUncertainty('xsec_QCD',      binname, 'signal', 1.092)
                         c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
-                  c.specifyUncertainty(PU,         binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
-                  c.specifyUncertainty(JEC,        binname, 'signal', e.JECSystematicAsym(        r, channel, signalSetup) )
-                  c.specifyUncertainty(unclEn,     binname, 'signal', e.unclusteredSystematicAsym(r, channel, signalSetup) )
-                  c.specifyUncertainty(JER,        binname, 'signal', e.JERSystematicAsym(        r, channel, signalSetup) ) #0.02 )
-                  c.specifyUncertainty(SFb,        binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty(SFl,        binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty(trigger,    binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
-                  c.specifyUncertainty('leptonSF', binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
+                  c.specifyUncertainty(PU,              binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
+                  c.specifyUncertainty(JEC,             binname, 'signal', e.JECSystematicAsym(        r, channel, signalSetup) )
+                  c.specifyUncertainty(unclEn,          binname, 'signal', e.unclusteredSystematicAsym(r, channel, signalSetup) )
+                  c.specifyUncertainty(JER,             binname, 'signal', e.JERSystematicAsym(        r, channel, signalSetup) )
+                  c.specifyUncertainty(SFb,             binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
+                  c.specifyUncertainty(SFl,             binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
+                  c.specifyUncertainty(trigger,         binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
+                  c.specifyUncertainty('leptonSF',      binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSIP3DSF', binname, 'signal', 1 + e.leptonSIP3DSFSystematic(   r, channel, signalSetup).val )
-                  c.specifyUncertainty('leptonHit0SF', binname, 'signal', 1 + e.leptonHit0SFSystematic(   r, channel, signalSetup).val )
-                  #c.specifyUncertainty('scale',    binname, 'signal', 1 + 0.02 )#getScaleUnc(eSignal.name, r, channel)) #had 0.3 for tests
-                  c.specifyUncertainty('scale',    binname, 'signal', 1 + getScaleUnc(eSignal.name, r, niceName, channel)) #had 0.3 for tests
+                  c.specifyUncertainty('leptonHit0SF',  binname, 'signal', 1 + e.leptonHit0SFSystematic(   r, channel, signalSetup).val )
+                  c.specifyUncertainty('scale',         binname, 'signal', 1 + getScaleUnc(eSignal.name, r, niceName, channel))
+                  c.specifyUncertainty('L1prefire',     binname, 'signal', 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale )
                   logger.info("Scale uncertainty for signal is: %s", getScaleUnc(eSignal.name, r, niceName, channel))
-                  c.specifyUncertainty('L1prefire', binname, 'signal', 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale )
 
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
-                    #c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
-                    c.specifyUncertainty('FSmet',    binname, 'signal', 1 + 0.02)
-                    #print "FS MET", e.fastSimMETSystematic(  r, channel, signalSetup).val
+                    if year==2016 and False:
+                        c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
                     if args.signal == 'T2tt':
                         c.specifyUncertainty('isr',      binname, 'signal', 1 + e.nISRSystematic( r, channel, signalSetup).val)
 
@@ -740,19 +738,21 @@ if args.signal == "T2tt":
         if args.fullSim:
              from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
-            data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p19/dilep/'
+            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
     elif year == 2017:
         if args.fullSim:
              from StopsDilepton.samples.nanoTuples_Fall17_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
-            data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-            postProcessing_directory    = 'stops_2017_nano_v0p19/dilep/'
+            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+            postProcessing_directory    = 'stops_2017_nano_v0p22/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
     elif year == 2018:
         if args.fullSim:
-             from StopsDilepton.samples.nanoTuples_Autumn18_FullSimSignal_postProcessed import signals_T2tt as jobs
+            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+            postProcessing_directory    = 'stops_2018_nano_v0p19/inclusive/'
+            from StopsDilepton.samples.nanoTuples_Autumn18_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
             data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
             postProcessing_directory    = 'stops_2018_nano_v0p21/dilep/'
