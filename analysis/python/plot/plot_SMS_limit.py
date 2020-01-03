@@ -62,7 +62,7 @@ elif options.year == 2018:
     lumi    = 59.7 
     #eraText =  "(2018)"
 else:
-    lumi = 137
+    lumi = 35.92+41.53+59.74
 
 plotDir = os.path.join(plot_directory,'limits', signalString, options.version, yearString, options.subDir)
 
@@ -75,7 +75,8 @@ if not os.path.exists(plotDir):
 graphs  = {}
 hists   = {}
 
-nbins = 50
+#nbins = 50
+nbins = 100
 
 for i in ["exp","exp_up","exp_down","obs"]:
     graphs[i] = getObjFromFile(defFile, i)
@@ -148,6 +149,7 @@ for i in ["exp", "exp_up", "exp_down", "obs", "obs_UL", "obs_up", "obs_down"]:
 for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
   hists[i + "_smooth"] = hists[i + "_int"].Clone(i + "_smooth")
   hists[i + "_smooth"].Smooth(1,"k5a")
+  #hists[i + "_smooth"].Smooth(1,"k5b")
 
 ROOT.gStyle.SetPadRightMargin(0.05)
 c1 = ROOT.TCanvas()

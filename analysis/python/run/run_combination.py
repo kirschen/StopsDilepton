@@ -20,6 +20,7 @@ argParser.add_argument("--includeCR",      action='store_true',                 
 argParser.add_argument("--expected",       action='store_true',                                                                                                                                help="Do simultaneous SR and CR fit")
 argParser.add_argument("--calcNuisances",  action='store_true',                                                                         help="Extract the nuisances and store them in text files?")
 argParser.add_argument("--signalInjection",action='store_true',                                                                         help="Would you like some signal with your background?")
+argParser.add_argument("--clean",          action='store_true',                                                                         help="Remove potentially failed fits?")
 
 
 args = argParser.parse_args()
@@ -57,6 +58,8 @@ if args.skipYear:
     years.remove(args.skipYear)
 #analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
 
+vetoList = []
+
 overWrite = args.overwrite
 def wrapper(s):
 
@@ -74,7 +77,7 @@ def wrapper(s):
         limitDir = baseDir+"/cardFiles/%s/%s/"%(args.signal, sSubDir)
         cardFileName = os.path.join(limitDir, s.name+'_shapeCard.txt')
 
-        print cardFileName
+        #print cardFileName
         if not os.path.isfile(cardFileName):
             raise IOError("File %s doesn't exist!"%cardFileName)
 
@@ -191,6 +194,10 @@ def wrapper(s):
     #print sString, res
     try:
         print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
+        if res['-1.000']>3*res['0.840']:
+            print "WARNING: This point could be problematic!"
+            if args.clean:
+                vetoList += [ s.name ]
         return sConfig, res
     except:
         print "Problem with limit: %r"%str(res)
@@ -223,7 +230,10 @@ for i, j in enumerate(jobs):
         print "~removing ", j.name
         del jobs[i]
 
-allJobs = [j for j in jobs if j.name != 'T2tt_150_63']
+#vetoList = ['T2tt_150_63', 'T2tt_200_100', 'T2tt_200_113', 'T2tt_250_150', 'T2tt_200_0', 'T2tt_526_438', 'T2tt_550_450', 'T2tt_576_475', 'T2tt_600_475', 'T2tt_600_514', 'T2tt_626_526', 'T2tt_626_538', 'T2tt_650_475']
+#vetoList += ['T2tt_150_63', 'T2tt_200_100', 'T2tt_200_113', 'T2tt_250_150', 'T2tt_200_0']
+
+allJobs = [j for j in jobs if (j.name not in vetoList)]
 if args.only is not None:
     if args.only.isdigit():
         wrapper(jobs[int(args.only)])
@@ -233,6 +243,7 @@ if args.only is not None:
     exit(0)
 #i= [j for j in jobs if j.name != 'T2tt_150_63']
 
+allJobs.sort(key=lambda x: x.name, reverse=False)
 results = map(wrapper, allJobs)
 results = [r for r in results if r]
 
