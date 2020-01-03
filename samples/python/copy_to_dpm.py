@@ -19,9 +19,8 @@ if args.year == 2016:
     data_source_path    = os.path.join( default_locations.data_2016_data_directory, default_locations.data_2016_postProcessing_directory)
     mc_postProcessing_directory   = default_locations.mc_2016_postProcessing_directory
     data_postProcessing_directory = default_locations.data_2016_postProcessing_directory
-    signal_data_directory              = "/afs/hephy.at/data/cms02/nanoTuples/"
-    signal_postProcessing_directory    = "stops_2016_nano_v0p19/dilep/"
-
+    signal_data_directory              = "/afs/hephy.at/data/cms09/nanoTuples/"
+    signal_postProcessing_directory    = "stops_2016_nano_v0p22/dilep/"
 elif args.year == 2017:
     mc_source_path      = os.path.join( default_locations.mc_2017_data_directory, default_locations.mc_2017_postProcessing_directory)
     data_source_path    = os.path.join( default_locations.data_2017_data_directory, default_locations.data_2017_postProcessing_directory)
@@ -45,7 +44,8 @@ signal_target_path    = '/dpm/oeaw.ac.at/home/cms/store/user/%s/%s/%s'%( os.envi
 
 jobs=[]
 
-for source, target in [(signal_source_path, signal_target_path)]:#, ( mc_source_path, mc_target_path), ( data_source_path, data_target_path)]:
+#for source, target in [( mc_source_path, mc_target_path)]: #(signal_source_path, signal_target_path), ( data_source_path, data_target_path)]:
+for source, target in [ (signal_source_path, signal_target_path)]:
     for obj in os.listdir(source):
         jobs.append( ( os.path.join( source, obj ), os.path.join(target)) )
 
