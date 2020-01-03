@@ -64,7 +64,7 @@ class SystematicEstimator:
 
     def cachedEstimate(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
-        if (self.cache and self.cache.contains(key)) and not overwrite and not (channel == 'SF' or channel == 'all') :
+        if (self.cache and self.cache.contains(key)) and not overwrite:# and not (channel == 'SF' or channel == 'all') :
             res = self.cache.get(key)
             logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
         elif self.cache:
