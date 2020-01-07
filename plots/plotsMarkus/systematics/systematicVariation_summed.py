@@ -12,7 +12,7 @@ ROOT.gROOT.SetBatch(True)
 import operator
 import pickle
 import os, time, sys, copy
-from math                                import sqrt, cos, sin, pi, atan2
+from math                                import sqrt, cos, sin, pi, atan2, isnan
 
 # RootTools
 from RootTools.core.standard             import *
@@ -189,7 +189,11 @@ def drawObjects( scaling ):
     #else:
     #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
     lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
-    #if "mt2ll100" in args.selection: lines += [(0.55, 0.65, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
+    if "mt2ll100" in args.selection:
+        if args.signal:
+            lines += [(0.55, 0.58, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
+        else:
+            lines += [(0.55, 0.65, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
     return [tex.DrawLatex(*l) for l in lines]
 
 def accumulate_level_2( lists_of_lists ):
@@ -272,11 +276,36 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
                     factor = 0.5
                 # sum in quadrature
                 if systematic['correlated']:
-                    variance += ( factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)) )**2
+                    if i_b==total_mc_histo['central'].GetNbinsX() and overflowBin: # add overflow bin
+                        up = factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) + total_mc_histo[systematic['pair'][0]].GetBinContent(i_b+1))
+                        down = factor*(total_mc_histo[systematic['pair'][1]].GetBinContent(i_b) + total_mc_histo[systematic['pair'][1]].GetBinContent(i_b+1))
+                        # overflow bin can contain NaN
+                        if not isnan(up) and not isnan(down):
+                            variance += ( up - down )**2
+                        else: 
+                            print total_mc_histo[systematic['pair'][0]].GetBinContent(i_b), total_mc_histo[systematic['pair'][1]].GetBinContent(i_b), variance
+                            variance += ( factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)) )**2
+                    else:
+                        up = total_mc_histo[systematic['pair'][0]].GetBinContent(i_b)
+                        down = total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)
+                        # bin can contain NaN !? #FIXME leptonSFDown does contain NaN every once in a while
+                        if not isnan(up) and not isnan(down):
+                            variance += ( factor*( up - down ) )**2
+                        else:
+                            print systematic['name'], up, down, variance
                 else:
-                    for directory in args.directories:
-                        variance += ( factor*(total_mc_histo[directory][systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[directory][systematic['pair'][1]].GetBinContent(i_b)) )**2
+                    if i_b==total_mc_histo['central'].GetNbinsX() and overflowBin: # add overflow bin
+                        var = 0.
+                        for directory in args.directories:
+                            up = total_mc_histo[directory][systematic['pair'][0]].GetBinContent(i_b) + total_mc_histo[directory][systematic['pair'][0]].GetBinContent(i_b+1)
+                            down = total_mc_histo[directory][systematic['pair'][1]].GetBinContent(i_b) + total_mc_histo[directory][systematic['pair'][1]].GetBinContent(i_b+1)
+                            variance += ( factor*( up - down ) )**2
+                    else:
+                        for directory in args.directories:
+                            variance += ( factor*(total_mc_histo[directory][systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[directory][systematic['pair'][1]].GetBinContent(i_b)) )**2
 
+            if isnan(sqrt(variance)): assert False
+            #print "{}|plot {} bin {}/{} variance: {:.3f}".format(mode, i_plot, i_b, total_mc_histo['central'].GetNbinsX(), sqrt(variance))
             sigma     = sqrt(variance)
             sigma_rel = sigma/total_central_mc_yield 
 
