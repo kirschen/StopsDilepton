@@ -18,7 +18,7 @@ argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',  action='store',  nargs='?',  choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],  default='INFO', help="Log level for logging")
 argParser.add_argument('--postfix',   action='store', type=str,      default="2016")
 argParser.add_argument('--plot_directory',  default='v0',  action='store',)
-argParser.add_argument('--input_path', action='store', default='looseIsoPlots/v0_Central/Run2016/lepSel-njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1')
+argParser.add_argument('--input_path', action='store', nargs='*',  type=str, default=['looseIsoPlots/v0_Central/Run2016/lepSel-njet2p-btag1p-relIso0.12-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1'])
 args = argParser.parse_args()
 
 # Logging
@@ -28,16 +28,24 @@ logger = logger.get_logger(args.logLevel, logFile = None )
 
 histos = {}
 for m in ['mumu', 'mue', 'ee']:
-    plot_path = os.path.join( args.input_path,  m)
-    for fh in ["leadingLepIso"]:
-        for swap in ["L1", "L2"]:
-            for fs in ["mm","me","em","ee"]:
-                ofile = os.path.join(plot_directory, plot_path,  "dl_mt2ll_%s_swap%s_%s.pkl"%(fh, swap, fs))
-                if os.path.isfile(ofile):
-                    logger.info( "Loading %s", ofile )
-                    histos["%s_mt2ll_%s_swap%s_%s"%(m, fh, swap, fs)] = pickle.load( file( ofile) )
-                else:
-                    logger.warning( "File not found: %s", ofile)
+    for input_path in args.input_path:
+        plot_path = os.path.join( input_path,  m)
+        for fh in ["leadingLepIso"]:
+            for swap in ["L1", "L2"]:
+                for fs in ["mm","me","em","ee"]:
+                    ofile = os.path.join(plot_directory, plot_path,  "dl_mt2ll_%s_swap%s_%s.pkl"%(fh, swap, fs))
+                    if os.path.isfile(ofile):
+                        logger.info( "Loading %s", ofile )
+                        key = "%s_mt2ll_%s_swap%s_%s"%(m, fh, swap, fs)
+                        if not histos.has_key( key ):
+                            histos[key] = pickle.load( file( ofile) )
+                        else:
+                            for i_s, _s in enumerate(pickle.load( file( ofile) )):
+                                for i_histo, histo in enumerate(_s):
+                                    histos[key][i_s][i_histo].Add( histo )
+
+                    else:
+                        logger.warning( "File not found: %s", ofile)
 
 def drawObjects( ):
     tex = ROOT.TLatex()

@@ -142,7 +142,7 @@ def getT2ttSignalWeight(sample, lumi, cacheDir):
     return signalWeight
 
 
-def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year, signal="T2tt", fillCache=False, cacheDir='/tmp/ISR/', overwrite=False):
+def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year,signal="T2tt",  fillCache=False, cacheDir='/tmp/ISR/', overwrite=False):
     '''
     Get the normalization for the ISR reweighting. Needs post-processed samples for nISR.
     '''
@@ -154,7 +154,7 @@ def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year, signal="T2tt", fillCac
 
     cache = Cache(cacheDir, verbosity=2)
 
-    key = (mStop, mLSP, sample.name, year)
+    key = (mStop, mLSP, signal, year)
 
     # get the norm for all
     if (fillCache and not cache.contains(key )) or overwrite:
@@ -169,7 +169,7 @@ def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year, signal="T2tt", fillCac
         hCentral = ROOT.gDirectory.Get("hCentral")
 
         for mSt, mNeu in massPoints:
-            key = (mSt, mNeu, sample.name, year)
+            key = (mSt, mNeu, signal, year)
             norm = hCentral.GetBinContent(hCentral.GetXaxis().FindBin(mSt), hCentral.GetYaxis().FindBin(mNeu)) / hReweighted.GetBinContent(hReweighted.GetXaxis().FindBin(mSt), hReweighted.GetYaxis().FindBin(mNeu))
             #print mSt, mNeu
             #print key

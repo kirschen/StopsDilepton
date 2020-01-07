@@ -64,7 +64,7 @@ class SystematicEstimator:
 
     def cachedEstimate(self, region, channel, setup, save=True, overwrite=False):
         key =  self.uniqueKey(region, channel, setup)
-        if (self.cache and self.cache.contains(key)) and not overwrite and not (channel == 'SF' or channel == 'all') :
+        if (self.cache and self.cache.contains(key)) and not overwrite:# and not (channel == 'SF' or channel == 'all') :
             res = self.cache.get(key)
             logger.debug( "Loading cached %s result for %r : %r"%(self.name, key, res) )
         elif self.cache:
@@ -93,6 +93,16 @@ class SystematicEstimator:
     def topPtSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightTopPt']}))
+        return abs((up-ref)/ref) if ref > 0 else up
+
+    def leptonSIP3DSFSystematic(self, region, channel, setup):
+        ref  = self.cachedEstimate(region, channel, setup)
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'remove':['reweightLeptonSip3dSF']}))
+        return abs((up-ref)/ref) if ref > 0 else up
+
+    def leptonHit0SFSystematic(self, region, channel, setup):
+        ref  = self.cachedEstimate(region, channel, setup)
+        up   = self.cachedEstimate(region, channel, setup.sysClone({'remove':['reweightLeptonHit0SF']}))
         return abs((up-ref)/ref) if ref > 0 else up
 
     def JERSystematic(self, region, channel, setup):
@@ -193,7 +203,7 @@ class SystematicEstimator:
 
     def fastSimMETSystematic(self, region, channel, setup):
         ref  = self.cachedEstimate(region, channel, setup)
-        gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
+        gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'GenMET'}))
         assert ref+gen > 0, "denominator > 0 not fulfilled, this is odd and should not happen!"
         return abs(ref-gen)/(ref+gen)
 
@@ -236,7 +246,7 @@ class SystematicEstimator:
             if fold > 0:
                 fold_loDown += fold
         ref  = self.cachedEstimate(region, channel, setup)
-        gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'genMet'}))
+        gen  = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'GenMET'}))
         unc = min([abs(fold_loDown - fold_loUp)/(0.5*(ref.val+gen.val)), 1.])
         return u_float(unc)
 
@@ -309,7 +319,7 @@ class SystematicEstimator:
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Down']})),
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFUp']})),
                 (region, channel, setup.sysClone({'reweight':['reweightLeptonFastSimSFDown']})),
-                (region, channel, setup.sysClone({'selectionModifier':'genMet'})),
+                (region, channel, setup.sysClone({'selectionModifier':'GenMET'})),
                 (region, channel, setup.sysClone({'selectionModifier':'highPU'})),
                 (region, channel, setup.sysClone({'selectionModifier':'lowPU'})),
 

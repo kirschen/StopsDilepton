@@ -8,8 +8,20 @@ logger = logging.getLogger(__name__)
 
 from StopsDilepton.samples.color import color
 
-data_directory_ = '/afs/hephy.at/data/cms01/nanoTuples/'
-postProcessing_directory_ = 'stops_2018_nano_v0p16/dilep/'
+# Data directory
+try:
+    data_directory_ = sys.modules['__main__'].data_directory
+except:
+    from StopsDilepton.samples.default_locations import default_locations
+    data_directory_ = default_locations.mc_2018_data_directory
+
+# Take post processing directory if defined in main module
+try:
+  import sys
+  postProcessing_directory_ = sys.modules['__main__'].postProcessing_directory
+except:
+  from StopsDilepton.samples.default_locations import default_locations
+  postProcessing_directory_ = default_locations.mc_2018_postProcessing_directory
 
 logger.info("Loading MC samples from directory %s", os.path.join(data_directory_, postProcessing_directory_))
 
@@ -32,7 +44,7 @@ T2tt_mStop_175_mLSP_1    = Sample.fromDirectory(name="T2tt_mStop_175_mLSP_1",   
 T2tt_mStop_250_mLSP_50   = Sample.fromDirectory(name="T2tt_mStop_250_mLSP_50",    treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_250_mLSP_50'])
 T2tt_mStop_250_mLSP_75   = Sample.fromDirectory(name="T2tt_mStop_250_mLSP_75",    treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_250_mLSP_75'])
 T2tt_mStop_250_mLSP_100  = Sample.fromDirectory(name="T2tt_mStop_250_mLSP_100",   treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_250_mLSP_100'])
-T2tt_mStop_650_mLSP_350  = Sample.fromDirectory(name="T2tt_mStop_650_mLSP_350",   treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_650_mLSP_350'])
+#T2tt_mStop_650_mLSP_350  = Sample.fromDirectory(name="T2tt_mStop_650_mLSP_350",   treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_650_mLSP_350'])
 #T2tt_mStop_850_mLSP_100  = Sample.fromDirectory(name="T2tt_mStop_850_mLSP_100",   treeName="Events", isData=False, color=color.DY,     texName="T2tt(150,50)",     directory=directories['T2tt_mStop_850_mLSP_100'])
 
 signals_T2tt = [
@@ -40,7 +52,7 @@ signals_T2tt = [
     T2tt_mStop_250_mLSP_50,
     T2tt_mStop_250_mLSP_75,
     T2tt_mStop_250_mLSP_100,
-    T2tt_mStop_650_mLSP_350,
+#    T2tt_mStop_650_mLSP_350,
 #    T2tt_mStop_850_mLSP_100,
 ]
 
