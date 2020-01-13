@@ -52,14 +52,18 @@ from RootTools.core.helpers import partition
 if options.dpm:
     data_directory = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
 
-# dummy values for now
-PDFset = 'NNPDF30'#options.PDFset
-PDFType = "hessian"
-PSweights = False
 
 from StopsDilepton.analysis.Setup import Setup
 
 year        = int(options.year)
+
+# dummy values for now
+PDFset = 'NNPDF30' # keep this for now, it has no physical impact although 2017 and 2018 LHAPDFs are used
+PDFType = "hessian" if (year == 2017 or year == 2018) else "replicas"
+#PDFType = "hessian"
+PSweights = False
+
+print "PDF type:", PDFType
 
 #from StopsDilepton.samples.nanoTuples_Summer16_postProcessed            import Top_pow_16, DY_HT_LO_16, TTZ_16, multiBoson_16,TTXNoZ_16
 #from StopsDilepton.samples.nanoTuples_Fall17_postProcessed              import Top_pow_17, DY_HT_LO_17, TTZ_17, multiBoson_17, TTXNoZ_17
@@ -202,7 +206,10 @@ SUSY: no weights stored atm.
 
 scale_indices = [0,1,3,4,5,7,8]
 LHEweight_original = 'abs(LHEScaleWeight[4])' if not options.signal else 'abs(LHE_weight[4])'
+LHEweight_original_PDF = 'abs(LHEPdfWeight[0])' if (year == 2017 or year == 2018) else LHEweight_original
 centralWeight = LHEweight_original
+
+pdf_indices = range(100) if year == 2016 else range(30)
 
 if year == 2016:
     if options.sample == 'TTLep_pow': #only use ttbar sample, no single-t
@@ -215,11 +222,15 @@ if year == 2016:
     #    raise NotImplementedError
 
 if not options.selectWeight:
-    scaleWeightString = 'LHEScaleWeight' if not options.signal else 'LHE_weight'
-    scale_variations= [ "abs(%s[%s])"%(scaleWeightString, str(i)) for i in scale_indices ]
-    PDF_variations  = []
-    aS_variations   = []
-    variations      = scale_variations + []
+    scaleWeightString   = 'LHEScaleWeight' if not options.signal else 'LHE_weight'
+    scale_variations    = [ "abs(%s[%s])"%(scaleWeightString, str(i)) for i in scale_indices ]
+    pdfWeightString     = 'LHEPdfWeight'
+    if year == 2016:
+        PDF_variations      = [ "abs(%s[%s])"%(pdfWeightString, str(i), pdfWeightString) for i in pdf_indices ]
+    else:
+        PDF_variations      = [ "(abs(%s[%s])/abs(%s[0]))"%(pdfWeightString, str(i), pdfWeightString) for i in pdf_indices ]
+    aS_variations       = [] #[ "abs(LHEPdfWeight[100])", "abs(LHEPdfWeight[101])"] if year == 2016 else [ "abs(LHEPdfWeight[31])", "abs(LHEPdfWeight[32])"]
+    variations          = scale_variations + PDF_variations if not options.signal else scale_variations
 
 # only properly works for selectRegion>0
 selectRegion = True if options.selectRegion >= 0 else False
@@ -267,6 +278,7 @@ if not options.skipCentral:
     # First run over seperate channels
     jobs.append((noRegions[0], 'all', setupIncl))
     jobs.append((noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[LHEweight_original]})))
+    jobs.append((noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[LHEweight_original_PDF]})))
     for var in variations:
         for c in ['EE', 'MuMu', 'EMu']:
             jobs.append((noRegions[0], c, setupIncl.sysClone(sys={'reweight':[var]})))
@@ -300,6 +312,21 @@ if not options.combine:
                 for var in variations:
                     jobs.append((noRegions[0], c, setup.sysClone(sys={'reweight':[var]})))
 
+    ## PDF central weights (do last)
+    for region in regions:
+        logger.info("Queuing PDF jobs for region %s", region)
+        for c in ['EE', 'MuMu', 'EMu']:
+            logger.info("Queuing jobs for channel %s", c)
+            jobs.append((region, c, setupSR.sysClone(sys={'reweight':[LHEweight_original_PDF]})))
+            jobs.append((region, c, setupTT.sysClone(sys={'reweight':[LHEweight_original_PDF]})))
+            if not c == 'EMu':
+                jobs.append((region, c, setupDYVV.sysClone(sys={'reweight':[LHEweight_original_PDF]})))
+    
+    if ( selectRegion and options.selectRegion == 0 ) or len(regions)>1:
+        for c in ['3mu', '2mu1e', '2e1mu', '3e']:
+            for setup in [setupTTZ1,setupTTZ2,setupTTZ3,setupTTZ4,setupTTZ5]:
+                jobs.append((noRegions[0], c, setup.sysClone(sys={'reweight':[LHEweight_original_PDF]})))
+    
 
     logger.info("Created %s jobs",len(jobs))
 
@@ -370,10 +397,14 @@ if options.combine:
                 
                 scale_rel = max(scales)
 
+                ## PDF stuff
+                #sigma_incl_central_PDF  = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[LHEweight_original_PDF]}))
+                sigma_incl_central_PDF  = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':['(1)']}))
+                sigma_centralWeight_PDF = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':['(1)']}))
                 for var in PDF_variations:
                     # calculate x-sec noramlization
                     simga_incl_reweight = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[var]}))
-                    norm = sigma_incl_central/simga_incl_reweight if not options.noKeepNorm else 1
+                    norm = sigma_incl_central_PDF/simga_incl_reweight if not options.noKeepNorm else 1
 
                     sigma_reweight  = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[var]}))
                     sigma_reweight_acc = sigma_reweight * norm
@@ -382,7 +413,7 @@ if options.combine:
                     deltas.append(sigma_reweight_acc.val)
                     ## recommendation for hessian is to have delta_sigma = sum_k=1_N( (sigma_k - sigma_0)**2 )
                     ## so I keep the norm for both sigma_k and sigma_0 to obtain the acceptance uncertainty. Correct?
-                    delta_squared += ( sigma_reweight.val - sigma_centralWeight.val )**2
+                    delta_squared += ( sigma_reweight.val - sigma_centralWeight_PDF.val )**2
                 
                 deltas = sorted(deltas)
 
@@ -399,7 +430,7 @@ if options.combine:
                 deltas_as = []
                 for var in aS_variations:
                     simga_incl_reweight = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[var]}))
-                    norm = sigma_incl_central/simga_incl_reweight if not options.noKeepNorm else 1
+                    norm = sigma_incl_central_PDF/simga_incl_reweight if not options.noKeepNorm else 1
                     
                     sigma_reweight  = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[var]}))
                     sigma_reweight_acc = sigma_reweight * norm
@@ -412,9 +443,16 @@ if options.combine:
 
                     # add alpha_s and PDF in quadrature
                     delta_sigma_total = math.sqrt( delta_sigma_alphaS**2 + delta_sigma**2 )
+                else:
+                    delta_sigma_total = delta_sigma
 
-                    # make it relative wrt central value in region
+                # make it relative wrt central value in region
+                try:
                     delta_sigma_rel = delta_sigma_total/sigma_central.val
+                except:
+                    delta_sigma_rel = 0.01 # eh wurscht
+
+                if delta_sigma_rel > 1: print "############# ALERTA #################"
 
                 # calculate the PS uncertainties
                 if PSweights:
@@ -450,31 +488,35 @@ if options.combine:
                 if setup == setupTTZ5: niceName += "_controlTTZ5"
                 if setup == setupTT:   niceName += "_controlTTBar"
 
-                logger.info("Calculated PDF and alpha_s uncertainties for region %s in channel %s, %s"%(region, c, niceName))
+                logger.info("Calculated PDF and alpha_s uncertainties for region %s in channel %s"%(region, c))
                 logger.info("Central x-sec: %s", sigma_central)
-                #logger.info("Delta x-sec using PDF variations: %s", delta_sigma)
+                logger.info("Delta x-sec using PDF variations: %s", delta_sigma)
                 #logger.info("Delta x-sec using alpha_S variations: %s", delta_sigma_alphaS)
                 #logger.info("Delta x-sec total: %s", delta_sigma_total)
-                #logger.info("Relative uncertainty: %s", delta_sigma_rel)
+                logger.info("Relative uncertainty: %s", delta_sigma_rel)
                 logger.info("Relative scale uncertainty: %s", scale_rel)
                 #logger.info("Relative shower scale uncertainty: %s", PS_scale_rel)
                 
-                #PDF_unc.append(delta_sigma_rel)
+                PDF_unc.append(delta_sigma_rel)
                 if scale_rel < 1: Scale_unc.append(scale_rel) # only append here if we have enough stats
                 #PS_unc.append(PS_scale_rel)
                 
                 # Store results
 
-                #if not options.reducedPDF:
-                #    PDF_cache.add({"region":region, "channel":c, "PDFset":PDFset}, delta_sigma_rel, overwrite=True)
+                if not options.reducedPDF:
+                    PDF_cache.add({"name": sample.name, "region":region, "CR":niceName, "channel":c, "PDFset":PDFset}, delta_sigma_rel, overwrite=True)
                 scale_cache.add({"name": sample.name, "region":region, "CR":niceName, "channel":c, "PDFset":'scale'}, scale_rel, overwrite=True)
                 #PS_cache.add({"region":region, "channel":c, "PDFset":'PSscale'}, PS_scale_rel, overwrite=True)
 
-                #if not options.reducedPDF:
-                #    PDF_cache.get({"region":region, "channel":c, "PDFset":PDFset})
+                if not options.reducedPDF:
+                    PDF_cache.get({"region":region, "channel":c, "PDFset":PDFset})
                 scale_cache.get({"name": sample.name, "region":region, "CR":niceName, "channel":c, "PDFset":'scale'})
                 #PS_cache.get({"region":region, "channel":c, "PDFset":'PSscale'})
 
+    cleanPDF = [ x for x in PDF_unc if x<1 ]
+
+    logger.info('Min. PDF uncertainty: %.3f', min(cleanPDF))
+    logger.info('Max. PDF uncertainty: %.3f', max(cleanPDF))
     #logger.info('Min. PDF uncertainty: %.3f', min(PDF_unc))
     #logger.info('Max. PDF uncertainty: %.3f', max(PDF_unc))
     
