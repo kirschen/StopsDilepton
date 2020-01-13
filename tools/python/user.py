@@ -84,7 +84,7 @@ if os.environ['USER'] in ['mdoppler']:
     plot_directory      = "/afs/hephy.at/user/m/mdoppler/www/stopsDileptonLegacy/"
     #plot_directory      = "/afs/cern.ch/work/d/dspitzba/www/stopsDilepton/"
     # Analysis result files
-    analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v6/'
+    analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v7/'
     #dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     #cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     # directory with veto lists
