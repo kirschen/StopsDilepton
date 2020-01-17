@@ -61,7 +61,7 @@ for year in years:
     setup           = Setup(year=year)
     setup           .verbose = True
     estimators      = estimatorList(setup)
-    bkg_estimators  = estimators.constructEstimatorList(["TTJets", "TTZ", "DY", 'multiBoson', 'other'])
+    bkg_estimators  = estimators.constructEstimatorList(["TTJets", "TTZ", "DY", 'multiBoson', 'TZX', 'TTXNoZ'])
     all_estimators  = bkg_estimators
 
     for estimator in all_estimators:
