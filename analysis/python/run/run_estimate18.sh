@@ -43,6 +43,7 @@ python run_estimate.py --selectEstimator TTZ --year 2018 --logLevel DEBUG  --sel
 python run_estimate.py --selectEstimator TTZ --year 2018 --logLevel DEBUG  --selectRegion 12 --dpm
 python run_estimate.py --selectEstimator TTZ --year 2018 --logLevel DEBUG  --selectRegion 13 --dpm
 
+<<<<<<< HEAD
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG  --selectRegion 0 --dpm
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG  --selectRegion 1 --dpm
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG  --selectRegion 2 --dpm
@@ -57,6 +58,8 @@ python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG  --s
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG  --selectRegion 11 --dpm
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG  --selectRegion 12 --dpm
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG  --selectRegion 13 --dpm
+=======
+>>>>>>> 1274e50456e728f9547f6e535080d8618f6126b2
 
 python run_estimate.py --selectEstimator TTXNoZ --year 2018 --logLevel DEBUG  --selectRegion 0 --dpm
 python run_estimate.py --selectEstimator TTXNoZ --year 2018 --logLevel DEBUG  --selectRegion 1 --dpm
@@ -177,6 +180,7 @@ python run_estimate.py --selectEstimator TTZ --year 2018 --logLevel DEBUG --cont
 python run_estimate.py --selectEstimator TTZ --year 2018 --logLevel DEBUG --control TTZ3   --dpm
 python run_estimate.py --selectEstimator TTZ --year 2018 --logLevel DEBUG --control TTZ4   --dpm
 python run_estimate.py --selectEstimator TTZ --year 2018 --logLevel DEBUG --control TTZ5   --dpm
+<<<<<<< HEAD
 
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG --control DYVV  --selectRegion 0 --dpm
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG --control DYVV  --selectRegion 1 --dpm
@@ -197,6 +201,8 @@ python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG --co
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG --control TTZ3   --dpm
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG --control TTZ4   --dpm
 python run_estimate.py --selectEstimator other --year 2018 --logLevel DEBUG --control TTZ5   --dpm
+=======
+>>>>>>> 1274e50456e728f9547f6e535080d8618f6126b2
 
 python run_estimate.py --selectEstimator TTXNoZ --year 2018 --logLevel DEBUG --control DYVV  --selectRegion 0 --dpm
 python run_estimate.py --selectEstimator TTXNoZ --year 2018 --logLevel DEBUG --control DYVV  --selectRegion 1 --dpm
@@ -277,5 +283,3 @@ python run_estimate.py --selectEstimator Data --year 2018 --logLevel DEBUG --con
 python run_estimate.py --selectEstimator Data --year 2018 --logLevel DEBUG --control TTZ3   --dpm
 python run_estimate.py --selectEstimator Data --year 2018 --logLevel DEBUG --control TTZ4   --dpm
 python run_estimate.py --selectEstimator Data --year 2018 --logLevel DEBUG --control TTZ5   --dpm
- 
-
