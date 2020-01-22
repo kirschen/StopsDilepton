@@ -14,6 +14,8 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton"
     #plot_directory      = "/afs/cern.ch/work/s/schoef/www/"
+
+    cache_dir = "/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/"
     # Analysis result files
     analysis_results        =  '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v7/'
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/'
@@ -34,6 +36,7 @@ if os.environ['USER'] in ['robert.schoefbeck']:
     # Analysis result files
     analysis_results        =  '/mnt/hephy/cms/robert.schoefbeck/StopsDileptonLegacy/results/v7'
     cern_proxy_certificate  = '/users/robert.schoefbeck/.private/.proxy'
+    cache_dir               = "/mnt/hephy/cms/robert.schoefbeck/StopsDileptonLegacy/caches"
     # directory with veto lists
     #veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
     # 715 release for limit calculation 
@@ -52,6 +55,7 @@ if os.environ['USER'] in ['phussain']:
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/p/phussain/www/stopsDilepton/"
     private_results_directory     = "/afs/hephy.at/data/cms01/"
+    cache_dir = "/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/"
     #plot_directory      = "/afs/cern.ch/work/d/dspitzba/www/stopsDilepton/"
     # Analysis result files
     #analysis_results        = '/afs/hephy.at/data/dspitzbart02/StopsDileptonLegacy/results/v1/' #Path to analysis results
@@ -82,6 +86,7 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    cache_dir = "/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/"
     postprocessing_output_directory = "/afs/hephy.at/data/cms09/nanoTuples/"
     if 'cern' in os.getenv("HOSTNAME"):
       postprocessing_output_directory = "/eos/home-d/dspitzba/nanoTuples/"
@@ -105,6 +110,7 @@ if os.environ['USER'] in ['mdoppler']:
     #cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
     # directory with veto lists
     veto_lists = "/afs/hephy.at/data/rschoefbeck01/StopsDilepton/vetoLists/"
+    cache_dir = "/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/"
     MVA_preprocessing_directory  = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_preprocessing'
     MVA_model_directory          = '/afs/hephy.at/work/g/gungersback/StopsDilepton/MVA_models'
     # 715 release for limit calculation 
@@ -124,6 +130,7 @@ if os.environ['USER'] in ['llechner']:
     # Analysis result files
     analysis_results        = '/afs/hephy.at/data/llechner01/StopsDileptonLegacy/results/v1/' #Path to analysis results
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/llechner/'
+    cache_dir = "/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/"
     cern_proxy_certificate  = '/afs/cern.ch/user/l/llechner/private/.proxy'
     #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
     postprocessing_output_directory = "/afs/hephy.at/data/cms01/nanoTuples/"
