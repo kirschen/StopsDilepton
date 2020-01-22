@@ -6,7 +6,7 @@ Get a signal region plot from the cardfiles
 #!/usr/bin/env python
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt"], help="which signal?")
+parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt", "T2bW"], help="which signal?")
 parser.add_option("--massPoints",           dest='massPoints',  action='store', default='800_100,350_150', help="which masspoints??")
 parser.add_option("--channel",              dest='channel',  action='store', default='all', choices=['all','OF','SF'], help="which channel??")
 parser.add_option("--small",                action='store_true', help="small?")
@@ -54,7 +54,7 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None)
 from StopsDilepton.analysis.Setup import Setup
 if options.combined:
     setup=Setup(2016)
-    lumiStr = 35.9+41.5+60
+    lumiStr = 137
 else:
     setup = Setup(options.year)
     lumiStr = setup.dataLumi/1000
@@ -64,11 +64,11 @@ isData = True if not options.expected else False
 years=[2016,2017,2018]
 controlRegions = options.region
 massPoints = options.massPoints.split(',')
-cardName = "T2tt_%s_shapeCard"%massPoints[0]
+cardName = "%s_%s_shapeCard"%(options.signal,massPoints[0])
 
 inSignalRegions = not options.region.count('control')>0
 if inSignalRegions:
-    cardName2 = "T2tt_%s_shapeCard"%massPoints[1]
+    cardName2 = "%s_%s_shapeCard"%(options.signal,massPoints[1])
 if options.combined:
     cardDir = analysis_results+"/COMBINED/%s/cardFiles/%s/%s/"%(controlRegions,options.signal,'expected' if options.expected else 'observed')
 else:
@@ -143,7 +143,7 @@ if options.combined:
     signalHist = hists[2016]['DY'].Clone()
     signalHist.Reset()
     signalHist.SetName('signal')
-    signalHist.legendText = 'T2tt (%s,%s)'%(tuple(massPoints[0].split('_')))
+    signalHist.legendText = options.signal+' (%s,%s)'%(tuple(massPoints[0].split('_')))
     for i in range(signalHist.GetNbinsX()):
         signalHist.SetBinContent(i+1, (hists[2016]['signal1'].GetBinContent(i+1) + hists[2017]['signal1'].GetBinContent(i+1) + hists[2018]['signal1'].GetBinContent(i+1)))
     histos['signal1'] = signalHist
@@ -153,7 +153,7 @@ if options.combined:
         signalHist2 = hists[2016]['DY'].Clone()
         signalHist2.Reset()
         signalHist2.SetName('signal')
-        signalHist2.legendText = 'T2tt (%s,%s)'%(tuple(massPoints[1].split('_')))
+        signalHist2.legendText = options.signal+' (%s,%s)'%(tuple(massPoints[1].split('_')))
         for i in range(signalHist2.GetNbinsX()):
             signalHist2.SetBinContent(i+1, (hists[2016]['signal2'].GetBinContent(i+1) + hists[2017]['signal2'].GetBinContent(i+1) + hists[2018]['signal2'].GetBinContent(i+1)))
         histos['signal2'] = signalHist2
@@ -188,12 +188,12 @@ else:
     print postFitResults['hists']['shapes_prefit']['Bin0'].keys()
     hists['signal1'] = postFitResults['hists']['shapes_prefit']['Bin0']['signal']
     hists['signal1'].style = styles.lineStyle( ROOT.kBlack, width=2 )
-    hists['signal1'].legendText = 'T2tt (%s,%s)'%(tuple(massPoints[0].split('_')))    
+    hists['signal1'].legendText = options.signal+' (%s,%s)'%(tuple(massPoints[0].split('_')))    
 
     if inSignalRegions:
         hists['signal2'] = postFitResults2['hists']['shapes_prefit']['Bin0']['signal']
         hists['signal2'].style = styles.lineStyle( ROOT.kBlack, width=2, dashed=True )
-        hists['signal2'].legendText = 'T2tt (%s,%s)'%(tuple(massPoints[1].split('_')))    
+        hists['signal2'].legendText = options.signal+' (%s,%s)'%(tuple(massPoints[1].split('_')))    
 
 #hists['BSM'].legendOption = 'l'
 
@@ -333,8 +333,8 @@ def drawLabelsRot( regions ):
     lines += [(min+(1.5)*diff, 0.57, "M_{T2}(ll) < 100 GeV")]
     return [tex.DrawLatex(*l) for l in lines] 
 
-
-drawObjects = drawObjects( isData=isData, lumi=round(lumiStr,1)) + boxes + drawDivisions( regions ) + drawLabelsRot( regions ) + drawLabels( regions )
+lumiStr = round(lumiStr,1) if not options.combined else int(lumiStr)
+drawObjects = drawObjects( isData=isData, lumi=lumiStr ) + boxes + drawDivisions( regions ) + drawLabelsRot( regions ) + drawLabels( regions )
 if options.region == 'signalOnly':
     drawObjects += drawDivisions( regions ) + drawLabels( regions ) + drawLabelsRot( regions )
 if options.combined:
@@ -350,6 +350,9 @@ else:
 if options.postFit:
     plotName += '_postFit'
 
+if options.signal is not "T2tt":
+    plotName += '_%s'%options.signal
+
 
 yMax = 90000. if not options.combined else 900000.
 
@@ -359,7 +362,7 @@ plotting.draw(
                 texX = "",
                 texY = 'Number of events',
             ),
-    plot_directory = os.path.join(plot_directory, "controlRegions", 'v6'),
+    plot_directory = os.path.join(plot_directory, "controlRegions", 'v7'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
     legend = (0.73,0.35, 0.90, 0.75),

@@ -51,11 +51,11 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None)
 from StopsDilepton.analysis.Setup import Setup
 if options.combined:
     setup=Setup(2016)
-    lumiStr = 35.9+41.5+60
+    lumiStr = 137
 else:
     setup = Setup(options.year)
     lumiStr = setup.dataLumi/1000
-analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v5/'
+analysis_results = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v7/'
 isData = True if not options.expected else False
 #lumiStr = setup.dataLumi/1000
 years=[2016,2017,2018]
@@ -225,6 +225,7 @@ else:
         ratio_boxes.append( r_box )
 
 def drawObjects( isData=False, lumi=36. ):
+    print lumi
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.05)
@@ -270,7 +271,8 @@ def drawLabelsRot( ):
     lines += [(0.41, 0.5, 'TTZ4j2b')]
     return [tex.DrawLatex(*l) for l in lines]
 
-drawObjects = drawObjects( isData=isData, lumi=round(lumiStr,1)) + boxes
+lumiStr = round(lumiStr,1) if not options.combined else int(lumiStr)
+drawObjects = drawObjects( isData=isData, lumi=lumiStr) + boxes
 if options.region == 'controlAll':
     drawObjects += drawLabelsRot() + drawLabels()
 
@@ -290,7 +292,7 @@ plotting.draw(
                 texX = "",
                 texY = 'Number of events',
             ),
-    plot_directory = os.path.join(plot_directory, "controlRegions", 'v5'),
+    plot_directory = os.path.join(plot_directory, "controlRegions", 'v7'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
     legend = (0.70,0.55, 0.95, 0.85),
