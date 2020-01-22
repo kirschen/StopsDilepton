@@ -280,6 +280,9 @@ class SystematicEstimator:
 
             (region, channel, setup.sysClone({'reweight':['reweightL1PrefireDown']})),
             (region, channel, setup.sysClone({'reweight':['reweightL1PrefireUp']})),
+
+            (region, channel, setup.sysClone({'remove':['reweightLeptonSip3dSF']})),
+            (region, channel, setup.sysClone({'remove':['reweightLeptonHit0SF']})),
         ]
         return l
 
@@ -313,6 +316,9 @@ class SystematicEstimator:
 
                 (region, channel, setup.sysClone({'reweight':['reweightL1PrefireDown']})),
                 (region, channel, setup.sysClone({'reweight':['reweightL1PrefireUp']})),
+
+                (region, channel, setup.sysClone({'remove':['reweightLeptonSip3dSF']})),
+                (region, channel, setup.sysClone({'remove':['reweightLeptonHit0SF']})),
             ]
             l.extend( [\
                 (region, channel, setup.sysClone({'reweight':['reweightBTag_SF_FS_Up']})),
