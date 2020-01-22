@@ -176,6 +176,10 @@ def wrapper(s):
 
 
         #print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
+        ## this is dangerous, but no way around it atm ##
+        if (args.signal.startswith("T8") and s.mStop<301):# or (args.signal.startswith("T2bW") and s.mStop<201):
+            for k in res:
+                res[k] *= 0.01
         limitCache.add(sConfig, res)
         logger.info("Adding results to database")
         logger.info("Results stored in %s", limitDir )
@@ -194,7 +198,7 @@ def wrapper(s):
     #print sString, res
     try:
         print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
-        if res['-1.000']>3*res['0.840']:
+        if res['-1.000']>4*res['0.840']:
             print "WARNING: This point could be problematic!"
             if args.clean:
                 vetoList += [ s.name ]
@@ -204,24 +208,24 @@ def wrapper(s):
         return None
 
 if args.signal == "T2tt":
-    data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
-    postProcessing_directory    = 'stops_2017_nano_v0p22/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
 elif args.signal == "T2bW":
-    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2bW as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
-    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
-    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
 elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
-    data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
-    postProcessing_directory    = 'stops_2016_nano_v0p16/dilep/'
+    data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+    postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
     from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
 # FIXME: removing 1052_0 from list
@@ -254,6 +258,8 @@ results = [r for r in results if r]
 # Make histograms for T2tt
 baseDir  = analysis_results+"/comb/%s/"%(args.controlRegions)
 limitPrefix = args.signal
+if not os.path.isdir(os.path.join(baseDir, 'limits', args.signal, limitPrefix)):
+    os.makedirs(os.path.join(baseDir, 'limits', args.signal, limitPrefix))
 limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
 ## new try, other thing is buggy
 def toGraph2D(name,title,length,x,y,z):

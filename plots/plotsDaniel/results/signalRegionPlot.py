@@ -53,7 +53,7 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None)
 from StopsDilepton.analysis.Setup import Setup
 if options.combined:
     setup=Setup(2016)
-    lumiStr = 35.9+41.5+60
+    lumiStr = 137
 else:
     setup = Setup(options.year)
     lumiStr = setup.dataLumi/1000
@@ -69,7 +69,7 @@ inSignalRegions = not options.region.count('control')>0
 if inSignalRegions:
     cardName2 = "T2tt_%s_shapeCard"%massPoints[1]
 if options.combined:
-    cardDir = analysis_results.replace('v6','v5')+"/COMBINED/%s/cardFiles/%s/%s/"%(controlRegions,options.signal,'expected' if options.expected else 'observed')
+    cardDir = analysis_results+"/COMBINED/%s/cardFiles/%s/%s/"%(controlRegions,options.signal,'expected' if options.expected else 'observed')
 else:
     cardDir = analysis_results+"/%s/%s/cardFiles/%s/%s/"%(options.year,controlRegions,options.signal,'expected' if options.expected else 'observed')
 
@@ -301,8 +301,8 @@ def drawLabelsRot( regions ):
     lines += [(min+(24.8)*diff, 0.7, "M_{T2}(ll) > 240 GeV")]
     return [tex.DrawLatex(*l) for l in lines] 
 
-
-drawObjects = drawObjects( isData=isData, lumi=round(lumiStr,1)) + boxes
+lumiStr = round(lumiStr,1) if not options.combined else int(lumiStr)
+drawObjects = drawObjects( isData=isData, lumi=lumiStr) + boxes
 if options.region == 'signalOnly':
     drawObjects += drawDivisions( regions ) + drawLabels( regions ) + drawLabelsRot( regions )
 if options.combined:
@@ -327,7 +327,7 @@ plotting.draw(
                 texX = "",
                 texY = 'Number of events',
             ),
-    plot_directory = os.path.join(plot_directory, "controlRegions", 'v6'),
+    plot_directory = os.path.join(plot_directory, "controlRegions", 'v7'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
     legend = (0.70,0.55, 0.95, 0.85),

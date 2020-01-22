@@ -62,7 +62,8 @@ elif options.year == 2018:
     lumi    = 59.7 
     #eraText =  "(2018)"
 else:
-    lumi = 35.92+41.53+59.74
+    #lumi = 35.92+41.53+59.74
+    lumi = 137
 
 plotDir = os.path.join(plot_directory,'limits', signalString, options.version, yearString, options.subDir)
 
@@ -148,8 +149,11 @@ for i in ["exp", "exp_up", "exp_down", "obs", "obs_UL", "obs_up", "obs_down"]:
 
 for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
   hists[i + "_smooth"] = hists[i + "_int"].Clone(i + "_smooth")
-  hists[i + "_smooth"].Smooth(1,"k5a")
+  #for x in range(3):
+  if not signalString == "T2bW":
+      hists[i + "_smooth"].Smooth(1,"k5a")
   #hists[i + "_smooth"].Smooth(1,"k5b")
+  #hists[i + "_smooth"].Smooth(1,"k3a")
 
 ROOT.gStyle.SetPadRightMargin(0.05)
 c1 = ROOT.TCanvas()
@@ -191,7 +195,11 @@ fileIN = inputFile('SMS_limit.cfg')
 
 # classic temperature histogra
 xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "asdf")
-xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-3,10**2) )
+#xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-3,10**2) )
+if options.signal.startswith("T8"):
+    xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-4,5*10**2) )
+else:
+    xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-3,10**2) )
 xsecPlot.Save("%sXSEC" %outputname)
 
 temp = ROOT.TFile("tmp.root","update")

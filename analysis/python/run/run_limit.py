@@ -195,8 +195,9 @@ else:
 ## load the signal scale cache
 from StopsDilepton.tools.resultsDB       import resultsDB
 
-cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_NNPDF30/%s/"%year
+cacheDir    = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_NNPDF30/%s/"%year
 scale_cache = resultsDB(cacheDir+'PDFandScale_unc.sq', "scale", ["name", "region", "CR", "channel", "PDFset"])
+PDF_cache   = resultsDB(cacheDir+'PDFandScale_unc.sq', "PDF", ["name", "region", "CR", "channel", "PDFset"])
 
 PDF = ['TTLep_pow', 'DY', 'multiboson', 'TTZ'] 
 PDFUncCaches   = {p:Cache(setup.analysis_results+'/systematicsTest_v2/PDF_%s.pkl' %p, verbosity=2) for p in PDF}
@@ -212,9 +213,10 @@ def getScaleUnc(name, r, niceName, channel):
   scaleUnc = scaleUnc.val if scaleUnc else 0
   return min(max(0.01, scaleUnc),0.10)
 
-def getPDFUnc(name, r, channel, process):
-    if PDFUncCaches[process].contains((name, r, channel)):  return max(0.01, PDFUncCaches[process].get((name, r, channel)))
-    else:                                                   return 0.02
+def getPDFUnc(name, r, niceName, channel):
+  PDFUnc = PDF_cache.get({"name": name, "region":r, "CR":niceName, "channel":channel, "PDFset":'NNPDF30'})
+  PDFUnc = PDFUnc.val if PDFUnc else 0
+  return min(max(0.01, PDFUnc),0.10)
 
 def getPDFUncSignal(name, r, channel):
     if PDFUncCacheSignal.contains((name, r, channel)):  return max(0.01, PDFUncCacheSignal.get((name, r, channel)))
@@ -224,8 +226,11 @@ def getPDFUncSignal(name, r, channel):
 def wrapper(s):
     xSecScale = 1
     if "T8bb" in s.name:
-        if s.mStop<10:#810
+        if s.mStop<301:#810
                 xSecScale = 0.01
+    #if "T2bW" in s.name:
+    #    if s.mStop<201:#810
+    #            xSecScale = 0.01
     c = cardFileWriter.cardFileWriter()
     c.releaseLocation = os.path.abspath('.') # now run directly in the run directory
 
@@ -337,15 +342,15 @@ def wrapper(s):
                     elif niceName.count("controlDYVV") or niceName.count("controlTTZ"):
                         fakeUncertainty     = 1.02 # 1.02
                         nonGaussUncertainty = 1.02 # 1.02
-                        normUncertainty = 1.08
+                        normUncertainty     = 1.08
                     elif (setup.regions != noRegions and (r in setup.regions[divider:])):
                         fakeUncertainty     = 1.20
                         nonGaussUncertainty = 1.25
-                        normUncertainty = 1.10
+                        normUncertainty     = 1.10
                     else:
                         fakeUncertainty     = 1.05 # 1.03
                         nonGaussUncertainty = 1.10
-                        normUncertainty = 1.10
+                        normUncertainty     = 1.10
                     TT_SF = 1
                     if TT_SF != 1: logger.warning("Scaling ttbar background by %s", TT_SF)
                     logger.info("Fake and non-gauss uncertainty are %s and  %s", fakeUncertainty, nonGaussUncertainty)
@@ -392,8 +397,8 @@ def wrapper(s):
                         c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale ) 
-                        #c.specifyUncertainty('leptonSIP3DSF', binname, name, 1 + e.leptonSIP3DSFSystematic(   r, channel, setup).val * uncScale ) 
-                        #c.specifyUncertainty('leptonHit0SF', binname, name, 1 + e.leptonHit0SFSystematic(   r, channel, setup).val * uncScale ) 
+                        c.specifyUncertainty('leptonSIP3DSF', binname, name, 1 + e.leptonSIP3DSFSystematic(   r, channel, setup).val * uncScale ) 
+                        c.specifyUncertainty('leptonHit0SF', binname, name, 1 + e.leptonHit0SFSystematic(   r, channel, setup).val * uncScale ) 
                         c.specifyUncertainty('L1prefire', binname, name, 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale ) 
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
                             c.specifyUncertainty(trigger,    binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
@@ -401,7 +406,8 @@ def wrapper(s):
                         if e.name.count('TTJets'):
                             c.specifyUncertainty('scaleTT', binname, name, 1 + getScaleUnc('Top_pow', r, niceName, channel))
                             logger.info("Scale uncertainty for top: %s", getScaleUnc('Top_pow', r, niceName, channel))
-                        #    c.specifyUncertainty('PDF',     binname, name, 1 + 0.02)#getPDFUnc('TTLep_pow', r, channel,'TTLep_pow'))
+                            c.specifyUncertainty('PDF',     binname, name, 1 + getPDFUnc('TTLep_pow', r, niceName, channel))
+                            logger.info("PDF uncertainty for top: %s", getPDFUnc('Top_pow', r, niceName, channel))
 
                         if name == 'TTJets':
                             c.specifyUncertainty('topFakes',  binname, name, fakeUncertainty)
@@ -422,6 +428,8 @@ def wrapper(s):
                         if e.name.count('TTZ'):
                             c.specifyUncertainty('scaleTTZ',binname, name, 1 + getScaleUnc('TTZ', r, niceName, channel)) 
                             logger.info("Scale uncertainty for ttZ: %s", getScaleUnc(name, r, niceName, channel))
+                            c.specifyUncertainty('PDF',     binname, name, 1 + getPDFUnc('TTZ', r, niceName, channel))
+                            logger.info("PDF uncertainty for ttZ: %s", getPDFUnc('TTZ', r, niceName, channel))
                             #c.specifyUncertainty('PDF',     binname, name, 1 + 0.02) #getPDFUnc('TTZ', r, channel,'TTZ'))
 
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
@@ -441,11 +449,11 @@ def wrapper(s):
                 e = eSignal
                 
                 if fastSim:
-                    if args.signal == 'T2tt': 
+                    if args.signal == 'T2tt': # change this for next round. small impact
                         signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF']})
                     else:
                         signalSetup = setup.sysClone(sys={'reweight':[ 'reweightLeptonFastSimSF'], 'remove':[]})
-                    if year == 2016 and False:
+                    if year == 2016:
                         signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'GenMET'})))
                     else:
                         signal = e.cachedEstimate(r, channel, signalSetup)
@@ -455,13 +463,17 @@ def wrapper(s):
 
                 signal = signal * args.scale
 
+                if signal.val<0.01 and niceName.count("control")==0:
+                    signal.val = 0.001
+                    signal.sigma = 0.001
                 #if niceName.count('controlTTZ') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
                 #if niceName.count('controlDY') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
                 c.specifyExpectation(binname, 'signal', signal.val*xSecScale )
 
                 logger.info("Signal expectation: %s", signal.val*xSecScale)
 
-                if signal.val>0:
+
+                if signal.val>0.001:
                   if not fastSim:
                     c.specifyUncertainty('PDF',      binname, 'signal', 1 + getPDFUncSignal(s.name, r, channel))
                     if args.signal == "ttHinv":
@@ -738,7 +750,7 @@ if args.signal == "T2tt":
         if args.fullSim:
              from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
-            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
+            data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
             postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
     elif year == 2017:
@@ -760,8 +772,8 @@ if args.signal == "T2tt":
 
 if args.signal == "T2bW":
     if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2bW as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
@@ -774,8 +786,8 @@ if args.signal == "T2bW":
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
     if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
@@ -789,8 +801,8 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
     if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
@@ -804,8 +816,8 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
     if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
@@ -847,6 +859,8 @@ limitPrefix = args.signal
 if args.significanceScan:
   limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'signifResults.root')
 else:
+  if not os.path.isdir(os.path.join(baseDir, 'limits', args.signal, limitPrefix)):
+    os.makedirs(os.path.join(baseDir, 'limits', args.signal, limitPrefix))
   limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
 
 ## new try, other thing is buggy
