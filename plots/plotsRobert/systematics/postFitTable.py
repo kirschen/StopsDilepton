@@ -8,10 +8,11 @@ plotDirectory = "/afs/hephy.at/user/r/rschoefbeck/www/StopsDilepton/postFit"
 
 Results = CombineResults( cardFile=cardFile, plotDirectory=plotDirectory, year=0, bkgOnly=True, isSearch=True )
 
+#signal         TTZ            TTJets         TTXNoZ         DY             multiBoson
+
+unc    = Results.getUncertainties( postFit=True)
 yields = Results.getEstimates( postFit=True )
-unc    = Results.getUncertainties(estimate="signal", nuisance="SFb", postFit=True)
 
 
 #hists = Results.getRegionHistos( postFit=True, nuisances=["SFb"])
-#:w
-hists = Results.getRegionHistos( postFit=True, nuisances=["SFb"])
+#hists = Results.getRegionHistos( postFit=True, nuisances=["SFb"])
