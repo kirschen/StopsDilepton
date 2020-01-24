@@ -13,5 +13,3 @@ Results = CombineResults( cardFile=cardFile, plotDirectory=plotDirectory, year=0
 yields = Results.getEstimates( postFit=True )
 unc    = Results.getUncertainties( postFit=True)
 
-#hists = Results.getRegionHistos( postFit=True, nuisances=["SFb"])
-#hists = Results.getRegionHistos( postFit=True, nuisances=["SFb"])
