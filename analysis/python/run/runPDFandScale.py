@@ -422,12 +422,11 @@ if options.combine:
                 sigma_centralWeight_PDF = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':['(1)']}))
                 for var in PDF_variations:
                     # calculate x-sec noramlization
-                    print var, c, region
-                    logger.info("simga_incl_reweight")
+                    logger.debug("simga_incl_reweight")
                     simga_incl_reweight = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[var]}))
                     norm = sigma_incl_central_PDF/simga_incl_reweight if not options.noKeepNorm else 1
 
-                    logger.info("simga_reweight")
+                    logger.debug("simga_reweight")
                     sigma_reweight  = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[var]}))
                     sigma_reweight_acc = sigma_reweight * norm
 
@@ -519,8 +518,10 @@ if options.combine:
                 logger.info("Relative scale uncertainty: %s", scale_rel)
                 #logger.info("Relative shower scale uncertainty: %s", PS_scale_rel)
                 
-                PDF_unc.append(delta_sigma_rel)
-                if scale_rel < 1: Scale_unc.append(scale_rel) # only append here if we have enough stats
+                if sigma_central.val>0:
+                    if sigma_central.sigma/sigma_central.val < 0.15:
+                        PDF_unc.append(delta_sigma_rel)
+                        if scale_rel < 1: Scale_unc.append(scale_rel) # only append here if we have enough stats
                 #PS_unc.append(PS_scale_rel)
                 
                 # Store results
@@ -535,7 +536,8 @@ if options.combine:
                 scale_cache.get({"name": sample.name, "region":region, "CR":niceName, "channel":c, "PDFset":'scale'})
                 #PS_cache.get({"region":region, "channel":c, "PDFset":'PSscale'})
 
-    cleanPDF = [ x for x in PDF_unc if x<1 ]
+    print PDF_unc
+    cleanPDF = PDF_unc #[ x for x in PDF_unc if x<1 ]
 
     logger.info('Min. PDF uncertainty: %.3f', min(cleanPDF))
     logger.info('Max. PDF uncertainty: %.3f', max(cleanPDF))

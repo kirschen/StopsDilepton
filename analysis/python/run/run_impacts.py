@@ -14,6 +14,7 @@ argParser.add_argument("--removeDir",      action='store_true',                 
 argParser.add_argument("--expected",       action='store_true',                                                             help="Use expected results?")
 argParser.add_argument("--combined",       action='store_true',                                                             help="Use expected results?")
 argParser.add_argument("--signalInjection",action='store_true',                                                             help="Inject some signal?")
+argParser.add_argument("--useTxt",         action='store_true',                                                             help="Use txt based card files?")
 argParser.add_argument("--cores",          action='store', default=8,               nargs='?',                              help="Run on n cores in parallel")
 argParser.add_argument("--year",           action='store', default=2017,               nargs='?',                           help="Which year?")
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                              help="pick only one masspoint?")
@@ -32,7 +33,7 @@ year = int(args.year)
 
 def wrapper(s):
     logger.info("Processing mass point %s"%s.name)
-    cardFile = "%s_shapeCard.txt"%s.name
+    cardFile = "%s_shapeCard.txt"%s.name if not args.useTxt else "%s.txt"%s.name
     #analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v2/'
     sSubDir = 'expected' if args.expected else 'observed'
     if args.signalInjection: sSubDir += '_signalInjected'

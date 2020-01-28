@@ -21,6 +21,7 @@ argParser.add_argument("--expected",       action='store_true',                 
 argParser.add_argument("--calcNuisances",  action='store_true',                                                                         help="Extract the nuisances and store them in text files?")
 argParser.add_argument("--signalInjection",action='store_true',                                                                         help="Would you like some signal with your background?")
 argParser.add_argument("--clean",          action='store_true',                                                                         help="Remove potentially failed fits?")
+argParser.add_argument("--useTxt",         action='store_true',                                                                         help="Use txt files?")
 
 
 args = argParser.parse_args()
@@ -75,7 +76,7 @@ def wrapper(s):
         if args.signalInjection: sSubDir += '_signalInjected'
         baseDir  = analysis_results+"/%s/%s/"%(year,args.controlRegions)
         limitDir = baseDir+"/cardFiles/%s/%s/"%(args.signal, sSubDir)
-        cardFileName = os.path.join(limitDir, s.name+'_shapeCard.txt')
+        cardFileName = os.path.join(limitDir, s.name+'_shapeCard.txt') if not args.useTxt else os.path.join(limitDir, s.name+'.txt')
 
         #print cardFileName
         if not os.path.isfile(cardFileName):
@@ -86,7 +87,10 @@ def wrapper(s):
     baseDir  = baseDir.replace('2018','comb')
     limitDir = limitDir.replace('2018','comb')
     
-    cacheFileName = os.path.join(limitDir, 'calculatedLimits')
+    if not args.useTxt:
+        cacheFileName = os.path.join(limitDir, 'calculatedLimits')
+    else:
+        cacheFileName = os.path.join(limitDir, 'calculatedLimits_txt')
     limitCache    = Cache(cacheFileName, verbosity=2)
 
 
@@ -130,7 +134,7 @@ def wrapper(s):
                 from StopsDilepton.tools.getPostFit import getPrePostFitFromMLF
                 print combinedCard
                 print cardFileName
-                combineWorkspace = combinedCard.replace('shapeCard.txt','shapeCard_FD.root')
+                combineWorkspace = combinedCard.replace('.txt','_FD.root')
                 print "Extracting fit results from %s"%combineWorkspace
 
                 postFitResults = getPrePostFitFromMLF(combineWorkspace)
