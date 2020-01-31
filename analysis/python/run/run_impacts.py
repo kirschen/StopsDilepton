@@ -48,16 +48,13 @@ def wrapper(s):
     shutil.copyfile(cardFilePath,combineDirname+'/'+cardFile)
     if not args.combined: shutil.copyfile(cardFilePath.replace('shapeCard.txt','shape.root'),combineDirname+'/'+cardFile.replace('shapeCard.txt','shape.root'))
     shutil.copyfile(cardFilePath.replace('shapeCard.txt', 'shapeCard.root'),combineDirname+'/'+cardFile.replace('shapeCard.txt', 'shapeCard.root'))
+    prepWorkspace   = "text2workspace.py %s -m 125"%cardFile
     if args.bkgOnly:
-        prepWorkspace   = "text2workspace.py %s --X-allow-no-signal -m 125"%cardFile
+        robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 0 --doInitialFit --robustFit 1 --rMin -10 --rMax 10"%s.name
+        impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 0 --robustFit 1 --doFits --parallel %s --rMin -10 --rMax 10"%(s.name,str(args.cores))
     else:
-        prepWorkspace   = "text2workspace.py %s -m 125"%cardFile
-    if args.bkgOnly:
-        robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 --doInitialFit --robustFit 1 --rMin -0.01 --rMax 0.0"%s.name
-        impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 --robustFit 1 --doFits --parallel %s --rMin -0.01 --rMax 0.0"%(s.name,str(args.cores))
-    else:
-        robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 --doInitialFit --robustFit 1 --rMin -10 --rMax 10"%s.name
-        impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 --robustFit 1 --doFits --parallel %s --rMin -10 --rMax 10"%(s.name,str(args.cores))
+        robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 1 --doInitialFit --robustFit 1 --rMin -10 --rMax 10"%s.name
+        impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 1 --robustFit 1 --doFits --parallel %s --rMin -10 --rMax 10"%(s.name,str(args.cores))
     extractImpact   = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -o impacts.json"%s.name
     plotImpacts     = "plotImpacts.py -i impacts.json -o impacts"
     combineCommand  = "cd %s;%s;%s;%s;%s;%s"%(combineDirname,prepWorkspace,robustFit,impactFits,extractImpact,plotImpacts)
@@ -68,9 +65,9 @@ def wrapper(s):
     plotDir = plot_directory + "/impacts/"
     if args.expected:
         s.name += '_expected'
-    if not os.path.isdir(plotDir): os.makedirs(plotDir)
     if args.bkgOnly:
-        shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_bkgOnly.pdf"%(plotDir,s.name))
+        s.name += '_bkgOnly'
+    if not os.path.isdir(plotDir): os.makedirs(plotDir)
     elif args.combined:
         shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_combined%s.pdf"%(plotDir,s.name,'_signalInjected' if args.signalInjection else ''))
     elif args.year:
