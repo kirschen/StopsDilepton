@@ -5,7 +5,7 @@ Calculate covariance matrices following https://twiki.cern.ch/twiki/bin/view/CMS
 import shutil, os
 import ROOT
 from array import array
-from StopsDilepton.tools.user import combineReleaseLocation, analysis_results, plot_directory
+from StopsDilepton.tools.user import analysis_results, plot_directory
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -29,14 +29,14 @@ else:
 
 fname = analysis_results + '%sfitAll/cardFiles/T2tt_newCorr/%s.txt'%(agg,options.datacard)
 #fname = analysis_results + '%sfitAll/cardFiles/T2tt/%s.txt'%(agg,options.datacard)
-releaseLocation = '/afs/hephy.at/work/d/dspitzbart/higgs/CMSSW_7_4_7/src/HiggsAnalysis/CombinedLimit/'
+releaseLocation = '.'
 
 postFit = options.postFit
 makeTable = True
 aggregate = options.aggregate
 onlySR = options.onlySR
 
-nSR = 26
+nSR = 46*3
 if aggregate: nSR = 3
 
 postfix = ''
@@ -120,13 +120,17 @@ blue = array("d",[1.00, 1.00, 0.50, 0.40, 0.50])
 ROOT.TColor.CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont)
 ROOT.gStyle.SetNumberContours(NCont)
 
-if not os.path.isfile(fname.replace(".txt","_mlfit.root")) or options.overwrite:
-    calcCovariance(fname=fname, options="")
+#if not os.path.isfile(fname.replace(".txt","_mlfit.root")) or options.overwrite:
+#    calcCovariance(fname=fname, options="")
 
-f1 = ROOT.TFile(fname.replace(".txt","_mlfit.root"))
+fitResults = 'fitDiagnostics_r1.root'
+
+f1 = ROOT.TFile(fitResults)
 if postFit: tt = f1.Get("shapes_fit_b")
 else: tt = f1.Get("shapes_prefit")
 h2 = tt.Get("overall_total_covar")
+
+print h2
 
 binNames = []
 matrix = {}
@@ -145,15 +149,16 @@ if onlySR: nbins = nSR
 sorted_cov = ROOT.TH2D('cov','',nbins,0,nbins,nbins,0,nbins)
 binNames = natural_sort(binNames)
 
-SRnames = []
-if aggregate:
-    for i in range(nbins):
-        SRnames.append("All"+str(i))
-else:
-    for i in range(nbins/2):
-        SRnames.append("SF "+str(i))
-        SRnames.append("DF "+str(i))
-
+SRnames = binNames
+#SRnames = []
+#if aggregate:
+#    for i in range(nbins):
+#        SRnames.append("All"+str(i))
+#else:
+#    for i in range(nbins/2):
+#        SRnames.append("SF "+str(i))
+#        SRnames.append("DF "+str(i))
+#
 for i,k in enumerate(binNames):
     if i < nSR:
         sorted_cov.GetXaxis().SetBinLabel(i+1,SRnames[i])
@@ -162,6 +167,8 @@ for i,k in enumerate(binNames):
         sorted_cov.SetBinContent(i+1,j+1,matrix[k][l])
 
 sorted_cov.GetXaxis().LabelsOption("v")
+sorted_cov.GetXaxis().SetLabelSize(0.012)
+sorted_cov.GetYaxis().SetLabelSize(0.012)
 
 if postFit: sorted_cov.GetZaxis().SetRangeUser(0.005, 900) #0.00005, 30
 else: sorted_cov.GetZaxis().SetRangeUser(0.005, 900)
@@ -194,16 +201,17 @@ latex2.SetNDC()
 latex2.SetTextSize(0.033)
 latex2.SetTextAlign(11) # align right
 latex2.DrawLatex(0.45,0.95,'#bf{arXiv:xxxx.xxxxx}')
-latex2.DrawLatex(0.68,0.95,"#bf{35.9 fb^{-1} (13TeV)}")
+latex2.DrawLatex(0.68,0.95,"#bf{137 fb^{-1} (13TeV)}")
 
 plot_dir = plot_directory + '/covariance_newCorr/'
 if not os.path.isdir(plot_dir):
     os.mkdir(plot_dir)
 
-outname = fname.split('.')[-2].split('/')[-1]
+#outname = fname.split('.')[-2].split('/')[-1]
 filetypes = ['.png','.pdf','.root']
+postFix = '' if not options.postFit else '_postFit'
 for f in filetypes:
-    c2.Print(plot_dir+outname+postfix+f)
+    c2.Print(plot_dir+'combined'+postFix+f)
 
 # Calculate correlation matrix
 
@@ -231,7 +239,10 @@ for i,k in enumerate(binNames[:nbins]):
 
 sorted_corr.GetXaxis().LabelsOption("v")
 
-sorted_corr.GetZaxis().SetRangeUser(0., 1.0)
+sorted_corr.GetXaxis().SetLabelSize(0.012)
+sorted_corr.GetYaxis().SetLabelSize(0.012)
+
+sorted_corr.GetZaxis().SetRangeUser(-0.5, 1.0)
 
 c3 = ROOT.TCanvas('c3','c3',700,700)
 
@@ -256,50 +267,44 @@ latex2.SetNDC()
 latex2.SetTextSize(0.033)
 latex2.SetTextAlign(11) # align right
 latex2.DrawLatex(0.45,0.95,'#bf{arXiv:xxxx.xxxxx}')
-latex2.DrawLatex(0.68,0.95,"#bf{35.9 fb^{-1} (13TeV)}")
+latex2.DrawLatex(0.68,0.95,"#bf{137 fb^{-1} (13TeV)}")
 
-outname = fname.split('.')[-2].split('/')[-1] + '_correlation'
+#outname = fname.split('.')[-2].split('/')[-1] + '_correlation'
+postFix = '' if not options.postFit else '_postFit'
 filetypes = ['.png','.pdf','.root']
 for f in filetypes:
-    c3.Print(plot_dir+outname+postfix+f)
+    c3.Print(plot_dir+'combined_correlation'+postFix+f)
 
 
-SRnames = []
-if aggregate:
-    for i in range(nbins):
-        SRnames.append("All"+str(i))
-else:
-    for i in range(nbins/2):
-        SRnames.append("SF "+str(i))
-        SRnames.append("DF "+str(i))
-
-# Create latex tables
-
-if makeTable:
-    texdir = os.path.join(plot_dir,'matrices/')
-    if not os.path.exists(texdir): os.makedirs(texdir)
-    ofile = texdir+fname.split('.')[-2].split('/')[-1] + postfix + '.tex'
-    with open(ofile, "w") as f:
-        f.write("\\documentclass{article}\\usepackage[hscale=0.9,vscale=0.8]{geometry}\n \\usepackage{caption} \n \\usepackage{rotating} \n \\begin{document} \n")
-        
-        f.write("\\begin{table} \n\\resizebox{\\textwidth}{!}{ \\begin{tabular}{c||" + "c"*len(SRnames) + "} \n")
-        f.write("& " + " & ".join(x for x in SRnames) + "\\\\ \n \\hline \\hline \n")
-        for i,sr in enumerate(SRnames):
-            f.write(sr + "& " + " & ".join( "%.2f"%x if j+1>i else " " for j,x in enumerate(cov[i]) ) + "\\\\ \n") # \n \\hline
-        f.write(" \\end{tabular}}")
-        f.write(" \\caption{Covariance matrix} \n ")
-        f.write(" \\end{table} ")
-        
-        f.write("\\begin{table} \n\\resizebox{\\textwidth}{!}{ \\begin{tabular}{c||" + "c"*len(SRnames) + "} \n")
-        f.write("& " + " & ".join(x for x in SRnames) + "\\\\ \n \\hline \\hline \n")
-        for i,sr in enumerate(SRnames):
-            f.write(sr + "& " + " & ".join( "%.2f"%x if j+1>i else " " for j,x in enumerate(corr[i])) + "\\\\ \n") # \n \\hline
-        f.write(" \\end{tabular}}")
-        f.write(" \\caption{Correlation matrix} \n ")
-        f.write(" \\end{table} ")
-
-        f.write(" \\end{document}")
-    
-    os.system("cd "+texdir+";pdflatex "+ofile)
-
-f1.Close()
+#SRnames = binNames # no renaming now
+#
+## Create latex tables
+#
+#if makeTable:
+#    texdir = os.path.join(plot_dir,'matrices/')
+#    if not os.path.exists(texdir): os.makedirs(texdir)
+#    ofile = texdir+fname.split('.')[-2].split('/')[-1] + postfix + '.tex'
+#    with open(ofile, "w") as f:
+#        f.write("\\documentclass{article}\\usepackage[hscale=0.9,vscale=0.8]{geometry}\n \\usepackage{caption} \n \\usepackage{rotating} \n \\begin{document} \n")
+#        
+#        f.write("\\begin{table} \n\\resizebox{\\textwidth}{!}{ \\begin{tabular}{c||" + "c"*len(SRnames) + "} \n")
+#        f.write("& " + " & ".join(x for x in SRnames) + "\\\\ \n \\hline \\hline \n")
+#        for i,sr in enumerate(SRnames):
+#            f.write(sr + "& " + " & ".join( "%.2f"%x if j+1>i else " " for j,x in enumerate(cov[i]) ) + "\\\\ \n") # \n \\hline
+#        f.write(" \\end{tabular}}")
+#        f.write(" \\caption{Covariance matrix} \n ")
+#        f.write(" \\end{table} ")
+#        
+#        f.write("\\begin{table} \n\\resizebox{\\textwidth}{!}{ \\begin{tabular}{c||" + "c"*len(SRnames) + "} \n")
+#        f.write("& " + " & ".join(x for x in SRnames) + "\\\\ \n \\hline \\hline \n")
+#        for i,sr in enumerate(SRnames):
+#            f.write(sr + "& " + " & ".join( "%.2f"%x if j+1>i else " " for j,x in enumerate(corr[i])) + "\\\\ \n") # \n \\hline
+#        f.write(" \\end{tabular}}")
+#        f.write(" \\caption{Correlation matrix} \n ")
+#        f.write(" \\end{table} ")
+#
+#        f.write(" \\end{document}")
+#    
+#    os.system("cd "+texdir+";pdflatex "+ofile)
+#
+#f1.Close()

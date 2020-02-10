@@ -12,6 +12,7 @@ argParser.add_argument('--logLevel',       action='store', default='INFO',      
 argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","ttHinv"],  help="Which signal?")
 argParser.add_argument("--removeDir",      action='store_true',                                                             help="Remove the directory in the combine release after study is done?")
 argParser.add_argument("--expected",       action='store_true',                                                             help="Use expected results?")
+argParser.add_argument("--observed",       action='store_true',                                                             help="Use expected results?")
 argParser.add_argument("--combined",       action='store_true',                                                             help="Use expected results?")
 argParser.add_argument("--signalInjection",action='store_true',                                                             help="Inject some signal?")
 argParser.add_argument("--useTxt",         action='store_true',                                                             help="Use txt based card files?")
@@ -52,6 +53,9 @@ def wrapper(s):
     if args.bkgOnly:
         robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 0 --doInitialFit --robustFit 1 --rMin -10 --rMax 10"%s.name
         impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 0 --robustFit 1 --doFits --parallel %s --rMin -10 --rMax 10"%(s.name,str(args.cores))
+    elif args.observed:
+        robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 --doInitialFit --robustFit 1 --rMin -10 --rMax 10"%s.name
+        impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 --robustFit 1 --doFits --parallel %s --rMin -10 --rMax 10"%(s.name,str(args.cores))
     else:
         robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 1 --doInitialFit --robustFit 1 --rMin -10 --rMax 10"%s.name
         impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 1 --robustFit 1 --doFits --parallel %s --rMin -10 --rMax 10"%(s.name,str(args.cores))
@@ -67,6 +71,8 @@ def wrapper(s):
         s.name += '_expected'
     if args.bkgOnly:
         s.name += '_bkgOnly'
+    if args.observed:
+        s.name += '_observed'
     if not os.path.isdir(plotDir): os.makedirs(plotDir)
     elif args.combined:
         shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_combined%s.pdf"%(plotDir,s.name,'_signalInjected' if args.signalInjection else ''))

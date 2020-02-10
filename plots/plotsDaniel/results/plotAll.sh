@@ -25,11 +25,11 @@
 #python controlRegionPlot.py --year 2018     --region controlTT --postFit
 #python controlRegionPlot.py --year 2016     --region controlTT --postFit --combine
 
-python controlRegionPlot.py --year 2016     --region controlAll 
-python controlRegionPlot.py --year 2017     --region controlAll 
-python controlRegionPlot.py --year 2018     --region controlAll 
-python controlRegionPlot.py --year 2016     --region controlAll --combine
-python controlRegionPlot.py --year 2016     --region controlAll --postFit
-python controlRegionPlot.py --year 2017     --region controlAll --postFit
-python controlRegionPlot.py --year 2018     --region controlAll --postFit
-python controlRegionPlot.py --year 2016     --region controlAll --postFit --combine
+#python controlRegionPlot.py --year 2016     --region controlAll 
+#python controlRegionPlot.py --year 2017     --region controlAll 
+#python controlRegionPlot.py --year 2018     --region controlAll 
+#python controlRegionPlot.py --year 2016     --region controlAll --combine
+#python controlRegionPlot.py --year 2016     --region controlAll --postFit
+#python controlRegionPlot.py --year 2017     --region controlAll --postFit
+#python controlRegionPlot.py --year 2018     --region controlAll --postFit
+#python controlRegionPlot.py --year 2016     --region controlAll --postFit --combine

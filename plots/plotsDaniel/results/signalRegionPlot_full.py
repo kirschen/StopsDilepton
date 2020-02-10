@@ -121,6 +121,7 @@ if options.combined:
     dataHist.Reset()
     dataHist.SetName('data')
     dataHist.legendText = 'Data'
+    dataHist.drawOption = 'e0'
     for n,(p,tex) in enumerate(processes):
         for i in range(bhistos[n].GetNbinsX()):
             v=0
@@ -137,8 +138,9 @@ if options.combined:
         dataHist.SetBinContent(i+1, (hists[2016]['data'].Eval(i+0.5) + hists[2017]['data'].Eval(i+0.5) + hists[2018]['data'].Eval(i+0.5)))
 
     histos['data'] = dataHist
-    histos['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
-    histos['data'].legendOption = 'p'
+    histos['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1., drawOption='e0' )
+    #histos['data'].legendOption = 'p'
+    histos['data'].drawOption = 'p'
 
     signalHist = hists[2016]['DY'].Clone()
     signalHist.Reset()
@@ -369,7 +371,7 @@ plotting.draw(
     widths = {'x_width':1300, 'y_width':600, 'y_ratio_width':250},
     yRange = (0.2,yMax),
     #yRange = (0.03, [0.001,0.5]),
-    ratio = {'yRange': (0.11, 1.89), 'texY':'Data/Pred.', 'histos':[(1,0)], 'drawObjects':ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
+    ratio = {'yRange': (0.11, 2.19), 'texY':'Data/Pred.', 'histos':[(1,0)], 'drawObjects':ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
             'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035), lambda h: h.LabelsOption('v'), lambda h: h.GetYaxis().SetTickLength(0.035), lambda h: h.GetXaxis().SetTickLength(0.02)]} ,
     drawObjects = drawObjects,
     histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetYaxis().SetTickLength(0.015)],

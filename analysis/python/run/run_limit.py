@@ -27,12 +27,14 @@ argParser.add_argument("--useTxt",         default = False, action = "store_true
 argParser.add_argument("--fullSim",        default = False, action = "store_true", help="Use FullSim signals")
 argParser.add_argument("--signalInjection",default = False, action = "store_true", help="Inject signal?")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
-argParser.add_argument("--removeSR",       default = False, action = "store", help="Remove one signal region?")
+argParser.add_argument("--removeSR",       default = [], nargs='*', action = "store", help="Remove signal region(s)?")
 argParser.add_argument("--skipFitDiagnostics", default = False, action = "store_true", help="Don't do the fitDiagnostics (this is necessary for pre/postfit plots, but not 2D scans)?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 argParser.add_argument("--year",           default=2016,     action="store",      help="Which year?")
 argParser.add_argument("--dpm",            default= False,   action="store_true",help="Use dpm?",)
 args = argParser.parse_args()
+
+removeSR = [ int(r) for r in args.removeSR ] if len(args.removeSR)>0 else False
 
 year = int(args.year)
 
@@ -60,7 +62,10 @@ from copy import deepcopy
 setup = Setup(year=year)
 
 # Define CR
-setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': True, 'dPhiInv': False,  'zWindow': 'onZ', 'metSigMin' : 12})
+if year == 2017 and False:
+    setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': True, 'dPhiInv': False,  'zWindow': 'onZ', 'metSigMin' : 12})
+else:
+    setupDYVV = setup.sysClone(parameters={'nBTags':(0,0 ), 'dPhi': False, 'dPhiInv': False,  'zWindow': 'onZ', 'metSigMin' : 12})
 setupTTZ1 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(2,2),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
 setupTTZ2 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(1,1),  'dPhi': False, 'dPhiInv': False})
 setupTTZ3 = setup.sysClone(parameters={'triLep': True, 'zWindow' : 'onZ', 'mllMin': 0, 'metMin' : 0, 'metSigMin' : 0, 'nJets':(3,3),  'nBTags':(2,-1), 'dPhi': False, 'dPhiInv': False})
@@ -86,9 +91,9 @@ setupTT.channels = ['SF','EMu']
 
 # Define regions for CR
 if args.aggregate:
-    if args.removeSR:
+    if removeSR:
         tmpRegion = deepcopy(regionsAgg[1:])
-        tmpRegion.pop(int(args.removeSR))
+        tmpRegion.pop(int(removeSR))
         setup.regions   = tmpRegion
     else:
         setup.regions     = regionsAgg[1:]
@@ -97,11 +102,12 @@ elif args.DMsync:
     setup.regions     = regionsDM[1:]
     setupDYVV.regions = regionsLegacy[1:]
 else:
-    if args.removeSR:
+    if removeSR:
         tmpRegion = deepcopy(regionsLegacy[1:])
-        tmpRegion.pop(int(args.removeSR))
-        setup.regions   = tmpRegion
-        setupDYVV.regions = tmpRegion
+        for rem in removeSR:
+            tmpRegion.pop(int(rem))
+            setup.regions   = tmpRegion
+            setupDYVV.regions = tmpRegion
     else:
         setup.regions   = regionsLegacy[1:]
         #setup.regions   = regionsDM7[1:]
@@ -113,6 +119,11 @@ setupTTZ4.regions = noRegions
 setupTTZ5.regions = noRegions
 
 setupTT.regions = [regionsLegacy[0]]
+
+## Find low, med and high mt2ll regions, also when regions are dropped
+regionsLoMT2ll  = [ r for r in setup.regions if (r.vals['dl_mt2ll'][0] == 100 and r.vals['dl_mt2ll'][1] == 140) ]
+regionsMiMT2ll  = [ r for r in setup.regions if (r.vals['dl_mt2ll'][0] == 140 and r.vals['dl_mt2ll'][1] == 240) ]
+regionsHiMT2ll  = [ r for r in setup.regions if (r.vals['dl_mt2ll'][0] == 240) ]
 
 # Define estimators for CR
 estimators           = estimatorList(setup)
@@ -201,7 +212,6 @@ PDF_cache   = resultsDB(cacheDir+'PDFandScale_unc.sq', "PDF", ["name", "region",
 
 PDF = ['TTLep_pow', 'DY', 'multiboson', 'TTZ'] 
 PDFUncCaches   = {p:Cache(setup.analysis_results+'/systematicsTest_v2/PDF_%s.pkl' %p, verbosity=2) for p in PDF}
-#PDFUncCacheSignal = Cache(setup.analysis_results+'/systematicsTest_v2/PDF_%s_acceptance.pkl'   % args.signal, verbosity=2)
 if args.signal == "TTbarDM":
     PDFUncCacheSignal = Cache(setup.analysis_results+'/systematicsTest_v2/PDF_DM_signal_acceptance.pkl', verbosity=2) #should be one cache in the future. Kept like this for now
 else:
@@ -247,7 +257,7 @@ def wrapper(s):
         SFl     = 'SFl_%s'%year
         trigger = 'trigger_%s'%year
         JEC     = 'JEC_%s'%year
-        unclEn  = 'unclEn'
+        unclEn  = 'unclEn_%s'%year
         JER     = 'JER_%s'%year
         PU      = 'PU_%s'%year
         Lumi    = 'Lumi_%s'%year
@@ -272,13 +282,13 @@ def wrapper(s):
         c.addUncertainty('xsec_QCD',   shapeString)
         c.addUncertainty('isr',        shapeString)
         # only in SRs
-        DY_add = 'DY_hMT2blbl'
+        DY_add = 'DY_hMT2ll'
         c.addUncertainty('topXSec',    shapeString)
         c.addUncertainty('topNonGauss', shapeString)
         c.addUncertainty('topFakes',   shapeString)
         c.addUncertainty('DY_SR',      shapeString)
         c.addUncertainty('MB_SR',      shapeString)
-        c.addUncertainty(DY_add,       shapeString) # only in high mt2blbl
+        c.addUncertainty(DY_add,       shapeString)
         c.addUncertainty('ttZ_SR',     shapeString)
         # all regions, lnN
         c.addUncertainty('other',      'lnN')
@@ -291,6 +301,7 @@ def wrapper(s):
 
         c.addRateParameter('DY',            1, '[0,10]') #0.5, 1.5
         c.addRateParameter('multiBoson',    1, '[0.6,1.4]') #0.6, 1.4
+        #c.addRateParameter('multiBoson',    1, '[0,2]') #0.6, 1.4
         c.addRateParameter('TTZ',           1, '[0,10]')
         c.addRateParameter('TTJets',        1, '[0,10]') #[0.85,1.15]
 
@@ -314,7 +325,6 @@ def wrapper(s):
                 binname = 'Bin'+str(counter)
                 counter += 1
                 total_exp_bkg = 0
-#                c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators][1:] + [ 'TTJetsG', 'TTJetsNG', 'TTJetsF' ], niceName)
                 c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators if not 'TZX' in e.name ], niceName)
                 for e in setup.estimators:
                   name = e.name.split('-')[0]
@@ -324,17 +334,6 @@ def wrapper(s):
                   if e.name.count("TZX"): continue
                   logger.info("Expectation for process %s: %s", e.name, expected.val)
                   if e.name.count('TTJets'):
-                    if len(setup.regions) == len(regionsLegacy[1:]):     divider = 6
-                    elif len(setup.regions) == len(regionsLegacy[1:])-1:
-                        if int(args.removeSR) < 6: divider = 5
-                        else: divider = 6
-                    elif len(setup.regions) == len(regionsAgg[1:]): divider = 1
-                    elif len(setup.regions) == len(regionsAgg[1:])-1:
-                        if int(args.removeSR) < 1 and args.removeSR is not False: divider = 0
-                        else: divider = 1 # back to 1!!
-                    elif len(setup.regions) == len(regionsDM1[1:]): divider = 3
-                    elif len(setup.regions) == len(regionsDM5[1:]): divider = 2
-                    else:                                           divider = 0 # Was 0, think about changing to 1 for ttZ sideband
                     if setup.regions == [regionsLegacy[0]]:
                         fakeUncertainty     = 1.02 # 1.002
                         nonGaussUncertainty = 1.02 # 1.002
@@ -343,7 +342,7 @@ def wrapper(s):
                         fakeUncertainty     = 1.02 # 1.02
                         nonGaussUncertainty = 1.02 # 1.02
                         normUncertainty     = 1.08
-                    elif (setup.regions != noRegions and (r in setup.regions[divider:])):
+                    elif (setup.regions != noRegions and (r in regionsHiMT2ll)):
                         fakeUncertainty     = 1.20
                         nonGaussUncertainty = 1.25
                         normUncertainty     = 1.10
@@ -360,10 +359,8 @@ def wrapper(s):
                     DY_SF = 1
                     c.specifyExpectation(binname, name, expected.val*DY_SF)
                     if DY_SF != 1: logger.warning("Scaling DY background by %s", DY_SF)
-                    #c.specifyUncertainty("DY", binname, name, 1.20)
                   elif e.name.count("multiBoson"):
                     c.specifyExpectation(binname, name, expected.val)
-                    #c.specifyUncertainty("MB", binname, name, 1.20)
                   elif e.name.count("TTZ"):
                     TTZ_SF = 1
                     for tmp_e in setup.estimators:
@@ -423,18 +420,24 @@ def wrapper(s):
                                     c.specifyUncertainty("MB_SR", binname, name, 1.25)
 
                         if e.name.count('DY'):
-                            if niceName.count("controlTT")==0:
-                                #if r in highMT2blblregions:
-                                #    c.specifyUncertainty(DY_add,         binname, name, 1.5)
-                                if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
-                                    c.specifyUncertainty("DY_SR", binname, name, 1.25)
+                            if r in regionsHiMT2ll:
+                                c.specifyUncertainty(DY_add,         binname, name, 1.50)
+                                logger.info("Applying additional DY uncertainty, 50%")
+                            elif r in regionsMiMT2ll:
+                                c.specifyUncertainty(DY_add,         binname, name, 1.25)
+                                logger.info("Applying additional DY uncertainty, 25%")
+                            elif r in regionsLoMT2ll:
+                                c.specifyUncertainty(DY_add,         binname, name, 1.05)
+                                logger.info("Applying additional DY uncertainty, 5%")
+                                
+                            if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
+                                c.specifyUncertainty("DY_SR", binname, name, 1.25)
 
                         if e.name.count('TTZ'):
                             c.specifyUncertainty('scaleTTZ',binname, name, 1 + getScaleUnc('TTZ', r, niceName, channel)) 
                             logger.info("Scale uncertainty for ttZ: %s", getScaleUnc(name, r, niceName, channel))
                             c.specifyUncertainty('PDF',     binname, name, 1 + getPDFUnc('TTZ', r, niceName, channel))
                             logger.info("PDF uncertainty for ttZ: %s", getPDFUnc('TTZ', r, niceName, channel))
-                            #c.specifyUncertainty('PDF',     binname, name, 1 + 0.02) #getPDFUnc('TTZ', r, channel,'TTZ'))
 
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                 c.specifyUncertainty("ttZ_SR", binname, name, 1.20)

@@ -72,6 +72,8 @@ cardFile = "%s/%s.txt"%(cardDir, cardName)
 
 logger.info("Plotting from cardfile %s"%cardFile)
 
+covariance = getCovarianceFromMLF(cardFile.replace('.txt','_FD.root'), postFit=options.postFit)
+
 # get the results
 postFitResults = getPrePostFitFromMLF(cardFile.replace('.txt','_FD.root'))
 preFitHist={}
@@ -176,7 +178,10 @@ if options.combined:
         val = hists[2016]['total_background'].GetBinContent(ib) + hists[2017]['total_background'].GetBinContent(ib) + hists[2018]['total_background'].GetBinContent(ib)
         if val<0: continue
         #sys = hists[2016]['total_background'].GetBinError(ib) + hists[2017]['total_background'].GetBinError(ib) + hists[2018]['total_background'].GetBinError(ib)
-        sys = math.sqrt((hists[2016]['total_background'].GetBinError(ib) * hists[2016]['total_background'].GetBinError(ib))+ (hists[2017]['total_background'].GetBinError(ib) * hists[2017]['total_background'].GetBinError(ib)) +( hists[2018]['total_background'].GetBinError(ib) * hists[2018]['total_background'].GetBinError(ib)))
+        #sys = math.sqrt((hists[2016]['total_background'].GetBinError(ib) * hists[2016]['total_background'].GetBinError(ib))+ (hists[2017]['total_background'].GetBinError(ib) * hists[2017]['total_background'].GetBinError(ib)) +( hists[2018]['total_background'].GetBinError(ib) * hists[2018]['total_background'].GetBinError(ib)))
+        variance = covariance['dc_2016_%s'%(ib-1)]['dc_2016_%s'%(ib-1)] + covariance['dc_2017_%s'%(ib-1)]['dc_2017_%s'%(ib-1)] + covariance['dc_2018_%s'%(ib-1)]['dc_2018_%s'%(ib-1)]
+        variance += covariance['dc_2016_%s'%(ib-1)]['dc_2017_%s'%(ib-1)] + covariance['dc_2016_%s'%(ib-1)]['dc_2018_%s'%(ib-1)] + covariance['dc_2017_%s'%(ib-1)]['dc_2018_%s'%(ib-1)]
+        sys = math.sqrt(variance)
         if val > 0:
             sys_rel = sys/val
         else:
