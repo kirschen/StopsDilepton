@@ -272,7 +272,8 @@ def wrapper(s):
         c.addUncertainty('leptonSF',   shapeString)
         c.addUncertainty('leptonHit0SF',   shapeString)
         c.addUncertainty('leptonSIP3DSF',   shapeString)
-        c.addUncertainty('L1prefire',  shapeString)
+        if year == 2016 or year == 2017:
+            c.addUncertainty('L1prefire',  shapeString)
         # theory (PDF, scale, ISR)
         c.addUncertainty('scale',      shapeString)
         c.addUncertainty('scaleTT',    shapeString)
@@ -400,7 +401,8 @@ def wrapper(s):
                         c.specifyUncertainty('leptonSF', binname, name, 1 + e.leptonSFSystematic(   r, channel, setup).val * uncScale ) 
                         c.specifyUncertainty('leptonSIP3DSF', binname, name, 1 + e.leptonSIP3DSFSystematic(   r, channel, setup).val * uncScale ) 
                         c.specifyUncertainty('leptonHit0SF', binname, name, 1 + e.leptonHit0SFSystematic(   r, channel, setup).val * uncScale ) 
-                        c.specifyUncertainty('L1prefire', binname, name, 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale ) 
+                        if year == 2016 or year == 2017:
+                            c.specifyUncertainty('L1prefire', binname, name, 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale ) 
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
                             c.specifyUncertainty(trigger,    binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale ) # could remove uncertainties in ttbar CR
 
@@ -503,7 +505,8 @@ def wrapper(s):
                   c.specifyUncertainty('leptonSIP3DSF', binname, 'signal', 1 + e.leptonSIP3DSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonHit0SF',  binname, 'signal', 1 + e.leptonHit0SFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('scale',         binname, 'signal', 1 + getScaleUnc(eSignal.name, r, niceName, channel))
-                  c.specifyUncertainty('L1prefire',     binname, 'signal', 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale )
+                  if year == 2016 or year == 2017:
+                    c.specifyUncertainty('L1prefire',     binname, 'signal', 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale )
                   logger.info("Scale uncertainty for signal is: %s", getScaleUnc(eSignal.name, r, niceName, channel))
 
                   if fastSim: 
