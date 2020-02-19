@@ -46,6 +46,8 @@ logger_rt = logger_rt.get_logger('INFO', logFile = None )
 import Analysis.Tools.logger as logger_an
 logger_an = logger_an.get_logger(args.logLevel, logFile = None )
 
+from RootTools.core.standard import *
+
 # Load from DPM?
 if args.dpm:
     data_directory      = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
@@ -286,7 +288,7 @@ def wrapper(s):
         c.addUncertainty(DY_add,       shapeString)
         c.addUncertainty('ttZ_SR',     shapeString)
         # all regions, lnN
-        c.addUncertainty('other',      'lnN')
+        c.addUncertainty('rare',      'lnN')
         c.addUncertainty(Lumi,         'lnN')
         if fastSim:
             c.addUncertainty('btagFS',   shapeString)
@@ -367,7 +369,7 @@ def wrapper(s):
                     #c.specifyUncertainty("TTZ", binname, name, 1.10)
                   elif e.name.count("TZX"):
                     logger.info("TZX has been added to TTZ")
-                  elif e.name.count("TTXNoZ") or e.name.count("other"):
+                  elif e.name.count("TTXNoZ") or e.name.count("rare"):
                     c.specifyExpectation(binname, name, expected.val)
 
                   if expected.val>0 or True:
@@ -435,7 +437,7 @@ def wrapper(s):
                             if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                                 c.specifyUncertainty("ttZ_SR", binname, name, 1.20)
 
-                        if e.name.count('TTXNoZ'):      c.specifyUncertainty('other',      binname, name, 1.25)
+                        if e.name.count('TTXNoZ'):      c.specifyUncertainty('rare',      binname, name, 1.25)
                         #if e.name.count('TZX'):      c.specifyUncertainty('TZX',      binname, name, 1.25)
 
                         #MC bkg stat (some condition to neglect the smaller ones?)
@@ -814,6 +816,20 @@ if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
         postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
+if args.signal == "ttHinv":
+    if year == 2016:
+        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p22/dilep/'
+        logger.info(" ## NO 2016 ttH, H->invisible sample available. USING 2018 SAMPLE NOW. ## ")
+    elif year == 2017:
+        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p22/dilep/'
+    elif year == 2018:
+        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p22/dilep/'
+    ttH_HToInvisible_M125 = Sample.fromDirectory(name="ttH_HToInvisible_M125", treeName="Events", isData=False, color=1, texName="ttH(125)", directory=os.path.join(data_directory,postProcessing_directory,'ttH_HToInvisible'))
+    jobs = [ttH_HToInvisible_M125]
+
 
 if args.only is not None:
     if args.only.isdigit():
@@ -862,44 +878,45 @@ def toGraph2D(name,title,length,x,y,z):
     #res = ROOT.TGraphDelaunay(result)
     return result
 
-mStop_list = []
-mLSP_list  = []
-exp_list   = []
-obs_list   = []
-exp_up_list   = []
-exp_down_list   = []
-
-for r in results:
-    s, res = r
-    mStop, mNeu = s
-    #if mStop%50>0: continue
-    #if mNeu%50>0 and not mNeu>(mStop-125): continue
-    mStop_list.append(mStop)
-    mLSP_list.append(mNeu)
-    exp_list.append(res['0.500'])
-    exp_up_list.append(res['0.160'])
-    exp_down_list.append(res['0.840'])
-    obs_list.append(res['-1.000'])
-
-scatter         = ROOT.TGraph(len(mStop_list))
-scatter.SetName('scatter')
-for i in range(len(mStop_list)):
-    scatter.SetPoint(i,mStop_list[i],mLSP_list[i])
-
-exp_graph       = toGraph2D('exp','exp',len(mStop_list),mStop_list,mLSP_list,exp_list)
-exp_up_graph    = toGraph2D('exp_up','exp_up',len(mStop_list),mStop_list,mLSP_list,exp_up_list)
-exp_down_graph  = toGraph2D('exp_down','exp_down',len(mStop_list),mStop_list,mLSP_list,exp_down_list)
-obs_graph       = toGraph2D('obs','obs',len(mStop_list),mStop_list,mLSP_list,obs_list)
-
-outfile = ROOT.TFile(limitResultsFilename, "recreate")
-scatter        .Write()
-exp_graph      .Write()
-exp_down_graph .Write()
-exp_up_graph   .Write()
-obs_graph      .Write()
-outfile.Close()
-
-print limitResultsFilename
+if not args.signal == 'ttHinv':
+    mStop_list = []
+    mLSP_list  = []
+    exp_list   = []
+    obs_list   = []
+    exp_up_list   = []
+    exp_down_list   = []
+    
+    for r in results:
+        s, res = r
+        mStop, mNeu = s
+        #if mStop%50>0: continue
+        #if mNeu%50>0 and not mNeu>(mStop-125): continue
+        mStop_list.append(mStop)
+        mLSP_list.append(mNeu)
+        exp_list.append(res['0.500'])
+        exp_up_list.append(res['0.160'])
+        exp_down_list.append(res['0.840'])
+        obs_list.append(res['-1.000'])
+    
+    scatter         = ROOT.TGraph(len(mStop_list))
+    scatter.SetName('scatter')
+    for i in range(len(mStop_list)):
+        scatter.SetPoint(i,mStop_list[i],mLSP_list[i])
+    
+    exp_graph       = toGraph2D('exp','exp',len(mStop_list),mStop_list,mLSP_list,exp_list)
+    exp_up_graph    = toGraph2D('exp_up','exp_up',len(mStop_list),mStop_list,mLSP_list,exp_up_list)
+    exp_down_graph  = toGraph2D('exp_down','exp_down',len(mStop_list),mStop_list,mLSP_list,exp_down_list)
+    obs_graph       = toGraph2D('obs','obs',len(mStop_list),mStop_list,mLSP_list,obs_list)
+    
+    outfile = ROOT.TFile(limitResultsFilename, "recreate")
+    scatter        .Write()
+    exp_graph      .Write()
+    exp_down_graph .Write()
+    exp_up_graph   .Write()
+    obs_graph      .Write()
+    outfile.Close()
+    
+    print limitResultsFilename
 
 # Make table for DM
 if args.signal == "TTbarDM":

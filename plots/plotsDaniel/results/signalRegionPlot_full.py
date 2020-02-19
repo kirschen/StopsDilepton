@@ -6,7 +6,7 @@ Get a signal region plot from the cardfiles
 #!/usr/bin/env python
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt", "T2bW"], help="which signal?")
+parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt", "T2bW", "ttHinv"], help="which signal?")
 parser.add_option("--massPoints",           dest='massPoints',  action='store', default='800_100,350_150', help="which masspoints??")
 parser.add_option("--channel",              dest='channel',  action='store', default='all', choices=['all','OF','SF'], help="which channel??")
 parser.add_option("--small",                action='store_true', help="small?")
@@ -18,6 +18,7 @@ parser.add_option('--signalPostFit',        dest="signalPostFit", default = Fals
 parser.add_option('--expected',             action = "store_true", help="Run expected?")
 parser.add_option('--preliminary',          action = "store_true", help="Run expected?")
 parser.add_option('--combined',             action = "store_true", help="combined fit for all years?")
+parser.add_option('--testGrayscale',        action = "store_true", help="Do the most important test for this collaboration?")
 parser.add_option("--year",                 action='store',      default=2017, type="int", help='Which year?')
 parser.add_option("--region",               action='store',      default="controlAll", choices=['fitAll', 'controlAll', 'signalOnly', 'controlDYVV'], help='Which year?')
 (options, args) = parser.parse_args()
@@ -64,10 +65,12 @@ isData = True if not options.expected else False
 years=[2016,2017,2018]
 controlRegions = options.region
 massPoints = options.massPoints.split(',')
-cardName = "%s_%s_shapeCard"%(options.signal,massPoints[0])
+
+## ttH example: /afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v7/2018/fitAll/cardFiles/ttHinv/observed/ttH_HToInvisible_M125_shapeCard.txt
+cardName = "%s_%s_shapeCard"%(options.signal,massPoints[0]) if not options.signal == 'ttHinv' else "ttH_HToInvisible_M125_shapeCard"
 
 inSignalRegions = not options.region.count('control')>0
-if inSignalRegions:
+if inSignalRegions and len(massPoints)>1:
     cardName2 = "%s_%s_shapeCard"%(options.signal,massPoints[1])
 if options.combined:
     cardDir = analysis_results+"/COMBINED/%s/cardFiles/%s/%s/"%(controlRegions,options.signal,'expected' if options.expected else 'observed')
@@ -75,7 +78,7 @@ else:
     cardDir = analysis_results+"/%s/%s/cardFiles/%s/%s/"%(options.year,controlRegions,options.signal,'expected' if options.expected else 'observed')
 
 cardFile = "%s/%s.txt"%(cardDir, cardName)
-if inSignalRegions:
+if inSignalRegions and len(massPoints)>1:
     cardFile2 = "%s/%s.txt"%(cardDir, cardName2)
 
 
@@ -83,7 +86,8 @@ logger.info("Plotting from cardfile %s"%cardFile)
 
 # get the results
 postFitResults = getPrePostFitFromMLF(cardFile.replace('.txt','_FD.root'))
-if inSignalRegions: postFitResults2 = getPrePostFitFromMLF(cardFile2.replace('.txt','_FD.root'))
+if inSignalRegions and len(massPoints)>1: postFitResults2 = getPrePostFitFromMLF(cardFile2.replace('.txt','_FD.root'))
+else: postFitResults2 = False
 
 covariance = getCovarianceFromMLF(cardFile.replace('.txt','_FD.root'), postFit=options.postFit)
 
@@ -110,10 +114,10 @@ if options.combined:
         # signal is always prefit for the plots
         if options.postFit and options.signalPostFit:
             hists[year]['signal1'] = postFitResults['hists']['shapes_fit_s']['dc_%s'%year]['signal']
-            if inSignalRegions: hists[year]['signal2'] = postFitResults2['hists']['shapes_fit_s']['dc_%s'%year]['signal']
+            if inSignalRegions and postFitResults2: hists[year]['signal2'] = postFitResults2['hists']['shapes_fit_s']['dc_%s'%year]['signal']
         else:
             hists[year]['signal1'] = postFitResults['hists']['shapes_prefit']['dc_%s'%year]['signal']
-            if inSignalRegions: hists[year]['signal2'] = postFitResults2['hists']['shapes_prefit']['dc_%s'%year]['signal']
+            if inSignalRegions and postFitResults2: hists[year]['signal2'] = postFitResults2['hists']['shapes_prefit']['dc_%s'%year]['signal']
 
     for i,(p,tex) in enumerate(processes):
         bhistos.append( hists[2016][p])
@@ -121,7 +125,7 @@ if options.combined:
     dataHist.Reset()
     dataHist.SetName('data')
     dataHist.legendText = 'Data'
-    dataHist.drawOption = 'e0'
+    #dataHist.drawOption = 'e0'
     for n,(p,tex) in enumerate(processes):
         for i in range(bhistos[n].GetNbinsX()):
             v=0
@@ -139,19 +143,19 @@ if options.combined:
 
     histos['data'] = dataHist
     histos['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1., drawOption='e0' )
-    #histos['data'].legendOption = 'p'
-    histos['data'].drawOption = 'p'
+    histos['data'].legendOption = 'p'
 
     signalHist = hists[2016]['DY'].Clone()
     signalHist.Reset()
     signalHist.SetName('signal')
     signalHist.legendText = options.signal+' (%s,%s)'%(tuple(massPoints[0].split('_')))
+    if options.signal == 'ttHinv': signalHist.legendText = "ttH, B(H#rightarrow inv)=100%"
     for i in range(signalHist.GetNbinsX()):
         signalHist.SetBinContent(i+1, (hists[2016]['signal1'].GetBinContent(i+1) + hists[2017]['signal1'].GetBinContent(i+1) + hists[2018]['signal1'].GetBinContent(i+1)))
     histos['signal1'] = signalHist
     histos['signal1'].style = styles.lineStyle( ROOT.kBlack, width=2 )
 
-    if inSignalRegions:
+    if inSignalRegions and postFitResults2:
         signalHist2 = hists[2016]['DY'].Clone()
         signalHist2.Reset()
         signalHist2.SetName('signal')
@@ -179,20 +183,22 @@ else:
         if tex:
             hists[p].legendText = tex
         
+    dataHist.SetBinErrorOption(ROOT.TH1F.kPoisson)
     for i in range(dataHist.GetNbinsX()):
         dataHist.SetBinContent(i+1, hists['data'].Eval(i+0.5))
         dataHist.SetBinError(i+1, math.sqrt(hists['data'].Eval(i+0.5)))
 
     hists['data'] = dataHist
-    hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1. )
+    hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1., drawOption='e0' )
     hists['data'].legendOption = 'p'
 
     print postFitResults['hists']['shapes_prefit']['Bin0'].keys()
     hists['signal1'] = postFitResults['hists']['shapes_prefit']['Bin0']['signal']
     hists['signal1'].style = styles.lineStyle( ROOT.kBlack, width=2 )
-    hists['signal1'].legendText = options.signal+' (%s,%s)'%(tuple(massPoints[0].split('_')))    
+    hists['signal1'].legendText = options.signal+' (%s,%s)'%(tuple(massPoints[0].split('_')))
+    if options.signal == 'ttHinv': hists['signal1'].legendText = "ttH, B(H#rightarrow inv)=100%"
 
-    if inSignalRegions:
+    if inSignalRegions and postFitResults2:
         hists['signal2'] = postFitResults2['hists']['shapes_prefit']['Bin0']['signal']
         hists['signal2'].style = styles.lineStyle( ROOT.kBlack, width=2, dashed=True )
         hists['signal2'].legendText = options.signal+' (%s,%s)'%(tuple(massPoints[1].split('_')))    
@@ -340,14 +346,14 @@ drawObjects = drawObjects( isData=isData, lumi=lumiStr ) + boxes + drawDivisions
 if options.region == 'signalOnly':
     drawObjects += drawDivisions( regions ) + drawLabels( regions ) + drawLabelsRot( regions )
 if options.combined:
-    if inSignalRegions:
+    if inSignalRegions and len(massPoints)>1:
         plots = [ bkgHist, [histos['data']], [histos['signal1']], [histos['signal2']]]
     else:
         plots = [ bkgHist, [histos['data']], [histos['signal1']]]
         
     plotName = "%s_COMBINED"%options.region
 else:
-    plots = [ bkgHists, [hists['data']], [hists['signal1']],[hists['signal2'] ]]
+    plots = [ bkgHists, [hists['data']], [hists['signal1']],[hists['signal2'] ]] if postFitResults2 else [ bkgHists, [hists['data']], [hists['signal1']] ]
     plotName = "%s_%s"%(options.region, options.year)
 if options.postFit:
     plotName += '_postFit'
@@ -358,6 +364,19 @@ if options.signal is not "T2tt":
 
 yMax = 90000. if not options.combined else 900000.
 
+canvasModifications = [ 
+    lambda c : c.SetLeftMargin(0.08),
+    lambda c : c.GetPad(2).SetLeftMargin(0.08),
+    lambda c : c.GetPad(1).SetLeftMargin(0.08),
+    lambda c : c.GetPad(2).SetBottomMargin(0.60),
+    lambda c : c.GetPad(1).SetRightMargin(0.03), 
+    lambda c : c.GetPad(2).SetRightMargin(0.03) 
+    ]
+
+if options.testGrayscale:
+    canvasModifications += [ lambda c : c.SetGrayscale() ]
+
+
 plotting.draw(
     Plot.fromHisto(plotName,
                 plots,
@@ -367,7 +386,7 @@ plotting.draw(
     plot_directory = os.path.join(plot_directory, "controlRegions", 'v7'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
-    legend = (0.73,0.35, 0.90, 0.75),
+    legend = (0.70,0.35, 0.92, 0.75),
     widths = {'x_width':1300, 'y_width':600, 'y_ratio_width':250},
     yRange = (0.2,yMax),
     #yRange = (0.03, [0.001,0.5]),
@@ -375,7 +394,7 @@ plotting.draw(
             'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035), lambda h: h.LabelsOption('v'), lambda h: h.GetYaxis().SetTickLength(0.035), lambda h: h.GetXaxis().SetTickLength(0.02)]} ,
     drawObjects = drawObjects,
     histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetYaxis().SetTickLength(0.015)],
-    canvasModifications = [ lambda c : c.SetLeftMargin(0.08), lambda c : c.GetPad(2).SetLeftMargin(0.08), lambda c : c.GetPad(1).SetLeftMargin(0.08), lambda c: c.GetPad(2).SetBottomMargin(0.60), lambda c : c.GetPad(1).SetRightMargin(0.03), lambda c: c.GetPad(2).SetRightMargin(0.03) ],
+    canvasModifications = canvasModifications,
     copyIndexPHP = True,
 )
 

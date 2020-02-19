@@ -152,6 +152,20 @@ if options.signal:
             postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
+    elif options.signal == 'ttHinv':
+        if year == 2016:
+            data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+            postProcessing_directory    = 'stops_2018_nano_v0p22/dilep/'
+            logger.info(" ## NO 2016 ttH, H->invisible sample available. USING 2018 SAMPLE NOW. ## ")
+        elif year == 2017:
+            data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+            postProcessing_directory    = 'stops_2017_nano_v0p22/dilep/'
+        elif year == 2018:
+            data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
+            postProcessing_directory    = 'stops_2018_nano_v0p22/dilep/'
+        ttH_HToInvisible_M125 = Sample.fromDirectory(name="ttH_HToInvisible_M125", treeName="Events", isData=False, color=1, texName="ttH(125)", directory=os.path.join(data_directory,postProcessing_directory,'ttH_HToInvisible'))
+        jobs = [ttH_HToInvisible_M125]
+
 
     if options.only.isdigit():
         sample = jobs[int(options.only)]
@@ -205,7 +219,13 @@ SUSY: no weights stored atm.
 '''
 
 scale_indices = [0,1,3,4,5,7,8]
-LHEweight_original = 'abs(LHEScaleWeight[4])' if not options.signal else 'abs(LHE_weight[4])'
+if options.signal == 'ttHinv':
+    LHEweight_original = 'abs(LHEScaleWeight[4])'
+elif options.signal:
+    LHEweight_original = 'abs(LHE_weight[4])'
+else:
+    LHEweight_original = 'abs(LHEScaleWeight[4])'
+
 LHEweight_original_PDF = 'abs(LHEPdfWeight[0])' if (year == 2017 or year == 2018) else LHEweight_original
 centralWeight = LHEweight_original
 
@@ -222,7 +242,12 @@ pdf_indices = range(100) if year == 2016 else range(30)
 #    #    raise NotImplementedError
 
 if not options.selectWeight:
-    scaleWeightString   = 'LHEScaleWeight' if not options.signal else 'LHE_weight'
+    if options.signal == 'ttHinv':
+        scaleWeightString   = 'LHEScaleWeight'
+    elif options.signal:
+        scaleWeightString   ='LHE_weight'
+    else:
+        scaleWeightString   = 'LHEScaleWeight'
     scale_variations    = [ "abs(%s[%s])"%(scaleWeightString, str(i)) for i in scale_indices ]
     pdfWeightString     = 'LHEPdfWeight'
     if year == 2016:
