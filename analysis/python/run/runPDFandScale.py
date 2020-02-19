@@ -255,7 +255,7 @@ if not options.selectWeight:
     else:
         PDF_variations      = [ "(abs(%s[%s])/abs(%s[0]))"%(pdfWeightString, str(i), pdfWeightString) for i in pdf_indices ]
     aS_variations       = [] #[ "abs(LHEPdfWeight[100])", "abs(LHEPdfWeight[101])"] if year == 2016 else [ "abs(LHEPdfWeight[31])", "abs(LHEPdfWeight[32])"]
-    variations          = scale_variations + PDF_variations + ['(1)'] if not options.signal else scale_variations
+    variations          = scale_variations + PDF_variations + ['(1)'] if not options.signal.startswith('T') else scale_variations
 
 # only properly works for selectRegion>0
 selectRegion = True if options.selectRegion >= 0 else False
@@ -416,20 +416,20 @@ if options.combine:
                 deltas = []
                 delta_squared = 0
                 # central yield inclusive and in region
-                logger.info("Getting inclusive (noRegions) yield")
+                logger.debug("Getting inclusive (noRegions) yield")
                 sigma_incl_central  = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[LHEweight_original]}))
-                logger.info("Getting yield for region with LHEweight_original")
+                logger.debug("Getting yield for region with LHEweight_original")
                 sigma_central       = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[LHEweight_original]}))
-                logger.info("Getting yield for region with centralWeight")
+                logger.debug("Getting yield for region with centralWeight")
                 sigma_centralWeight = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[centralWeight]}))
 
                 for var in scale_variations:
                     #print var
-                    logger.info("Getting inclusive yield with varied weight")
+                    logger.debug("Getting inclusive yield with varied weight")
                     simga_incl_reweight = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[var]}))
                     norm = sigma_incl_central/simga_incl_reweight if not options.noKeepNorm else 1
                     
-                    logger.info("Getting yield for region with varied weight")
+                    logger.debug("Getting yield for region with varied weight")
                     sigma_reweight  = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[var]}))
                     sigma_reweight_acc = sigma_reweight * norm
                     
@@ -441,9 +441,9 @@ if options.combine:
 
                 ## PDF stuff
                 #sigma_incl_central_PDF  = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[LHEweight_original_PDF]}))
-                logger.info("sigma_incl_central_PDF")
+                logger.debug("sigma_incl_central_PDF")
                 sigma_incl_central_PDF  = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':['(1)']}))
-                logger.info("sigma_centralWeight_PDF")
+                logger.debug("sigma_centralWeight_PDF")
                 sigma_centralWeight_PDF = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':['(1)']}))
                 for var in PDF_variations:
                     # calculate x-sec noramlization
