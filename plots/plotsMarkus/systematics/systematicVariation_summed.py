@@ -229,6 +229,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
         data_histo_list[0][0].style = styles.errorStyle(ROOT.kBlack)
         for i_mc, mc in enumerate(stack_mc[0]):
             mc_histo_list['central'][0][i_mc].legendText = mc.texName
+            mc_histo_list['central'][0][i_mc].style = styles.fillStyle(mc.color) 
         if args.signal:
             for i_sig, sig in enumerate(stack_signal):
                 signal_histo_list[i_sig][0].legendText = sig[0].texName
@@ -350,7 +351,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             #ROOT.gStyle.SetLegendBorderSize(0)
 
             plot.histos[1].append(chi2_histo)
-            plot.texX = 'p_{T}^{miss} significance (GeV)'
+            plot.texX = 'p_{T}^{miss} significance'
             #chiSquared = []
         # -------------------------------------------------------
 
