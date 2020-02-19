@@ -667,7 +667,7 @@ for mode in modes:
     if args.variation == 'central': 
         metSig_data  = Plot( 
             name        = "MET_significance_data",
-            texX        = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+            texX        = 'E_{T}^{miss} significance', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
             binning     = Binning.fromThresholds( metSigBinning ),
             stack       = stack_data, 
             attribute   = TreeVariable.fromString( "MET_significance/F" ),
@@ -677,7 +677,7 @@ for mode in modes:
         if args.signal:
             metSig_signal  = Plot( 
                 name        = "MET_significance_signal",
-                texX        = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+                texX        = 'E_{T}^{miss} significance', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
                 binning     = Binning.fromThresholds( metSigBinning ),
                 stack       = stack_signal, 
                 attribute   = TreeVariable.fromString( "MET_significance/F" ),
@@ -687,7 +687,7 @@ for mode in modes:
     
     metSig_mc  = Plot(\
         name = "MET_significance_mc",
-        texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+        texX = 'E_{T}^{miss} significance', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
         stack = stack_mc,
         attribute = TreeVariable.fromString( selectionModifier("MET_significance/F") )  if selectionModifier is not None else None,
         binning=Binning.fromThresholds( metSigBinning ),

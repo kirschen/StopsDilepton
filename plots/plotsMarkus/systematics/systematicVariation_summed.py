@@ -47,6 +47,7 @@ argParser.add_argument('--normalize',         action='store_true', help='Perform
 argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional directory label for minor changes to the plots")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
 argParser.add_argument('--directories',       action='store',         nargs='*',  type=str, default=[],                  help="Input" )
+argParser.add_argument('--fitChi2',         action='store_true', help='')
 
 
 args = argParser.parse_args()
@@ -188,7 +189,8 @@ def drawObjects( scaling ):
     #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) scale=%3.2f'% ( lumi_scale, scaleFactor ) )]
     #else:
     #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
-    lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
+    #lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
+    lines += [(0.45, 0.95, 'L=%i fb{}^{-1} (13 TeV)'% ( int(lumi_scale) ) )]
     if "mt2ll100" in args.selection:
         if args.signal:
             lines += [(0.55, 0.58, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
@@ -210,6 +212,7 @@ plot_subdirectory = args.plot_directory
 # We plot now. 
 if args.normalize: plot_subdirectory += "_normalized"
 if args.beta:      plot_subdirectory += "_%s"%args.beta
+if args.fitChi2:   plot_subdirectory += "_chi2"
 for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
     for i_plot, plot in enumerate(plots):
         
@@ -328,6 +331,28 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             r_box.SetFillStyle(3444)
             r_box.SetFillColor(ROOT.kBlack)
             ratio_boxes.append(r_box)
+            
+        # -------------------------------------------------------
+        # DY pTmiss plot with chi-squared
+        if args.fitChi2 and plot.name == "MET_significance_mc":
+            chi2=ROOT.TF1("chi2","2.25*10**7*0.5*exp(-0.5*x)",0,100)
+            chi2.SetNpx(1000)
+            chi2.SetLineColor(ROOT.kRed)
+
+            chi2_histo = chi2.GetHistogram()
+
+            # Legend
+            chi2_histo.legendText = "#chi^{2}(N_{dof}=2)"
+            chi2_histo.legendOption = "l"
+            chi2_histo.SetMarkerStyle(0)
+            chi2_histo.SetMarkerSize(0)
+            #chi2_histo.SetBorderSize(0)
+            #ROOT.gStyle.SetLegendBorderSize(0)
+
+            plot.histos[1].append(chi2_histo)
+            plot.texX = 'p_{T}^{miss} significance (GeV)'
+            #chiSquared = []
+        # -------------------------------------------------------
 
         for log in [False, True]:
             plot_directory_ = os.path.join(plot_directory, 'systematicPlots', 'combined', plot_subdirectory, args.selection, mode + ("_log" if log else ""))
@@ -342,7 +367,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
               plot_directory = plot_directory_,
               ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
               logX = False, logY = log, sorting = False,
-              yRange = (0.03, "auto") if log else (0.001, "auto"),
+              yRange = (0.6, "auto") if log else (0.001, "auto"),
               scaling = {0:1} if args.normalize else {},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
               drawObjects = drawObjects( args.scaling ) + boxes,

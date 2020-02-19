@@ -211,26 +211,26 @@ centralWeight = LHEweight_original
 
 pdf_indices = range(100) if year == 2016 else range(30)
 
-if year == 2016:
-    if options.sample == 'TTLep_pow': #only use ttbar sample, no single-t
-        PDF_indices = range(100) # no central weight stored
-        aS_indices = []
-    elif options.sample == 'TTZToLLNuNu':
-        PDF_indices = range(100)
-        aS_indices = [100,101]
-    #elif options.sample.contains('T2tt'):
-    #    raise NotImplementedError
+#if year == 2016:
+#    if options.sample == 'TTLep_pow': #only use ttbar sample, no single-t
+#        PDF_indices = range(100) # no central weight stored
+#        aS_indices = []
+#    elif options.sample == 'TTZToLLNuNu':
+#        PDF_indices = range(100)
+#        aS_indices = [100,101]
+#    #elif options.sample.contains('T2tt'):
+#    #    raise NotImplementedError
 
 if not options.selectWeight:
     scaleWeightString   = 'LHEScaleWeight' if not options.signal else 'LHE_weight'
     scale_variations    = [ "abs(%s[%s])"%(scaleWeightString, str(i)) for i in scale_indices ]
     pdfWeightString     = 'LHEPdfWeight'
     if year == 2016:
-        PDF_variations      = [ "abs(%s[%s])"%(pdfWeightString, str(i), pdfWeightString) for i in pdf_indices ]
+        PDF_variations      = [ "abs(%s[%s])"%(pdfWeightString, str(i)) for i in pdf_indices ]
     else:
         PDF_variations      = [ "(abs(%s[%s])/abs(%s[0]))"%(pdfWeightString, str(i), pdfWeightString) for i in pdf_indices ]
     aS_variations       = [] #[ "abs(LHEPdfWeight[100])", "abs(LHEPdfWeight[101])"] if year == 2016 else [ "abs(LHEPdfWeight[31])", "abs(LHEPdfWeight[32])"]
-    variations          = scale_variations + PDF_variations if not options.signal else scale_variations
+    variations          = scale_variations + PDF_variations + ['(1)'] if not options.signal else scale_variations
 
 # only properly works for selectRegion>0
 selectRegion = True if options.selectRegion >= 0 else False
@@ -279,6 +279,7 @@ if not options.skipCentral:
     jobs.append((noRegions[0], 'all', setupIncl))
     jobs.append((noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[LHEweight_original]})))
     jobs.append((noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[LHEweight_original_PDF]})))
+    #jobs.append((noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':['(1)']})))
     for var in variations:
         for c in ['EE', 'MuMu', 'EMu']:
             jobs.append((noRegions[0], c, setupIncl.sysClone(sys={'reweight':[var]})))
@@ -293,14 +294,15 @@ if not options.combine:
             jobs.append((region, c, setupTT))
             jobs.append((region, c, setupSR.sysClone(sys={'reweight':[LHEweight_original]})))
             jobs.append((region, c, setupTT.sysClone(sys={'reweight':[LHEweight_original]})))
+            #jobs.append((region, c, setupTT.sysClone(sys={'reweight':['(1)']})))
             if not c == 'EMu':
                 jobs.append((region, c, setupDYVV))
                 jobs.append((region, c, setupDYVV.sysClone(sys={'reweight':[LHEweight_original]})))
             for var in variations:
                 jobs.append((region, c, setupSR.sysClone(sys={'reweight':[var]})))
                 jobs.append((region, c, setupTT.sysClone(sys={'reweight':[var]})))
-                if not c == 'EMu':
-                    jobs.append((region, c, setupDYVV.sysClone(sys={'reweight':[var]})))
+                if not c == 'MuMu': # use a rendom c
+                    jobs.append((region, 'SF', setupDYVV.sysClone(sys={'reweight':[var]})))
                 #sigma_reweight  = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[var]}))
     
     # how to not run this for every --selectRegion?
@@ -309,23 +311,38 @@ if not options.combine:
             for setup in [setupTTZ1,setupTTZ2,setupTTZ3,setupTTZ4,setupTTZ5]:
                 jobs.append((noRegions[0], c, setup))
                 jobs.append((noRegions[0], c, setup.sysClone(sys={'reweight':[LHEweight_original]})))
+                #jobs.append((noRegions[0], c, setup.sysClone(sys={'reweight':['(1)']})))
                 for var in variations:
                     jobs.append((noRegions[0], c, setup.sysClone(sys={'reweight':[var]})))
 
     ## PDF central weights (do last)
+    for var in variations:
+        #jobs.append((noRegions[0], 'all', setupSR.sysClone(sys={'reweight':[var]})))
+        #jobs.append((noRegions[0], 'all', setupTT.sysClone(sys={'reweight':[var]})))
+        for setup in [setupTTZ1,setupTTZ2,setupTTZ3,setupTTZ4,setupTTZ5, setupSR, setupTT]:
+            jobs.append((noRegions[0], 'all', setup.sysClone(sys={'reweight':[var]})))
+            
+
     for region in regions:
         logger.info("Queuing PDF jobs for region %s", region)
+        for var in variations:
+            # combine the individual channels here and only now to avoid running the same job twice at the same time
+            jobs.append((region, 'all', setupSR.sysClone(sys={'reweight':[var]})))
         for c in ['EE', 'MuMu', 'EMu']:
             logger.info("Queuing jobs for channel %s", c)
             jobs.append((region, c, setupSR.sysClone(sys={'reweight':[LHEweight_original_PDF]})))
             jobs.append((region, c, setupTT.sysClone(sys={'reweight':[LHEweight_original_PDF]})))
+            #jobs.append((region, c, setupSR.sysClone(sys={'reweight':['(1)']})))
+            #jobs.append((region, c, setupTT.sysClone(sys={'reweight':['(1)']})))
             if not c == 'EMu':
                 jobs.append((region, c, setupDYVV.sysClone(sys={'reweight':[LHEweight_original_PDF]})))
+                #jobs.append((region, c, setupDYVV.sysClone(sys={'reweight':['(1)']})))
     
     if ( selectRegion and options.selectRegion == 0 ) or len(regions)>1:
         for c in ['3mu', '2mu1e', '2e1mu', '3e']:
             for setup in [setupTTZ1,setupTTZ2,setupTTZ3,setupTTZ4,setupTTZ5]:
                 jobs.append((noRegions[0], c, setup.sysClone(sys={'reweight':[LHEweight_original_PDF]})))
+                #jobs.append((noRegions[0], c, setup.sysClone(sys={'reweight':['(1)']})))
     
 
     logger.info("Created %s jobs",len(jobs))
@@ -374,20 +391,20 @@ if options.combine:
                 deltas = []
                 delta_squared = 0
                 # central yield inclusive and in region
-                logger.debug("Getting inclusive (noRegions) yield")
+                logger.info("Getting inclusive (noRegions) yield")
                 sigma_incl_central  = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[LHEweight_original]}))
-                logger.debug("Getting yield for region with LHEweight_original")
+                logger.info("Getting yield for region with LHEweight_original")
                 sigma_central       = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[LHEweight_original]}))
-                logger.debug("Getting yield for region with centralWeight")
+                logger.info("Getting yield for region with centralWeight")
                 sigma_centralWeight = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[centralWeight]}))
 
                 for var in scale_variations:
                     #print var
-                    logger.debug("Getting inclusive yield with varied weight")
+                    logger.info("Getting inclusive yield with varied weight")
                     simga_incl_reweight = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[var]}))
                     norm = sigma_incl_central/simga_incl_reweight if not options.noKeepNorm else 1
                     
-                    logger.debug("Getting yield for region with varied weight")
+                    logger.info("Getting yield for region with varied weight")
                     sigma_reweight  = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[var]}))
                     sigma_reweight_acc = sigma_reweight * norm
                     
@@ -399,13 +416,17 @@ if options.combine:
 
                 ## PDF stuff
                 #sigma_incl_central_PDF  = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[LHEweight_original_PDF]}))
+                logger.info("sigma_incl_central_PDF")
                 sigma_incl_central_PDF  = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':['(1)']}))
+                logger.info("sigma_centralWeight_PDF")
                 sigma_centralWeight_PDF = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':['(1)']}))
                 for var in PDF_variations:
                     # calculate x-sec noramlization
+                    logger.debug("simga_incl_reweight")
                     simga_incl_reweight = estimate.cachedEstimate(noRegions[0], 'all', setupIncl.sysClone(sys={'reweight':[var]}))
                     norm = sigma_incl_central_PDF/simga_incl_reweight if not options.noKeepNorm else 1
 
+                    logger.debug("simga_reweight")
                     sigma_reweight  = estimate.cachedEstimate(region, c, setup.sysClone(sys={'reweight':[var]}))
                     sigma_reweight_acc = sigma_reweight * norm
 
@@ -497,8 +518,10 @@ if options.combine:
                 logger.info("Relative scale uncertainty: %s", scale_rel)
                 #logger.info("Relative shower scale uncertainty: %s", PS_scale_rel)
                 
-                PDF_unc.append(delta_sigma_rel)
-                if scale_rel < 1: Scale_unc.append(scale_rel) # only append here if we have enough stats
+                if sigma_central.val>0:
+                    if sigma_central.sigma/sigma_central.val < 0.15:
+                        PDF_unc.append(delta_sigma_rel)
+                        if scale_rel < 1: Scale_unc.append(scale_rel) # only append here if we have enough stats
                 #PS_unc.append(PS_scale_rel)
                 
                 # Store results
@@ -513,7 +536,8 @@ if options.combine:
                 scale_cache.get({"name": sample.name, "region":region, "CR":niceName, "channel":c, "PDFset":'scale'})
                 #PS_cache.get({"region":region, "channel":c, "PDFset":'PSscale'})
 
-    cleanPDF = [ x for x in PDF_unc if x<1 ]
+    print PDF_unc
+    cleanPDF = PDF_unc #[ x for x in PDF_unc if x<1 ]
 
     logger.info('Min. PDF uncertainty: %.3f', min(cleanPDF))
     logger.info('Max. PDF uncertainty: %.3f', max(cleanPDF))

@@ -148,6 +148,7 @@ class SystematicEstimator:
         ref  = self.cachedEstimate(region, channel, setup)
         up   = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'unclustEnUp'}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'selectionModifier':'unclustEnDown'}))
+        ref=(up+down)/2. ## test!!
         if ref.val>0:
             return (down.val/ref.val), (up.val/ref.val)
         else:

@@ -12,8 +12,10 @@ argParser.add_argument('--logLevel',       action='store', default='INFO',      
 argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","ttHinv"],  help="Which signal?")
 argParser.add_argument("--removeDir",      action='store_true',                                                             help="Remove the directory in the combine release after study is done?")
 argParser.add_argument("--expected",       action='store_true',                                                             help="Use expected results?")
+argParser.add_argument("--observed",       action='store_true',                                                             help="Use expected results?")
 argParser.add_argument("--combined",       action='store_true',                                                             help="Use expected results?")
 argParser.add_argument("--signalInjection",action='store_true',                                                             help="Inject some signal?")
+argParser.add_argument("--useTxt",         action='store_true',                                                             help="Use txt based card files?")
 argParser.add_argument("--cores",          action='store', default=8,               nargs='?',                              help="Run on n cores in parallel")
 argParser.add_argument("--year",           action='store', default=2017,               nargs='?',                           help="Which year?")
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                              help="pick only one masspoint?")
@@ -32,7 +34,7 @@ year = int(args.year)
 
 def wrapper(s):
     logger.info("Processing mass point %s"%s.name)
-    cardFile = "%s_shapeCard.txt"%s.name
+    cardFile = "%s_shapeCard.txt"%s.name if not args.useTxt else "%s.txt"%s.name
     #analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v2/'
     sSubDir = 'expected' if args.expected else 'observed'
     if args.signalInjection: sSubDir += '_signalInjected'
@@ -47,16 +49,16 @@ def wrapper(s):
     shutil.copyfile(cardFilePath,combineDirname+'/'+cardFile)
     if not args.combined: shutil.copyfile(cardFilePath.replace('shapeCard.txt','shape.root'),combineDirname+'/'+cardFile.replace('shapeCard.txt','shape.root'))
     shutil.copyfile(cardFilePath.replace('shapeCard.txt', 'shapeCard.root'),combineDirname+'/'+cardFile.replace('shapeCard.txt', 'shapeCard.root'))
+    prepWorkspace   = "text2workspace.py %s -m 125"%cardFile
     if args.bkgOnly:
-        prepWorkspace   = "text2workspace.py %s --X-allow-no-signal -m 125"%cardFile
-    else:
-        prepWorkspace   = "text2workspace.py %s -m 125"%cardFile
-    if args.bkgOnly:
-        robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 --doInitialFit --robustFit 1 --rMin -0.01 --rMax 0.0"%s.name
-        impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 --robustFit 1 --doFits --parallel %s --rMin -0.01 --rMax 0.0"%(s.name,str(args.cores))
-    else:
+        robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 0 --doInitialFit --robustFit 1 --rMin -10 --rMax 10"%s.name
+        impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 0 --robustFit 1 --doFits --parallel %s --rMin -10 --rMax 10"%(s.name,str(args.cores))
+    elif args.observed:
         robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 --doInitialFit --robustFit 1 --rMin -10 --rMax 10"%s.name
         impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 --robustFit 1 --doFits --parallel %s --rMin -10 --rMax 10"%(s.name,str(args.cores))
+    else:
+        robustFit       = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 1 --doInitialFit --robustFit 1 --rMin -10 --rMax 10"%s.name
+        impactFits      = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -t -1 --expectSignal 1 --robustFit 1 --doFits --parallel %s --rMin -10 --rMax 10"%(s.name,str(args.cores))
     extractImpact   = "combineTool.py -M Impacts -d %s_shapeCard.root -m 125 -o impacts.json"%s.name
     plotImpacts     = "plotImpacts.py -i impacts.json -o impacts"
     combineCommand  = "cd %s;%s;%s;%s;%s;%s"%(combineDirname,prepWorkspace,robustFit,impactFits,extractImpact,plotImpacts)
@@ -67,9 +69,11 @@ def wrapper(s):
     plotDir = plot_directory + "/impacts/"
     if args.expected:
         s.name += '_expected'
-    if not os.path.isdir(plotDir): os.makedirs(plotDir)
     if args.bkgOnly:
-        shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_bkgOnly.pdf"%(plotDir,s.name))
+        s.name += '_bkgOnly'
+    if args.observed:
+        s.name += '_observed'
+    if not os.path.isdir(plotDir): os.makedirs(plotDir)
     elif args.combined:
         shutil.copyfile(combineDirname+'/impacts.pdf', "%s/%s_combined%s.pdf"%(plotDir,s.name,'_signalInjected' if args.signalInjection else ''))
     elif args.year:
