@@ -15,7 +15,6 @@ color.Top_pow        = color.TTJets
 color.singleTop      = 40
 color.TTX            = ROOT.kMagenta
 color.TTXNoZ         = ROOT.kRed
-#color.TTXNoZ         = 46
 color.TZX            = ROOT.kOrange+1
 color.TTH            = ROOT.kRed
 color.TTW            = ROOT.kRed+3
