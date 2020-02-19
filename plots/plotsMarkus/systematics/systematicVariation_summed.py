@@ -12,7 +12,7 @@ ROOT.gROOT.SetBatch(True)
 import operator
 import pickle
 import os, time, sys, copy
-from math                                import sqrt, cos, sin, pi, atan2
+from math                                import sqrt, cos, sin, pi, atan2, isnan
 
 # RootTools
 from RootTools.core.standard             import *
@@ -47,6 +47,7 @@ argParser.add_argument('--normalize',         action='store_true', help='Perform
 argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional directory label for minor changes to the plots")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
 argParser.add_argument('--directories',       action='store',         nargs='*',  type=str, default=[],                  help="Input" )
+argParser.add_argument('--fitChi2',         action='store_true', help='')
 
 
 args = argParser.parse_args()
@@ -188,8 +189,13 @@ def drawObjects( scaling ):
     #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) scale=%3.2f'% ( lumi_scale, scaleFactor ) )]
     #else:
     #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
-    lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
-    #if "mt2ll100" in args.selection: lines += [(0.55, 0.65, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
+    #lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
+    lines += [(0.45, 0.95, 'L=%i fb{}^{-1} (13 TeV)'% ( int(lumi_scale) ) )]
+    if "mt2ll100" in args.selection:
+        if args.signal:
+            lines += [(0.55, 0.58, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
+        else:
+            lines += [(0.55, 0.65, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
     return [tex.DrawLatex(*l) for l in lines]
 
 def accumulate_level_2( lists_of_lists ):
@@ -206,6 +212,7 @@ plot_subdirectory = args.plot_directory
 # We plot now. 
 if args.normalize: plot_subdirectory += "_normalized"
 if args.beta:      plot_subdirectory += "_%s"%args.beta
+if args.fitChi2:   plot_subdirectory += "_chi2"
 for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
     for i_plot, plot in enumerate(plots):
         
@@ -222,6 +229,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
         data_histo_list[0][0].style = styles.errorStyle(ROOT.kBlack)
         for i_mc, mc in enumerate(stack_mc[0]):
             mc_histo_list['central'][0][i_mc].legendText = mc.texName
+            mc_histo_list['central'][0][i_mc].style = styles.fillStyle(mc.color) 
         if args.signal:
             for i_sig, sig in enumerate(stack_signal):
                 signal_histo_list[i_sig][0].legendText = sig[0].texName
@@ -272,11 +280,36 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
                     factor = 0.5
                 # sum in quadrature
                 if systematic['correlated']:
-                    variance += ( factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)) )**2
+                    if i_b==total_mc_histo['central'].GetNbinsX() and overflowBin: # add overflow bin
+                        up = factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) + total_mc_histo[systematic['pair'][0]].GetBinContent(i_b+1))
+                        down = factor*(total_mc_histo[systematic['pair'][1]].GetBinContent(i_b) + total_mc_histo[systematic['pair'][1]].GetBinContent(i_b+1))
+                        # overflow bin can contain NaN
+                        if not isnan(up) and not isnan(down):
+                            variance += ( up - down )**2
+                        else: 
+                            print total_mc_histo[systematic['pair'][0]].GetBinContent(i_b), total_mc_histo[systematic['pair'][1]].GetBinContent(i_b), variance
+                            variance += ( factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)) )**2
+                    else:
+                        up = total_mc_histo[systematic['pair'][0]].GetBinContent(i_b)
+                        down = total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)
+                        # bin can contain NaN !? #FIXME leptonSFDown does contain NaN every once in a while
+                        if not isnan(up) and not isnan(down):
+                            variance += ( factor*( up - down ) )**2
+                        else:
+                            print systematic['name'], up, down, variance
                 else:
-                    for directory in args.directories:
-                        variance += ( factor*(total_mc_histo[directory][systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[directory][systematic['pair'][1]].GetBinContent(i_b)) )**2
+                    if i_b==total_mc_histo['central'].GetNbinsX() and overflowBin: # add overflow bin
+                        var = 0.
+                        for directory in args.directories:
+                            up = total_mc_histo[directory][systematic['pair'][0]].GetBinContent(i_b) + total_mc_histo[directory][systematic['pair'][0]].GetBinContent(i_b+1)
+                            down = total_mc_histo[directory][systematic['pair'][1]].GetBinContent(i_b) + total_mc_histo[directory][systematic['pair'][1]].GetBinContent(i_b+1)
+                            variance += ( factor*( up - down ) )**2
+                    else:
+                        for directory in args.directories:
+                            variance += ( factor*(total_mc_histo[directory][systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[directory][systematic['pair'][1]].GetBinContent(i_b)) )**2
 
+            if isnan(sqrt(variance)): assert False
+            #print "{}|plot {} bin {}/{} variance: {:.3f}".format(mode, i_plot, i_b, total_mc_histo['central'].GetNbinsX(), sqrt(variance))
             sigma     = sqrt(variance)
             sigma_rel = sigma/total_central_mc_yield 
 
@@ -299,6 +332,28 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             r_box.SetFillStyle(3444)
             r_box.SetFillColor(ROOT.kBlack)
             ratio_boxes.append(r_box)
+            
+        # -------------------------------------------------------
+        # DY pTmiss plot with chi-squared
+        if args.fitChi2 and plot.name == "MET_significance_mc":
+            chi2=ROOT.TF1("chi2","2.25*10**7*0.5*exp(-0.5*x)",0,100)
+            chi2.SetNpx(1000)
+            chi2.SetLineColor(ROOT.kRed)
+
+            chi2_histo = chi2.GetHistogram()
+
+            # Legend
+            chi2_histo.legendText = "#chi^{2}(N_{dof}=2)"
+            chi2_histo.legendOption = "l"
+            chi2_histo.SetMarkerStyle(0)
+            chi2_histo.SetMarkerSize(0)
+            #chi2_histo.SetBorderSize(0)
+            #ROOT.gStyle.SetLegendBorderSize(0)
+
+            plot.histos[1].append(chi2_histo)
+            plot.texX = 'p_{T}^{miss} significance'
+            #chiSquared = []
+        # -------------------------------------------------------
 
         for log in [False, True]:
             plot_directory_ = os.path.join(plot_directory, 'systematicPlots', 'combined', plot_subdirectory, args.selection, mode + ("_log" if log else ""))
@@ -313,7 +368,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
               plot_directory = plot_directory_,
               ratio = {'yRange':(0.1,1.9), 'drawObjects':ratio_boxes},
               logX = False, logY = log, sorting = False,
-              yRange = (0.03, "auto") if log else (0.001, "auto"),
+              yRange = (0.03, "auto") if log else (0.6, "auto") if args.fitChi2 else (0.001, "auto"),
               scaling = {0:1} if args.normalize else {},
               legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
               drawObjects = drawObjects( args.scaling ) + boxes,

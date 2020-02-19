@@ -11,7 +11,7 @@ import ROOT
 ROOT.gROOT.SetBatch(True)
 import operator
 import pickle, os, time, sys, copy
-from math                                import sqrt, cos, sin, pi, atan2
+from math                                import sqrt, cos, sin, pi, atan2, isnan
 
 # RootTools
 from RootTools.core.standard             import *
@@ -667,7 +667,7 @@ for mode in modes:
     if args.variation == 'central': 
         metSig_data  = Plot( 
             name        = "MET_significance_data",
-            texX        = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+            texX        = 'p_{T}^{miss} significance', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
             binning     = Binning.fromThresholds( metSigBinning ),
             stack       = stack_data, 
             attribute   = TreeVariable.fromString( "MET_significance/F" ),
@@ -677,7 +677,7 @@ for mode in modes:
         if args.signal:
             metSig_signal  = Plot( 
                 name        = "MET_significance_signal",
-                texX        = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+                texX        = 'p_{T}^{miss} significance', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
                 binning     = Binning.fromThresholds( metSigBinning ),
                 stack       = stack_signal, 
                 attribute   = TreeVariable.fromString( "MET_significance/F" ),
@@ -687,7 +687,7 @@ for mode in modes:
     
     metSig_mc  = Plot(\
         name = "MET_significance_mc",
-        texX = 'E_{T}^{miss} significance (GeV)', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+        texX = 'p_{T}^{miss} significance', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
         stack = stack_mc,
         attribute = TreeVariable.fromString( selectionModifier("MET_significance/F") )  if selectionModifier is not None else None,
         binning=Binning.fromThresholds( metSigBinning ),
@@ -958,6 +958,26 @@ for mode in all_modes:
                 for s in mc:
                     dataMC_SF[mode][variation][s.name] = sf 
 
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    # area normalization scale factor
+    if args.scaling is None and args.normalize:
+        #assert False, "Shouldn't be here!"
+        # scale variations individually
+        logger.info( "Scaling MC yield to data ( all variations are scaled by central SF)" )
+        for i_plot, plot in enumerate(plots):
+            for variation in variations.keys():
+                if args.signal:
+                    yield_data = variation_data[(mode,'central')]['histos'][3*i_plot][0][0].Integral()
+                    yield_mc = sum(variation_data[(mode,'central')]['histos'][3*i_plot+2][0][i].Integral() for i, s in enumerate(mc))
+                else:
+                    yield_data = variation_data[(mode,'central')]['histos'][2*i_plot][0][0].Integral()
+                    yield_mc = sum(variation_data[(mode,'central')]['histos'][2*i_plot+1][0][i].Integral() for i, s in enumerate(mc))
+                sf = yield_data/yield_mc
+                for variation in variations.keys():
+                    for s in mc:
+                        dataMC_SF[mode][variation][s.name] = sf
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     # perform the scaling & store styles and texName
     for i_plot, plot in enumerate(plots):
         for variation in variations.keys():
@@ -979,6 +999,8 @@ for mode in all_modes:
 dirdb_key =   'variation_data_scaling_%s'%(args.scaling if args.scaling is not None else "None")
 dirdb_key += "_variation_scaling_%s"%bool(args.variation_scaling)
 dirdb_key += "_normalize_%s"%bool(args.normalize)
+print "DB directory:", os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, 'cache')
+print "dirdb_key:", dirdb_key
 save_plots = []
 for plot in plots:
     p = copy.deepcopy(plot)
@@ -1016,7 +1038,11 @@ def drawObjects( scaling ):
     #else:
     #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
     lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
-    if "mt2ll100" in args.selection: lines += [(0.55, 0.65, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
+    if "mt2ll100" in args.selection: 
+        if args.signal:
+            lines += [(0.55, 0.6, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
+        else:
+            lines += [(0.55, 0.65, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
     return [tex.DrawLatex(*l) for l in lines]
 
 # We plot now. 
@@ -1037,24 +1063,6 @@ for mode in all_modes:
         for variation in variations.keys():
             if variation=='central': continue
             mc_histo_list[variation] = variation_data[(mode, variation)]['histos'][i_plot]
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        # area normalization scale factor
-        if args.scaling is None and args.normalize:
-            assert False, "Shouldn't be here!"
-#            # scale variations individually
-#            logger.info( "Scaling MC yield to data ( all variations are scaled by central SF)" )
-#            if args.signal:
-#                yield_data = variation_data[(mode,'central')]['histos'][3*i_plot][0][0].Integral()
-#                yield_mc = sum(variation_data[(mode,'central')]['histos'][3*i_plot+2][0][i].Integral() for i, s in enumerate(mc))
-#            else:
-#                yield_data = variation_data[(mode,'central')]['histos'][2*i_plot][0][0].Integral()
-#                yield_mc = sum(variation_data[(mode,'central')]['histos'][2*i_plot+1][0][i].Integral() for i, s in enumerate(mc))
-#            sf = yield_data/yield_mc
-#            for variation in variations.keys():
-#                for s in mc:
-#                    dataMC_SF[mode][variation][s.name] = sf
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         # Add histos, del the stack (which refers to MC only )
         plot.histos =  mc_histo_list['central'] + data_histo_list
@@ -1088,7 +1096,16 @@ for mode in all_modes:
                 else:
                     factor = 0.5
                 # sum in quadrature
-                variance += ( factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)) )**2
+                if i_b==total_mc_histo['central'].GetNbinsX() and overflowBin: # add overflow bin
+                    up = total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) + total_mc_histo[systematic['pair'][0]].GetBinContent(i_b+1)
+                    down = total_mc_histo[systematic['pair'][1]].GetBinContent(i_b) + total_mc_histo[systematic['pair'][1]].GetBinContent(i_b+1)
+                    if isnan(up) or isnan(down):
+                        print "ISNAN", "up", up, "down", down
+                        variance += ( factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)) )**2
+                    else: 
+                        variance += ( factor*(up - down) )**2
+                else:
+                    variance += ( factor*(total_mc_histo[systematic['pair'][0]].GetBinContent(i_b) - total_mc_histo[systematic['pair'][1]].GetBinContent(i_b)) )**2
 
             sigma     = sqrt(variance)
             sigma_rel = sigma/total_central_mc_yield 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' Analysis script for standard plots
+''' Lepton analysis script
 '''
 #
 # Standard imports and batch mode
@@ -7,15 +7,24 @@
 import ROOT, os
 ROOT.gROOT.SetBatch(True)
 import itertools
+import copy
+import array
+import operator
 
-from math                                import sqrt, cos, sin, pi
+from math                                import sqrt, cos, sin, pi, atan2
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
 from Analysis.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
-# from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
-from StopsDilepton.tools.mt2Calculator   import mt2Calculator
+from StopsDilepton.tools.objectSelection import muonSelector, eleSelector, getGoodMuons, getGoodElectrons
+
+
+# JEC corrector
+from JetMET.JetCorrector.JetCorrector    import JetCorrector, correction_levels_data, correction_levels_mc
+corrector_data     = JetCorrector.fromTarBalls( [(1, 'Autumn18_RunD_V8_DATA') ], correctionLevels = correction_levels_data )
+corrector_mc       = JetCorrector.fromTarBalls( [(1, 'Autumn18_RunD_V8_DATA') ], correctionLevels = correction_levels_mc )
+
 # from Analysis.Tools.puProfileCache import *
 
 #
@@ -27,22 +36,17 @@ argParser.add_argument('--logLevel',           action='store',      default='INF
 argParser.add_argument('--signal',             action='store',      default=None,            nargs='?', choices=[None, "T2tt", "DM", "T8bbllnunu", "compilation"], help="Add signal to plot")
 argParser.add_argument('--noData',             action='store_true', default=False,           help='also plot data?')
 argParser.add_argument('--small',                                   action='store_true',     help='Run only on a small subset of the data?', )
-argParser.add_argument('--plot_directory',     action='store',      default='v2')
-argParser.add_argument('--year',               action='store', type=int,      default=2016)
-argParser.add_argument('--era',                action='store',      default="", choices=["", "ABC", "D"])
-argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll100')
-argParser.add_argument('--splitBosons',        action='store_true', default=False)
-argParser.add_argument('--splitBosons2',       action='store_true', default=False)
+argParser.add_argument('--plot_directory',     action='store',      default='dPhiJet')
+argParser.add_argument('--era',                action='store', type=str,      default="Run2016")
+argParser.add_argument('--selection',          action='store',      default='lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20')
 argParser.add_argument('--badMuonFilters',     action='store',      default="Summer2016",  help="Which bad muon filters" )
 argParser.add_argument('--noBadPFMuonFilter',           action='store_true', default=False)
 argParser.add_argument('--noBadChargedCandidateFilter', action='store_true', default=False)
 argParser.add_argument('--unblinded',          action='store_true', default=False)
-argParser.add_argument('--blinded',          action='store_true', default=False)
-argParser.add_argument('--reweightPUVUp',      action='store_true', default=False)
-argParser.add_argument('--noReweightPU',      action='store_true', default=False)
+argParser.add_argument('--blinded',            action='store_true', default=False)
+argParser.add_argument('--dpm',                action='store_true', default=False)
+argParser.add_argument('--reweightPU',         action='store', default='Central', choices=['VDown', 'Down', 'Central', 'Up', 'VUp', 'VVUp', 'noPUReweighting', 'nvtx'])
 argParser.add_argument('--isr',                action='store_true', default=False)
-argParser.add_argument('--preHEM',             action='store_true', default=False)
-argParser.add_argument('--postHEM',            action='store_true', default=False)
 args = argParser.parse_args()
 
 #
@@ -54,123 +58,85 @@ logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 
 if args.small:                        args.plot_directory += "_small"
+if args.reweightPU:                   args.plot_directory += "_%s"%args.reweightPU
 if args.noData:                       args.plot_directory += "_noData"
-if args.splitBosons:                  args.plot_directory += "_splitMultiBoson"
-if args.splitBosons2:                 args.plot_directory += "_splitMultiBoson2"
 if args.signal == "DM":               args.plot_directory += "_DM"
 if args.badMuonFilters!="Summer2016": args.plot_directory += "_badMuonFilters_"+args.badMuonFilters
-if args.reweightPUVUp:                args.plot_directory += "_PUVUp"
-if args.reweightPUVUp:                args.plot_directory += "_PUVUp"
-if args.noReweightPU:                 args.plot_directory += "_noReweightPU"
 if args.noBadPFMuonFilter:            args.plot_directory += "_noBadPFMuonFilter"
 if args.noBadChargedCandidateFilter:  args.plot_directory += "_noBadChargedCandidateFilter"
-if args.preHEM:                       args.plot_directory += "_preHEM"
-if args.postHEM:                      args.plot_directory += "_postHEM"
 #
 # Make samples, will be searched for in the postProcessing directory
 #
 from Analysis.Tools.puReweighting import getReweightingFunction
 
+if "2016" in args.era:
+    year = 2016
+elif "2017" in args.era:
+    year = 2017
+elif "2018" in args.era:
+    year = 2018
 
-if args.year == 2016:
+logger.info( "Working in year %i", year )
+
+# Load from DPM?
+if args.dpm:
+    data_directory          = "/dpm/oeaw.ac.at/home/cms/store/user/rschoefbeck/Stops2l-postprocessed/"
+
+if year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
-    if args.splitBosons:
-        mc         = [ Top_pow_16, TTXNoZ_16, TTZ_16, diBoson_16, triBoson_16, DY_LO_16]
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16
+    #Top_pow, TTXNoZ, TTZ_LO, multiBoson = Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16
+    if args.selection.count("onZ") > 0:
+        mc          = [ DY_HT_LO_16, Top_pow_16, multiBoson_16, TTXNoZ_16, TTZ_16 ]
     else:
-        mc         = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
-    # if args.reweightPU:
-    #     nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
-    # recoilCorrector = RecoilCorrector( 2016 )
-elif args.year == 2017:
+        mc          = [ Top_pow_16, multiBoson_16, DY_HT_LO_16, TTXNoZ_16, TTZ_16 ]
+elif year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
-    if args.splitBosons:
-        mc         = [ Top_pow_17, TTXNoZ_17, TTZ_17, VVTo2L2Nu_17, WW_17, WZ_17, ZZ_17, triBoson_17, DY_LO_17]
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17
+    #Top_pow, TTXNoZ, TTZ_LO, multiBoson = Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17
+    if args.selection.count("onZ") > 0:
+        mc          = [ DY_HT_LO_17, Top_pow_17, multiBoson_17, TTXNoZ_17, TTZ_17 ]
     else:
-        mc         = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_LO_17]
-    # if args.reweightPU:
-    #     # need sample based weights
-    #     pass
-    # recoilCorrector = RecoilCorrector( 2017 )
-elif args.year == 2018:
-    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+        mc          = [ Top_pow_17, multiBoson_17, DY_HT_LO_17, TTXNoZ_17, TTZ_17 ]
+elif year == 2018:
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
-    if args.splitBosons:
-        mc         = [ Top_pow_18, TTXNoZ_18, TTZ_18, VVTo2L2Nu_18, WZ_18, ZZ_18, triboson_18, DY_HT_LO_18]
+    from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
+    Top_pow, TTXNoZ, TTZ_LO, multiBoson, DY_HT_LO = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18
+    #Top_pow, TTXNoZ, TTZ_LO, multiBoson = Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18
+    if args.selection.count("onZ") > 0:
+        mc          = [ DY_HT_LO_18, Top_pow_18, multiBoson_18, TTXNoZ_18, TTZ_18 ]
     else:
-        mc         = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]    
-    #nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
-    # if args.reweightPU:
-    #     nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
-    # if args.preHEM:
-    #     recoilCorrector = RecoilCorrector( 2018, "preHEM")
-    # elif args.postHEM:
-    #     recoilCorrector = RecoilCorrector( 2018, "postHEM")
-    # else:
-    #     recoilCorrector = RecoilCorrector( 2018 )
+        mc          = [ Top_pow_18, multiBoson_18, DY_HT_LO_18, TTXNoZ_18, TTZ_18 ]
 
-data_directory = "/afs/hephy.at/data/dspitzbart01/nanoTuples/"
-if args.signal == "T2tt":
-    if args.year == 2016:
-        postProcessing_directory = "stops_2016_nano_v0p3/dilep/"
-        from StopsDilepton.samples.nanoTuples_FastSim_Spring16_postProcessed import *
-    else:
-        postProcessing_directory = "stops_2017_nano_v0p3/dilep/"
-        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import *
-    T2tt                    = T2tt_750_0
-    T2tt2                   = T2tt_600_300
-    T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-    T2tt.style              = styles.lineStyle( ROOT.kBlack, width=3 )
-    signals = [ T2tt, T2tt2]
-elif args.signal == "T8bbllnunu":
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p95_1300_1
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p95_1300_300
-    T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p95_1300_600
-    T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-    T8bbllnunu2.style       = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-    T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
-    signals = [ T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
-elif args.signal == "compilation":
-    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT2tt_mAODv2_25ns_postProcessed import *
-    postProcessing_directory = "postProcessed_80X_v30/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FastSimT8bbllnunu_mAODv2_25ns_postProcessed import *
-    T2tt                    = T2tt_800_1
-    T8bbllnunu              = T8bbllnunu_XCha0p5_XSlep0p05_800_1
-    T8bbllnunu2             = T8bbllnunu_XCha0p5_XSlep0p5_800_1
-    T8bbllnunu3             = T8bbllnunu_XCha0p5_XSlep0p95_800_1
-    T2tt.style              = styles.lineStyle( ROOT.kGreen-3, width=3 )
-    T8bbllnunu.style        = styles.lineStyle( ROOT.kBlack, width=3 )
-    T8bbllnunu2.style        = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
-    T8bbllnunu3.style       = styles.lineStyle( ROOT.kBlack, width=3, dashed=True )
-    signals = [ T2tt, T8bbllnunu, T8bbllnunu2, T8bbllnunu3 ]
-    
-elif args.signal == "DM":
-    postProcessing_directory = "postProcessed_80X_v35/dilepTiny"
-    from StopsDilepton.samples.cmgTuples_FullSimTTbarDM_mAODv2_25ns_postProcessed import *
-    #DM                      = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_10_ext1
-    DM                      = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_10
-    #DM2                     = TTbarDMJets_pseudoscalar_Mchi_1_Mphi_50_ext1
-    #DM2_alt                 = TTbarDMJets_DiLept_pseudoscalar_Mchi_1_Mphi_50
-    DM2                     = TTbarDMJets_DiLept_scalar_Mchi_1_Mphi_10
-    DM.style                = styles.lineStyle( ROOT.kBlack, width=3)
-    #DM_alt.style            = styles.lineStyle( ROOT.kBlack, width=3, dotted=True)
-    DM2.style               = styles.lineStyle( 28,          width=3)
-    #DM2_alt.style           = styles.lineStyle( 28,          width=3, dotted=True)
-    signals = [DM, DM2]
-else:
-    signals = []
+
+try:
+  data_sample = eval(args.era)
+except Exception as e:
+  logger.error( "Didn't find %s", args.era )
+  raise e
+
+lumi_scale                 = data_sample.lumi/1000
+data_sample.scale          = 1.
+for sample in mc:
+    sample.scale          = lumi_scale
+
+if args.small:
+    for sample in mc + [data_sample]:
+        sample.normalization = 1.
+        sample.reduceFiles( factor = 40 )
+        sample.scale /= sample.normalization
+
 #
 # Text on the plots
 #
+tex = ROOT.TLatex()
+tex.SetNDC()
+tex.SetTextSize(0.04)
+tex.SetTextAlign(11) # align right
+
 def drawObjects( plotData, dataMCScale, lumi_scale ):
-    tex = ROOT.TLatex()
-    tex.SetNDC()
-    tex.SetTextSize(0.04)
-    tex.SetTextAlign(11) # align right
     lines = [
       (0.15, 0.95, 'CMS Preliminary' if plotData else 'CMS Simulation'), 
       (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) Scale %3.2f'% ( lumi_scale, dataMCScale ) ) if plotData else (0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)' % lumi_scale)
@@ -180,40 +146,37 @@ def drawObjects( plotData, dataMCScale, lumi_scale ):
 
 def drawPlots(plots, mode, dataMCScale):
   for log in [False, True]:
-    plot_directory_ = os.path.join(plot_directory, 'analysisPlots', "%s%s"%(args.year,args.era), args.plot_directory, mode + ("_log" if log else ""), args.selection)
+    plot_directory_ = os.path.join(plot_directory, 'analysisPlots', args.plot_directory, args.era, mode + ("_log" if log else ""), args.selection)
     for plot in plots:
       if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
       if not args.noData: 
         if mode == "all": plot.histos[1][0].legendText = "Data"
         if mode == "SF":  plot.histos[1][0].legendText = "Data (SF)"
 
+      _drawObjects = []
+
       plotting.draw(plot,
 	    plot_directory = plot_directory_,
 	    ratio = {'yRange':(0.1,1.9)} if not args.noData else None,
-	    logX = False, logY = log, sorting = True,
+	    logX = False, logY = log, sorting = False,
 	    yRange = (0.03, "auto") if log else (0.001, "auto"),
-	    scaling = {0:1},
-	    legend = (0.50,0.88-0.04*sum(map(len, plot.histos)),0.9,0.88) if not args.noData else (0.50,0.9-0.047*sum(map(len, plot.histos)),0.85,0.9),
-	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ),
-        copyIndexPHP = True,
+	    #scaling = {0:1},
+	    legend = ( (0.18,0.88-0.03*sum(map(len, plot.histos)),0.9,0.88), 2),
+	    drawObjects = drawObjects( not args.noData, dataMCScale , lumi_scale ) + _drawObjects,
+        copyIndexPHP = True, extensions = ["png"],
       )
 
 #
 # Read variables and sequences
 #
-read_variables = ["weight/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F",
-                  "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "RawMET_pt/F", "RawMET_phi/F"]
+read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "metSig/F", "ht/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I"]
 
 sequence = []
 
-def calcRawMt2ll( event, sample ):
-    mt2Calculator.reset()
-    mt2Calculator.setLeptons(event.l1_pt, event.l1_eta, event.l1_phi, event.l2_pt, event.l2_eta, event.l2_phi)
-    mt2Calculator.setMet(event.RawMET_pt, event.RawMET_phi)
-    event.dl_mt2llRaw =  mt2Calculator.mt2ll()
-    #print "~~~~> raw METpt, rawMETphi, rawMT2ll", event.RawMET_pt, event.RawMET_phi, event.dl_mt2llRaw
+def make_phi_distribution( event, sample ):
+    pass
 
-sequence.append( calcRawMt2ll )
+#sequence.append( make_phi_distribution )
 
 #
 #
@@ -223,13 +186,8 @@ def getLeptonSelection( mode ):
   if   mode=="mumu": return "nGoodMuons==2&&nGoodElectrons==0&&isOS&&isMuMu" + offZ
   elif mode=="mue":  return "nGoodMuons==1&&nGoodElectrons==1&&isOS&&isEMu"
   elif mode=="ee":   return "nGoodMuons==0&&nGoodElectrons==2&&isOS&&isEE" + offZ
-
-##For PU reweighting
-#from Analysis.Tools.puReweighting import getReweightingFunction
-#nTrueInt27fb_puRW        = getReweightingFunction(data="PU_2016_27000_XSecCentral", mc="Spring16")
-#nTrueInt27fb_puRWDown    = getReweightingFunction(data="PU_2016_27000_XSecDown", mc="Spring16")
-#nTrueInt27fb_puRWUp      = getReweightingFunction(data="PU_2016_27000_XSecUp", mc="Spring16")
-#nTrueInt12fb_puRW        = getReweightingFunction(data="PU_2016_12000_XSecCentral", mc="Spring16")
+  elif mode=="SF":   return "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)" + offZ
+  elif mode=="all":   return "nGoodMuons+nGoodElectrons==2&&isOS&&(((isEE||isMuMu)&&" + offZ+")||isEMu)"
 
 #
 # Loop over channels
@@ -239,91 +197,28 @@ allPlots   = {}
 allModes   = ['mumu','mue','ee']
 for index, mode in enumerate(allModes):
   yields[mode] = {}
-  if args.year == 2016:
-    data_sample = Run2016
-    data_sample.texName = "data (2016)"
-  elif args.year == 2017:
-    data_sample = Run2017
-    data_sample.texName = "data (2017)"
-  elif args.year == 2018:
-    #print "~~~~~> This is era Run2018%s"%args.era
-    data_sample = eval("Run2018%s"%args.era)
-    data_sample.texName = "data (2018%s)"%args.era
-  
 
-  data_sample.setSelectionString([getFilterCut(isData=True, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
-  if args.preHEM:
-    data_sample.addSelectionString("run<319077")
-  if args.postHEM:
-    data_sample.addSelectionString("run>=319077")
+  data_sample.setSelectionString([getFilterCut(isData=True, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
   data_sample.name           = "data"
-  data_sample.read_variables = ["event/I","run/I"]
+  data_sample.read_variables = ["event/I","run/I","reweightHEM/F"]
   data_sample.style          = styles.errorStyle(ROOT.kBlack)
-  data_sample.scale          = 1.
-  lumi_scale                 = data_sample.lumi/1000
-  if args.preHEM:   lumi_scale *= 0.37
-  if args.postHEM:  lumi_scale *= 0.63
+  weight_ = lambda event, sample: event.weight*event.reweightHEM
 
-  if args.noData:
-    if args.year == 2016: lumi_scale = 35.9
-    elif args.year == 2017: lumi_scale = 41.9
-    elif args.year == 2018: lumi_scale = 60.0
-  weight_ = lambda event, sample: event.weight
+  for sample in mc:
+    sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSip3dSF/F','reweightLeptonHit0SF/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F', 'GenMET_pt/F', 'GenMET_phi/F', "reweightHEM/F"]
+    sample.read_variables += ['reweightPU%s/F'%args.reweightPU if args.reweightPU != "Central" else "reweightPU/F"]
+    if args.reweightPU == 'Central':
+        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSip3dSF*event.reweightLeptonHit0SF*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+    else:
+        sample.weight         = lambda event, sample: getattr(event, "reweightPU"+args.reweightPU if args.reweightPU != "Central" else "reweightPU")*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
+    sample.setSelectionString([getFilterCut(isData=False, year=year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
 
   for sample in mc: sample.style = styles.fillStyle(sample.color)
 
-  for sample in mc + signals:
-    sample.scale          = lumi_scale
-   #sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
-   #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonHIPSF*event.reweightDilepTriggerBackup*nTrueInt27fb_puRW(event.nTrueInt)*event.reweightBTag_SF
-    sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F']
-    #if (('ttjets' in sample.name) or ('ttlep' in sample.name)) and args.isr:
-    #    sample.read_variables = ['reweightTopPt/F','reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F', 'reweight_nISR/F']
-    #    sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU*event.reweightLeptonTrackingSF*event.reweight_nISR
-    #else:
-    if args.reweightPUVUp:
-        sample.weight         = lambda event, sample: nTrueInt_puRW(event.Pileup_nTrueInt)
-    elif args.noReweightPU:
-        sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
-    else:
-        sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
-    sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
-
-  for sample in signals:
-      if args.signal == "T2tt" or args.signal == "T8bbllnunu" or args.signal == "compilation":
-        sample.scale          = lumi_scale
-        sample.read_variables = ['reweightPU/F', 'Pileup_nTrueInt/F', 'reweightDilepTrigger/F','reweightLeptonSF/F','reweightBTag_SF/F', 'reweightLeptonTrackingSF/F']
-        if args.noReweightPU:
-            sample.weight         = lambda event, sample: event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
-        else:
-            sample.weight         = lambda event, sample: event.reweightPU*event.reweightDilepTrigger*event.reweightLeptonSF*event.reweightBTag_SF*event.reweightLeptonTrackingSF
-        sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
-        #sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightLeptonFastSimSF/F','reweightBTag_SF/F','reweightPU/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
-        #sample.weight         = lambda event, sample: event.reweightLeptonSF*event.reweightLeptonFastSimSF*event.reweightBTag_SF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
-      elif args.signal == "DM":
-        sample.scale          = lumi_scale
-        sample.read_variables = ['reweightDilepTriggerBackup/F','reweightLeptonSF/F','reweightBTag_SF/F','reweightPU/F', 'nTrueInt/F', 'reweightLeptonTrackingSF/F']
-        if args.noReweightPU:
-            sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightLeptonTrackingSF
-        else:
-            sample.weight         = lambda event, sample: event.reweightBTag_SF*event.reweightLeptonSF*event.reweightDilepTriggerBackup*event.reweightPU*event.reweightLeptonTrackingSF
-        sample.setSelectionString([getFilterCut(isData=False, year=args.year, skipBadPFMuon=args.noBadPFMuonFilter, skipBadChargedCandidate=args.noBadChargedCandidateFilter), getLeptonSelection(mode)])
-      else:
-        raise NotImplementedError
-
-  
   if not args.noData:
     stack = Stack(mc, data_sample)
   else:
     stack = Stack(mc)
-
-  stack.extend( [ [s] for s in signals ] )
-
-  if args.small:
-        for sample in stack.samples:
-            sample.normalization = 1.
-            sample.reduceFiles( factor = 40 )
-            sample.scale /= sample.normalization
 
   # Use some defaults
   Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString = cutInterpreter.cutString(args.selection), addOverFlowBin='upper', histo_class=ROOT.TH1D)
@@ -385,11 +280,20 @@ for index, mode in enumerate(allModes):
       binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
     ))
 
+    mt2llBinning = [0,20,40,60,80,100,140,240,340]
     plots.append(Plot(
-      texX = 'raw M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-      name = "dl_mt2llraw", attribute = lambda event, sample: event.dl_mt2llRaw,
-      binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
+      texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events',
+      attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
+      binning=Binning.fromThresholds(mt2llBinning),
+      name="dl_mt2ll_wide"
     ))
+
+
+#    plots.append(Plot(
+#      texX = 'raw M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
+#      name = "dl_mt2llraw", attribute = lambda event, sample: event.dl_mt2llRaw,
+#      binning=[300/20, 100,400] if args.selection.count('mt2ll100') else ([300/20, 140, 440] if args.selection.count('mt2ll140') else [300/20,0,300]),
+#    ))
 
   plots.append(Plot(
     texX = 'number of jets', texY = 'Number of Events',
@@ -593,21 +497,53 @@ for index, mode in enumerate(allModes):
     ))
     #
 
+    # dPhi(MET, jet)
+
     plots.append(Plot(
-      name = 'cosMetJet1phi',
+        name = 'cosdPhiMetJet0', 
+        texX = 'cos(#Delta#phi(E_{T}^{miss}, first jet))', texY = 'Number of Events',
+        attribute = lambda event, sample: cos(event.met_phi-event.JetGood_phi[0]),
+        read_variables = ["met_phi/F", "JetGood[phi/F]"],
+        binning=[10,-1.0,1.0],
+    ))
+    plots.append(Plot(
+        name = 'cosdPhiMetJet0_small', 
+        texX = 'cos(#Delta#phi(E_{T}^{miss}, first jet))', texY = 'Number of Events',
+        attribute = lambda event, sample: cos(event.met_phi-event.JetGood_phi[0]),
+        read_variables = ["met_phi/F", "JetGood[phi/F]"],
+        binning=[20,-1.0,1.0],
+    ))
+    plots.append(Plot(
+        name = 'cosdPhiMetJet0_fine', 
+        texX = 'cos(#Delta#phi(E_{T}^{miss}, first jet))', texY = 'Number of Events',
+        attribute = lambda event, sample: cos(event.met_phi-event.JetGood_phi[0]),
+        read_variables = ["met_phi/F", "JetGood[phi/F]"],
+        binning=[200,-1.0,1.0],
+    ))
+
+    plots.append(Plot(
+      name = 'cosdPhiMetJet1',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
       binning = [10,-1,1],
     ))
-    
     plots.append(Plot(
-      name = 'cosMetJet1phi_smallBinning',
+      name = 'cosdPhiMetJet1_small',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
       binning = [20,-1,1],
     ))
+    plots.append(Plot(
+        name = 'cosdPhiMetJet1_fine', 
+        texX = 'cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
+        attribute = lambda event, sample: cos(event.met_phi-event.JetGood_phi[1]),
+      read_variables = ["met_phi/F", "JetGood[phi/F]"],
+        binning=[200,-1.0,1.0],
+    ))
+
+
 
     plots.append(Plot(
       name = 'cosZJet1phi',
@@ -650,7 +586,6 @@ for index, mode in enumerate(allModes):
     #  binning=[50, 0, 1],
     #))
 
-
   plotting.fill(plots, read_variables = read_variables, sequence = sequence)
 
   # Get normalization yields from yield histogram
@@ -663,13 +598,10 @@ for index, mode in enumerate(allModes):
           h.GetXaxis().SetBinLabel(2, "e#mu")
           h.GetXaxis().SetBinLabel(3, "ee")
   if args.noData: yields[mode]["data"] = 0
-
   yields[mode]["MC"] = sum(yields[mode][s.name] for s in mc)
   dataMCScale        = yields[mode]["data"]/yields[mode]["MC"] if yields[mode]["MC"] != 0 else float('nan')
 
   drawPlots(plots, mode, dataMCScale)
-  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
-  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
   allPlots[mode] = plots
 
 # Add the different channels into SF and all
@@ -688,21 +620,7 @@ for mode in ["SF","all"]:
 	    j.Add(l)
 
   drawPlots(allPlots['mumu'], mode, dataMCScale)
-  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart",    yields, mode, mc)
-  #makePieChart(os.path.join(plot_directory, args.plot_directory, mode, args.selection), "pie_chart_VV", yields, mode, multiBosonList)
 
-# Write to tex file
-columns = [i.name for i in mc] + ["MC", "data"] + ([DM.name, DM2.name] if args.signal=="DM" else []) + ([T2tt.name, T2tt2.name] if args.signal=="T2tt" else [])
-texdir = "tex"
-#if args.powheg: texdir += "_powheg"
-try:
-  os.makedirs("./" + texdir)
-except:
-  pass
-with open("./" + texdir + "/" + args.selection + ".tex", "w") as f:
-  f.write("&" + " & ".join(columns) + "\\\\ \n")
-  for mode in allModes + ["SF","all"]:
-    f.write(mode + " & " + " & ".join([ (" %12.0f" if i == "data" else " %12.2f") % yields[mode][i] for i in columns]) + "\\\\ \n")
 
 logger.info( "Done with prefix %s and selectionString %s", args.selection, cutInterpreter.cutString(args.selection) )
 
