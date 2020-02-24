@@ -1410,8 +1410,8 @@ else:
         logger.info( "Target: File check ok!" )
     else:
         logger.info( "Corrupt rootfile! Removing file: %s"%outfilename )
-        os.remove( outfilename )
-        raise Exception("Corrupt rootfile! File not copied: %s"%source )
+        #os.remove( outfilename )
+        #raise Exception("Corrupt rootfile! File not copied: %s"%source )
 
 # There is a double free corruption due to stupid ROOT memory management which leads to a non-zero exit code
 # Thus the job is resubmitted on condor even if the output is ok

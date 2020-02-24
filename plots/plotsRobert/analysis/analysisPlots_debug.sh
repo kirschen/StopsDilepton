@@ -267,3 +267,50 @@
 #
 #python analysisPlots.py --dpm --plot_directory v5  --era Run2018D   --reweightPU VUp  --selection fwdJetVeto-lepSel-njet2p-btag0-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2llTo100
 #python analysisPlots.py --dpm --plot_directory v5  --era Run2018ABC --reweightPU VUp  --selection fwdJetVeto-lepSel-njet2p-btag0-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2llTo100
+
+
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2016                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2018  --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ
+#
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2016                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll140
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll140
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2018  --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll140
+#
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2016                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll240
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll240
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2018  --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll240
+#
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2016                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2018  --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ
+#
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2016                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ-mt2ll140
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ-mt2ll140
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2018  --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ-mt2ll140
+#
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2016                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ-mt2ll240
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ-mt2ll240
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2018  --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ-mt2ll240
+#
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2016                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2018  --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ
+#
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2016                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ-mt2ll140
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ-mt2ll140
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2018  --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ-mt2ll140
+#
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2016                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ-mt2ll240
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-badEEJetVeto-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ-mt2ll240
+#python analysisPlots.py --dpm --plot_directory v0p22  --era Run2018  --reweightPU VUp --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ-mt2ll240
+
+python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ
+python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll140
+python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiJet0-dPhiJet1-onZ-mt2ll240
+python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ
+python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ-mt2ll140
+python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ-mt2ll240
+python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ
+python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ-mt2ll140
+python analysisPlots.py --dpm --plot_directory v0p22  --era Run2017                   --selection lepSel-POGMetSig12-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-dPhiInv-onZ-mt2ll240

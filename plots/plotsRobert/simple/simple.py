@@ -71,7 +71,7 @@ def makeM4l(event, sample):
             for i in range(1,4):
                 for j in range( i ):
                     #print "indices i=%i,j=%i: adding %d to m4l2 => yiels %d" % (i,j,m4l2summand,m4l2)
-                    m4l2 += 27. #FIXME: Tommy. 
+                    m4l2 += 27. #FIXME: Rosmarie. 
 
     event.m4l = sqrt( m4l2 )
     print "%d = invariant mass of 4 muons (2 pos, 2 neg)" % event.m4l
