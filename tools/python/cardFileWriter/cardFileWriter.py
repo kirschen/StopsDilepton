@@ -486,12 +486,12 @@ class cardFileWriter:
         #    self.writeToFile(uniqueDirname+"/"+fname)
         #else:
         #    self.writeToFile(fname)
-        combineCommand = "cd "+uniqueDirname+";combine --saveWorkspace -M ProfileLikelihood --uncapped 1 --significance --rMin -5 "+fname
+        combineCommand = "cd "+uniqueDirname+";combine --saveWorkspace -M Significance --uncapped 1 --rMin -5 "+fname
         os.system(combineCommand)
         #os.system("pushd "+self.releaseLocation+";eval `scramv1 runtime -sh`;popd;cd "+uniqueDirname+";"+self.combineStr+" --saveWorkspace  -M ProfileLikelihood --significance "+fname+" -t -1 --expectSignal=1 ")
         try:
-            res= self.readResFile(uniqueDirname+"/higgsCombineTest.ProfileLikelihood.mH120.root")
-            os.system("rm -rf "+uniqueDirname+"/higgsCombineTest.ProfileLikelihood.mH120.root")
+            res= self.readResFile(uniqueDirname+"/higgsCombineTest.Significance.mH120.root")
+            os.system("rm -rf "+uniqueDirname+"/higgsCombineTest.Significance.mH120.root")
         except:
             res=None
             print "Did not succeed."

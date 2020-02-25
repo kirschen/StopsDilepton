@@ -22,6 +22,7 @@ argParser.add_argument("--calcNuisances",  action='store_true',                 
 argParser.add_argument("--signalInjection",action='store_true',                                                                         help="Would you like some signal with your background?")
 argParser.add_argument("--clean",          action='store_true',                                                                         help="Remove potentially failed fits?")
 argParser.add_argument("--useTxt",         action='store_true',                                                                         help="Use txt files?")
+argParser.add_argument("--significance",   action='store_true',                                                                         help="Calculate significances instead of limits?")
 
 
 args = argParser.parse_args()
@@ -116,12 +117,20 @@ def wrapper(s):
         res = limitCache.get(sConfig)
         logger.info("Found result for %s, reusing", s.name)
 
+
     else:
         print "*" *100
         combinedCard = c.combineCards( cards )
         res = c.calcLimit(combinedCard)
         print res 
         print "+"*10
+        if args.significance:
+            sig = c.calcSignif(combinedCard)
+        try:
+            significance = sig['-1.000']
+        except:
+            significance = -1
+        res['significance'] = significance
         if args.calcNuisances:
             c.calcNuisances(combinedCard)
 
@@ -202,6 +211,7 @@ def wrapper(s):
     #print sString, res
     try:
         print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
+        print "Significance: %.2f"%res['significance']
         if res['-1.000']>4*res['0.840']:
             print "WARNING: This point could be problematic!"
             if args.clean:
@@ -270,6 +280,9 @@ limitPrefix = args.signal
 if not os.path.isdir(os.path.join(baseDir, 'limits', args.signal, limitPrefix)):
     os.makedirs(os.path.join(baseDir, 'limits', args.signal, limitPrefix))
 limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'limitResults.root')
+
+print "Root file is here:", limitResultsFilename
+
 ## new try, other thing is buggy
 def toGraph2D(name,title,length,x,y,z):
     result = ROOT.TGraph2D(length)
@@ -290,6 +303,7 @@ mStop_list = []
 mLSP_list  = []
 exp_list   = []
 obs_list   = []
+signif_list   = []
 exp_up_list   = []
 exp_down_list   = []
 
@@ -304,6 +318,10 @@ for r in results:
     exp_up_list.append(res['0.160'])
     exp_down_list.append(res['0.840'])
     obs_list.append(res['-1.000'])
+    try:
+        signif_list.append(res['significance'])
+    except:
+        signif_list.append(-1)
 
 scatter         = ROOT.TGraph(len(mStop_list))
 scatter.SetName('scatter')
@@ -314,6 +332,8 @@ exp_graph       = toGraph2D('exp','exp',len(mStop_list),mStop_list,mLSP_list,exp
 exp_up_graph    = toGraph2D('exp_up','exp_up',len(mStop_list),mStop_list,mLSP_list,exp_up_list)
 exp_down_graph  = toGraph2D('exp_down','exp_down',len(mStop_list),mStop_list,mLSP_list,exp_down_list)
 obs_graph       = toGraph2D('obs','obs',len(mStop_list),mStop_list,mLSP_list,obs_list)
+signif_graph    = toGraph2D('signif','signif',len(mStop_list),mStop_list,mLSP_list,signif_list)
+
 
 outfile = ROOT.TFile(limitResultsFilename, "recreate")
 scatter        .Write()
@@ -321,6 +341,7 @@ exp_graph      .Write()
 exp_down_graph .Write()
 exp_up_graph   .Write()
 obs_graph      .Write()
+signif_graph      .Write()
 outfile.Close()
 print "Written %s"%limitResultsFilename
 
