@@ -241,7 +241,7 @@ def splitNvtxMC(mc):
     dy_3 = copy.deepcopy( dy )
     dy_3.name += "_3"
     dy_3.addSelectionString( "PV_npvsGood>=35" )
-    dy_3.texName += " (35#leq S)"
+    dy_3.texName += " (35#leq N_{vtx})"
     dy_3.color   = ROOT.kGreen + 3
     tt = mc[0]
     tt_1 = copy.deepcopy( tt )
@@ -257,7 +257,7 @@ def splitNvtxMC(mc):
     tt_3 = copy.deepcopy( tt )
     tt_3.name += "_3"
     tt_3.addSelectionString( "PV_npvsGood>=35" )
-    tt_3.texName += " (35#leq S)"
+    tt_3.texName += " (35#leq N_{vtx})"
     tt_3.color   = ROOT.kAzure + 3
 
     return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]

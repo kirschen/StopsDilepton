@@ -10,37 +10,47 @@ basedir = "$CMSSW_BASE/src/StopsDilepton/tools/data/triggerEff/"
 class triggerEfficiency:
     def __init__(self, year):
 
-        if year == 2016:
-            ee_trigger_SF   = basedir+'Run2016_HLT_ee_V3_measuredInMET.root'
-            mue_trigger_SF  = basedir+'Run2016_HLT_muEle_V3_measuredInMET.root'
-            mumu_trigger_SF = basedir+'Run2016_HLT_mm_V3_measuredInMET.root'
-        elif year == 2017:
-            ee_trigger_SF   = basedir+'Run2017_HLT_ee_V3_measuredInMET.root'
-            mue_trigger_SF  = basedir+'Run2017_HLT_muEle_V3_measuredInMET.root'
-            mumu_trigger_SF = basedir+'Run2017_HLT_mm_V3_measuredInMET.root'
-        elif year == 2018:
-            ee_trigger_SF   = basedir+'Run2018_HLT_ee_V3_measuredInMET.root'
-            mue_trigger_SF  = basedir+'Run2018_HLT_muEle_V3_measuredInMET.root'
-            mumu_trigger_SF = basedir+'Run2018_HLT_mm_V3_measuredInMET.root'
+#        if year == 2016:
+#            ee_trigger_SF   = basedir+'Run2016_HLT_ee_V3_measuredInMET.root'
+#            mue_trigger_SF  = basedir+'Run2016_HLT_muEle_V3_measuredInMET.root'
+#            mumu_trigger_SF = basedir+'Run2016_HLT_mm_V3_measuredInMET.root'
+#        elif year == 2017:
+#            ee_trigger_SF   = basedir+'Run2017_HLT_ee_V3_measuredInMET.root'
+#            mue_trigger_SF  = basedir+'Run2017_HLT_muEle_V3_measuredInMET.root'
+#            mumu_trigger_SF = basedir+'Run2017_HLT_mm_V3_measuredInMET.root'
+#        elif year == 2018:
+#            ee_trigger_SF   = basedir+'Run2018_HLT_ee_V3_measuredInMET.root'
+#            mue_trigger_SF  = basedir+'Run2018_HLT_muEle_V3_measuredInMET.root'
+#            mumu_trigger_SF = basedir+'Run2018_HLT_mm_V3_measuredInMET.root'
 
-        self.mumu_highEta   = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_highEta1")
-        self.mumu_lowEta    = getObjFromFile(os.path.expandvars(mumu_trigger_SF),   "eff_pt1_pt2_lowEta1")
-        self.ee_highEta     = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "eff_pt1_pt2_highEta1")
-        self.ee_lowEta      = getObjFromFile(os.path.expandvars(ee_trigger_SF),     "eff_pt1_pt2_lowEta1")
-        self.mue_highEta    = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_highEta1")
-        self.mue_lowEta     = getObjFromFile(os.path.expandvars(mue_trigger_SF),    "eff_pt1_pt2_lowEta1")
+        self.mumu_highEta   = {'def':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_mm_V3_measuredInMET.root"%year)),   "eff_pt1_pt2_highEta1"),
+                               'sys':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_mm_V3_measuredInJetHT.root"%year)),   "eff_pt1_pt2_highEta1")}
+        self.mumu_lowEta    = {'def':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_mm_V3_measuredInMET.root"%year)),   "eff_pt1_pt2_lowEta1"),
+                               'sys':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_mm_V3_measuredInJetHT.root"%year)),   "eff_pt1_pt2_lowEta1")}
+        self.ee_highEta     = {'def':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_ee_V3_measuredInMET.root"%year)),     "eff_pt1_pt2_highEta1"),
+                               'sys':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_ee_V3_measuredInJetHT.root"%year)),     "eff_pt1_pt2_highEta1")}
+        self.ee_lowEta      = {'def':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_ee_V3_measuredInMET.root"%year)),     "eff_pt1_pt2_lowEta1"),
+                               'sys':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_ee_V3_measuredInJetHT.root"%year)),     "eff_pt1_pt2_lowEta1")}
+        self.mue_highEta    = {'def':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_muEle_V3_measuredInMET.root"%year)),    "eff_pt1_pt2_highEta1"),
+                               'sys':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_muEle_V3_measuredInJetHT.root"%year)),    "eff_pt1_pt2_highEta1")}
+        self.mue_lowEta     = {'def':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_muEle_V3_measuredInMET.root"%year)),    "eff_pt1_pt2_lowEta1"),
+                               'sys':getObjFromFile(os.path.expandvars(os.path.join(basedir, "Run%i_HLT_muEle_V3_measuredInJetHT.root"%year)),    "eff_pt1_pt2_lowEta1")}
 
         h_ = [self.mumu_highEta, self.mumu_lowEta, self.ee_highEta, self.ee_lowEta, self.mue_highEta, self.mue_lowEta]
         assert False not in [bool(x) for x in h_], "Could not load trigger SF: %r"%h_
 
-        self.ptMax = self.mumu_highEta.GetXaxis().GetXmax()
+        self.ptMax = self.mumu_highEta['def'].GetXaxis().GetXmax()
 
     def __getSF(self, map_, pt1, pt2):
         if pt1>self.ptMax: pt1=self.ptMax - 1 
         if pt2>self.ptMax: pt2=self.ptMax - 1 
-        val = map_.GetBinContent( map_.FindBin(pt1, pt2) )
-        valErr = map_.GetBinError( map_.FindBin(pt1, pt2) )
-        return (val, valErr)
+        val = map_['def'].GetBinContent( map_['def'].FindBin(pt1, pt2) )
+        valErr = map_['def'].GetBinError( map_['def'].FindBin(pt1, pt2) )
+        valSys = map_['sys'].GetBinContent( map_['sys'].FindBin(pt1, pt2) )
+        sys  = abs( valSys - val )
+        unc  = max( sys, valErr) 
+        #print pt1, pt2, val, valErr, sys, unc
+        return (val, unc)
 
     def getSF(self, pt1, eta1, pdgId1, pt2, eta2, pdgId2):
 
