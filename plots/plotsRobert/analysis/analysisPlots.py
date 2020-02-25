@@ -241,7 +241,7 @@ def splitNvtxMC(mc):
     dy_3 = copy.deepcopy( dy )
     dy_3.name += "_3"
     dy_3.addSelectionString( "PV_npvsGood>=35" )
-    dy_3.texName += " (35#leq S)"
+    dy_3.texName += " (35#leq N_{vtx})"
     dy_3.color   = ROOT.kGreen + 3
     tt = mc[0]
     tt_1 = copy.deepcopy( tt )
@@ -257,7 +257,7 @@ def splitNvtxMC(mc):
     tt_3 = copy.deepcopy( tt )
     tt_3.name += "_3"
     tt_3.addSelectionString( "PV_npvsGood>=35" )
-    tt_3.texName += " (35#leq S)"
+    tt_3.texName += " (35#leq N_{vtx})"
     tt_3.color   = ROOT.kAzure + 3
 
     return [ dy_1, dy_2, dy_3, tt_1, tt_2, tt_3] + mc[1:-1]
@@ -293,7 +293,9 @@ def drawPlots(plots, mode, dataMCScale):
   for log in [False, True]:
     plot_directory_ = os.path.join(plot_directory, 'analysisPlots', args.plot_directory, args.era, mode + ("_log" if log else ""), args.selection)
     for plot in plots:
-      if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
+      if not max(l[0].GetMaximum() for l in plot.histos): 
+        logger.warning( "Plot %s apparently empty. Skipping.", plot.name )
+        continue # Empty plot
       if not args.noData: 
         if mode == "all": plot.histos[1][0].legendText = "Data"
         if mode == "SF":  plot.histos[1][0].legendText = "Data (SF)"
@@ -1029,11 +1031,11 @@ for index, mode in enumerate(allModes):
     ))
     
     plots.append(Plot(
-      name = 'cosMetJet1phi_smallBinning',
+      name = 'cosMetJet1phi_fine',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, leading jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[0] ) , 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],
-      binning = [20,-1,1],
+      binning = [100,-1,1],
     ))
 
     plots.append(Plot(
@@ -1148,7 +1150,7 @@ for index, mode in enumerate(allModes):
     ))
     
     plots.append(Plot(
-      name = 'cosMetJet2phi_smallBinning',
+      name = 'cosMetJet2phi_fine',
       texX = 'Cos(#Delta#phi(E_{T}^{miss}, second jet))', texY = 'Number of Events',
       attribute = lambda event, sample: cos( event.met_phi - event.JetGood_phi[1] ) , 
       read_variables = ["met_phi/F", "JetGood[phi/F]"],

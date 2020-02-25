@@ -501,7 +501,7 @@ if options.year == 2017:
     ]
 
 #branches to be kept for MC samples only
-branchKeepStrings_MC = [ "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_*", "nISR"]
+branchKeepStrings_MC = [ "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_*", "nISR", "nGenJet", "GenJet_*"]
 if not options.fastSim:
     branchKeepStrings_MC.extend([ "*LHEScaleWeight", "*LHEPdfWeight"])
 #branches to be kept for data only
@@ -1410,8 +1410,8 @@ else:
         logger.info( "Target: File check ok!" )
     else:
         logger.info( "Corrupt rootfile! Removing file: %s"%outfilename )
-        os.remove( outfilename )
-        raise Exception("Corrupt rootfile! File not copied: %s"%source )
+        #os.remove( outfilename )
+        #raise Exception("Corrupt rootfile! File not copied: %s"%source )
 
 # There is a double free corruption due to stupid ROOT memory management which leads to a non-zero exit code
 # Thus the job is resubmitted on condor even if the output is ok
