@@ -76,6 +76,8 @@ if args.year == 2016:
     from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed import *
     mc             = [ Top_pow_16, TTXNoZ_16, TTZ_16, multiBoson_16, DY_HT_LO_16]
+    if args.splitBosons:
+        mc = [ Top_pow_16, TTXNoZ_16, TTZ_16, DY_HT_LO_16, WWTo2L2Nu_16, ZZTo2L2Nu_16, diBoson_ll_16, triboson_16]
     if args.reweightPU:
         nTrueInt_puRW = getReweightingFunction(data="PU_2016_35920_XSec%s"%args.reweightPU, mc="Summer16")
     #recoilCorrector = RecoilCorrector( 2016 )
@@ -83,6 +85,8 @@ elif args.year == 2017:
     from StopsDilepton.samples.nanoTuples_Fall17_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed import *
     mc             = [ Top_pow_17, TTXNoZ_17, TTZ_17, multiBoson_17, DY_HT_LO_17]
+    if args.splitBosons:
+        mc = [ Top_pow_17, TTXNoZ_17, TTZ_17, DY_HT_LO_17, WWTo2L2Nu_17, ZZTo2L2Nu_17, diBoson_ll_17, triboson_17]
     if args.reweightPU:
         # need sample based weights
         pass
@@ -91,6 +95,8 @@ elif args.year == 2018:
     from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
     from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed import *
     mc             = [ Top_pow_18, TTXNoZ_18, TTZ_18, multiBoson_18, DY_HT_LO_18]
+    if args.splitBosons:
+        mc = [ Top_pow_18, TTXNoZ_18, TTZ_18, DY_HT_LO_18, WWTo2L2Nu_18, ZZTo2L2Nu_18, diBoson_ll_18, triboson_18]
     #nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")
     if args.reweightPU:
         nTrueInt_puRW = getReweightingFunction(data="PU_2018_58830_XSec%s"%args.reweightPU, mc="Autumn18")

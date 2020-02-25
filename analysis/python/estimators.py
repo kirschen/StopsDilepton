@@ -3,7 +3,7 @@ from StopsDilepton.analysis.MCBasedEstimate             import MCBasedEstimate
 from StopsDilepton.analysis.Region                      import *
 
 class estimatorList:
-    def __init__(self, setup, samples=['DY','TTJets','TTZ','multiBoson','other','TTXNoZ','Top_gaussian','Top_nongaussian','Top_fakes', 'TTJets-DD', 'TZX']):
+    def __init__(self, setup, samples=['DY','TTJets','TTZ','multiBoson','other','TTXNoZ','Top_gaussian','Top_nongaussian','Top_fakes', 'TTJets-DD', 'TZX', 'triBoson', 'diBoson', 'WW', 'ZZ']):
         for s in samples:
             if not s.count('DD'):
                 setattr(self, s, MCBasedEstimate(name=s, sample=setup.samples[s]))

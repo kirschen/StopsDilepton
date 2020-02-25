@@ -67,13 +67,18 @@ class Setup:
 
         if year == 2016:
             #define samples
-            from StopsDilepton.samples.nanoTuples_Summer16_postProcessed            import Top_pow_16, DY_HT_LO_16, TTZ_16, multiBoson_16,TTXNoZ_16, TZX_16
+            from StopsDilepton.samples.nanoTuples_Summer16_postProcessed            import Top_pow_16, DY_HT_LO_16, TTZ_16, multiBoson_16,TTXNoZ_16, TZX_16, diBoson_ll_16, triboson_16, WWTo2L2Nu_16, ZZTo2L2Nu_16
             top         = Top_pow_16
             DY          = DY_HT_LO_16
             TTZ         = TTZ_16
             multiBoson  = multiBoson_16
             TTXNoZ      = TTXNoZ_16
             TZX         = TZX_16
+            # for splitting multiboson
+            diBoson     = diBoson_ll_16
+            triBoson    = triboson_16
+            WW          = WWTo2L2Nu_16
+            ZZ          = ZZTo2L2Nu_16
             from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed   import Run2016
             data        = Run2016
         elif year == 2017:
@@ -84,6 +89,11 @@ class Setup:
             multiBoson  = multiBoson_17
             TTXNoZ      = TTXNoZ_17
             TZX         = TZX_17
+            # for splitting multiboson
+            diBoson     = diBoson_ll_17
+            triBoson    = triboson_17
+            WW          = WWTo2L2Nu_17
+            ZZ          = ZZTo2L2Nu_17
             from StopsDilepton.samples.nanoTuples_Run2017_31Mar2018_postProcessed   import Run2017 
             data        = Run2017  
             #data        = Run2017BCDE
@@ -95,6 +105,11 @@ class Setup:
             multiBoson  = multiBoson_18
             TTXNoZ      = TTXNoZ_18
             TZX         = TZX_18
+            # for splitting multiboson
+            diBoson     = diBoson_ll_18
+            triBoson    = triboson_18
+            WW          = WWTo2L2Nu_18
+            ZZ          = ZZTo2L2Nu_18
             from StopsDilepton.samples.nanoTuples_Run2018_PromptReco_postProcessed  import Run2018 
             data        = Run2018
 
@@ -108,6 +123,10 @@ class Setup:
             'multiBoson' :      multiBoson,
             'TTXNoZ' :          TTXNoZ,
             'TZX' :             TZX,
+            'diBoson' :         diBoson,
+            'triBoson' :        triBoson,
+            'WW' :              WW,
+            'ZZ' :              ZZ,
             'other'  :          TTXNoZ,
             'Data'   :          data,
         }

@@ -384,7 +384,7 @@ def wrapper(s):
                         if year == 2016 or year == 2017:
                             c.specifyUncertainty('L1prefire', binname, name, 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale ) 
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
-                            c.specifyUncertainty(trigger,    binname, name, 1 + e.triggerSystematic(    r, channel, setup).val * uncScale )
+                            c.specifyUncertainty(trigger,    binname, name, 1 + 1*e.triggerSystematic(    r, channel, setup).val * uncScale )
 
                         if e.name.count('TTJets'):
                             c.specifyUncertainty('scaleTT', binname, name, 1 + getScaleUnc('Top_pow', r, niceName, channel))
@@ -481,7 +481,7 @@ def wrapper(s):
                     c.specifyUncertainty(JER,             binname, 'signal', e.JERSystematicAsym(        r, channel, signalSetup)[1] )
                   c.specifyUncertainty(SFb,             binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty(SFl,             binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty(trigger,         binname, 'signal', 1 + e.triggerSystematic(    r, channel, signalSetup).val )
+                  c.specifyUncertainty(trigger,         binname, 'signal', 1 + 1*e.triggerSystematic(    r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSF',      binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSIP3DSF', binname, 'signal', 1 + e.leptonSIP3DSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonHit0SF',  binname, 'signal', 1 + e.leptonHit0SFSystematic(   r, channel, signalSetup).val )

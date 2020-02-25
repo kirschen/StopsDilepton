@@ -59,6 +59,9 @@
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample WZTo3LNu_amcatnlo #SPLIT20
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample TTTT #SPLIT12
 ##
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample WWTo2L2Nu #SPLIT10
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample ZZTo2L2Nu #SPLIT20
+
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample WWW_4F #SPLIT11
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample WWZ_4F #SPLIT12
 ##python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample WZG #SPLIT20
@@ -69,7 +72,7 @@
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample WZ #SPLIT5
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample ZZ #SPLIT5
 
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample ttH_HToInvisible #SPLIT20
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22   --skipGenLepMatching --sample ttH_HToInvisible #SPLIT20
 
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_150to250 #SPLIT45
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p22 --skipGenLepMatching --susySignal --fastSim --sample SMS_T2tt_mStop_250to350 #SPLIT45

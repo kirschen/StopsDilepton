@@ -88,6 +88,10 @@ dirs['ZZ']              = ["ZZTo2L2Q_redBy5", "ZZTo2Q2Nu"]
 
 dirs['ZZ4l']            = ['ZZTo4L']
 
+dirs['WWTo2L2Nu']       = ['WWTo2L2Nu']
+dirs['ZZTo2L2Nu']       = ['ZZTo2L2Nu', "ZZTo2L2Q_redBy5"]
+dirs['diBoson_ll']      = ["WWToLNuQQ", "WZTo1L3Nu", "WZTo2L2Q", "WZTo3LNu_amcatnlo", "ZZTo2Q2Nu"]
+
 dirs['diBoson']         = dirs['VVTo2L2Nu'] + dirs['WW'] + dirs['WZ'] + dirs['ZZ']
 dirs['triBoson']        = ["WWZ","WZZ","ZZZ"] # WWW_4F to be added in the next round
 dirs['multiBoson']      = dirs['diBoson'] + dirs['triBoson']
@@ -118,6 +122,9 @@ ZZ4l_18         = Sample.fromDirectory(name="ZZ4l",             treeName="Events
 WW_18           = Sample.fromDirectory(name="WW",               treeName="Events", isData=False, color=color.WW,              texName="WW w/o ll#nu#nu",                   directory=directories['WW'])
 WZ_18           = Sample.fromDirectory(name="WZ",               treeName="Events", isData=False, color=color.WZ,              texName="WZ w/o ll#nu#nu",                   directory=directories['WZ'])
 ZZ_18           = Sample.fromDirectory(name="ZZ",               treeName="Events", isData=False, color=color.ZZ,              texName="ZZ w/o ll#nu#nu",                   directory=directories['ZZ'])
+WWTo2L2Nu_18    = Sample.fromDirectory(name="WWTo2L2Nu_18",     treeName="Events", isData=False, color=color.WW,              texName="WW to 2l",                          directory=directories['WWTo2L2Nu'])
+ZZTo2L2Nu_18    = Sample.fromDirectory(name="ZZTo2L2Nu_18",     treeName="Events", isData=False, color=color.ZZ,              texName="ZZ to 2l",                          directory=directories['ZZTo2L2Nu'])
+diBoson_ll_18   = Sample.fromDirectory(name="diBoson_ll",       treeName="Events", isData=False, color=color.WZ,              texName="WZ/ZZ to 0/1/3l",                   directory=directories['diBoson_ll'])
 triboson_18     = Sample.fromDirectory(name="triBoson",         treeName="Events", isData=False, color=color.triBoson,        texName="triboson",                          directory=directories['triBoson'])
 multiBoson_18   = Sample.fromDirectory(name="multiBoson",       treeName="Events", isData=False, color=color.diBoson,         texName="multi boson",                       directory=directories['multiBoson'])
 #allBkgs_18      = Sample.fromDirectory(name="allBkgs",          treeName="Events", isData=False, color=color.diBoson,         texName="everything",                        directory=directories['allMC'])

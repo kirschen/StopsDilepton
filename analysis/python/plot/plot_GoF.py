@@ -5,15 +5,15 @@ Caclulate and plot the goodness-of-fit
 import shutil, os
 import ROOT
 from array import array
-from StopsDilepton.tools.user import combineReleaseLocation, analysis_results, plot_directory
+from StopsDilepton.tools.user import analysis_results, plot_directory
 from StopsDilepton.tools.helpers import getObjFromFile
 
 ROOT.gStyle.SetOptStat("")
 
 #'aggregated/fitAll/cardFiles/T2tt/T2tt_800_100.txt'
 #'aggregated/signalOnly/cardFiles/T2tt/T2tt_800_100.txt'
-fname = analysis_results + '/fitAll/cardFiles/T2tt_newCorr/T2tt_800_100.txt'
-releaseLocation = combineReleaseLocation
+fname = analysis_results + '/COMBINED/fitAll/cardFiles/T2tt/observed/T2tt_800_100_shapeCard.txt'
+releaseLocation = '.'
 
 
 def calcGoF(fname=None, algorithm="saturated"):
@@ -28,8 +28,8 @@ def calcGoF(fname=None, algorithm="saturated"):
     else:
       filename = fname if fname else os.path.join(uniqueDirname, ustr+".txt")
       self.writeToFile(filename)
-    covFilename = filename.replace('.txt', '_mlfit.root')
-    shapeFilename = filename.replace('.txt', '_shape.txt')
+    #covFilename = filename.replace('.txt', '_mlfit.root')
+    #shapeFilename = filename.replace('.txt', '_shape.txt')
     
     assert os.path.exists(filename), "File not found: %s"%filename
 
@@ -104,7 +104,7 @@ latex1.SetTextSize(0.04)
 latex1.SetTextAlign(11)
 
 latex1.DrawLatex(0.16,0.96,'CMS #bf{#it{Preliminary}}')
-latex1.DrawLatex(0.73,0.96,'#bf{35.9fb^{-1} (13TeV)}')
+latex1.DrawLatex(0.73,0.96,'#bf{137fb^{-1} (13TeV)}')
 
 plot_dir = plot_directory + '/GoodnessOfFit_newCorr/'
 if not os.path.isdir(plot_dir):
