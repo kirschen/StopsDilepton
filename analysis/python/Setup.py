@@ -82,7 +82,7 @@ class Setup:
             from StopsDilepton.samples.nanoTuples_Run2016_17Jul2018_postProcessed   import Run2016
             data        = Run2016
         elif year == 2017:
-            from StopsDilepton.samples.nanoTuples_Fall17_postProcessed              import Top_pow_17, DY_HT_LO_17, TTZ_17, multiBoson_17, TTXNoZ_17, TZX_17
+            from StopsDilepton.samples.nanoTuples_Fall17_postProcessed              import Top_pow_17, DY_HT_LO_17, TTZ_17, multiBoson_17, TTXNoZ_17, TZX_17, diBoson_ll_17, triboson_17,WWTo2L2Nu_17, ZZTo2L2Nu_17
             top         = Top_pow_17
             DY          = DY_HT_LO_17
             TTZ         = TTZ_17
@@ -98,7 +98,7 @@ class Setup:
             data        = Run2017  
             #data        = Run2017BCDE
         elif year == 2018:
-            from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed            import Top_pow_18, DY_HT_LO_18, TTZ_18, multiBoson_18, TTXNoZ_18, TZX_18
+            from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed            import Top_pow_18, DY_HT_LO_18, TTZ_18, multiBoson_18, TTXNoZ_18, TZX_18, diBoson_ll_18, triboson_18, WWTo2L2Nu_18, ZZTo2L2Nu_18
             top         = Top_pow_18
             DY          = DY_HT_LO_18
             TTZ         = TTZ_18

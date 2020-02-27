@@ -210,9 +210,8 @@ def wrapper(s):
         elif args.signal == "ttHinv":                         sString = "ttH->inv"
     #print sString, res
     try:
-        print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
-        print "Significance: %.2f"%res['significance']
-        if res['-1.000']>4*res['0.840']:
+        print "Result: {:30} obs {:<10.2f} exp {:<10.2f} -1sigma {:<10.2f} +1sigma {:<10.2f}".format(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
+        if res['-1.000']>4*res['0.840']: # was 4
             print "WARNING: This point could be problematic!"
             if args.clean:
                 vetoList += [ s.name ]
@@ -220,6 +219,10 @@ def wrapper(s):
     except:
         print "Problem with limit: %r"%str(res)
         return None
+    try:
+        print "Significance: %.2f"%res['significance']
+    except:
+        print "No significance calculated"
 
 if args.signal == "T2tt":
     data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'

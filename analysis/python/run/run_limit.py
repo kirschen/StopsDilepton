@@ -26,6 +26,7 @@ argParser.add_argument("--noSignal",       default = False, action = "store_true
 argParser.add_argument("--useTxt",         default = False, action = "store_true", help="Use txt based cardFiles instead of root/shape based ones?")
 argParser.add_argument("--fullSim",        default = False, action = "store_true", help="Use FullSim signals")
 argParser.add_argument("--signalInjection",default = False, action = "store_true", help="Inject signal?")
+argParser.add_argument("--splitBosons",    default = False, action = "store_true", help="Split multiboson into sub-components?")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--removeSR",       default = [], nargs='*', action = "store", help="Remove signal region(s)?")
 argParser.add_argument("--skipFitDiagnostics", default = False, action = "store_true", help="Don't do the fitDiagnostics (this is necessary for pre/postfit plots, but not 2D scans)?")
@@ -61,6 +62,12 @@ from StopsDilepton.analysis.Cache           import Cache
 from copy import deepcopy
 
 setup = Setup(year=year)
+
+# for the SFs
+def getIntegralAndError(hist, firstBin, lastBin):
+    err = ROOT.Double()
+    val = hist.IntegralAndError(firstBin, lastBin, err)
+    return val, err
 
 # Define CR
 if year == 2017 and False:
@@ -126,14 +133,15 @@ regionsHiMT2ll  = [ r for r in setup.regions if (r.vals['dl_mt2ll'][0] == 240) ]
 
 # Define estimators for CR
 estimators           = estimatorList(setup)
-setup.estimators     = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
-setupDYVV.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
-setupTTZ1.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
-setupTTZ2.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
-setupTTZ3.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
-setupTTZ4.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
-setupTTZ5.estimators = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
-setupTT.estimators   = estimators.constructEstimatorList(["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'])
+processes            = ["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX'] if not args.splitBosons else ["TTJets","TTZ","DY", 'TTXNoZ', 'TZX', 'WW', 'ZZ', 'diBoson', 'triBoson']
+setup.estimators     = estimators.constructEstimatorList( processes )
+setupDYVV.estimators = estimators.constructEstimatorList( processes )
+setupTTZ1.estimators = estimators.constructEstimatorList( processes )
+setupTTZ2.estimators = estimators.constructEstimatorList( processes )
+setupTTZ3.estimators = estimators.constructEstimatorList( processes )
+setupTTZ4.estimators = estimators.constructEstimatorList( processes )
+setupTTZ5.estimators = estimators.constructEstimatorList( processes )
+setupTT.estimators   = estimators.constructEstimatorList( processes )
 
 if args.fitAll:        setups = [setupTT, setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV, setup]
 elif args.fitAllNoTT:  setups = [setupTTZ1, setupTTZ2, setupTTZ3, setupTTZ4, setupTTZ5, setupDYVV, setup]
@@ -216,7 +224,10 @@ def getPDFUnc(name, r, niceName, channel):
   PDFUnc = PDFUnc.val if PDFUnc else 0
   return min(max(0.01, PDFUnc),0.10)
 
+scaleTriggerUnc = 1
+
 def wrapper(s):
+    multiBoson_prefit = 0
     xSecScale = 1
     if "T8bb" in s.name:
         if s.mStop<301:#810
@@ -272,6 +283,10 @@ def wrapper(s):
         c.addUncertainty('topFakes',   shapeString)
         c.addUncertainty('DY_SR',      shapeString)
         c.addUncertainty('MB_SR',      shapeString)
+        if args.splitBosons:
+            c.addUncertainty('MB_norm',      shapeString)
+            c.addUncertainty('WW_norm',      shapeString)
+            c.addUncertainty('WW_SR',      shapeString)
         c.addUncertainty(DY_add,       shapeString)
         c.addUncertainty('ttZ_SR',     shapeString)
         # all regions, lnN
@@ -284,9 +299,11 @@ def wrapper(s):
             c.addUncertainty('PUFS',     shapeString)
 
         c.addRateParameter('DY',            1, '[0,10]')
-        c.addRateParameter('multiBoson',    1, '[0.6,1.4]')
         c.addRateParameter('TTZ',           1, '[0,10]')
         c.addRateParameter('TTJets',        1, '[0,10]')
+        if not args.splitBosons:
+            c.addRateParameter('multiBoson',    1, '[0.6,1.4]')
+
 
         for setup in setups:
           eSignal     = MCBasedEstimate(name=s.name, sample=s, cacheDir=setup.defaultCacheDir())
@@ -358,6 +375,12 @@ def wrapper(s):
                     logger.info("TZX has been added to TTZ")
                   elif e.name.count("TTXNoZ") or e.name.count("rare"):
                     c.specifyExpectation(binname, name, expected.val)
+                  else:
+                    if niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
+                        logger.info("Adding to multiBoson prefit count")
+                        multiBoson_prefit += expected.val
+                    logger.debug("Setting expectation for %s: %f", name, expected.val)
+                    c.specifyExpectation(binname, name, expected.val)
 
                   if expected.val>0 or True:
                       names = [name]
@@ -384,7 +407,7 @@ def wrapper(s):
                         if year == 2016 or year == 2017:
                             c.specifyUncertainty('L1prefire', binname, name, 1 + e.L1PrefireSystematic(   r, channel, setup).val * uncScale ) 
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
-                            c.specifyUncertainty(trigger,    binname, name, 1 + 1*e.triggerSystematic(    r, channel, setup).val * uncScale )
+                            c.specifyUncertainty(trigger,    binname, name, 1 + scaleTriggerUnc*e.triggerSystematic(    r, channel, setup).val * uncScale )
 
                         if e.name.count('TTJets'):
                             c.specifyUncertainty('scaleTT', binname, name, 1 + getScaleUnc('Top_pow', r, niceName, channel))
@@ -397,9 +420,18 @@ def wrapper(s):
                             c.specifyUncertainty('topNonGauss',  binname, name, nonGaussUncertainty)
                             c.specifyUncertainty('topXSec',  binname, name, normUncertainty)
 
-                        if e.name.count('multiBoson'):
-                            if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
-                                    c.specifyUncertainty("MB_SR", binname, name, 1.25)
+                        if e.name.count('Boson') or e.name.count('WW') or e.name.count('ZZ'):
+                            if e.name.count('diBoson') or e.name.count('triBoson') or e.name.count('ZZ'):
+                                # this is the SF measurement when we split the multibosons
+                                c.specifyUncertainty("MB_norm", binname, name, 1.50)
+                            if e.name.count('WW'):
+                                # this is the SF measurement when we split the multibosons
+                                c.specifyUncertainty("MB_norm", binname, name, 1.50)
+                            if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0 and not e.name.count('WW'):
+                                # this is the extrapolation uncertainty
+                                c.specifyUncertainty("MB_SR", binname, name, 1.25)
+                            if r in setup.regions and niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0 and e.name.count('WW'):
+                                c.specifyUncertainty("MB_SR", binname, name, 1.25)
 
                         if e.name.count('DY'):
                             if r in regionsHiMT2ll:
@@ -481,7 +513,7 @@ def wrapper(s):
                     c.specifyUncertainty(JER,             binname, 'signal', e.JERSystematicAsym(        r, channel, signalSetup)[1] )
                   c.specifyUncertainty(SFb,             binname, 'signal', 1 + e.btaggingSFbSystematic(r, channel, signalSetup).val )
                   c.specifyUncertainty(SFl,             binname, 'signal', 1 + e.btaggingSFlSystematic(r, channel, signalSetup).val )
-                  c.specifyUncertainty(trigger,         binname, 'signal', 1 + 1*e.triggerSystematic(    r, channel, signalSetup).val )
+                  c.specifyUncertainty(trigger,         binname, 'signal', 1 + scaleTriggerUnc*e.triggerSystematic(    r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSF',      binname, 'signal', 1 + e.leptonSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonSIP3DSF', binname, 'signal', 1 + e.leptonSIP3DSFSystematic(   r, channel, signalSetup).val )
                   c.specifyUncertainty('leptonHit0SF',  binname, 'signal', 1 + e.leptonHit0SFSystematic(   r, channel, signalSetup).val )
@@ -655,13 +687,40 @@ def wrapper(s):
             DY_prefit_SR  = preFitShapes['DY'].IntegralAndError(iBinDYLow, iBinDYHigh, DY_prefit_SR_err)
             DY_postfit_SR = postFitShapes['DY'].IntegralAndError(iBinDYLow, iBinDYHigh, DY_postfit_SR_err)
             
-            MB_prefit  = preFitResults['multiBoson']
-            MB_postfit = postFitResults['multiBoson']
-            
-            MB_prefit_SR_err   = ROOT.Double()
-            MB_postfit_SR_err  = ROOT.Double()
-            MB_prefit_SR  = preFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_prefit_SR_err)
-            MB_postfit_SR = postFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_postfit_SR_err)
+            if not args.splitBosons:
+                MB_prefit  = preFitResults['multiBoson']
+                MB_postfit = postFitResults['multiBoson']
+                
+                MB_prefit_SR_err   = ROOT.Double()
+                MB_postfit_SR_err  = ROOT.Double()
+                MB_prefit_SR  = preFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_prefit_SR_err)
+                MB_postfit_SR = postFitShapes['multiBoson'].IntegralAndError(iBinDYLow, iBinDYHigh, MB_postfit_SR_err)
+            else:
+                WW_prefit, WW_postfit               = preFitResults['WW'], postFitResults['WW']
+                ZZ_prefit, ZZ_postfit               = preFitResults['ZZ'], postFitResults['ZZ']
+                diBoson_prefit, diBoson_postfit     = preFitResults['diBoson'], postFitResults['diBoson']
+                triBoson_prefit, triBoson_postfit   = preFitResults['triBoson'], postFitResults['triBoson']
+                
+                # I need this shit for the fractions...
+                WW_prefit_SR,           WW_prefit_SR_err        = getIntegralAndError(preFitShapes['WW'], iBinDYLow, iBinDYHigh)
+                WW_postfit_SR,          WW_postfit_SR_err       = getIntegralAndError(postFitShapes['WW'], iBinDYLow, iBinDYHigh)
+                ZZ_prefit_SR,           ZZ_prefit_SR_err        = getIntegralAndError(preFitShapes['ZZ'], iBinDYLow, iBinDYHigh)
+                ZZ_postfit_SR,          ZZ_postfit_SR_err       = getIntegralAndError(postFitShapes['ZZ'], iBinDYLow, iBinDYHigh)
+                diBoson_prefit_SR,      diBoson_prefit_SR_err   = getIntegralAndError(preFitShapes['diBoson'], iBinDYLow, iBinDYHigh)
+                diBoson_postfit_SR,     diBoson_postfit_SR_err  = getIntegralAndError(postFitShapes['diBoson'], iBinDYLow, iBinDYHigh)
+                triBoson_prefit_SR,     triBoson_prefit_SR_err  = getIntegralAndError(preFitShapes['triBoson'], iBinDYLow, iBinDYHigh)
+                triBoson_postfit_SR,    triBoson_postfit_SR_err = getIntegralAndError(postFitShapes['triBoson'], iBinDYLow, iBinDYHigh)
+
+                # additional fucking numbers
+                WW_prefit_hSR,           WW_prefit_hSR_err        = getIntegralAndError(preFitShapes['WW'], iBinDYLow+12, iBinDYHigh)
+                WW_postFit_hSR,          WW_postFit_hSR_err       = getIntegralAndError(postFitShapes['WW'], iBinDYLow+12, iBinDYHigh)
+                ZZ_prefit_hSR,           ZZ_prefit_hSR_err        = getIntegralAndError(preFitShapes['ZZ'], iBinDYLow+12, iBinDYHigh)
+                ZZ_postfit_hSR,          ZZ_postfit_hSR_err       = getIntegralAndError(postFitShapes['ZZ'], iBinDYLow+12, iBinDYHigh)
+                diBoson_prefit_hSR,      diBoson_prefit_hSR_err   = getIntegralAndError(preFitShapes['diBoson'], iBinDYLow+12, iBinDYHigh)
+                diBoson_postfit_hSR,     diBoson_postfit_hSR_err  = getIntegralAndError(postFitShapes['diBoson'], iBinDYLow+12, iBinDYHigh)
+                triBoson_prefit_hSR,     triBoson_prefit_hSR_err  = getIntegralAndError(preFitShapes['triBoson'], iBinDYLow+12, iBinDYHigh)
+                triBoson_postfit_hSR,    triBoson_postfit_hSR_err = getIntegralAndError(postFitShapes['triBoson'], iBinDYLow+12, iBinDYHigh)
+
 
             other_prefit  = preFitResults['TTXNoZ']
             other_postfit = postFitResults['TTXNoZ']
@@ -676,7 +735,14 @@ def wrapper(s):
             print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit/top_prefit).val, '+/-',  top_postfit.sigma/top_postfit.val)
             print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit/ttZ_prefit).val, '+/-',  ttZ_postfit.sigma/ttZ_postfit.val)
             print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit/DY_prefit).val,   '+/-',  DY_postfit.sigma/DY_postfit.val)
-            print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
+            if not args.splitBosons:
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit/MB_prefit).val,   '+/-',  MB_postfit.sigma/MB_postfit.val)
+            else:
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('WW:',   (WW_postfit/WW_prefit).val,   '+/-',  WW_postfit.sigma/WW_postfit.val)
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('ZZ:',   (ZZ_postfit/ZZ_prefit).val,   '+/-',  ZZ_postfit.sigma/ZZ_postfit.val)
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('diBoson:',   (diBoson_postfit/diBoson_prefit).val,   '+/-',  diBoson_postfit.sigma/diBoson_postfit.val)
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('triBoson:',   (triBoson_postfit/triBoson_prefit).val,   '+/-',  triBoson_postfit.sigma/triBoson_postfit.val)
+                
             print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit/other_prefit).val, '+/-',  other_postfit.sigma/other_postfit.val)
 
             print
@@ -684,8 +750,36 @@ def wrapper(s):
             print "{:20}{:4.2f}{:3}{:4.2f}".format('top:',          (top_postfit_SR/top_prefit_SR), '+/-',  top_postfit_SR_err/top_postfit_SR)
             print "{:20}{:4.2f}{:3}{:4.2f}".format('ttZ:',          (ttZ_postfit_SR/ttZ_prefit_SR), '+/-',  ttZ_postfit_SR_err/ttZ_postfit_SR)
             print "{:20}{:4.2f}{:3}{:4.2f}".format('Drell-Yan:',    (DY_postfit_SR/DY_prefit_SR),   '+/-',  DY_postfit_SR_err/DY_postfit_SR)
-            print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit_SR/MB_prefit_SR),   '+/-',  MB_postfit_SR_err/MB_postfit_SR)
+            if not args.splitBosons:
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('multiBoson:',   (MB_postfit_SR/MB_prefit_SR),   '+/-',  MB_postfit_SR_err/MB_postfit_SR)
+            else:
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('WW:',       (WW_postfit_SR/WW_prefit_SR),   '+/-',  WW_postfit_SR_err/WW_postfit_SR)
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('ZZ:',       (ZZ_postfit_SR/ZZ_prefit_SR),   '+/-',  ZZ_postfit_SR_err/ZZ_postfit_SR)
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('diBoson:',  (diBoson_postfit_SR/diBoson_prefit_SR),   '+/-',  diBoson_postfit_SR_err/diBoson_postfit_SR)
+                print "{:20}{:4.2f}{:3}{:4.2f}".format('triBoson:', (triBoson_postfit_SR/triBoson_prefit_SR),   '+/-',  triBoson_postfit_SR_err/triBoson_postfit_SR)
             print "{:20}{:4.2f}{:3}{:4.2f}".format('other:',        (other_postfit_SR/other_prefit_SR), '+/-',  other_postfit_SR_err/other_postfit_SR)
+            
+            # Fucking multiboson fractions. Just doing that here because we can.
+            if args.splitBosons:
+                print "## Multiboson fractions ##"
+                total = WW_prefit_SR + ZZ_prefit_SR + diBoson_prefit_SR + triBoson_prefit_SR
+                print "{:10}{:10}".format("process", "fraction")
+                print "{:10}{:<10.2f}".format("WW", WW_prefit_SR/total)
+                print "{:10}{:<10.2f}".format("ZZ", ZZ_prefit_SR/total)
+                print "{:10}{:<10.2f}".format("diBoson", diBoson_prefit_SR/total)
+                print "{:10}{:<10.2f}".format("triBoson", triBoson_prefit_SR/total)
+
+                print "total multiboson:", total
+                print "alternative count:", multiBoson_prefit
+
+                print "## Multiboson fractions, MT2ll>140 ##"
+                total = WW_prefit_hSR + ZZ_prefit_hSR + diBoson_prefit_hSR + triBoson_prefit_hSR
+                print "{:10}{:10}".format("process", "fraction")
+                print "{:10}{:<10.2f}".format("WW", WW_prefit_hSR/total)
+                print "{:10}{:<10.2f}".format("ZZ", ZZ_prefit_hSR/total)
+                print "{:10}{:<10.2f}".format("diBoson", diBoson_prefit_hSR/total)
+                print "{:10}{:<10.2f}".format("triBoson", triBoson_prefit_hSR/total)
+
 
     if xSecScale != 1:
         for k in res:

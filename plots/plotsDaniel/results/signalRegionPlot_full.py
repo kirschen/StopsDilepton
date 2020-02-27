@@ -19,6 +19,7 @@ parser.add_option('--expected',             action = "store_true", help="Run exp
 parser.add_option('--preliminary',          action = "store_true", help="Run expected?")
 parser.add_option('--combined',             action = "store_true", help="combined fit for all years?")
 parser.add_option('--testGrayscale',        action = "store_true", help="Do the most important test for this collaboration?")
+parser.add_option('--splitBosons',          action = "store_true", help="Split multiboson component?")
 parser.add_option("--year",                 action='store',      default=2017, type="int", help='Which year?')
 parser.add_option("--region",               action='store',      default="controlAll", choices=['fitAll', 'controlAll', 'signalOnly', 'controlDYVV'], help='Which year?')
 (options, args) = parser.parse_args()
@@ -99,9 +100,19 @@ bhistos=[]
 hists={}
 histos={}
 bkgHist=[]
-processes = [   ('TTJets', 't#bar{t}/t'),
+if not options.splitBosons:
+    processes = [   ('TTJets', 't#bar{t}/t'),
                 ('DY', 'Drell-Yan'),
                 ('multiBoson', 'VV/VVV'),
+                ('TTZ', 't#bar{t}Z'),
+                ('TTXNoZ', 't#bar{t}X, rare')]
+else:
+    processes = [   ('TTJets', 't#bar{t}/t'),
+                ('DY', 'Drell-Yan'),
+                ('diBoson', 'WZ+others'),
+                ('WW', 'WW(ll#nu#nu)'),
+                ('ZZ', 'ZZ(ll#nu#nu)'),
+                ('triBoson', 'VVV'),
                 ('TTZ', 't#bar{t}Z'),
                 ('TTXNoZ', 't#bar{t}X, rare')]
 
@@ -388,7 +399,7 @@ plotting.draw(
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
     legend = (0.70,0.35, 0.92, 0.75),
     widths = {'x_width':1300, 'y_width':600, 'y_ratio_width':250},
-    yRange = (0.2,yMax),
+    yRange = (0.02,yMax),
     #yRange = (0.03, [0.001,0.5]),
     ratio = {'yRange': (0.11, 2.19), 'texY':'Data/Pred.', 'histos':[(1,0)], 'drawObjects':ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
             'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035), lambda h: h.LabelsOption('v'), lambda h: h.GetYaxis().SetTickLength(0.035), lambda h: h.GetXaxis().SetTickLength(0.02)]} ,

@@ -150,7 +150,7 @@ for i in ["exp", "exp_up", "exp_down", "obs", "obs_UL", "obs_up", "obs_down"]:
 for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down"]:
   hists[i + "_smooth"] = hists[i + "_int"].Clone(i + "_smooth")
   #for x in range(3):
-  if not signalString == "T2bW":
+  if not signalString == "T2bW" or True:
       hists[i + "_smooth"].Smooth(1,"k5a")
   #hists[i + "_smooth"].Smooth(1,"k5b")
   #hists[i + "_smooth"].Smooth(1,"k3a")
