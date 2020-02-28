@@ -1,6 +1,6 @@
 class default_locations:
-    mc_2016_data_directory              = "/afs/hephy.at/data/cms09/nanoTuples/"
-    mc_2016_postProcessing_directory    = "stops_2016_nano_v0p22/dilep/"
+    mc_2016_data_directory              = "/afs/hephy.at/data/cms06/nanoTuples/"
+    mc_2016_postProcessing_directory    = "stops_2016_nano_v0p23/dilep/"
     data_2016_data_directory            = "/afs/hephy.at/data/cms07/nanoTuples/"
     data_2016_postProcessing_directory  = "stops_2016_nano_v0p19/dilep/"
 

@@ -9,6 +9,7 @@ argParser.add_argument('--logLevel',       action='store', default='INFO',      
 argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW", "T8bbllnunu_XCha0p5_XSlep0p09", "ttHinv"], help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                                                                                           help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float, nargs='?',                                                                                           help="scaling all yields")
+argParser.add_argument("--version",        action='store', default='v7',            nargs='?',                                                                                           help="Which version of estimates should be used?")
 argParser.add_argument("--overwrite",      default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--keepCard",       default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--control2016",    default = False, action = "store_true", help="Fits for DY/VV/TTZ CR")
@@ -172,7 +173,8 @@ elif args.control2016:       subDir += 'control2016'
 elif args.significanceScan: subDir += 'significance'
 else:                       subDir += 'signalOnly'
 
-baseDir = os.path.join(setup.analysis_results, str(year), subDir)
+# Dir for cards and results
+baseDir = os.path.join(setup.analysis_results.replace('v8',''), str(args.version), str(year), subDir)
 
 sSubDir = 'expected' if args.expected else 'observed'
 if args.signalInjection: sSubDir += '_signalInjected'
@@ -306,9 +308,13 @@ def wrapper(s):
 
 
         for setup in setups:
-          eSignal     = MCBasedEstimate(name=s.name, sample=s, cacheDir=setup.defaultCacheDir())
-          observation = DataObservation(name='Data', sample=setup.samples['Data'], cacheDir=setup.defaultCacheDir())
-          for e in setup.estimators: e.initCache(setup.defaultCacheDir())
+          # Dir of estimates
+          estimateCacheDir = os.path.join(setup.analysis_results.replace('v8',''), str(args.version), str(year), setup.prefix(), 'cacheFiles')
+          logger.info("Using the following caches: %s", estimateCacheDir)
+          # Load the estimates
+          eSignal     = MCBasedEstimate(name=s.name, sample=s, cacheDir=estimateCacheDir)
+          observation = DataObservation(name='Data', sample=setup.samples['Data'], cacheDir=estimateCacheDir)
+          for e in setup.estimators: e.initCache(estimateCacheDir)
 
           for r in setup.regions:
             print r
@@ -820,8 +826,8 @@ if args.signal == "T2tt":
         if args.fullSim:
              from StopsDilepton.samples.nanoTuples_Summer16_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
-            data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
+            data_directory              = '/afs/hephy.at/data/cms06/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p23/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
     elif year == 2017:
         if args.fullSim:

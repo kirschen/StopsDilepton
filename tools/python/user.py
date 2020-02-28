@@ -82,7 +82,7 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
     # Where the plots go
     plot_directory      = "/afs/hephy.at/user/d/dspitzbart/www/stopsDileptonLegacy/"
     # Analysis result files
-    analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v7/' #Path to analysis results
+    analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v8/' #Path to analysis results
     #analysis_results        = '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v6/' #Path to analysis results
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
     cern_proxy_certificate  = '/afs/cern.ch/user/d/dspitzba/private/.proxy'
