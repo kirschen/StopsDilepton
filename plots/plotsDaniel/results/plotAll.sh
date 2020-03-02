@@ -33,3 +33,12 @@
 #python controlRegionPlot.py --year 2017     --region controlAll --postFit
 #python controlRegionPlot.py --year 2018     --region controlAll --postFit
 #python controlRegionPlot.py --year 2016     --region controlAll --postFit --combine
+
+
+python signalRegionPlot_combine_split.py --combine --region fitAll --year 2016
+python signalRegionPlot_combine_split.py --combine --region fitAll --year 2017
+python signalRegionPlot_combine_split.py --combine --region fitAll --year 2018
+python signalRegionPlot_combine_split.py --combine --region fitAll --postFit --year 2016
+python signalRegionPlot_combine_split.py --combine --region fitAll --postFit --year 2017
+python signalRegionPlot_combine_split.py --combine --region fitAll --postFit --year 2018
+
