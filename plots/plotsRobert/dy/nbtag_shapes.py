@@ -20,17 +20,17 @@ from Analysis.Tools.metFilters            import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
 cutString = "&&".join( [cutInterpreter.cutString( "POGMetSig12-lepSel-njet2p-looseLeptonVeto-mll20-dPhiJet0-dPhiJet1"),  "nGoodMuons+nGoodElectrons==2&&isOS&&(isEE||isMuMu)" , getFilterCut(isData=False, year=2016)] )
 
-c.Draw("nBTag>>h0(3,0,3)", "36.9*weight*reweightHEM*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF*(Sum$(GenJet_pt>40&&abs(GenJet_eta)<2.4&&abs(GenJet_hadronFlavour)==5)==0)*%s"%cutString)
-c.Draw("nBTag>>h1(3,0,3)", "36.9*weight*reweightHEM*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF*(Sum$(GenJet_pt>40&&abs(GenJet_eta)<2.4&&abs(GenJet_hadronFlavour)==5)>=1)*%s"%cutString)
+c.Draw("nBTag>>h0(3,0,3)", "36.9*weight*reweightHEM*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF*(Sum$(GenJet_pt>30&&abs(GenJet_eta)<2.4&&abs(GenJet_hadronFlavour)==5)==0)*%s"%cutString)
+c.Draw("nBTag>>h1(3,0,3)", "36.9*weight*reweightHEM*reweightDilepTrigger*reweightLeptonSF*reweightBTag_SF*reweightLeptonTrackingSF*(Sum$(GenJet_pt>30&&abs(GenJet_eta)<2.4&&abs(GenJet_hadronFlavour)==5)>=1)*%s"%cutString)
 
 ROOT.h0.style = styles.lineStyle(ROOT.kBlue)
 ROOT.h1.style = styles.lineStyle(ROOT.kRed)
 
 
-ROOT.h0.legendText =  "nGenB=0"
+ROOT.h0.legendText = "nGenB=0"
 ROOT.h1.legendText = "nGenB#geq 1"
 
 
-plotting.draw( Plot.fromHisto("nBTag", histos = [[ROOT.h0, ROOT.h1]], texX="nBTag(reco)", texY="Number of events"),
+plotting.draw( Plot.fromHisto("nBTag_3", histos = [[ROOT.h0, ROOT.h1]], texX="nBTag(reco)", texY="Number of events"),
             plot_directory = "/afs/hephy.at/user/r/rschoefbeck/www/etc/"
     )
