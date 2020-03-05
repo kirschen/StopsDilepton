@@ -1,5 +1,6 @@
 #Standard imports
 import numpy as np
+import math
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -28,30 +29,30 @@ yields = Results.getEstimates( postFit=True )
 #SFb   =Results.getNuisanceYields("SFb_2016", postFit=True)
 
 systematics = [ 
-#    ("JEC", "JEC", ["JEC_2018", "JEC_2016", "JEC_2017"]), 
-#    ("Lumi", "Lumi", ["Lumi_2016", "Lumi_2017", "Lumi_2018"]),
-    ("PU", "PU", ["PU_2016", "PU_2017", "PU_2018"]),
-    ("JER", "JER", ["JER_2018", "JER_2017",  "JER_2016"]),
-#    ("unclustered En.", "unclEn", ["unclEn_2016", "unclEn_2017", "unclEn_2018"]), 
-#    ("trigger", "trigger", ["trigger_2018", "trigger_2016", "trigger_2017"]),
-#    ("bTag(l)", "SFl", ["SFl_2018", "SFl_2017", "SFl_2016"]),
-#    ("bTag(b)", "SFb", ["SFb_2017", "SFb_2016", "SFb_2018"]),
-#    ("SF(lep)", "leptonSF", ["leptonSF"]),
-#    ("L1-prefire", "L1prefire", ["L1prefire"]),
-#    ("SF(Hit0, 100\%)", "leptonHit0SF", ["leptonHit0SF"]),
-#    ("SF(SiP3D, 100\%)", "leptonSIP3DSF", ["leptonSIP3DSF"]),
-#    ("PDF", "PDF", ["PDF"]),
-#    ("$p_{T}(\\textrm{top})$", "topPt", ["topPt"]),
-#    ("xsec(tt)", "topXSec", ["topXSec"]),
-#    ("TF unc. (ttZ)", "ttZ_SR", ["ttZ_SR"]),
-#    ("t/tt-fakes", "topFakes", ["topFakes"]),
-#    ("TF unc. (DY)", "DY_SR", ["DY_SR"]),
-#    ("t/tt-non-Gauss", "topNonGauss", ["topNonGauss"]),
-#    ("TF unc. (MB)", "MB_SR", ["MB_SR"]),
-#    ("scale unc. (tt)", "scaleTT", ["scaleTT"]),
-#    ("other (MC)", "other", ["other"]),
-#    ("scale unc. (ttZ)", "scaleTTZ", ["scaleTTZ"]),
-#    ("DY tail", "DY_hMT2ll", ["DY_hMT2ll"]), 
+    ("Jet energy scale", "JEC", ["JEC_2018", "JEC_2016", "JEC_2017"]), 
+    ("Integrated luminosity", "Lumi", ["Lumi_2016", "Lumi_2017", "Lumi_2018"]),
+    ("Pileup modeling", "PU", ["PU_2016", "PU_2017", "PU_2018"]),
+    ("Jet energy resolution", "JER", ["JER_2018", "JER_2017",  "JER_2016"]),
+    ("Modeling of unclust. en.", "unclEn", ["unclEn_2016", "unclEn_2017", "unclEn_2018"]), 
+    ("Trigger efficiency", "trigger", ["trigger_2018", "trigger_2016", "trigger_2017"]),
+    ("b tagging light flavor", "SFl", ["SFl_2018", "SFl_2017", "SFl_2016"]),
+    ("b tagging heavy flavor", "SFb", ["SFb_2017", "SFb_2016", "SFb_2018"]),
+    ("Lepton scale factors", "leptonSF", ["leptonSF"]),
+    ("L1 prefire correction", "L1prefire", ["L1prefire"]),
+    ("0 missing hit scale factor", "leptonHit0SF", ["leptonHit0SF"]),
+    ("Impact parameter scale factor", "leptonSIP3DSF", ["leptonSIP3DSF"]),
+    ("PDF choice", "PDF", ["PDF"]),
+    ("$p_{T}(\\textrm{top})$", "topPt", ["topPt"]),
+    ("t#bar{t} cross section", "topXSec", ["topXSec"]),
+    ("t#bar{t}Z background", "ttZ_SR", ["ttZ_SR"]),
+    ("fake/non-prompt leptons", "topFakes", ["topFakes"]),
+    ("Drell-Yan background", "DY_SR", ["DY_SR"]),
+    ("non-gaussian jet mismeasurements", "topNonGauss", ["topNonGauss"]),
+    ("multiboson background", "MB_SR", ["MB_SR"]),
+    ("#mu_{R} and #mu_{F} choice (t#bar{t})", "scaleTT", ["scaleTT"]),
+    ("rare background", "other", ["other"]),
+    ("#mu_{R} and #mu_{F} choice (t#bar{t}Z)", "scaleTTZ", ["scaleTTZ"]),
+    ("Drell-Yan tail", "DY_hMT2ll", ["DY_hMT2ll"]), 
 ]
 
 
@@ -61,14 +62,18 @@ systematics = [
 for postFit in [True, False]:
 
     sys={}
-    variations = {}
-    table_strings = []
+    variations      = {}
+    table_strings   = []
+    total_scale     = {'typ':0, 'max':0}
+    total_lepton    = {'typ':0, 'max':0}
+    total_DY        = {'typ':0, 'max':0}
     for tex_name, name, sys_names in systematics:
         variations[name] = []
         max_var  = 0
         max_year = 0
         max_bin  = ""
         for sys_name in sys_names:
+            #sys[sys_name] = Results.getNuisanceYields(sys_name, postFit=postFit, addSignal=False)
             sys[sys_name] = Results.getNuisanceYields(sys_name, postFit=postFit)
             for year in [2016, 2017, 2018]:
                 for bin in range(20, 46):
@@ -88,8 +93,24 @@ for postFit in [True, False]:
             max(all_variations) if len(all_variations)>0 else 0,
             max_year, max_bin, max_var
                 )
-        #table_strings.append( "%s & $ %5.1f $\\\\"%( tex_name, 100*(np.percentile(all_variations, 90) if len(all_variations)>0 else 0)) )
-        table_strings.append( "%s & $ %5.1f $ & $ %5.1f $ "%( tex_name, 100*(np.percentile(all_variations, 90) if len(all_variations)>0 else 0), 100*max(all_variations)) )
+        if name.count('scale'):
+            logger.info("Adding to scale uncertainty")
+            total_scale['typ'] += (np.percentile(all_variations, 90)**2 if len(all_variations)>0 else 0)
+            total_scale['max'] += max(all_variations)**2
+        elif name.count('lepton'):
+            logger.info("Adding to lepton uncertainty")
+            total_lepton['typ'] += (np.percentile(all_variations, 90)**2 if len(all_variations)>0 else 0)
+            total_lepton['max'] += max(all_variations)**2
+        elif name.count('DY'):
+            logger.info("Adding to DY uncertainty")
+            total_DY['typ'] += (np.percentile(all_variations, 90)**2 if len(all_variations)>0 else 0)
+            total_DY['max'] += max(all_variations)**2
+        else:
+            #table_strings.append( "%s & $ %5.1f $\\\\"%( tex_name, 100*(np.percentile(all_variations, 90) if len(all_variations)>0 else 0)) )
+            table_strings.append( "{:35} & $ {:<8.1f} $ & $ {:<8.1f} $ ".format( tex_name, 100*(np.percentile(all_variations, 90) if len(all_variations)>0 else 0), 100*max(all_variations)) )
+    table_strings.append( "{:35} & $ {:<8.1f} $ & $ {:<8.1f} $ ".format( '#mu_{R} and #mu_{F} choice',  100*math.sqrt(total_scale['typ']),  100*math.sqrt(total_scale['max'])) )
+    table_strings.append( "{:35} & $ {:<8.1f} $ & $ {:<8.1f} $ ".format( 'Lepton scale factors',        100*math.sqrt(total_lepton['typ']), 100*math.sqrt(total_lepton['max'])) )
+    table_strings.append( "{:35} & $ {:<8.1f} $ & $ {:<8.1f} $ ".format( 'Drell-Yan background',        100*math.sqrt(total_DY['typ']),     100*math.sqrt(total_DY['max'])) )
 
     #unc    = Results.getUncertainties( postFit=True)
     def chunks(lst, n):

@@ -117,7 +117,7 @@ TTVV_18         = Sample.fromDirectory(name="TTVV",             treeName="Events
 THX_18          = Sample.fromDirectory(name="THX",              treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}X",                         directory=directories['THX'])
 TTTT_18         = Sample.fromDirectory(name="TTTT",             treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}X",                         directory=directories['TTTT'])
 TTZ_18          = Sample.fromDirectory(name="TTZ",              treeName="Events", isData=False, color=color.TTZ,             texName="t#bar{t}Z",                         directory=directories['TTZ'])
-TTG_18          = Sample.fromDirectory(name="TTG",              treeName="Events", isData=False, color=color.TTG,             texName="t#bar{t}#gamma",                    directory=directories['TTG'])
+#TTG_18          = Sample.fromDirectory(name="TTG",              treeName="Events", isData=False, color=color.TTG,             texName="t#bar{t}#gamma",                    directory=directories['TTG'])
 VVTo2L2Nu_18    = Sample.fromDirectory(name="VVTo2L2Nu",        treeName="Events", isData=False, color=color.VV,              texName="VV to ll#nu#nu",                    directory=directories['VVTo2L2Nu'])
 ZZ4l_18         = Sample.fromDirectory(name="ZZ4l",             treeName="Events", isData=False, color=color.ZZ,              texName="ZZ(4l)",                            directory=directories['ZZ4l'])
 WW_18           = Sample.fromDirectory(name="WW",               treeName="Events", isData=False, color=color.WW,              texName="WW w/o ll#nu#nu",                   directory=directories['WW'])

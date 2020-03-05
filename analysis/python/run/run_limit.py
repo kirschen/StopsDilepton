@@ -9,7 +9,7 @@ argParser.add_argument('--logLevel',       action='store', default='INFO',      
 argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW", "T8bbllnunu_XCha0p5_XSlep0p09", "ttHinv"], help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                                                                                           help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float, nargs='?',                                                                                           help="scaling all yields")
-argParser.add_argument("--version",        action='store', default='v7',            nargs='?',                                                                                           help="Which version of estimates should be used?")
+argParser.add_argument("--version",        action='store', default='v8',            nargs='?',                                                                                           help="Which version of estimates should be used?")
 argParser.add_argument("--overwrite",      default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--keepCard",       default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--control2016",    default = False, action = "store_true", help="Fits for DY/VV/TTZ CR")
@@ -28,6 +28,7 @@ argParser.add_argument("--useTxt",         default = False, action = "store_true
 argParser.add_argument("--fullSim",        default = False, action = "store_true", help="Use FullSim signals")
 argParser.add_argument("--signalInjection",default = False, action = "store_true", help="Inject signal?")
 argParser.add_argument("--splitBosons",    default = False, action = "store_true", help="Split multiboson into sub-components?")
+argParser.add_argument("--genRecoAllYears", default = False, action = "store_true", help="Do the gen/reco MET averaging in all years?")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--removeSR",       default = [], nargs='*', action = "store", help="Remove signal region(s)?")
 argParser.add_argument("--skipFitDiagnostics", default = False, action = "store_true", help="Don't do the fitDiagnostics (this is necessary for pre/postfit plots, but not 2D scans)?")
@@ -480,7 +481,7 @@ def wrapper(s):
                         signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF']})
                     else:
                         signalSetup = setup.sysClone(sys={'reweight':[ 'reweightLeptonFastSimSF'], 'remove':[]})
-                    if year == 2016:
+                    if year == 2016 or args.genRecoAllYears:
                         signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'GenMET'})))
                     else:
                         signal = e.cachedEstimate(r, channel, signalSetup)
@@ -833,8 +834,8 @@ if args.signal == "T2tt":
         if args.fullSim:
              from StopsDilepton.samples.nanoTuples_Fall17_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
-            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
-            postProcessing_directory    = 'stops_2017_nano_v0p22/dilep/'
+            data_directory              = '/afs/hephy.at/data/cms06/nanoTuples/'
+            postProcessing_directory    = 'stops_2017_nano_v0p23/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
     elif year == 2018:
         if args.fullSim:
@@ -842,8 +843,8 @@ if args.signal == "T2tt":
             postProcessing_directory    = 'stops_2018_nano_v0p19/inclusive/'
             from StopsDilepton.samples.nanoTuples_Autumn18_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
-            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
-            postProcessing_directory    = 'stops_2018_nano_v0p21/dilep/'
+            data_directory              = '/afs/hephy.at/data/cms06/nanoTuples/'
+            postProcessing_directory    = 'stops_2018_nano_v0p23/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
 
 if args.signal == "T2bW":
