@@ -49,9 +49,9 @@ systematics = [
     ("Drell-Yan background", "DY_SR", ["DY_SR"]),
     ("non-gaussian jet mismeasurements", "topNonGauss", ["topNonGauss"]),
     ("multiboson background", "MB_SR", ["MB_SR"]),
-    ("#mu_{R} and #mu_{F} choice (t#bar{t})", "scaleTT", ["scaleTT"]),
+    ("$\mu_{R}$ and $\mu_{F}$ choice $(t\bar{t})$", "scaleTT", ["scaleTT"]),
     ("rare background", "other", ["other"]),
-    ("#mu_{R} and #mu_{F} choice (t#bar{t}Z)", "scaleTTZ", ["scaleTTZ"]),
+    ("$\mu_{R}$ and $\mu_{F}$ choice $(t\bar{t}Z)$", "scaleTTZ", ["scaleTTZ"]),
     ("Drell-Yan tail", "DY_hMT2ll", ["DY_hMT2ll"]), 
 ]
 
