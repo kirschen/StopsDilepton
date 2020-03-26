@@ -20,8 +20,10 @@ parser.add_option('--preliminary',          action = "store_true", help="Run exp
 parser.add_option('--combined',             action = "store_true", help="combined fit for all years?")
 parser.add_option('--testGrayscale',        action = "store_true", help="Do the most important test for this collaboration?")
 parser.add_option('--splitBosons',          action = "store_true", help="Split multiboson component?")
+parser.add_option('--signalOnly',           action = "store_true", help="Show only signals?")
 parser.add_option("--year",                 action='store',      default=0, type="int", help='Which year?')
 parser.add_option("--region",               action='store',      default="controlAll", choices=['fitAll', 'controlAll', 'signalOnly', 'controlDYVV'], help='Which year?')
+parser.add_option("--postFix",              action='store',      default="", help='Add sth?')
 (options, args) = parser.parse_args()
 
 # Standard imports
@@ -70,7 +72,7 @@ massPoints = options.massPoints.split(',')
 ## ttH example: /afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v7/2018/fitAll/cardFiles/ttHinv/observed/ttH_HToInvisible_M125_shapeCard.txt
 cardName = "%s_%s_shapeCard"%(options.signal,massPoints[0]) if not options.signal == 'ttHinv' else "ttH_HToInvisible_M125_shapeCard"
 
-analysis_results = analysis_results.replace('v8','v7')
+#analysis_results = analysis_results.replace('v8','v7')
 
 inSignalRegions = not options.region.count('control')>0
 if inSignalRegions and len(massPoints)>1:
@@ -89,9 +91,13 @@ logger.info("Plotting from cardfile %s"%cardFile)
 
 # get the results
 postFitResults = getPrePostFitFromMLF(cardFile.replace('.txt','_FD.root'))
-if inSignalRegions and len(massPoints)>1: postFitResults2 = getPrePostFitFromMLF(cardFile2.replace('.txt','_FD.root'))
+print cardFile
+if inSignalRegions and len(massPoints)>1:
+    print cardFile2
+    postFitResults2 = getPrePostFitFromMLF(cardFile2.replace('.txt','_FD.root'))
 else: postFitResults2 = False
 
+print cardFile.replace('.txt','_FD.root')
 covariance = getCovarianceFromMLF(cardFile.replace('.txt','_FD.root'), postFit=options.postFit)
 
 #raise NotImplementedError()
@@ -163,7 +169,8 @@ if options.combined:
     signalHist = hists[years[0]]['DY'].Clone()
     signalHist.Reset()
     signalHist.SetName('signal')
-    signalHist.legendText = options.signal+' (%s,%s)'%(tuple(massPoints[0].split('_')))
+    massPoint1 = [ x for x in massPoints[0].split('_') if not x.isalpha() ]
+    signalHist.legendText = options.signal+' (%s,%s)'%(tuple(massPoint1))
     if options.signal == 'ttHinv': signalHist.legendText = "ttH, B(H#rightarrow inv)=100%"
     for i in range(signalHist.GetNbinsX()):
         signalHist.SetBinContent(i+1, sum([hists[x]['signal1'].GetBinContent(i+1) for x in years]))
@@ -174,7 +181,8 @@ if options.combined:
         signalHist2 = hists[years[0]]['DY'].Clone()
         signalHist2.Reset()
         signalHist2.SetName('signal')
-        signalHist2.legendText = options.signal+' (%s,%s)'%(tuple(massPoints[1].split('_')))
+        massPoint2 = [ x for x in massPoints[1].split('_') if not x.isalpha() ]
+        signalHist2.legendText = options.signal+' (%s,%s)'%(tuple(massPoint2))
         for i in range(signalHist2.GetNbinsX()):
             signalHist2.SetBinContent(i+1, sum([hists[x]['signal2'].GetBinContent(i+1) for x in years]))
         histos['signal2'] = signalHist2
@@ -207,19 +215,35 @@ else:
     hists['data'].style = styles.errorStyle( ROOT.kBlack, markerSize = 1., drawOption='e0' )
     hists['data'].legendOption = 'p'
 
+    if options.signalOnly:
+        hists['total_background'].style = styles.lineStyle( ROOT.kOrange+1, width=2, errors=True)
+        hists['total_background'].legendText = "Total SM"
+
     print postFitResults['hists']['shapes_prefit']['Bin0'].keys()
-    hists['signal1'] = postFitResults['hists']['shapes_prefit']['Bin0']['signal']
+    if options.postFit and options.signalPostFit:
+        hists['signal1'] = postFitResults['hists']['shapes_fit_s']['Bin0']['signal']
+    else:
+        hists['signal1'] = postFitResults['hists']['shapes_prefit']['Bin0']['signal']
     hists['signal1'].style = styles.lineStyle( ROOT.kBlack, width=2 )
-    hists['signal1'].legendText = options.signal+' (%s,%s)'%(tuple(massPoints[0].split('_')))
+    massPoint1 = [ x for x in massPoints[0].split('_') if not x.isalpha() ]
+    hists['signal1'].legendText = options.signal+' (%s,%s)'%(tuple(massPoint1))
     if options.signal == 'ttHinv': hists['signal1'].legendText = "ttH, B(H#rightarrow inv)=100%"
 
     if inSignalRegions and postFitResults2:
-        hists['signal2'] = postFitResults2['hists']['shapes_prefit']['Bin0']['signal']
+        if options.postFit and options.signalPostFit:
+            hists['signal2'] = postFitResults2['hists']['shapes_fit_s']['Bin0']['signal']
+        else:
+            hists['signal2'] = postFitResults2['hists']['shapes_prefit']['Bin0']['signal']
         hists['signal2'].style = styles.lineStyle( ROOT.kBlack, width=2, dashed=True )
-        hists['signal2'].legendText = options.signal+' (%s,%s)'%(tuple(massPoints[1].split('_')))    
+        massPoint2 = [ x for x in massPoints[1].split('_') if not x.isalpha() ]
+        hists['signal2'].legendText = options.signal+' (%s,%s)'%(tuple(massPoint2))    
 
 boxes = []
 ratio_boxes = []
+
+signal_boxes = []
+signal_ratio_boxes = []
+
 if options.combined:
     for ib in range(1, 1 + hists[years[0]]['total_background'].GetNbinsX() ):
         val = sum([hists[x]['total_background'].GetBinContent(ib) for x in years])
@@ -270,8 +294,34 @@ else:
         r_box.SetFillColor(ROOT.kGray+1)
 
         boxes.append( box )
-        hists['total_background'].SetBinError(ib, 0)
+        if not options.signalOnly:
+            hists['total_background'].SetBinError(ib, 0)
         ratio_boxes.append( r_box )
+        
+        # signal uncertainties
+        val = hists['signal1'].GetBinContent(ib)
+        if val<0: continue
+        sys = hists['signal1'].GetBinError(ib)
+        if val > 0:
+            sys_rel = sys/val
+        else:
+            sys_rel = 1.
+        
+        # uncertainty box in main histogram
+        signal_box = ROOT.TBox( hists['signal1'].GetXaxis().GetBinLowEdge(ib),  max([0.006, val-sys]), hists['signal1'].GetXaxis().GetBinUpEdge(ib), max([0.006, val+sys]) )
+        signal_box.SetLineColor(ROOT.kGray+1)
+        signal_box.SetFillStyle(3244)
+        signal_box.SetFillColor(ROOT.kGray+1)
+        
+        # uncertainty box in ratio histogram
+        signal_r_box = ROOT.TBox( hists['signal1'].GetXaxis().GetBinLowEdge(ib),  max(0.11, 1-sys_rel), hists['signal1'].GetXaxis().GetBinUpEdge(ib), min(1.9, 1+sys_rel) )
+        signal_r_box.SetLineColor(ROOT.kGray+1)
+        signal_r_box.SetFillStyle(3244)
+        signal_r_box.SetFillColor(ROOT.kGray+1)
+
+        signal_boxes.append( signal_box )
+        signal_ratio_boxes.append( signal_r_box )
+
 
 def drawObjects( isData=False, lumi=36. ):
     tex = ROOT.TLatex()
@@ -353,7 +403,12 @@ def drawLabelsRot( regions ):
     return [tex.DrawLatex(*l) for l in lines] 
 
 lumiStr = round(lumiStr,1) if not options.combined else int(lumiStr)
-drawObjects = drawObjects( isData=isData, lumi=lumiStr ) + boxes + drawDivisions( regions ) + drawLabelsRot( regions ) + drawLabels( regions )
+
+if options.signalOnly:
+    drawObjects = drawObjects( isData=isData, lumi=lumiStr ) + signal_boxes + drawDivisions( regions ) + drawLabelsRot( regions ) + drawLabels( regions )
+else:
+    drawObjects = drawObjects( isData=isData, lumi=lumiStr ) + boxes + drawDivisions( regions ) + drawLabelsRot( regions ) + drawLabels( regions )
+
 if options.region == 'signalOnly':
     drawObjects += drawDivisions( regions ) + drawLabels( regions ) + drawLabelsRot( regions )
 if options.combined:
@@ -363,7 +418,11 @@ if options.combined:
         plots = [ bkgHist, [histos['data']], [histos['signal1']]]
         
 else:
-    plots = [ bkgHists, [hists['data']], [hists['signal1']],[hists['signal2'] ]] if postFitResults2 else [ bkgHists, [hists['data']], [hists['signal1']] ]
+    if options.signalOnly:
+        plots = [ [hists['signal1']], [hists['signal2']], [hists['data']], [hists['total_background']] ]
+    else:
+        plots = [ bkgHists, [hists['data']], [hists['signal1']],[hists['signal2'] ]] if postFitResults2 else [ bkgHists, [hists['data']], [hists['signal1']] ]
+    
 
 plotName = options.region
 if options.combined: plotName += "_COMBINED"
@@ -375,10 +434,16 @@ if options.postFit:
 if options.signal is not "T2tt":
     plotName += '_%s'%options.signal
 
+if options.postFix:
+    plotName += '_%s'%options.postFix
+
+if options.signalOnly:
+    plotName += '_signalOnly'
+
 if options.combined and options.year==0:
     yMax = 900000.
 else:
-    yMax = 90000.
+    yMax = 900000.
 
 canvasModifications = [ 
     lambda c : c.SetLeftMargin(0.08),
@@ -399,14 +464,14 @@ plotting.draw(
                 texX = "",
                 texY = 'Number of events',
             ),
-    plot_directory = os.path.join(plot_directory, "controlRegions", 'v7'),
+    plot_directory = os.path.join(plot_directory, "controlRegions", 'v8'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
-    legend = (0.70,0.35, 0.92, 0.75),
+    legend = (0.70,0.35, 0.92, 0.75) if not options.signalOnly else (0.70,0.55, 0.92, 0.75),
     widths = {'x_width':1300, 'y_width':600, 'y_ratio_width':250},
     yRange = (0.02,yMax),
     #yRange = (0.03, [0.001,0.5]),
-    ratio = {'yRange': (0.11, 2.19), 'texY':'Data/Pred.', 'histos':[(1,0)], 'drawObjects':ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
+    ratio = {'yRange': (0.11, 2.19), 'texY':'Data/Pred.', 'histos':[(1,0)], 'drawObjects':ratio_boxes if not options.signalOnly else signal_ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
             'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035), lambda h: h.LabelsOption('v'), lambda h: h.GetYaxis().SetTickLength(0.035), lambda h: h.GetXaxis().SetTickLength(0.02)]} ,
     drawObjects = drawObjects,
     histModifications = [lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetYaxis().SetTickLength(0.015)],

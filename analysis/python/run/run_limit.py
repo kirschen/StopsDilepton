@@ -1,15 +1,24 @@
 #!/usr/bin/env python
-#regionsLegacytest1
+
 import ROOT
 import os
 import math
 import argparse
+
+# for the SFs
+def getIntegralAndError(hist, firstBin, lastBin):
+    err = ROOT.Double()
+    val = hist.IntegralAndError(firstBin, lastBin, err)
+    return val, err
+
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store', default='INFO',          nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
 argParser.add_argument("--signal",         action='store', default='T2tt',          nargs='?', choices=["T2tt","TTbarDM","T8bbllnunu_XCha0p5_XSlep0p05", "T8bbllnunu_XCha0p5_XSlep0p5", "T8bbllnunu_XCha0p5_XSlep0p95", "T2bt","T2bW", "T8bbllnunu_XCha0p5_XSlep0p09", "ttHinv"], help="which signal?")
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                                                                                           help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float, nargs='?',                                                                                           help="scaling all yields")
 argParser.add_argument("--version",        action='store', default='v8',            nargs='?',                                                                                           help="Which version of estimates should be used?")
+argParser.add_argument("--minBias",        action='store', default='default',       nargs='?', choices=['VUp', 'Up', 'Central', 'default'],                                              help="Which minBias x-sec should be used?")
+argParser.add_argument("--postFix",        action='store', default='',              nargs='?',                                                                                           help="Post-fix?")
 argParser.add_argument("--overwrite",      default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--keepCard",       default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--control2016",    default = False, action = "store_true", help="Fits for DY/VV/TTZ CR")
@@ -29,9 +38,11 @@ argParser.add_argument("--fullSim",        default = False, action = "store_true
 argParser.add_argument("--signalInjection",default = False, action = "store_true", help="Inject signal?")
 argParser.add_argument("--splitBosons",    default = False, action = "store_true", help="Split multiboson into sub-components?")
 argParser.add_argument("--genRecoAllYears", default = False, action = "store_true", help="Do the gen/reco MET averaging in all years?")
+argParser.add_argument("--genRecoNuis",    default = False, action = "store_true", help="Use gen/reco nuisance?")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--removeSR",       default = [], nargs='*', action = "store", help="Remove signal region(s)?")
 argParser.add_argument("--skipFitDiagnostics", default = False, action = "store_true", help="Don't do the fitDiagnostics (this is necessary for pre/postfit plots, but not 2D scans)?")
+argParser.add_argument("--removeLowStatSignal", default = False, action = "store_true", help="Remove signal from bins with low signal stats?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 argParser.add_argument("--year",           default=2016,     action="store",      help="Which year?")
 argParser.add_argument("--dpm",            default= False,   action="store_true",help="Use dpm?",)
@@ -63,13 +74,21 @@ from StopsDilepton.analysis.regions         import regionsLegacy, noRegions, reg
 from StopsDilepton.analysis.Cache           import Cache
 from copy import deepcopy
 
-setup = Setup(year=year)
+# Setting the minBias x-sec, initialize the setup
+minBiasXSecs = ['VVUp', 'VUp', 'Up', 'Central', 'Down']
+if args.minBias == 'default':
+    centralXSec = 'Central' if not year == 2018 else 'VUp'
+else:
+    centralXSec = args.minBias
 
-# for the SFs
-def getIntegralAndError(hist, firstBin, lastBin):
-    err = ROOT.Double()
-    val = hist.IntegralAndError(firstBin, lastBin, err)
-    return val, err
+puUpOrDown   = [ minBiasXSecs[minBiasXSecs.index(centralXSec)-1], minBiasXSecs[minBiasXSecs.index(centralXSec)+1] ]
+
+logger.info("Running year %s", year)
+logger.info("MinBias x-sec: %s", centralXSec)
+logger.info("MinBias variations: %s, %s"%(puUpOrDown[0], puUpOrDown[1]))
+
+if centralXSec == 'Central': centralXSec = ''
+setup = Setup(year=year, puWeight=centralXSec, puUpOrDown=puUpOrDown)
 
 # Define CR
 if year == 2017 and False:
@@ -171,7 +190,7 @@ elif args.controlTTZ:       subDir += 'controlTTZ'
 elif args.controlTT:        subDir += 'controlTT'
 elif args.controlAll:       subDir += 'controlAll'
 elif args.control2016:       subDir += 'control2016'
-elif args.significanceScan: subDir += 'significance'
+#elif args.significanceScan: subDir += 'significance'
 else:                       subDir += 'signalOnly'
 
 # Dir for cards and results
@@ -243,7 +262,7 @@ def wrapper(s):
 
     logger.info("Running over signal: %s", s.name)
 
-    cardFileName = os.path.join(limitDir, s.name+'.txt')
+    cardFileName = os.path.join(limitDir, s.name+args.postFix+'.txt')
     if not os.path.exists(cardFileName) or overWrite:
         counter=0
         c.reset()
@@ -299,7 +318,6 @@ def wrapper(s):
             c.addUncertainty('btagFS',   shapeString)
             c.addUncertainty('leptonFS', shapeString)
             c.addUncertainty('FSmet',    shapeString)
-            c.addUncertainty('PUFS',     shapeString)
 
         c.addRateParameter('DY',            1, '[0,10]')
         c.addRateParameter('TTZ',           1, '[0,10]')
@@ -394,8 +412,10 @@ def wrapper(s):
                       for name in names:
                         sysChannel = 'all' # could be channel as well
                         uncScale = 1
-                        c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, sysChannel, setup).val * uncScale )
+                        #print "PU"
+                        c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, sysChannel, setup, puUpOrDown=puUpOrDown).val * uncScale )
                         if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
+                            #print "JEC/JER/unc"
                             if not args.useTxt:
                                 c.specifyUncertainty(JEC,        binname, name, e.JECSystematicAsym(        r, sysChannel, setup) )
                                 c.specifyUncertainty(unclEn,     binname, name, e.unclusteredSystematicAsym(r, sysChannel, setup) )
@@ -405,6 +425,7 @@ def wrapper(s):
                                 c.specifyUncertainty(unclEn,     binname, name, e.unclusteredSystematicAsym(r, sysChannel, setup)[1] )
                                 c.specifyUncertainty(JER,        binname, name, e.JERSystematicAsym(        r, sysChannel, setup)[1] )
 
+                        #print "topPt"
                         c.specifyUncertainty('topPt',    binname, name, 1 + e.topPtSystematic(      r, channel, setup).val * uncScale )
                         c.specifyUncertainty(SFb,        binname, name, 1 + e.btaggingSFbSystematic(r, channel, setup).val * uncScale )
                         c.specifyUncertainty(SFl,        binname, name, 1 + e.btaggingSFlSystematic(r, channel, setup).val * uncScale )
@@ -477,31 +498,31 @@ def wrapper(s):
                 e = eSignal
                 
                 if fastSim:
-                    if args.signal == 'T2tt': # change this for next round. small impact
-                        signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF']})
-                    else:
-                        signalSetup = setup.sysClone(sys={'reweight':[ 'reweightLeptonFastSimSF'], 'remove':[]})
+                    signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR', 'reweightLeptonFastSimSF']})
                     if year == 2016 or args.genRecoAllYears:
                         signal = 0.5 * (e.cachedEstimate(r, channel, signalSetup) + e.cachedEstimate(r, channel, signalSetup.sysClone({'selectionModifier':'GenMET'})))
                     else:
                         signal = e.cachedEstimate(r, channel, signalSetup)
                 else:
                     signalSetup = setup.sysClone(sys={'reweight':['reweight_nISR'], 'remove':[]}) 
+                    #signalSetup = setup.sysClone(sys={'reweight':[], 'remove':[]}) 
                     signal = e.cachedEstimate(r, channel, signalSetup)
 
                 signal = signal * args.scale
 
-                if signal.val<0.01 and niceName.count("control")==0:
-                    signal.val = 0.001
-                    signal.sigma = 0.001
-                #if niceName.count('controlTTZ') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
-                #if niceName.count('controlDY') and signal.val<0.01: signal.val = 0.001 # to avoid failing of the fit
+                #if signal.val<0.01 and niceName.count("control")==0:
+                #    signal.val = 0.01
+                #    signal.sigma = 1.0
+                if signal.val>0.5 and args.removeLowStatSignal:
+                    if signal.sigma/signal.val > 0.9:
+                        signal.val = 0
+                        logger.info("#################  Setting signal expectation to 0 because of high weight, low stats. ################")
                 c.specifyExpectation(binname, 'signal', signal.val*xSecScale )
 
                 logger.info("Signal expectation: %s", signal.val*xSecScale)
 
 
-                if signal.val>0.001:
+                if signal.val>0.01:
                   if not fastSim:
                     c.specifyUncertainty('PDF',      binname, 'signal', 1 + getPDFUnc(eSignal.name, r, niceName, channel))
                     logger.info("PDF uncertainty for signal is: %s", getPDFUnc(eSignal.name, r, niceName, channel))
@@ -509,7 +530,7 @@ def wrapper(s):
                         # x-sec uncertainties for ttH: https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBSMAt13TeV#ttH_Process
                         c.specifyUncertainty('xsec_QCD',      binname, 'signal', 1.092)
                         c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
-                  c.specifyUncertainty(PU,              binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup).val )
+                  c.specifyUncertainty(PU,              binname, 'signal', 1 + e.PUSystematic(         r, channel, signalSetup, puUpOrDown=puUpOrDown).val )
                   if not args.useTxt:
                     c.specifyUncertainty(JEC,             binname, 'signal', e.JECSystematicAsym(        r, channel, signalSetup) )
                     c.specifyUncertainty(unclEn,          binname, 'signal', e.unclusteredSystematicAsym(r, channel, signalSetup) )
@@ -532,19 +553,21 @@ def wrapper(s):
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
                     c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
-                    if year==2016 and False:
-                        c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, channel, signalSetup).val )
-                    if args.signal == 'T2tt':
-                        c.specifyUncertainty('isr',      binname, 'signal', 1 + e.nISRSystematic( r, channel, signalSetup).val)
+                    c.specifyUncertainty('isr',      binname, 'signal', 1 + e.nISRSystematic(        r, channel, signalSetup).val)
+                    if (year==2016 or args.genRecoAllYears or args.genRecoNuis):
+                        if niceName.count("controlTT"):
+                            c.specifyUncertainty('FSmet',    binname, 'signal', 1 + 0.5 )
+                        else:
+                            c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, "all", signalSetup).val ) # take out the statistical component as much as possible
 
                   uname = 'Stat_'+binname+'_signal'
                   c.addUncertainty(uname, 'lnN')
                   c.specifyUncertainty(uname, binname, 'signal', 1 + signal.sigma/signal.val if signal.val>0 else 1 )
             
-                else:
-                  uname = 'Stat_'+binname+'_signal'
-                  c.addUncertainty(uname, 'lnN')
-                  c.specifyUncertainty(uname, binname, 'signal', 1 )
+                #else:
+                #  uname = 'Stat_'+binname+'_signal'
+                #  c.addUncertainty(uname, 'lnN')
+                #  c.specifyUncertainty(uname, binname, 'signal', 2 ) # 100% uncertainty?
                 
                 logger.info("Done with MC. Now working on observation.")
                 ## Observation ##
@@ -593,21 +616,20 @@ def wrapper(s):
     elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
     elif args.signal == "ttHinv":                       sConfig = ("ttHinv", "2l")
 
-    if not args.significanceScan:
-        if useCache and not overWrite and limitCache.contains(sConfig):
-          res = limitCache.get(sConfig)
-        else:
-          res = c.calcLimit(cardFileName)#, options="--run blind")
-          if not args.skipFitDiagnostics:
-              c.calcNuisances(cardFileName)
-          limitCache.add(sConfig, res)
-    else:
-        if useCache and not overWrite and signifCache.contains(sConfig):
-            res = signifCache.get(sConfig)
-        else:
-            res = c.calcSignif(cardFileName)
-            signifCache.add(sConfig,res)
+    # limit
+    if useCache and not overWrite and limitCache.contains(sConfig):
+        res = limitCache.get(sConfig)
+    res = c.calcLimit(cardFileName)
+    if not args.skipFitDiagnostics:
+        c.calcNuisances(cardFileName)
+    limitCache.add(sConfig, res)
     
+    # significance
+    if useCache and not overWrite and signifCache.contains(sConfig):
+        res.update(signifCache.get(sConfig))
+    else:
+        res['signif'] = c.calcSignif(cardFileName)['-1.000']
+        signifCache.add(sConfig,res)
 
     ###################
     # extract the SFs #
@@ -802,20 +824,21 @@ def wrapper(s):
       elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":    sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":   sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "ttHinv":                         sString = "ttH->inv"
-      if args.significanceScan:
-        try:   
-            print "Result: %r significance %5.3f"%(sString, res['-1.000'])
-            return sConfig, res
-        except:
-            print "Problem with limit: %r" + str(res)
-            return None
-      else:
-        try:
-            print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
-            return sConfig, res
-        except:
-            print "Problem with limit: %r"%str(res)
-            return None
+
+      try:   
+          print "Result: %r significance %5.3f"%(sString, res['signif'])
+      except:
+          print "No significance calculated"
+
+      try:
+          print "Result: %r obs %5.3f exp %5.3f -1sigma %5.3f +1sigma %5.3f"%(sString, res['-1.000'], res['0.500'], res['0.160'], res['0.840'])
+      except:
+          print "Problem with limit: %r"%str(res)
+
+      try:
+          return sConfig, res
+      except:
+          return None
 
 
 ######################################
@@ -839,8 +862,8 @@ if args.signal == "T2tt":
             from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
     elif year == 2018:
         if args.fullSim:
-            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
-            postProcessing_directory    = 'stops_2018_nano_v0p19/inclusive/'
+            data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
+            postProcessing_directory    = 'stops_2018_nano_v0p23/inclusive/'
             from StopsDilepton.samples.nanoTuples_Autumn18_FullSimSignal_postProcessed import signals_T2tt as jobs
         else:
             data_directory              = '/afs/hephy.at/data/cms06/nanoTuples/'
@@ -849,60 +872,60 @@ if args.signal == "T2tt":
 
 if args.signal == "T2bW":
     if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms06/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2bW as jobs
     elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms06/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2bW as jobs
     elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms06/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2bW as jobs
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
     if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
     elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
     elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
 
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
     if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
     elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
     elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
 
 
 if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
     if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
     elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
+        postProcessing_directory    = 'stops_2017_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
     elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
+        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
 if args.signal == "ttHinv":
@@ -944,7 +967,7 @@ results = [r for r in results if r]
 #########################################################################################
 
 limitPrefix = args.signal
-if args.significanceScan:
+if args.significanceScan and False:
   limitResultsFilename = os.path.join(baseDir, 'limits', args.signal, limitPrefix,'signifResults.root')
 else:
   if not os.path.isdir(os.path.join(baseDir, 'limits', args.signal, limitPrefix)):

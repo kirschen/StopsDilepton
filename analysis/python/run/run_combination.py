@@ -60,7 +60,7 @@ if args.skipYear:
     years.remove(args.skipYear)
 #analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
 
-vetoList = []
+vetoList = ["T2tt_275_25"]
 
 overWrite = args.overwrite
 def wrapper(s):
@@ -224,6 +224,7 @@ def wrapper(s):
     except:
         print "No significance calculated"
 
+
 if args.signal == "T2tt":
     data_directory              = '/afs/hephy.at/data/cms09/nanoTuples/'
     postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
@@ -273,6 +274,38 @@ allJobs.sort(key=lambda x: x.name, reverse=False)
 results = map(wrapper, allJobs)
 results = [r for r in results if r]
 
+
+## do something nice with pandas
+import pandas as pd
+import pickle
+ 
+# start by getting a dataframe with the results
+r_list = []
+for r in results:
+    tmp = { 'stop':r[0][0], 'lsp':r[0][1] }
+    tmp.update(r[1])
+    r_list.append(tmp)
+results_df = pd.DataFrame(r_list)
+
+
+#results_df[results_df['0.500']<1.].sort_values('stop')[['stop','lsp']]
+
+exculuded_exp_stop = results_df[results_df['0.500']<1.]['stop'].tolist()
+exculuded_exp_lsp  = results_df[results_df['0.500']<1.]['lsp'].tolist()
+
+nexculuded_exp_stop = results_df[results_df['0.500']>1.]['stop'].tolist()
+nexculuded_exp_lsp  = results_df[results_df['0.500']>1.]['lsp'].tolist()
+
+exculuded_obs_stop = results_df[results_df['-1.000']<1.]['stop'].tolist()
+exculuded_obs_lsp  = results_df[results_df['-1.000']<1.]['lsp'].tolist()
+
+nexculuded_obs_stop = results_df[results_df['-1.000']>1.]['stop'].tolist()
+nexculuded_obs_lsp  = results_df[results_df['-1.000']>1.]['lsp'].tolist()
+
+#bulk_df = results_df[results_df['stop']-results_df['lsp']>170]
+bulk_df = results_df[results_df['stop']%5==0][results_df['lsp']%5==0] #results_df[abs(results_df['stop']-results_df['lsp']-175)>15]
+comp_df = results_df[results_df['stop']-results_df['lsp']<175]
+
 #########################################################################################
 # Process the results. Make 2D hists for SUSY scans, or table for the DM interpretation #
 #########################################################################################
@@ -313,8 +346,8 @@ exp_down_list   = []
 for r in results:
     s, res = r
     mStop, mNeu = s
-    if mStop%50>0: continue
-    if mNeu%50>0 and not mNeu>(mStop-125): continue
+    #if mStop%50>0: continue
+    #if mNeu%50>0 and not mNeu>(mStop-125): continue
     mStop_list.append(mStop)
     mLSP_list.append(mNeu)
     exp_list.append(res['0.500'])
@@ -331,19 +364,53 @@ scatter.SetName('scatter')
 for i in range(len(mStop_list)):
     scatter.SetPoint(i,mStop_list[i],mLSP_list[i])
 
+scatter_excl_exp = ROOT.TGraph(len(exculuded_exp_stop))
+scatter_excl_exp.SetName("scatter_excl_exp")
+for i in range(len(exculuded_exp_stop)):
+    scatter_excl_exp.SetPoint(i, exculuded_exp_stop[i], exculuded_exp_lsp[i])
+
+
+scatter_nexcl_exp = ROOT.TGraph(len(nexculuded_exp_stop))
+scatter_nexcl_exp.SetName("scatter_nexcl_exp")
+for i in range(len(nexculuded_exp_stop)):
+    scatter_nexcl_exp.SetPoint(i, nexculuded_exp_stop[i], nexculuded_exp_lsp[i])
+
+scatter_excl_obs = ROOT.TGraph(len(exculuded_obs_stop))
+scatter_excl_obs.SetName("scatter_excl_obs")
+for i in range(len(exculuded_obs_stop)):
+    scatter_excl_obs.SetPoint(i, exculuded_obs_stop[i], exculuded_obs_lsp[i])
+
+
+scatter_nexcl_obs = ROOT.TGraph(len(nexculuded_obs_stop))
+scatter_nexcl_obs.SetName("scatter_nexcl_obs")
+for i in range(len(nexculuded_obs_stop)):
+    scatter_nexcl_obs.SetPoint(i, nexculuded_obs_stop[i], nexculuded_obs_lsp[i])
+
+
 exp_graph       = toGraph2D('exp','exp',len(mStop_list),mStop_list,mLSP_list,exp_list)
 exp_up_graph    = toGraph2D('exp_up','exp_up',len(mStop_list),mStop_list,mLSP_list,exp_up_list)
 exp_down_graph  = toGraph2D('exp_down','exp_down',len(mStop_list),mStop_list,mLSP_list,exp_down_list)
-obs_graph       = toGraph2D('obs','obs',len(mStop_list),mStop_list,mLSP_list,obs_list)
+#obs_graph       = toGraph2D('obs','obs',len(mStop_list),mStop_list,mLSP_list,obs_list)
 signif_graph    = toGraph2D('signif','signif',len(mStop_list),mStop_list,mLSP_list,signif_list)
 
+obs_bulk = toGraph2D('obs_bulk','obs_bulk',len(bulk_df['stop'].tolist()),bulk_df['stop'].tolist(),bulk_df['lsp'].tolist(),bulk_df['-1.000'].tolist())
+obs_graph = toGraph2D('obs','obs',len(bulk_df['stop'].tolist()),bulk_df['stop'].tolist(),bulk_df['lsp'].tolist(),bulk_df['-1.000'].tolist())
+obs_comp = toGraph2D('obs_comp','obs_comp',len(comp_df['stop'].tolist()),comp_df['stop'].tolist(),comp_df['lsp'].tolist(),comp_df['-1.000'].tolist())
+
+pickle.dump(results_df, file(limitResultsFilename.replace('root', 'pkl'), 'w'))
 
 outfile = ROOT.TFile(limitResultsFilename, "recreate")
 scatter        .Write()
+scatter_excl_exp.Write()
+scatter_nexcl_exp.Write()
+scatter_excl_obs.Write()
+scatter_nexcl_obs.Write()
 exp_graph      .Write()
 exp_down_graph .Write()
 exp_up_graph   .Write()
 obs_graph      .Write()
+obs_bulk      .Write()
+obs_comp      .Write()
 signif_graph      .Write()
 outfile.Close()
 print "Written %s"%limitResultsFilename
