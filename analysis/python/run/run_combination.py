@@ -294,6 +294,8 @@ results_df = pd.DataFrame(r_list)
 
 #results_df[results_df['0.500']<1.].sort_values('stop')[['stop','lsp']]
 
+if args.signal=='ttHinv': exit()
+
 exculuded_exp_stop = results_df[results_df['0.500']<1.]['stop'].tolist()
 exculuded_exp_lsp  = results_df[results_df['0.500']<1.]['lsp'].tolist()
 

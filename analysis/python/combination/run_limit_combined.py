@@ -14,7 +14,6 @@ parser.add_option('--blinded',              action="store_true")
 parser.add_option('--overwrite',            dest="overwrite", default = False, action = "store_true", help="Overwrite existing output files, bool flag set to True  if used")
 parser.add_option('--expected',             action = "store_true", help="Run expected?")
 parser.add_option('--preliminary',          action = "store_true", help="Run expected?")
-parser.add_option('--combined',             action = "store_true", help="combined fit for all years?")
 parser.add_option('--testGrayscale',        action = "store_true", help="Do the most important test for this collaboration?")
 parser.add_option('--signalOnly',           action = "store_true", help="Show only signals?")
 parser.add_option("--year",                 action='store',      default=0, type="int", help='Which year?')
@@ -47,10 +46,9 @@ logger_rt = logger_rt.get_logger(options.logLevel, logFile = None)
 years=[2016,2017,2018]
 
 ## ttH example: /afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v7/2018/fitAll/cardFiles/ttHinv/observed/ttH_HToInvisible_M125_shapeCard.txt
-cardName = "%s"%(options.only) if not options.signal == 'ttHinv' else "ttH_HToInvisible_M125_shapeCard"
+cardName = "%s"%(options.only) if not options.signal == 'ttHinv' else "ttH_HToInvisible_M125"
 
-if options.combined:
-    cardDir = analysis_results+"/COMBINED/fitAll/cardFiles/%s/%s/"%(options.signal,'expected' if options.expected else 'observed')
+cardDir = analysis_results+"/COMBINED/fitAll/cardFiles/%s/%s/"%(options.signal,'expected' if options.expected else 'observed')
 
 cardFile = "%s/%s.txt"%(cardDir, cardName)
 
@@ -142,76 +140,61 @@ c.addRateParameter('multiBoson',    1, '[0.6,1.4]')
 
 print cardFile
 
-if options.combined:
-    for b in bins:
-        binname = "Bin%s"%b
-        print
-        print binname
-        #obs     = sum( [ getObservationFromCard(cardFile, "dc_%s_Bin%s"%(year, b)) for year in years ])
-        obs     = sum( [ result["dc_%s_Bin%s"%(year, b)]["obs"]["yield"] for year in years ])
-        #signal   = sum( [ getEstimateFromCard(cardFile, "signal", "dc_%s_Bin%s"%(year,b)) for year in years ])
-        signal   = sum( [ result["dc_%s_Bin%s"%(year,b)]["signal"]["yield"] for year in years ])
-        c.addBin(binname, [ p for p,t in processes ], binname)
-        for proc, tex in processes + [('signal','')]:
-            est = sum( [ result["dc_%s_Bin%s"%(year,b)][proc]["yield"] for year in years ])
-            ests = { year: result["dc_%s_Bin%s"%(year,b)][proc]["yield"] for year in years }
-            c.specifyExpectation(binname, proc, est )
-            for sys_tex, sys_name, sys_corr, merge in systematics:
-                if len(sys_corr) == 1:
-                    sigma = sum( [ result["dc_%s_%s"%(year, binname)][proc][sys_corr[0]]*ests[year] for year in years ])
+for b in bins:
+    binname = "Bin%s"%b
+    print
+    print binname
+    #obs     = sum( [ getObservationFromCard(cardFile, "dc_%s_Bin%s"%(year, b)) for year in years ])
+    obs     = sum( [ result["dc_%s_Bin%s"%(year, b)]["obs"]["yield"] for year in years ])
+    #signal   = sum( [ getEstimateFromCard(cardFile, "signal", "dc_%s_Bin%s"%(year,b)) for year in years ])
+    signal   = sum( [ result["dc_%s_Bin%s"%(year,b)]["signal"]["yield"] for year in years ])
+    c.addBin(binname, [ p for p,t in processes ], binname)
+    for proc, tex in processes + [('signal','')]:
+        est = sum( [ result["dc_%s_Bin%s"%(year,b)][proc]["yield"] for year in years ])
+        ests = { year: result["dc_%s_Bin%s"%(year,b)][proc]["yield"] for year in years }
+        c.specifyExpectation(binname, proc, est )
+        for sys_tex, sys_name, sys_corr, merge in systematics:
+            if len(sys_corr) == 1:
+                sigma = sum( [ result["dc_%s_%s"%(year, binname)][proc][sys_corr[0]]*ests[year] for year in years ])
+                if est > 0 and sigma > 0:
+                    c.specifyUncertainty(sys_name,    binname, proc, 1 + sigma/est)
+            else:
+                if merge:
+                    listOfSigmas = [ (result["dc_%s_%s"%(year, binname)][proc][sorted(sys_corr)[i]]*ests[year])**2 for i,year in enumerate(years) ]
+                    sigma = math.sqrt(sum( listOfSigmas ))
                     if est > 0 and sigma > 0:
                         c.specifyUncertainty(sys_name,    binname, proc, 1 + sigma/est)
                 else:
-                    if merge:
-                        listOfSigmas = [ (result["dc_%s_%s"%(year, binname)][proc][sorted(sys_corr)[i]]*ests[year])**2 for i,year in enumerate(years) ]
-                        sigma = math.sqrt(sum( listOfSigmas ))
+                    for i, year in enumerate(years):
+                        sigma = result["dc_%s_%s"%(year, binname)][proc][sorted(sys_corr)[i]]*ests[year]
                         if est > 0 and sigma > 0:
-                            c.specifyUncertainty(sys_name,    binname, proc, 1 + sigma/est)
-                    else:
-                        for i, year in enumerate(years):
-                            sigma = result["dc_%s_%s"%(year, binname)][proc][sorted(sys_corr)[i]]*ests[year]
-                            if est > 0 and sigma > 0:
-                                c.specifyUncertainty(sorted(sys_corr)[i],    binname, proc, 1 + sigma/est)
-                        
+                            c.specifyUncertainty(sorted(sys_corr)[i],    binname, proc, 1 + sigma/est)
+                    
 
-            # stat uncertainty
-            listOfSigmas = [ (result["dc_%s_%s"%(year,binname)][proc]["stat"]*ests[year])**2 for i,year in enumerate(years) ]
-            sigma = math.sqrt(sum( listOfSigmas ))
-            uname = 'Stat_'+binname+'_'+proc
-            c.addUncertainty(uname, 'lnN')
-            if est>0:
-                c.specifyUncertainty(uname,    binname, proc, 1+sigma/est)
+        # stat uncertainty
+        listOfSigmas = [ (result["dc_%s_%s"%(year,binname)][proc]["stat"]*ests[year])**2 for i,year in enumerate(years) ]
+        sigma = math.sqrt(sum( listOfSigmas ))
+        uname = 'Stat_'+binname+'_'+proc
+        c.addUncertainty(uname, 'lnN')
+        if est>0:
+            c.specifyUncertainty(uname,    binname, proc, 1+sigma/est)
 
-        ## OBSERVATION
-        c.specifyObservation(binname, int(obs))
+    ## OBSERVATION
+    c.specifyObservation(binname, int(obs))
 
-        ### SIGNAL
-        if options.signal == "ttHinv":
-            # x-sec uncertainties for ttH: https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBSMAt13TeV#ttH_Process
-            c.specifyUncertainty('xsec_QCD',      binname, 'signal', 1.092)
-            c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
-        elif options.signal == "T2tt":
-            if est>0:
-                c.specifyUncertainty('leptonFS', binname, 'signal', 1 +  sum( [ (result["dc_%s_%s"%(year,binname)][proc]["leptonFS"]*ests[year]) for year in years ])/est )
-                c.specifyUncertainty('btagFS',   binname, 'signal', 1 +  sum( [ (result["dc_%s_%s"%(year,binname)][proc]["btagFS"]*ests[year]) for year in years ])/est )
-                c.specifyUncertainty('isr',      binname, 'signal', 1 +  sum( [ (result["dc_%s_%s"%(year,binname)][proc]["isr"]*ests[year]) for year in years ])/est )
-                c.specifyUncertainty('FSmet',    binname, 'signal', 1 +  sum( [ (result["dc_%s_%s"%(year,binname)][proc]["FSmet"]*ests[year]) for year in years ])/est )
+    ### SIGNAL
+    if options.signal == "ttHinv":
+        # x-sec uncertainties for ttH: https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBSMAt13TeV#ttH_Process
+        c.specifyUncertainty('xsec_QCD',      binname, 'signal', 1.092)
+        c.specifyUncertainty('xsec_PDF',      binname, 'signal', 1.036)
+    elif options.signal == "T2tt":
+        if est>0:
+            c.specifyUncertainty('leptonFS', binname, 'signal', 1 +  sum( [ (result["dc_%s_%s"%(year,binname)][proc]["leptonFS"]*ests[year]) for year in years ])/est )
+            c.specifyUncertainty('btagFS',   binname, 'signal', 1 +  sum( [ (result["dc_%s_%s"%(year,binname)][proc]["btagFS"]*ests[year]) for year in years ])/est )
+            c.specifyUncertainty('isr',      binname, 'signal', 1 +  sum( [ (result["dc_%s_%s"%(year,binname)][proc]["isr"]*ests[year]) for year in years ])/est )
+            c.specifyUncertainty('FSmet',    binname, 'signal', 1 +  sum( [ (result["dc_%s_%s"%(year,binname)][proc]["FSmet"]*ests[year]) for year in years ])/est )
 
-
-        #c.specifyExpectation(binname, 'signal', signal.val )
-        #signals = { year: getEstimateFromCard(cardFile, 'signal', "dc_%s_Bin%s"%(year,b)) for year in years }
-
-        #
-
-        ## stat uncertainty
-        #listOfSigmas = [ (getPUFC(cardFile, proc, 'Stat_'+binname+'_signal_'+str(year) , "dc_%s_%s"%(year, binname))*signalss[year].val)**2 for i,year in enumerate(years) ]
-        #sigma = math.sqrt(sum( listOfSigmas ))
-        #uname = 'Stat_'+binname+'_signal'
-        #c.addUncertainty(uname, 'lnN')
-        #c.specifyUncertainty(uname,    binname, 'signal', sigma/signal.val)
-
-
-    c.writeToFile(cardFileName)
+c.writeToFile(cardFileName)
 
 print cardFileName
 
