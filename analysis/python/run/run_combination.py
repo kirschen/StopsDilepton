@@ -23,6 +23,7 @@ argParser.add_argument("--signalInjection",action='store_true',                 
 argParser.add_argument("--clean",          action='store_true',                                                                         help="Remove potentially failed fits?")
 argParser.add_argument("--useTxt",         action='store_true',                                                                         help="Use txt files?")
 argParser.add_argument("--significance",   action='store_true',                                                                         help="Calculate significances instead of limits?")
+argParser.add_argument("--dryRun",   action='store_true',                                                                         help="Only write card file")
 
 
 args = argParser.parse_args()
@@ -121,6 +122,9 @@ def wrapper(s):
     else:
         print "*" *100
         combinedCard = c.combineCards( cards )
+        print combinedCard
+        if args.dryRun:
+            return None
         res = c.calcLimit(combinedCard)
         print res 
         print "+"*10

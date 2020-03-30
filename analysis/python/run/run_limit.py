@@ -39,6 +39,7 @@ argParser.add_argument("--signalInjection",default = False, action = "store_true
 argParser.add_argument("--splitBosons",    default = False, action = "store_true", help="Split multiboson into sub-components?")
 argParser.add_argument("--genRecoAllYears", default = False, action = "store_true", help="Do the gen/reco MET averaging in all years?")
 argParser.add_argument("--genRecoNuis",    default = False, action = "store_true", help="Use gen/reco nuisance?")
+argParser.add_argument("--dryRun",         default = False, action = "store_true", help="Only write cards, no fit.")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
 argParser.add_argument("--removeSR",       default = [], nargs='*', action = "store", help="Remove signal region(s)?")
 argParser.add_argument("--skipFitDiagnostics", default = False, action = "store_true", help="Don't do the fitDiagnostics (this is necessary for pre/postfit plots, but not 2D scans)?")
@@ -414,7 +415,7 @@ def wrapper(s):
                         uncScale = 1
                         #print "PU"
                         c.specifyUncertainty(PU,       binname, name, 1 + e.PUSystematic(         r, sysChannel, setup, puUpOrDown=puUpOrDown).val * uncScale )
-                        if not e.name.count("TTJets") and not niceName.count('controlTTBar'):
+                        if not (e.name.count("TTJets") and niceName.count('controlTTBar')):
                             #print "JEC/JER/unc"
                             if not args.useTxt:
                                 c.specifyUncertainty(JEC,        binname, name, e.JECSystematicAsym(        r, sysChannel, setup) )
@@ -488,7 +489,10 @@ def wrapper(s):
                         #if e.name.count('TZX'):      c.specifyUncertainty('TZX',      binname, name, 1.25)
 
                         #MC bkg stat (some condition to neglect the smaller ones?)
-                        uname = 'Stat_'+binname+'_'+name
+                        if args.useTxt:
+                            uname = 'Stat_'+binname+'_'+name+'_'+str(year)
+                        else:
+                            uname = 'Stat_'+binname+'_'+name
                         c.addUncertainty(uname, 'lnN')
                         c.specifyUncertainty(uname, binname, name, 1 + (expected.sigma/expected.val) * uncScale if expected.val>0 else 1)
 
@@ -560,7 +564,10 @@ def wrapper(s):
                         else:
                             c.specifyUncertainty('FSmet',    binname, 'signal', 1 + e.fastSimMETSystematic(  r, "all", signalSetup).val ) # take out the statistical component as much as possible
 
-                  uname = 'Stat_'+binname+'_signal'
+                  if args.useTxt:
+                      uname = 'Stat_'+binname+'_signal_'+str(year)
+                  else:
+                      uname = 'Stat_'+binname+'_signal'
                   c.addUncertainty(uname, 'lnN')
                   c.specifyUncertainty(uname, binname, 'signal', 1 + signal.sigma/signal.val if signal.val>0 else 1 )
             
@@ -600,8 +607,10 @@ def wrapper(s):
             lumiUncertainty = 1.025
         
         c.specifyFlatUncertainty(Lumi, lumiUncertainty)
-        cardFileNameTxt     = c.writeToFile(cardFileName)
-        cardFileNameShape   = c.writeToShapeFile(cardFileName.replace('.txt', '_shape.root'))
+        if args.useTxt:
+            cardFileNameTxt     = c.writeToFile(cardFileName)
+        else:
+            cardFileNameShape   = c.writeToShapeFile(cardFileName.replace('.txt', '_shape.root'))
         cardFileName = cardFileNameTxt if args.useTxt else cardFileNameShape
     else:
         print "File %s found. Reusing."%cardFileName
@@ -617,6 +626,8 @@ def wrapper(s):
     elif args.signal == "ttHinv":                       sConfig = ("ttHinv", "2l")
 
     # limit
+    if args.dryRun:
+        return None
     if useCache and not overWrite and limitCache.contains(sConfig):
         res = limitCache.get(sConfig)
     res = c.calcLimit(cardFileName)

@@ -62,3 +62,19 @@ You need to have set-up the right release for running the combine tool (see reci
 Calculated limits are stored in a pickle file in your results directory.
 
 Happy running!
+
+# For combination
+Run all years somewhat like this. We can use dryRun because we don't need to actually run the fit.
+```
+python run_limit.py --signal T2tt --year 2016 --only=T2tt_800_100 --dryRun --unblind --fitAll --useTxt
+python run_limit.py --signal T2tt --year 2017 --only=T2tt_800_100 --dryRun --unblind --fitAll --useTxt --genRecoNuis
+python run_limit.py --signal T2tt --year 2018 --only=T2tt_800_100 --dryRun --unblind --fitAll --useTxt --genRecoNuis
+```
+Then do the combination
+```
+python run_combination.py --signal T2tt --controlRegions fitAll --useTxt --only T2tt_800_100 --dryRun
+```
+This produces a neat and tidy O(10)MB txt file. Hooray!
+
+
+

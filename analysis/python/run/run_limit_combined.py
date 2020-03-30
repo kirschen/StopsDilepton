@@ -17,40 +17,23 @@ argParser.add_argument("--signal",         action='store', default='T2tt',      
 argParser.add_argument("--only",           action='store', default=None,            nargs='?',                                                                                           help="pick only one masspoint?")
 argParser.add_argument("--scale",          action='store', default=1.0, type=float, nargs='?',                                                                                           help="scaling all yields")
 argParser.add_argument("--version",        action='store', default='v8',            nargs='?',                                                                                           help="Which version of estimates should be used?")
-argParser.add_argument("--minBias",        action='store', default='default',       nargs='?', choices=['VUp', 'Up', 'Central', 'default'],                                              help="Which minBias x-sec should be used?")
 argParser.add_argument("--postFix",        action='store', default='',              nargs='?',                                                                                           help="Post-fix?")
 argParser.add_argument("--overwrite",      default = False, action = "store_true", help="Overwrite existing output files")
 argParser.add_argument("--keepCard",       default = False, action = "store_true", help="Overwrite existing output files")
-argParser.add_argument("--control2016",    default = False, action = "store_true", help="Fits for DY/VV/TTZ CR")
-argParser.add_argument("--controlDYVV",    default = False, action = "store_true", help="Fits for DY/VV CR")
-argParser.add_argument("--controlTTZ",     default = False, action = "store_true", help="Fits for TTZ CR")
-argParser.add_argument("--controlTT",      default = False, action = "store_true", help="Fits for TT CR (MT2ll<100)")
-argParser.add_argument("--controlAll",     default = False, action = "store_true", help="Fits for all CRs")
 argParser.add_argument("--fitAll",         default = False, action = "store_true", help="Fits SR and CR together")
-argParser.add_argument("--fitAllNoTT",     default = False, action = "store_true", help="Fits SR and CR together")
-argParser.add_argument("--aggregate",      default = False, action = "store_true", help="Use aggregated signal regions")
 argParser.add_argument("--expected",       default = False, action = "store_true", help="Use sum of backgrounds instead of data.")
 argParser.add_argument("--unblind",        default = False, action = "store_true", help="Use real data in the signal regions.")
-argParser.add_argument("--DMsync",         default = False, action = "store_true", help="Use two regions for MET+X syncing")
 argParser.add_argument("--noSignal",       default = False, action = "store_true", help="Don't use any signal (force signal yield to 0)?")
 argParser.add_argument("--useTxt",         default = False, action = "store_true", help="Use txt based cardFiles instead of root/shape based ones?")
 argParser.add_argument("--fullSim",        default = False, action = "store_true", help="Use FullSim signals")
-argParser.add_argument("--signalInjection",default = False, action = "store_true", help="Inject signal?")
-argParser.add_argument("--splitBosons",    default = False, action = "store_true", help="Split multiboson into sub-components?")
 argParser.add_argument("--genRecoAllYears", default = False, action = "store_true", help="Do the gen/reco MET averaging in all years?")
 argParser.add_argument("--genRecoNuis",    default = False, action = "store_true", help="Use gen/reco nuisance?")
 argParser.add_argument("--significanceScan",         default = False, action = "store_true", help="Calculate significance instead?")
-argParser.add_argument("--removeSR",       default = [], nargs='*', action = "store", help="Remove signal region(s)?")
 argParser.add_argument("--skipFitDiagnostics", default = False, action = "store_true", help="Don't do the fitDiagnostics (this is necessary for pre/postfit plots, but not 2D scans)?")
-argParser.add_argument("--removeLowStatSignal", default = False, action = "store_true", help="Remove signal from bins with low signal stats?")
 argParser.add_argument("--extension",      default = '', action = "store", help="Extension to dir name?")
 argParser.add_argument("--year",           default=2016,     action="store",      help="Which year?")
 argParser.add_argument("--dpm",            default= False,   action="store_true",help="Use dpm?",)
 args = argParser.parse_args()
-
-removeSR = [ int(r) for r in args.removeSR ] if len(args.removeSR)>0 else False
-
-year = int(args.year)
 
 # Logging
 import StopsDilepton.tools.logger as logger
@@ -78,7 +61,7 @@ from copy import deepcopy
 
 regionTypes     = ["DYVV", "TTZ1", "TTZ2", "TTZ3", "TTZ4", "TTZ5", "TT", "SR"] if args.fitAll else ["SR"]
 processes       = ["TTJets","TTZ","DY", 'multiBoson', 'TTXNoZ', 'TZX']
-dummySetup      = Setup(2016)
+years           = [ 2016, 2017, 2018 ]
 
 def getSetup(year, regionType):
     setup           = Setup(year=year)
@@ -112,14 +95,14 @@ def getSetup(year, regionType):
         setup.regions   = [regionsLegacy[0]]
     else:
         setup.channels  = ['SF','EMu']
-        setups.regions  = regionsLegacy[1:]
+        setup.regions   = regionsLegacy[1:]
 
     estimators          = estimatorList(setup)
     setup.estimators    = estimators.constructEstimatorList( processes )
 
     return setup
 
-
+dummySetup      = getSetup(2016, 'SR')
 
 ## Find low, med and high mt2ll regions, also when regions are dropped
 regionsLoMT2ll  = [ r for r in dummySetup.regions if (r.vals['dl_mt2ll'][0] == 100 and r.vals['dl_mt2ll'][1] == 140) ]
@@ -133,26 +116,17 @@ from math                           import sqrt
 ##https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSYSignalSystematicsRun2
 from StopsDilepton.tools.cardFileWriter import cardFileWriter
 
-if args.aggregate:          subDir = 'aggregated/'
-elif args.DMsync:           subDir = 'DMsync/'
-else:                       subDir = ''
+subDir = ''
 
 if args.fitAll:             subDir += 'fitAll' 
-elif args.fitAllNoTT:       subDir += 'fitAllNoTT' 
-elif args.controlDYVV:      subDir += 'controlDYVV'
-elif args.controlTTZ:       subDir += 'controlTTZ'
-elif args.controlTT:        subDir += 'controlTT'
-elif args.controlAll:       subDir += 'controlAll'
-elif args.control2016:       subDir += 'control2016'
-#elif args.significanceScan: subDir += 'significance'
 else:                       subDir += 'signalOnly'
 
 # Dir for cards and results
 # FIXME this needs to be moved
-baseDir = os.path.join(setup.analysis_results.replace('v8',''), str(args.version), str(year), subDir)
+year = 2016
+baseDir = os.path.join(dummySetup.analysis_results.replace('v8',''), str(args.version), str(year), subDir)
 
 sSubDir = 'expected' if args.expected else 'observed'
-if args.signalInjection: sSubDir += '_signalInjected'
 
 limitDir    = os.path.join(baseDir, 'cardFiles', args.signal + args.extension, sSubDir)
 overWrite   = (args.only is not None) or args.overwrite
@@ -171,11 +145,6 @@ signifCache     = Cache(cacheFileNameS, verbosity=2)
 fastSim = False # default value
 if   args.signal == "T2tt" and not args.fullSim:    fastSim = True
 elif args.signal == "T2bW":                         fastSim = True
-elif args.signal == "T2bt":                         fastSim = True
-elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": fastSim = True
-elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": fastSim = True
-elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  fastSim = True
-elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": fastSim = True
 elif args.signal == "TTbarDM":                      fastSim = False
 elif args.signal == "ttHinv":                       fastSim = False
 
@@ -271,19 +240,26 @@ def wrapper(s):
 
 
         ### This loops over the types of regions.
-        for setup in regionTypes:
+        for regionType in regionTypes:
           # initialize the estimators
           # Dir of estimates
           estimateCacheDir = {}
+          eSignal = {}
+          observation = {}
           for year in years:
+            print year, regionType
+            setup = getSetup(year, regionType)
             estimateCacheDir[year] = os.path.join(setup.analysis_results.replace('v8',''), str(args.version), str(year), setup.prefix(), 'cacheFiles')
             logger.info("Using the following caches for year %s: %s", year, estimateCacheDir[year])
-            # Load the estimates
-            eSignal     = MCBasedEstimate(name=s.name, sample=s, cacheDir=estimateCacheDir)
-            observation = DataObservation(name='Data', sample=setup.samples['Data'], cacheDir=estimateCacheDir)
+            ## Load the estimates
+            # print "Signal"
+            # FIXME # eSignal[year]     = MCBasedEstimate(name=s.name, sample=s, cacheDir=estimateCacheDir[year]) # just get the right signal sample here!
+            print "Observation"
+            observation[year] = DataObservation(name='Data', sample=setup.samples['Data'], cacheDir=estimateCacheDir[year])
+            print "Background"
             for e in setup.estimators: e.initCache(estimateCacheDir[year])
 
-          for r in setup.regions:
+          for r in setup.regions: # doesn't matter which year, regions are the same
             print r
             for channel in setup.channels:
                 niceName = ' '.join([channel, r.__str__()])
@@ -301,7 +277,8 @@ def wrapper(s):
                 c.addBin(binname, [e.name.split('-')[0] for e in setup.estimators if not 'TZX' in e.name ], niceName)
                 for e in setup.estimators:
                   name = e.name.split('-')[0]
-                  expected = e.cachedEstimate(r, channel, setup)
+                  expected = sum( [ getSetup(year, regionType).cachedEstimate(r, channel, getSetup(year, regionType)) for year in years ] )
+                  raise NotImplementedError
                   expected = expected * args.scale
                   total_exp_bkg += expected.val
                   if e.name.count("TZX"): continue
@@ -556,12 +533,7 @@ def wrapper(s):
     
     if   args.signal == "TTbarDM":                      sConfig = s.mChi, s.mPhi, s.type
     elif args.signal == "T2tt":                         sConfig = s.mStop, s.mNeu
-    elif args.signal == "T2bt":                         sConfig = s.mStop, s.mNeu
     elif args.signal == "T2bW":                         sConfig = s.mStop, s.mNeu
-    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05": sConfig = s.mStop, s.mNeu
-    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09": sConfig = s.mStop, s.mNeu
-    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":  sConfig = s.mStop, s.mNeu
-    elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95": sConfig = s.mStop, s.mNeu
     elif args.signal == "ttHinv":                       sConfig = ("ttHinv", "2l")
 
     # limit
@@ -767,10 +739,6 @@ def wrapper(s):
       elif args.signal == "T2tt":                           sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T2bt":                           sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "T2bW":                           sString = "mStop %i mNeu %i" % sConfig
-      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":   sString = "mStop %i mNeu %i" % sConfig
-      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p09":   sString = "mStop %i mNeu %i" % sConfig
-      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":    sString = "mStop %i mNeu %i" % sConfig
-      elif args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":   sString = "mStop %i mNeu %i" % sConfig
       elif args.signal == "ttHinv":                         sString = "ttH->inv"
 
       try:   
@@ -832,49 +800,6 @@ if args.signal == "T2bW":
         postProcessing_directory    = 'stops_2018_nano_v0p23/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2bW as jobs
 
-if args.signal == "T8bbllnunu_XCha0p5_XSlep0p05":
-    if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p23/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
-    elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p23/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
-    elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p23/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p05 as jobs
-
-
-if args.signal == "T8bbllnunu_XCha0p5_XSlep0p5":
-    if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p23/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
-    elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p23/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
-    elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p23/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p5 as jobs
-
-
-if args.signal == "T8bbllnunu_XCha0p5_XSlep0p95":
-    if year == 2016:
-        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p23/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
-    elif year == 2017:
-        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p23/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
-    elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms04/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p23/dilep/'
-        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T8bbllnunu_XCha0p5_XSlep0p95 as jobs
 
 if args.signal == "ttHinv":
     if year == 2016:
@@ -900,11 +825,6 @@ if args.only is not None:
         wrapper(jobs[jobNames.index(args.only)])
     exit(0)
 
-# FIXME: removing 1052_0 from list
-for i, j in enumerate(jobs):
-    if j.name == "T8bbllnunu_XCha0p5_XSlep0p05_1052_0":
-        print "~removing ", j.name
-        del jobs[i]
 
 results = map(wrapper, jobs)
 results = [r for r in results if r]
