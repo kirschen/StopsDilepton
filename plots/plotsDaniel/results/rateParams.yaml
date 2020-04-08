@@ -1,0 +1,39 @@
+DY_2016:
+    val: 1.30
+    sigma: 0.19
+TTJets_2016:
+    val: 0.95
+    sigma: 0.07
+TTZ_2016:
+    val: 1.29
+    sigma: 0.13
+multiBoson_2016:
+    val: 1.40
+    sigma: 0.06
+
+DY_2017:
+    val: 1.35
+    sigma: 0.26
+TTJets_2017:
+    val: 1.06
+    sigma: 0.08
+TTZ_2017:
+    val: 1.18
+    sigma: 0.13
+multiBoson_2017:
+    val: 1.03
+    sigma: 0.14
+
+DY_2018:
+    val: 0.99
+    sigma: 0.16
+TTJets_2018:
+    val: 1.03
+    sigma: 0.07
+TTZ_2018:
+    val: 1.18
+    sigma: 0.11
+multiBoson_2018:
+    val: 1.25
+    sigma: 0.14
+

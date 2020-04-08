@@ -32,6 +32,7 @@ import os
 import sys
 import pickle
 import math
+import yaml
 
 # Analysis
 from StopsDilepton.tools.u_float           import u_float
@@ -100,7 +101,10 @@ else: postFitResults2 = False
 print cardFile.replace('.txt','_FD.root')
 covariance = getCovarianceFromMLF(cardFile.replace('.txt','_FD.root'), postFit=options.postFit)
 
-#raise NotImplementedError()
+'''
+Hard-code uncertainties on rate parameters now. Unclear how to extract them from combine workspace. Can be read when running FitDiagnostics with verbosity -v 3
+'''
+rateParams = yaml.load(file('rateParams.yaml','r'))
 
 preFitHist={}
 postFitHist={}
@@ -125,6 +129,8 @@ else:
                 ('TTXNoZ', 't#bar{t}X, rare')]
 
 if options.year >0 : years = [options.year]
+
+SFs = {}
 
 if options.combined:
     for year in years:
@@ -154,6 +160,13 @@ if options.combined:
             bhistos[n].SetBinContent(i+1, v)
         if tex:
             bhistos[n].legendText = tex
+        #SFs[p] = {'val': sum([postFitHist[x][p].Integral()/preFitHist[x][p].Integral() for x in years]), 'sigma': math.sqrt(covariance['%s_norm'%p]['%s_norm'%p])}
+        try:
+            SFs[p+'_%s'%year] = {'val': sum([postFitHist[x][p].Integral()/preFitHist[x][p].Integral() for x in years]), 'sigma': rateParams[p+'_%s'%year]['sigma']}
+        except KeyError:
+            print "No rate parameter found for %s, %s"%(p, year)
+            SFs[p+'_%s'%year] = {'val': 1, 'sigma': 0}
+
         histos[p]=bhistos[n]
         bhistos[n].style = styles.fillStyle( getattr(color, p), lineColor=getattr(color,p), errors=False )
         bkgHist.append( bhistos[n])
@@ -238,6 +251,16 @@ else:
         massPoint2 = [ x for x in massPoints[1].split('_') if not x.isalpha() ]
         hists['signal2'].legendText = options.signal+' (%s,%s)'%(tuple(massPoint2))    
 
+SF_file = analysis_results + 'SF.pkl'
+if os.path.isfile(SF_file):
+    SF_dict = pickle.load(file(SF_file, 'r'))
+else:
+    SF_dict = {}
+
+SF_dict.update(SFs)
+pickle.dump(SF_dict, file(SF_file, 'w'))
+yaml.dump(SF_dict, file('SFs.yaml', 'w'))
+
 boxes = []
 ratio_boxes = []
 
@@ -311,6 +334,8 @@ else:
         signal_box = ROOT.TBox( hists['signal1'].GetXaxis().GetBinLowEdge(ib),  max([0.006, val-sys]), hists['signal1'].GetXaxis().GetBinUpEdge(ib), max([0.006, val+sys]) )
         signal_box.SetLineColor(ROOT.kGray+1)
         signal_box.SetFillStyle(3244)
+        signal_box.SetFillColor(ROOT.kGray+1)
+        
         signal_box.SetFillColor(ROOT.kGray+1)
         
         # uncertainty box in ratio histogram

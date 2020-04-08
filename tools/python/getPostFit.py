@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 from StopsDilepton.tools.u_float import u_float
 import math
+import copy
 
 from StopsDilepton.tools.helpers import getObjFromFile, natural_sort
 
@@ -125,3 +126,13 @@ def getCovarianceFromMLF( mlfit, postFit=False ):
 
     return matrix
 
+def getFitObject( mlfit ):
+    """ get the fit_s and fit_b objects
+    """
+    if type(mlfit)==type(""):
+        mlfit = ROOT.TFile(mlfit, "READ")
+    fits   = ['fit_b', 'fit_s']
+    result = {}
+    for fit in fits:
+        result[fit] = copy.copy(mlfit.Get(fit))
+    return result
