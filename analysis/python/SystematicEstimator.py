@@ -81,10 +81,11 @@ class SystematicEstimator:
         '''Estimate yield in 'region' using setup'''
         return
 
-    def PUSystematic(self, region, channel, setup):
+    def PUSystematic(self, region, channel, setup, puUpOrDown=False):
         ref  = self.cachedEstimate(region, channel, setup)
 
-        puUpOrDown = ['VVUp','Up'] if setup.year == 2018 else ['Up','Down']
+        if not puUpOrDown:
+            puUpOrDown = ['VVUp','Up'] if setup.year == 2018 else ['Up','Down']
 
         up   = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU'+puUpOrDown[0]]}))
         down = self.cachedEstimate(region, channel, setup.sysClone({'reweight':['reweightPU'+puUpOrDown[1]]}))
@@ -251,8 +252,10 @@ class SystematicEstimator:
         unc = min([abs(fold_loDown - fold_loUp)/(0.5*(ref.val+gen.val)), 1.])
         return u_float(unc)
 
-    def getBkgSysJobs(self, region, channel, setup):
-        puUpOrDown = ['VVUp','Up'] if setup.year == 2018 else ['Up','Down']
+    def getBkgSysJobs(self, region, channel, setup, puUpOrDown=False):
+        if not puUpOrDown:
+            puUpOrDown = ['VVUp','Up'] if setup.year == 2018 else ['Up','Down']
+        setup.sysClone({'reweight':['reweightPU'+puUpOrDown[0]]})
         l = [
             (region, channel, setup.sysClone({'reweight':['reweightPU'+puUpOrDown[0]]})),
             (region, channel, setup.sysClone({'reweight':['reweightPU'+puUpOrDown[1]]})),

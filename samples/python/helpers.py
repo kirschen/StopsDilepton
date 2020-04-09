@@ -136,7 +136,11 @@ def getT2ttSignalWeight(sample, lumi, cacheDir):
         for j in range (mMax):
             n = hNEvents.GetBinContent(hNEvents.FindBin(i,j))
             if n>0:
+                print "nEvents", i, j, n
+                print "x-sec", xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)
+            if n>0:
                 signalWeight[(i,j)] = {'weight':lumi*xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)/n, 'xSecFacUp':xSecSusy_.getXSec(channel=channel,mass=i,sigma=1)/xSecSusy_.getXSec(channel=channel,mass=i,sigma=0), 'xSecFacDown':xSecSusy_.getXSec(channel=channel,mass=i,sigma=-1)/xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)}
+                print lumi*xSecSusy_.getXSec(channel=channel,mass=i,sigma=0)/n
     #            logger.info( "Found mStop %5i mNeu %5i Number of events: %6i, xSec: %10.6f, weight: %6.6f (+1 sigma rel: %6.6f, -1 sigma rel: %6.6f)", i,j,n, xSecSusy_.getXSec(channel=channel,mass=i,sigma=0),  signalWeight[(i,j)]['weight'], signalWeight[(i,j)]['xSecFacUp'], signalWeight[(i,j)]['xSecFacDown'] )
     del hNEvents
     return signalWeight

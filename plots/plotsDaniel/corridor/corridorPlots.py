@@ -24,16 +24,16 @@ from StopsDilepton.tools.user   import plot_directory
 
 ### 2016
 ## FullSim samples
-FullSim_T2tt_175_1      = Sample.fromDirectory("FullSim_T2tt_175_1",    "/afs/hephy.at/data/cms07/nanoTuples/stops_2016_nano_v0p19/inclusive/SMS_T2tt_mStop_175_mLSP_1/")
-FullSim_T2tt_250_50     = Sample.fromDirectory("FullSim_T2tt_250_50",   "/afs/hephy.at/data/cms07/nanoTuples/stops_2016_nano_v0p19/inclusive/SMS_T2tt_mStop_250_mLSP_50/")
-FullSim_T2tt_250_75     = Sample.fromDirectory("FullSim_T2tt_250_75",   "/afs/hephy.at/data/cms07/nanoTuples/stops_2016_nano_v0p19/inclusive/SMS_T2tt_mStop_250_mLSP_75/")
-#FullSim_T2tt_250_100    = Sample.fromDirectory("FullSim_T2tt_250_100",  "/afs/hephy.at/data/cms07/nanoTuples/stops_2016_nano_v0p19/inclusive/SMS_T2tt_mStop_250_mLSP_100/")
+FullSim_T2tt_175_1      = Sample.fromDirectory("FullSim_T2tt_175_1",    "/afs/hephy.at/data/cms04/nanoTuples/stops_2016_nano_v0p23/inclusive/SMS_T2tt_mStop_175_mLSP_1/")
+FullSim_T2tt_250_50     = Sample.fromDirectory("FullSim_T2tt_250_50",   "/afs/hephy.at/data/cms04/nanoTuples/stops_2016_nano_v0p23/inclusive/SMS_T2tt_mStop_250_mLSP_50/")
+FullSim_T2tt_250_75     = Sample.fromDirectory("FullSim_T2tt_250_75",   "/afs/hephy.at/data/cms04/nanoTuples/stops_2016_nano_v0p23/inclusive/SMS_T2tt_mStop_250_mLSP_75/")
+FullSim_T2tt_250_100    = Sample.fromDirectory("FullSim_T2tt_250_100",  "/afs/hephy.at/data/cms04/nanoTuples/stops_2016_nano_v0p23/inclusive/SMS_T2tt_mStop_250_mLSP_100/")
 
 ## FastSim inclusive samples (not used here)
-FastSim_T2tt_175_1      = Sample.fromDirectory("FastSim_T2tt_175_1",    "/afs/hephy.at/data/cms07/nanoTuples/stops_2016_nano_v0p19/inclusive/SMS_T2tt_mStop_150to250_175_0/")
-FastSim_T2tt_250_50     = Sample.fromDirectory("FastSim_T2tt_250_50",   "/afs/hephy.at/data/cms07/nanoTuples/stops_2016_nano_v0p19/inclusive/SMS_T2tt_mStop_150to250_250_50/")
-FastSim_T2tt_250_75     = Sample.fromDirectory("FastSim_T2tt_250_75",   "/afs/hephy.at/data/cms07/nanoTuples/stops_2016_nano_v0p19/inclusive/SMS_T2tt_mStop_150to250_250_75/")
-FastSim_T2tt_250_100    = Sample.fromDirectory("FastSim_T2tt_250_100",  "/afs/hephy.at/data/cms07/nanoTuples/stops_2016_nano_v0p19/inclusive/SMS_T2tt_mStop_150to250_250_100/")
+FastSim_T2tt_175_1      = Sample.fromDirectory("FastSim_T2tt_175_1",    "/afs/hephy.at/data/cms04/nanoTuples/stops_2016_nano_v0p23/inclusive/SMS_T2tt_mStop_150to250_175_0/")
+FastSim_T2tt_250_50     = Sample.fromDirectory("FastSim_T2tt_250_50",   "/afs/hephy.at/data/cms04/nanoTuples/stops_2016_nano_v0p23/inclusive/SMS_T2tt_mStop_150to250_250_50/")
+FastSim_T2tt_250_75     = Sample.fromDirectory("FastSim_T2tt_250_75",   "/afs/hephy.at/data/cms04/nanoTuples/stops_2016_nano_v0p23/inclusive/SMS_T2tt_mStop_150to250_250_75/")
+FastSim_T2tt_250_100    = Sample.fromDirectory("FastSim_T2tt_250_100",  "/afs/hephy.at/data/cms04/nanoTuples/stops_2016_nano_v0p23/inclusive/SMS_T2tt_mStop_150to250_250_100/")
 
 
 # sample selection

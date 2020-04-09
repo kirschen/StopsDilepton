@@ -352,6 +352,7 @@ if options.susySignal:
     logger.info( "Signal weights will be drawn from %s files. If that's not the whole sample, stuff will be wrong.", len(samples[0].files))
     logger.info( "Fetching signal weights..." )
     logger.info( "Weights will be stored in %s for future use.", output_directory)
+    print "loading weights from here:", os.path.join( user.cache_dir, str(options.year)), samples[0], samples[0].name
     signalWeight = getT2ttSignalWeight( samples[0], lumi = targetLumi, cacheDir = os.path.join( user.cache_dir, str(options.year)) ) #Can use same x-sec/weight for T8bbllnunu as for T2tt
     logger.info("Done fetching signal weights.")
 
@@ -404,6 +405,7 @@ if options.susySignal:
     logger.info("Sample will have ISR reweighting called reweight_nISR.")
 
 # systematic variations
+logger.info("Adding systematic variations")
 addSystematicVariations = (not isData) and (not options.skipSystematicVariations)
 
 # B tagging SF
@@ -434,6 +436,7 @@ try:    #Avoid trouble with race conditions in multithreading
 except:
     pass
 
+logger.info("Checking existing root files.")
 filename, ext = os.path.splitext( os.path.join(output_directory, sample.name + '.root') )
 fileNumber = options.job if options.job is not None else 0
 outfilename = filename+ext
@@ -481,6 +484,7 @@ elif not options.overwrite and not options.writeToDPM:
 else:
     logger.info( "Overwriting.")
 
+logger.info("Defining all the branches.")
 #branches to be kept for data and MC
 branchKeepStrings_DATAMC = [\
     "run", "luminosityBlock", "event", "fixedGridRhoFastjetAll", "PV_npvs", "PV_npvsGood",
@@ -661,7 +665,7 @@ if options.susySignal:
 if options.fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
 
-
+logger.info("Next up: nanoAOD-tools.")
 if not options.skipNanoTools:
     ### nanoAOD postprocessor
     from importlib import import_module
@@ -774,11 +778,14 @@ def filler( event ):
 
         ## overlap removal by lukas ##
         # GEN Particles
+        logger.debug("Getting GenParts")
         gPart = getGenPartsAll(r)
         # GEN Jets
+        logger.debug("Getting GenJets")
         gJets = getJets( r, jetVars=['pt','eta','phi','mass','partonFlavour','hadronFlavour','index'], jetColl="GenJet" )
 
         # Overlap removal flags for ttgamma/ttbar and Zgamma/DY
+        logger.debug("GenPhotons")
         GenPhoton                  = filterGenPhotons( gPart, status='last' )
 
         # OR ttgamma/tt, DY/ZG, WG/WJets
@@ -840,6 +847,7 @@ def filler( event ):
 
         try:
             event.weight=signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight'] #* r.genWeight
+            #print 'weight', signalWeight[(int(r.GenSusyMStop), int(r.GenSusyMNeutralino))]['weight']
         except KeyError:
             logger.info("Couldn't find weight for %s, %s. Setting weight to 0.", r.GenSusyMStop, r.GenSusyMNeutralino)
             event.weight = 0.
@@ -1300,6 +1308,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
     # Set the reader to the event range
     reader.setEventRange( eventRange )
 
+    logger.info("Cloning tree.")
     clonedTree = reader.cloneTree( branchKeepStrings, newTreename = "Events", rootfile = outputfile )
 
     clonedEvents += clonedTree.GetEntries()
@@ -1321,6 +1330,7 @@ for ievtRange, eventRange in enumerate( eventRanges ):
                         outputLumiList[reader.event.run].add(reader.event.luminosityBlock)
 
     convertedEvents += maker.tree.GetEntries()
+    logger.info("Writing tree")
     maker.tree.Write()
     outputfile.Close()
     logger.info( "Written %s", outfilename)
