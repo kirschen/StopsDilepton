@@ -46,6 +46,7 @@ argParser.add_argument('--variation_scaling', action='store_true', help='Scale t
 argParser.add_argument('--normalize',         action='store_true', help='Perform area normalization mc to data?')
 argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional directory label for minor changes to the plots")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
+argParser.add_argument('--private',           action='store_true',     help='Produce private plots')
 argParser.add_argument('--directories',       action='store',         nargs='*',  type=str, default=[],                  help="Input" )
 argParser.add_argument('--fitChi2',         action='store_true', help='')
 
@@ -179,7 +180,7 @@ def drawObjects( scaling ):
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
-      (0.15, 0.95, 'CMS Preliminary'),
+      (0.15, 0.95, 'CMS Private') if args.private else (0.15, 0.95, 'CMS Preliminary'),
       ]
     #if scaling == 'mc':
     #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(mc)=%3.2f'% ( lumi_scale, scaleFactor ) )]
@@ -213,6 +214,7 @@ plot_subdirectory = args.plot_directory
 if args.normalize: plot_subdirectory += "_normalized"
 if args.beta:      plot_subdirectory += "_%s"%args.beta
 if args.fitChi2:   plot_subdirectory += "_chi2"
+if args.private:   plot_subdirectory += "_private"
 for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
     for i_plot, plot in enumerate(plots):
         
@@ -271,6 +273,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             if i_b==total_mc_histo['central'].GetNbinsX() and overflowBin:
                 total_central_mc_yield += total_mc_histo['central'].GetBinContent(i_b+1)
             if total_central_mc_yield<=0: continue
+            #print "bin {} | total_central_mc_yield {}".format(i_b, total_central_mc_yield)
             variance = 0.
             for systematic in systematics:
                 # Use 'central-variation' (factor 1) and 0.5*(varUp-varDown)
@@ -332,7 +335,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             r_box.SetFillStyle(3444)
             r_box.SetFillColor(ROOT.kBlack)
             ratio_boxes.append(r_box)
-            
+
         # -------------------------------------------------------
         # DY pTmiss plot with chi-squared
         if args.fitChi2 and plot.name == "MET_significance_mc":
@@ -355,7 +358,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             #chiSquared = []
         # -------------------------------------------------------
 
-        for log in [False, True]:
+        for log in [True]:#[False, True]:
             plot_directory_ = os.path.join(plot_directory, 'systematicPlots', 'combined', plot_subdirectory, args.selection, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
