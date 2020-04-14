@@ -18,7 +18,7 @@ from math                                import sqrt, cos, sin, pi, atan2, isnan
 from RootTools.core.standard             import *
 
 #Analysis / StopsDilepton / Samples
-from StopsDilepton.tools.user            import plot_directory
+from StopsDilepton.tools.user            import plot_directory, analysis_results
 from StopsDilepton.tools.helpers         import deltaPhi, add_histos
 from Analysis.Tools.metFilters           import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
@@ -48,7 +48,8 @@ argParser.add_argument('--beta',              action='store',      default=None,
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
 argParser.add_argument('--private',           action='store_true',     help='Produce private plots')
 argParser.add_argument('--directories',       action='store',         nargs='*',  type=str, default=[],                  help="Input" )
-argParser.add_argument('--fitChi2',         action='store_true', help='')
+argParser.add_argument('--fitChi2',           action='store_true', help='')
+argParser.add_argument('--SFUnc',             action='store',      default=None, help="SF pkl file, e.g 'SF', searched for in user results directory")
 
 
 args = argParser.parse_args()
@@ -60,7 +61,6 @@ import Analysis.Tools.logger as logger_an
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 logger_an = logger_an.get_logger(args.logLevel, logFile = None)
-
 
 # Define all systematic variations
 variations = {
@@ -209,6 +209,74 @@ def accumulate_level_2( lists_of_lists ):
 
 # arguments & directory
 plot_subdirectory = args.plot_directory
+
+# Loading & scaling + SF uncertainties
+if args.SFUnc is not None:
+    SFUnc = pickle.load( file(os.path.join( analysis_results, args.SFUnc )) )
+    # restructure 
+    for key in SFUnc.keys():
+        mc_key, year = key.split("_")
+        if not SFUnc.has_key( int(year) ):
+            SFUnc[int(year)] = {}
+        SFUnc[int(year)][mc_key] = SFUnc[key] 
+    daniel_translation_dict = {'TTZ':'_TTZ_', 'TTJets':'_Top_pow_', 'TTXNoZ':'_TTXNoZ_', 'multiBoson':'_multiBoson_', 'DY':"_DY_HT_LO_" }
+    # scale all MC histograms by the SF
+    for year, directory in zip( [2016, 2017, 2018], args.directories ):
+        for key in variation_data[directory].keys():
+            # naming conventions (central variation):
+            # [[<ROOT.TH1F object ("nbtags_data_data_c8eeb1ca_36fb_4e72_a3e3_8218fabfaed0") at 0xcf546b0>]],
+            # [[<ROOT.TH1F object ("nbtags_signal_T2tt_800_100_187e383a_4a46_49ab_bfcc_cbe8f11cabe8") at 0xcf55a70>],
+            #  [<ROOT.TH1F object ("nbtags_signal_T2tt_350_150_3d22a083_1d90_4db2_b5b1_ed88f876677e") at 0xcf56380>]],
+            # [[<ROOT.TH1F object ("nbtags_mc_Top_pow_5065a108_9539_4a3d_bcc7_25c8aefec150") at 0xcf56f80>,
+            #   <ROOT.TH1F object ("nbtags_mc_multiBoson_8c5e291e_37fe_47af_b019_a5e58e2b30c0") at 0xcf57b70>,
+            #   <ROOT.TH1F object ("nbtags_mc_DY_HT_LO_04a40d9f_b4ac_42b8_a578_9a03e26041b2") at 0xcf58780>,
+            #   <ROOT.TH1F object ("nbtags_mc_TTXNoZ_ed2cc2e1_1e40_4728_ac35_3f24b99c00c2") at 0xcf593d0>,
+            #   <ROOT.TH1F object ("nbtags_mc_TTZ_55917593_e110_437a_b183_45947c2f3006") at 0xcf59fa0>]],
+            for p_histo in variation_data[directory][key]['histos']:
+               # p_histo is a list of plot_histos, for 'central' it is data/mc/signal, for variations it is just mc
+               for plot_histos in p_histo:
+                    for s_h in p_histo:
+                        for histo in s_h:
+                            # If the histo name contains a string that we have in SFUnc[year], we scale the MC histogram
+                            if '_mc_' not in histo.GetName(): continue
+                            for var_key in SFUnc[year].keys():
+                                if daniel_translation_dict[var_key] in histo.GetName():
+                                    histo.Scale(SFUnc[year][var_key]['val'])
+                                    #print "Scaled", key, var_key, histo.GetName(), SFUnc[year][var_key]['val']
+                                    break
+
+            # Now we add the keys for the scale factor uncertainties! I'm so glad I had this idea. I hope it's a good one.
+            # let's copy the central MC histos
+            if 'central' in key:
+                for var_key in SFUnc[year].keys():
+                    # Define the new ScaleFactor systematic. It's correlated.
+                    systematics.append( {'name': 'ScaleFactor'+var_key,   'correlated':True, 'pair':('ScaleFactor'+var_key+'Up', 'ScaleFactor'+var_key+'Down')} )
+                    for mod, sigma in [("Down", -1), ("Up", +1)]:
+                        # need to add the variations
+                        variations["ScaleFactor"+var_key+mod] = {}
+                        # make a new key with the same syntax we have in variation_data, e.g. (mode, "ScaleFactor"+XX+Up/Down)
+                        new_key = (key[0], "ScaleFactor"+var_key+mod)
+
+                        variation_data[directory][new_key] = {} 
+                        variation_data[directory][new_key]['histos'] = []
+                        for i_plot, plot in enumerate(plots):
+                            # Now we find the central MC hists. They are already scaled.
+                            mc_pos   = 3*i_plot+2 if args.signal else 2*i_plot+1
+                            # Copy the central MC histos 
+                            mc_histos = [ [ h.Clone() for h in s_h] for s_h in variation_data[directory][key]['histos'][mc_pos] ]
+                            # Now we scale them according to the variation
+                            for s_h in mc_histos:
+                                for histo in s_h:
+                                    if '_mc_' not in histo.GetName(): raise RuntimeError("You should have a MC histogram here, but the name doesn't match: %s" %  histo.GetName())
+                                    if daniel_translation_dict[var_key] in histo.GetName():
+                                        histo.Scale((1+sigma*SFUnc[year][var_key]['sigma']))
+                                        #print "Scaled", key, var_key, histo.GetName(), SFUnc[year][var_key]['val']
+                                        break
+        
+                            variation_data[directory][new_key]['histos'].append( mc_histos )
+else:
+    SFUnc = None
+
 
 # We plot now. 
 if args.normalize: plot_subdirectory += "_normalized"

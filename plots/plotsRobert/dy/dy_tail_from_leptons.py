@@ -9,7 +9,7 @@ ROOT.gROOT.SetBatch(True)
 import itertools
 import random
 
-from math                                import sqrt, cos, sin, pi, atan2
+from math                                import sqrt, cos, sin, pi, atan2, cosh
 from RootTools.core.standard             import *
 from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi
@@ -27,7 +27,7 @@ argParser.add_argument('--small',                                   action='stor
 argParser.add_argument('--ht',                                      action='store_true',     help='HT binned?', )
 argParser.add_argument('--plot_directory',     action='store',      default='PU_DY_MetSig')
 argParser.add_argument('--year',               action='store', type=int,      default=2016)
-argParser.add_argument('--selection',          action='store',      default='njet2p-relIso0.12-looseLeptonVeto-mll20-POGMetSig12-dPhiJet0-dPhiJet1')
+argParser.add_argument('--selection',          action='store',      default='njet2p-relIso0.12-looseLeptonVeto-mll20-POGMetSig12-dPhiJet0-dPhiJet1-allZ')
 args = argParser.parse_args()
 
 #
@@ -51,8 +51,8 @@ read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_e
 #
 allPlots   = {}
 
-lumi_scale = 150
-weight_ = lambda event, sample: event.weight
+lumi_scale = 136
+weight_ = lambda event, sample: lumi_scale*event.weight
 
 from StopsDilepton.samples.nanoTuples_Summer16_postProcessed import *
 dy_sample = DY_HT_LO_16
@@ -71,11 +71,11 @@ def getLeptonSelection( mode ):
 for sample in [dy_sample]:
     sample.setSelectionString(  "&&".join([getFilterCut(isData=False, year=args.year), getLeptonSelection("SF"), cutInterpreter.cutString(args.selection)]) )
     #sample.style    = styles.fillStyle(sample.color, lineWidth = 0)
-    sample.scale    = lumi_scale
+    #sample.scale    = lumi_scale
     sample.weight         = lambda event, sample: event.weight
 
     if args.small:
-        sample.reduceFiles( to=10)
+        sample.reduceFiles( to=30)
 
 #AN 2018/008 v7 Sec. 5.2.2. Fig. 59:
 # the fraction of strongly mismeasured muons >20% is a bit lower than about 4%*(pT-500)/2500
@@ -87,19 +87,19 @@ def calc_mt2ll_mism( event, sample ):
 
     #mismeasurement probability
 
-    p_mism_1 = 0.04*(event.l1_pt - 500)/2500. if event.l1_pt>500 else 0
-    p_mism_2 = 0.04*(event.l2_pt - 500)/2500. if event.l2_pt>500 else 0
+    #p_mism_1 = 0.04*(event.l1_pt - 50)/250. if event.l1_pt>50 else 0
+    #p_mism_2 = 0.04*(event.l2_pt - 50)/250. if event.l2_pt>50 else 0
 
     # recalc with mismeasured leptons
     dm_x = 0
     dm_y = 0
-    if random.random()<p_mism_1:
+    if event.l1_pt>250:
         l1_pt_mism = event.l1_pt/0.8 
         dm_x += (event.l1_pt-l1_pt_mism)*cos(event.l1_phi)
         dm_y += (event.l1_pt-l1_pt_mism)*sin(event.l1_phi)
     else:
         l1_pt_mism = event.l1_pt
-    if random.random()<p_mism_2:
+    if  event.l2_pt>250:
         l2_pt_mism = event.l2_pt/0.8 
         dm_x += (event.l2_pt-l2_pt_mism)*cos(event.l2_phi)
         dm_y += (event.l2_pt-l2_pt_mism)*sin(event.l2_phi)
@@ -113,6 +113,10 @@ def calc_mt2ll_mism( event, sample ):
     mt2Calculator.setMet(met_pt_mism, met_phi_mism)
     event.dl_mt2ll_mism     = mt2Calculator.mt2ll()
 
+    event.dl_mass_mism = sqrt(2*l1_pt_mism*l2_pt_mism*(cosh(event.l1_eta-event.l2_eta)-cos(event.l1_phi-event.l2_phi)))
+
+    #print event.dl_mass_mism, l1_pt_mism, event.l1_pt, event.dl_mt2ll_mism, event.dl_mt2ll
+
 sequence.append( calc_mt2ll_mism )
 
 stack = Stack([dy_sample])
@@ -122,15 +126,15 @@ Plot.setDefaults(stack = stack, weight = staticmethod(weight_), selectionString 
 
 plots = []
 
-plots.append(Plot(
+plots.append(Plot( name = "dl_mt2ll",
   texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-  attribute = TreeVariable.fromString( "dl_mt2ll/F" ),
-  binning=[600/20, 0,600],
+  attribute = lambda event, sample: event.dl_mt2ll_mism if abs(event.dl_mass-91.2)>15 else float('nan'),
+  binning=[300/20, 0,300],
 ))
 plots.append(Plot( name = "dl_mt2ll_mism",
   texX = 'M_{T2}(ll) (GeV)', texY = 'Number of Events / 20 GeV',
-  attribute = lambda event, sample: event.dl_mt2ll_mism,
-  binning=[600/20, 0,600],
+  attribute = lambda event, sample: event.dl_mt2ll_mism if abs(event.dl_mass_mism-91.2)>15 else float('nan'),
+  binning=[300/20, 0,300],
 ))
 
 #
@@ -146,5 +150,5 @@ h_mism.style = styles.lineStyle( ROOT.kRed )
 h_orig.legendText = "orig"
 h_mism.legendText = "mism"
 
-plot = Plot.fromHisto( "dy_comp", histos = [[h_orig], [h_mism]] ) 
-plotting.draw( plot, plot_directory = "/afs/hephy.at/user/r/rschoefbeck/www/etc/", logY = False)
+plot = Plot.fromHisto( "dy_comp_x10" + ("_small" if args.small else ""), histos = [[h_orig], [h_mism]] ) 
+plotting.draw( plot, plot_directory = "/afs/hephy.at/user/r/rschoefbeck/www/etc/", logY = True, yRange = (0.01, "auto"))

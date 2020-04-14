@@ -1,6 +1,7 @@
 import ROOT,os
 import ctypes
 import copy
+import math
 
 def getContours(h, plotDir):
     _h = h.Clone()
@@ -64,7 +65,7 @@ def cleanContour(g, model="T2tt"):
     #        print i, x, y
     #    #g.SetPoint(500,15)
 
-def getPoints(g):
+def extendContour(g):
     x, y = ROOT.Double(), ROOT.Double()
     points = []
     for i in range(g.GetN()):
@@ -79,4 +80,19 @@ def getPoints(g):
     for i,p in enumerate(points):
         g.SetPoint(i, p[0], p[1])
 
+def getPoints(g):
+    x, y = ROOT.Double(), ROOT.Double()
+    points = []
+    for i in range(g.GetN()):
+        g.GetPoint(i, x, y)
+        points.append((copy.deepcopy(x),copy.deepcopy(y)))
+
+    return points
+
+def getProjection(x, y, ref_x, ref_y):
+    delta_x = x - ref_x
+    delta_y = y - ref_y
+    r = math.sqrt(delta_x**2 + delta_y**2)
+    phi = math.atan2(delta_y,delta_x)
+    return {'r':r, 'phi':phi}
 

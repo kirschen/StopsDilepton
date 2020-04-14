@@ -96,7 +96,6 @@ for ppEntry in dictList:
     dirPath = os.path.join( args.data_directory, ppEntry["dir"], ppEntry["skim"], sample+postfix  )
 
     # find all root files in subdirectory
-
     if dirPath.startswith('/dpm/'):
         p = subprocess.Popen( ["dpns-ls %s" %dirPath], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT )
         allRootFiles = [ line.rstrip() for line in p.stdout.readlines() if line.endswith(".root\n") and not line.startswith("nanoAOD") ]

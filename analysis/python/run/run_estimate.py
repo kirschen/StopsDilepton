@@ -38,7 +38,13 @@ logger_rt = logger_rt.get_logger('INFO', logFile = None )
 
 from StopsDilepton.analysis.Setup import Setup
 
-setup = Setup(year=options.year)
+### for 2018 studies studies
+#puUpOrDown = ['Up','Down']
+#setup = Setup(year=options.year, puWeight='', puUpOrDown = puUpOrDown)
+
+# use the default values
+puUpOrDown = False
+setup = Setup(year=options.year, puWeight=False, puUpOrDown = puUpOrDown)
 
 allRegions = noRegions if (options.control and options.control.count('TTZ')) else regionsLegacy #regions2016
 if options.aggregate: allRegions = regionsAgg
@@ -108,7 +114,7 @@ for channel in (trilepChannels if (options.control and options.control.count('TT
         jobs.append((r, channel, setup))
         if not estimate.isData and not options.noSystematics:
             if estimate.isSignal: jobs.extend(estimate.getSigSysJobs(r, channel, setup, isFastSim))
-            else:                 jobs.extend(estimate.getBkgSysJobs(r, channel, setup))
+            else:                 jobs.extend(estimate.getBkgSysJobs(r, channel, setup, puUpOrDown = puUpOrDown))
 
 
 #if options.noMultiThreading: 
@@ -120,6 +126,7 @@ results = map(wrapper, jobs)
 #    pool.close()
 #    pool.join()
 
+
 for channel in (['all'] if ((options.control and options.control.count('TTZ')) or options.aggregate) else ['SF','all']):
     for (i, r) in enumerate(allRegions):
         if options.selectRegion is not None and options.selectRegion != i: continue
@@ -127,7 +134,7 @@ for channel in (['all'] if ((options.control and options.control.count('TTZ')) o
         else: estimate.cachedEstimate(r, channel, setup, save=True, overwrite=options.overwrite)
         if not estimate.isData and not options.noSystematics:
             if estimate.isSignal: map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getSigSysJobs(r, channel, setup, isFastSim))
-            else:                 map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getBkgSysJobs(r, channel, setup))
+            else:                 map(lambda args:estimate.cachedEstimate(*args, save=True, overwrite=options.overwrite), estimate.getBkgSysJobs(r, channel, setup, puUpOrDown = puUpOrDown))
         logger.info('Done with region: %s', r)
     logger.info('Done with channel: %s', channel)
 logger.info('Done.')

@@ -41,7 +41,7 @@ default_leptonCharges = "isOS"
 
 
 class Setup:
-    def __init__(self, year=2016):
+    def __init__(self, year=2016, puWeight=False, puUpOrDown=False):
         self.analysis_results = analysis_results
         self.zMassRange       = zMassRange
         self.prefixes         = []
@@ -62,7 +62,18 @@ class Setup:
             'triLep':        default_triLep,
         }
 
-        self.puWeight = 'reweightPUVUp' if self.year == 2018 else 'reweightPU'
+        # can use arbitrary combinations of PU weights (minBias x-secs) for central value and uncertainties
+        minBiasXSecs = ['VVUp','VUp','Up','','Down']
+        if puWeight==False:
+            puWeight = 'VUp' if self.year == 2018 else ''
+
+        # default: 1 sigma up/down
+        if puUpOrDown == False:
+            self.puUpOrDown = [ minBiasXSecs[minBiasXSecs.index(puWeight)-1], minBiasXSecs[minBiasXSecs.index(puWeight)+1] ]
+        else:
+            self.puUpOrDown = puUpOrDown
+        self.puWeight = 'reweightPU'+puWeight
+
         self.sys = {'weight':'weight', 'reweight':[self.puWeight, 'reweightLeptonSF', 'reweightBTag_SF','reweightLeptonTrackingSF', 'reweightDilepTrigger', 'reweightL1Prefire','reweightHEM', 'reweightLeptonHit0SF', 'reweightLeptonSip3dSF'], 'selectionModifier':None} 
 
         if year == 2016:
@@ -162,9 +173,13 @@ class Setup:
                     res.sys[k] = list(set(res.sys[k]+sys[k])) #Add with unique elements
                     
                     # need to treat PU seperately
-                    puUpOrDown = ['VVUp','Up'] if self.year == 2018 else ['Up','Down']
-                    for upOrDown in puUpOrDown:
-                      if 'reweightPU'+upOrDown                  in res.sys[k]: res.sys[k].remove(self.puWeight)
+                    #puUpOrDown = ['VVUp','VUp','Up','','Down'] # we can just loop over every possible case  # if self.year == 2018 else ['Up','Down']
+                    #puUpOrDown = ['VVUp','Up'] # we can just loop over every possible case  # if self.year == 2018 else ['Up','Down']
+                    for upOrDown in self.puUpOrDown:
+                      #print upOrDown, res.sys[k]
+                      if 'reweightPU'+upOrDown in res.sys[k]:
+                        res.sys[k].remove(self.puWeight)
+                        #break
                     # all the other weight systematics
                     for upOrDown in ['Up','Down']:
                       if 'reweightDilepTrigger'+upOrDown        in res.sys[k]: res.sys[k].remove('reweightDilepTrigger')
@@ -185,6 +200,7 @@ class Setup:
                 res.parameters[k] = parameters[k]
 
 
+        #print res.puWeight
         return res
 
     def defaultParameters(self, update={}):
