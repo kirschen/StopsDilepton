@@ -426,7 +426,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             #chiSquared = []
         # -------------------------------------------------------
 
-        for log in [True]:#[False, True]:
+        for log in [False, True]:
             plot_directory_ = os.path.join(plot_directory, 'systematicPlots', 'combined', plot_subdirectory, args.selection, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
