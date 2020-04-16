@@ -44,8 +44,9 @@ signal_target_path    = '/dpm/oeaw.ac.at/home/cms/store/user/%s/%s/%s'%( os.envi
 
 jobs=[]
 
-#for source, target in [( mc_source_path, mc_target_path)]: #(signal_source_path, signal_target_path), ( data_source_path, data_target_path)]:
-for source, target in [ (signal_source_path, signal_target_path)]:
+for source, target in [( mc_source_path, mc_target_path)]: #(signal_source_path, signal_target_path), ( data_source_path, data_target_path)]:
+#for source, target in [( data_source_path, data_target_path)]:
+#for source, target in [ (signal_source_path, signal_target_path)]:
     for obj in os.listdir(source):
         jobs.append( ( os.path.join( source, obj ), os.path.join(target)) )
 

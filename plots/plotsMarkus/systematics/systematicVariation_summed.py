@@ -18,7 +18,7 @@ from math                                import sqrt, cos, sin, pi, atan2, isnan
 from RootTools.core.standard             import *
 
 #Analysis / StopsDilepton / Samples
-from StopsDilepton.tools.user            import plot_directory
+from StopsDilepton.tools.user            import plot_directory, analysis_results
 from StopsDilepton.tools.helpers         import deltaPhi, add_histos
 from Analysis.Tools.metFilters           import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
@@ -47,7 +47,8 @@ argParser.add_argument('--normalize',         action='store_true', help='Perform
 argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional directory label for minor changes to the plots")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
 argParser.add_argument('--directories',       action='store',         nargs='*',  type=str, default=[],                  help="Input" )
-argParser.add_argument('--fitChi2',         action='store_true', help='')
+argParser.add_argument('--fitChi2',           action='store_true', help='')
+argParser.add_argument('--SFUnc',             action='store',      default=None, help="SF pkl file, e.g 'SF', searched for in user results directory")
 
 
 args = argParser.parse_args()
@@ -59,7 +60,6 @@ import Analysis.Tools.logger as logger_an
 logger    = logger.get_logger(   args.logLevel, logFile = None)
 logger_rt = logger_rt.get_logger(args.logLevel, logFile = None)
 logger_an = logger_an.get_logger(args.logLevel, logFile = None)
-
 
 # Define all systematic variations
 variations = {
@@ -86,34 +86,6 @@ variations = {
     'LeptonSip3dSFUp'   : {}, 
     'L1PrefireDown'     : {}, 
     'L1PrefireUp'       : {}, 
-#NN
-#    'DYInputUp'             : {'addSampleWeight':(DY_HT_LO, '1.25', '(1)'),                                               'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'DYInputDown'           : {'addSampleWeight':(DY_HT_LO, '0.75', '(1)'),                                               'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'TTInputUp'             : {'addSampleWeight':(Top_pow, '1.25', '(1)'),                                                'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'TTInputDown'           : {'addSampleWeight':(Top_pow, '0.75', '(1)'),                                                'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'MBInputUp'             : {'addSampleWeight':(multiBoson, '1.25', '(1)'),                                             'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'MBInputDown'           : {'addSampleWeight':(multiBoson, '0.75', '(1)'),                                             'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'TTZInputUp'            : {'addSampleWeight':(TTZ_LO, '1.2', '(1)'),                                                 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'TTZInputDown'          : {'addSampleWeight':(TTZ_LO, '0.8', '(1)'),                                                 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'OtherInputUp'          : {'addSampleWeight':(TTXNoZ, '1.25', '(1)'),                                                'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'OtherInputDown'        : {'addSampleWeight':(TTXNoZ, '0.75', '(1)'),                                                'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-
-#
-#    'TT1JetMismInputUp'     : {'addSampleWeight':(Top_pow, '1.3', '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) >=1)'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'TT1JetMismInputDown'   : {'addSampleWeight':(Top_pow, '0.7', '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) >=1)'), 'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'TTTotJetMismInputUp'   : {'addSampleWeight':(Top_pow, '1.15', 
-#                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) >= 40)'), 
-#                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'TTTotJetMismInputDown' : {'addSampleWeight':(Top_pow, '0.85',
-#                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) >= 40)'), 
-#                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'TTNonPromptInputUp'    : {'addSampleWeight':(Top_pow, '1.5',
-#                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) < 40 && ((l1_muIndex>=0 && (Muon_genPartFlav[l1_muIndex])!=1) || (l2_muIndex>=0 && (Muon_genPartFlav[l2_muIndex])!=1)))'), 
-#                                                                                                                         'read_variables' : ['%s/F'%v for v in nominalMCWeights] },
-#    'TTNonPromptInputDown'  : {'addSampleWeight':(Top_pow, '0.5',
-#                              '(Sum$( abs(JetGood_pt - JetGood_genPt) >= 40) ==0 && Sum$(abs(JetGood_pt - JetGood_genPt)) < 40 && ((l1_muIndex>=0 && (Muon_genPartFlav[l1_muIndex])!=1) || (l2_muIndex>=0 && (Muon_genPartFlav[l2_muIndex])!=1)))'),
-#
-#    'TopPt':{},
 }
 
 # Systematic pairs:( 'name', 'up', 'down' )
@@ -130,16 +102,6 @@ systematics = [\
     #{'name': 'TopPt',      'correlated':True, 'pair':(  'TopPt', 'central')},
     {'name': 'JER',         'correlated':True, 'pair':('jerUp', 'jerDown')},
     {'name': 'L1Prefire',   'correlated':True, 'pair':('L1PrefireUp', 'L1PrefireDown')},
-#NN
-#    {'name': 'DYInput',           'pair':('DYInputUp', 'DYInputDown')},
-#    {'name': 'TTInput',           'pair':('TTInputUp', 'TTInputDown')},
-#    {'name': 'MBInput',           'pair':('MBInputUp', 'MBInputDown')},
-#    {'name': 'TTZInput',          'pair':('TTZInputUp', 'TTZInputDown')},
-#    {'name': 'OtherInput',        'pair':('OtherInputUp', 'OtherInputDown')},
-#
-#    {'name': 'TT1JetMismInput',   'pair':('TT1JetMismUp', 'TT1JetMismDown')},
-#    {'name': 'TTTotJetMismInput', 'pair':('TTTotJetMismUp', 'TTTotJetMismDown')},
-#    {'name': 'TTNonPromptInput',  'pair':('TTNonPromptInputUp', 'TTNonPromptInputDown')},
 ]
 
 
@@ -181,15 +143,6 @@ def drawObjects( scaling ):
     lines = [
       (0.15, 0.95, 'CMS Preliminary'),
       ]
-    #if scaling == 'mc':
-    #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(mc)=%3.2f'% ( lumi_scale, scaleFactor ) )]
-    #elif scaling == 'top':
-    #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(top)=%3.2f'% ( lumi_scale, scaleFactor ) )]
-    #elif scaling is None and args.normalize:
-    #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) scale=%3.2f'% ( lumi_scale, scaleFactor ) )]
-    #else:
-    #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
-    #lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV)'% ( lumi_scale) )]
     lines += [(0.45, 0.95, 'L=%i fb{}^{-1} (13 TeV)'% ( int(lumi_scale) ) )]
     if "mt2ll100" in args.selection:
         if args.signal:
@@ -199,7 +152,8 @@ def drawObjects( scaling ):
     return [tex.DrawLatex(*l) for l in lines]
 
 def accumulate_level_2( lists_of_lists ):
-    res = copy.deepcopy( lists_of_lists[0] )
+    #res = copy.deepcopy( lists_of_lists[0] )
+    res = [ map(lambda h:h.Clone(), l) for l in lists_of_lists[0] ]
     for stack_histos in lists_of_lists[1:]:
         for i_histos, histos in enumerate(stack_histos):
             for i_histo,histo in enumerate(histos):
@@ -208,6 +162,73 @@ def accumulate_level_2( lists_of_lists ):
 
 # arguments & directory
 plot_subdirectory = args.plot_directory
+
+# Loading & scaling + SF uncertainties
+if args.SFUnc is not None:
+    SFUnc = pickle.load( file(os.path.join( analysis_results, args.SFUnc )) )
+    # restructure 
+    for key in SFUnc.keys():
+        mc_key, year = key.split("_")
+        if not SFUnc.has_key( int(year) ):
+            SFUnc[int(year)] = {}
+        SFUnc[int(year)][mc_key] = SFUnc[key] 
+        systematics.append( {'name': 'ScaleFactor'+mc_key,   'correlated':True, 'pair':('ScaleFactor'+mc_key+'Up', 'ScaleFactor'+mc_key+'Down')} )
+    daniel_translation_dict = {'TTZ':'_TTZ_', 'TTJets':'_Top_pow_', 'TTXNoZ':'_TTXNoZ_', 'multiBoson':'_multiBoson_', 'DY':"_DY_HT_LO_" }
+
+    # scale all MC histograms by the SF
+    for year, directory in zip( [2016, 2017, 2018], args.directories ):
+        for key in variation_data[directory].keys():
+            # naming conventions (central variation):
+            # [[<ROOT.TH1F object ("nbtags_data_data_c8eeb1ca_36fb_4e72_a3e3_8218fabfaed0") at 0xcf546b0>]],
+            # [[<ROOT.TH1F object ("nbtags_signal_T2tt_800_100_187e383a_4a46_49ab_bfcc_cbe8f11cabe8") at 0xcf55a70>],
+            #  [<ROOT.TH1F object ("nbtags_signal_T2tt_350_150_3d22a083_1d90_4db2_b5b1_ed88f876677e") at 0xcf56380>]],
+            # [[<ROOT.TH1F object ("nbtags_mc_Top_pow_5065a108_9539_4a3d_bcc7_25c8aefec150") at 0xcf56f80>,
+            #   <ROOT.TH1F object ("nbtags_mc_multiBoson_8c5e291e_37fe_47af_b019_a5e58e2b30c0") at 0xcf57b70>,
+            #   <ROOT.TH1F object ("nbtags_mc_DY_HT_LO_04a40d9f_b4ac_42b8_a578_9a03e26041b2") at 0xcf58780>,
+            #   <ROOT.TH1F object ("nbtags_mc_TTXNoZ_ed2cc2e1_1e40_4728_ac35_3f24b99c00c2") at 0xcf593d0>,
+            #   <ROOT.TH1F object ("nbtags_mc_TTZ_55917593_e110_437a_b183_45947c2f3006") at 0xcf59fa0>]],
+            for p_histo in variation_data[directory][key]['histos']:
+               # p_histo is a list of plot_histos, for 'central' it is data/mc/signal, for variations it is just mc
+                for s_h in p_histo:
+                    for histo in s_h:
+                        # If the histo name contains a string that we have in SFUnc[year], we scale the MC histogram
+                        if '_mc_' not in histo.GetName(): continue
+                        for var_key in SFUnc[year].keys():
+                            if daniel_translation_dict[var_key] in histo.GetName():
+                                histo.Scale(SFUnc[year][var_key]['val'])
+                                #print "Scaled", key, var_key, histo.GetName(), SFUnc[year][var_key]['val']
+                                break
+
+            # Now we add the keys for the scale factor uncertainties! I'm so glad I had this idea. I hope it's a good one.
+            # let's copy the central MC histos
+            if 'central' in key:
+                for var_key in SFUnc[year].keys():
+                    # Define the new ScaleFactor systematic. It's correlated.
+                    for mod, sigma in [("Down", -1), ("Up", +1)]:
+                        # need to add the variations
+                        variations["ScaleFactor"+var_key+mod] = {}
+                        # make a new key with the same syntax we have in variation_data, e.g. (mode, "ScaleFactor"+XX+Up/Down)
+                        new_key = (key[0], "ScaleFactor"+var_key+mod)
+
+                        variation_data[directory][new_key] = {} 
+                        variation_data[directory][new_key]['histos'] = []
+                        for i_plot, plot in enumerate(plots):
+                            # Now we find the central MC hists. They are already scaled.
+                            mc_pos   = 3*i_plot+2 if args.signal else 2*i_plot+1
+                            # Copy the central MC histos 
+                            mc_histos = [ [ h.Clone() for h in s_h] for s_h in variation_data[directory][key]['histos'][mc_pos] ]
+                            # Now we scale them according to the variation
+                            for s_h in mc_histos:
+                                for histo in s_h:
+                                    if '_mc_' not in histo.GetName(): raise RuntimeError("You should have a MC histogram here, but the name doesn't match: %s" %  histo.GetName())
+                                    if daniel_translation_dict[var_key] in histo.GetName():
+                                        histo.Scale((1+sigma*SFUnc[year][var_key]['sigma']))
+                                        #print "Scaled", key, var_key, histo.GetName(), SFUnc[year][var_key]['val']
+                                        break
+        
+                            variation_data[directory][new_key]['histos'].append( mc_histos )
+else:
+    SFUnc = None
 
 # We plot now. 
 if args.normalize: plot_subdirectory += "_normalized"
@@ -355,7 +376,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             #chiSquared = []
         # -------------------------------------------------------
 
-        for log in [False, True]:
+        for log in [True]:
             plot_directory_ = os.path.join(plot_directory, 'systematicPlots', 'combined', plot_subdirectory, args.selection, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
