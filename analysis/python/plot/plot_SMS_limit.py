@@ -90,7 +90,12 @@ hists   = {}
 
 #nbins = 50
 #nbins = 210
-nbins = 105
+if options.signal == 'T2tt':
+    nbins = 105 # bin size 10 GeV
+if options.signal.startswith('T8'):
+    nbins = 64 # bin size 25 GeV
+if options.signal == 'T2bW':
+    nbins = 1300/25
 
 import pickle
 import pandas as pd
@@ -100,7 +105,8 @@ results = pickle.load(file(defFile.replace('root','pkl'), 'r'))
 results_df = results
 #results_df = results_df[(results_df['stop']-results_df['lsp'])<=174]
 
-limit_top = float(results_df[results_df['stop']==175][results_df['lsp']==0]['-1.000'])
+if options.signal == 'T2tt':
+    limit_top = float(results_df[results_df['stop']==175][results_df['lsp']==0]['-1.000'])
 
 # filter out the failed fits
 results_df = results_df[results_df['-1.000']<4*results_df['0.840']]
@@ -109,7 +115,8 @@ results_df = results_df[results_df['-1.000']<4*results_df['0.840']]
 
 ## filter out the additional points
 #results_df = results_df[results_df['stop']%5==0][results_df['lsp']%5==0]
-results_df = results_df[results_df['stop']%5==0]
+if options.signal == 'T2tt':
+    results_df = results_df[results_df['stop']%5==0]
 
 exp_graph       = toGraph2D('exp',      'exp',      len(results_df['stop'].tolist()),results_df['stop'].tolist(),results_df['lsp'].tolist(),results_df['0.500'].tolist())
 exp_up_graph    = toGraph2D('exp_up',   'exp_up',   len(results_df['stop'].tolist()),results_df['stop'].tolist(),results_df['lsp'].tolist(),results_df['0.840'].tolist())
@@ -132,15 +139,16 @@ for i in ["exp","exp_up","exp_down", "obs"]:
     hists[i] = graphs[i].GetHistogram().Clone()
 
 #  fix the corridor
-limit = limit_top
-for mStop in range(175,1000,5):
-    if len(results_df[results_df['stop']==mStop][results_df['lsp']==(mStop-175)])>0:
-        #print mStop, float(results_df[results_df['stop']==mStop][results_df['lsp']==(mStop-175)]['-1.000'])
-        limit = float(results_df[results_df['stop']==mStop][results_df['lsp']==(mStop-175)]['-1.000'])
-    else:
-        pass
-        #print "need to interpolate"
-    hists['obs'].SetBinContent(hists['obs'].GetXaxis().FindBin(mStop), hists['obs'].GetYaxis().FindBin(mStop-175), limit)
+if options.signal == 'T2tt':
+    limit = limit_top
+    for mStop in range(175,1000,5):
+        if len(results_df[results_df['stop']==mStop][results_df['lsp']==(mStop-175)])>0:
+            #print mStop, float(results_df[results_df['stop']==mStop][results_df['lsp']==(mStop-175)]['-1.000'])
+            limit = float(results_df[results_df['stop']==mStop][results_df['lsp']==(mStop-175)]['-1.000'])
+        else:
+            pass
+            #print "need to interpolate"
+        hists['obs'].SetBinContent(hists['obs'].GetXaxis().FindBin(mStop), hists['obs'].GetYaxis().FindBin(mStop-175), limit)
 
 # also fix the diagonal?
 
@@ -248,7 +256,7 @@ ROOT.gStyle.SetPadRightMargin(0.05)
 c1 = ROOT.TCanvas()
 niceColorPalette(255)
 
-hists["obs"].GetZaxis().SetRangeUser(0.02, 299)
+hists["obs"].GetZaxis().SetRangeUser(0.002, 2999)
 hists["obs"].Draw('COLZ')
 c1.SetLogz()
 
