@@ -82,7 +82,9 @@ def wrapper(s):
 
         #print cardFileName
         if not os.path.isfile(cardFileName):
-            raise IOError("File %s doesn't exist!"%cardFileName)
+            #raise IOError("File %s doesn't exist!"%cardFileName)
+            print "File %s doesn't exist!"%cardFileName
+            return
 
         cards[year] = cardFileName
     
@@ -125,7 +127,11 @@ def wrapper(s):
         print combinedCard
         if args.dryRun:
             return None
-        res = c.calcLimit(combinedCard)
+        try:
+            res = c.calcLimit(combinedCard)
+        except:
+            print "Limit failed"
+            res = {}
         print res 
         print "+"*10
         if args.significance:

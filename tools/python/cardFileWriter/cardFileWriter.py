@@ -125,8 +125,8 @@ class cardFileWriter:
         if type(val) == type(()):
             #print u, b, p, val
             self.uncertaintyVal[(u,b,p)] = round(1,self.precision) # Dummy entry
-            self.uncertaintyVal[(u+'Down',b,p)] = round(val[0],self.precision)
-            self.uncertaintyVal[(u+'Up',b,p)] = round(val[1],self.precision)
+            self.uncertaintyVal[(u+'Down',b,p)] = round(max(val[0],0),self.precision)
+            self.uncertaintyVal[(u+'Up',b,p)] = round(max(val[1],0),self.precision)
         else:
             if val<0:
     #      assert self.expectation[(b, p)]<0.1, "Found negative uncertainty %f for yield %f in %r."%(val, self.expectation[(b, p)], (u,b,p))
@@ -404,7 +404,7 @@ class cardFileWriter:
             from StopsDilepton.tools.cardFileWriter.getNorms import getNorms
             filename += " > output.txt"
         
-        combineCommand = "cd "+uniqueDirname+";combine --saveWorkspace -M AsymptoticLimits --rMin -1 --rMax 100 %s %s"%(options,filename)
+        combineCommand = "cd "+uniqueDirname+";combine --saveWorkspace -M AsymptoticLimits --rMin -100 --rMax 100 %s %s"%(options,filename)
         print combineCommand
         os.system(combineCommand)
 

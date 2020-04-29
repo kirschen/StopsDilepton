@@ -113,11 +113,11 @@ hists={}
 histos={}
 bkgHist=[]
 if not options.splitBosons:
-    processes = [   ('TTJets', 't#bar{t}/t'),
+    processes = [   ('TTJets', 't#bar{t}/single t'),
                 ('DY', 'Drell-Yan'),
-                ('multiBoson', 'VV/VVV'),
+                ('multiBoson', 'Multiboson'),
                 ('TTZ', 't#bar{t}Z'),
-                ('TTXNoZ', 't#bar{t}X, rare')]
+                ('TTXNoZ', 'Rare')]
 else:
     processes = [   ('TTJets', 't#bar{t}/t'),
                 ('DY', 'Drell-Yan'),
@@ -408,8 +408,8 @@ def drawLabels( regions ):
     min = 0.08
     max = 0.95
     diff = (max-min) / len(regions)
-    lines  = [ (min + 0.41, 0.83, "100 < M_{T2}(ll) < 140 GeV"), (min + 0.65, 0.83, "140 < M_{T2}(ll) < 240 GeV") ] 
-    lines += [ (min + 0.05, 0.83, "N_{l}=3, on-Z"), (min + 0.20, 0.83, "N_{l}=2, N_{b}=0, on-Z") ] 
+    lines  = [ (min + 0.41, 0.85, "100 < M_{T2}(ll) < 140 GeV"), (min + 0.65, 0.85, "140 < M_{T2}(ll) < 240 GeV") ] 
+    lines += [ (min + 0.05, 0.85, "N_{l}=3, on-Z"), (min + 0.20, 0.85, "N_{l}=2, N_{b}=0, on-Z") ] 
     #lines =  [(min+(8*i+0.90)*diff, 0.850,  "M_{T2}(ll)=3")   for i, r in enumerate(regions[:-4][::4])]
     return [tex.DrawLatex(*l) for l in lines] if len(regions)>12 else []
 
@@ -423,8 +423,8 @@ def drawLabelsRot( regions ):
     max = 0.95
     diff = (max-min) / len(regions)
     #lines = [(min+(i*4+2.7)*diff, 0.545 if i<3 else 0.285,  r.texStringForVar('dl_mt2blbl')) for i, r in enumerate(regions[::2]) if i < 6]
-    lines  = [(min+(44.8)*diff, 0.57, "M_{T2}(ll) > 240 GeV")]
-    lines += [(min+(1.5)*diff, 0.57, "M_{T2}(ll) < 100 GeV")]
+    lines  = [(min+(44.8)*diff, 0.67, "M_{T2}(ll) > 240 GeV")]
+    lines += [(min+(1.5)*diff, 0.67, "M_{T2}(ll) < 100 GeV")]
     return [tex.DrawLatex(*l) for l in lines] 
 
 lumiStr = round(lumiStr,1) if not options.combined else int(lumiStr)
@@ -466,7 +466,7 @@ if options.signalOnly:
     plotName += '_signalOnly'
 
 if options.combined and options.year==0:
-    yMax = 900000.
+    yMax = 90000000.
 else:
     yMax = 900000.
 
@@ -492,9 +492,9 @@ plotting.draw(
     plot_directory = os.path.join(plot_directory, "controlRegions", 'v8'),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
-    legend = (0.70,0.35, 0.92, 0.75) if not options.signalOnly else (0.70,0.55, 0.92, 0.75),
+    legend = (0.71,0.38, 0.92, 0.78) if not options.signalOnly else (0.70,0.55, 0.92, 0.75),
     widths = {'x_width':1300, 'y_width':600, 'y_ratio_width':250},
-    yRange = (0.02,yMax),
+    yRange = (0.2,yMax),
     #yRange = (0.03, [0.001,0.5]),
     ratio = {'yRange': (0.11, 2.19), 'texY':'Data/Pred.', 'histos':[(1,0)], 'drawObjects':ratio_boxes if not options.signalOnly else signal_ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
             'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035), lambda h: h.LabelsOption('v'), lambda h: h.GetYaxis().SetTickLength(0.035), lambda h: h.GetXaxis().SetTickLength(0.02)]} ,
