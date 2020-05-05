@@ -144,7 +144,7 @@ def drawObjects( scaling ):
     lines = [
       (0.15, 0.95, 'CMS Private') if args.private else (0.15, 0.95, 'CMS Preliminary'),
       ]
-    lines += [(0.45, 0.95, 'L=%i fb{}^{-1} (13 TeV)'% ( int(lumi_scale) ) )]
+    lines += [(0.45, 0.95, 'L=%i fb^{-1} (13 TeV)'% ( int(lumi_scale) ) )]
     if "mt2ll100" in args.selection:
         if args.signal:
             lines += [(0.55, 0.58, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
@@ -231,6 +231,16 @@ if args.SFUnc is not None:
 else:
     SFUnc = None
 
+def niceTexName(texName):
+    if "Run" in texName and "SF" in texName:
+        return "Observed (Run 2, SF)"
+    elif "multi" in texName:
+        return "Multiboson"
+    elif "DY" in texName:
+        return "Drell-Yan"
+    else:
+        return texName
+
 # We plot now. 
 if args.normalize: plot_subdirectory += "_normalized"
 if args.beta:      plot_subdirectory += "_%s"%args.beta
@@ -251,7 +261,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
 
         data_histo_list[0][0].style = styles.errorStyle(ROOT.kBlack)
         for i_mc, mc in enumerate(stack_mc[0]):
-            mc_histo_list['central'][0][i_mc].legendText = mc.texName
+            mc_histo_list['central'][0][i_mc].legendText = niceTexName(mc.texName)
             mc_histo_list['central'][0][i_mc].style = styles.fillStyle(mc.color) 
         if args.signal:
             for i_sig, sig in enumerate(stack_signal):
@@ -383,8 +393,8 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             plot_directory_ = os.path.join(plot_directory, 'systematicPlots', 'combined', plot_subdirectory, args.selection, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
-            if    mode == "all": plot.histos[1][0].legendText = "data (RunII)"
-            else:                plot.histos[1][0].legendText = "data (%s, %s)"%("RunII", texMode)
+            if    mode == "all": plot.histos[1][0].legendText = "Observed (Run 2)"
+            else:                plot.histos[1][0].legendText = "Observed (%s, %s)"%("Run 2", texMode)
 
             _drawObjects = []
 
