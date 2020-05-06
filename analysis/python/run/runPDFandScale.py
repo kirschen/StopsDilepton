@@ -84,8 +84,8 @@ setupIncl   = setupSR.sysClone(parameters={'mllMin':0, 'nJets':(0,-1), 'nBTags':
 if options.signal:
     if options.signal == 'T2tt':
         if year == 2016:
-            data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
-            postProcessing_directory    = 'stops_2016_nano_v0p22/dilep/'
+            data_directory              = '/afs/hephy.at/data/cms06/nanoTuples/'
+            postProcessing_directory    = 'stops_2016_nano_v0p23/dilep/'
             from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
         elif year == 2017:
             data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
@@ -255,7 +255,12 @@ if not options.selectWeight:
     else:
         PDF_variations      = [ "(abs(%s[%s])/abs(%s[0]))"%(pdfWeightString, str(i), pdfWeightString) for i in pdf_indices ]
     aS_variations       = [] #[ "abs(LHEPdfWeight[100])", "abs(LHEPdfWeight[101])"] if year == 2016 else [ "abs(LHEPdfWeight[31])", "abs(LHEPdfWeight[32])"]
-    variations          = scale_variations + PDF_variations + ['(1)'] if not options.signal.startswith('T') else scale_variations
+    if options.signal:
+        variations          = scale_variations + PDF_variations + ['(1)'] if not options.signal.startswith('T') else scale_variations
+    else:
+        variations          = scale_variations + PDF_variations + ['(1)']
+
+print variations
 
 # only properly works for selectRegion>0
 selectRegion = True if options.selectRegion >= 0 else False
@@ -266,7 +271,8 @@ results = {}
 
 scale_systematics = {}
 
-cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_%s/%s/"%(PDFset,year)
+#cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_%s/%s/"%(PDFset,year)
+cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v3_%s/%s/"%(PDFset,year) # v2 is used for pre-approval results. some caches got lost, so rerunning in v3
 
 estimate = MCBasedEstimate(name=sample.name, sample=sample )
 estimate.initCache(cacheDir)
@@ -544,9 +550,14 @@ if options.combine:
                 #logger.info("Relative shower scale uncertainty: %s", PS_scale_rel)
                 
                 if sigma_central.val>0:
-                    if sigma_central.sigma/sigma_central.val < 0.15:
+                    print "stat uncertainty", sigma_central.sigma/sigma_central.val
+                    print "scale uncertainty", scale_rel
+                    if sigma_central.sigma/sigma_central.val < scale_rel:
+                        Scale_unc.append(scale_rel)
+                    #Scale_unc.append(scale_rel)
+                    if sigma_central.sigma/sigma_central.val < 0.50: # 0.15
                         PDF_unc.append(delta_sigma_rel)
-                        if scale_rel < 1: Scale_unc.append(scale_rel) # only append here if we have enough stats
+                        #if scale_rel < 1: Scale_unc.append(scale_rel) # only append here if we have enough stats
                 #PS_unc.append(PS_scale_rel)
                 
                 # Store results

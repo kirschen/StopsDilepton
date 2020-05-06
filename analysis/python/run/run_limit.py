@@ -263,6 +263,12 @@ def wrapper(s):
 
     logger.info("Running over signal: %s", s.name)
 
+    maxStatUnc_tt   = 0
+    maxStatUnc_ttZ  = 0
+    maxStatUnc_DY   = 0
+    maxStatUnc_MB   = 0
+    maxStatUnc_rare = 0
+
     cardFileName = os.path.join(limitDir, s.name+args.postFix+'.txt')
     if not os.path.exists(cardFileName) or overWrite:
         counter=0
@@ -326,6 +332,8 @@ def wrapper(s):
         if not args.splitBosons:
             c.addRateParameter('multiBoson',    1, '[0.6,1.4]')
 
+        fastSim_lep = []
+        fastSim_b = []
 
         for setup in setups:
           # Dir of estimates
@@ -380,12 +388,28 @@ def wrapper(s):
                     if TT_SF != 1: logger.warning("Scaling ttbar background by %s", TT_SF)
                     logger.info("Fake and non-gauss uncertainty are %s and  %s", fakeUncertainty, nonGaussUncertainty)
                     c.specifyExpectation(binname, 'TTJets',  expected.val * TT_SF)
+                    if niceName.count("control")==0:
+                        # I just don't care anymore
+                        try:
+                            maxStatUnc_tt = expected.sigma/expected.val if (expected.sigma/expected.val)>maxStatUnc_tt else maxStatUnc_tt
+                        except:
+                            pass
                   elif e.name.count("DY"):
                     DY_SF = 1
                     c.specifyExpectation(binname, name, expected.val*DY_SF)
+                    if niceName.count("control")==0:
+                        try:
+                            maxStatUnc_DY = expected.sigma/expected.val if (expected.sigma/expected.val)>maxStatUnc_DY else maxStatUnc_DY
+                        except:
+                            pass
                     if DY_SF != 1: logger.warning("Scaling DY background by %s", DY_SF)
                   elif e.name.count("multiBoson"):
                     c.specifyExpectation(binname, name, expected.val)
+                    if niceName.count("control")==0:
+                        try:
+                            maxStatUnc_MB = expected.sigma/expected.val if (expected.sigma/expected.val)>maxStatUnc_MB else maxStatUnc_MB
+                        except:
+                            pass
                   elif e.name.count("TTZ"):
                     TTZ_SF = 1
                     for tmp_e in setup.estimators:
@@ -395,12 +419,22 @@ def wrapper(s):
                     expected = expected+TZX_expected
                     logger.info("ttZ+tZX expected %s", expected.val)
                     c.specifyExpectation(binname, name, expected.val*TTZ_SF)
+                    if niceName.count("control")==0:
+                        try:
+                            maxStatUnc_ttZ = expected.sigma/expected.val if (expected.sigma/expected.val)>maxStatUnc_ttZ else maxStatUnc_ttZ
+                        except:
+                            pass
                     if TTZ_SF != 1: logger.warning("Scaling ttZ background by %s", TTZ_SF)
                     #c.specifyUncertainty("TTZ", binname, name, 1.10)
                   elif e.name.count("TZX"):
                     logger.info("TZX has been added to TTZ")
                   elif e.name.count("TTXNoZ") or e.name.count("rare"):
                     c.specifyExpectation(binname, name, expected.val)
+                    if niceName.count("control")==0:
+                        try:
+                            maxStatUnc_rare = expected.sigma/expected.val if (expected.sigma/expected.val)>maxStatUnc_rare else maxStatUnc_rare
+                        except:
+                            pass
                   else:
                     if niceName.count("DYVV")==0 and niceName.count("TTZ")==0 and niceName.count("TTBar")==0:
                         logger.info("Adding to multiBoson prefit count")
@@ -556,7 +590,9 @@ def wrapper(s):
 
                   if fastSim: 
                     c.specifyUncertainty('leptonFS', binname, 'signal', 1 + e.leptonFSSystematic(    r, channel, signalSetup).val )
+                    fastSim_lep.append(e.leptonFSSystematic(    r, channel, signalSetup).val)
                     c.specifyUncertainty('btagFS',   binname, 'signal', 1 + e.btaggingSFFSSystematic(r, channel, signalSetup).val )
+                    fastSim_b.append(e.btaggingSFFSSystematic(    r, channel, signalSetup).val)
                     c.specifyUncertainty('isr',      binname, 'signal', 1 + e.nISRSystematic(        r, channel, signalSetup).val)
                     if (year==2016 or args.genRecoAllYears or args.genRecoNuis):
                         if niceName.count("controlTT"):
@@ -615,6 +651,18 @@ def wrapper(s):
     else:
         print "File %s found. Reusing."%cardFileName
     
+
+    print "FastSim lepton uncertainty:", max(fastSim_lep), min(fastSim_lep)
+    print "FastSim b-tag uncertainty:", max(fastSim_b), min(fastSim_b)
+
+
+    print "Max MC stat uncertainties:"
+    print "tt:", maxStatUnc_tt
+    print "DY:", maxStatUnc_DY
+    print "MB:", maxStatUnc_MB
+    print "ttZ:", maxStatUnc_ttZ
+    print "rare:", maxStatUnc_rare
+
     if   args.signal == "TTbarDM":                      sConfig = s.mChi, s.mPhi, s.type
     elif args.signal == "T2tt":                         sConfig = s.mStop, s.mNeu
     elif args.signal == "T2bt":                         sConfig = s.mStop, s.mNeu

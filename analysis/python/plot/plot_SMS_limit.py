@@ -95,7 +95,7 @@ if options.signal == 'T2tt':
 if options.signal.startswith('T8'):
     nbins = 64 # bin size 25 GeV
 if options.signal == 'T2bW':
-    nbins = 1300/25
+    nbins = 1300/25 * 2
 
 import pickle
 import pandas as pd
@@ -110,6 +110,13 @@ if options.signal == 'T2tt':
 
 # filter out the failed fits
 results_df = results_df[results_df['-1.000']<4*results_df['0.840']]
+
+if options.signal == 'T2bW':
+    # be a bit tighter here
+    results_df = results_df[results_df['-1.000']<2.5*results_df['0.840']]
+    results_df = results_df.drop(index=331)
+    results_df = results_df.drop(index=319) #319, 334
+
 
 #results_df = results_df[(results_df['stop']-results_df['lsp'])>174]
 
@@ -238,7 +245,7 @@ for ix in range(hists[xSecKey].GetNbinsX()):
     hists["obs_up"].SetBinContent(ix, 0, hists["obs_up"].GetBinContent(ix,1))
     hists["obs_down"].SetBinContent(ix, 0, hists["obs_down"].GetBinContent(ix,1))
 
-
+# to get a properly closed contour
 for ix in range(hists[xSecKey].GetNbinsX()):
     for iy in range(hists[xSecKey].GetNbinsY()):
         if iy>ix:
@@ -246,11 +253,21 @@ for ix in range(hists[xSecKey].GetNbinsX()):
                 if hists[i].GetBinContent(ix,iy) == 0:
                     hists[i].SetBinContent(ix,iy,1e6)
 
-for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down", "obs"]:
-    hists[i + "_smooth"] = hists[i].Clone(i + "_smooth")
-    if options.smooth:
+if options.smooth:
+    for i in ["exp", "exp_up", "exp_down", "obs", "obs_up", "obs_down", "obs"]:
+        hists[i + "_smooth"] = hists[i].Clone(i + "_smooth")
         for x in range(int(options.iterations)):
             hists[i + "_smooth"].Smooth(1,options.smoothAlgo)
+
+        if options.signal == 'T2bW':
+            for ix in range(hists[i].GetNbinsX()):
+                for iy in range(hists[i].GetNbinsY()):
+                    if iy>(ix):#  or iy==ix-1 or iy==ix-2:
+                        hists[i + "_smooth"].SetBinContent(ix, iy, hists[i].GetBinContent(ix,iy))
+
+        
+
+
 
 ROOT.gStyle.SetPadRightMargin(0.05)
 c1 = ROOT.TCanvas()
