@@ -142,7 +142,7 @@ def drawObjects( scaling ):
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
-      (0.15, 0.95, 'CMS Private') if args.private else (0.15, 0.95, 'CMS Preliminary'),
+      (0.15, 0.95, 'CMS Private') if args.private else (0.15, 0.95, 'CMS #it{Preliminary}'),
       ]
     lines += [(0.45, 0.95, 'L=%i fb^{-1} (13 TeV)'% ( int(lumi_scale) ) )]
     if "mt2ll100" in args.selection:
@@ -233,7 +233,7 @@ else:
 
 def niceTexName(texName):
     if "Run" in texName and "SF" in texName:
-        return "Observed (Run 2, SF)"
+        return "Observed (SF)"
     elif "multi" in texName:
         return "Multiboson"
     elif "DY" in texName:
@@ -393,8 +393,8 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             plot_directory_ = os.path.join(plot_directory, 'systematicPlots', 'combined', plot_subdirectory, args.selection, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
-            if    mode == "all": plot.histos[1][0].legendText = "Observed (Run 2)"
-            else:                plot.histos[1][0].legendText = "Observed (%s, %s)"%("Run 2", texMode)
+            if    mode == "all": plot.histos[1][0].legendText = "Observed"
+            else:                plot.histos[1][0].legendText = "Observed (%s)"%(texMode)
 
             _drawObjects = []
 

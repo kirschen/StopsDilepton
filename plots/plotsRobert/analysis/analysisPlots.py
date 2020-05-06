@@ -265,9 +265,15 @@ def splitNvtxMC(mc):
 signals = []
 if args.signal == "T2tt":
     # Load 2017 signal
-    data_directory           = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
-    postProcessing_directory = "stops_2017_nano_v0p7/dilep"
-    from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import *
+    #data_directory           = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    #postProcessing_directory = "stops_2017_nano_v0p9/dilep"
+    if args.era=="Run2016":
+        from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import *
+    elif args.era == "Run2017":
+        from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import *
+    elif args.era == "Run2018":
+        from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import *
+
     T2tt                    = T2tt_650_0
     T2tt2                   = T2tt_500_250
     T2tt2.style             = styles.lineStyle( ROOT.kBlack, width=3, dotted=True )
