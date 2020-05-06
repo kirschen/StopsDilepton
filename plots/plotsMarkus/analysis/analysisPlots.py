@@ -256,10 +256,32 @@ for index, mode in enumerate(allModes):
   ))
     
   plots.append(Plot(
-      texX = 'E_{T}^{miss} significance', texY = 'Number of Events',
+      texX = 'p_{T}^{miss} significance', texY = 'Number of Events',
       attribute = TreeVariable.fromString( "MET_significance/F" ),
       binning=[40,0,100],
   ))
+  plots.append(Plot(
+      texX = 'p_{T}^{miss} significance', texY = 'Number of Events',
+      name="MET_significance_200", attribute = TreeVariable.fromString( "MET_significance/F" ),
+      binning=[40,0,200],
+  ))
+  plots.append(Plot(
+      texX = 'p_{T}^{miss} significance', texY = 'Number of Events',
+      name="MET_significance_300", attribute = TreeVariable.fromString( "MET_significance/F" ),
+      binning=[40,0,300],
+  ))
+  plots.append(Plot(
+      texX = 'p_{T}^{miss} significance', texY = 'Number of Events',
+      name="MET_significance_400", attribute = TreeVariable.fromString( "MET_significance/F" ),
+      binning=[40,0,400],
+  ))
+  plots.append(Plot(
+      texX = 'sqrt(p_{T}^{miss} significance)', texY = 'Number of Events',
+      #attribute = TreeVariable.fromString( "MET_significance/F" ),
+      name="sqrt_MET_significance", attribute = lambda event, sample: sqrt(event.MET_significance),
+      binning=[50,0,30],
+  ))
+
 
   plots.append(Plot(
       texX = '#phi(E_{T}^{miss})', texY = 'Number of Events / 20 GeV',
@@ -349,6 +371,11 @@ for index, mode in enumerate(allModes):
     texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 15 GeV',
     attribute = TreeVariable.fromString( "l1_pt/F" ),
     binning=[20,0,300],
+  ))
+  plots.append(Plot(
+    texX = 'p_{T}(l_{1}) (GeV)', texY = 'Number of Events / 20 GeV',
+    name="l1_pt_1000", attribute = TreeVariable.fromString( "l1_pt/F" ),
+    binning=[50,0,1000],
   ))
 
   plots.append(Plot(

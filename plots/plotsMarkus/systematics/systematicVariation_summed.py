@@ -46,6 +46,7 @@ argParser.add_argument('--variation_scaling', action='store_true', help='Scale t
 argParser.add_argument('--normalize',         action='store_true', help='Perform area normalization mc to data?')
 argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional directory label for minor changes to the plots")
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
+argParser.add_argument('--private',           action='store_true',     help='Produce private plots')
 argParser.add_argument('--directories',       action='store',         nargs='*',  type=str, default=[],                  help="Input" )
 argParser.add_argument('--fitChi2',           action='store_true', help='')
 argParser.add_argument('--SFUnc',             action='store',      default=None, help="SF pkl file, e.g 'SF', searched for in user results directory")
@@ -141,9 +142,9 @@ def drawObjects( scaling ):
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
-      (0.15, 0.95, 'CMS Preliminary'),
+      (0.15, 0.95, 'CMS Private') if args.private else (0.15, 0.95, 'CMS #it{Preliminary}'),
       ]
-    lines += [(0.45, 0.95, 'L=%i fb{}^{-1} (13 TeV)'% ( int(lumi_scale) ) )]
+    lines += [(0.45, 0.95, 'L=%i fb^{-1} (13 TeV)'% ( int(lumi_scale) ) )]
     if "mt2ll100" in args.selection:
         if args.signal:
             lines += [(0.55, 0.58, 'M_{T2}(ll) > 100 GeV')] # Manually put the mt2ll > 100 GeV label
@@ -230,10 +231,21 @@ if args.SFUnc is not None:
 else:
     SFUnc = None
 
+def niceTexName(texName):
+    if "Run" in texName and "SF" in texName:
+        return "Observed (SF)"
+    elif "multi" in texName:
+        return "Multiboson"
+    elif "DY" in texName:
+        return "Drell-Yan"
+    else:
+        return texName
+
 # We plot now. 
 if args.normalize: plot_subdirectory += "_normalized"
 if args.beta:      plot_subdirectory += "_%s"%args.beta
 if args.fitChi2:   plot_subdirectory += "_chi2"
+if args.private:   plot_subdirectory += "_private"
 for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
     for i_plot, plot in enumerate(plots):
         
@@ -249,7 +261,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
 
         data_histo_list[0][0].style = styles.errorStyle(ROOT.kBlack)
         for i_mc, mc in enumerate(stack_mc[0]):
-            mc_histo_list['central'][0][i_mc].legendText = mc.texName
+            mc_histo_list['central'][0][i_mc].legendText = niceTexName(mc.texName)
             mc_histo_list['central'][0][i_mc].style = styles.fillStyle(mc.color) 
         if args.signal:
             for i_sig, sig in enumerate(stack_signal):
@@ -292,6 +304,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             if i_b==total_mc_histo['central'].GetNbinsX() and overflowBin:
                 total_central_mc_yield += total_mc_histo['central'].GetBinContent(i_b+1)
             if total_central_mc_yield<=0: continue
+            #print "bin {} | total_central_mc_yield {}".format(i_b, total_central_mc_yield)
             variance = 0.
             for systematic in systematics:
                 # Use 'central-variation' (factor 1) and 0.5*(varUp-varDown)
@@ -353,7 +366,7 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             r_box.SetFillStyle(3444)
             r_box.SetFillColor(ROOT.kBlack)
             ratio_boxes.append(r_box)
-            
+
         # -------------------------------------------------------
         # DY pTmiss plot with chi-squared
         if args.fitChi2 and plot.name == "MET_significance_mc":
@@ -380,8 +393,8 @@ for mode in ['mumu', 'ee', 'mue', 'SF', 'all']:
             plot_directory_ = os.path.join(plot_directory, 'systematicPlots', 'combined', plot_subdirectory, args.selection, mode + ("_log" if log else ""))
             #if not max(l[0].GetMaximum() for l in plot.histos): continue # Empty plot
             texMode = "#mu#mu" if mode == "mumu" else "#mue" if mode == "mue" else mode
-            if    mode == "all": plot.histos[1][0].legendText = "data (RunII)"
-            else:                plot.histos[1][0].legendText = "data (%s, %s)"%("RunII", texMode)
+            if    mode == "all": plot.histos[1][0].legendText = "Observed"
+            else:                plot.histos[1][0].legendText = "Observed (%s)"%(texMode)
 
             _drawObjects = []
 

@@ -47,6 +47,7 @@ argParser.add_argument('--variation',         action='store',      default=None,
 argParser.add_argument('--mode',              action='store',      default = 'all', choices = ['mumu', 'ee', 'mue', 'SF', 'all'],   help='Which mode?')
 argParser.add_argument('--normalizeBinWidth', action='store_true', default=False,       help='normalize wider bins?')
 argParser.add_argument('--small',             action='store_true',     help='Run only on a small subset of the data?')
+argParser.add_argument('--private',           action='store_true',     help='Produce private plots')
 # loading samples
 argParser.add_argument('--dpm',               action='store_true',     help='Use dpm?', )
 # write caches
@@ -57,6 +58,7 @@ argParser.add_argument('--variation_scaling', action='store_true', help='Scale t
 argParser.add_argument('--normalize',         action='store_true', help='Perform area normalization mc to data?')
 # add extra label to path
 argParser.add_argument('--beta',              action='store',      default=None, help="Add an additional directory label for minor changes to the plots")
+argParser.add_argument('--newMetSigPlots',    action='store_true', help='')
 
 args = argParser.parse_args()
 
@@ -135,7 +137,7 @@ if args.signal == "T2tt":
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
     
     jobNames = [ x.name for x in jobs ]
-    print jobNames
+    #print jobNames
     T2tt_800_100 = jobs[jobNames.index("T2tt_800_100")]
     T2tt_350_150 = jobs[jobNames.index("T2tt_350_150")]
     T2tt_750_0   = jobs[jobNames.index("T2tt_750_0")]
@@ -541,7 +543,7 @@ for mode in modes:
     if args.variation == 'central':
         nbtags_data   = Plot(
             name        = "nbtags_data",
-            texX        = 'number of b-tags (CSVM)', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
+            texX        = 'number of b-tags (DeepCSV)', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
             binning     = nBtagBinning,
             stack       = stack_data,
             attribute   = TreeVariable.fromString( "nBTag/I" ),
@@ -550,7 +552,7 @@ for mode in modes:
         if args.signal:
             nbtags_signal   = Plot(
                 name        = "nbtags_signal",
-                texX        = 'number of b-tags (CSVM)', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
+                texX        = 'number of b-tags (DeepCSV)', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
                 binning     = nBtagBinning,
                 stack       = stack_signal,
                 attribute   = TreeVariable.fromString( "nBTag/I" ),
@@ -559,7 +561,7 @@ for mode in modes:
 
     nbtags_mc  = Plot(\
         name            = "nbtags_mc",
-        texX            = 'number of b-tags (CSVM)', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
+        texX            = 'number of b-tags (DeepCSV)', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
         binning         = nBtagBinning,
         stack           = stack_mc,
         attribute       = TreeVariable.fromString( selectionModifier("nBTag/I"))   if selectionModifier is not None else None,
@@ -667,7 +669,7 @@ for mode in modes:
     if args.variation == 'central': 
         metSig_data  = Plot( 
             name        = "MET_significance_data",
-            texX        = 'p_{T}^{miss} significance', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+            texX        = 'p_{T}^{miss} significance', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
             binning     = Binning.fromThresholds( metSigBinning ),
             stack       = stack_data, 
             attribute   = TreeVariable.fromString( "MET_significance/F" ),
@@ -677,7 +679,7 @@ for mode in modes:
         if args.signal:
             metSig_signal  = Plot( 
                 name        = "MET_significance_signal",
-                texX        = 'p_{T}^{miss} significance', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+                texX        = 'p_{T}^{miss} significance', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
                 binning     = Binning.fromThresholds( metSigBinning ),
                 stack       = stack_signal, 
                 attribute   = TreeVariable.fromString( "MET_significance/F" ),
@@ -687,13 +689,80 @@ for mode in modes:
     
     metSig_mc  = Plot(\
         name = "MET_significance_mc",
-        texX = 'p_{T}^{miss} significance', texY = 'Number of Events / 5 GeV' if args.normalizeBinWidth else "Number of Events",
+        texX = 'p_{T}^{miss} significance', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
         stack = stack_mc,
         attribute = TreeVariable.fromString( selectionModifier("MET_significance/F") )  if selectionModifier is not None else None,
         binning=Binning.fromThresholds( metSigBinning ),
         selectionString = selectionModifier( cutInterpreter.cutString(args.selection) ) if selectionModifier is not None else None,
         weight          = mc_weight )
     plots.append( metSig_mc )
+
+    if args.newMetSigPlots:
+        metSigBinning400 = [0,2,4,6,8,10,12] if args.selection.count('POGMetSig0To12') else [12,32,52,72,92,112,132,200,300,400] if args.selection.count('POGMetSig12') else [0,12,32,52,72,92,112,132,166,200,250,300,350,400]
+        if args.variation == 'central': 
+            metSig_400_data  = Plot( 
+                name        = "MET_significance_400_data",
+                texX        = 'p_{T}^{miss} significance', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
+                binning     = Binning.fromThresholds( metSigBinning400 ),
+                stack       = stack_data, 
+                attribute   = TreeVariable.fromString( "MET_significance/F" ),
+                weight      = data_weight,
+                )
+            plots.append( metSig_400_data )
+            if args.signal:
+                metSig_400_signal  = Plot( 
+                    name        = "MET_significance_400_signal",
+                    texX        = 'p_{T}^{miss} significance', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
+                    binning     = Binning.fromThresholds( metSigBinning400 ),
+                    stack       = stack_signal, 
+                    attribute   = TreeVariable.fromString( "MET_significance/F" ),
+                    weight      = signal_weight,
+                    )
+                plots.append( metSig_400_signal )
+        
+        metSig_400_mc  = Plot(\
+            name = "MET_significance_400_mc",
+            texX = 'p_{T}^{miss} significance', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
+            stack = stack_mc,
+            attribute = TreeVariable.fromString( selectionModifier("MET_significance/F") )  if selectionModifier is not None else None,
+            binning=Binning.fromThresholds( metSigBinning400 ),
+            selectionString = selectionModifier( cutInterpreter.cutString(args.selection) ) if selectionModifier is not None else None,
+            weight          = mc_weight )
+        plots.append( metSig_400_mc )
+
+        #sqrt MET_significance
+        sqrtMetSigBinning = [3.4+i*1 for i in range(27)]
+        if args.variation == 'central': 
+            sqrtMetSig_data  = Plot( 
+                name        = "sqrt_MET_significance_data",
+                texX        = '#sqrt{p_{T}^{miss} significance}', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
+                binning     = Binning.fromThresholds( sqrtMetSigBinning ),
+                stack       = stack_data, 
+                attribute   = lambda event, sample: sqrt(getattr(event, "MET_significance")),
+                weight      = data_weight,
+                )
+            plots.append( sqrtMetSig_data )
+            if args.signal:
+                sqrtMetSig_signal  = Plot( 
+                    name        = "sqrt_MET_significance_signal",
+                    texX        = '#sqrt{p_{T}^{miss} significance}', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
+                    binning     = Binning.fromThresholds( sqrtMetSigBinning ),
+                    stack       = stack_signal, 
+                    attribute   = lambda event, sample: sqrt(getattr(event, "MET_significance")),
+                    weight      = signal_weight,
+                    )
+                plots.append( sqrtMetSig_signal )
+        
+        sqrtMetSig_mc  = Plot(\
+            name = "sqrt_MET_significance_mc",
+            texX = '#sqrt{p_{T}^{miss} significance}', texY = 'Number of Events' if args.normalizeBinWidth else "Number of Events",
+            stack = stack_mc,
+            #attribute = lambda event, sample: sqrt(getattr(event, selectionModifier("MET_significance")))  if selectionModifier is not None else None,
+            attribute = TreeVariable.fromString( selectionModifier("MET_significance/F") )  if selectionModifier is not None else None,
+            binning=Binning.fromThresholds( sqrtMetSigBinning ),
+            selectionString = selectionModifier( cutInterpreter.cutString(args.selection) ) if selectionModifier is not None else None,
+            weight          = mc_weight )
+        plots.append( sqrtMetSig_mc )
 
 
 #    if args.variation == 'central': 
@@ -857,6 +926,7 @@ for mode in modes:
             if args.scaling is not None: cmd.append('--scaling=%s'%args.scaling)
             if args.normalizeBinWidth: cmd.append('--normalizeBinWidth')
             if args.small: cmd.append('--small')
+            if args.newMetSigPlots: cmd.append('--newMetSigPlots')
             if args.dpm: cmd.append('--dpm')
             if args.overwrite: cmd.append('--overwrite')
 
@@ -965,6 +1035,8 @@ for mode in all_modes:
         # scale variations individually
         logger.info( "Scaling MC yield to data ( all variations are scaled by central SF)" )
         for i_plot, plot in enumerate(plots):
+            if plot.name=="sqrt_MET_significance_mc":
+                continue
             for variation in variations.keys():
                 if args.signal:
                     yield_data = variation_data[(mode,'central')]['histos'][3*i_plot][0][0].Integral()
@@ -973,9 +1045,12 @@ for mode in all_modes:
                     yield_data = variation_data[(mode,'central')]['histos'][2*i_plot][0][0].Integral()
                     yield_mc = sum(variation_data[(mode,'central')]['histos'][2*i_plot+1][0][i].Integral() for i, s in enumerate(mc))
                 sf = yield_data/yield_mc
-                for variation in variations.keys():
-                    for s in mc:
-                        dataMC_SF[mode][variation][s.name] = sf
+                #if variation == "central" and plot.name == "MET_significance_400_mc": 
+                print "{}: {} / {} = {}".format(plot.name, yield_data, yield_mc, sf)
+                for s in mc:
+                    if variation == "central" and plot.name == "MET_significance_400_mc": print "central sf: {}".format(sf)
+                    dataMC_SF[mode][variation][s.name] = sf
+        print "{}: {}".format(mode, dataMC_SF[mode])
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     # perform the scaling & store styles and texName
@@ -994,6 +1069,10 @@ for mode in all_modes:
                 pos_plot =  3*i_plot if args.signal else 2*i_plot 
                 variation_data[(mode, 'central')]['histos'][pos_plot][0][0].style = data_sample.style 
                 variation_data[(mode, 'central')]['histos'][pos_plot][0][0].legendText = data_sample.texName
+                # debugging:
+                yield_mc = sum(variation_data[(mode,'central')]['histos'][3*i_plot+2][0][i].Integral() for i, s in enumerate(mc))
+                scale_mc = [dataMC_SF[mode][variation][s.name] for s in mc]
+                if plot.name == "MET_significance_400_mc": print "{}: {} scale: {}".format(plot.name, yield_mc, scale_mc)
 
 # store everything in the dir_db
 dirdb_key =   'variation_data_scaling_%s'%(args.scaling if args.scaling is not None else "None")
@@ -1016,6 +1095,7 @@ for stack in [stack_mc_, stack_data_, stack_signal_]:
     for _s in stack:
         for s in _s:
             del s.style 
+#FIXME: add back
 dirDB.add(dirdb_key, ( variation_data, save_plots, stack_mc_, stack_data_, stack_signal_), overwrite = True)
 
 #pickle.dump( ( variation_data, save_plots), file(os.path.join(plot_directory, 'systematicPlots', args.era, plot_subdirectory, args.selection, 'variation_data.pkl'), 'w' ) )
@@ -1027,7 +1107,7 @@ def drawObjects( scaling ):
     tex.SetTextSize(0.04)
     tex.SetTextAlign(11) # align right
     lines = [
-      (0.15, 0.95, 'CMS Preliminary'),
+      (0.15, 0.95, 'CMS Private') if args.private else (0.15, 0.95, 'CMS Preliminary'),
       ]
     #if scaling == 'mc':
     #  lines += [(0.45, 0.95, 'L=%3.1f fb{}^{-1} (13 TeV) SF(mc)=%3.2f'% ( lumi_scale, scaleFactor ) )]
@@ -1048,6 +1128,7 @@ def drawObjects( scaling ):
 # We plot now. 
 if args.normalize: plot_subdirectory += "_normalized"
 if args.beta:      plot_subdirectory += "_%s"%args.beta
+if args.private:   plot_subdirectory += "_private"
 for mode in all_modes:
     for i_plot, plot in enumerate(plots):
         
@@ -1119,7 +1200,7 @@ for mode in all_modes:
             box.SetFillStyle(3444)
             box.SetFillColor(ROOT.kBlack)
             boxes.append(box)
-
+            
             r_box = ROOT.TBox( 
                 total_mc_histo['central'].GetXaxis().GetBinLowEdge(i_b),  
                 max(0.1, 1-sigma_rel), 
