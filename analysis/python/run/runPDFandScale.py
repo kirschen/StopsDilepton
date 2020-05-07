@@ -221,15 +221,22 @@ SUSY: no weights stored atm.
 scale_indices = [0,1,3,4,5,7,8]
 if options.signal == 'ttHinv':
     LHEweight_original = 'abs(LHEScaleWeight[4])'
-elif options.signal:
+elif options.signal.startswith('T'):
     LHEweight_original = 'abs(LHE_weight[4])'
 else:
     LHEweight_original = 'abs(LHEScaleWeight[4])'
 
-LHEweight_original_PDF = 'abs(LHEPdfWeight[0])' if (year == 2017 or year == 2018) else LHEweight_original
+if options.signal.startswith('T'):
+    LHEweight_original_PDF = LHEweight_original
+else:
+    LHEweight_original_PDF = 'abs(LHEPdfWeight[0])' if (year == 2017 or year == 2018) else LHEweight_original
+
 centralWeight = LHEweight_original
 
 pdf_indices = range(100) if year == 2016 else range(30)
+
+if options.signal.startswith('T'):
+    pdf_indices = []
 
 #if year == 2016:
 #    if options.sample == 'TTLep_pow': #only use ttbar sample, no single-t
@@ -244,7 +251,7 @@ pdf_indices = range(100) if year == 2016 else range(30)
 if not options.selectWeight:
     if options.signal == 'ttHinv':
         scaleWeightString   = 'LHEScaleWeight'
-    elif options.signal:
+    elif options.signal.startswith('T'):
         scaleWeightString   ='LHE_weight'
     else:
         scaleWeightString   = 'LHEScaleWeight'
@@ -255,8 +262,10 @@ if not options.selectWeight:
     else:
         PDF_variations      = [ "(abs(%s[%s])/abs(%s[0]))"%(pdfWeightString, str(i), pdfWeightString) for i in pdf_indices ]
     aS_variations       = [] #[ "abs(LHEPdfWeight[100])", "abs(LHEPdfWeight[101])"] if year == 2016 else [ "abs(LHEPdfWeight[31])", "abs(LHEPdfWeight[32])"]
-    if options.signal:
-        variations          = scale_variations + PDF_variations + ['(1)'] if not options.signal.startswith('T') else scale_variations
+    if options.signal == 'ttHinv':
+        variations          = scale_variations + PDF_variations + ['(1)'] 
+    elif options.signal.startswith('T'):
+        variations          = scale_variations + ['(1)']
     else:
         variations          = scale_variations + PDF_variations + ['(1)']
 
@@ -271,8 +280,8 @@ results = {}
 
 scale_systematics = {}
 
-#cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_%s/%s/"%(PDFset,year)
-cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v3_%s/%s/"%(PDFset,year) # v2 is used for pre-approval results. some caches got lost, so rerunning in v3
+cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v2_%s/%s/"%(PDFset,year)
+#cacheDir = "/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/PDF_v3_%s/%s/"%(PDFset,year) # v2 is used for pre-approval results. some caches got lost, so rerunning in v3
 
 estimate = MCBasedEstimate(name=sample.name, sample=sample )
 estimate.initCache(cacheDir)
@@ -470,7 +479,8 @@ if options.combine:
                 deltas = sorted(deltas)
 
                 # calculate uncertainty
-                if PDFType == "replicas":
+                delta_sigma = 0
+                if PDFType == "replicas" and len(deltas)>0:
                     # get the 68% interval
                     upper = len(deltas)*84/100-1
                     lower = len(deltas)*16/100 - 1
@@ -552,7 +562,7 @@ if options.combine:
                 if sigma_central.val>0:
                     print "stat uncertainty", sigma_central.sigma/sigma_central.val
                     print "scale uncertainty", scale_rel
-                    if sigma_central.sigma/sigma_central.val < scale_rel:
+                    if sigma_central.sigma/sigma_central.val < scale_rel or True:
                         Scale_unc.append(scale_rel)
                     #Scale_unc.append(scale_rel)
                     if sigma_central.sigma/sigma_central.val < 0.50: # 0.15
@@ -572,7 +582,6 @@ if options.combine:
                 scale_cache.get({"name": sample.name, "region":region, "CR":niceName, "channel":c, "PDFset":'scale'})
                 #PS_cache.get({"region":region, "channel":c, "PDFset":'PSscale'})
 
-    print PDF_unc
     cleanPDF = PDF_unc #[ x for x in PDF_unc if x<1 ]
 
     logger.info('Min. PDF uncertainty: %.3f', min(cleanPDF))

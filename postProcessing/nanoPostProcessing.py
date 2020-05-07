@@ -506,7 +506,7 @@ if options.year == 2017:
 
 #branches to be kept for MC samples only
 branchKeepStrings_MC = [ "Generator_*", "GenPart_*", "nGenPart", "genWeight", "Pileup_nTrueInt","GenMET_*", "nISR", "nGenJet", "GenJet_*"]
-if not options.fastSim or True: ## Why was this removed for FastSim?? Can't rerun scale/pdf uncertainties with current signal samples.
+if not options.fastSim:
     branchKeepStrings_MC.extend([ "*LHEScaleWeight", "*LHEPdfWeight"])
 #branches to be kept for data only
 branchKeepStrings_DATA = [ ]
