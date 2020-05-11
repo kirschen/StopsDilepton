@@ -151,7 +151,7 @@ if options.combined:
     dataHist = hists[years[0]]['DY'].Clone()
     dataHist.Reset()
     dataHist.SetName('data')
-    dataHist.legendText = 'Data'
+    dataHist.legendText = 'Observed'
     #dataHist.drawOption = 'e0'
     for n,(p,tex) in enumerate(processes):
         for i in range(bhistos[n].GetNbinsX()):
