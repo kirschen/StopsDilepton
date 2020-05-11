@@ -106,6 +106,7 @@ DY_HT_LO_18     = Sample.fromDirectory(name="DY_HT_LO",         treeName="Events
 #DY_LO_M50_18        = Sample.fromDirectory(name="DY_LO_M50",            treeName="Events", isData=False, color=color.DY,              texName="DY (LO)",                           directory=directories['DY_LO_M50'])
 Top_pow_18      = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
 Top_pow_1l_18   = Sample.fromDirectory(name="Top_pow_1l",       treeName="Events", isData=False, color=color.TTJets_1l,       texName="t#bar{t} (1l)",                     directory=directories['Top_pow'])
+TTLep_pow_18    = Sample.fromDirectory(name="TTLep_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t} (2l)",                 directory=directories['TTLep_pow'])
 TTXNoZ_18       = Sample.fromDirectory(name="TTXNoZ",           treeName="Events", isData=False, color=color.TTXNoZ,          texName="t#bar{t}H/W",                       directory=directories['TTXNoZ'])
 TZX_18          = Sample.fromDirectory(name="TZX",              treeName="Events", isData=False, color=color.TTXNoZ,          texName="tZq, tWZ",                          directory=directories['TZX'])
 TTX_18          = Sample.fromDirectory(name="TTX",              treeName="Events", isData=False, color=color.TTX,             texName="t#bar{t}Z/H/W, tZq",                directory=directories['TTX'])

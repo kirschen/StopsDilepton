@@ -138,6 +138,7 @@ DY_HT_LO_16        = Sample.fromDirectory(name="DY_HT_LO",         treeName="Eve
 DY_HT_LO_M50_16    = Sample.fromDirectory(name="DY_HT_M50_LO",     treeName="Events", isData=False, color=color.DY,              texName="Drell-Yan (M>50, LO)",              directory=directories['DY_HT_M50_LO'])
 DY_HT_LO_M5to50_16=Sample.fromDirectory(name="DY_HT_M5to50_LO",  treeName="Events", isData=False, color=color.DY,              texName="Drell-Yan (10<M<50, LO)",           directory=directories['DY_HT_M5to50_LO'])
 Top_pow_16         = Sample.fromDirectory(name="Top_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t}/single-t",                 directory=directories['Top_pow'])
+TTLep_pow_16         = Sample.fromDirectory(name="TTLep_pow",          treeName="Events", isData=False, color=color.TTJets,          texName="t#bar{t} (2l)",                 directory=directories['TTLep_pow'])
 #Top_pow_1l_16      = Sample.fromDirectory(name="Top_1l_pow",       treeName="Events", isData=False, color=color.TTJets_1l,       texName="t#bar{t} (1l)",                 directory=directories['TTSingleLep_pow'])
 singleTop_16      = Sample.fromDirectory(name="singleTop",        treeName="Events", isData=False, color=color.singleTop,       texName="single top",                        directory=directories['singleTop'])
 singleTop_tch_16  = Sample.fromDirectory(name="singleTop_tch",    treeName="Events", isData=False, color=color.singleTop,       texName="single top tch",                    directory=directories['singleTop_tch'])

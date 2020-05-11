@@ -8,7 +8,7 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
     # Where postprocessed data goes 
     data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     #data_output_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
-    postprocessing_output_directory = "/afs/hephy.at/data/cms06/nanoTuples/"
+    postprocessing_output_directory = "/afs/hephy.at/data/cms07/nanoTuples/"
     # Where you store the data
     data_directory      = "/afs/hephy.at/data/rschoefbeck02/cmgTuples/"
     # Where the plots go

@@ -31,7 +31,7 @@ import StopsDilepton.tools.user as user
 from StopsDilepton.tools.mt2Calculator       import mt2Calculator
 from StopsDilepton.tools.helpers             import closestOSDLMassToMZ, writeObjToFile, m3, deltaR, bestDRMatchInCollection, deltaPhi, nonEmptyFile, getSortedZCandidates, getMinDLMass
 from StopsDilepton.tools.addJERScaling       import addJERScaling
-from StopsDilepton.tools.objectSelection     import getMuons, getElectrons, muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector, mergeCollections, genLepFromZ
+from StopsDilepton.tools.objectSelection     import muonSelector, eleSelector, getGoodMuons, getGoodElectrons,  getGoodJets, isBJet, jetId, isBJet, getGoodPhotons, getGenPartsAll, getJets, getPhotons, getAllJets, filterGenPhotons, genPhotonSelector, mergeCollections, genLepFromZ
 from StopsDilepton.tools.getGenBoson         import getGenZ, getGenPhoton
 from StopsDilepton.tools.polReweighting      import getPolWeights
 from StopsDilepton.tools.triggerEfficiency   import triggerEfficiency
@@ -580,9 +580,9 @@ if isMC:
 
 read_variables += [\
     TreeVariable.fromString('nElectron/I'),
-    VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F,vidNestedWPBitmap/I]'),
+    VectorTreeVariable.fromString('Electron[pt/F,eta/F,phi/F,pdgId/I,cutBased/I,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,lostHits/b,convVeto/O,dxy/F,dz/F,charge/I,deltaEtaSC/F,vidNestedWPBitmap/I{mcString}]'.format(mcString=",genPartFlav/B,genPartIdx/I" if isMC else "")),
     TreeVariable.fromString('nMuon/I'),
-    VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I]'),
+    VectorTreeVariable.fromString('Muon[pt/F,eta/F,phi/F,pdgId/I,mediumId/O,miniPFRelIso_all/F,pfRelIso03_all/F,sip3d/F,dxy/F,dz/F,charge/I{mcString}]'.format(mcString=",genPartFlav/B,genPartIdx/I" if isMC else "")),
     TreeVariable.fromString('nJet/I'),
     VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) ),
 ]
@@ -609,7 +609,8 @@ if isTriLep or isDiLep or isSingleLep:
     new_variables.extend( ['nGoodMuons/I', 'nGoodElectrons/I', 'nGoodLeptons/I' ] )
     new_variables.extend( ['l1_pt/F', 'l1_eta/F', 'l1_phi/F', 'l1_pdgId/I', 'l1_index/I', 'l1_jetPtRelv2/F', 'l1_jetPtRatiov2/F', 'l1_miniRelIso/F', 'l1_relIso03/F', 'l1_dxy/F', 'l1_dz/F', 'l1_mIsoWP/I', 'l1_eleIndex/I', 'l1_muIndex/I' ] )
     new_variables.extend( ['mlmZ_mass/F'])
-    if isMC: 
+    if isMC:
+            new_variables.extend(['l1_genPartFlav/B', 'l1_genPartIdx/I']) 
             new_variables.extend(['reweightLeptonSF/F', 'reweightLeptonSFUp/F', 'reweightLeptonSFDown/F'])
             new_variables.extend(['reweightLeptonHit0SF/F', 'reweightLeptonHit0SFUp/F', 'reweightLeptonHit0SFDown/F'])
             new_variables.extend(['reweightLeptonSip3dSF/F', 'reweightLeptonSip3dSFUp/F', 'reweightLeptonSip3dSFDown/F'])
@@ -619,7 +620,7 @@ if isTriLep or isDiLep:
     new_variables.extend( ['dl_pt/F', 'dl_eta/F', 'dl_phi/F', 'dl_mass/F'])
     new_variables.extend( ['dl_mt2ll/F', 'dl_mt2bb/F', 'dl_mt2blbl/F' ] )
     if isMC: new_variables.extend( \
-        [   'zBoson_genPt/F', 'zBoson_genEta/F', 
+        [   'l2_genPartFlav/B', 'l2_genPartIdx/I', 'zBoson_genPt/F', 'zBoson_genEta/F', 
             'reweightDilepTrigger/F', 'reweightDilepTriggerUp/F', 'reweightDilepTriggerDown/F',
             'reweightLeptonTrackingSF/F',
          ] )
@@ -1053,6 +1054,10 @@ def filler( event ):
             event.l1_dz         = leptons[0]['dz']
             event.l1_eleIndex   = leptons[0]['eleIndex']
             event.l1_muIndex    = leptons[0]['muIndex']
+            if isMC:
+               event.l1_genPartFlav = leptons[0]['genPartFlav']
+               event.l1_genPartIdx  = leptons[0]['genPartIdx']
+ 
 
 
         # For TTZ studies: find Z boson candidate, and use third lepton to calculate mt
@@ -1112,6 +1117,9 @@ def filler( event ):
             event.l2_dz         = leptons[1]['dz']
             event.l2_eleIndex   = leptons[1]['eleIndex']
             event.l2_muIndex    = leptons[1]['muIndex']
+            if isMC:
+               event.l2_genPartFlav = leptons[1]['genPartFlav']
+               event.l2_genPartIdx  = leptons[1]['genPartIdx']
             
 
             l_pdgs = [abs(leptons[0]['pdgId']), abs(leptons[1]['pdgId'])]
