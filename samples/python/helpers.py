@@ -145,6 +145,78 @@ def getT2ttSignalWeight(sample, lumi, cacheDir):
     del hNEvents
     return signalWeight
 
+def getTTDMBranchNames( spin ):
+    import yaml
+    with open(os.path.expandvars('$CMSSW_BASE/src/StopsDilepton/tools/data/xsecDM/xsec_dilepton_2017.yml'), 'r') as f: # don't care about the year
+        xsec = yaml.load(f)
+
+    xsec = [ x for x in xsec if x['spin'] == spin ]
+
+    branchNames = []
+
+    for x in xsec:
+        branchName          = 'GenModel__TTbarDMJets_Dilepton_%s_LO_Mchi_%s_Mphi_%s_TuneCP5_13TeV_madgraph_mcatnlo_pythia8'%(x['spin'], str(int(x['mChi'])), str(int(x['mPhi'])) )
+        branchNames.append(branchName)
+    return branchName
+
+
+def getTTDMSignalWeightForEvent( sample, event, weights ):
+    weight = 0
+    for branchName in weights.keys():
+        if getattr(event, 'branchName'):
+            weight = weights[branchName]
+            break
+    if not weight:
+        print "Couldn't find a weight"
+    return weight
+
+
+def getTTDMSignalWeight(sample, lumi, year=2017):
+    '''
+    Get a dictionary for TTDM signal weights
+    Returns a dict with branchname and weight
+    '''
+    import yaml
+    import pandas
+    import copy
+
+    year = str(year)
+
+    signalWeight = {}
+
+    spin = 'pseudoscalar' if sample.name.count('pseudoscalar') else 'scalar'
+    print spin
+
+    results_file = '$CMSSW_BASE/src/StopsDilepton/tools/data/xsecDM/xsec_dilepton_%s.yml'%year
+
+    with open(os.path.expandvars(results_file), 'r') as f:
+        xsec = yaml.load(f)
+
+    #xsec = [ x for x in xsec if x['spin'] == spin ]
+
+    for x in xsec:
+        if x['spin'] == spin:
+            branchName          = 'GenModel__TTbarDMJets_Dilepton_%s_LO_Mchi_%s_Mphi_%s_TuneCP5_13TeV_madgraph_mcatnlo_pythia8'%(x['spin'], str(int(x['mChi'])), str(int(x['mPhi'])) )
+            print branchName
+            x['branchName']     = branchName
+            if not x.has_key('weight'):
+                print "Getting weights for %s, mChi: %s, mPhi: %s"%(x['spin'], str(int(x['mChi'])), str(int(x['mPhi'])) )
+                sumWeight           = sample.getYieldFromDraw('%s==1'%branchName, 'genWeight')
+                x['sumWeight']      = sumWeight['val']
+                x['weight']         = lumi * x['xsec']/sumWeight['val']
+                x['xSecFacUp']      = (x['xsec'] + x['xsec_unc'])/x['xsec']
+                x['xSecFacDown']    = (x['xsec'] - x['xsec_unc'])/x['xsec']
+
+            signalWeight[branchName] = {'weight':x['weight'], 'xSecFacUp':x['xSecFacUp'], 'xSecFacDown':x['xSecFacDown'], 'mChi':x['mChi'], 'mPhi':x['mPhi'], 'spin':x['spin']}
+            
+            #xsec_tmp = copy.deepcopy(xsec)
+            #df = pandas.DataFrame(xsec_tmp)
+
+            with open(os.path.expandvars(results_file), 'w') as f:
+                yaml.dump(xsec, f, default_flow_style=False)
+
+    return signalWeight
+
 
 def getT2ttISRNorm(sample, mStop, mLSP, massPoints, year,signal="T2tt",  fillCache=False, cacheDir='/tmp/ISR/', overwrite=False):
     '''

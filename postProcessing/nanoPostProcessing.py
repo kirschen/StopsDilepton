@@ -39,6 +39,7 @@ from StopsDilepton.tools.leptonSF            import leptonSF as leptonSF_
 from StopsDilepton.tools.leptonHit0SF        import leptonHit0SF as leptonHit0SF_
 from StopsDilepton.tools.leptonSip3dSF       import leptonSip3dSF as leptonSip3dSF_
 from StopsDilepton.tools.leptonFastSimSF     import leptonFastSimSF as leptonFastSimSF_
+from StopsDilepton.samples.helpers           import getTTDMSignalWeightForEvent, getTTDMSignalWeight, getTTDMBranchNames
 from Analysis.Tools.overlapRemovalTTG        import photonFromTopDecay, hasMesonMother, getParentIds, isIsolatedPhoton, getPhotonCategory
 from Analysis.Tools.puProfileCache           import *
 from Analysis.Tools.L1PrefireWeight          import L1PrefireWeight
@@ -365,6 +366,11 @@ if options.susySignal:
         logger.info("!!WARNING!! No ISR normaliztion factors found. Using the ISR weights will therefore change the normalization. Be careful!")
         #raise NotImplementedError ("Couldn't load ISR normalization factors.")
 
+if options.TTDM:
+    signalWeight = getTTDMSignalWeight( samples[0], lumi = targetLumi)
+
+#raise NotImplementedError
+
 len_orig = len(sample.files)
 ## sort the list of files?
 sample = sample.split( n=options.nJobs, nSub=options.job)
@@ -537,6 +543,9 @@ else:
     lumiScaleFactor = xSection*targetLumi/float(sample.normalization) if xSection is not None else None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
+#if options.TTDM:
+#    branchKeepStrings += ["GenModel*"]
+
 jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F', 'corr_JER/F'] + jetCorrInfo
 if isMC:
     jetVars     += jetMCInfo
@@ -662,6 +671,18 @@ if options.susySignal:
         new_variables  += ['mCha/I', 'mSlep/I', 'sleptonPdg/I']
     if 'T2tt' in options.samples[0]:
         new_variables  += ['weight_pol_L/F', 'weight_pol_R/F']
+#if options.TTDM:
+#    new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mPhi/I', 'mChi/I', 'scalar/I', 'pseudoscalar/I']
+
+
+
+if options.samples[0].count('_pseudoscalar'):
+    print '##########################################'
+    print getTTDMBranchNames('pseudoscalar')
+#    read_variables += map(TreeVariable.fromString, ['%s/I'%x for x in getTTDMBranchNames('pseudoscalar') ] )
+#if options.samples[0].count('_scalar'):
+#    print getTTDMBranchNames('scalar')
+#    read_variables += map(TreeVariable.fromString, ['%s/I'%x for x in getTTDMBranchNames('scalar') ] )
 
 if options.fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
@@ -861,6 +882,16 @@ def filler( event ):
             logger.info("Couldn't find weight for %s, %s. Setting weight to 0.", r.GenSusyMStop, r.GenSusyMNeutralino)
             event.reweightXSecUp    = 0.
             event.reweightXSecDown  = 0.
+    elif options.TTDM:
+        ttdmWeights             = getTTDMSignalWeightForEvent( sample, event, signalWeights )
+        event.weight            = ttdmWeights['weight']
+        event.reweightXSecUp    = ttdmWeights['xSecFacUp']
+        event.reweightXSecDown  = ttdmWeights['xSecFacDown']
+        event.mChi              = ttdmWeights['mChi']
+        event.mPhi              = ttdmWeights['mPhi']
+        event.scalar            = ttdmWeights['spin'] == 'scalar'
+        event.pseudoscalar      = ttdmWeights['spin'] == 'pseudoscalar'
+
     elif isMC:
         if hasattr(r, "genWeight"):
             event.weight = lumiScaleFactor*r.genWeight if lumiScaleFactor is not None else 1
