@@ -115,8 +115,8 @@ import StopsDilepton.tools.logger as _logger
 logFile = '/tmp/%s_%s_%s_njob%s.txt'%(options.skim, '_'.join(options.samples), os.environ['USER'], str(0 if options.nJobs==1 else options.job))
 logger  = _logger.get_logger(options.logLevel, logFile = logFile)
 
-#import Analysis.Tools.logger as _logger_an
-#logger_an = _logger_an.get_logger(options.logLevel, logFile = logFile )
+import Analysis.Tools.logger as _logger_an
+logger_an = _logger_an.get_logger('DEBUG', logFile = logFile )
 
 import RootTools.core.logger as _logger_rt
 logger_rt = _logger_rt.get_logger(options.logLevel, logFile = logFile )
@@ -279,7 +279,6 @@ if options.reduceSizeBy > 1:
     logger.info("New normalization: %s", sample.normalization)
 
 nameForISR = copy.deepcopy(sample.name)
-print nameForISR
 if options.massSkim:
     sample.name += "_%s_%s"%(stop,lsp)
 
@@ -295,7 +294,8 @@ if isMC:
     elif options.year == 2017:
         # keep the weight name for now. Should we update to a more general one?
         puProfiles = puProfile( source_sample = sampleForPU )
-        mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
+        mcHist = puProfiles.cachedTemplate( selection="( 1 )", weight='genWeight', save=False, overwrite=False ) # use genWeight for amc@NLO samples. No problems encountered so far
+        print "1", mcHist, mcHist.Integral()
         nTrueInt_puRW       = getReweightingFunction(data="PU_2017_41860_XSecCentral",  mc=mcHist)
         nTrueInt_puRWDown   = getReweightingFunction(data="PU_2017_41860_XSecDown",     mc=mcHist)
         nTrueInt_puRWVDown  = getReweightingFunction(data="PU_2017_41860_XSecVDown",    mc=mcHist)

@@ -2,7 +2,8 @@
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p23   --skipGenLepMatching --sample TTZToQQ #SPLIT8
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p23   --skipGenLepMatching --sample TTZToLLNuNu #SPLIT20
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p23   --skipGenLepMatching --sample TTZToLLNuNu_m1to10 #SPLIT4
-python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p24   --skipGenLepMatching --flagTTBar --sample TTLep_pow #SPLIT77
+#python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p24   --skipGenLepMatching --flagTTBar --sample TTLep_pow #SPLIT77
+python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p24   --skipGenLepMatching --flagTTBar --sample TTLep_pow_ext #SPLIT100
 #python nanoPostProcessing.py  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p23   --skipGenLepMatching --flagTTBar --sample TTSingleLep_pow #SPLIT80
 ###
 ##python nanoPostProcessing.py/  --forceProxy --skim dilep  --year 2017 --processingEra stops_2017_nano_v0p23   --skipGenLepMatching --sample DYJetsToLL_M50_ext1 #SPLIT10

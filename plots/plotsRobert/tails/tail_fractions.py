@@ -50,7 +50,7 @@ from Analysis.Tools.puReweighting import getReweightingFunction
 #
 
 TTLep_pow_16 = Sample.fromFiles("TTLep_pow_16", "/afs/hephy.at/data/cms07/nanoTuples/skim/TTLep_pow_16_mt2ll100.root") 
-TTLep_pow_17 = Sample.fromFiles("TTLep_pow_17", "/afs/hephy.at/data/cms07/nanoTuples/skim/TTLep_pow_17_mt2ll100.root")
+TTLep_pow_17 = Sample.fromFiles("TTLep_pow_17", "/afs/hephy.at/data/cms07/nanoTuples/skim/TTLep_pow_17_ext_mt2ll100.root")
 TTLep_pow_18 = Sample.fromFiles("TTLep_pow_18", "/afs/hephy.at/data/cms07/nanoTuples/skim/TTLep_pow_18_mt2ll100.root")
 
 mc = [ TTLep_pow_16, TTLep_pow_17, TTLep_pow_18 ]
@@ -88,7 +88,9 @@ selections = [
 read_variables = ["weight/F", "l1_pt/F", "dl_phi/F", "dl_pt/F", "l2_pt/F", "l1_eta/F" , "l1_phi/F", "l2_eta/F", "l2_phi/F", "JetGood[pt/F,eta/F,phi/F]", "dl_mass/F", "dl_eta/F", "dl_mt2ll/F", "dl_mt2bb/F", "dl_mt2blbl/F", "met_pt/F", "met_phi/F", "MET_significance/F", "nBTag/I", "nJetGood/I", "PV_npvsGood/I", "RawMET_pt/F", "RawMET_phi/F"]
 read_variables += ["l2_eleIndex/I"]
 read_variables += ["l1_genPartFlav/B", "l2_genPartFlav/B"]
-read_variables+= ["event/l", "luminosityBlock/I", "run/I"]
+read_variables += ["l1_genPartIdx/I", "l2_genPartIdx/I"]
+read_variables += ["event/l", "luminosityBlock/I", "run/I"]
+read_variables += ["GenMET_pt/F", "GenMET_phi/F"]
 
 jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F', 'corr_JER/F', 'genJetIdx/I'] 
 jetVarNames     = map( lambda s:s.split('/')[0], jetVars)
@@ -101,6 +103,8 @@ read_variables += [\
     VectorTreeVariable.fromString('Jet[%s]'% ( ','.join(jetVars) ) ),
     TreeVariable.fromString('nGenJet/I'),
     VectorTreeVariable.fromString('GenJet[pt/F,eta/F,phi/F]' ),
+    TreeVariable.fromString('nGenPart/I'),
+    VectorTreeVariable.fromString('GenPart[pt/F,eta/F,phi/F,pdgId/I]' ),
 ]
 
 
@@ -130,8 +134,7 @@ for selection, sample in zip(selections, mc):
 
             # find non-gaussian mismeasurement
             delta_pts = [ abs(jet['pt'] - genjets[jet['genJetIdx']]['pt']) if jet['genJetIdx']>=0 and (jet['genJetIdx']<r.event.nGenJet) else 0 for jet in all_good_jets ]
-            #delta_Rs  = [ deltaR(jet, genjets[jet['genJetIdx']]) if jet['genJetIdx']>=0 and (jet['genJetIdx']<r.event.nGenJet) else 0 for jet in all_good_jets ]
-            #print zip(delta_Rs, delta_pts)
+            delta_Rs  = [ deltaR(jet, genjets[jet['genJetIdx']]) if jet['genJetIdx']>=0 and (jet['genJetIdx']<r.event.nGenJet) else 0 for jet in all_good_jets ]
 
             nonGauss_30 = max( delta_pts+[0] )>30
             nonGauss_40 = max( delta_pts+[0] )>40
@@ -140,22 +143,63 @@ for selection, sample in zip(selections, mc):
             delta_x = [ (jet['pt'] - genjets[jet['genJetIdx']]['pt'])*cos(jet['phi']) if jet['genJetIdx']>=0 and (jet['genJetIdx']<r.event.nGenJet) else 0 for jet in all_good_jets ]
             delta_y = [ (jet['pt'] - genjets[jet['genJetIdx']]['pt'])*sin(jet['phi']) if jet['genJetIdx']>=0 and (jet['genJetIdx']<r.event.nGenJet) else 0 for jet in all_good_jets ]
 
-
-
             #print sum(delta_x), sum(delta_y)
             delta_mht = sqrt(sum( delta_x )**2 + sum( delta_y )**2)
 
             delta_mht_30 = delta_mht>30
             delta_mht_40 = delta_mht>40
 
+            # leptons
+            if r.event.l1_genPartIdx>=0:
+                genl1_pt = r.event.GenPart_pt[r.event.l1_genPartIdx]
+                genl1_eta = r.event.GenPart_eta[r.event.l1_genPartIdx]
+                genl1_phi = r.event.GenPart_phi[r.event.l1_genPartIdx]
+                genl1_pdgId = r.event.GenPart_pdgId[r.event.l1_genPartIdx]
+            else:
+                genl1_pt = None
+                genl1_eta = None
+                genl1_phi = None
+                genl1_pdgId = None
+            if r.event.l2_genPartIdx>=0:
+                genl2_pt = r.event.GenPart_pt[r.event.l2_genPartIdx]
+                genl2_eta = r.event.GenPart_eta[r.event.l2_genPartIdx]
+                genl2_phi = r.event.GenPart_phi[r.event.l2_genPartIdx]
+                genl2_pdgId = r.event.GenPart_pdgId[r.event.l2_genPartIdx]
+            else:
+                genl2_pt = None
+                genl2_eta = None
+                genl2_phi = None
+                genl2_pdgId = None
+
+            print "MT2ll: ", r.event.dl_mt2ll
+
+            print "deltaR/deltaPts:"
+            print zip(delta_Rs, delta_pts)
+
+            if genl1_pdgId:
+                print "l1", genl1_pdgId, genl1_pt, genl1_pt-r.event.l1_pt
+            else:
+                print "l1", genl1_pdgId, genl1_pt
+            if genl2_pdgId:
+                print "l2", genl2_pdgId, genl2_pt, genl2_pt-r.event.l2_pt
+            else:
+                print "l2", genl2_pdgId, genl2_pt
+
+
             if nonGauss_30:
                 print "nonGauss_30"
             elif delta_mht_30:
                 print "delta_mht_30"
             elif ord(r.event.l1_genPartFlav)!=1 or ord(r.event.l2_genPartFlav)!=1:
-                print "leptons"
+                print "leptons", ord(r.event.l1_genPartFlav), ord(r.event.l2_genPartFlav)
             else:
-                print "unclassified!"
+                print "unclassified!", delta_mht, max( delta_pts+[0] ), r.event.met_pt - r.event.GenMET_pt,
+                if abs(r.event.met_pt - r.event.GenMET_pt)>30:
+                    print "HIGH MET"
+                else:
+                    print "LOW MET"
+
+            print 
              
 #contributions = [
 #    # 1 jet mism > 40 GeV (NonGauss) 
