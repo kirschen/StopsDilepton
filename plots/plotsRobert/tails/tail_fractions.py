@@ -49,9 +49,12 @@ from Analysis.Tools.puReweighting import getReweightingFunction
 #from StopsDilepton.samples.nanoTuples_Autumn18_postProcessed import *
 #
 
-TTLep_pow_16 = Sample.fromFiles("TTLep_pow_16", "/afs/hephy.at/data/cms07/nanoTuples/skim/TTLep_pow_16_mt2ll100.root") 
-TTLep_pow_17 = Sample.fromFiles("TTLep_pow_17", "/afs/hephy.at/data/cms07/nanoTuples/skim/TTLep_pow_17_ext_mt2ll100.root")
-TTLep_pow_18 = Sample.fromFiles("TTLep_pow_18", "/afs/hephy.at/data/cms07/nanoTuples/skim/TTLep_pow_18_mt2ll100.root")
+#TTLep_pow_16 = Sample.fromFiles("TTLep_pow_16", "/afs/hephy.at/data/cms07/nanoTuples/skim/TTLep_pow_16_mt2ll100.root") 
+#TTLep_pow_ext_17 = Sample.fromFiles("TTLep_pow_ext_17", "/afs/hephy.at/data/cms07/nanoTuples/skim/TTLep_pow_17_ext_mt2ll100.root")
+#TTLep_pow_18 = Sample.fromFiles("TTLep_pow_18", "/afs/hephy.at/data/cms07/nanoTuples/skim/TTLep_pow_18_mt2ll100.root")
+TTLep_pow_16 = Sample.fromDirectory("TTLep_pow_16", "/afs/hephy.at/data/cms07/nanoTuples/stops_2016_nano_v0p24/dilep/TTLep_pow") 
+TTLep_pow_17 = Sample.fromDirectory("TTLep_pow_17", "/afs/hephy.at/data/cms06/nanoTuples/stops_2017_nano_v0p23/dilep/TTLep_pow_ext") 
+TTLep_pow_18 = Sample.fromDirectory("TTLep_pow_18", "/afs/hephy.at/data/cms07/nanoTuples/stops_2018_nano_v0p24/dilep/TTLep_pow") 
 
 mc = [ TTLep_pow_16, TTLep_pow_17, TTLep_pow_18 ]
 
@@ -108,7 +111,7 @@ read_variables += [\
 ]
 
 
-mt2llBins = [ 'mt2ll100' ]#, 'mt2ll240', 'mt2ll100To140' ]
+mt2llBins = [ 'mt2ll140' ]#, 'mt2ll240', 'mt2ll100To140' ]
 for selection, sample in zip(selections, mc):
     print sample.name, selection
     for mt2llBin in mt2llBins:
