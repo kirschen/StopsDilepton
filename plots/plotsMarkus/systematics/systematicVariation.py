@@ -21,7 +21,7 @@ from StopsDilepton.tools.user            import plot_directory
 from StopsDilepton.tools.helpers         import deltaPhi, add_histos
 from Analysis.Tools.metFilters           import getFilterCut
 from StopsDilepton.tools.cutInterpreter  import cutInterpreter
-from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
+#from StopsDilepton.tools.RecoilCorrector import RecoilCorrector
 from StopsDilepton.tools.mt2Calculator   import mt2Calculator
 from Analysis.Tools.puReweighting        import getReweightingFunction
 from Analysis.Tools.DirDB                import DirDB
@@ -121,17 +121,17 @@ signals = []
 if args.signal == "T2tt":
     if year == 2016:
         #data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
-        data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-        postProcessing_directory    = 'stops_2016_nano_v0p19/dilep/'
+        #data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
+        #postProcessing_directory    = 'stops_2016_nano_v0p19/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Summer16_postProcessed import signals_T2tt as jobs
     elif year == 2017:
         #data_directory              = '/afs/hephy.at/data/cms07/nanoTuples/'
-        data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p19/dilep/'
+        #data_directory              = '/afs/hephy.at/data/cms01/nanoTuples/'
+        #postProcessing_directory    = 'stops_2017_nano_v0p19/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Fall17_postProcessed import signals_T2tt as jobs
     elif year == 2018:
-        data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
-        postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
+        #data_directory              = '/afs/hephy.at/data/cms02/nanoTuples/'
+        #postProcessing_directory    = 'stops_2018_nano_v0p19/dilep/'
         #data_directory              = '/afs/hephy.at/data/cms05/nanoTuples/'
         #postProcessing_directory    = 'stops_2018_nano_v0p16/dilep/'
         from StopsDilepton.samples.nanoTuples_FastSim_Autumn18_postProcessed import signals_T2tt as jobs
@@ -415,9 +415,9 @@ for mode in modes:
     logger.info('Working on mode: %s', mode)
 
     # set selection
-    data_sample.setSelectionString([getFilterCut(isData=True, year=year), getLeptonSelection(mode)])
-    for sample in mc + signals:
-        sample.setSelectionString([getFilterCut(isData=False, year=year), getLeptonSelection(mode)])
+    data_sample.setSelectionString([getFilterCut(isData=True, year=year,skipVertexFilter=True), getLeptonSelection(mode)])
+    for sample in mc + signals:                                                              
+        sample.setSelectionString([getFilterCut(isData=False, year=year,skipVertexFilter=True), getLeptonSelection(mode)])
 
 
     # Use some defaults

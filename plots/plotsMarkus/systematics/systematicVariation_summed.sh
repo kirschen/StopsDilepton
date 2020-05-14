@@ -12,11 +12,6 @@ python systematicVariation_summed.py --plot_directory v0p19 --SFUnc SF.pkl --bet
 python systematicVariation_summed.py --plot_directory v0p22 --normalize  --fitChi2 --selection lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ --directories "/afs/hephy.at/data/cms05/StopsDileptonLegacy/systematicPlots/Run2016/v0p22_reweightPUCentral/lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ" "/afs/hephy.at/data/cms05/StopsDileptonLegacy/systematicPlots/Run2017/v0p22_reweightPUCentral/lepSel-badEEJetVeto-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ" "/afs/hephy.at/data/cms05/StopsDileptonLegacy/systematicPlots/Run2018/v0p22_reweightPUVUp/lepSel-njet2p-btag0-miniIso0.2-looseLeptonMiniIsoVeto-mll20-onZ"
 
 
-
-
-
-
-
 ################################################
 #             AN (and miscellaneous)
 ################################################
