@@ -8,6 +8,7 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--signal",               dest='signal',  action='store', default='T2tt',    choices=["T2tt", "T2bW", "ttHinv"], help="which signal?")
 parser.add_option("--massPoints",           dest='massPoints',  action='store', default='800_100,350_150', help="which masspoints??")
+parser.add_option("--version",              dest='version', action='store', default='v8',    help="Which version of estimates should be used?")
 parser.add_option("--channel",              dest='channel',  action='store', default='all', choices=['all','OF','SF'], help="which channel??")
 parser.add_option("--small",                action='store_true', help="small?")
 parser.add_option('--logLevel',             dest="logLevel",              default='INFO',              action='store',      help="log level?", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'])
@@ -18,6 +19,7 @@ parser.add_option('--signalPostFit',        dest="signalPostFit", default = Fals
 parser.add_option('--expected',             action = "store_true", help="Run expected?")
 parser.add_option('--preliminary',          action = "store_true", help="Run expected?")
 parser.add_option('--combined',             action = "store_true", help="combined fit for all years?")
+parser.add_option('--extractSF',            action = "store_true", help="extract the SFs for backgrounds?")
 parser.add_option('--testGrayscale',        action = "store_true", help="Do the most important test for this collaboration?")
 parser.add_option('--splitBosons',          action = "store_true", help="Split multiboson component?")
 parser.add_option('--signalOnly',           action = "store_true", help="Show only signals?")
@@ -73,7 +75,7 @@ massPoints = options.massPoints.split(',')
 ## ttH example: /afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v7/2018/fitAll/cardFiles/ttHinv/observed/ttH_HToInvisible_M125_shapeCard.txt
 cardName = "%s_%s_shapeCard"%(options.signal,massPoints[0]) if not options.signal == 'ttHinv' else "ttH_HToInvisible_M125_shapeCard"
 
-#analysis_results = analysis_results.replace('v8','v7')
+analysis_results = analysis_results.replace('v8', options.version)
 
 inSignalRegions = not options.region.count('control')>0
 if inSignalRegions and len(massPoints)>1:
@@ -185,6 +187,8 @@ if options.combined:
     massPoint1 = [ x for x in massPoints[0].split('_') if not x.isalpha() ]
     signalHist.legendText = options.signal+' (%s,%s)'%(tuple(massPoint1))
     if options.signal == 'ttHinv': signalHist.legendText = "ttH, B(H#rightarrow inv)=100%"
+    for year in years:
+        print year, hists[year]['signal1'].Integral()
     for i in range(signalHist.GetNbinsX()):
         signalHist.SetBinContent(i+1, sum([hists[x]['signal1'].GetBinContent(i+1) for x in years]))
     histos['signal1'] = signalHist
@@ -196,6 +200,8 @@ if options.combined:
         signalHist2.SetName('signal')
         massPoint2 = [ x for x in massPoints[1].split('_') if not x.isalpha() ]
         signalHist2.legendText = options.signal+' (%s,%s)'%(tuple(massPoint2))
+        for year in years:
+            print year, hists[year]['signal2'].Integral()
         for i in range(signalHist2.GetNbinsX()):
             signalHist2.SetBinContent(i+1, sum([hists[x]['signal2'].GetBinContent(i+1) for x in years]))
         histos['signal2'] = signalHist2
@@ -251,15 +257,18 @@ else:
         massPoint2 = [ x for x in massPoints[1].split('_') if not x.isalpha() ]
         hists['signal2'].legendText = options.signal+' (%s,%s)'%(tuple(massPoint2))    
 
-SF_file = analysis_results + 'SF.pkl'
-if os.path.isfile(SF_file):
-    SF_dict = pickle.load(file(SF_file, 'r'))
-else:
-    SF_dict = {}
-
-SF_dict.update(SFs)
-pickle.dump(SF_dict, file(SF_file, 'w'))
-yaml.dump(SF_dict, file('SFs.yaml', 'w'))
+if options.extractSF:
+    SF_file = analysis_results + 'SF.pkl'
+    if os.path.isfile(SF_file):
+        SF_dict = pickle.load(file(SF_file, 'r'))
+    else:
+        SF_dict = {}
+    
+    print SFs
+    
+    SF_dict.update(SFs)
+    pickle.dump(SF_dict, file(SF_file, 'w'))
+    yaml.dump(SF_dict, file('SFs.yaml', 'w'))
 
 boxes = []
 ratio_boxes = []
@@ -402,7 +411,7 @@ def drawDivisions(regions):
 def drawLabels( regions ):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.032)
+    tex.SetTextSize(0.038)
     tex.SetTextAngle(0)
     tex.SetTextAlign(12) # align right
     min = 0.08
@@ -416,15 +425,15 @@ def drawLabels( regions ):
 def drawLabelsRot( regions ):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.032)
+    tex.SetTextSize(0.035)
     tex.SetTextAngle(90)
     tex.SetTextAlign(12) # align right
     min = 0.08
     max = 0.95
     diff = (max-min) / len(regions)
     #lines = [(min+(i*4+2.7)*diff, 0.545 if i<3 else 0.285,  r.texStringForVar('dl_mt2blbl')) for i, r in enumerate(regions[::2]) if i < 6]
-    lines  = [(min+(44.8)*diff, 0.67, "M_{T2}(ll) > 240 GeV")]
-    lines += [(min+(1.5)*diff, 0.67, "M_{T2}(ll) < 100 GeV")]
+    lines  = [(min+(44.8)*diff, 0.66, "M_{T2}(ll) > 240 GeV")]
+    lines += [(min+(1.5)*diff-0.002, 0.66, "M_{T2}(ll) < 100 GeV")]
     return [tex.DrawLatex(*l) for l in lines] 
 
 lumiStr = round(lumiStr,1) if not options.combined else int(lumiStr)
@@ -441,13 +450,17 @@ if options.combined:
         plots = [ bkgHist, [histos['data']], [histos['signal1']], [histos['signal2']]]
     else:
         plots = [ bkgHist, [histos['data']], [histos['signal1']]]
+    print "Total signal yield:", histos['signal1'].Integral(), histos['signal2'].Integral()
         
 else:
     if options.signalOnly:
         plots = [ [hists['signal1']], [hists['signal2']], [hists['data']], [hists['total_background']] ]
     else:
         plots = [ bkgHists, [hists['data']], [hists['signal1']],[hists['signal2'] ]] if postFitResults2 else [ bkgHists, [hists['data']], [hists['signal1']] ]
+    print "Total signal yield:", hists['signal1'].Integral(), hists['signal2'].Integral()
     
+
+
 
 plotName = options.region
 if options.combined: plotName += "_COMBINED"
@@ -489,7 +502,7 @@ plotting.draw(
                 texX = "",
                 texY = 'Number of events',
             ),
-    plot_directory = os.path.join(plot_directory, "controlRegions", 'v8'),
+    plot_directory = os.path.join(plot_directory, "controlRegions", options.version),
     logX = False, logY = True, sorting = False, 
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
     legend = (0.71,0.38, 0.92, 0.78) if not options.signalOnly else (0.70,0.55, 0.92, 0.75),

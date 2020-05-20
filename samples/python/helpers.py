@@ -145,29 +145,38 @@ def getT2ttSignalWeight(sample, lumi, cacheDir):
     del hNEvents
     return signalWeight
 
-def getTTDMBranchNames( spin ):
+def getTTDMBranchNames( spin, year=2017 ):
     import yaml
-    with open(os.path.expandvars('$CMSSW_BASE/src/StopsDilepton/tools/data/xsecDM/xsec_dilepton_2017.yml'), 'r') as f: # don't care about the year
+    with open(os.path.expandvars('$CMSSW_BASE/src/StopsDilepton/tools/data/xsecDM/xsec_dilepton_%s.yml'%year), 'r') as f: # don't care about the year
         xsec = yaml.load(f)
-
-    xsec = [ x for x in xsec if x['spin'] == spin ]
 
     branchNames = []
 
     for x in xsec:
-        branchName          = 'GenModel__TTbarDMJets_Dilepton_%s_LO_Mchi_%s_Mphi_%s_TuneCP5_13TeV_madgraph_mcatnlo_pythia8'%(x['spin'], str(int(x['mChi'])), str(int(x['mPhi'])) )
-        branchNames.append(branchName)
-    return branchName
+        if x['spin'] == spin:
+            branchName          = 'GenModel__TTbarDMJets_Dilepton_%s_LO_Mchi_%s_Mphi_%s_TuneCP5_13TeV_madgraph_mcatnlo_pythia8'%(x['spin'], str(int(x['mChi'])), str(int(x['mPhi'])) )
+            branchNames.append(branchName)
+    return branchNames
 
 
 def getTTDMSignalWeightForEvent( sample, event, weights ):
     weight = 0
+    classifier = False
+    print
     for branchName in weights.keys():
-        if getattr(event, 'branchName'):
-            weight = weights[branchName]
-            break
+        print branchName
+        try:
+            classifier = getattr(event, branchName)
+#            print classifier
+            if classifier:
+                weight = weights[branchName]
+                break
+        except:
+            print "branch not here?"
+            # for some files not all branches are there
+            pass
     if not weight:
-        print "Couldn't find a weight"
+        print "Couldn't classify event"
     return weight
 
 
@@ -206,14 +215,14 @@ def getTTDMSignalWeight(sample, lumi, year=2017):
                 x['weight']         = lumi * x['xsec']/sumWeight['val']
                 x['xSecFacUp']      = (x['xsec'] + x['xsec_unc'])/x['xsec']
                 x['xSecFacDown']    = (x['xsec'] - x['xsec_unc'])/x['xsec']
+                with open(os.path.expandvars(results_file), 'w') as f:
+                    yaml.dump(xsec, f, default_flow_style=False)
 
             signalWeight[branchName] = {'weight':x['weight'], 'xSecFacUp':x['xSecFacUp'], 'xSecFacDown':x['xSecFacDown'], 'mChi':x['mChi'], 'mPhi':x['mPhi'], 'spin':x['spin']}
             
             #xsec_tmp = copy.deepcopy(xsec)
             #df = pandas.DataFrame(xsec_tmp)
 
-            with open(os.path.expandvars(results_file), 'w') as f:
-                yaml.dump(xsec, f, default_flow_style=False)
 
     return signalWeight
 

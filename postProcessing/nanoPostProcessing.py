@@ -367,7 +367,7 @@ if options.susySignal:
         #raise NotImplementedError ("Couldn't load ISR normalization factors.")
 
 if options.TTDM:
-    signalWeight = getTTDMSignalWeight( samples[0], lumi = targetLumi)
+    signalWeight = getTTDMSignalWeight( samples[0], lumi = targetLumi, year=options.year)
 
 #raise NotImplementedError
 
@@ -543,8 +543,8 @@ else:
     lumiScaleFactor = xSection*targetLumi/float(sample.normalization) if xSection is not None else None
     branchKeepStrings = branchKeepStrings_DATAMC + branchKeepStrings_MC
 
-#if options.TTDM:
-#    branchKeepStrings += ["GenModel*"]
+if options.TTDM:
+    branchKeepStrings += ["GenModel*"]
 
 jetVars         = ['pt/F', 'chEmEF/F', 'chHEF/F', 'neEmEF/F', 'neHEF/F', 'rawFactor/F', 'eta/F', 'phi/F', 'jetId/I', 'btagDeepB/F', 'btagCSVV2/F', 'area/F', 'pt_nom/F', 'corr_JER/F'] + jetCorrInfo
 if isMC:
@@ -671,18 +671,37 @@ if options.susySignal:
         new_variables  += ['mCha/I', 'mSlep/I', 'sleptonPdg/I']
     if 'T2tt' in options.samples[0]:
         new_variables  += ['weight_pol_L/F', 'weight_pol_R/F']
-#if options.TTDM:
-#    new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mPhi/I', 'mChi/I', 'scalar/I', 'pseudoscalar/I']
+if options.TTDM:
+    new_variables  += ['reweightXSecUp/F', 'reweightXSecDown/F', 'mPhi/I', 'mChi/I', 'scalar/I', 'pseudoscalar/I']
 
-
+#myBranchNames = [\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_100_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_150_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_200_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_250_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_300_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_350_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_400_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_450_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_500_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_50_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_20_Mphi_100_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_30_Mphi_100_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_40_Mphi_100_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_45_Mphi_100_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_49_Mphi_100_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_51_Mphi_100_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#'GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_55_Mphi_100_TuneCP5_13TeV_madgraph_mcatnlo_pythia8/O',\
+#]
 
 if options.samples[0].count('_pseudoscalar'):
-    print '##########################################'
-    print getTTDMBranchNames('pseudoscalar')
-#    read_variables += map(TreeVariable.fromString, ['%s/I'%x for x in getTTDMBranchNames('pseudoscalar') ] )
-#if options.samples[0].count('_scalar'):
-#    print getTTDMBranchNames('scalar')
-#    read_variables += map(TreeVariable.fromString, ['%s/I'%x for x in getTTDMBranchNames('scalar') ] )
+    print getTTDMBranchNames('pseudoscalar', year=options.year)
+    read_variables += map(TreeVariable.fromString, ['%s/O'%x for x in getTTDMBranchNames('pseudoscalar', year=options.year) ] ) # try b or O
+    #read_variables = map(TreeVariable.fromString, [ 'MET_pt/F', 'MET_phi/F', 'run/I', 'luminosityBlock/I', 'event/l', 'PV_npvs/I', 'PV_npvsGood/I'] )
+if options.samples[0].count('_scalar'):
+    print getTTDMBranchNames('scalar', year=options.year)
+    read_variables += map(TreeVariable.fromString, ['%s/O'%x for x in getTTDMBranchNames('scalar', year=options.year) ] )
+
 
 if options.fastSim and (isTriLep or isDiLep):
     new_variables  += ['reweightLeptonFastSimSF/F', 'reweightLeptonFastSimSFUp/F', 'reweightLeptonFastSimSFDown/F']
@@ -883,8 +902,8 @@ def filler( event ):
             event.reweightXSecUp    = 0.
             event.reweightXSecDown  = 0.
     elif options.TTDM:
-        ttdmWeights             = getTTDMSignalWeightForEvent( sample, event, signalWeights )
-        event.weight            = ttdmWeights['weight']
+        ttdmWeights             = getTTDMSignalWeightForEvent( sample, r, signalWeight )
+        event.weight            = ttdmWeights['weight'] * getattr(r, 'genWeight')
         event.reweightXSecUp    = ttdmWeights['xSecFacUp']
         event.reweightXSecDown  = ttdmWeights['xSecFacDown']
         event.mChi              = ttdmWeights['mChi']

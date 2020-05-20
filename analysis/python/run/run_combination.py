@@ -10,9 +10,9 @@ from RootTools.core.Sample import Sample
 argParser = argparse.ArgumentParser(description = "Argument parser")
 argParser.add_argument('--logLevel',       action='store',        default='INFO',         nargs='?', choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE', 'NOTSET'],             help="Log level for logging")
 argParser.add_argument("--signal",         action='store',        default='T2tt',         nargs='?', choices=["T2tt","T8bbllnunu_XCha0p5_XSlep0p5","T8bbllnunu_XCha0p5_XSlep0p05","T8bbllnunu_XCha0p5_XSlep0p95","T2bW", "ttHinv"],                                                                         help="which signal scan?")
+argParser.add_argument("--version",        action='store',        default='v8',           nargs='?',                                                                          help="which signal scan?")
 argParser.add_argument("--overwrite",      action = "store_true", default = False,                                                                                                             help="Overwrite existing output files")
 argParser.add_argument("--controlRegions", action='store',        default='signalOnly',   nargs='?', choices=["control2016","controlAll","signalOnly","controlDYVV","controlTTZ","controlTT","fitAll"],                help="which signal scan?")
-
 argParser.add_argument("--model",          action='store',        default='dim6top_LO',   nargs='?', choices=["dim6top_LO", "ewkDM"],                                                          help="which signal model?")
 argParser.add_argument("--only",           action='store',        default=None,           nargs='?',                                                                                           help="pick only one signal point?")
 argParser.add_argument("--skipYear",       action='store',        default=None, type=int, nargs='?', choices=[2016,2017,2018],                                                                 help="pick only one signal point?")
@@ -60,6 +60,8 @@ years = [2016,2017,2018]
 if args.skipYear:
     years.remove(args.skipYear)
 #analysis_results = '/afs/hephy.at/work/p/phussain/StopsDileptonLegacy/results/v3/'
+
+analysis_results = analysis_results.replace('v8', args.version)
 
 vetoList = ["T2tt_275_25"]
 
