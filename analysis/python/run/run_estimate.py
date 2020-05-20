@@ -78,7 +78,6 @@ if not estimate:
   logger.warn(options.selectEstimator + " not known")
   exit(0)
 
-
 if estimate.name.count('T2tt') or estimate.name.count('TTbarDM') or estimate.name.count('T8bbllnunu'): estimate.isSignal = True
 
 isFastSim = estimate.name.count('T2tt')

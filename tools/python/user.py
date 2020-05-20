@@ -17,7 +17,7 @@ if os.environ['USER'] in ['schoef', 'rschoefbeck', 'schoefbeck']:
 
     cache_dir = "/afs/hephy.at/data/cms01/stopsDilepton/signals/caches/"
     # Analysis result files
-    analysis_results        =  '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v8/'
+    analysis_results        =  '/afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v10/'
     dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/schoef/'
     cern_proxy_certificate  = '/afs/cern.ch/user/s/schoef/private/.proxy'
     # directory with veto lists
