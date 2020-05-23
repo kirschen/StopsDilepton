@@ -404,7 +404,7 @@ class cardFileWriter:
             from StopsDilepton.tools.cardFileWriter.getNorms import getNorms
             filename += " > output.txt"
         
-        combineCommand = "cd "+uniqueDirname+";combine --saveWorkspace -M AsymptoticLimits --rMin -100 --rMax 100 %s %s"%(options,filename)
+        combineCommand = "cd "+uniqueDirname+";combine --saveWorkspace -M AsymptoticLimits --rMin -1000 --rMax 100 %s %s"%(options,filename)
         print combineCommand
         os.system(combineCommand)
 

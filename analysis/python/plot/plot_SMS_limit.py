@@ -241,6 +241,9 @@ for ix in range(hists[xSecKey].GetNbinsX()):
             hists["obs_up"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), v*scaleup)
             hists["obs_down"].SetBinContent(hists[xSecKey].FindBin(mStop, mNeu), v*scaledown)
 
+if options.signal == 'T8bbllnunu_XCha0p5_XSlep0p95':
+    hists["obs_UL"].SetBinContent(hists[xSecKey].FindBin(201, 1), 1)
+
 # set bins for y=0
 for ix in range(hists[xSecKey].GetNbinsX()):
     hists["obs_UL"].SetBinContent(ix, 0, hists["obs_UL"].GetBinContent(ix,1))

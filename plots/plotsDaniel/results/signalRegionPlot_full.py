@@ -411,14 +411,14 @@ def drawDivisions(regions):
 def drawLabels( regions ):
     tex = ROOT.TLatex()
     tex.SetNDC()
-    tex.SetTextSize(0.038)
+    tex.SetTextSize(0.042)
     tex.SetTextAngle(0)
     tex.SetTextAlign(12) # align right
     min = 0.08
     max = 0.95
     diff = (max-min) / len(regions)
     lines  = [ (min + 0.41, 0.85, "100 < M_{T2}(ll) < 140 GeV"), (min + 0.65, 0.85, "140 < M_{T2}(ll) < 240 GeV") ] 
-    lines += [ (min + 0.05, 0.85, "N_{l}=3, on-Z"), (min + 0.20, 0.85, "N_{l}=2, N_{b}=0, on-Z") ] 
+    lines += [ (min + 0.045, 0.85, "N_{l}=3, on-Z"), (min + 0.20, 0.85, "N_{l}=2, N_{b}=0, on-Z") ] 
     #lines =  [(min+(8*i+0.90)*diff, 0.850,  "M_{T2}(ll)=3")   for i, r in enumerate(regions[:-4][::4])]
     return [tex.DrawLatex(*l) for l in lines] if len(regions)>12 else []
 
