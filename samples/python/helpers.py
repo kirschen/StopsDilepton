@@ -162,9 +162,9 @@ def getTTDMBranchNames( spin, year=2017 ):
 def getTTDMSignalWeightForEvent( sample, event, weights ):
     weight = 0
     classifier = False
-    print
+    #print
     for branchName in weights.keys():
-        print branchName
+        #print branchName
         try:
             classifier = getattr(event, branchName)
 #            print classifier
@@ -194,7 +194,7 @@ def getTTDMSignalWeight(sample, lumi, year=2017):
     signalWeight = {}
 
     spin = 'pseudoscalar' if sample.name.count('pseudoscalar') else 'scalar'
-    print spin
+    #print spin
 
     results_file = '$CMSSW_BASE/src/StopsDilepton/tools/data/xsecDM/xsec_dilepton_%s.yml'%year
 

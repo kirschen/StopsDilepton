@@ -2,18 +2,18 @@
   mChi: 1
   mPhi: 100
   spin: pseudoscalar
-  sumWeight: 45043.183872135
-  weight: 0.0005327668147998203
+  sumWeight: 45043.1838721347
+  weight: 0.0005327668147998238
   xSecFacDown: 0.9985126859142607
-  xSecFacUp: 1.0014873140857392
+  xSecFacUp: 1.0014873140857394
   xsec: 0.0239975136
   xsec_unc: 3.5691840000000006e-05
 - branchName: GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_150_TuneCP5_13TeV_madgraph_mcatnlo_pythia8
   mChi: 1
   mPhi: 150
   spin: pseudoscalar
-  sumWeight: 15400.999320229554
-  weight: 0.0010108396524341873
+  sumWeight: 15400.999320229419
+  weight: 0.0010108396524341962
   xSecFacDown: 0.9983816587997303
   xSecFacUp: 1.0016183412002697
   xsec: 0.0155679408
@@ -22,9 +22,9 @@
   mChi: 1
   mPhi: 200
   spin: pseudoscalar
-  sumWeight: 10617.227552930715
-  weight: 0.0009836901571462584
-  xSecFacDown: 0.9983917981706705
+  sumWeight: 10617.227552930752
+  weight: 0.000983690157146255
+  xSecFacDown: 0.9983917981706704
   xSecFacUp: 1.0016082018293295
   xsec: 0.01044406224
   xsec_unc: 1.679616e-05
@@ -32,9 +32,9 @@
   mChi: 1
   mPhi: 250
   spin: pseudoscalar
-  sumWeight: 7310.7595766027425
-  weight: 0.0009861836659317855
-  xSecFacDown: 0.998252766453116
+  sumWeight: 7310.759576602766
+  weight: 0.0009861836659317822
+  xSecFacDown: 0.9982527664531159
   xSecFacUp: 1.001747233546884
   xsec: 0.00720975168
   xsec_unc: 1.259712e-05
@@ -43,18 +43,18 @@
   mPhi: 300
   spin: pseudoscalar
   sumWeight: 5252.065326425965
-  weight: 0.0009721951884925734
+  weight: 0.0009721951884925732
   xSecFacDown: 0.9981291118421053
-  xSecFacUp: 1.0018708881578948
+  xSecFacUp: 1.0018708881578946
   xsec: 0.00510603264
   xsec_unc: 9.552816e-06
 - branchName: GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_350_TuneCP5_13TeV_madgraph_mcatnlo_pythia8
   mChi: 1
   mPhi: 350
   spin: pseudoscalar
-  sumWeight: 3019.623907016147
-  weight: 0.0009758421613874987
-  xSecFacDown: 0.9980762379764874
+  sumWeight: 3019.623907016127
+  weight: 0.0009758421613875051
+  xSecFacDown: 0.9980762379764873
   xSecFacUp: 1.0019237620235126
   xsec: 0.00294667632
   xsec_unc: 5.668704e-06
@@ -62,9 +62,9 @@
   mChi: 1
   mPhi: 400
   spin: pseudoscalar
-  sumWeight: 1601.7829404047516
-  weight: 0.0009502860603668123
-  xSecFacDown: 0.9980689655172413
+  sumWeight: 1601.7829404047434
+  weight: 0.0009502860603668174
+  xSecFacDown: 0.9980689655172414
   xSecFacUp: 1.0019310344827586
   xsec: 0.0015221520000000001
   xsec_unc: 2.939328e-06
@@ -74,7 +74,7 @@
   spin: pseudoscalar
   sumWeight: 993.8241928505558
   weight: 0.001017940315075551
-  xSecFacDown: 0.9978208986199024
+  xSecFacDown: 0.9978208986199025
   xSecFacUp: 1.0021791013800976
   xsec: 0.001011653712
   xsec_unc: 2.2044959999999997e-06
@@ -82,18 +82,18 @@
   mChi: 1
   mPhi: 500
   spin: pseudoscalar
-  sumWeight: 706.2159443284258
-  weight: 0.0010103451751978239
+  sumWeight: 706.2159443284256
+  weight: 0.0010103451751978243
   xSecFacDown: 0.9980873914962484
-  xSecFacUp: 1.0019126085037517
+  xSecFacUp: 1.0019126085037515
   xsec: 0.000713521872
   xsec_unc: 1.364688e-06
 - branchName: GenModel__TTbarDMJets_Dilepton_pseudoscalar_LO_Mchi_1_Mphi_50_TuneCP5_13TeV_madgraph_mcatnlo_pythia8
   mChi: 1
   mPhi: 50
   spin: pseudoscalar
-  sumWeight: 70217.82341538639
-  weight: 0.0005494143527033123
+  sumWeight: 70217.82341538723
+  weight: 0.0005494143527033057
   xSecFacDown: 0.9985034013605443
   xSecFacUp: 1.0014965986394557
   xsec: 0.03857868
@@ -102,9 +102,9 @@
   mChi: 20
   mPhi: 100
   spin: pseudoscalar
-  sumWeight: 22600.76021462671
-  weight: 0.0010655170078931679
-  xSecFacDown: 0.9985178727114211
+  sumWeight: 22600.76021462641
+  weight: 0.001065517007893182
+  xSecFacDown: 0.998517872711421
   xSecFacUp: 1.001482127288579
   xsec: 0.0240814944
   xsec_unc: 3.5691840000000006e-05
@@ -122,8 +122,8 @@
   mChi: 40
   mPhi: 100
   spin: pseudoscalar
-  sumWeight: 24080.362083329503
-  weight: 0.001000918902988
+  sumWeight: 24080.362083329408
+  weight: 0.001000918902988004
   xSecFacDown: 0.9985191637630662
   xSecFacUp: 1.0014808362369338
   xsec: 0.0241024896
@@ -132,9 +132,9 @@
   mChi: 45
   mPhi: 100
   spin: pseudoscalar
-  sumWeight: 23596.049614961077
-  weight: 0.0010214629140598947
-  xSecFacDown: 0.998432055749129
+  sumWeight: 23596.04961496126
+  weight: 0.001021462914059887
+  xSecFacDown: 0.9984320557491289
   xSecFacUp: 1.0015679442508711
   xsec: 0.0241024896
   xsec_unc: 3.779136e-05
@@ -144,7 +144,7 @@
   spin: pseudoscalar
   sumWeight: 24399.88428640918
   weight: 0.0009908232562179035
-  xSecFacDown: 0.9984802431610943
+  xSecFacDown: 0.9984802431610942
   xSecFacUp: 1.0015197568389058
   xsec: 0.0241759728
   xsec_unc: 3.67416e-05
@@ -154,7 +154,7 @@
   spin: pseudoscalar
   sumWeight: 2176.396534088636
   weight: 0.0010143580204351177
-  xSecFacDown: 0.9984308131241085
+  xSecFacDown: 0.9984308131241084
   xSecFacUp: 1.0015691868758916
   xsec: 0.00220764528
   xsec_unc: 3.4642080000000004e-06
@@ -162,9 +162,9 @@
   mChi: 55
   mPhi: 100
   spin: pseudoscalar
-  sumWeight: 829.8363955797969
-  weight: 0.0010285881175452999
-  xSecFacDown: 0.9984011806665846
+  sumWeight: 829.8363955797912
+  weight: 0.0010285881175453066
+  xSecFacDown: 0.9984011806665847
   xSecFacUp: 1.0015988193334153
   xsec: 0.0008535598559999999
   xsec_unc: 1.364688e-06
@@ -173,8 +173,8 @@
   mPhi: 100
   spin: scalar
   sumWeight: 187832.7975692785
-  weight: 0.00044185055365205463
-  xSecFacDown: 0.9984821654439666
+  weight: 0.0004418505536520545
+  xSecFacDown: 0.9984821654439665
   xSecFacUp: 1.0015178345560334
   xsec: 0.0829940256
   xsec_unc: 0.0001259712
@@ -184,7 +184,7 @@
   spin: scalar
   sumWeight: 33003.687023899925
   weight: 0.0008145863697147366
-  xSecFacDown: 0.9985942991019132
+  xSecFacDown: 0.9985942991019133
   xSecFacUp: 1.0014057008980868
   xsec: 0.0268843536
   xsec_unc: 3.779136e-05
@@ -204,8 +204,8 @@
   spin: scalar
   sumWeight: 7272.702841059051
   weight: 0.0008130812174279495
-  xSecFacDown: 0.998473282442748
-  xSecFacUp: 1.001526717557252
+  xSecFacDown: 0.9984732824427481
+  xSecFacUp: 1.0015267175572518
   xsec: 0.00591329808
   xsec_unc: 9.027936e-06
 - branchName: GenModel__TTbarDMJets_Dilepton_scalar_LO_Mchi_1_Mphi_300_TuneCP5_13TeV_madgraph_mcatnlo_pythia8
@@ -214,7 +214,7 @@
   spin: scalar
   sumWeight: 4439.969619671503
   weight: 0.0008192439839867911
-  xSecFacDown: 0.9984415584415585
+  xSecFacDown: 0.9984415584415584
   xSecFacUp: 1.0015584415584415
   xsec: 0.0036374184
   xsec_unc: 5.668704e-06
@@ -224,8 +224,8 @@
   spin: scalar
   sumWeight: 2920.161161909006
   weight: 0.0008476703656937183
-  xSecFacDown: 0.9983036471586091
-  xSecFacUp: 1.001696352841391
+  xSecFacDown: 0.998303647158609
+  xSecFacUp: 1.0016963528413911
   xsec: 0.00247533408
   xsec_unc: 4.19904e-06
 - branchName: GenModel__TTbarDMJets_Dilepton_scalar_LO_Mchi_1_Mphi_400_TuneCP5_13TeV_madgraph_mcatnlo_pythia8
@@ -233,9 +233,9 @@
   mPhi: 400
   spin: scalar
   sumWeight: 1761.3520746988606
-  weight: 0.000862407205135126
+  weight: 0.0008624072051351259
   xSecFacDown: 0.998341395991707
-  xSecFacUp: 1.001658604008293
+  xSecFacUp: 1.0016586040082929
   xsec: 0.00151900272
   xsec_unc: 2.519424e-06
 - branchName: GenModel__TTbarDMJets_Dilepton_scalar_LO_Mchi_1_Mphi_450_TuneCP5_13TeV_madgraph_mcatnlo_pythia8
@@ -253,8 +253,8 @@
   mPhi: 500
   spin: scalar
   sumWeight: 742.76454990854
-  weight: 0.0009053693476389056
-  xSecFacDown: 0.9982828598189198
+  weight: 0.0009053693476389055
+  xSecFacDown: 0.9982828598189197
   xSecFacUp: 1.0017171401810803
   xsec: 0.000672476256
   xsec_unc: 1.1547359999999999e-06
@@ -263,7 +263,7 @@
   mPhi: 50
   spin: scalar
   sumWeight: 794968.6071422122
-  weight: 0.000463233144921058
+  weight: 0.00046323314492105797
   xSecFacDown: 0.9985176738882554
   xSecFacUp: 1.0014823261117445
   xsec: 0.368255808
@@ -273,8 +273,8 @@
   mPhi: 100
   spin: scalar
   sumWeight: 99726.98962655744
-  weight: 0.0008341070226975772
-  xSecFacDown: 0.9984856133266028
+  weight: 0.0008341070226975773
+  xSecFacDown: 0.9984856133266027
   xSecFacUp: 1.0015143866733973
   xsec: 0.0831829824
   xsec_unc: 0.0001259712
@@ -294,7 +294,7 @@
   spin: scalar
   sumWeight: 98675.53484015996
   weight: 0.0008550165077561106
-  xSecFacDown: 0.9985069055617768
+  xSecFacDown: 0.9985069055617767
   xSecFacUp: 1.0014930944382232
   xsec: 0.0843692112
   xsec_unc: 0.0001259712
@@ -313,8 +313,8 @@
   mPhi: 100
   spin: scalar
   sumWeight: 100367.11715364638
-  weight: 0.000859537259279204
-  xSecFacDown: 0.9984181065952787
+  weight: 0.0008595372592792041
+  xSecFacDown: 0.9984181065952786
   xSecFacUp: 1.0015818934047214
   xsec: 0.0862692768
   xsec_unc: 0.0001364688
@@ -334,7 +334,7 @@
   spin: scalar
   sumWeight: 600.1009213616188
   weight: 0.0008116778739396101
-  xSecFacDown: 0.9985991379310344
-  xSecFacUp: 1.0014008620689656
+  xSecFacDown: 0.9985991379310345
+  xSecFacUp: 1.0014008620689654
   xsec: 0.00048708864
   xsec_unc: 6.82344e-07
