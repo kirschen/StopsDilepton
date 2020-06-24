@@ -226,17 +226,20 @@ if isInclusive:
 if options.year == 2016:
     from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as mcSamples
     from Samples.nanoAOD.Run2016_17Jul2018_private  import allSamples as dataSamples
-    allSamples = mcSamples + dataSamples 
+    from StopsDilepton.samples.nanoAOD_TTDM_2016    import allSamples as TTDMSamples
+    allSamples = mcSamples + dataSamples + TTDMSamples
 elif options.year == 2017:
     from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as mcSamples
     from Samples.nanoAOD.Run2017_31Mar2018_private  import allSamples as dataSamples
-    allSamples = mcSamples + dataSamples
+    from StopsDilepton.samples.nanoAOD_TTDM_2017    import allSamples as TTDMSamples
+    allSamples = mcSamples + dataSamples + TTDMSamples
 elif options.year == 2018:
     from Samples.nanoAOD.Spring18_private           import allSamples as HEMSamples
     from Samples.nanoAOD.Run2018_26Sep2018_private  import allSamples as HEMDataSamples
     from Samples.nanoAOD.Autumn18_private_legacy_v1 import allSamples as mcSamples
     from Samples.nanoAOD.Run2018_17Sep2018_private  import allSamples as dataSamples
-    allSamples = HEMSamples + HEMDataSamples + mcSamples + dataSamples
+    from StopsDilepton.samples.nanoAOD_TTDM_2018    import allSamples as TTDMSamples
+    allSamples = HEMSamples + HEMDataSamples + mcSamples + dataSamples + TTDMSamples
 else:
     raise NotImplementedError
 

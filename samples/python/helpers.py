@@ -180,6 +180,20 @@ def getTTDMSignalWeightForEvent( sample, event, weights ):
     return weight
 
 
+
+def getTTDMXSec(spin, mPhi, mChi):
+    import yaml
+    import pandas
+    import copy
+
+    results_file = '$CMSSW_BASE/src/StopsDilepton/tools/data/xsecDM/xsec_dilepton_2016.yml'
+
+    with open(os.path.expandvars(results_file), 'r') as f:
+        xsec = yaml.load(f)
+    df = pandas.DataFrame(xsec)
+
+    return df[((df['spin']==spin)&(df['mChi']==mChi)&(df['mPhi']==mPhi))]
+
 def getTTDMSignalWeight(sample, lumi, year=2017):
     '''
     Get a dictionary for TTDM signal weights
@@ -206,7 +220,7 @@ def getTTDMSignalWeight(sample, lumi, year=2017):
     for x in xsec:
         if x['spin'] == spin:
             branchName          = 'GenModel__TTbarDMJets_Dilepton_%s_LO_Mchi_%s_Mphi_%s_TuneCP5_13TeV_madgraph_mcatnlo_pythia8'%(x['spin'], str(int(x['mChi'])), str(int(x['mPhi'])) )
-            print branchName
+            #print branchName
             x['branchName']     = branchName
             if not x.has_key('weight'):
                 print "Getting weights for %s, mChi: %s, mPhi: %s"%(x['spin'], str(int(x['mChi'])), str(int(x['mPhi'])) )
@@ -218,7 +232,7 @@ def getTTDMSignalWeight(sample, lumi, year=2017):
                 with open(os.path.expandvars(results_file), 'w') as f:
                     yaml.dump(xsec, f, default_flow_style=False)
 
-            signalWeight[branchName] = {'weight':x['weight'], 'xSecFacUp':x['xSecFacUp'], 'xSecFacDown':x['xSecFacDown'], 'mChi':x['mChi'], 'mPhi':x['mPhi'], 'spin':x['spin']}
+            signalWeight[branchName] = {'weight':x['weight'], 'xSecFacUp':x['xSecFacUp'], 'xSecFacDown':x['xSecFacDown'], 'mChi':x['mChi'], 'mPhi':x['mPhi'], 'spin':x['spin'], 'xSec':x['xsec']}
             
             #xsec_tmp = copy.deepcopy(xsec)
             #df = pandas.DataFrame(xsec_tmp)

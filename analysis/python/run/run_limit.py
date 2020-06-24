@@ -911,13 +911,17 @@ def wrapper(s):
 
 if args.signal == 'TTbarDM':
     if year == 2016:
-        raise NotImplementedError
+        data_directory              = '/afs/hephy.at/data/cms03/nanoTuples/'
+        postProcessing_directory    = 'stops_2016_nano_v0p25/dilep/'
+        from StopsDilepton.samples.nanoTuples_Summer16_TTDM_postProcessed import signals as jobs
     elif year == 2017:
         data_directory              = '/afs/hephy.at/data/cms03/nanoTuples/'
-        postProcessing_directory    = 'stops_2017_nano_v0p24/dilep/'
+        postProcessing_directory    = 'stops_2017_nano_v0p25/dilep/'
         from StopsDilepton.samples.nanoTuples_Fall17_TTDM_postProcessed import signals as jobs
     elif year == 2018:
-        raise NotImplementedError
+        data_directory              = '/afs/hephy.at/data/cms03/nanoTuples/'
+        postProcessing_directory    = 'stops_2018_nano_v0p25/dilep/'
+        from StopsDilepton.samples.nanoTuples_Autumn18_TTDM_postProcessed import signals as jobs
 
 if args.signal == "T2tt":
     if year == 2016:

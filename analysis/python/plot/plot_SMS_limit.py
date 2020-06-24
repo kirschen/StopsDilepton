@@ -116,6 +116,7 @@ if options.signal == 'T2bW':
     results_df = results_df[results_df['-1.000']<2.5*results_df['0.840']]
     results_df = results_df.drop(index=331)
     results_df = results_df.drop(index=319) #319, 334
+    results_df = results_df.drop(index=335) #this is another fluctuation point
 
 
 #results_df = results_df[(results_df['stop']-results_df['lsp'])>174]
@@ -125,6 +126,13 @@ if options.signal == 'T2bW':
 if options.signal == 'T2tt':
     results_df = results_df.drop(index=439)
     results_df = results_df[results_df['stop']%5==0]
+
+
+if options.signal == 'T8bbllnunu_XCha0p5_XSlep0p5':
+    pass
+    #results_df = results_df.drop(index=439)
+    #results_df = results_df[(results_df['stop']%25==0)]
+    #results_df = results_df[(results_df['lsp']%25==0)]
 
 exp_graph       = toGraph2D('exp',      'exp',      len(results_df['stop'].tolist()),results_df['stop'].tolist(),results_df['lsp'].tolist(),results_df['0.500'].tolist())
 exp_up_graph    = toGraph2D('exp_up',   'exp_up',   len(results_df['stop'].tolist()),results_df['stop'].tolist(),results_df['lsp'].tolist(),results_df['0.840'].tolist())
@@ -404,7 +412,7 @@ else:
     fileIN = inputFile('SMS_limit.cfg')
 
 # classic temperature histogra
-xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, fileIN.PRELIMINARY, "asdf")
+xsecPlot = smsPlotXSEC(modelname, fileIN.HISTOGRAM, fileIN.OBSERVED, fileIN.EXPECTED, fileIN.ENERGY, fileIN.LUMI, "", "asdf")
 #xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-3,10**2) )
 if options.signal.startswith("T8"):
     xsecPlot.Draw( lumi = lumi, zAxis_range = (10**-4,5*10**2) )

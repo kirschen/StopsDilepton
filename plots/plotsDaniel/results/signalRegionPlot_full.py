@@ -73,6 +73,7 @@ controlRegions = options.region
 massPoints = options.massPoints.split(',')
 
 ## ttH example: /afs/hephy.at/data/cms05/StopsDileptonLegacy/results/v7/2018/fitAll/cardFiles/ttHinv/observed/ttH_HToInvisible_M125_shapeCard.txt
+#cardName = "%s_%s_shapeCard"%(options.signal,massPoints[0]) if not options.signal == 'ttHinv' else "ttH_HToInvisible_M125_shapeCard"
 cardName = "%s_%s_shapeCard"%(options.signal,massPoints[0]) if not options.signal == 'ttHinv' else "ttH_HToInvisible_M125_shapeCard"
 
 analysis_results = analysis_results.replace('v8', options.version)
@@ -171,6 +172,7 @@ if options.combined:
 
         histos[p]=bhistos[n]
         bhistos[n].style = styles.fillStyle( getattr(color, p), lineColor=getattr(color,p), errors=False )
+        histos[p].style = styles.fillStyle( getattr(color, p), lineColor=getattr(color,p), errors=False )
         bkgHist.append( bhistos[n])
 
     dataHist.SetBinErrorOption(ROOT.TH1F.kPoisson)
@@ -302,6 +304,7 @@ if options.combined:
         boxes.append( box )
         hists[years[0]]['total_background'].SetBinError(ib, 0)
         ratio_boxes.append( r_box )
+        print "Bin %s: %s +/- %s"%(ib, val, sys)
 else:
 
     for ib in range(1, 1 + hists['total_background'].GetNbinsX() ):
@@ -370,7 +373,7 @@ def drawObjects( isData=False, lumi=36. ):
 
 binLabels = [
     'TT CR SF',
-    'TT CR OF',
+    'TT CR DF',
     'TTZ 2j2b',
     'TTZ 3j1b',
     'TTZ 3j2b',
@@ -380,7 +383,7 @@ binLabels = [
 binLabels += [ 'CR%s'%i for i in range(13) ]
 for i in range(13):
     binLabels.append('SR%s SF'%i)
-    binLabels.append('SR%s OF'%i)
+    binLabels.append('SR%s DF'%i)
 #binLables += [ 'SR%s SF'%i for i in range(13) ]
 
 def setBinLabels( hist ):
@@ -417,10 +420,25 @@ def drawLabels( regions ):
     min = 0.08
     max = 0.95
     diff = (max-min) / len(regions)
-    lines  = [ (min + 0.41, 0.85, "100 < M_{T2}(ll) < 140 GeV"), (min + 0.65, 0.85, "140 < M_{T2}(ll) < 240 GeV") ] 
-    lines += [ (min + 0.045, 0.85, "N_{l}=3, on-Z"), (min + 0.20, 0.85, "N_{l}=2, N_{b}=0, on-Z") ] 
+    lines  = [ (min + 0.41, 0.85, "#bf{100 < M_{T2}(ll) < 140 GeV}"), (min + 0.65, 0.85, "#bf{140 < M_{T2}(ll) < 240 GeV}") ] 
+    lines += [ (min + 0.04, 0.85, "#bf{N_{l} = 3, on-Z}"), (min + 0.18, 0.85, "#bf{N_{l} = 2, N_{b} = 0, on-Z}") ] 
     #lines =  [(min+(8*i+0.90)*diff, 0.850,  "M_{T2}(ll)=3")   for i, r in enumerate(regions[:-4][::4])]
     return [tex.DrawLatex(*l) for l in lines] if len(regions)>12 else []
+
+
+def drawTexLabels( regions ):
+    tex = ROOT.TMathText()
+    tex.SetNDC()
+    tex.SetTextSize(0.042)
+    tex.SetTextAngle(0)
+    tex.SetTextAlign(12) # align right
+    min = 0.08
+    max = 0.95
+    diff = (max-min) / len(regions)
+    lines  = [ (min + 0.41, 0.85, "\\mathrm{100 < M_{T2}(ll) < 140 GeV}"), (min + 0.65, 0.85, "\\mathrm{140 < M_{T2}(ll) < 240 GeV}") ] 
+    lines += [ (min + 0.045, 0.85, "\\mathrm{N_{l} = 3, on-Z}"), (min + 0.20, 0.85, "\\mathrm{N_{l} = 2, N_{b} = 0, on-Z}") ] 
+    #lines =  [(min+(8*i+0.90)*diff, 0.850,  "M_{T2}(ll)=3")   for i, r in enumerate(regions[:-4][::4])]
+    return [tex.DrawMathText(*l) for l in lines] if len(regions)>12 else []
 
 def drawLabelsRot( regions ):
     tex = ROOT.TLatex()
@@ -432,19 +450,46 @@ def drawLabelsRot( regions ):
     max = 0.95
     diff = (max-min) / len(regions)
     #lines = [(min+(i*4+2.7)*diff, 0.545 if i<3 else 0.285,  r.texStringForVar('dl_mt2blbl')) for i, r in enumerate(regions[::2]) if i < 6]
-    lines  = [(min+(44.8)*diff, 0.66, "M_{T2}(ll) > 240 GeV")]
-    lines += [(min+(1.5)*diff-0.002, 0.66, "M_{T2}(ll) < 100 GeV")]
+    lines  = [(min+(44.8)*diff, 0.66, "#bf{M_{T2}(ll) > 240 GeV}")]
+    lines += [(min+(1.5)*diff-0.002, 0.66, "#bf{M_{T2}(ll) < 100 GeV}")]
     return [tex.DrawLatex(*l) for l in lines] 
 
 lumiStr = round(lumiStr,1) if not options.combined else int(lumiStr)
 
+def getLegendRight():
+    leg = ROOT.TLegend(0.71,0.78-9*0.052, 0.92, 0.78)
+    leg.SetFillColor(ROOT.kWhite)
+    leg.SetShadowColor(ROOT.kWhite)
+    leg.SetBorderSize(0)
+    leg.SetTextSize(0.045)
+    for proc in processes:
+        histos[proc[0]].SetFillColor(getattr(color, proc[0]))
+        histos[proc[0]].SetLineColor(getattr(color, proc[0]))
+        leg.AddEntry(histos[proc[0]], proc[1], 'f' )
+    histos['signal1'].SetLineColor(1)
+    histos['signal1'].SetLineWidth(2)
+    histos['signal1'].SetLineStyle(1)
+    leg.AddEntry(histos['signal1'], options.signal+' (%s,%s)'%(tuple(massPoint1)), 'l')
+    histos['signal2'].SetLineColor(1)
+    histos['signal2'].SetLineWidth(2)
+    histos['signal2'].SetLineStyle(2)
+    leg.AddEntry(histos['signal2'], options.signal+' (%s,%s)'%(tuple(massPoint2)), 'l')
+    histos['data'].SetLineColor(1)
+    histos['data'].SetLineWidth(1)
+    histos['data'].SetMarkerStyle(8)
+    leg.AddEntry(histos['data'], 'Observed', 'e1p')
+    boxes[0].SetLineWidth(0)
+    leg.AddEntry(boxes[0], 'Uncertainty', 'f')
+    return [leg]
+
 if options.signalOnly:
     drawObjects = drawObjects( isData=isData, lumi=lumiStr ) + signal_boxes + drawDivisions( regions ) + drawLabelsRot( regions ) + drawLabels( regions )
 else:
-    drawObjects = drawObjects( isData=isData, lumi=lumiStr ) + boxes + drawDivisions( regions ) + drawLabelsRot( regions ) + drawLabels( regions )
+    drawObjects = drawObjects( isData=isData, lumi=lumiStr ) + boxes + drawDivisions( regions ) + drawLabelsRot( regions ) + drawLabels( regions ) + getLegendRight()
 
 if options.region == 'signalOnly':
     drawObjects += drawDivisions( regions ) + drawLabels( regions ) + drawLabelsRot( regions )
+
 if options.combined:
     if inSignalRegions and len(massPoints)>1:
         plots = [ bkgHist, [histos['data']], [histos['signal1']], [histos['signal2']]]
@@ -504,11 +549,12 @@ plotting.draw(
             ),
     plot_directory = os.path.join(plot_directory, "controlRegions", options.version),
     logX = False, logY = True, sorting = False, 
+    legend = None,
     #legend = (0.75,0.80-0.010*32, 0.95, 0.80),
-    legend = (0.71,0.38, 0.92, 0.78) if not options.signalOnly else (0.70,0.55, 0.92, 0.75),
+    #legend = (0.71,0.38, 0.92, 0.78) if not options.signalOnly else (0.70,0.55, 0.92, 0.75),
     widths = {'x_width':1300, 'y_width':600, 'y_ratio_width':250},
     yRange = (0.2,yMax),
-    #yRange = (0.03, [0.001,0.5]),
+    #yRange = (0.03, [0.001,0.5]), ### need to go up to 3.19 if we want to show full excess!! ##
     ratio = {'yRange': (0.11, 2.19), 'texY':'Data/Pred.', 'histos':[(1,0)], 'drawObjects':ratio_boxes if not options.signalOnly else signal_ratio_boxes, #+ drawLabelsLower( regions ) +drawHeadlineLower( regions ) + drawDivisionsLower(regions),
             'histModifications': [lambda h: setBinLabels(h), lambda h: h.GetYaxis().SetTitleSize(32), lambda h: h.GetYaxis().SetLabelSize(28), lambda h: h.GetYaxis().SetTitleOffset(1.0), lambda h: h.GetXaxis().SetTitleSize(32), lambda h: h.GetXaxis().SetLabelSize(27), lambda h: h.GetXaxis().SetLabelOffset(0.035), lambda h: h.LabelsOption('v'), lambda h: h.GetYaxis().SetTickLength(0.035), lambda h: h.GetXaxis().SetTickLength(0.02)]} ,
     drawObjects = drawObjects,
