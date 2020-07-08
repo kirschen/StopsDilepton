@@ -8,7 +8,7 @@
 
 export USER=$(whoami)
 initial="$(echo $USER | head -c 1)"
-export SCRAM_ARCH=slc6_amd64_gcc630
+#export SCRAM_ARCH=slc6_amd64_gcc630
 
 echo "---------------------"
 echo "Grid certificate 1"
