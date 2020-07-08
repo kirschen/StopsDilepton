@@ -151,6 +151,8 @@ if options.event > 0:
 
 if isDiLep:
     skimConds.append( "Sum$(Electron_pt>20&&abs(Electron_eta)<2.4) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.4)>=2" )
+    #make something useful for residual Z+jet analysis -- do more?
+    #skimConds.append( "Sum$(Electron_pt>20&&abs(Electron_eta)<2.4)>=2||Sum$(Muon_pt>20&&abs(Muon_eta)<2.4)>=2" )
 if isTriLep:
     skimConds.append( "Sum$(Electron_pt>20&&abs(Electron_eta)&&Electron_pfRelIso03_all<0.4) + Sum$(Muon_pt>20&&abs(Muon_eta)<2.5&&Muon_pfRelIso03_all<0.4)>=2 && Sum$(Electron_pt>10&&abs(Electron_eta)<2.5)+Sum$(Muon_pt>10&&abs(Muon_eta)<2.5)>=3" )
 elif isSingleLep:
@@ -179,10 +181,10 @@ if options.runOnLxPlus:
     from Samples.Tools.config import redirector_global as redirector
 
 if options.year == 2016:
-    from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as mcSamples
+    from Samples.nanoAOD.Summer16_private_legacy_v1 import DYJetsM50HT as mcSamples #allSamples as mcSamples
     from Samples.nanoAOD.Run2016_17Jul2018_private  import allSamples as dataSamples
-    from StopsDilepton.samples.nanoAOD_TTDM_2016    import allSamples as TTDMSamples
-    allSamples = mcSamples + dataSamples + TTDMSamples
+    #from StopsDilepton.samples.nanoAOD_TTDM_2016    import allSamples as TTDMSamples
+    allSamples = mcSamples + dataSamples# + TTDMSamples
 elif options.year == 2017:
     from Samples.nanoAOD.Fall17_private_legacy_v1   import allSamples as mcSamples
     from Samples.nanoAOD.Run2017_31Mar2018_private  import allSamples as dataSamples

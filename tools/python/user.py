@@ -94,6 +94,29 @@ if os.environ['USER'] in ['dspitzbart', 'dspitzba']:
       analysis_results        = '/afs/cern.ch/work/d/dspitzba/StopsDilepton/results/80X_v30'
       plot_directory      = "/eos/home-d/dspitzba/plots/"
 
+if os.environ['USER'] in ['kirschen']:
+    # Where postprocessed data goes 
+    data_output_directory      = "/afs/hephy.at/data/cms02/nanoTuples/"
+    # Where you store the data
+    data_directory      = "/afs/hephy.at/data/cms02/nanoTuples/"
+    # Where the plots go
+    # Analysis result files
+    dpm_directory           = '/dpm/oeaw.ac.at/home/cms/store/user/dspitzba/'
+    cern_proxy_certificate  = '/afs/cern.ch/user/k/kirschen/x509cert_kirschen'
+    #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    cache_dir = "/afs/cern.ch/work/k/kirschen/private/JetMET_L2/ResidualAnalyses/StopsDileptonForPostProcessing/caches/"
+    #if 'cern' in os.getenv("HOSTNAME"):
+    postprocessing_output_directory = "/eos/home-k/kirschen/nanoTuples/"
+    analysis_results        = '/afs/cern.ch/work/k/kirschen/private/JetMET_L2/ResidualAnalyses/StopsDileptonForPostProcessing/results'
+    plot_directory      = "/eos/home-k/kirschen/plots/"
+    cern_proxy_certificate  = '/afs/cern.ch/user/k/kirschen/x509cert_kirschen'
+    #postprocessing_output_directory = "/afs/hephy.at/data/dspitzbart03/nanoTuples/"
+    cache_dir = "/afs/cern.ch/work/k/kirschen/private/JetMET_L2/ResidualAnalyses/StopsDileptonForPostProcessing/caches/"
+    #if 'cern' in os.getenv("HOSTNAME"):
+    postprocessing_output_directory = "/eos/home-k/kirschen/nanoTuples/"
+    analysis_results        = '/afs/cern.ch/work/k/kirschen/private/JetMET_L2/ResidualAnalyses/StopsDileptonForPostProcessing/results'
+    plot_directory      = "/eos/home-k/kirschen/plots/"
+
 if os.environ['USER'] in ['mdoppler']:
     # Where you store cmg output
     cmg_directory      = "/scratch/rschoefbeck/cmgTuples/80X_1l_9"

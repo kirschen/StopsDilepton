@@ -26,7 +26,7 @@ cd CMSSW_10_2_9/src/
 eval `scramv1 runtime -sh`
 # github repos
 git cms-init
-git clone -b 'PP-Stops2l-v0p15' --single-branch --depth 1 https://github.com/HephyAnalysisSW/StopsDilepton.git
+git clone -b '101X' --single-branch --depth 1 https://github.com/kirschen/StopsDilepton.git
 ./StopsDilepton/setupCondor.sh
 
 scram b
@@ -37,11 +37,11 @@ echo "Current dir: `pwd`"
 ls -l
 echo "---------------------"
 
-echo "---------------------"
-echo "Using hephy token: /afs/cern.ch/user/${initial}/${USER}/private/kerberos/krb5_token_hephy.at"
-export KRB5CCNAME=/afs/cern.ch/user/${initial}/${USER}/private/kerberos/krb5_token_hephy.at
-aklog -d hephy.at
-echo "---------------------"
+#echo "---------------------"
+#echo "Using hephy token: /afs/cern.ch/user/${initial}/${USER}/private/kerberos/krb5_token_hephy.at"
+#export KRB5CCNAME=/afs/cern.ch/user/${initial}/${USER}/private/kerberos/krb5_token_hephy.at
+#aklog -d hephy.at
+#echo "---------------------"
 
 echo "---------------------"
 echo "Changing to script dir: ../$1/"
@@ -50,7 +50,9 @@ ls -l
 echo "---------------------"
 
 echo "Executing:"
-echo ${@:2} --runOnLxPlus --writeToDPM
+echo ${@:2} --runOnLxPlus 
+#echo ${@:2} --runOnLxPlus --writeToDPM
 echo "---------------------"
 
-${@:2} --runOnLxPlus --writeToDPM
+${@:2} --runOnLxPlus 
+#${@:2} --runOnLxPlus --writeToDPM

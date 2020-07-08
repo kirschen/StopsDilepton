@@ -16,18 +16,20 @@ git clone -b 'master' --single-branch --depth 1 https://github.com/HephyAnalysis
 cd $CMSSW_BASE/src
 
 # Shared samples (miniAOD/nanoAOD)
-git clone -b 'PP-Stops2l-v0p15' --single-branch --depth 1 https://github.com/HephyAnalysisSW/Samples.git
+#git clone -b 'PP-Stops2l-v0p15' --single-branch --depth 1 https://github.com/HephyAnalysisSW/Samples.git
+git clone -b "master" --single-branch --depth 1 https://github.com/kirschen/Samples.git
 cd $CMSSW_BASE/src
 
 # Shared analysis tools and data
-git clone -b 'master' --single-branch --depth 1 https://github.com/HephyAnalysisSW/Analysis.git
+#git clone -b 'master' --single-branch --depth 1 https://github.com/HephyAnalysisSW/Analysis.git
+git clone -b 'master' --single-branch --depth 1 https://github.com/kirschen/Analysis.git
 cd $CMSSW_BASE/src
 
 scram b -j9
 
-cd $CMSSW_BASE/src
-git fetch origin
-git checkout -b 101X origin/101X
+#cd $CMSSW_BASE/src
+#git fetch origin
+#git checkout -b 101X origin/101X
 
 #compile
 cd $CMSSW_BASE/src && scram b -j 8 

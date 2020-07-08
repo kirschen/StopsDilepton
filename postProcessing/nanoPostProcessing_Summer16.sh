@@ -117,5 +117,30 @@
 #python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p23 --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbstausnu_XCha0p5_mStop_200to1800_XStau0p25 #SPLIT5
 #python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p23 --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbstausnu_mStop_200to1800_XCha0p5_XStau0p5 #SPLIT5
 #python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p23 --skipGenLepMatching --susySignal --fastSim --sample SMS_T8bbstausnu_mStop_200to1800_XCha0p5_XStau0p75 #SPLIT5
-python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p25  --skipGenLepMatching --TTDM --sample TTDM_Dilepton_scalar  #SPLIT10
-python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p25  --skipGenLepMatching --TTDM --sample TTDM_Dilepton_pseudoscalar  #SPLIT10
+#python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p25  --skipGenLepMatching --TTDM --sample TTDM_Dilepton_scalar  #SPLIT10
+#python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra stops_2016_nano_v0p25  --skipGenLepMatching --TTDM --sample TTDM_Dilepton_pseudoscalar  #SPLIT10
+
+
+
+
+#python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_HT2500toInf --reduceSizeBy 10 --keepAllJets
+
+
+
+
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_ext2 --keepAllJets #SPLIT40
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M10to50 --keepAllJets #SPLIT40
+
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_LO_ext1 DYJetsToLL_M50_LO_ext2 --keepAllJets #SPLIT50
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_LO_ext1 DYJetsToLL_M50_LO_ext2 --LHEHTCut 70 --keepAllJets #SPLIT50
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_HT70to100 --keepAllJets#SPLIT10
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_HT100to200_ext --keepAllJets #SPLIT10
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_HT200to400 DYJetsToLL_M50_HT200to400_ext --keepAllJets #SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_HT400to600 DYJetsToLL_M50_HT400to600_ext --keepAllJets #SPLIT20
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_HT600to800 --keepAllJets #SPLIT10
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_HT800to1200 --keepAllJets #SPLIT10
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_HT1200to2500 --keepAllJets #SPLIT3
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --sample DYJetsToLL_M50_HT2500toInf --keepAllJets #SPLIT1
+
+
+python nanoPostProcessing.py  --forceProxy --skim dilep --year 2016 --processingEra nano_JECTEst   --skipGenLepMatching --flagTTBar --sample TTLep_pow --keepAllJets #SPLIT50
