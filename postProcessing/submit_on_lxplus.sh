@@ -25,6 +25,10 @@ scram project CMSSW CMSSW_10_2_9
 cd CMSSW_10_2_9/src/
 eval `scramv1 runtime -sh`
 # github repos
+git config --global user.name 'Henning Kirschenmann'
+git config --global user.email 'henning.kirschenmann@cern.ch'
+git config --global user.github kirschen
+
 git cms-init
 git clone -b '101X' --single-branch --depth 1 https://github.com/kirschen/StopsDilepton.git
 ./StopsDilepton/setupCondor.sh
