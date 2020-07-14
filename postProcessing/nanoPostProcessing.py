@@ -181,8 +181,12 @@ if options.runOnLxPlus:
     from Samples.Tools.config import redirector_global as redirector
 
 if options.year == 2016:
-    from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as mcSamples #allSamples as mcSamples
-    from Samples.nanoAOD.Run2016_17Jul2018_private  import allSamples as dataSamples
+#    from Samples.nanoAOD.Summer16_private_legacy_v1 import allSamples as mcSamples #allSamples as mcSamples
+#    from Samples.nanoAOD.Run2016_17Jul2018_private  import allSamples as dataSamples
+#    from Samples.nanoAOD.Summer16_nanoAODv6 import allSamples as mcSamples #allSamples as mcSamples
+#    from Samples.nanoAOD.Run2016_nanoAODv6  import allSamples as dataSamples
+    from Samples.nanoAOD.Summer16_nanoAODv7 import allSamples as mcSamples #allSamples as mcSamples
+    from Samples.nanoAOD.Run2016_nanoAODv7  import allSamples as dataSamples
     #from StopsDilepton.samples.nanoAOD_TTDM_2016    import allSamples as TTDMSamples
     allSamples = mcSamples + dataSamples# + TTDMSamples
 elif options.year == 2017:
@@ -780,10 +784,11 @@ if not options.skipNanoTools:
         if not sample.isData:
             modules.append( ISRcounter() )
 
-        if options.year == 2016:
-            modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
-            if not isData: modules.append( METSigProducer(JER, metSigParams, METCollection="GenMET", useRecorr=False, calcVariations=False, jetThreshold=15., outputBranch="GenMET") )
-        elif options.year == 2017:
+        #if options.year == 2016:
+        #    modules.append( METSigProducer(JER, metSigParams, METCollection="MET", useRecorr=True, calcVariations=(not isData), jetThreshold=15.) )
+        #    if not isData: modules.append( METSigProducer(JER, metSigParams, METCollection="GenMET", useRecorr=False, calcVariations=False, jetThreshold=15., outputBranch="GenMET") )
+        #elif options.year == 2017:
+        if options.year == 2017:
             modules.append( METSigProducer(JER, metSigParams, METCollection="METFixEE2017", useRecorr=True, calcVariations=(not isData), jetThreshold=15., vetoEtaRegion=(2.65,3.14)) )
             if not isData: modules.append( METSigProducer(JER, metSigParams, METCollection="GenMET", useRecorr=False, calcVariations=False, jetThreshold=15., vetoEtaRegion=(2.65,3.14),  outputBranch="GenMET") )
         elif options.year == 2018:
@@ -791,6 +796,7 @@ if not options.skipNanoTools:
             if not isData: modules.append( METSigProducer(JER, metSigParams, METCollection="GenMET", useRecorr=False, calcVariations=False, jetThreshold=25., outputBranch="GenMET") )
         # need a hash to avoid data loss
         file_hash = str(hash(f))
+        #p = PostProcessor(output_directory, [f], cut=cut, modules=modules, maxEntries=100, postfix="_for_%s_%s"%(sample.name, file_hash))
         p = PostProcessor(output_directory, [f], cut=cut, modules=modules, postfix="_for_%s_%s"%(sample.name, file_hash))
         if not options.reuseNanoAOD:
             p.run()
